@@ -18,7 +18,13 @@ DeckyHub intentionally **does not install or run downloaded files**. The user re
 
 Edit [`registry/apps.json`](registry/apps.json) to add an app; no TypeScript or Python changes are required. Every record needs `id`, `name`, `repo`, `category`, `versionStrategy` (`semver`, `release-date`, or `custom`), `source` (`releases` or `tags`), and `asset` rules. `detect` is optional, but enables the Installed view. For an installed Decky plugin, use `{"type":"decky-plugin","names":["Plugin name"]}`; otherwise use a command and optional `args`. Use optional `releaseTagInclude` when a repository has distinct release streams; DeckyHub selects the first matching release tag.
 
+The [Registry Editor](https://mazillka.github.io/deckyhub-plugin/) is a GitHub Pages tool for importing, validating, editing, and exporting `apps.json`. It runs entirely in the browser; download its export and commit it to update the shared registry.
+
 Users can also open **Settings → Add GitHub repository**, search GitHub, and add a result to their local Discover list. These custom entries are saved in DeckyHub settings and use the repository's latest GitHub Release.
+
+**Settings → Managed repositories → Scan installed plugins** reads GitHub repository metadata from installed Decky plugins and adds unknown repositories to Discover. A custom repository for an installed plugin cannot be removed until that plugin is uninstalled.
+
+Use **Export repository list** to save custom repositories as `DeckyHub-repositories.json` in `/home/deck/Downloads`. **Import repository list** accepts that JSON format from `/home/deck` and merges only new valid GitHub `owner/repo` entries.
 
 `asset.include` matches all listed lowercase fragments; `asset.exclude` rejects a matching filename. Put the most preferred rule first in the registry, because the first matching release asset is the default for **Download latest**.
 

@@ -67,13 +67,15 @@ class Plugin:
 
     def _decky_plugin_version(self, rule: dict) -> str | None:
         names = {name.casefold() for name in rule.get("names", [])}
+        expected_repo = str(rule.get("repo", "")).casefold()
         plugins_dir = Path(decky.DECKY_HOME) / "plugins"
         for manifest_path in plugins_dir.glob("*/plugin.json"):
             try:
                 manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             except (OSError, json.JSONDecodeError):
                 continue
-            if manifest.get("name", "").casefold() not in names:
+            repo = self._plugin_repository(manifest_path, manifest)
+            if manifest.get("name", "").casefold() not in names and (not expected_repo or repo != expected_repo):
                 continue
             if manifest.get("version"):
                 return str(manifest["version"])
@@ -84,6 +86,31 @@ class Plugin:
                 return "installed"
         return None
 
+    def _plugin_repository(self, manifest_path: Path, manifest: dict) -> str | None:
+        try:
+            package = json.loads((manifest_path.parent / "package.json").read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            package = {}
+        value = package.get("repository", manifest.get("repository"))
+        if isinstance(value, dict):
+            value = value.get("url")
+        if not isinstance(value, str):
+            return None
+        match = re.search(r"(?:github\.com[/:]|github:)([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)", value)
+        repo = (match.group(1) if match else value).removesuffix(".git")
+        return repo.casefold() if REPOSITORY_NAME.fullmatch(repo) else None
+
+    def _installed_plugin_repos(self) -> set[str]:
+        repos: set[str] = set()
+        for manifest_path in (Path(decky.DECKY_HOME) / "plugins").glob("*/plugin.json"):
+            try:
+                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                continue
+            if repo := self._plugin_repository(manifest_path, manifest):
+                repos.add(repo)
+        return repos
+
     async def get_apps(self):
         apps = [*self.apps, *self._custom_apps()]
         installed = await asyncio.gather(*(asyncio.to_thread(self._installed_version, app) for app in apps))
@@ -91,7 +118,7 @@ class Plugin:
 
     def _custom_apps(self) -> list[dict]:
         bundled = {app["repo"].casefold() for app in self.apps}
-        return [{"id": f"custom-{repo.replace('/', '-')}", "name": repo, "repo": repo, "category": "Custom", "versionStrategy": "semver", "source": "releases", "asset": {"include": [], "exclude": ["source"]}} for repo in self.settings["customRepos"] if repo.casefold() not in bundled]
+        return [{"id": f"custom-{repo.replace('/', '-')}", "name": repo, "repo": repo, "category": "Custom", "versionStrategy": "semver", "source": "releases", "detect": {"type": "decky-plugin", "repo": repo}, "asset": {"include": [], "exclude": ["source"]}} for repo in self.settings["customRepos"] if repo.casefold() not in bundled]
 
     async def get_settings(self):
         return self.settings
@@ -122,6 +149,62 @@ class Plugin:
         self.settings["customRepos"].append(repo)
         self._save_settings()
         return {"added": True, "repo": repo}
+
+    async def get_custom_repos(self):
+        installed = await asyncio.to_thread(self._installed_plugin_repos)
+        return {"repos": [{"repo": repo, "installed": repo.casefold() in installed} for repo in self.settings["customRepos"]]}
+
+    async def scan_installed_repos(self):
+        installed = await asyncio.to_thread(self._installed_plugin_repos)
+        existing = {app["repo"].casefold() for app in self.apps} | {repo.casefold() for repo in self.settings["customRepos"]}
+        added = [repo for repo in sorted(installed) if repo not in existing]
+        if added:
+            self.settings["customRepos"].extend(added)
+            self._save_settings()
+        return {"added": added}
+
+    async def remove_custom_repo(self, repo: str):
+        repo = repo.strip()
+        if repo not in self.settings["customRepos"]:
+            return {"removed": False, "repo": repo}
+        installed = await asyncio.to_thread(self._installed_plugin_repos)
+        if repo.casefold() in installed:
+            raise ValueError("Cannot remove a repository for an installed plugin")
+        self.settings["customRepos"].remove(repo)
+        self._save_settings()
+        return {"removed": True, "repo": repo}
+
+    async def export_custom_repos(self):
+        target_dir = Path(DEFAULT_DOWNLOAD_DIR)
+        target_dir.mkdir(parents=True, exist_ok=True)
+        target = target_dir / "DeckyHub-repositories.json"
+        if target.exists():
+            target = self._next_name(target)
+        target.write_text(json.dumps({"schemaVersion": 1, "repos": self.settings["customRepos"]}, indent=2), encoding="utf-8")
+        return {"path": str(target)}
+
+    async def import_custom_repos(self, path: str):
+        source = Path(path).resolve()
+        deck_home = Path(DEFAULT_DOWNLOAD_DIR).parent.resolve()
+        if source.suffix.lower() != ".json" or not source.is_relative_to(deck_home):
+            raise ValueError("Choose a JSON file inside /home/deck")
+        try:
+            payload = json.loads(source.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as error:
+            raise ValueError("Invalid repository export") from error
+        repos = payload.get("repos", []) if isinstance(payload, dict) else payload
+        if not isinstance(repos, list):
+            raise ValueError("Invalid repository export")
+        existing = {app["repo"].casefold() for app in self.apps} | {repo.casefold() for repo in self.settings["customRepos"]}
+        added = []
+        for repo in repos:
+            if isinstance(repo, str) and REPOSITORY_NAME.fullmatch(repo) and repo.casefold() not in existing:
+                existing.add(repo.casefold())
+                added.append(repo)
+        if added:
+            self.settings["customRepos"].extend(added)
+            self._save_settings()
+        return {"added": added}
 
     async def download_asset(self, asset: dict):
         if not isinstance(asset.get("url"), str) or not asset["url"].startswith("https://"):

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DeckyHub Registry Editor</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #10151d; color: #edf2f7; }
+    body { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+    h1 { margin-bottom: .25rem; } p { color: #b8c3d1; } button, input { font: inherit; }
+    button { background: #2d8cff; color: white; border: 0; border-radius: .4rem; padding: .65rem 1rem; margin: .25rem .25rem .25rem 0; cursor: pointer; }
+    button.secondary { background: #334155; } textarea { box-sizing: border-box; width: 100%; min-height: 28rem; margin-top: 1rem; padding: 1rem; border: 1px solid #475569; border-radius: .5rem; background: #0b1017; color: #e2e8f0; font: .85rem ui-monospace, monospace; }
+    #status { min-height: 1.5rem; margin-top: 1rem; } .ok { color: #86efac; } .error { color: #fca5a5; }
+    #summary { margin-top: 1rem; padding-left: 1.2rem; } #summary li { margin: .25rem 0; } label.file { display: inline-block; }
+    label.file input { display: none; } label.file span { display: inline-block; background: #334155; border-radius: .4rem; padding: .65rem 1rem; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>DeckyHub Registry Editor</h1>
+  <p>Edit the curated registry locally in your browser. Export the result, then replace <code>registry/apps.json</code> in the repository and commit it. This page never receives or stores GitHub credentials.</p>
+  <button id="load">Load repository registry</button>
+  <button id="apply">Validate &amp; apply</button>
+  <button id="export">Export JSON</button>
+  <label class="file"><span>Import JSON</span><input id="import" type="file" accept="application/json,.json"></label>
+  <div id="status" aria-live="polite"></div>
+  <textarea id="editor" spellcheck="false" aria-label="Registry JSON"></textarea>
+  <ul id="summary"></ul>
+  <script>
+    const editor = document.querySelector('#editor');
+    const status = document.querySelector('#status');
+    const summary = document.querySelector('#summary');
+    const required = ['id', 'name', 'repo', 'category', 'versionStrategy', 'source', 'asset'];
+
+    function setStatus(message, error = false) {
+      status.textContent = message;
+      status.className = error ? 'error' : 'ok';
+    }
+    function parseRegistry() {
+      const value = JSON.parse(editor.value);
+      if (value.schemaVersion !== 1 || !Array.isArray(value.apps)) throw new Error('Expected schemaVersion 1 and an apps array.');
+      value.apps.forEach((app, index) => {
+        if (!required.every((key) => key in app) || !/^[\w.-]+\/[\w.-]+$/.test(app.repo)) throw new Error(`Invalid app at index ${index}.`);
+      });
+      return value;
+    }
+    function render() {
+      try {
+        const registry = parseRegistry();
+        summary.replaceChildren(...registry.apps.map((app) => {
+          const item = document.createElement('li');
+          item.textContent = `${app.name} — ${app.repo}`;
+          return item;
+        }));
+        setStatus(`Valid registry: ${registry.apps.length} repositories.`);
+        return registry;
+      } catch (error) {
+        summary.replaceChildren();
+        setStatus(error.message, true);
+        return null;
+      }
+    }
+    async function load() {
+      try {
+        const response = await fetch('./registry/apps.json', { cache: 'no-store' });
+        if (!response.ok) throw new Error(`Could not load registry (${response.status}).`);
+        editor.value = JSON.stringify(await response.json(), null, 2);
+        render();
+      } catch (error) { setStatus(error.message, true); }
+    }
+    document.querySelector('#load').onclick = load;
+    document.querySelector('#apply').onclick = render;
+    document.querySelector('#export').onclick = () => {
+      const registry = render();
+      if (!registry) return;
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(new Blob([JSON.stringify(registry, null, 2) + '\n'], { type: 'application/json' }));
+      link.download = 'apps.json';
+      link.click();
+      URL.revokeObjectURL(link.href);
+    };
+    document.querySelector('#import').onchange = async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      editor.value = await file.text();
+      render();
+    };
+    load();
+  </script>
+</body>
+</html>
