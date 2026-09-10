@@ -20,6 +20,13 @@ Edit [`registry/apps.json`](registry/apps.json) to add an app; no TypeScript or 
 
 The [Registry Editor](https://mazillka.github.io/deckyhub-plugin/) is a GitHub Pages tool for importing, validating, editing, and exporting `apps.json`. It runs entirely in the browser; download its export and commit it to update the shared registry.
 
+## Repository layout
+
+- `main.py` and `plugin.json` stay at the repository root because Decky Loader reads them from the plugin package.
+- `backend/` contains the backend support modules; `src/` contains the Decky React UI.
+- `registry/apps.json` is the curated default registry; `tests/` covers the Python backend.
+- `docs/` is the static GitHub Pages registry editor. It remains separate from the runtime UI and needs no build dependencies.
+
 Users can also open **Settings → Add GitHub repository**, search GitHub, and add a result to their local Discover list. These custom entries are saved in DeckyHub settings and use the repository's latest GitHub Release.
 
 **Settings → Managed repositories → Scan installed plugins** reads GitHub repository metadata from installed Decky plugins and adds unknown repositories to Discover. A custom repository for an installed plugin cannot be removed until that plugin is uninstalled.

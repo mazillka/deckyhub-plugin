@@ -1,90 +1,47 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DeckyHub Registry Editor</title>
-  <style>
-    :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #10151d; color: #edf2f7; }
-    body { max-width: 1100px; margin: 0 auto; padding: 2rem; }
-    h1 { margin-bottom: .25rem; } p { color: #b8c3d1; } button, input { font: inherit; }
-    button { background: #2d8cff; color: white; border: 0; border-radius: .4rem; padding: .65rem 1rem; margin: .25rem .25rem .25rem 0; cursor: pointer; }
-    button.secondary { background: #334155; } textarea { box-sizing: border-box; width: 100%; min-height: 28rem; margin-top: 1rem; padding: 1rem; border: 1px solid #475569; border-radius: .5rem; background: #0b1017; color: #e2e8f0; font: .85rem ui-monospace, monospace; }
-    #status { min-height: 1.5rem; margin-top: 1rem; } .ok { color: #86efac; } .error { color: #fca5a5; }
-    #summary { margin-top: 1rem; padding-left: 1.2rem; } #summary li { margin: .25rem 0; } label.file { display: inline-block; }
-    label.file input { display: none; } label.file span { display: inline-block; background: #334155; border-radius: .4rem; padding: .65rem 1rem; cursor: pointer; }
-  </style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DeckyHub registry editor</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#10151f;color:#eef4ff}body{max-width:1040px;margin:auto;padding:24px}p{color:#b6c3d4}button,input,select,textarea{font:inherit;border:1px solid #40516a;border-radius:6px}button{background:#1d75cc;color:#fff;padding:9px 12px;cursor:pointer}button.secondary{background:#26364c}button.danger{background:#a93a45}button:disabled{opacity:.5}.toolbar,.tabs,.actions{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}.tabs .active{background:#4b9cf0}.panel{background:#182131;border:1px solid #2e405a;border-radius:10px;padding:18px}.hidden{display:none}.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}label{display:grid;gap:6px;color:#cbd8e9;font-size:.9rem}input,select,textarea{padding:9px;background:#0f1724;color:#eef4ff}textarea{box-sizing:border-box;width:100%;min-height:390px;resize:vertical;font-family:ui-monospace,monospace;font-size:.85rem}.hint{font-size:.82rem;color:#9eb0c6}.status{min-height:1.4em;margin:12px 0;color:#9ed3aa}.error{color:#ff9ba4;white-space:pre-wrap}.repo-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-top:18px}.repo{text-align:left;background:#202c40;border:1px solid #3a4b66;padding:12px}.repo.selected{border-color:#64b0f5;background:#263b58}.repo strong,.repo small{display:block}.repo small{color:#adc0d7;margin-top:4px}
+</style>
 </head>
 <body>
-  <h1>DeckyHub Registry Editor</h1>
-  <p>Edit the curated registry locally in your browser. Export the result, then replace <code>registry/apps.json</code> in the repository and commit it. This page never receives or stores GitHub credentials.</p>
-  <button id="load">Load repository registry</button>
-  <button id="apply">Validate &amp; apply</button>
-  <button id="export">Export JSON</button>
-  <label class="file"><span>Import JSON</span><input id="import" type="file" accept="application/json,.json"></label>
-  <div id="status" aria-live="polite"></div>
-  <textarea id="editor" spellcheck="false" aria-label="Registry JSON"></textarea>
-  <ul id="summary"></ul>
-  <script>
-    const editor = document.querySelector('#editor');
-    const status = document.querySelector('#status');
-    const summary = document.querySelector('#summary');
-    const required = ['id', 'name', 'repo', 'category', 'versionStrategy', 'source', 'asset'];
-
-    function setStatus(message, error = false) {
-      status.textContent = message;
-      status.className = error ? 'error' : 'ok';
-    }
-    function parseRegistry() {
-      const value = JSON.parse(editor.value);
-      if (value.schemaVersion !== 1 || !Array.isArray(value.apps)) throw new Error('Expected schemaVersion 1 and an apps array.');
-      value.apps.forEach((app, index) => {
-        if (!required.every((key) => key in app) || !/^[\w.-]+\/[\w.-]+$/.test(app.repo)) throw new Error(`Invalid app at index ${index}.`);
-      });
-      return value;
-    }
-    function render() {
-      try {
-        const registry = parseRegistry();
-        summary.replaceChildren(...registry.apps.map((app) => {
-          const item = document.createElement('li');
-          item.textContent = `${app.name} — ${app.repo}`;
-          return item;
-        }));
-        setStatus(`Valid registry: ${registry.apps.length} repositories.`);
-        return registry;
-      } catch (error) {
-        summary.replaceChildren();
-        setStatus(error.message, true);
-        return null;
-      }
-    }
-    async function load() {
-      try {
-        const response = await fetch('./registry/apps.json', { cache: 'no-store' });
-        if (!response.ok) throw new Error(`Could not load registry (${response.status}).`);
-        editor.value = JSON.stringify(await response.json(), null, 2);
-        render();
-      } catch (error) { setStatus(error.message, true); }
-    }
-    document.querySelector('#load').onclick = load;
-    document.querySelector('#apply').onclick = render;
-    document.querySelector('#export').onclick = () => {
-      const registry = render();
-      if (!registry) return;
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(new Blob([JSON.stringify(registry, null, 2) + '\n'], { type: 'application/json' }));
-      link.download = 'apps.json';
-      link.click();
-      URL.revokeObjectURL(link.href);
-    };
-    document.querySelector('#import').onchange = async (event) => {
-      const file = event.target.files[0];
-      if (!file) return;
-      editor.value = await file.text();
-      render();
-    };
-    load();
-  </script>
-</body>
-</html>
+<h1>DeckyHub registry editor</h1>
+<p>Maintain a portable list of GitHub projects for DeckyHub. Changes remain in this browser until you export the JSON or commit it to the repository.</p>
+<div class="toolbar"><button id="reload" class="secondary">Load default repos</button><button id="export">Export JSON</button><label class="secondary" style="display:inline-flex;align-items:center;padding:9px 12px;cursor:pointer">Import JSON<input id="import" type="file" accept="application/json,.json" hidden></label></div>
+<div class="tabs"><button class="active" data-tab="form">Repository editor</button><button class="secondary" data-tab="raw">Raw JSON</button></div>
+<div id="status" class="status" role="status"></div>
+<section id="form-panel" class="panel">
+<div class="actions"><button id="new-repo">Add new repository</button><button id="save-repo" class="secondary">Save repository</button><button id="remove-repo" class="danger">Remove repository</button></div>
+<div class="form-grid">
+<label>Repository ID<input id="id" placeholder="my-tool"><span class="hint">Lowercase letters, numbers, and hyphens.</span></label>
+<label>Display name<input id="name" placeholder="My Tool"></label>
+<label>GitHub repository<input id="repo" placeholder="owner/repository"><span class="hint">Do not paste the full GitHub URL.</span></label>
+<label>Category<input id="category" placeholder="Utilities"></label>
+<label>Version strategy<select id="versionStrategy"><option value="semver">Semantic version</option><option value="release-date">Release date</option><option value="custom">Custom pattern</option></select></label>
+<label>Check updates from<select id="source"><option value="releases">GitHub releases</option><option value="tags">GitHub tags</option></select></label>
+<label id="pattern-label" class="hidden">Custom version pattern<input id="versionPattern" placeholder="v?(\\d+\\.\\d+\\.\\d+)"></label>
+<label>Include assets<input id="include" placeholder="decky, linux, x86_64"><span class="hint">Comma-separated; blank allows all.</span></label>
+<label>Exclude assets<input id="exclude" placeholder="source, arm"><span class="hint">Comma-separated words to skip.</span></label>
+</div>
+<h2>Repositories</h2><div id="repo-list" class="repo-list"></div>
+</section>
+<section id="raw-panel" class="panel hidden"><p class="hint">Use this for advanced fields. Apply validates the complete JSON before replacing the current list.</p><textarea id="editor" spellcheck="false" aria-label="Raw registry JSON"></textarea><div class="actions"><button id="apply-raw">Validate and apply JSON</button></div></section>
+<script>
+const $=id=>document.getElementById(id),editor=$("editor"),strategies=new Set(["semver","release-date","custom"]),sources=new Set(["releases","tags"]);let registry={schemaVersion:1,apps:[]},selectedId=null;
+function status(message,error){const n=$("status");n.textContent=message;n.className="status"+(error?" error":"")}
+function terms(value){return value.split(",").map(v=>v.trim()).filter(Boolean)}
+function validate(value){const e=[];if(!value||typeof value!=="object"||Array.isArray(value))e.push("Registry must be an object.");if(value&&value.schemaVersion!==1)e.push("schemaVersion must be 1.");if(!value||!Array.isArray(value.apps))e.push("apps must be an array.");if(e.length)return e;const ids=new Set(),repos=new Set();value.apps.forEach((a,i)=>{const p="App "+(i+1);if(!a||typeof a!=="object"||Array.isArray(a)){e.push(p+" must be an object.");return}["id","name","repo","category","versionStrategy","source","asset"].forEach(k=>{if(!(k in a))e.push(p+": missing "+k+".")});if(typeof a.id!=="string"||!/^[a-z0-9][a-z0-9-]*$/.test(a.id))e.push(p+": id must use lowercase letters, numbers, and hyphens.");if(typeof a.name!=="string"||!a.name.trim())e.push(p+": name is required.");if(typeof a.repo!=="string"||!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(a.repo))e.push(p+": repo must be owner/repository.");if(typeof a.category!=="string"||!a.category.trim())e.push(p+": category is required.");if(!strategies.has(a.versionStrategy))e.push(p+": invalid versionStrategy.");if(!sources.has(a.source))e.push(p+": invalid source.");if(!a.asset||typeof a.asset!=="object"||Array.isArray(a.asset))e.push(p+": asset must be an object.");else ["include","exclude"].forEach(k=>{if(!Array.isArray(a.asset[k])||a.asset[k].some(x=>typeof x!=="string"||!x.trim()))e.push(p+": asset."+k+" must be an array of non-empty strings.")});if(a.versionStrategy==="custom"&&(typeof a.versionPattern!=="string"||!a.versionPattern.trim()))e.push(p+": custom strategy requires versionPattern.");if(ids.has(a.id))e.push(p+": duplicate id '"+a.id+"'.");ids.add(a.id);if(repos.has(a.repo))e.push(p+": duplicate repo '"+a.repo+"'.");repos.add(a.repo)});return e}
+function current(){return registry.apps.find(a=>a.id===selectedId)}function sync(){editor.value=JSON.stringify(registry,null,2)}
+function populate(a){selectedId=a?a.id:null;["id","name","repo","category","versionPattern"].forEach(k=>$(k).value=a&&a[k]?a[k]:"");$("versionStrategy").value=a?a.versionStrategy:"semver";$("source").value=a?a.source:"releases";$("include").value=a&&a.asset?a.asset.include.join(", "):"";$("exclude").value=a&&a.asset?a.asset.exclude.join(", "):"";$("pattern-label").classList.toggle("hidden",$("versionStrategy").value!=="custom");$("remove-repo").disabled=!a}
+function render(){const list=$("repo-list");list.replaceChildren();registry.apps.forEach(a=>{const b=document.createElement("button");b.className="repo"+(a.id===selectedId?" selected":"");const strong=document.createElement("strong"),small=document.createElement("small");strong.textContent=a.name;small.textContent=a.repo+" · "+a.category;b.append(strong,small);b.onclick=()=>{populate(a);render()};list.append(b)})}
+function setRegistry(next,message){const errors=validate(next);if(errors.length){status(errors.join("\\n"),true);return false}registry=next;selectedId=registry.apps.some(a=>a.id===selectedId)?selectedId:(registry.apps[0]?registry.apps[0].id:null);sync();populate(current());render();status(message||"Registry is valid.");return true}
+function formValue(){const old=current()||{},custom=$("versionStrategy").value==="custom";return Object.assign({},old,{id:$("id").value.trim(),name:$("name").value.trim(),repo:$("repo").value.trim(),category:$("category").value.trim(),versionStrategy:$("versionStrategy").value,source:$("source").value,asset:{include:terms($("include").value),exclude:terms($("exclude").value),},versionPattern:custom?$("versionPattern").value.trim():undefined})}
+function save(){const app=formValue(),apps=registry.apps.slice(),i=apps.findIndex(a=>a.id===selectedId);if(i<0)apps.push(app);else apps[i]=app;if(setRegistry(Object.assign({},registry,{apps}),"Saved "+(app.name||"repository")+".")){selectedId=app.id;populate(current());render()}}
+function tab(name){$("form-panel").classList.toggle("hidden",name!=="form");$("raw-panel").classList.toggle("hidden",name!=="raw");document.querySelectorAll("[data-tab]").forEach(b=>{b.classList.toggle("active",b.dataset.tab===name);b.classList.toggle("secondary",b.dataset.tab!==name)})}
+async function load(){try{const r=await fetch("./registry/apps.json",{cache:"no-store"});if(!r.ok)throw Error("HTTP "+r.status);setRegistry(await r.json(),"Loaded default repositories.")}catch(err){status("Could not load the default registry: "+err.message,true)}}
+$("versionStrategy").onchange=()=>$("pattern-label").classList.toggle("hidden",$("versionStrategy").value!=="custom");$("new-repo").onclick=()=>{selectedId=null;populate();render();$("name").focus()};$("save-repo").onclick=save;$("remove-repo").onclick=()=>{const a=current();if(!a)return;registry=Object.assign({},registry,{apps:registry.apps.filter(x=>x.id!==a.id)});selectedId=registry.apps[0]?registry.apps[0].id:null;sync();populate(current());render();status("Removed "+a.name+".")};$("apply-raw").onclick=()=>{try{setRegistry(JSON.parse(editor.value),"Raw JSON is valid and has been applied.")}catch(err){status("Invalid JSON: "+err.message,true)}};$("reload").onclick=load;$("export").onclick=()=>{const errors=validate(registry);if(errors.length)return status(errors.join("\\n"),true);const blob=new Blob([JSON.stringify(registry,null,2)+"\\n"],{type:"application/json"}),link=document.createElement("a");link.href=URL.createObjectURL(blob);link.download="deckyhub-apps.json";link.click();URL.revokeObjectURL(link.href);status("Registry exported.")};$("import").onchange=async event=>{const file=event.target.files[0];if(!file)return;try{setRegistry(JSON.parse(await file.text()),"Imported "+file.name+".")}catch(err){status("Import failed: "+err.message,true)}event.target.value=""};document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>tab(b.dataset.tab));load();
+</script>
+</body></html>
