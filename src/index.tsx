@@ -124,4 +124,4 @@ function Content() {
   return <>{navigation}{view === "updates" && list((app) => app.updateAvailable === true, "No updates found")}{view === "installed" && list((app) => Boolean(app.installedVersion), "No supported apps installed")}{view === "discover" && list(() => true, "No repositories in registry")}</>;
 }
 
-export default definePlugin(() => { routerHook.addRoute("/deckyhub/settings", () => <ScrollPanel><SettingsPage /></ScrollPanel>); return { name: "DeckyHub", titleView: <div className={staticClasses.Title}>DeckyHub</div>, content: <Content />, icon: <FaGithub />, onDismount() { routerHook.removeRoute("/deckyhub/settings"); } }; });
+export default definePlugin(() => { routerHook.addRoute("/deckyhub/settings", () => <ScrollPanel><div style={{ paddingTop: 48 }}><SettingsPage /></div></ScrollPanel>); return { name: "DeckyHub", titleView: <div className={staticClasses.Title}>DeckyHub</div>, content: <Content />, icon: <FaGithub />, onDismount() { routerHook.removeRoute("/deckyhub/settings"); } }; });
