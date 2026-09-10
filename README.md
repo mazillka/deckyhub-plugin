@@ -4,7 +4,7 @@ DeckyHub is a local-first plugin for Decky Loader. It tracks a curated registry 
 
 ## What it does
 
-- Controller-navigable **Updates**, **Installed**, **Discover**, and **Settings** tabs.
+- Controller-navigable fullscreen **Updates**, **Installed**, **Discover**, and **Settings** pages.
 - Loads the local registry immediately, then queries GitHub Releases or tags directly from Steam's UI process. Release results are cached in `localStorage` for 15 minutes; a GitHub failure affects only that app card.
 - Finds installed command-line apps and installed Decky plugins using registry-owned detection rules.
 - Compares semantic versions, release dates, or a registry-provided custom version regex.
