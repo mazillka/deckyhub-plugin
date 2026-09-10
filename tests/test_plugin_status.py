@@ -32,6 +32,14 @@ class PluginStatusTests(unittest.TestCase):
 
             self.assertFalse(settings["overwriteExisting"])
 
+    def test_update_channel_defaults_to_stable_and_accepts_prerelease(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.settings_path = Path(home) / "settings.json"
+
+            self.assertEqual(asyncio.run(plugin.save_settings({}))["updateChannel"], "stable")
+            self.assertEqual(asyncio.run(plugin.save_settings({"updateChannel": "prerelease"}))["updateChannel"], "prerelease")
+
     def test_update_rejects_untrusted_asset_url(self):
         with self.assertRaises(ValueError):
             asyncio.run(Plugin().install_deckyhub_update({"name": "DeckyHub.zip", "url": "https://example.com/DeckyHub.zip"}))

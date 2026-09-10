@@ -42,10 +42,11 @@ class Plugin:
             return {
                 "verifySha256": bool(settings.get("verifySha256", True)),
                 "overwriteExisting": bool(settings.get("overwriteExisting", False)),
+                "updateChannel": "prerelease" if settings.get("updateChannel") == "prerelease" else "stable",
                 "customRepos": [repo for repo in repos if isinstance(repo, str) and REPOSITORY_NAME.fullmatch(repo)],
             }
         except (AttributeError, OSError, json.JSONDecodeError):
-            return {"verifySha256": True, "overwriteExisting": False, "customRepos": []}
+            return {"verifySha256": True, "overwriteExisting": False, "updateChannel": "stable", "customRepos": []}
 
     def _save_settings(self):
         self.settings_path.parent.mkdir(parents=True, exist_ok=True)
@@ -134,6 +135,7 @@ class Plugin:
         self.settings = {
             "verifySha256": bool(settings.get("verifySha256", True)),
             "overwriteExisting": bool(settings.get("overwriteExisting", False)),
+            "updateChannel": "prerelease" if settings.get("updateChannel") == "prerelease" else "stable",
             "customRepos": getattr(self, "settings", {}).get("customRepos", []),
         }
         self._save_settings()
