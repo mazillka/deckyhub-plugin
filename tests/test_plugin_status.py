@@ -5,6 +5,7 @@ import tempfile
 import types
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 sys.modules.setdefault("decky", types.SimpleNamespace())
 import main
@@ -31,6 +32,10 @@ class PluginStatusTests(unittest.TestCase):
             settings = asyncio.run(plugin.save_settings({}))
 
             self.assertFalse(settings["overwriteExisting"])
+            self.assertEqual(settings["downloadLocation"], "plugins")
+            self.assertEqual(plugin._asset_download_dir(), Path(main.PLUGIN_DOWNLOAD_DIR))
+            self.assertEqual(asyncio.run(plugin.save_settings({"downloadLocation": "downloads"}))["downloadLocation"], "downloads")
+            self.assertEqual(plugin._asset_download_dir(), Path(main.DEFAULT_DOWNLOAD_DIR))
 
     def test_update_channel_defaults_to_stable_and_accepts_prerelease(self):
         with tempfile.TemporaryDirectory() as home:
@@ -44,6 +49,32 @@ class PluginStatusTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             asyncio.run(Plugin().install_deckyhub_update({"name": "DeckyHub.zip", "url": "https://example.com/DeckyHub.zip"}))
 
+    def test_update_requires_release_checksum(self):
+        with self.assertRaises(ValueError):
+            asyncio.run(Plugin().install_deckyhub_update({"name": "DeckyHub-v1.zip", "url": "https://github.com/mazillka/deckyhub-plugin/releases/download/v1/DeckyHub-v1.zip"}))
+
+    def test_download_reports_progress_before_one_megabyte(self):
+        class Response:
+            headers = {"Content-Length": "3"}
+            reads = []
+
+            def __enter__(self): return self
+            def __exit__(self, *_): return False
+            def read(self, size):
+                self.reads.append(size)
+                return b"abc" if len(self.reads) == 1 else b""
+
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.downloads = {"job": {"received": 0, "total": 0}}
+            plugin.cancelled = set()
+            response = Response()
+            with patch("main.urlopen", return_value=response):
+                plugin._download_with_urllib("job", {"url": "https://example.com/file.zip"}, Path(home) / "file.part")
+
+            self.assertEqual(response.reads[0], 64 * 1024)
+            self.assertEqual(plugin.downloads["job"]["received"], 3)
+
     def test_custom_repository_is_saved(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = Plugin()
@@ -56,22 +87,14 @@ class PluginStatusTests(unittest.TestCase):
             self.assertTrue(result["added"])
             self.assertEqual(plugin._custom_apps()[0]["repo"], "owner/repository")
 
-    def test_scan_installed_plugin_adds_and_protects_its_repository(self):
+    def test_get_apps_returns_only_custom_repositories(self):
         with tempfile.TemporaryDirectory() as home:
-            plugin_dir = Path(home) / "plugins" / "example"
-            plugin_dir.mkdir(parents=True)
-            (plugin_dir / "plugin.json").write_text(json.dumps({"name": "Example"}), encoding="utf-8")
-            (plugin_dir / "package.json").write_text(json.dumps({"version": "1.0.0", "repository": "https://github.com/owner/example.git"}), encoding="utf-8")
+            Path(home, "plugins").mkdir()
             sys.modules["decky"].DECKY_HOME = home
             plugin = Plugin()
-            plugin.settings_path = Path(home) / "settings.json"
-            plugin.settings = {"verifySha256": True, "overwriteExisting": False, "customRepos": []}
-            plugin.apps = []
+            plugin.settings = {"customRepos": ["owner/custom"]}
 
-            self.assertEqual(asyncio.run(plugin.scan_installed_repos())["added"], ["owner/example"])
-            self.assertEqual(asyncio.run(plugin.get_custom_repos())["repos"], [{"repo": "owner/example", "installed": True}])
-            self.assertEqual(asyncio.run(plugin.get_apps())["apps"][0]["installedVersion"], "1.0.0")
-            self.assertTrue(asyncio.run(plugin.remove_custom_repo("owner/example"))["removed"])
+            self.assertEqual([app["repo"] for app in asyncio.run(plugin.get_apps())["apps"]], ["owner/custom"])
 
     def test_uninstalled_custom_repository_can_be_removed(self):
         with tempfile.TemporaryDirectory() as home:
