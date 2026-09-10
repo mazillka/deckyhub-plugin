@@ -71,8 +71,7 @@ class PluginStatusTests(unittest.TestCase):
             self.assertEqual(asyncio.run(plugin.scan_installed_repos())["added"], ["owner/example"])
             self.assertEqual(asyncio.run(plugin.get_custom_repos())["repos"], [{"repo": "owner/example", "installed": True}])
             self.assertEqual(asyncio.run(plugin.get_apps())["apps"][0]["installedVersion"], "1.0.0")
-            with self.assertRaises(ValueError):
-                asyncio.run(plugin.remove_custom_repo("owner/example"))
+            self.assertTrue(asyncio.run(plugin.remove_custom_repo("owner/example"))["removed"])
 
     def test_uninstalled_custom_repository_can_be_removed(self):
         with tempfile.TemporaryDirectory() as home:

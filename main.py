@@ -169,9 +169,6 @@ class Plugin:
         repo = repo.strip()
         if repo not in self.settings["customRepos"]:
             return {"removed": False, "repo": repo}
-        installed = await asyncio.to_thread(self._installed_plugin_repos)
-        if repo.casefold() in installed:
-            raise ValueError("Cannot remove a repository for an installed plugin")
         self.settings["customRepos"].remove(repo)
         self._save_settings()
         return {"removed": True, "repo": repo}

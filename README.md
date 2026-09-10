@@ -29,7 +29,7 @@ The [Registry Editor](https://mazillka.github.io/deckyhub-plugin/) is a GitHub P
 
 Users can also open **Settings → Add GitHub repository**, search GitHub, and add a result to their local Discover list. These custom entries are saved in DeckyHub settings and use the repository's latest GitHub Release.
 
-**Settings → Managed repositories → Scan installed plugins** reads GitHub repository metadata from installed Decky plugins and adds unknown repositories to Discover. A custom repository for an installed plugin cannot be removed until that plugin is uninstalled.
+**Settings → Managed repositories → Scan installed plugins** reads GitHub repository metadata from installed Decky plugins and adds unknown repositories to Discover. Any user-managed repository can be removed; bundled default repositories always remain available.
 
 Use **Export repository list** to save custom repositories as `DeckyHub-repositories.json` in `/home/deck/Downloads`. **Import repository list** accepts that JSON format from `/home/deck` and merges only new valid GitHub `owner/repo` entries.
 
