@@ -1,5 +1,5 @@
 import { callable, definePlugin, fetchNoCors, FileSelectionType, openFilePicker, routerHook, toaster } from "@decky/api";
-import { ButtonItem, Navigation, PanelSection, PanelSectionRow, staticClasses, TextField, ToggleField } from "@decky/ui";
+import { ButtonItem, Navigation, PanelSection, PanelSectionRow, ScrollPanel, staticClasses, TextField, ToggleField } from "@decky/ui";
 import { useEffect, useState } from "react";
 import { FaDownload, FaGithub, FaSync } from "react-icons/fa";
 
@@ -119,4 +119,4 @@ function Content() {
   return <>{navigation}{view === "updates" && list((app) => app.updateAvailable === true, "No updates found")}{view === "installed" && list((app) => Boolean(app.installedVersion), "No supported apps installed")}{view === "discover" && list(() => true, "No repositories in registry")}</>;
 }
 
-export default definePlugin(() => { routerHook.addRoute("/deckyhub/settings", SettingsPage); return { name: "DeckyHub", titleView: <div className={staticClasses.Title}>DeckyHub</div>, content: <Content />, icon: <FaGithub />, onDismount() { routerHook.removeRoute("/deckyhub/settings"); } }; });
+export default definePlugin(() => { routerHook.addRoute("/deckyhub/settings", () => <ScrollPanel><SettingsPage /></ScrollPanel>); return { name: "DeckyHub", titleView: <div className={staticClasses.Title}>DeckyHub</div>, content: <Content />, icon: <FaGithub />, onDismount() { routerHook.removeRoute("/deckyhub/settings"); } }; });
