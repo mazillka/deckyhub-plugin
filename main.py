@@ -225,17 +225,19 @@ class Plugin:
         return {"jobId": job_id}
 
     async def install_deckyhub_update(self, asset: dict):
-        return await asyncio.to_thread(self._install_deckyhub_update, asset)
-
-    def _install_deckyhub_update(self, asset: dict):
         url, name = asset.get("url"), Path(str(asset.get("name", ""))).name
         if not isinstance(url, str) or not url.startswith(DECKYHUB_RELEASE_PREFIX) or not name.startswith("DeckyHub-") or not name.endswith(".zip"):
             raise ValueError("Invalid DeckyHub release asset")
+        job_id = f"deckyhub-update-{len(self.downloads) + 1}"
+        self.downloads[job_id] = {"state": "queued", "filename": name, "received": 0, "total": asset.get("size") or 0, "path": str(Path(DEFAULT_DOWNLOAD_DIR) / name), "error": None}
+        asyncio.create_task(asyncio.to_thread(self._install_deckyhub_update, job_id, asset))
+        return {"jobId": job_id}
+
+    def _install_deckyhub_update(self, job_id: str, asset: dict):
+        name = Path(str(asset.get("name", ""))).name
         archive = Path(DEFAULT_DOWNLOAD_DIR) / name
         temp = archive.with_name(archive.name + ".part")
         archive.parent.mkdir(parents=True, exist_ok=True)
-        job_id = f"deckyhub-update-{len(self.downloads) + 1}"
-        self.downloads[job_id] = {"state": "downloading", "filename": name, "received": 0, "total": asset.get("size") or 0, "path": str(archive), "error": None}
         try:
             self._download_with_urllib(job_id, asset, temp)
         except URLError:
@@ -268,7 +270,10 @@ class Plugin:
                     target.parent.mkdir(parents=True, exist_ok=True)
                     os.replace(source, target)
             self.downloads[job_id]["state"] = "complete"
-            return {"version": str(version), "path": str(archive), "reloadRequired": True}
+            self.downloads[job_id]["version"] = str(version)
+        except Exception as error:
+            self.downloads[job_id].update({"state": "error", "error": str(error)})
+            temp.unlink(missing_ok=True)
         finally:
             shutil.rmtree(staging, ignore_errors=True)
 

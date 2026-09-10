@@ -10,7 +10,7 @@ DeckyHub is a local-first MVP for Decky Loader. It tracks a curated registry of 
 - Compares semantic versions, release dates, or a registry-provided custom version regex.
 - Offers only matching ZIP assets: the recommended ZIP as **Download latest**, plus individual ZIP assets under **Choose asset**.
 - Downloads HTTPS assets to `/home/deck/Downloads`; downloads use `*.part`, atomically rename on success, expose progress/cancel, and verify SHA-256 when GitHub provides an asset digest. Existing files are renamed by default; enable **Overwrite existing files** in Settings to replace them.
-- Checks for DeckyHub stable releases or pre-releases from this repository and installs only validated DeckyHub ZIP release assets. Choose the update channel in Settings, then reload DeckyHub from the Decky menu after the update finishes.
+- Checks for DeckyHub stable releases or pre-releases from this repository and installs only validated DeckyHub ZIP release assets, with download progress and final status. Choose the update channel in Settings, then reload DeckyHub from the Decky menu after the update finishes.
 
 DeckyHub intentionally **does not install or run downloaded files**. The user reviews and installs them in Desktop Mode.
 
