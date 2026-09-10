@@ -1,6 +1,6 @@
 # DeckyHub
 
-DeckyHub is a local-first MVP for Decky Loader. It tracks a curated registry of popular GitHub-hosted Steam Deck tools which do not have official Decky integration, then lets the user inspect and download matching release assets.
+DeckyHub is a local-first plugin for Decky Loader. It tracks a curated registry of popular GitHub-hosted Steam Deck tools which do not have official Decky integration, then lets the user inspect and download matching release assets.
 
 ## What it does
 
@@ -67,4 +67,4 @@ Pushing a `v*` Git tag starts the GitHub Actions release workflow. It installs t
 
 ## Security boundaries
 
-Registry entries are trusted project data. Download URLs must be HTTPS; filenames are reduced to a basename; and checksum verification is performed only when GitHub exposes a SHA-256 digest. GitHub API access is unauthenticated in this MVP, so users may encounter GitHub's public API rate limit.
+Registry entries are trusted project data. Download URLs must be HTTPS; filenames are reduced to a basename; and checksum verification is performed only when GitHub exposes a SHA-256 digest. GitHub API access is unauthenticated, so users may encounter GitHub's public API rate limit.
