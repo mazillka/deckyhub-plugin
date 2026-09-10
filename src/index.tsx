@@ -56,7 +56,7 @@ function isUpdate(app: App, latest: string | null, publishedAt: string | null) {
 
 function matchingAssets(app: App, assets: any[]): Asset[] {
   const include = app.asset.include.map((word) => word.toLowerCase()), exclude = app.asset.exclude.map((word) => word.toLowerCase());
-  return assets.filter((asset) => { const name = String(asset.name || "").toLowerCase(); return !exclude.some((word) => name.includes(word)) && (!include.length || include.every((word) => name.includes(word))); }).map((asset) => ({ name: asset.name, url: asset.browser_download_url, size: asset.size || 0, sha256: String(asset.digest || "").replace(/^sha256:/, "") || undefined }));
+  return assets.filter((asset) => { const name = String(asset.name || "").toLowerCase(); return name.endsWith(".zip") && !exclude.some((word) => name.includes(word)) && (!include.length || include.every((word) => name.includes(word))); }).map((asset) => ({ name: asset.name, url: asset.browser_download_url, size: asset.size || 0, sha256: String(asset.digest || "").replace(/^sha256:/, "") || undefined }));
 }
 
 async function latestDeckyHubRelease(channel: UpdateChannel): Promise<DeckyHubRelease> {

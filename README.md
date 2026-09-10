@@ -8,7 +8,7 @@ DeckyHub is a local-first MVP for Decky Loader. It tracks a curated registry of 
 - Loads the local registry immediately, then queries GitHub Releases or tags directly from Steam's UI process. Release results are cached in `localStorage` for 15 minutes; a GitHub failure affects only that app card.
 - Finds installed command-line apps and installed Decky plugins using registry-owned detection rules.
 - Compares semantic versions, release dates, or a registry-provided custom version regex.
-- Offers the recommended matching asset as **Download latest**, plus individual assets under **Choose asset**.
+- Offers only matching ZIP assets: the recommended ZIP as **Download latest**, plus individual ZIP assets under **Choose asset**.
 - Downloads HTTPS assets to `/home/deck/Downloads`; downloads use `*.part`, atomically rename on success, expose progress/cancel, and verify SHA-256 when GitHub provides an asset digest. Existing files are renamed by default; enable **Overwrite existing files** in Settings to replace them.
 - Checks for DeckyHub stable releases or pre-releases from this repository and installs only validated DeckyHub ZIP release assets. Choose the update channel in Settings, then reload DeckyHub from the Decky menu after the update finishes.
 
