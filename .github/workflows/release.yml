@@ -1,4 +1,4 @@
-name: Release DeckHub
+name: Release DeckyHub
 
 on:
   push:
@@ -27,11 +27,11 @@ jobs:
           python3 -m unittest discover -s tests
       - name: Package Decky plugin
         run: |
-          mkdir -p release/DeckHub
-          cp -r backend dist registry release/DeckHub/
-          cp LICENSE main.py package.json plugin.json release/DeckHub/
-          (cd release && zip -r "../DeckHub-${GITHUB_REF_NAME}.zip" DeckHub)
+          mkdir -p release/DeckyHub
+          cp -r backend dist registry release/DeckyHub/
+          cp LICENSE main.py package.json plugin.json release/DeckyHub/
+          (cd release && zip -r "../DeckyHub-${GITHUB_REF_NAME}.zip" DeckyHub)
       - name: Create GitHub Release
-        run: gh release create "$GITHUB_REF_NAME" "DeckHub-${GITHUB_REF_NAME}.zip" --generate-notes
+        run: gh release create "$GITHUB_REF_NAME" "DeckyHub-${GITHUB_REF_NAME}.zip" --generate-notes
         env:
           GH_TOKEN: ${{ github.token }}

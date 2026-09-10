@@ -1,1 +1,1 @@
-"""DeckHub backend modules."""
+"""DeckyHub backend modules."""

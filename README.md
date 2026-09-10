@@ -1,6 +1,6 @@
-# DeckHub
+# DeckyHub
 
-DeckHub is a local-first MVP for Decky Loader. It tracks a curated registry of popular GitHub-hosted Steam Deck tools which do not have official Decky integration, then lets the user inspect and download matching release assets.
+DeckyHub is a local-first MVP for Decky Loader. It tracks a curated registry of popular GitHub-hosted Steam Deck tools which do not have official Decky integration, then lets the user inspect and download matching release assets.
 
 ## What it does
 
@@ -9,13 +9,16 @@ DeckHub is a local-first MVP for Decky Loader. It tracks a curated registry of p
 - Finds installed command-line apps and installed Decky plugins using registry-owned detection rules.
 - Compares semantic versions, release dates, or a registry-provided custom version regex.
 - Offers the recommended matching asset as **Download latest**, plus individual assets under **Choose asset**.
-- Downloads HTTPS assets to `Downloads`, `Applications`, or a custom folder under `/home/deck`; downloads use `*.part`, atomically rename on success, expose progress/cancel, and verify SHA-256 when GitHub provides an asset digest. Existing files are renamed by default; enable **Overwrite existing files** in Settings to replace them.
+- Downloads HTTPS assets to `/home/deck/Downloads`; downloads use `*.part`, atomically rename on success, expose progress/cancel, and verify SHA-256 when GitHub provides an asset digest. Existing files are renamed by default; enable **Overwrite existing files** in Settings to replace them.
+- Checks for DeckyHub releases from this repository and can install a validated DeckyHub release ZIP. Reload DeckyHub from the Decky menu after the update finishes.
 
-DeckHub intentionally **does not install or run downloaded files**. The user reviews and installs them in Desktop Mode.
+DeckyHub intentionally **does not install or run downloaded files**. The user reviews and installs them in Desktop Mode.
 
 ## Registry
 
-Edit [`registry/apps.json`](registry/apps.json) to add an app; no TypeScript or Python changes are required. Every record needs `id`, `name`, `repo`, `category`, `versionStrategy` (`semver`, `release-date`, or `custom`), `source` (`releases` or `tags`), and `asset` rules. `detect` is optional, but enables the Installed view. For an installed Decky plugin, use `{"type":"decky-plugin","names":["Plugin name"]}`; otherwise use a command and optional `args`.
+Edit [`registry/apps.json`](registry/apps.json) to add an app; no TypeScript or Python changes are required. Every record needs `id`, `name`, `repo`, `category`, `versionStrategy` (`semver`, `release-date`, or `custom`), `source` (`releases` or `tags`), and `asset` rules. `detect` is optional, but enables the Installed view. For an installed Decky plugin, use `{"type":"decky-plugin","names":["Plugin name"]}`; otherwise use a command and optional `args`. Use optional `releaseTagInclude` when a repository has distinct release streams; DeckyHub selects the first matching release tag.
+
+Users can also open **Settings → Add GitHub repository**, search GitHub, and add a result to their local Discover list. These custom entries are saved in DeckyHub settings and use the repository's latest GitHub Release.
 
 `asset.include` matches all listed lowercase fragments; `asset.exclude` rejects a matching filename. Put the most preferred rule first in the registry, because the first matching release asset is the default for **Download latest**.
 
@@ -24,7 +27,7 @@ Edit [`registry/apps.json`](registry/apps.json) to add an app; no TypeScript or 
 On a Linux development machine or Steam Deck Desktop Mode:
 
 ```bash
-cd deckhub-plugin
+cd deckyhub-plugin
 corepack enable
 pnpm install
 pnpm run typecheck
@@ -39,16 +42,16 @@ The build produces `dist/index.js`. Decky Loader requires `plugin.json`, `main.p
 ## Local Steam Deck test
 
 1. Install Decky Loader, switch to Desktop Mode, and build the plugin as above.
-2. Copy the built plugin files (`backend/`, `dist/`, `registry/`, `main.py`, `package.json`, and `plugin.json`) to `~/homebrew/plugins/DeckHub`, or extract a release ZIP there.
-3. Restart/reload Decky Loader, then open the Quick Access Menu → Decky → DeckHub.
-4. Run **Check for updates**, select an asset, and confirm the resulting file is in the configured folder. Test cancel with a larger asset and ensure no `.part` file remains.
+2. Copy the built plugin files (`backend/`, `dist/`, `registry/`, `main.py`, `package.json`, and `plugin.json`) to `~/homebrew/plugins/DeckyHub`, or extract a release ZIP there.
+3. Restart/reload Decky Loader, then open the Quick Access Menu → Decky → DeckyHub.
+4. Run **Check for updates**, select an asset, and confirm the resulting file is in `/home/deck/Downloads`. Test cancel with a larger asset and ensure no `.part` file remains.
 
 For development, rebuild the frontend after every change to `src/`, then reload the plugin. The backend uses only Python's standard library and needs no pip install.
 
 ## Releases
 
-Pushing a `v*` Git tag starts the GitHub Actions release workflow. It installs the locked packages, typechecks, builds, runs the backend test, packages the Decky plugin, and attaches `DeckHub-v*.zip` to the GitHub release.
+Pushing a `v*` Git tag starts the GitHub Actions release workflow. It installs the locked packages, typechecks, builds, runs the backend test, packages the Decky plugin, and attaches `DeckyHub-v*.zip` to the GitHub release.
 
 ## Security boundaries
 
-Registry entries are trusted project data. Download URLs must be HTTPS; filenames are reduced to a basename; custom folders are limited to `/home/deck`; and checksum verification is performed only when GitHub exposes a SHA-256 digest. GitHub API access is unauthenticated in this MVP, so users may encounter GitHub's public API rate limit.
+Registry entries are trusted project data. Download URLs must be HTTPS; filenames are reduced to a basename; and checksum verification is performed only when GitHub exposes a SHA-256 digest. GitHub API access is unauthenticated in this MVP, so users may encounter GitHub's public API rate limit.

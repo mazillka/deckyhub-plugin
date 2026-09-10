@@ -6,6 +6,9 @@ import shutil
 import subprocess
 import sys
 import time
+import tempfile
+import zipfile
+import re
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -21,6 +24,9 @@ from backend.registry import load_registry
 
 
 DEFAULT_DOWNLOAD_DIR = "/home/deck/Downloads"
+DECKYHUB_REPO = "mazillka/deckyhub-plugin"
+DECKYHUB_RELEASE_PREFIX = f"https://github.com/{DECKYHUB_REPO}/releases/download/"
+REPOSITORY_NAME = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 class Plugin:
     async def _main(self):
         self.settings_path = Path(decky.DECKY_PLUGIN_SETTINGS_DIR) / "settings.json"
@@ -32,13 +38,14 @@ class Plugin:
     def _load_settings(self) -> dict:
         try:
             settings = json.loads(self.settings_path.read_text(encoding="utf-8"))
+            repos = settings.get("customRepos", [])
             return {
-                "downloadFolder": settings.get("downloadFolder", DEFAULT_DOWNLOAD_DIR),
                 "verifySha256": bool(settings.get("verifySha256", True)),
                 "overwriteExisting": bool(settings.get("overwriteExisting", False)),
+                "customRepos": [repo for repo in repos if isinstance(repo, str) and REPOSITORY_NAME.fullmatch(repo)],
             }
-        except (OSError, json.JSONDecodeError):
-            return {"downloadFolder": DEFAULT_DOWNLOAD_DIR, "verifySha256": True, "overwriteExisting": False}
+        except (AttributeError, OSError, json.JSONDecodeError):
+            return {"verifySha256": True, "overwriteExisting": False, "customRepos": []}
 
     def _save_settings(self):
         self.settings_path.parent.mkdir(parents=True, exist_ok=True)
@@ -78,23 +85,43 @@ class Plugin:
         return None
 
     async def get_apps(self):
-        installed = await asyncio.gather(*(asyncio.to_thread(self._installed_version, app) for app in self.apps))
-        return {"apps": [{**app, "installedVersion": version, "latestVersion": None, "publishedAt": None, "releaseUrl": None, "assets": [], "updateAvailable": None, "error": None} for app, version in zip(self.apps, installed)]}
+        apps = [*self.apps, *self._custom_apps()]
+        installed = await asyncio.gather(*(asyncio.to_thread(self._installed_version, app) for app in apps))
+        return {"apps": [{**app, "installedVersion": version, "latestVersion": None, "publishedAt": None, "releaseUrl": None, "assets": [], "updateAvailable": None, "error": None} for app, version in zip(apps, installed)]}
+
+    def _custom_apps(self) -> list[dict]:
+        bundled = {app["repo"].casefold() for app in self.apps}
+        return [{"id": f"custom-{repo.replace('/', '-')}", "name": repo, "repo": repo, "category": "Custom", "versionStrategy": "semver", "source": "releases", "asset": {"include": [], "exclude": ["source"]}} for repo in self.settings["customRepos"] if repo.casefold() not in bundled]
 
     async def get_settings(self):
         return self.settings
 
+    async def get_deckyhub_info(self):
+        try:
+            package = json.loads((Path(PLUGIN_DIR) / "package.json").read_text(encoding="utf-8"))
+            return {"version": str(package.get("version", "unknown"))}
+        except (OSError, json.JSONDecodeError):
+            return {"version": "unknown"}
+
     async def save_settings(self, settings: dict):
-        folder = settings.get("downloadFolder", DEFAULT_DOWNLOAD_DIR)
-        if not isinstance(folder, str) or not folder.startswith("/home/deck/"):
-            raise ValueError("Custom download folder must be inside /home/deck")
         self.settings = {
-            "downloadFolder": folder,
             "verifySha256": bool(settings.get("verifySha256", True)),
             "overwriteExisting": bool(settings.get("overwriteExisting", False)),
+            "customRepos": getattr(self, "settings", {}).get("customRepos", []),
         }
         self._save_settings()
         return self.settings
+
+    async def add_custom_repo(self, repo: str):
+        repo = repo.strip()
+        if not REPOSITORY_NAME.fullmatch(repo):
+            raise ValueError("Repository must be owner/name")
+        existing = {app["repo"].casefold() for app in self.apps} | {item.casefold() for item in self.settings["customRepos"]}
+        if repo.casefold() in existing:
+            return {"added": False, "repo": repo}
+        self.settings["customRepos"].append(repo)
+        self._save_settings()
+        return {"added": True, "repo": repo}
 
     async def download_asset(self, asset: dict):
         if not isinstance(asset.get("url"), str) or not asset["url"].startswith("https://"):
@@ -102,7 +129,7 @@ class Plugin:
         name = Path(asset.get("name", "download")).name
         if not name or name in (".", ".."):
             raise ValueError("Invalid asset filename")
-        target_dir = Path(self.settings["downloadFolder"])
+        target_dir = Path(DEFAULT_DOWNLOAD_DIR)
         target_dir.mkdir(parents=True, exist_ok=True)
         target = target_dir / name
         if target.exists() and not self.settings.get("overwriteExisting"):
@@ -111,6 +138,54 @@ class Plugin:
         self.downloads[job_id] = {"state": "queued", "filename": target.name, "received": 0, "total": asset.get("size") or 0, "path": str(target), "error": None}
         asyncio.create_task(asyncio.to_thread(self._download, job_id, asset, target))
         return {"jobId": job_id}
+
+    async def install_deckyhub_update(self, asset: dict):
+        return await asyncio.to_thread(self._install_deckyhub_update, asset)
+
+    def _install_deckyhub_update(self, asset: dict):
+        url, name = asset.get("url"), Path(str(asset.get("name", ""))).name
+        if not isinstance(url, str) or not url.startswith(DECKYHUB_RELEASE_PREFIX) or not name.startswith("DeckyHub-") or not name.endswith(".zip"):
+            raise ValueError("Invalid DeckyHub release asset")
+        archive = Path(DEFAULT_DOWNLOAD_DIR) / name
+        temp = archive.with_name(archive.name + ".part")
+        archive.parent.mkdir(parents=True, exist_ok=True)
+        job_id = f"deckyhub-update-{len(self.downloads) + 1}"
+        self.downloads[job_id] = {"state": "downloading", "filename": name, "received": 0, "total": asset.get("size") or 0, "path": str(archive), "error": None}
+        try:
+            self._download_with_urllib(job_id, asset, temp)
+        except URLError:
+            self._download_with_curl(job_id, asset, temp)
+        if self.settings.get("verifySha256") and asset.get("sha256") and self._sha256(temp) != asset["sha256"].lower():
+            temp.unlink(missing_ok=True)
+            raise RuntimeError("SHA256 verification failed")
+        os.replace(temp, archive)
+        staging = Path(tempfile.mkdtemp(prefix="deckyhub-update-", dir=Path(PLUGIN_DIR).parent))
+        try:
+            with zipfile.ZipFile(archive) as bundle:
+                files = [entry for entry in bundle.infolist() if not entry.is_dir()]
+                if not files or sum(entry.file_size for entry in files) > 30 * 1024 * 1024:
+                    raise ValueError("Invalid DeckyHub update archive")
+                for entry in files:
+                    parts = Path(entry.filename).parts
+                    if len(parts) < 2 or parts[0] != "DeckyHub" or ".." in parts or Path(entry.filename).is_absolute():
+                        raise ValueError("Unsafe DeckyHub update archive")
+                    target = staging.joinpath(*parts[1:])
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    with bundle.open(entry) as source, open(target, "wb") as destination:
+                        shutil.copyfileobj(source, destination)
+            required = ("main.py", "package.json", "plugin.json", "dist/index.js", "registry/apps.json")
+            if any(not (staging / path).is_file() for path in required):
+                raise ValueError("Incomplete DeckyHub update archive")
+            version = json.loads((staging / "package.json").read_text(encoding="utf-8")).get("version", "unknown")
+            for source in staging.rglob("*"):
+                if source.is_file():
+                    target = Path(PLUGIN_DIR) / source.relative_to(staging)
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    os.replace(source, target)
+            self.downloads[job_id]["state"] = "complete"
+            return {"version": str(version), "path": str(archive), "reloadRequired": True}
+        finally:
+            shutil.rmtree(staging, ignore_errors=True)
 
     def _next_name(self, target: Path) -> Path:
         for number in range(1, 1000):
@@ -160,7 +235,7 @@ class Plugin:
 
     def _download_with_urllib(self, job_id: str, asset: dict, temp: Path):
         job = self.downloads[job_id]
-        request = Request(asset["url"], headers={"User-Agent": "DeckHub/0.1"})
+        request = Request(asset["url"], headers={"User-Agent": "DeckyHub/0.2"})
         with urlopen(request, timeout=30) as response, open(temp, "wb") as file:
             job["total"] = int(response.headers.get("Content-Length") or job["total"] or 0)
             while chunk := response.read(1024 * 1024):

@@ -1,6 +1,6 @@
 {
-  "name": "deckhub",
-  "version": "0.1.4",
+  "name": "deckyhub",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "scripts": {

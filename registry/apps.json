@@ -8,7 +8,8 @@
       "category": "Frame Generation",
       "versionStrategy": "semver",
       "source": "releases",
-      "detect": { "type": "decky-plugin", "names": ["MAKO Decky"] },
+      "releaseTagInclude": "plugin-v",
+      "detect": { "type": "decky-plugin", "names": ["MAKO - Frame Generation", "MAKO Decky"] },
       "asset": { "include": ["mako-decky", ".zip"], "exclude": ["source"] }
     },
     {
