@@ -1,0 +1,11 @@
+{
+  "name": "DeckHub",
+  "author": "DeckHub contributors",
+  "flags": [],
+  "api_version": 2,
+  "publish": {
+    "tags": ["github", "updates", "downloads"],
+    "description": "Discover GitHub releases for popular Steam Deck tools and download them safely.",
+    "image": ""
+  }
+}

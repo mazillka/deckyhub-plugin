@@ -1,0 +1,37 @@
+name: Release DeckHub
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install, test, and build
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run typecheck
+          pnpm run build
+          python3 -m unittest discover -s tests
+      - name: Package Decky plugin
+        run: |
+          mkdir -p release/DeckHub
+          cp -r backend dist registry release/DeckHub/
+          cp LICENSE main.py package.json plugin.json release/DeckHub/
+          (cd release && zip -r "../DeckHub-${GITHUB_REF_NAME}.zip" DeckHub)
+      - name: Create GitHub Release
+        run: gh release create "$GITHUB_REF_NAME" "DeckHub-${GITHUB_REF_NAME}.zip" --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}

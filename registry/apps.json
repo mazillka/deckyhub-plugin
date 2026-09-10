@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "apps": [
+    {
+      "id": "mako-decky",
+      "name": "MAKO Decky",
+      "repo": "eugeniosegala/MAKO",
+      "category": "Frame Generation",
+      "versionStrategy": "semver",
+      "source": "releases",
+      "detect": { "type": "decky-plugin", "names": ["MAKO Decky"] },
+      "asset": { "include": ["mako-decky", ".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "decky-lsfg-vk",
+      "name": "Decky LSFG-VK",
+      "repo": "xXJSONDeruloXx/decky-lsfg-vk",
+      "category": "Frame Generation",
+      "versionStrategy": "semver",
+      "source": "releases",
+      "detect": { "type": "decky-plugin", "names": ["Decky LSFG-VK"] },
+      "asset": { "include": ["decky-lsfg-vk", ".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "unifideck",
+      "name": "Unifideck",
+      "repo": "mubaraknumann/unifideck",
+      "category": "Game Libraries",
+      "versionStrategy": "semver",
+      "source": "releases",
+      "detect": { "type": "decky-plugin", "names": ["Unifideck"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "decky-framegen",
+      "name": "Decky Framegen",
+      "repo": "xXJSONDeruloXx/Decky-Framegen",
+      "category": "Frame Generation",
+      "versionStrategy": "semver",
+      "source": "releases",
+      "detect": { "type": "decky-plugin", "names": ["Decky Framegen"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    }
+  ]
+}
