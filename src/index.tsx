@@ -64,7 +64,7 @@ async function latestDeckyHubRelease(channel: UpdateChannel): Promise<DeckyHubRe
     const endpoint = channel === "prerelease" ? "releases?per_page=20" : "releases/latest";
     const response = await fetchNoCors(`https://api.github.com/repos/mazillka/deckyhub-plugin/${endpoint}`, { headers: { Accept: "application/vnd.github+json" } });
     if (!response.ok) throw new Error(`GitHub API returned ${response.status}`);
-    const body = await response.json(), release = Array.isArray(body) ? body.find((item) => item.prerelease && !item.draft) : body, asset = (release?.assets || []).find((item: any) => String(item.name).endsWith(".zip"));
+    const body = await response.json(), release = Array.isArray(body) ? body.find((item) => item.prerelease && !item.draft) : body, asset = (release?.assets || []).find((item: any) => /^DeckyHub-.*\.zip$/i.test(String(item.name)));
     if (!asset || !String(asset.name).startsWith("DeckyHub-")) throw new Error("DeckyHub release ZIP not found");
     return { version: release.tag_name || release.name, url: release.html_url, asset: { name: asset.name, url: asset.browser_download_url, size: asset.size || 0, sha256: String(asset.digest || "").replace(/^sha256:/, "") || undefined } };
   } catch (error) { return { error: String(error) }; }
