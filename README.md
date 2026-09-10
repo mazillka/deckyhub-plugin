@@ -18,7 +18,7 @@ DeckyHub intentionally **does not install or run downloaded files**. The user re
 
 Edit [`registry/apps.json`](registry/apps.json) to add an app; no TypeScript or Python changes are required. Every record needs `id`, `name`, `repo`, `category`, `versionStrategy` (`semver`, `release-date`, or `custom`), `source` (`releases` or `tags`), and `asset` rules. `detect` is optional, but enables the Installed view. For an installed Decky plugin, use `{"type":"decky-plugin","names":["Plugin name"]}`; otherwise use a command and optional `args`. Use optional `releaseTagInclude` when a repository has distinct release streams; DeckyHub selects the first matching release tag.
 
-The [Registry Editor](https://mazillka.github.io/deckyhub-plugin/) is a GitHub Pages tool for importing, validating, editing, and exporting `apps.json`. It runs entirely in the browser; download its export and commit it to update the shared registry.
+The [Registry Editor](https://mazillka.github.io/deckyhub-plugin/) is a GitHub Pages tool that runs entirely in the browser. Use its **Repository editor** to add, edit, remove, or cancel a new repository; use **Raw JSON** for advanced fields. It validates the complete registry before import or apply, and **Export JSON** downloads an immediately importable `deckyhub-apps.json` file.
 
 ## Repository layout
 
