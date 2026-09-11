@@ -1,5 +1,5 @@
 import { callable, definePlugin, fetchNoCors, FileSelectionType, openFilePicker, routerHook, toaster } from "@decky/api";
-import { ButtonItem, ConfirmModal, DropdownItem, Navigation, PanelSection, PanelSectionRow, ScrollPanel, showModal, staticClasses, TextField, ToggleField } from "@decky/ui";
+import { ButtonItem, ConfirmModal, DropdownItem, Navigation, PanelSection, PanelSectionRow, ProgressBar, ScrollPanel, showModal, staticClasses, TextField, ToggleField } from "@decky/ui";
 import { useEffect, useState } from "react";
 import { FaDownload, FaGithub, FaSync } from "react-icons/fa";
 
@@ -33,10 +33,16 @@ const exportCustomRepos = callable<[], { path: string }>("export_custom_repos");
 const importCustomRepos = callable<[path: string], { added: string[] }>("import_custom_repos");
 const CACHE_TTL = 15 * 60 * 1000;
 const REGISTRY_UPDATED = "deckyhub-registry-updated";
-const pageStyle = { boxSizing: "border-box" as const, margin: "0 auto", maxWidth: 960, padding: "16px 24px 56px" };
+const pageStyle = { boxSizing: "border-box" as const, margin: "0 auto", maxWidth: 960, padding: "72px 24px 120px" };
 const readableBytes = (bytes = 0) => bytes > 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.ceil(bytes / 1024)} KB`;
 const status = (app: App) => !app.installedVersion ? "Not installed" : app.updateAvailable ? "Update available" : app.updateAvailable === false ? "Up to date" : "Installed";
 const keyFor = (app: App) => `deckyhub-release:${app.repo}:${app.source}`;
+
+function DownloadProgress({ download }: { download: Download }) {
+  if (!["queued", "downloading"].includes(download.state)) return null;
+  const progress = download.total ? Math.min(100, 100 * (download.received ?? 0) / download.total) : 0;
+  return <div style={{ marginTop: 8 }}><ProgressBar indeterminate={!download.total} nProgress={progress} /><small>{download.total ? `${Math.round(progress)}% · ${readableBytes(download.received)} of ${readableBytes(download.total)}` : "Preparing download…"}</small></div>;
+}
 
 function cached(app: App, force: boolean): any | null {
   if (force) return null;
@@ -94,7 +100,7 @@ async function hydrate(app: App, force: boolean): Promise<App> {
 function AppCard({ app, job, onDownload, onCancel }: { app: App; job?: { id: string; state: Download } | null; onDownload: (asset: Asset) => void; onCancel: (jobId: string) => void }) {
   const active = job && app.assets.some((asset) => asset.name === job.state.filename) ? job : null;
   return <PanelSection title={`${app.name} · ${app.category}`}><PanelSectionRow><div>{status(app)}<br /><small>Installed: {app.installedVersion ?? "—"} · Latest: {app.latestVersion ?? "—"}</small>{app.error && <><br /><small>{app.error}</small></>}</div></PanelSectionRow>
-    {active && <PanelSectionRow><div><strong>{active.state.state === "complete" ? "Download complete" : active.state.state === "error" ? "Download failed" : "Downloading…"}</strong><br /><small>{readableBytes(active.state.received)} / {active.state.total ? readableBytes(active.state.total) : "unknown size"}{active.state.total ? ` · ${Math.round((100 * (active.state.received ?? 0)) / active.state.total)}%` : ""}</small>{active.state.error && <><br /><small>{active.state.error}</small></>}{active.state.state === "downloading" && <ButtonItem layout="below" onClick={() => onCancel(active.id)}>Cancel download</ButtonItem>}</div></PanelSectionRow>}
+    {active && <PanelSectionRow><div><strong>{active.state.state === "complete" ? "Download complete" : active.state.state === "error" ? "Download failed" : "Downloading…"}</strong><br /><small>{readableBytes(active.state.received)} / {active.state.total ? readableBytes(active.state.total) : "unknown size"}</small><DownloadProgress download={active.state} />{active.state.error && <><br /><small>{active.state.error}</small></>}{active.state.state === "downloading" && <ButtonItem layout="below" onClick={() => onCancel(active.id)}>Cancel download</ButtonItem>}</div></PanelSectionRow>}
     {app.assets[0] && <PanelSectionRow><ButtonItem layout="below" onClick={() => onDownload(app.assets[0])}><FaDownload /> Download latest ({app.assets[0].name})</ButtonItem></PanelSectionRow>}
     {app.assets.slice(1, 4).map((asset) => <PanelSectionRow key={asset.name}><ButtonItem layout="below" onClick={() => onDownload(asset)}>{`${asset.name} (${readableBytes(asset.size)})`}</ButtonItem></PanelSectionRow>)}
     {app.releaseUrl && <PanelSectionRow><ButtonItem layout="below" onClick={() => Navigation.NavigateToExternalWeb(app.releaseUrl!)}>Open release page</ButtonItem></PanelSectionRow>}</PanelSection>;
@@ -127,6 +133,10 @@ function Content({ fullPage }: { fullPage?: View }) {
   const load = async (force = false) => { setLoading(true); try { const local = (await getApps()).apps; setApps(local); setLoadError(null); setLoading(false); setApps(await Promise.all(local.map((app) => hydrate(app, force)))); } catch (error) { setLoadError(String(error)); setLoading(false); } };
   useEffect(() => { const refresh = () => void load(true); void load(); window.addEventListener(REGISTRY_UPDATED, refresh); return () => window.removeEventListener(REGISTRY_UPDATED, refresh); }, []);
   useEffect(() => { if (!job || !["queued", "downloading"].includes(job.state.state)) return; const timer = window.setInterval(() => void getDownload(job.id).then((state) => setJob({ id: job.id, state })), 500); return () => window.clearInterval(timer); }, [job]);
+  useEffect(() => {
+    if (job?.state.state !== "complete") return;
+    showModal(<ConfirmModal strTitle="Download complete" strDescription={<><div>The ZIP was saved to:</div><div>{job.state.path || "the selected download folder"}</div><br /><div>Install it in Decky:</div><div>Developer → Install Plugin from ZIP</div></>} strOKButtonText="OK" bAlertDialog />);
+  }, [job?.id, job?.state.state]);
   const startDownload = async (asset: Asset) => { const result = await downloadAsset(asset); if (result.jobId) setJob({ id: result.jobId, state: { state: "queued" } }); };
 const list = (filter: (app: App) => boolean, info: typeof viewInfo[View]) => <>{loading && <PanelSection title="Loading DeckyHub…" ><PanelSectionRow>Reading installed tools and release information.</PanelSectionRow></PanelSection>}{loadError && <PanelSection title="Could not load DeckyHub"><PanelSectionRow>{loadError}</PanelSectionRow><PanelSectionRow><ButtonItem layout="below" onClick={() => void load(true)}>Try again</ButtonItem></PanelSectionRow></PanelSection>}{!loading && !loadError && <><PanelSection title={info.title}><PanelSectionRow>{info.description}</PanelSectionRow><PanelSectionRow><ButtonItem layout="below" onClick={() => void load(true)}><FaSync /> Refresh releases</ButtonItem></PanelSectionRow>{job && <PanelSectionRow><div><strong>{job.state.filename ?? "Download"}</strong><br /><small>{job.state.state} {job.state.total ? `· ${Math.round((100 * (job.state.received ?? 0)) / job.state.total)}%` : ""}</small>{job.state.state === "downloading" && <ButtonItem layout="below" onClick={() => void cancelDownload(job.id)}>Cancel download</ButtonItem>}</div></PanelSectionRow>}</PanelSection>{apps.filter(filter).map((app) => <AppCard key={app.id} app={app} job={job} onDownload={(asset) => void startDownload(asset)} onCancel={(jobId) => void cancelDownload(jobId)} />)}{!apps.filter(filter).length && <PanelSection title={info.empty}><PanelSectionRow>Use Discover to browse the registry.</PanelSectionRow></PanelSection>}</>}</>;
   const navigation = <><PanelSection title="DeckyHub"><PanelSectionRow>GitHub release downloads for Steam Deck tools.</PanelSectionRow></PanelSection><PanelSection title="Browse"><PanelSectionRow><ButtonItem layout="below" onClick={() => Navigation.Navigate("/deckyhub/updates")}>Updates</ButtonItem></PanelSectionRow><PanelSectionRow><ButtonItem layout="below" onClick={() => Navigation.Navigate("/deckyhub/discover")}>Discover repositories</ButtonItem></PanelSectionRow><PanelSectionRow><ButtonItem layout="below" onClick={() => Navigation.Navigate("/deckyhub/settings")}>Settings</ButtonItem></PanelSectionRow></PanelSection></>;

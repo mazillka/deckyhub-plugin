@@ -24,7 +24,7 @@ DEFAULT_DOWNLOAD_DIR = "/home/deck/Downloads"
 PLUGIN_DOWNLOAD_DIR = f"{DEFAULT_DOWNLOAD_DIR}/plugins"
 DECKYHUB_REPO = "mazillka/deckyhub-plugin"
 DECKYHUB_RELEASE_PREFIX = f"https://github.com/{DECKYHUB_REPO}/releases/download/"
-DECKYHUB_VERSION = "0.3.12"
+DECKYHUB_VERSION = "0.3.15"
 REPOSITORY_NAME = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 class Plugin:
     async def _main(self):
