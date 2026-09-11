@@ -197,7 +197,11 @@ export function ManageRepositoriesPage() {
       </PanelSection>
       {apps.map((app) => {
         const value = preference(app.repo);
-        const update = (next: Partial<RepoPreference>) => setPrefs({ ...prefs, [app.repo]: { ...value, ...next } });
+        const update = (next: Partial<RepoPreference>) => {
+          const saved = { ...value, ...next };
+          setPrefs({ ...prefs, [app.repo]: saved });
+          void saveRepoSettings(app.repo, saved);
+        };
         return (
           <PanelSection key={app.repo} title={app.name}>
             <PanelSectionRow>
@@ -229,19 +233,6 @@ export function ManageRepositoriesPage() {
                 value={value.assetFilter.join(", ")}
                 onChange={(event) => update({ assetFilter: event.currentTarget.value.split(",").map((item) => item.trim()).filter(Boolean) })}
               />
-            </PanelSectionRow>
-            <PanelSectionRow>
-              <ButtonItem
-                layout="below"
-                onClick={() =>
-                  void saveRepoSettings(app.repo, preference(app.repo)).then((saved) => {
-                    setPrefs({ ...prefs, [app.repo]: saved });
-                    toaster.toast({ title: "DeckyHub", body: `${app.name} settings saved.` });
-                  })
-                }
-              >
-                Save {app.name} Settings
-              </ButtonItem>
             </PanelSectionRow>
           </PanelSection>
         );
