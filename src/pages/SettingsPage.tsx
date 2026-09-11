@@ -35,6 +35,16 @@ export function SettingsPage() {
     if (result.jobId) setUpdateJob({ id: result.jobId, state: { state: "queued", filename: asset.name, total: asset.size } });
   };
 
+  const update = (next: Partial<Settings>) => {
+    const merged = { ...settings, ...next };
+    setSettings(merged);
+    void saveSettings(merged).then((saved) => {
+      setSettings(saved);
+      if ("language" in next) window.dispatchEvent(new Event(LOCALE_CHANGED));
+      toaster.toast({ title: "DeckyHub", body: t("settings.saveSettings") });
+    });
+  };
+
   return (
     <>
       <PanelSection title={t("settings.deckyhubUpdate")}>
@@ -56,7 +66,7 @@ export function SettingsPage() {
               { label: t("settings.preReleases"), data: "prerelease" },
             ]}
             selectedOption={settings.updateChannel}
-            onChange={({ data }) => setSettings({ ...settings, updateChannel: data })}
+            onChange={({ data }) => update({ updateChannel: data })}
           />
         </PanelSectionRow>
         <PanelSectionRow>
@@ -113,35 +123,22 @@ export function SettingsPage() {
               { label: "/home/deck/Downloads", data: "downloads" },
             ]}
             selectedOption={settings.downloadLocation}
-            onChange={({ data }) => setSettings({ ...settings, downloadLocation: data })}
+            onChange={({ data }) => update({ downloadLocation: data })}
           />
         </PanelSectionRow>
         <PanelSectionRow>
-          <ToggleField label={t("settings.verifySha256")} checked={settings.verifySha256} onChange={(checked) => setSettings({ ...settings, verifySha256: checked })} />
+          <ToggleField label={t("settings.verifySha256")} checked={settings.verifySha256} onChange={(checked) => update({ verifySha256: checked })} />
         </PanelSectionRow>
         <PanelSectionRow>
-          <ToggleField label={t("settings.overwriteExisting")} checked={settings.overwriteExisting} onChange={(checked) => setSettings({ ...settings, overwriteExisting: checked })} />
+          <ToggleField label={t("settings.overwriteExisting")} checked={settings.overwriteExisting} onChange={(checked) => update({ overwriteExisting: checked })} />
         </PanelSectionRow>
         <PanelSectionRow>
           <DropdownItem
             label={t("settings.language")}
             rgOptions={[{ label: t("settings.autoDetect"), data: "auto" }, ...LOCALES.map((locale) => ({ label: locale.label, data: locale.code }))]}
             selectedOption={settings.language}
-            onChange={({ data }) => setSettings({ ...settings, language: data })}
+            onChange={({ data }) => update({ language: data })}
           />
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <ButtonItem
-            layout="below"
-            onClick={async () => {
-              const saved = await saveSettings(settings);
-              setSettings(saved);
-              window.dispatchEvent(new Event(LOCALE_CHANGED));
-              toaster.toast({ title: "DeckyHub", body: t("settings.saveSettings") });
-            }}
-          >
-            {t("settings.saveSettings")}
-          </ButtonItem>
         </PanelSectionRow>
       </PanelSection>
     </>
