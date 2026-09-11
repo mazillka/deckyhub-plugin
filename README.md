@@ -1,66 +1,69 @@
 # DeckyHub
 
-DeckyHub is a local-first plugin for Decky Loader. It starts with a small curated list and also tracks GitHub repositories that you add or import.
+DeckyHub is a Decky Loader plugin for Steam Deck (and other Decky-compatible handhelds) that helps you discover, install, and update other plugins and tools straight from Gaming Mode — no Desktop Mode browsing required to find them.
+
+It ships with a small curated list of popular Steam Deck tools, and you can add any GitHub repository you like.
+
+> **A note on how this is made.** Most of DeckyHub's code was written with the help of AI tools (Claude and Codex). That doesn't mean it ships untested — every release is verified on real hardware before it goes out. We're telling you this upfront so you know exactly what you're installing and how it got built.
 
 ## What it does
 
-- Controller-navigable fullscreen **Updates**, **Installed**, **Discover**, and **Settings** pages with clear page descriptions, retry states, and download progress.
-- Loads the curated list immediately, then queries GitHub Releases directly from Steam's UI process. Release results are cached in `localStorage` for 15 minutes; a GitHub failure affects only that app card.
-- Detects curated and manually managed repositories that are installed as Decky plugins.
-- Compares semantic versions for managed repositories.
-- Offers only matching ZIP assets: the recommended ZIP as **Download latest**, plus individual ZIP assets under **Choose asset**.
-- Downloads HTTPS assets to `/home/deck/Downloads/plugins` by default, or `/home/deck/Downloads` when selected in Settings; each repository card shows its download progress, size, status, and Cancel action. Downloads use `*.part`, atomically rename on success, and verify SHA-256 when GitHub provides an asset digest. Existing files are overwritten by default; disable **Overwrite existing files** in Settings to keep both files.
-- Checks for DeckyHub stable releases or pre-releases from this repository and downloads only validated DeckyHub ZIP release assets to `/home/deck/Downloads`. Install the downloaded ZIP through Decky → Developer → Install Plugin from ZIP.
+- **Discover** — browse a curated list of Steam Deck plugins/tools, search GitHub for more, and add any repository you want to track.
+- **Updates** — see which of your tracked, installed tools have a newer release available, and download updates in one tap. You'll also get a toast notification when new updates show up.
+- **Settings** — change the download folder, toggle SHA-256 verification and overwriting existing files, manage your custom repository list, and check for DeckyHub's own updates.
+- **Repository settings** — per-repository overrides: release channel, download folder, and asset keyword filter, plus a manual registry refresh.
 
-DeckyHub intentionally **does not install or run downloaded files**. The user reviews and installs them in Desktop Mode.
+DeckyHub only **downloads** files — it never installs or runs anything automatically. After a download finishes, you install it yourself from Desktop Mode via Decky → Developer → Install Plugin from ZIP. This keeps you in control of what actually runs on your system.
 
-## Managed repositories
+## Installing DeckyHub
 
-Open **Settings → Add GitHub repository** to search GitHub and add a repository to Discover. You can also import a list from `/home/deck/Downloads`. The [Registry Editor](https://mazillka.github.io/deckyhub-plugin/) remains available as a standalone GitHub Pages editor for repository JSON files.
+1. Make sure [Decky Loader](https://decky.xyz/) is installed.
+2. Download the latest `DeckyHub-v*.zip` from the [Releases page](https://github.com/mazillka/deckyhub-plugin/releases).
+3. In Gaming Mode, open the Quick Access Menu → Decky → Developer → **Install Plugin from ZIP**, and select the downloaded file.
+4. Open Quick Access Menu → Decky → **DeckyHub**.
 
-## Repository layout
+## Using DeckyHub
 
-- `main.py` and `plugin.json` stay at the repository root because Decky Loader reads them from the plugin package.
-- `backend/` contains the backend support modules; `src/` contains the Decky React UI.
-- `registry/apps.json` contains the bundled default repositories; `tests/` covers the Python backend.
-- `docs/` is the static GitHub Pages registry editor. It remains separate from the runtime UI and needs no build dependencies.
+### Discover
 
-Users can also open **Settings → Add GitHub repository**, search GitHub, and add a result to their local Discover list. These custom entries are saved in DeckyHub settings and use the repository's latest GitHub Release.
+Browse the bundled list or search GitHub for a specific repository. Use the search box and category dropdown to narrow things down. Tap **Download latest** on any card to grab the recommended release asset, or **Choose asset** to pick a specific file from that release.
 
-Any user-managed repository can be removed; bundled default repositories remain available. DeckyHub does not scan installed official Decky plugins or add their repositories to Discover.
+To track a repository that isn't in the curated list, go to **Settings → Add GitHub repository**, search for it, and add it — it'll show up in Discover from then on.
 
-Use **Export repository list** to save custom repositories as `DeckyHub-repositories.json` in `/home/deck/Downloads`. **Import repository list** accepts that JSON format from `/home/deck` and merges only new valid GitHub `owner/repo` entries.
+### Updates
 
-## Build
+Shows every tracked tool that's installed and has a newer release available, along with its installed and latest version. Use **Download all updates** to queue every pending update at once, or download them one at a time.
 
-On a Linux development machine or Steam Deck Desktop Mode:
+### Downloads
 
-```bash
-cd deckyhub-plugin
-corepack enable
-pnpm install
-pnpm run typecheck
-pnpm run build
-pnpm run test:backend
-```
+Downloads are saved to `/home/deck/Downloads/plugins` by default (or `/home/deck/Downloads`, if you change that in Settings, or a per-repository override in Repository settings). Each card shows progress, file size, and a **Cancel** button while downloading. If a download is interrupted, no partial file is left behind.
 
-On Windows, `pnpm run test:backend` uses the `python` launcher. On Steam Deck and Linux it uses the same Python command, so no separate test command is needed.
+When GitHub provides a checksum for a release asset, DeckyHub verifies it by default — turn off **Verify SHA256 when available** in Settings if you don't want that check. By default, downloading a file again overwrites the previous copy; turn off **Overwrite existing files** in Settings if you'd rather keep both.
 
-The build produces `dist/index.js`. Decky Loader requires `plugin.json`, `main.py`, `backend/`, `registry/`, and `dist/` together in the plugin folder.
+### Managing your repository list
 
-## Local Steam Deck test
+- **Settings → Add GitHub repository**: search GitHub by name and add a result to Discover.
+- **Export repository list**: saves your custom (non-curated) repositories to `DeckyHub-repositories.json` in `/home/deck/Downloads`, so you can back them up or share them.
+- **Import repository list**: reads that same file from `/home/deck/Downloads` and adds any new repositories from it.
+- Any repository you've added can be removed again from Settings. The curated repositories that ship with DeckyHub stay available and can't be removed.
+- Prefer a bigger screen? The [Registry Editor](https://mazillka.github.io/deckyhub-plugin/) is a browser-based tool for building or editing a repository list file before importing it.
 
-1. Install Decky Loader, switch to Desktop Mode, and build the plugin as above.
-2. Copy the built plugin files (`backend/`, `dist/`, `registry/`, `main.py`, `package.json`, and `plugin.json`) to `~/homebrew/plugins/DeckyHub`, or extract a release ZIP there.
-3. Restart/reload Decky Loader, then open the Quick Access Menu → Decky → DeckyHub.
-4. Run **Check for updates**, select an asset, and confirm the resulting file is in `/home/deck/Downloads`. Test cancel with a larger asset and ensure no `.part` file remains.
+### Repository settings
 
-For development, rebuild the frontend after every change to `src/`, then reload the plugin. The backend uses only Python's standard library and needs no pip install.
+Open **Repository settings** for per-repository controls: switch a repository between stable and pre-release, filter which release assets show up (comma-separated keywords), or send its downloads to a different folder than your global default. Use **Refresh registry from GitHub** to re-pull the curated list.
 
-## Releases
+### Keeping DeckyHub itself updated
 
-Pushing a `v*` Git tag starts the GitHub Actions release workflow. It installs the locked packages, typechecks, builds, runs the backend test, packages the Decky plugin, and attaches `DeckyHub-v*.zip` to the GitHub release.
+Settings includes a **Check for DeckyHub updates** option that looks for new stable releases (or pre-releases, if you opt in) of DeckyHub itself and downloads the ZIP to `/home/deck/Downloads`. Install it the same way as any other plugin ZIP.
 
-## Security boundaries
+## Good to know
 
-Registry entries are trusted project data. Download URLs must be HTTPS and filenames are reduced to a basename. Normal downloads verify a SHA-256 checksum when GitHub exposes one; DeckyHub self-updates require one. GitHub API access is unauthenticated, so users may encounter GitHub's public API rate limit.
+- DeckyHub talks to GitHub without needing you to log in, so very heavy use in a short time may hit GitHub's public rate limit — release info will just take a bit longer to refresh if that happens.
+- Release information is cached for 15 minutes, so pulling to refresh right after checking won't always show something new.
+- Downloads only ever happen over HTTPS.
+
+## Getting help
+
+If something isn't working, please open an issue on the [GitHub repository](https://github.com/mazillka/deckyhub-plugin/issues) with a description of what happened.
+
+Want to build DeckyHub from source or contribute a change? See [CONTRIBUTING.md](CONTRIBUTING.md).
