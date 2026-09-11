@@ -67,6 +67,21 @@ class PluginStatusTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             asyncio.run(Plugin().install_deckyhub_update({"name": "DeckyHub-v1.zip", "url": "https://github.com/mazillka/deckyhub-plugin/releases/download/v1/DeckyHub-v1.zip"}))
 
+    def test_update_uses_the_configured_download_folder(self):
+        async def begin_update():
+            with tempfile.TemporaryDirectory() as home:
+                plugin = Plugin()
+                plugin.settings = {"downloadLocation": "plugins", "overwriteExisting": True}
+                plugin.downloads, plugin.cancelled = {}, set()
+                target_dir = Path(home) / "plugins"
+                asset = {"name": "DeckyHub-v1.zip", "url": "https://github.com/mazillka/deckyhub-plugin/releases/download/v1/DeckyHub-v1.zip", "sha256": "a" * 64}
+                with patch.object(plugin, "_asset_download_dir", return_value=target_dir), patch("main.asyncio.create_task") as create_task:
+                    result = await plugin.install_deckyhub_update(asset)
+                    create_task.call_args.args[0].close()
+                return plugin.downloads[result["jobId"]]["path"]
+
+        self.assertTrue(asyncio.run(begin_update()).endswith(str(Path("plugins") / "DeckyHub-v1.zip")))
+
     def test_download_reports_progress_before_one_megabyte(self):
         class Response:
             headers = {"Content-Length": "3"}

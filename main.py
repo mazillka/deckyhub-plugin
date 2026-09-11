@@ -24,7 +24,7 @@ DEFAULT_DOWNLOAD_DIR = "/home/deck/Downloads"
 PLUGIN_DOWNLOAD_DIR = f"{DEFAULT_DOWNLOAD_DIR}/plugins"
 DECKYHUB_REPO = "mazillka/deckyhub-plugin"
 DECKYHUB_RELEASE_PREFIX = f"https://github.com/{DECKYHUB_REPO}/releases/download/"
-DECKYHUB_VERSION = "0.3.10"
+DECKYHUB_VERSION = "0.3.11"
 REPOSITORY_NAME = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 class Plugin:
     async def _main(self):
@@ -212,7 +212,11 @@ class Plugin:
         if not isinstance(url, str) or not url.startswith(DECKYHUB_RELEASE_PREFIX) or not name.startswith("DeckyHub-") or not name.endswith(".zip") or not isinstance(digest, str) or not re.fullmatch(r"[0-9a-fA-F]{64}", digest):
             raise ValueError("Invalid DeckyHub release asset")
         job_id = f"deckyhub-update-{len(self.downloads) + 1}"
-        target = Path(DEFAULT_DOWNLOAD_DIR) / name
+        target_dir = self._asset_download_dir()
+        target_dir.mkdir(parents=True, exist_ok=True)
+        target = target_dir / name
+        if target.exists() and not self.settings.get("overwriteExisting"):
+            target = self._next_name(target)
         self.downloads[job_id] = {"state": "queued", "filename": name, "received": 0, "total": asset.get("size") or 0, "path": str(target), "error": None}
         asyncio.create_task(asyncio.to_thread(self._download, job_id, asset, target, True))
         return {"jobId": job_id}
