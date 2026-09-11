@@ -147,17 +147,19 @@ export function Content({ fullPage }: { fullPage?: View }) {
               </PanelSectionRow>
             )}
           </PanelSection>
-          {apps
-            .filter(
-              (app) =>
-                filter(app) &&
-                (view !== "discover" ||
-                  ((!query || `${app.name} ${app.repo}`.toLowerCase().includes(query.toLowerCase())) &&
-                    (installedFilter === "All" || (installedFilter === "Installed") === Boolean(app.installedVersion))))
-            )
-            .map((app) => (
-              <AppCard key={app.id} app={app} job={job} onDownload={(asset) => void startDownload(asset, app.repo)} onCancel={(jobId) => void cancelDownload(jobId)} />
-            ))}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
+            {apps
+              .filter(
+                (app) =>
+                  filter(app) &&
+                  (view !== "discover" ||
+                    ((!query || `${app.name} ${app.repo}`.toLowerCase().includes(query.toLowerCase())) &&
+                      (installedFilter === "All" || (installedFilter === "Installed") === Boolean(app.installedVersion))))
+              )
+              .map((app) => (
+                <AppCard key={app.id} app={app} job={job} onDownload={(asset) => void startDownload(asset, app.repo)} onCancel={(jobId) => void cancelDownload(jobId)} />
+              ))}
+          </div>
           {!apps.filter(filter).length && (
             <PanelSection title={info.empty}>
               <PanelSectionRow>{t("content.useDiscover")}</PanelSectionRow>

@@ -137,23 +137,25 @@ export function ManageRepositoriesPage() {
         )}
       </PanelSection>
 
-      {results.slice(page * RESULTS_PER_PAGE, page * RESULTS_PER_PAGE + RESULTS_PER_PAGE).map((repo) => {
-        const added = existingRepos.has(repo.full_name.toLowerCase());
-        return (
-          <PanelSection key={repo.full_name} title={repo.full_name}>
-            <PanelSectionRow>
-              <small>
-                {repo.description || t("repos.noDescription")} · ★ {repo.stargazers_count ?? 0}
-              </small>
-            </PanelSectionRow>
-            <PanelSectionRow>
-              <ButtonItem layout="below" disabled={added} onClick={() => void add(repo.full_name)}>
-                {added ? t("repos.added") : t("repos.add")}
-              </ButtonItem>
-            </PanelSectionRow>
-          </PanelSection>
-        );
-      })}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
+        {results.slice(page * RESULTS_PER_PAGE, page * RESULTS_PER_PAGE + RESULTS_PER_PAGE).map((repo) => {
+          const added = existingRepos.has(repo.full_name.toLowerCase());
+          return (
+            <PanelSection key={repo.full_name} title={repo.full_name}>
+              <PanelSectionRow>
+                <small>
+                  {repo.description || t("repos.noDescription")} · ★ {repo.stargazers_count ?? 0}
+                </small>
+              </PanelSectionRow>
+              <PanelSectionRow>
+                <ButtonItem layout="below" disabled={added} onClick={() => void add(repo.full_name)}>
+                  {added ? t("repos.added") : t("repos.add")}
+                </ButtonItem>
+              </PanelSectionRow>
+            </PanelSection>
+          );
+        })}
+      </div>
 
       <PanelSection title={t("repos.managedRepositories")}>
         <PanelSectionRow>
@@ -197,48 +199,50 @@ export function ManageRepositoriesPage() {
           </ButtonItem>
         </PanelSectionRow>
       </PanelSection>
-      {apps.map((app) => {
-        const value = preference(app.repo);
-        const update = (next: Partial<RepoPreference>) => {
-          const saved = { ...value, ...next };
-          setPrefs({ ...prefs, [app.repo]: saved });
-          void saveRepoSettings(app.repo, saved);
-        };
-        return (
-          <PanelSection key={app.repo} title={app.name}>
-            <PanelSectionRow>
-              <DropdownItem
-                label={t("repos.releaseChannel")}
-                rgOptions={[
-                  { label: t("repos.stable"), data: "stable" },
-                  { label: t("repos.prerelease"), data: "prerelease" },
-                ]}
-                selectedOption={value.channel}
-                onChange={({ data }) => update({ channel: data })}
-              />
-            </PanelSectionRow>
-            <PanelSectionRow>
-              <DropdownItem
-                label={t("settings.downloadFolder")}
-                rgOptions={[
-                  { label: t("repos.useGlobalSetting"), data: "default" },
-                  { label: "/home/deck/Downloads/plugins", data: "plugins" },
-                  { label: "/home/deck/Downloads", data: "downloads" },
-                ]}
-                selectedOption={value.downloadLocation}
-                onChange={({ data }) => update({ downloadLocation: data })}
-              />
-            </PanelSectionRow>
-            <PanelSectionRow>
-              <TextField
-                label={t("repos.assetFilter")}
-                value={value.assetFilter.join(", ")}
-                onChange={(event) => update({ assetFilter: event.currentTarget.value.split(",").map((item) => item.trim()).filter(Boolean) })}
-              />
-            </PanelSectionRow>
-          </PanelSection>
-        );
-      })}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
+        {apps.map((app) => {
+          const value = preference(app.repo);
+          const update = (next: Partial<RepoPreference>) => {
+            const saved = { ...value, ...next };
+            setPrefs({ ...prefs, [app.repo]: saved });
+            void saveRepoSettings(app.repo, saved);
+          };
+          return (
+            <PanelSection key={app.repo} title={app.name}>
+              <PanelSectionRow>
+                <DropdownItem
+                  label={t("repos.releaseChannel")}
+                  rgOptions={[
+                    { label: t("repos.stable"), data: "stable" },
+                    { label: t("repos.prerelease"), data: "prerelease" },
+                  ]}
+                  selectedOption={value.channel}
+                  onChange={({ data }) => update({ channel: data })}
+                />
+              </PanelSectionRow>
+              <PanelSectionRow>
+                <DropdownItem
+                  label={t("settings.downloadFolder")}
+                  rgOptions={[
+                    { label: t("repos.useGlobalSetting"), data: "default" },
+                    { label: "/home/deck/Downloads/plugins", data: "plugins" },
+                    { label: "/home/deck/Downloads", data: "downloads" },
+                  ]}
+                  selectedOption={value.downloadLocation}
+                  onChange={({ data }) => update({ downloadLocation: data })}
+                />
+              </PanelSectionRow>
+              <PanelSectionRow>
+                <TextField
+                  label={t("repos.assetFilter")}
+                  value={value.assetFilter.join(", ")}
+                  onChange={(event) => update({ assetFilter: event.currentTarget.value.split(",").map((item) => item.trim()).filter(Boolean) })}
+                />
+              </PanelSectionRow>
+            </PanelSection>
+          );
+        })}
+      </div>
     </>
   );
 
