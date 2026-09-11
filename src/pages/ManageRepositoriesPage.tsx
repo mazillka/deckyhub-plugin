@@ -252,6 +252,7 @@ export function ManageRepositoriesPage() {
   return (
     <Tabs
       activeTab={activeTab}
+      autoFocusContents
       onShowTab={(tab: string) => {
         setActiveTab(tab);
         requestAnimationFrame(() => window.scrollTo(0, 0));
