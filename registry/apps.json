@@ -41,6 +41,16 @@
       "source": "releases",
       "detect": { "type": "decky-plugin", "names": ["Decky-Framegen", "Decky Framegen"] },
       "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "decky-nexus",
+      "name": "Nexus Mods",
+      "repo": "RedRanger14/decky-nexus",
+      "category": "Mod Managers",
+      "versionStrategy": "semver",
+      "source": "releases",
+      "detect": { "type": "decky-plugin", "names": ["Nexus Mods"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
     }
   ]
 }
