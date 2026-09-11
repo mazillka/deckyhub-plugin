@@ -95,28 +95,28 @@ export function ManageRepositoriesPage() {
     <>
       <PanelSection title="Add GitHub Repository">
         <PanelSectionRow>
-          <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
-            <div style={{ flex: 1 }}>
-              <TextField label="Search GitHub" value={query} onChange={(event) => setQuery(event.currentTarget.value)} />
-            </div>
-            <ButtonItem layout="inline" onClick={() => void search()} disabled={!query.trim() || searching}>
-              {searching ? "Searching…" : "Search"}
-            </ButtonItem>
-            {(query || results.length > 0 || searchError) && (
-              <ButtonItem
-                layout="inline"
-                onClick={() => {
-                  setQuery("");
-                  setResults([]);
-                  setSearchError(null);
-                  setPage(0);
-                }}
-              >
-                Clear
-              </ButtonItem>
-            )}
-          </div>
+          <TextField label="Search GitHub" value={query} onChange={(event) => setQuery(event.currentTarget.value)} />
         </PanelSectionRow>
+        <PanelSectionRow>
+          <ButtonItem layout="below" onClick={() => void search()} disabled={!query.trim() || searching}>
+            {searching ? "Searching…" : "Search Repositories"}
+          </ButtonItem>
+        </PanelSectionRow>
+        {(query || results.length > 0 || searchError) && (
+          <PanelSectionRow>
+            <ButtonItem
+              layout="below"
+              onClick={() => {
+                setQuery("");
+                setResults([]);
+                setSearchError(null);
+                setPage(0);
+              }}
+            >
+              Clear Search
+            </ButtonItem>
+          </PanelSectionRow>
+        )}
         {searchError && <PanelSectionRow>{searchError}</PanelSectionRow>}
         {results.length > RESULTS_PER_PAGE && (
           <PanelSectionRow>
