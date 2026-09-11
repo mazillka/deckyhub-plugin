@@ -168,9 +168,6 @@ export function Content({ fullPage }: { fullPage?: View }) {
 
   const navigation = (
     <>
-      <PanelSection title="DeckyHub">
-        <PanelSectionRow>GitHub release downloads for Steam Deck tools.</PanelSectionRow>
-      </PanelSection>
       <PanelSection title="Browse">
         <PanelSectionRow>
           <ButtonItem layout="below" onClick={() => Navigation.Navigate("/deckyhub/updates")}>
