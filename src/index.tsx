@@ -1,5 +1,5 @@
 import { callable, definePlugin, fetchNoCors, FileSelectionType, openFilePicker, routerHook, toaster } from "@decky/api";
-import { ButtonItem, DropdownItem, Navigation, PanelSection, PanelSectionRow, ScrollPanel, staticClasses, TextField, ToggleField } from "@decky/ui";
+import { ButtonItem, ConfirmModal, DropdownItem, Navigation, PanelSection, PanelSectionRow, ScrollPanel, showModal, staticClasses, TextField, ToggleField } from "@decky/ui";
 import { useEffect, useState } from "react";
 import { FaDownload, FaGithub, FaSync } from "react-icons/fa";
 
@@ -108,7 +108,10 @@ function SettingsPage() {
   const refreshRepos = () => void getCustomRepos().then((result) => setCustomRepos(result.repos));
   useEffect(() => { void getSettings().then(setSettings); void getDeckyHubInfo().then(setDeckyHubInfo); refreshRepos(); }, []);
   useEffect(() => { if (!updateJob || !["queued", "downloading"].includes(updateJob.state.state)) return; const timer = window.setInterval(() => void getDownload(updateJob.id).then((state) => setUpdateJob({ id: updateJob.id, state })), 500); return () => window.clearInterval(timer); }, [updateJob]);
-  useEffect(() => { if (updateJob?.state.state === "complete") toaster.toast({ title: "DeckyHub update downloaded", body: "Decky → Developer → Install Plugin from ZIP" }); }, [updateJob?.id, updateJob?.state.state]);
+  useEffect(() => {
+    if (updateJob?.state.state !== "complete") return;
+    showModal(<ConfirmModal strTitle="DeckyHub update downloaded" strDescription={<><div>The ZIP was saved to:</div><div>{updateJob.state.path || "the selected download folder"}</div><br /><div>Install it in Decky:</div><div>Developer → Install Plugin from ZIP</div></>} strOKButtonText="OK" bAlertDialog />);
+  }, [updateJob?.id, updateJob?.state.state]);
   const search = async () => { try { setSearchError(null); const response = await fetchNoCors(`https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&sort=stars&order=desc&per_page=10`, { headers: { Accept: "application/vnd.github+json" } }); if (!response.ok) throw new Error(`GitHub API returned ${response.status}`); setResults((await response.json()).items || []); } catch (error) { setSearchError(String(error)); } };
   const add = async (repo: string) => { const result = await addCustomRepo(repo); if (result.added) { refreshRepos(); window.dispatchEvent(new Event(REGISTRY_UPDATED)); } toaster.toast({ title: "DeckyHub", body: result.added ? `${repo} added to Discover.` : `${repo} is already in DeckyHub.` }); };
   const remove = async (repo: string) => { await removeCustomRepo(repo); refreshRepos(); window.dispatchEvent(new Event(REGISTRY_UPDATED)); };
