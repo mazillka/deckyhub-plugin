@@ -1,5 +1,5 @@
 import { FileSelectionType, fetchNoCors, openFilePicker, toaster } from "@decky/api";
-import { ButtonItem, DropdownItem, Navigation, PanelSection, PanelSectionRow, TextField, ToggleField } from "@decky/ui";
+import { ButtonItem, ConfirmModal, DropdownItem, Navigation, PanelSection, PanelSectionRow, showModal, TextField, ToggleField } from "@decky/ui";
 import { useEffect, useState } from "react";
 import {
   addCustomRepo,
@@ -75,6 +75,17 @@ export function SettingsPage() {
     refreshRepos();
     window.dispatchEvent(new Event(REGISTRY_UPDATED));
   };
+
+  const confirmRemove = (repo: string) =>
+    showModal(
+      <ConfirmModal
+        strTitle="Remove repository"
+        strDescription={`Stop tracking ${repo}? You can add it again later from Discover.`}
+        strOKButtonText="Remove"
+        bDestructiveWarning
+        onOK={() => void remove(repo)}
+      />
+    );
 
   const exportList = async () => {
     const result = await exportCustomRepos();
@@ -198,7 +209,7 @@ export function SettingsPage() {
         </PanelSectionRow>
         {customRepos.map((item) => (
           <PanelSectionRow key={item.repo}>
-            <ButtonItem layout="below" onClick={() => void remove(item.repo)}>
+            <ButtonItem layout="below" onClick={() => confirmRemove(item.repo)}>
               Remove {item.repo}
             </ButtonItem>
           </PanelSectionRow>

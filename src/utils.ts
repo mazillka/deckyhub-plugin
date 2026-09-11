@@ -10,6 +10,8 @@ export const readableBytes = (bytes = 0) => (bytes > 1024 * 1024 ? `${(bytes / 1
 export const status = (app: App) =>
   !app.installedVersion ? "Not installed" : app.updateAvailable ? "Update available" : app.updateAvailable === false ? "Up to date" : "Installed";
 
+export const statusColor = (app: App) => (app.error ? "#ff6b6b" : app.updateAvailable ? "#f0c33c" : app.updateAvailable === false ? "#6bcb6b" : undefined);
+
 const keyFor = (app: App) => `deckyhub-release:${app.repo}:${app.source}`;
 
 function cached(app: App, force: boolean): any | null {

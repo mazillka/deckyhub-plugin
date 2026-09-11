@@ -1,7 +1,7 @@
 import { ButtonItem, Navigation, PanelSection, PanelSectionRow } from "@decky/ui";
 import { FaDownload } from "react-icons/fa";
 import type { App, Asset, Download } from "../types";
-import { readableBytes, status } from "../utils";
+import { readableBytes, status, statusColor } from "../utils";
 import { DownloadProgress } from "./DownloadProgress";
 
 export function AppCard({
@@ -20,7 +20,7 @@ export function AppCard({
     <PanelSection title={`${app.name} · ${app.category}`}>
       <PanelSectionRow>
         <div>
-          {status(app)}
+          <span style={{ color: statusColor(app) }}>{status(app)}</span>
           <br />
           <small>
             Installed: {app.installedVersion ?? "—"} · Latest: {app.latestVersion ?? "—"}
