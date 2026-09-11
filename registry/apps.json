@@ -20,7 +20,7 @@
       "versionStrategy": "semver",
       "source": "releases",
       "detect": { "type": "decky-plugin", "names": ["Decky LSFG-VK"] },
-      "asset": { "include": ["decky-lsfg-vk", ".zip"], "exclude": ["source"] }
+      "asset": { "include": [".zip"], "exclude": ["source"] }
     },
     {
       "id": "unifideck",
