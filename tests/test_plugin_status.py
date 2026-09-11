@@ -106,14 +106,15 @@ class PluginStatusTests(unittest.TestCase):
             self.assertTrue(result["added"])
             self.assertEqual(plugin._custom_apps()[0]["repo"], "owner/repository")
 
-    def test_get_apps_returns_only_custom_repositories(self):
+    def test_get_apps_includes_default_and_custom_repositories(self):
         with tempfile.TemporaryDirectory() as home:
             Path(home, "plugins").mkdir()
             sys.modules["decky"].DECKY_HOME = home
             plugin = Plugin()
             plugin.settings = {"customRepos": ["owner/custom"]}
+            plugin.apps = [{"repo": "owner/default", "detect": {"type": "decky-plugin", "repo": "owner/default"}}]
 
-            self.assertEqual([app["repo"] for app in asyncio.run(plugin.get_apps())["apps"]], ["owner/custom"])
+            self.assertEqual([app["repo"] for app in asyncio.run(plugin.get_apps())["apps"]], ["owner/default", "owner/custom"])
 
     def test_uninstalled_custom_repository_can_be_removed(self):
         with tempfile.TemporaryDirectory() as home:

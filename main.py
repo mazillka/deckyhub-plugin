@@ -13,6 +13,8 @@ from urllib.request import Request, urlopen
 
 import decky
 
+from backend.registry import load_registry
+
 # Decky loads main.py with importlib; its plugin directory is not guaranteed to be on sys.path.
 PLUGIN_DIR = str(Path(__file__).resolve().parent)
 if PLUGIN_DIR not in sys.path:
@@ -27,6 +29,7 @@ class Plugin:
     async def _main(self):
         self.settings_path = Path(decky.DECKY_PLUGIN_SETTINGS_DIR) / "settings.json"
         self.settings = self._load_settings()
+        self.apps = load_registry(decky.DECKY_PLUGIN_DIR)
         self.downloads: dict[str, dict] = {}
         self.cancelled: set[str] = set()
 
@@ -98,12 +101,13 @@ class Plugin:
         return repo.casefold() if REPOSITORY_NAME.fullmatch(repo) else None
 
     async def get_apps(self):
-        apps = self._custom_apps()
+        apps = [*self.apps, *self._custom_apps()]
         installed = await asyncio.gather(*(asyncio.to_thread(self._installed_version, app) for app in apps))
         return {"apps": [{**app, "installedVersion": version, "latestVersion": None, "publishedAt": None, "releaseUrl": None, "assets": [], "updateAvailable": None, "error": None} for app, version in zip(apps, installed)]}
 
     def _custom_apps(self) -> list[dict]:
-        return [{"id": f"custom-{repo.replace('/', '-')}", "name": repo, "repo": repo, "category": "Custom", "versionStrategy": "semver", "source": "releases", "detect": {"type": "decky-plugin", "repo": repo}, "asset": {"include": [], "exclude": ["source"]}} for repo in self.settings["customRepos"]]
+        bundled = {app["repo"].casefold() for app in self.apps}
+        return [{"id": f"custom-{repo.replace('/', '-')}", "name": repo, "repo": repo, "category": "Custom", "versionStrategy": "semver", "source": "releases", "detect": {"type": "decky-plugin", "repo": repo}, "asset": {"include": [], "exclude": ["source"]}} for repo in self.settings["customRepos"] if repo.casefold() not in bundled]
 
     async def get_settings(self):
         return self.settings
@@ -133,7 +137,7 @@ class Plugin:
         repo = repo.strip()
         if not REPOSITORY_NAME.fullmatch(repo):
             raise ValueError("Repository must be owner/name")
-        existing = {item.casefold() for item in self.settings["customRepos"]}
+        existing = {app["repo"].casefold() for app in self.apps} | {item.casefold() for item in self.settings["customRepos"]}
         if repo.casefold() in existing:
             return {"added": False, "repo": repo}
         self.settings["customRepos"].append(repo)
@@ -172,7 +176,7 @@ class Plugin:
         repos = payload.get("repos", []) if isinstance(payload, dict) else payload
         if not isinstance(repos, list):
             raise ValueError("Invalid repository export")
-        existing = {repo.casefold() for repo in self.settings["customRepos"]}
+        existing = {app["repo"].casefold() for app in self.apps} | {repo.casefold() for repo in self.settings["customRepos"]}
         added = []
         for repo in repos:
             if isinstance(repo, str) and REPOSITORY_NAME.fullmatch(repo) and repo.casefold() not in existing:
