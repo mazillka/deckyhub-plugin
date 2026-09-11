@@ -252,7 +252,10 @@ export function ManageRepositoriesPage() {
   return (
     <Tabs
       activeTab={activeTab}
-      onShowTab={(tab: string) => setActiveTab(tab)}
+      onShowTab={(tab: string) => {
+        setActiveTab(tab);
+        requestAnimationFrame(() => window.scrollTo(0, 0));
+      }}
       tabs={[
         { id: "manage", title: "Add & Manage", content: manageTab },
         { id: "settings", title: "Repository Settings", content: settingsTab },
