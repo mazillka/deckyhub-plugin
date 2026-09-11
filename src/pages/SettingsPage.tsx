@@ -1,22 +1,8 @@
-import { FileSelectionType, fetchNoCors, openFilePicker, toaster } from "@decky/api";
-import { ButtonItem, ConfirmModal, DropdownItem, Navigation, PanelSection, PanelSectionRow, showModal, TextField, ToggleField } from "@decky/ui";
+import { toaster } from "@decky/api";
+import { ButtonItem, DropdownItem, Navigation, PanelSection, PanelSectionRow, ToggleField } from "@decky/ui";
 import { useEffect, useState } from "react";
-import {
-  addCustomRepo,
-  cancelDownload,
-  exportCustomRepos,
-  getApps,
-  getCustomRepos,
-  getDeckyHubInfo,
-  getDownload,
-  getSettings,
-  importCustomRepos,
-  installDeckyHubUpdate,
-  REGISTRY_UPDATED,
-  removeCustomRepo,
-  saveSettings,
-} from "../api";
-import type { Asset, DeckyHubInfo, DeckyHubRelease, Download, ManagedRepo, SearchRepo, Settings } from "../types";
+import { cancelDownload, getDeckyHubInfo, getDownload, getSettings, installDeckyHubUpdate, saveSettings } from "../api";
+import type { Asset, DeckyHubInfo, DeckyHubRelease, Download, Settings } from "../types";
 import { latestDeckyHubRelease } from "../utils";
 import { showDownloadComplete } from "../components/DownloadProgress";
 
@@ -25,21 +11,10 @@ export function SettingsPage() {
   const [deckyHubInfo, setDeckyHubInfo] = useState<DeckyHubInfo>({ version: "unknown" });
   const [deckyHubRelease, setDeckyHubRelease] = useState<DeckyHubRelease>({});
   const [updateJob, setUpdateJob] = useState<{ id: string; state: Download } | null>(null);
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SearchRepo[]>([]);
-  const [searchError, setSearchError] = useState<string | null>(null);
-  const [customRepos, setCustomRepos] = useState<ManagedRepo[]>([]);
-  const [existingRepos, setExistingRepos] = useState<Set<string>>(new Set());
-
-  const refreshRepos = () => {
-    void getCustomRepos().then((result) => setCustomRepos(result.repos));
-    void getApps().then((result) => setExistingRepos(new Set(result.apps.map((app) => app.repo.toLowerCase()))));
-  };
 
   useEffect(() => {
     void getSettings().then(setSettings);
     void getDeckyHubInfo().then(setDeckyHubInfo);
-    refreshRepos();
   }, []);
 
   useEffect(() => {
@@ -50,61 +25,8 @@ export function SettingsPage() {
 
   useEffect(() => {
     if (updateJob?.state.state !== "complete") return;
-    showDownloadComplete("DeckyHub update downloaded", updateJob.state.path);
+    showDownloadComplete("DeckyHub Update Downloaded", updateJob.state.path);
   }, [updateJob?.id, updateJob?.state.state]);
-
-  const search = async () => {
-    try {
-      setSearchError(null);
-      const response = await fetchNoCors(`https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&sort=stars&order=desc&per_page=10`, {
-        headers: { Accept: "application/vnd.github+json" },
-      });
-      if (!response.ok) throw new Error(`GitHub API returned ${response.status}`);
-      setResults((await response.json()).items || []);
-    } catch (error) {
-      setSearchError(String(error));
-    }
-  };
-
-  const add = async (repo: string) => {
-    const result = await addCustomRepo(repo);
-    if (result.added) {
-      setExistingRepos((current) => new Set(current).add(repo.toLowerCase()));
-      refreshRepos();
-      window.dispatchEvent(new Event(REGISTRY_UPDATED));
-    }
-    toaster.toast({ title: "DeckyHub", body: result.added ? `${repo} added to Discover.` : `${repo} is already in DeckyHub.` });
-  };
-
-  const remove = async (repo: string) => {
-    await removeCustomRepo(repo);
-    refreshRepos();
-    window.dispatchEvent(new Event(REGISTRY_UPDATED));
-  };
-
-  const confirmRemove = (repo: string) =>
-    showModal(
-      <ConfirmModal
-        strTitle="Remove repository"
-        strDescription={`Stop tracking ${repo}? You can add it again later from Discover.`}
-        strOKButtonText="Remove"
-        bDestructiveWarning
-        onOK={() => void remove(repo)}
-      />
-    );
-
-  const exportList = async () => {
-    const result = await exportCustomRepos();
-    toaster.toast({ title: "DeckyHub", body: `Exported to ${result.path}` });
-  };
-
-  const importList = async () => {
-    const file = await openFilePicker(FileSelectionType.FILE, "/home/deck/Downloads", true, false, undefined, ["json"]);
-    const result = await importCustomRepos(file.realpath);
-    refreshRepos();
-    if (result.added.length) window.dispatchEvent(new Event(REGISTRY_UPDATED));
-    toaster.toast({ title: "DeckyHub", body: result.added.length ? `Imported: ${result.added.join(", ")}` : "No new repositories to import." });
-  };
 
   const installUpdate = async (asset: Asset) => {
     const result = await installDeckyHubUpdate(asset);
@@ -113,7 +35,7 @@ export function SettingsPage() {
 
   return (
     <>
-      <PanelSection title="DeckyHub update">
+      <PanelSection title="DeckyHub Update">
         <PanelSectionRow>
           Installed: {deckyHubInfo.version}
           {deckyHubRelease.version && ` · Latest: ${deckyHubRelease.version}`}
@@ -126,7 +48,7 @@ export function SettingsPage() {
         </PanelSectionRow>
         <PanelSectionRow>
           <DropdownItem
-            label="Update channel"
+            label="Update Channel"
             rgOptions={[
               { label: "Stable releases", data: "stable" },
               { label: "Pre-releases", data: "prerelease" },
@@ -137,13 +59,13 @@ export function SettingsPage() {
         </PanelSectionRow>
         <PanelSectionRow>
           <ButtonItem layout="below" onClick={() => void latestDeckyHubRelease(settings.updateChannel).then(setDeckyHubRelease)}>
-            Check DeckyHub update
+            Check DeckyHub Update
           </ButtonItem>
         </PanelSectionRow>
         {deckyHubRelease.asset && (
           <PanelSectionRow>
             <ButtonItem layout="below" onClick={() => void installUpdate(deckyHubRelease.asset!)}>
-              Download {deckyHubRelease.version} update
+              Download {deckyHubRelease.version} Update
             </ButtonItem>
           </PanelSectionRow>
         )}
@@ -165,7 +87,7 @@ export function SettingsPage() {
             )}
             {["queued", "downloading"].includes(updateJob.state.state) && (
               <ButtonItem layout="below" onClick={() => void cancelDownload(updateJob.id)}>
-                Cancel update
+                Cancel Update
               </ButtonItem>
             )}
           </PanelSectionRow>
@@ -173,85 +95,17 @@ export function SettingsPage() {
         {deckyHubRelease.url && (
           <PanelSectionRow>
             <ButtonItem layout="below" onClick={() => Navigation.NavigateToExternalWeb(deckyHubRelease.url!)}>
-              Open release page
+              Open Release Page
             </ButtonItem>
           </PanelSectionRow>
         )}
       </PanelSection>
 
-      <PanelSection title="Add GitHub repository">
-        <PanelSectionRow>
-          <TextField label="Search GitHub" value={query} onChange={(event) => setQuery(event.currentTarget.value)} />
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <ButtonItem layout="below" onClick={() => void search()} disabled={!query.trim()}>
-            Search repositories
-          </ButtonItem>
-        </PanelSectionRow>
-        {(query || results.length > 0 || searchError) && (
-          <PanelSectionRow>
-            <ButtonItem
-              layout="below"
-              onClick={() => {
-                setQuery("");
-                setResults([]);
-                setSearchError(null);
-              }}
-            >
-              Clear search
-            </ButtonItem>
-          </PanelSectionRow>
-        )}
-        {searchError && <PanelSectionRow>{searchError}</PanelSectionRow>}
-        {results.map((repo) => {
-          const added = existingRepos.has(repo.full_name.toLowerCase());
-          return (
-            <div key={repo.full_name}>
-              <PanelSectionRow>
-                <div>
-                  {repo.full_name}
-                  <br />
-                  <small>
-                    {repo.description || "No description"} · ★ {repo.stargazers_count ?? 0}
-                  </small>
-                </div>
-              </PanelSectionRow>
-              <PanelSectionRow>
-                <ButtonItem layout="below" disabled={added} onClick={() => void add(repo.full_name)}>
-                  {added ? "Already added" : "Add"}
-                </ButtonItem>
-              </PanelSectionRow>
-            </div>
-          );
-        })}
-      </PanelSection>
-
-      <PanelSection title="Managed repositories">
-        <PanelSectionRow>
-          <ButtonItem layout="below" onClick={() => void exportList()}>
-            Export repository list
-          </ButtonItem>
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <ButtonItem layout="below" onClick={() => void importList()}>
-            Import repository list
-          </ButtonItem>
-        </PanelSectionRow>
-        {customRepos.map((item) => (
-          <PanelSectionRow key={item.repo}>
-            <ButtonItem layout="below" onClick={() => confirmRemove(item.repo)}>
-              Remove {item.repo}
-            </ButtonItem>
-          </PanelSectionRow>
-        ))}
-        {!customRepos.length && <PanelSectionRow>No custom repositories yet.</PanelSectionRow>}
-      </PanelSection>
-
-      <PanelSection title="Download settings">
+      <PanelSection title="Download Settings">
         <PanelSectionRow>Choose where release ZIP files are saved.</PanelSectionRow>
         <PanelSectionRow>
           <DropdownItem
-            label="Download folder"
+            label="Download Folder"
             rgOptions={[
               { label: "/home/deck/Downloads/plugins (default)", data: "plugins" },
               { label: "/home/deck/Downloads", data: "downloads" },
@@ -261,10 +115,10 @@ export function SettingsPage() {
           />
         </PanelSectionRow>
         <PanelSectionRow>
-          <ToggleField label="Verify SHA256 when available" checked={settings.verifySha256} onChange={(checked) => setSettings({ ...settings, verifySha256: checked })} />
+          <ToggleField label="Verify SHA256 When Available" checked={settings.verifySha256} onChange={(checked) => setSettings({ ...settings, verifySha256: checked })} />
         </PanelSectionRow>
         <PanelSectionRow>
-          <ToggleField label="Overwrite existing files" checked={settings.overwriteExisting} onChange={(checked) => setSettings({ ...settings, overwriteExisting: checked })} />
+          <ToggleField label="Overwrite Existing Files" checked={settings.overwriteExisting} onChange={(checked) => setSettings({ ...settings, overwriteExisting: checked })} />
         </PanelSectionRow>
         <PanelSectionRow>
           <ButtonItem
@@ -274,7 +128,7 @@ export function SettingsPage() {
               toaster.toast({ title: "DeckyHub", body: "Settings saved." });
             }}
           >
-            Save settings
+            Save Settings
           </ButtonItem>
         </PanelSectionRow>
       </PanelSection>

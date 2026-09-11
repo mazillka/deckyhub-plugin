@@ -36,7 +36,7 @@ export function AppCard({
       {active && (
         <PanelSectionRow>
           <div>
-            <strong>{active.state.state === "complete" ? "Download complete" : active.state.state === "error" ? "Download failed" : "Downloading…"}</strong>
+            <strong>{active.state.state === "complete" ? "Download Complete" : active.state.state === "error" ? "Download Failed" : "Downloading…"}</strong>
             <br />
             <small>
               {readableBytes(active.state.received)} / {active.state.total ? readableBytes(active.state.total) : "unknown size"}
@@ -50,7 +50,7 @@ export function AppCard({
             )}
             {active.state.state === "downloading" && (
               <ButtonItem layout="below" onClick={() => onCancel(active.id)}>
-                Cancel download
+                Cancel Download
               </ButtonItem>
             )}
           </div>
@@ -59,7 +59,7 @@ export function AppCard({
       {app.assets[0] && (
         <PanelSectionRow>
           <ButtonItem layout="below" onClick={() => onDownload(app.assets[0])}>
-            <FaDownload /> Download latest ({app.assets[0].name})
+            <FaDownload /> Download Latest ({app.assets[0].name})
           </ButtonItem>
         </PanelSectionRow>
       )}
@@ -71,7 +71,7 @@ export function AppCard({
       {app.releaseUrl && (
         <PanelSectionRow>
           <ButtonItem layout="below" onClick={() => Navigation.NavigateToExternalWeb(app.releaseUrl!)}>
-            Open release page
+            Open Release Page
           </ButtonItem>
         </PanelSectionRow>
       )}

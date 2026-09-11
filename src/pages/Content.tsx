@@ -20,7 +20,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [job, setJob] = useState<{ id: string; state: Download } | null>(null);
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState("All");
+  const [installedFilter, setInstalledFilter] = useState("All");
 
   const load = async (force = false) => {
     setLoading(true);
@@ -59,7 +59,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
 
   useEffect(() => {
     if (job?.state.state !== "complete") return;
-    showDownloadComplete("Download complete", job.state.path);
+    showDownloadComplete("Download Complete", job.state.path);
   }, [job?.id, job?.state.state]);
 
   const startDownload = async (asset: Asset, repo?: string) => {
@@ -67,15 +67,22 @@ export function Content({ fullPage }: { fullPage?: View }) {
     if (result.jobId) setJob({ id: result.jobId, state: { state: "queued" } });
   };
 
-  const categories = ["All", ...Array.from(new Set(apps.map((app) => app.category))).sort()];
-
   const discoverFilters = view === "discover" && (
-    <PanelSection title="Filter repositories">
+    <PanelSection title="Filter Repositories">
       <PanelSectionRow>
         <TextField label="Search" value={query} onChange={(event) => setQuery(event.currentTarget.value)} />
       </PanelSectionRow>
       <PanelSectionRow>
-        <DropdownItem label="Category" rgOptions={categories.map((item) => ({ label: item, data: item }))} selectedOption={category} onChange={({ data }) => setCategory(data)} />
+        <DropdownItem
+          label="Status"
+          rgOptions={[
+            { label: "All", data: "All" },
+            { label: "Installed", data: "Installed" },
+            { label: "Not Installed", data: "Not Installed" },
+          ]}
+          selectedOption={installedFilter}
+          onChange={({ data }) => setInstalledFilter(data)}
+        />
       </PanelSectionRow>
     </PanelSection>
   );
@@ -89,11 +96,11 @@ export function Content({ fullPage }: { fullPage?: View }) {
         </PanelSection>
       )}
       {loadError && (
-        <PanelSection title="Could not load DeckyHub">
+        <PanelSection title="Could Not Load DeckyHub">
           <PanelSectionRow>{loadError}</PanelSectionRow>
           <PanelSectionRow>
             <ButtonItem layout="below" onClick={() => void load(true)}>
-              Try again
+              Try Again
             </ButtonItem>
           </PanelSectionRow>
         </PanelSection>
@@ -104,7 +111,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
             <PanelSectionRow>{info.description}</PanelSectionRow>
             <PanelSectionRow>
               <ButtonItem layout="below" onClick={() => void load(true)}>
-                <FaSync /> Refresh releases
+                <FaSync /> Refresh Releases
               </ButtonItem>
             </PanelSectionRow>
             {view === "updates" && apps.some((app) => app.updateAvailable && app.assets[0]) && (
@@ -117,7 +124,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
                     )
                   }
                 >
-                  Download all updates
+                  Download All Updates
                 </ButtonItem>
               </PanelSectionRow>
             )}
@@ -131,7 +138,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
                   </small>
                   {job.state.state === "downloading" && (
                     <ButtonItem layout="below" onClick={() => void cancelDownload(job.id)}>
-                      Cancel download
+                      Cancel Download
                     </ButtonItem>
                   )}
                 </div>
@@ -143,7 +150,8 @@ export function Content({ fullPage }: { fullPage?: View }) {
               (app) =>
                 filter(app) &&
                 (view !== "discover" ||
-                  ((!query || `${app.name} ${app.repo}`.toLowerCase().includes(query.toLowerCase())) && (category === "All" || app.category === category)))
+                  ((!query || `${app.name} ${app.repo}`.toLowerCase().includes(query.toLowerCase())) &&
+                    (installedFilter === "All" || (installedFilter === "Installed") === Boolean(app.installedVersion))))
             )
             .map((app) => (
               <AppCard key={app.id} app={app} job={job} onDownload={(asset) => void startDownload(asset, app.repo)} onCancel={(jobId) => void cancelDownload(jobId)} />
@@ -175,13 +183,13 @@ export function Content({ fullPage }: { fullPage?: View }) {
           </ButtonItem>
         </PanelSectionRow>
         <PanelSectionRow>
-          <ButtonItem layout="below" onClick={() => Navigation.Navigate("/deckyhub/settings")}>
-            Settings
+          <ButtonItem layout="below" onClick={() => Navigation.Navigate("/deckyhub/repositories")}>
+            Repositories
           </ButtonItem>
         </PanelSectionRow>
         <PanelSectionRow>
-          <ButtonItem layout="below" onClick={() => Navigation.Navigate("/deckyhub/repository-settings")}>
-            Repository settings
+          <ButtonItem layout="below" onClick={() => Navigation.Navigate("/deckyhub/settings")}>
+            Settings
           </ButtonItem>
         </PanelSectionRow>
       </PanelSection>

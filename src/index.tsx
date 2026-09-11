@@ -2,12 +2,12 @@ import { definePlugin, routerHook } from "@decky/api";
 import { staticClasses } from "@decky/ui";
 import { FaGithub } from "react-icons/fa";
 import { Content } from "./pages/Content";
-import { RepositorySettingsPage } from "./pages/RepositorySettingsPage";
+import { ManageRepositoriesPage } from "./pages/ManageRepositoriesPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import type { View } from "./types";
 import { pageStyle } from "./utils";
 
-const ROUTES = ["/deckyhub/updates", "/deckyhub/discover", "/deckyhub/settings", "/deckyhub/repository-settings"];
+const ROUTES = ["/deckyhub/updates", "/deckyhub/discover", "/deckyhub/settings", "/deckyhub/repositories"];
 
 export default definePlugin(() => {
   const fullscreen = (view: View) => (
@@ -22,9 +22,9 @@ export default definePlugin(() => {
       <SettingsPage />
     </div>
   ));
-  routerHook.addRoute("/deckyhub/repository-settings", () => (
+  routerHook.addRoute("/deckyhub/repositories", () => (
     <div style={pageStyle}>
-      <RepositorySettingsPage />
+      <ManageRepositoriesPage />
     </div>
   ));
   return {
