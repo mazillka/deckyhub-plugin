@@ -50,7 +50,7 @@ export function AppCard({
             )}
             {active.state.state === "downloading" && (
               <ButtonItem layout="below" onClick={() => onCancel(active.id)}>
-                Cancel Download
+                Cancel
               </ButtonItem>
             )}
           </div>
@@ -59,7 +59,7 @@ export function AppCard({
       {app.assets[0] && (
         <PanelSectionRow>
           <ButtonItem layout="below" onClick={() => onDownload(app.assets[0])}>
-            <FaDownload /> Download Latest ({app.assets[0].name})
+            <FaDownload /> Latest ({app.assets[0].name})
           </ButtonItem>
         </PanelSectionRow>
       )}
@@ -71,7 +71,7 @@ export function AppCard({
       {app.releaseUrl && (
         <PanelSectionRow>
           <ButtonItem layout="below" onClick={() => Navigation.NavigateToExternalWeb(app.releaseUrl!)}>
-            Open Release Page
+            Release Page
           </ButtonItem>
         </PanelSectionRow>
       )}

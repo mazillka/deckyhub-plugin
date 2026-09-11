@@ -98,25 +98,25 @@ export function ManageRepositoriesPage() {
           <TextField label="Search GitHub" value={query} onChange={(event) => setQuery(event.currentTarget.value)} />
         </PanelSectionRow>
         <PanelSectionRow>
-          <ButtonItem layout="below" onClick={() => void search()} disabled={!query.trim() || searching}>
-            {searching ? "Searching…" : "Search Repositories"}
-          </ButtonItem>
-        </PanelSectionRow>
-        {(query || results.length > 0 || searchError) && (
-          <PanelSectionRow>
-            <ButtonItem
-              layout="below"
-              onClick={() => {
-                setQuery("");
-                setResults([]);
-                setSearchError(null);
-                setPage(0);
-              }}
-            >
-              Clear Search
+          <div style={{ display: "flex", gap: 8 }}>
+            <ButtonItem layout="inline" onClick={() => void search()} disabled={!query.trim() || searching}>
+              {searching ? "Searching…" : "Search"}
             </ButtonItem>
-          </PanelSectionRow>
-        )}
+            {(query || results.length > 0 || searchError) && (
+              <ButtonItem
+                layout="inline"
+                onClick={() => {
+                  setQuery("");
+                  setResults([]);
+                  setSearchError(null);
+                  setPage(0);
+                }}
+              >
+                Clear
+              </ButtonItem>
+            )}
+          </div>
+        </PanelSectionRow>
         {searchError && <PanelSectionRow>{searchError}</PanelSectionRow>}
         {results.length > RESULTS_PER_PAGE && (
           <PanelSectionRow>
@@ -146,7 +146,7 @@ export function ManageRepositoriesPage() {
             </PanelSectionRow>
             <PanelSectionRow>
               <ButtonItem layout="below" disabled={added} onClick={() => void add(repo.full_name)}>
-                {added ? "Already Added" : "Add"}
+                {added ? "Added" : "Add"}
               </ButtonItem>
             </PanelSectionRow>
           </PanelSection>
@@ -155,14 +155,14 @@ export function ManageRepositoriesPage() {
 
       <PanelSection title="Managed Repositories">
         <PanelSectionRow>
-          <ButtonItem layout="below" onClick={() => void exportList()}>
-            Export Repository List
-          </ButtonItem>
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <ButtonItem layout="below" onClick={() => void importList()}>
-            Import Repository List
-          </ButtonItem>
+          <div style={{ display: "flex", gap: 8 }}>
+            <ButtonItem layout="inline" onClick={() => void exportList()}>
+              Export
+            </ButtonItem>
+            <ButtonItem layout="inline" onClick={() => void importList()}>
+              Import
+            </ButtonItem>
+          </div>
         </PanelSectionRow>
         {customRepos.map((item) => (
           <PanelSectionRow key={item.repo}>
@@ -179,7 +179,7 @@ export function ManageRepositoriesPage() {
   const settingsTab = (
     <>
       <PanelSection title="Repository Settings">
-        <PanelSectionRow>Choose a release channel, asset keywords, and download folder for each repository.</PanelSectionRow>
+        <PanelSectionRow>Per-repo release, folder, and asset overrides.</PanelSectionRow>
         <PanelSectionRow>
           <ButtonItem
             layout="below"
@@ -191,7 +191,7 @@ export function ManageRepositoriesPage() {
               })
             }
           >
-            <FaSync /> Refresh Registry From GitHub
+            <FaSync /> Refresh Registry
           </ButtonItem>
         </PanelSectionRow>
       </PanelSection>
@@ -225,7 +225,7 @@ export function ManageRepositoriesPage() {
             </PanelSectionRow>
             <PanelSectionRow>
               <TextField
-                label="Asset Filter (Comma-Separated)"
+                label="Asset Filter"
                 value={value.assetFilter.join(", ")}
                 onChange={(event) => update({ assetFilter: event.currentTarget.value.split(",").map((item) => item.trim()).filter(Boolean) })}
               />

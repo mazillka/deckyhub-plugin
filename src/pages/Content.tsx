@@ -92,7 +92,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
       {discoverFilters}
       {loading && (
         <PanelSection title="Loading DeckyHub…">
-          <PanelSectionRow>Reading installed tools and release information.</PanelSectionRow>
+          <PanelSectionRow>Loading…</PanelSectionRow>
         </PanelSection>
       )}
       {loadError && (
@@ -111,7 +111,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
             <PanelSectionRow>{info.description}</PanelSectionRow>
             <PanelSectionRow>
               <ButtonItem layout="below" onClick={() => void load(true)}>
-                <FaSync /> Refresh Releases
+                <FaSync /> Refresh
               </ButtonItem>
             </PanelSectionRow>
             {view === "updates" && apps.some((app) => app.updateAvailable && app.assets[0]) && (
@@ -124,7 +124,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
                     )
                   }
                 >
-                  Download All Updates
+                  Update All
                 </ButtonItem>
               </PanelSectionRow>
             )}
@@ -138,7 +138,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
                   </small>
                   {job.state.state === "downloading" && (
                     <ButtonItem layout="below" onClick={() => void cancelDownload(job.id)}>
-                      Cancel Download
+                      Cancel
                     </ButtonItem>
                   )}
                 </div>

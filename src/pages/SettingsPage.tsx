@@ -59,13 +59,13 @@ export function SettingsPage() {
         </PanelSectionRow>
         <PanelSectionRow>
           <ButtonItem layout="below" onClick={() => void latestDeckyHubRelease(settings.updateChannel).then(setDeckyHubRelease)}>
-            Check DeckyHub Update
+            Check Update
           </ButtonItem>
         </PanelSectionRow>
         {deckyHubRelease.asset && (
           <PanelSectionRow>
             <ButtonItem layout="below" onClick={() => void installUpdate(deckyHubRelease.asset!)}>
-              Download {deckyHubRelease.version} Update
+              Download Update
             </ButtonItem>
           </PanelSectionRow>
         )}
@@ -87,7 +87,7 @@ export function SettingsPage() {
             )}
             {["queued", "downloading"].includes(updateJob.state.state) && (
               <ButtonItem layout="below" onClick={() => void cancelDownload(updateJob.id)}>
-                Cancel Update
+                Cancel
               </ButtonItem>
             )}
           </PanelSectionRow>
@@ -95,14 +95,14 @@ export function SettingsPage() {
         {deckyHubRelease.url && (
           <PanelSectionRow>
             <ButtonItem layout="below" onClick={() => Navigation.NavigateToExternalWeb(deckyHubRelease.url!)}>
-              Open Release Page
+              Release Page
             </ButtonItem>
           </PanelSectionRow>
         )}
       </PanelSection>
 
       <PanelSection title="Download Settings">
-        <PanelSectionRow>Choose where release ZIP files are saved.</PanelSectionRow>
+        <PanelSectionRow>Where release ZIPs are saved.</PanelSectionRow>
         <PanelSectionRow>
           <DropdownItem
             label="Download Folder"
@@ -115,10 +115,10 @@ export function SettingsPage() {
           />
         </PanelSectionRow>
         <PanelSectionRow>
-          <ToggleField label="Verify SHA256 When Available" checked={settings.verifySha256} onChange={(checked) => setSettings({ ...settings, verifySha256: checked })} />
+          <ToggleField label="Verify SHA256" checked={settings.verifySha256} onChange={(checked) => setSettings({ ...settings, verifySha256: checked })} />
         </PanelSectionRow>
         <PanelSectionRow>
-          <ToggleField label="Overwrite Existing Files" checked={settings.overwriteExisting} onChange={(checked) => setSettings({ ...settings, overwriteExisting: checked })} />
+          <ToggleField label="Overwrite Existing" checked={settings.overwriteExisting} onChange={(checked) => setSettings({ ...settings, overwriteExisting: checked })} />
         </PanelSectionRow>
         <PanelSectionRow>
           <ButtonItem
