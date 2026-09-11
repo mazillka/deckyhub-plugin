@@ -8,10 +8,10 @@ It ships with a small curated list of popular Steam Deck tools, and you can add 
 
 ## What it does
 
-- **Discover** — browse a curated list of Steam Deck plugins/tools, search GitHub for more, and add any repository you want to track.
+- **Discover** — browse a curated list of Steam Deck plugins/tools, filter by search or installed status, and see release info at a glance, color-coded by status.
 - **Updates** — see which of your tracked, installed tools have a newer release available, and download updates in one tap. You'll also get a toast notification when new updates show up.
-- **Settings** — change the download folder, toggle SHA-256 verification and overwriting existing files, manage your custom repository list, and check for DeckyHub's own updates.
-- **Repository settings** — per-repository overrides: release channel, download folder, and asset keyword filter, plus a manual registry refresh.
+- **Repositories** — two tabs: **Add & Manage** to search GitHub, add or remove tracked repositories, and export/import your list; **Repository Settings** for per-repository overrides (release channel, download folder, asset keyword filter) plus a manual registry refresh.
+- **Settings** — change the global download folder, toggle SHA-256 verification and overwriting existing files, and check for DeckyHub's own updates.
 
 DeckyHub only **downloads** files — it never installs or runs anything automatically. After a download finishes, you install it yourself from Desktop Mode via Decky → Developer → Install Plugin from ZIP. This keeps you in control of what actually runs on your system.
 
@@ -26,41 +26,40 @@ DeckyHub only **downloads** files — it never installs or runs anything automat
 
 ### Discover
 
-Browse the bundled list or search GitHub for a specific repository. Use the search box and category dropdown to narrow things down. Tap **Download latest** on any card to grab the recommended release asset, or **Choose asset** to pick a specific file from that release.
+Browse the bundled list or search within it, and filter by **Status** — All, Installed, or Not Installed. Each card is color-coded (green once it's up to date, yellow when an update is available, red on an error) so you can spot what needs attention at a glance. Tap **Download Latest** on any card to grab the recommended release asset, or one of the other listed assets from that release.
 
-To track a repository that isn't in the curated list, go to **Settings → Add GitHub repository**, search for it, and add it — it'll show up in Discover from then on.
+To track a repository that isn't in the curated list, go to **Repositories**, search for it, and add it — it'll show up in Discover from then on.
 
 ### Updates
 
-Shows every tracked tool that's installed and has a newer release available, along with its installed and latest version. Use **Download all updates** to queue every pending update at once, or download them one at a time.
+Shows every tracked tool that's installed and has a newer release available, along with its installed and latest version. Use **Download All Updates** to queue every pending update at once, or download them one at a time.
 
 ### Downloads
 
-Downloads are saved to `/home/deck/Downloads/plugins` by default (or `/home/deck/Downloads`, if you change that in Settings, or a per-repository override in Repository settings). Each card shows progress, file size, and a **Cancel** button while downloading. If a download is interrupted, no partial file is left behind.
+Downloads are saved to `/home/deck/Downloads/plugins` by default (or `/home/deck/Downloads`, if you change that in Settings, or a per-repository override in Repositories → Repository Settings). Each card shows progress, file size, and a **Cancel** button while downloading. If a download is interrupted, no partial file is left behind.
 
-When GitHub provides a checksum for a release asset, DeckyHub verifies it by default — turn off **Verify SHA256 when available** in Settings if you don't want that check. By default, downloading a file again overwrites the previous copy; turn off **Overwrite existing files** in Settings if you'd rather keep both.
+When GitHub provides a checksum for a release asset, DeckyHub verifies it by default — turn off **Verify SHA256 When Available** in Settings if you don't want that check. By default, downloading a file again overwrites the previous copy; turn off **Overwrite Existing Files** in Settings if you'd rather keep both.
 
-### Managing your repository list
+### Repositories
 
-- **Settings → Add GitHub repository**: search GitHub by name and add a result to Discover.
-- **Export repository list**: saves your custom (non-curated) repositories to `DeckyHub-repositories.json` in `/home/deck/Downloads`, so you can back them up or share them.
-- **Import repository list**: reads that same file from `/home/deck/Downloads` and adds any new repositories from it.
-- Any repository you've added can be removed again from Settings. The curated repositories that ship with DeckyHub stay available and can't be removed.
-- Prefer a bigger screen? The [Registry Editor](https://mazillka.github.io/deckyhub-plugin/) is a browser-based tool for building or editing a repository list file before importing it.
+Two tabs:
 
-### Repository settings
-
-Open **Repository settings** for per-repository controls: switch a repository between stable and pre-release, filter which release assets show up (comma-separated keywords), or send its downloads to a different folder than your global default. Use **Refresh registry from GitHub** to re-pull the curated list.
+- **Add & Manage** — search GitHub for a repository and tap **Add** (repositories you already track show **Already Added** instead, so you can tell at a glance). Results page five at a time. Export your custom repositories to `DeckyHub-repositories.json` in `/home/deck/Downloads` to back them up or share them, or import that file back in. Any repository you've added can be removed again here; the curated repositories that ship with DeckyHub stay available and can't be removed. Prefer a bigger screen? The [Registry Editor](https://mazillka.github.io/deckyhub-plugin/) is a browser-based tool for building or editing a repository list file before importing it.
+- **Repository Settings** — per-repository controls: switch a repository between stable and pre-release, filter which release assets show up (comma-separated keywords), or send its downloads to a different folder than your global default. Use **Refresh Registry From GitHub** to re-pull the curated list.
 
 ### Keeping DeckyHub itself updated
 
-Settings includes a **Check for DeckyHub updates** option that looks for new stable releases (or pre-releases, if you opt in) of DeckyHub itself and downloads the ZIP to `/home/deck/Downloads`. Install it the same way as any other plugin ZIP.
+Settings includes a **Check DeckyHub Update** option that looks for new stable releases (or pre-releases, if you opt in) of DeckyHub itself and downloads the ZIP to `/home/deck/Downloads`. Install it the same way as any other plugin ZIP.
 
 ## Good to know
 
 - DeckyHub talks to GitHub without needing you to log in, so very heavy use in a short time may hit GitHub's public rate limit — release info will just take a bit longer to refresh if that happens.
 - Release information is cached for 3 minutes, so pulling to refresh right after checking won't always show something new.
 - Downloads only ever happen over HTTPS.
+
+## Disclaimer
+
+DeckyHub is only a discovery and download tool. All rights to the plugins and tools listed in its registry belong to their respective authors; DeckyHub does not own, endorse, or take responsibility for any third-party repository or its content.
 
 ## Getting help
 

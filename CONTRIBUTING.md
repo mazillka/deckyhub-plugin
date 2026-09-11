@@ -35,6 +35,10 @@ The build produces `dist/index.js`. Decky Loader requires `plugin.json`, `main.p
 
 For development, rebuild the frontend after every change to `src/`, then reload the plugin. The backend uses only Python's standard library and needs no pip install.
 
+## Local browser preview
+
+`devtools/decky-mock/` is a standalone tool for iterating on `src/` in a regular browser instead of a Steam Deck — it swaps `@decky/ui`/`@decky/api` for plain stand-ins and bridges backend calls to a real, running `main.py`. It's for exercising layout and logic only, not for visual QA, since the real `@decky/ui` components are scraped from Steam's own webpack bundle at runtime and can't be replicated outside it. See [devtools/decky-mock/README.md](devtools/decky-mock/README.md) for setup and known limitations.
+
 ## Adding a registry entry
 
 New curated repositories go in `registry/apps.json`. Each entry needs `id`, `name`, `repo` (`owner/repo`), `category`, `versionStrategy`, `source`, a `detect` block matching the plugin's name as Decky reports it, and an `asset` include/exclude filter for picking the right release ZIP. Follow the shape of existing entries.
