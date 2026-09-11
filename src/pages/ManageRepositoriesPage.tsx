@@ -98,40 +98,42 @@ export function ManageRepositoriesPage() {
           <TextField label="Search GitHub" value={query} onChange={(event) => setQuery(event.currentTarget.value)} />
         </PanelSectionRow>
         <PanelSectionRow>
-          <div style={{ display: "flex", gap: 8 }}>
-            <ButtonItem layout="inline" onClick={() => void search()} disabled={!query.trim() || searching}>
-              {searching ? "Searching…" : "Search"}
-            </ButtonItem>
-            {(query || results.length > 0 || searchError) && (
-              <ButtonItem
-                layout="inline"
-                onClick={() => {
-                  setQuery("");
-                  setResults([]);
-                  setSearchError(null);
-                  setPage(0);
-                }}
-              >
-                Clear
-              </ButtonItem>
-            )}
-          </div>
+          <ButtonItem layout="below" onClick={() => void search()} disabled={!query.trim() || searching}>
+            {searching ? "Searching…" : "Search"}
+          </ButtonItem>
         </PanelSectionRow>
+        {(query || results.length > 0 || searchError) && (
+          <PanelSectionRow>
+            <ButtonItem
+              layout="below"
+              onClick={() => {
+                setQuery("");
+                setResults([]);
+                setSearchError(null);
+                setPage(0);
+              }}
+            >
+              Clear
+            </ButtonItem>
+          </PanelSectionRow>
+        )}
         {searchError && <PanelSectionRow>{searchError}</PanelSectionRow>}
         {results.length > RESULTS_PER_PAGE && (
-          <PanelSectionRow>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <ButtonItem layout="inline" disabled={page === 0} onClick={() => setPage((current) => current - 1)}>
+          <>
+            <PanelSectionRow>
+              <ButtonItem layout="below" disabled={page === 0} onClick={() => setPage((current) => current - 1)}>
                 Previous
               </ButtonItem>
-              <small>
-                Page {page + 1} of {Math.ceil(results.length / RESULTS_PER_PAGE)}
-              </small>
-              <ButtonItem layout="inline" disabled={(page + 1) * RESULTS_PER_PAGE >= results.length} onClick={() => setPage((current) => current + 1)}>
+            </PanelSectionRow>
+            <PanelSectionRow>
+              Page {page + 1} of {Math.ceil(results.length / RESULTS_PER_PAGE)}
+            </PanelSectionRow>
+            <PanelSectionRow>
+              <ButtonItem layout="below" disabled={(page + 1) * RESULTS_PER_PAGE >= results.length} onClick={() => setPage((current) => current + 1)}>
                 Next
               </ButtonItem>
-            </div>
-          </PanelSectionRow>
+            </PanelSectionRow>
+          </>
         )}
       </PanelSection>
 
@@ -155,14 +157,14 @@ export function ManageRepositoriesPage() {
 
       <PanelSection title="Managed Repositories">
         <PanelSectionRow>
-          <div style={{ display: "flex", gap: 8 }}>
-            <ButtonItem layout="inline" onClick={() => void exportList()}>
-              Export
-            </ButtonItem>
-            <ButtonItem layout="inline" onClick={() => void importList()}>
-              Import
-            </ButtonItem>
-          </div>
+          <ButtonItem layout="below" onClick={() => void exportList()}>
+            Export
+          </ButtonItem>
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <ButtonItem layout="below" onClick={() => void importList()}>
+            Import
+          </ButtonItem>
         </PanelSectionRow>
         {customRepos.map((item) => (
           <PanelSectionRow key={item.repo}>
