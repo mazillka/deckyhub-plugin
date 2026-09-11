@@ -5,6 +5,7 @@ import {
   addCustomRepo,
   cancelDownload,
   exportCustomRepos,
+  getApps,
   getCustomRepos,
   getDeckyHubInfo,
   getDownload,
@@ -28,8 +29,12 @@ export function SettingsPage() {
   const [results, setResults] = useState<SearchRepo[]>([]);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [customRepos, setCustomRepos] = useState<ManagedRepo[]>([]);
+  const [existingRepos, setExistingRepos] = useState<Set<string>>(new Set());
 
-  const refreshRepos = () => void getCustomRepos().then((result) => setCustomRepos(result.repos));
+  const refreshRepos = () => {
+    void getCustomRepos().then((result) => setCustomRepos(result.repos));
+    void getApps().then((result) => setExistingRepos(new Set(result.apps.map((app) => app.repo.toLowerCase()))));
+  };
 
   useEffect(() => {
     void getSettings().then(setSettings);
@@ -64,6 +69,7 @@ export function SettingsPage() {
   const add = async (repo: string) => {
     const result = await addCustomRepo(repo);
     if (result.added) {
+      setExistingRepos((current) => new Set(current).add(repo.toLowerCase()));
       refreshRepos();
       window.dispatchEvent(new Event(REGISTRY_UPDATED));
     }
@@ -183,17 +189,27 @@ export function SettingsPage() {
           </ButtonItem>
         </PanelSectionRow>
         {searchError && <PanelSectionRow>{searchError}</PanelSectionRow>}
-        {results.map((repo) => (
-          <PanelSectionRow key={repo.full_name}>
-            <ButtonItem layout="below" onClick={() => void add(repo.full_name)}>
-              {repo.full_name}
-              <br />
-              <small>
-                {repo.description || "No description"} · ★ {repo.stargazers_count ?? 0}
-              </small>
-            </ButtonItem>
-          </PanelSectionRow>
-        ))}
+        {results.map((repo) => {
+          const added = existingRepos.has(repo.full_name.toLowerCase());
+          return (
+            <div key={repo.full_name}>
+              <PanelSectionRow>
+                <div>
+                  {repo.full_name}
+                  <br />
+                  <small>
+                    {repo.description || "No description"} · ★ {repo.stargazers_count ?? 0}
+                  </small>
+                </div>
+              </PanelSectionRow>
+              <PanelSectionRow>
+                <ButtonItem layout="below" disabled={added} onClick={() => void add(repo.full_name)}>
+                  {added ? "Already added" : "Add"}
+                </ButtonItem>
+              </PanelSectionRow>
+            </div>
+          );
+        })}
       </PanelSection>
 
       <PanelSection title="Managed repositories">
