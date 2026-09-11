@@ -22,7 +22,8 @@ class PluginStatusTests(unittest.TestCase):
             sys.modules["decky"].DECKY_HOME = home
             plugin = Plugin()
 
-            self.assertEqual(plugin._installed_version({"detect": {"type": "decky-plugin", "names": ["MAKO - Frame Generation", "MAKO Decky"]}}), "3.2.1")
+            installed_plugins = plugin._scan_installed_plugins()
+            self.assertEqual(plugin._installed_version({"detect": {"type": "decky-plugin", "names": ["MAKO - Frame Generation", "MAKO Decky"]}}, installed_plugins), "3.2.1")
 
     def test_decky_framegen_detection_matches_its_manifest_name(self):
         with tempfile.TemporaryDirectory() as home:
@@ -31,8 +32,10 @@ class PluginStatusTests(unittest.TestCase):
             (plugin_dir / "plugin.json").write_text(json.dumps({"name": "Decky-Framegen"}), encoding="utf-8")
             (plugin_dir / "package.json").write_text(json.dumps({"version": "1.2.3"}), encoding="utf-8")
             sys.modules["decky"].DECKY_HOME = home
+            plugin = Plugin()
 
-            self.assertEqual(Plugin()._installed_version({"detect": {"type": "decky-plugin", "names": ["Decky-Framegen", "Decky Framegen"]}}), "1.2.3")
+            installed_plugins = plugin._scan_installed_plugins()
+            self.assertEqual(plugin._installed_version({"detect": {"type": "decky-plugin", "names": ["Decky-Framegen", "Decky Framegen"]}}, installed_plugins), "1.2.3")
 
     def test_overwrite_setting_defaults_to_false(self):
         with tempfile.TemporaryDirectory() as home:

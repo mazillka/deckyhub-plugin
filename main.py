@@ -63,10 +63,21 @@ class Plugin:
         self.settings_path.parent.mkdir(parents=True, exist_ok=True)
         self.settings_path.write_text(json.dumps(self.settings), encoding="utf-8")
 
-    def _installed_version(self, app: dict) -> str | None:
+    def _scan_installed_plugins(self) -> list[tuple[Path, dict, str | None]]:
+        plugins_dir = Path(decky.DECKY_HOME) / "plugins"
+        scanned = []
+        for manifest_path in plugins_dir.glob("*/plugin.json"):
+            try:
+                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                continue
+            scanned.append((manifest_path, manifest, self._plugin_repository(manifest_path, manifest)))
+        return scanned
+
+    def _installed_version(self, app: dict, installed_plugins: list[tuple[Path, dict, str | None]]) -> str | None:
         rule = app.get("detect", {})
         if rule.get("type") == "decky-plugin":
-            return self._decky_plugin_version(rule)
+            return self._decky_plugin_version(rule, installed_plugins)
         command = rule.get("command")
         if not command or not shutil.which(command):
             return None
@@ -77,16 +88,10 @@ class Plugin:
         except (OSError, subprocess.SubprocessError):
             return "installed"
 
-    def _decky_plugin_version(self, rule: dict) -> str | None:
+    def _decky_plugin_version(self, rule: dict, installed_plugins: list[tuple[Path, dict, str | None]]) -> str | None:
         names = {name.casefold() for name in rule.get("names", [])}
         expected_repo = str(rule.get("repo", "")).casefold()
-        plugins_dir = Path(decky.DECKY_HOME) / "plugins"
-        for manifest_path in plugins_dir.glob("*/plugin.json"):
-            try:
-                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-            except (OSError, json.JSONDecodeError):
-                continue
-            repo = self._plugin_repository(manifest_path, manifest)
+        for manifest_path, manifest, repo in installed_plugins:
             if manifest.get("name", "").casefold() not in names and (not expected_repo or repo != expected_repo):
                 continue
             if manifest.get("version"):
@@ -114,7 +119,8 @@ class Plugin:
 
     async def get_apps(self):
         apps = [*self.apps, *self._custom_apps()]
-        installed = await asyncio.gather(*(asyncio.to_thread(self._installed_version, app) for app in apps))
+        installed_plugins = await asyncio.to_thread(self._scan_installed_plugins)
+        installed = await asyncio.gather(*(asyncio.to_thread(self._installed_version, app, installed_plugins) for app in apps))
         return {"apps": [{**app, "installedVersion": version, "latestVersion": None, "publishedAt": None, "releaseUrl": None, "assets": [], "updateAvailable": None, "error": None} for app, version in zip(apps, installed)]}
 
     async def refresh_registry(self):
