@@ -15,6 +15,20 @@ It ships with a small curated list of popular Steam Deck tools, and you can add 
 
 DeckyHub only **downloads** files — it never installs or runs anything automatically. After a download finishes, you install it yourself from Desktop Mode via Decky → Developer → Install Plugin from ZIP. This keeps you in control of what actually runs on your system.
 
+## Bundled repositories
+
+DeckyHub ships tracking these repositories out of the box — no setup needed, they show up in Discover immediately:
+
+| Tool | Category | Repository |
+| --- | --- | --- |
+| MAKO Decky | Frame Generation | [eugeniosegala/MAKO](https://github.com/eugeniosegala/MAKO) |
+| Decky LSFG-VK | Frame Generation | [xXJSONDeruloXx/decky-lsfg-vk](https://github.com/xXJSONDeruloXx/decky-lsfg-vk) |
+| Unifideck | Game Libraries | [mubaraknumann/unifideck](https://github.com/mubaraknumann/unifideck) |
+| Decky Framegen | Frame Generation | [xXJSONDeruloXx/Decky-Framegen](https://github.com/xXJSONDeruloXx/Decky-Framegen) |
+| Nexus Mods | Mod Managers | [RedRanger14/decky-nexus](https://github.com/RedRanger14/decky-nexus) |
+
+Add any other GitHub repository from **Repositories → Add & Manage**.
+
 ## Installing DeckyHub
 
 1. Make sure [Decky Loader](https://decky.xyz/) is installed.
