@@ -73,11 +73,11 @@ class PluginStatusTests(unittest.TestCase):
                 plugin = Plugin()
                 plugin.settings = {"downloadLocation": "plugins", "overwriteExisting": True}
                 plugin.downloads, plugin.cancelled = {}, set()
+                plugin.download_queue = asyncio.Queue()
                 target_dir = Path(home) / "plugins"
                 asset = {"name": "DeckyHub-v1.zip", "url": "https://github.com/mazillka/deckyhub-plugin/releases/download/v1/DeckyHub-v1.zip", "sha256": "a" * 64}
-                with patch.object(plugin, "_asset_download_dir", return_value=target_dir), patch("main.asyncio.create_task") as create_task:
+                with patch.object(plugin, "_asset_download_dir", return_value=target_dir):
                     result = await plugin.install_deckyhub_update(asset)
-                    create_task.call_args.args[0].close()
                 return plugin.downloads[result["jobId"]]["path"]
 
         self.assertTrue(asyncio.run(begin_update()).endswith(str(Path("plugins") / "DeckyHub-v1.zip")))

@@ -8,7 +8,7 @@ import sys
 import time
 import re
 from pathlib import Path
-from urllib.error import HTTPError, URLError
+from urllib.error import URLError
 from urllib.request import Request, urlopen
 
 import decky
@@ -18,21 +18,25 @@ PLUGIN_DIR = str(Path(__file__).resolve().parent)
 if PLUGIN_DIR not in sys.path:
     sys.path.insert(0, PLUGIN_DIR)
 
-from backend.registry import load_registry
+from backend.registry import load_registry, parse_registry
 
 DEFAULT_DOWNLOAD_DIR = "/home/deck/Downloads"
 PLUGIN_DOWNLOAD_DIR = f"{DEFAULT_DOWNLOAD_DIR}/plugins"
 DECKYHUB_REPO = "mazillka/deckyhub-plugin"
 DECKYHUB_RELEASE_PREFIX = f"https://github.com/{DECKYHUB_REPO}/releases/download/"
-DECKYHUB_VERSION = "0.3.20"
+DECKYHUB_VERSION = "0.3.22"
+REGISTRY_URL = f"https://raw.githubusercontent.com/{DECKYHUB_REPO}/main/registry/apps.json"
 REPOSITORY_NAME = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 class Plugin:
     async def _main(self):
         self.settings_path = Path(decky.DECKY_PLUGIN_SETTINGS_DIR) / "settings.json"
         self.settings = self._load_settings()
-        self.apps = load_registry(decky.DECKY_PLUGIN_DIR)
+        self.registry_path = Path(decky.DECKY_PLUGIN_SETTINGS_DIR) / "registry.json"
+        self.apps = self._load_registry()
         self.downloads: dict[str, dict] = {}
         self.cancelled: set[str] = set()
+        self.download_queue: asyncio.Queue = asyncio.Queue()
+        self.queue_worker = asyncio.create_task(self._run_download_queue())
 
     def _load_settings(self) -> dict:
         try:
@@ -44,9 +48,16 @@ class Plugin:
                 "downloadLocation": "downloads" if settings.get("downloadLocation") == "downloads" else "plugins",
                 "updateChannel": "prerelease" if settings.get("updateChannel") == "prerelease" else "stable",
                 "customRepos": [repo for repo in repos if isinstance(repo, str) and REPOSITORY_NAME.fullmatch(repo)],
+                "repoSettings": settings.get("repoSettings", {}) if isinstance(settings.get("repoSettings"), dict) else {},
             }
         except (AttributeError, OSError, json.JSONDecodeError):
-            return {"verifySha256": True, "overwriteExisting": True, "downloadLocation": "plugins", "updateChannel": "stable", "customRepos": []}
+            return {"verifySha256": True, "overwriteExisting": True, "downloadLocation": "plugins", "updateChannel": "stable", "customRepos": [], "repoSettings": {}}
+
+    def _load_registry(self) -> list[dict]:
+        try:
+            return parse_registry(json.loads(self.registry_path.read_text(encoding="utf-8")))
+        except (OSError, json.JSONDecodeError, ValueError):
+            return load_registry(decky.DECKY_PLUGIN_DIR)
 
     def _save_settings(self):
         self.settings_path.parent.mkdir(parents=True, exist_ok=True)
@@ -106,6 +117,32 @@ class Plugin:
         installed = await asyncio.gather(*(asyncio.to_thread(self._installed_version, app) for app in apps))
         return {"apps": [{**app, "installedVersion": version, "latestVersion": None, "publishedAt": None, "releaseUrl": None, "assets": [], "updateAvailable": None, "error": None} for app, version in zip(apps, installed)]}
 
+    async def refresh_registry(self):
+        def fetch():
+            request = Request(REGISTRY_URL, headers={"User-Agent": "DeckyHub"})
+            with urlopen(request, timeout=20) as response:
+                return json.loads(response.read().decode("utf-8"))
+        payload = await asyncio.to_thread(fetch)
+        apps = parse_registry(payload)
+        self.registry_path.parent.mkdir(parents=True, exist_ok=True)
+        temporary = self.registry_path.with_suffix(".part")
+        temporary.write_text(json.dumps(payload), encoding="utf-8")
+        os.replace(temporary, self.registry_path)
+        self.apps = apps
+        return {"count": len(apps)}
+
+    async def save_repo_settings(self, repo: str, values: dict):
+        if not REPOSITORY_NAME.fullmatch(repo):
+            raise ValueError("Repository must be owner/name")
+        item = {
+            "channel": "prerelease" if values.get("channel") == "prerelease" else "stable",
+            "downloadLocation": values.get("downloadLocation") if values.get("downloadLocation") in ("plugins", "downloads") else "default",
+            "assetFilter": [value for value in values.get("assetFilter", []) if isinstance(value, str) and value.strip()][:10],
+        }
+        self.settings["repoSettings"][repo] = item
+        self._save_settings()
+        return item
+
     def _custom_apps(self) -> list[dict]:
         bundled = {app["repo"].casefold() for app in self.apps}
         return [{"id": f"custom-{repo.replace('/', '-')}", "name": repo, "repo": repo, "category": "Custom", "versionStrategy": "semver", "source": "releases", "detect": {"type": "decky-plugin", "repo": repo}, "asset": {"include": [], "exclude": ["source"]}} for repo in self.settings["customRepos"] if repo.casefold() not in bundled]
@@ -129,12 +166,14 @@ class Plugin:
             "downloadLocation": "downloads" if settings.get("downloadLocation") == "downloads" else "plugins",
             "updateChannel": "prerelease" if settings.get("updateChannel") == "prerelease" else "stable",
             "customRepos": getattr(self, "settings", {}).get("customRepos", []),
+            "repoSettings": getattr(self, "settings", {}).get("repoSettings", {}),
         }
         self._save_settings()
         return self.settings
 
-    def _asset_download_dir(self) -> Path:
-        return Path(DEFAULT_DOWNLOAD_DIR if self.settings.get("downloadLocation") == "downloads" else PLUGIN_DOWNLOAD_DIR)
+    def _asset_download_dir(self, repo: str | None = None) -> Path:
+        location = self.settings.get("repoSettings", {}).get(repo or "", {}).get("downloadLocation", self.settings.get("downloadLocation"))
+        return Path(DEFAULT_DOWNLOAD_DIR if location == "downloads" else PLUGIN_DOWNLOAD_DIR)
 
     async def add_custom_repo(self, repo: str):
         repo = repo.strip()
@@ -190,21 +229,28 @@ class Plugin:
             self._save_settings()
         return {"added": added}
 
-    async def download_asset(self, asset: dict):
+    async def download_asset(self, asset: dict, repo: str | None = None):
         if not isinstance(asset.get("url"), str) or not asset["url"].startswith("https://"):
             raise ValueError("Only HTTPS release assets can be downloaded")
         name = Path(asset.get("name", "download")).name
         if not name or name in (".", ".."):
             raise ValueError("Invalid asset filename")
-        target_dir = self._asset_download_dir()
+        target_dir = self._asset_download_dir(repo)
         target_dir.mkdir(parents=True, exist_ok=True)
         target = target_dir / name
         if target.exists() and not self.settings.get("overwriteExisting"):
             target = self._next_name(target)
         job_id = f"{name}-{len(self.downloads) + 1}"
         self.downloads[job_id] = {"state": "queued", "filename": target.name, "received": 0, "total": asset.get("size") or 0, "path": str(target), "error": None}
-        asyncio.create_task(asyncio.to_thread(self._download, job_id, asset, target))
+        self.download_queue.put_nowait((job_id, asset, target, False))
         return {"jobId": job_id}
+
+    async def queue_downloads(self, items: list[dict]):
+        jobs = []
+        for item in items:
+            result = await self.download_asset(item.get("asset", {}), item.get("repo"))
+            jobs.append(result["jobId"])
+        return {"jobIds": jobs}
 
     async def install_deckyhub_update(self, asset: dict):
         url, name = asset.get("url"), Path(str(asset.get("name", ""))).name
@@ -218,8 +264,16 @@ class Plugin:
         if target.exists() and not self.settings.get("overwriteExisting"):
             target = self._next_name(target)
         self.downloads[job_id] = {"state": "queued", "filename": name, "received": 0, "total": asset.get("size") or 0, "path": str(target), "error": None}
-        asyncio.create_task(asyncio.to_thread(self._download, job_id, asset, target, True))
+        self.download_queue.put_nowait((job_id, asset, target, True))
         return {"jobId": job_id}
+
+    async def _run_download_queue(self):
+        while True:
+            job_id, asset, target, require_checksum = await self.download_queue.get()
+            try:
+                await asyncio.to_thread(self._download, job_id, asset, target, require_checksum)
+            finally:
+                self.download_queue.task_done()
 
     def _next_name(self, target: Path) -> Path:
         for number in range(1, 1000):
