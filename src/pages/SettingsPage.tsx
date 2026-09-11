@@ -188,6 +188,20 @@ export function SettingsPage() {
             Search repositories
           </ButtonItem>
         </PanelSectionRow>
+        {(query || results.length > 0 || searchError) && (
+          <PanelSectionRow>
+            <ButtonItem
+              layout="below"
+              onClick={() => {
+                setQuery("");
+                setResults([]);
+                setSearchError(null);
+              }}
+            >
+              Clear search
+            </ButtonItem>
+          </PanelSectionRow>
+        )}
         {searchError && <PanelSectionRow>{searchError}</PanelSectionRow>}
         {results.map((repo) => {
           const added = existingRepos.has(repo.full_name.toLowerCase());
