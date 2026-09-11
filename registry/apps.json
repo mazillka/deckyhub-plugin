@@ -39,7 +39,7 @@
       "category": "Frame Generation",
       "versionStrategy": "semver",
       "source": "releases",
-      "detect": { "type": "decky-plugin", "names": ["Decky Framegen"] },
+      "detect": { "type": "decky-plugin", "names": ["Decky-Framegen", "Decky Framegen"] },
       "asset": { "include": [".zip"], "exclude": ["source"] }
     }
   ]
