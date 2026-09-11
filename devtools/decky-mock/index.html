@@ -3,9 +3,49 @@
   <head>
     <meta charset="utf-8" />
     <title>DeckyHub dev mock</title>
+    <style>
+      /* Steam Deck's screen is 1280x800 (16:10), ~215 PPI over a 7" panel — much
+         denser than a typical ~96 PPI desktop monitor. app.html loads inside a
+         real 1280x800 iframe (so 100vh there correctly equals 800px, matching
+         the real device — a plain zoomed div would compute 100vh against this
+         outer page's real, much-taller window instead). The iframe is then
+         visually scaled to ~96/215 with a CSS transform, which doesn't affect
+         the vh math happening inside it, so it reads at roughly the real
+         device's physical size and density instead of looking oversized. */
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: #0a0b0d;
+        font-family: sans-serif;
+      }
+      #deck-frame {
+        width: calc(1280px * 0.45);
+        height: calc(800px * 0.45);
+        overflow: hidden;
+        border: 2px solid #3d4450;
+        border-radius: 8px;
+        box-shadow: 0 0 24px rgba(0, 0, 0, 0.6);
+      }
+      #deck-frame iframe {
+        width: 1280px;
+        height: 800px;
+        border: 0;
+        transform: scale(0.45);
+        transform-origin: top left;
+      }
+      #deck-frame-label {
+        color: #6b7280;
+        font-size: 12px;
+      }
+    </style>
   </head>
-  <body style="margin:0">
-    <div id="root"></div>
-    <script type="module" src="/main.tsx"></script>
+  <body>
+    <div id="deck-frame"><iframe src="/app.html" title="DeckyHub dev mock"></iframe></div>
+    <div id="deck-frame-label">1280×800 @ 215 PPI, scaled to look like the real device on a desktop screen</div>
   </body>
 </html>

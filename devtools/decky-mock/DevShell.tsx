@@ -26,7 +26,7 @@ export default function DevShell() {
   const ActivePage = activePath ? routerHook._routes.get(activePath) : null;
 
   return (
-    <div style={{ display: "flex", height: "100vh", background: "#15171c", color: "#e6ecf1", fontFamily: "sans-serif" }}>
+    <div style={{ display: "flex", height: "100%", background: "#15171c", color: "#e6ecf1", fontFamily: "sans-serif" }}>
       <nav style={{ width: 220, borderRight: "1px solid #262a31", padding: 12, flexShrink: 0 }}>
         <div style={{ fontWeight: 600, marginBottom: 12 }}>{descriptor.name} (dev mock)</div>
         <button
