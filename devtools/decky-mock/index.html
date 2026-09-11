@@ -9,9 +9,11 @@
          real 1280x800 iframe (so 100vh there correctly equals 800px, matching
          the real device — a plain zoomed div would compute 100vh against this
          outer page's real, much-taller window instead). The iframe is then
-         visually scaled to ~96/215 with a CSS transform, which doesn't affect
-         the vh math happening inside it, so it reads at roughly the real
-         device's physical size and density instead of looking oversized. */
+         visually scaled with a CSS transform, which doesn't affect the vh math
+         happening inside it. True 1:1 physical density is ~96/215 ≈ 0.45, but
+         that reads too small to inspect comfortably on a monitor, so this uses
+         0.9 (0.45 × 2) — confirmed against a real-device photo viewed at 200%
+         browser zoom as the size that actually looks right for comparison. */
       body {
         margin: 0;
         min-height: 100vh;
@@ -24,8 +26,8 @@
         font-family: sans-serif;
       }
       #deck-frame {
-        width: calc(1280px * 0.45);
-        height: calc(800px * 0.45);
+        width: calc(1280px * 0.9);
+        height: calc(800px * 0.9);
         overflow: hidden;
         border: 2px solid #3d4450;
         border-radius: 8px;
@@ -35,7 +37,7 @@
         width: 1280px;
         height: 800px;
         border: 0;
-        transform: scale(0.45);
+        transform: scale(0.9);
         transform-origin: top left;
       }
       #deck-frame-label {
@@ -46,6 +48,6 @@
   </head>
   <body>
     <div id="deck-frame"><iframe src="/app.html" title="DeckyHub dev mock"></iframe></div>
-    <div id="deck-frame-label">1280×800 @ 215 PPI, scaled to look like the real device on a desktop screen</div>
+    <div id="deck-frame-label">1280×800 @ 215 PPI, scaled 2x (0.9) for comfortable inspection — matches a real device viewed at 200% zoom</div>
   </body>
 </html>
