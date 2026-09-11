@@ -31,7 +31,7 @@ class PluginStatusTests(unittest.TestCase):
 
             settings = asyncio.run(plugin.save_settings({}))
 
-            self.assertFalse(settings["overwriteExisting"])
+            self.assertTrue(settings["overwriteExisting"])
             self.assertEqual(settings["downloadLocation"], "plugins")
             self.assertEqual(plugin._asset_download_dir(), Path(main.PLUGIN_DOWNLOAD_DIR))
             self.assertEqual(asyncio.run(plugin.save_settings({"downloadLocation": "downloads"}))["downloadLocation"], "downloads")
@@ -74,6 +74,25 @@ class PluginStatusTests(unittest.TestCase):
 
             self.assertEqual(response.reads[0], 64 * 1024)
             self.assertEqual(plugin.downloads["job"]["received"], 3)
+
+    def test_curl_download_uses_system_libraries(self):
+        class Process:
+            returncode = 0
+            def poll(self): return 0
+
+        with tempfile.TemporaryDirectory() as home:
+            temp = Path(home) / "file.part"
+            temp.write_bytes(b"zip")
+            plugin = Plugin()
+            plugin.downloads = {"job": {"received": 0}}
+            plugin.cancelled = set()
+            with patch("main.shutil.which", return_value="/usr/bin/curl"), patch("main.subprocess.Popen", return_value=Process()) as popen, patch.dict("main.os.environ", {"LD_LIBRARY_PATH": "/tmp/_MEI"}, clear=True):
+                plugin._download_with_curl("job", {"url": "https://example.com/file.zip"}, temp)
+
+            command = popen.call_args.args[0]
+            environment = popen.call_args.kwargs["env"]
+            self.assertEqual(command[0], "/usr/bin/curl")
+            self.assertNotIn("LD_LIBRARY_PATH", environment)
 
     def test_custom_repository_is_saved(self):
         with tempfile.TemporaryDirectory() as home:

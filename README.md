@@ -9,8 +9,8 @@ DeckyHub is a local-first plugin for Decky Loader. It tracks only GitHub reposit
 - Detects manually managed repositories that are installed as Decky plugins.
 - Compares semantic versions for managed repositories.
 - Offers only matching ZIP assets: the recommended ZIP as **Download latest**, plus individual ZIP assets under **Choose asset**.
-- Downloads HTTPS assets to `/home/deck/Downloads/plugins` by default, or `/home/deck/Downloads` when selected in Settings; each repository card shows its download progress, size, status, and Cancel action. Downloads use `*.part`, atomically rename on success, and verify SHA-256 when GitHub provides an asset digest. Existing files are renamed by default; enable **Overwrite existing files** in Settings to replace them.
-- Checks for DeckyHub stable releases or pre-releases from this repository and installs only validated DeckyHub ZIP release assets, with download progress and final status. Choose the update channel in Settings, then reload DeckyHub from the Decky menu after the update finishes.
+- Downloads HTTPS assets to `/home/deck/Downloads/plugins` by default, or `/home/deck/Downloads` when selected in Settings; each repository card shows its download progress, size, status, and Cancel action. Downloads use `*.part`, atomically rename on success, and verify SHA-256 when GitHub provides an asset digest. Existing files are overwritten by default; disable **Overwrite existing files** in Settings to keep both files.
+- Checks for DeckyHub stable releases or pre-releases from this repository and downloads only validated DeckyHub ZIP release assets to `/home/deck/Downloads`. Install the downloaded ZIP through Decky → Developer → Install Plugin from ZIP.
 
 DeckyHub intentionally **does not install or run downloaded files**. The user reviews and installs them in Desktop Mode.
 

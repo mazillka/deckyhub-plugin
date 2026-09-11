@@ -6,8 +6,6 @@ import shutil
 import subprocess
 import sys
 import time
-import tempfile
-import zipfile
 import re
 from pathlib import Path
 from urllib.error import HTTPError, URLError
@@ -38,13 +36,13 @@ class Plugin:
             repos = settings.get("customRepos", [])
             return {
                 "verifySha256": bool(settings.get("verifySha256", True)),
-                "overwriteExisting": bool(settings.get("overwriteExisting", False)),
+                "overwriteExisting": bool(settings.get("overwriteExisting", True)),
                 "downloadLocation": "downloads" if settings.get("downloadLocation") == "downloads" else "plugins",
                 "updateChannel": "prerelease" if settings.get("updateChannel") == "prerelease" else "stable",
                 "customRepos": [repo for repo in repos if isinstance(repo, str) and REPOSITORY_NAME.fullmatch(repo)],
             }
         except (AttributeError, OSError, json.JSONDecodeError):
-            return {"verifySha256": True, "overwriteExisting": False, "downloadLocation": "plugins", "updateChannel": "stable", "customRepos": []}
+            return {"verifySha256": True, "overwriteExisting": True, "downloadLocation": "plugins", "updateChannel": "stable", "customRepos": []}
 
     def _save_settings(self):
         self.settings_path.parent.mkdir(parents=True, exist_ok=True)
@@ -120,7 +118,7 @@ class Plugin:
     async def save_settings(self, settings: dict):
         self.settings = {
             "verifySha256": bool(settings.get("verifySha256", True)),
-            "overwriteExisting": bool(settings.get("overwriteExisting", False)),
+            "overwriteExisting": bool(settings.get("overwriteExisting", True)),
             "downloadLocation": "downloads" if settings.get("downloadLocation") == "downloads" else "plugins",
             "updateChannel": "prerelease" if settings.get("updateChannel") == "prerelease" else "stable",
             "customRepos": getattr(self, "settings", {}).get("customRepos", []),
@@ -207,59 +205,10 @@ class Plugin:
         if not isinstance(url, str) or not url.startswith(DECKYHUB_RELEASE_PREFIX) or not name.startswith("DeckyHub-") or not name.endswith(".zip") or not isinstance(digest, str) or not re.fullmatch(r"[0-9a-fA-F]{64}", digest):
             raise ValueError("Invalid DeckyHub release asset")
         job_id = f"deckyhub-update-{len(self.downloads) + 1}"
-        self.downloads[job_id] = {"state": "queued", "filename": name, "received": 0, "total": asset.get("size") or 0, "path": str(Path(DEFAULT_DOWNLOAD_DIR) / name), "error": None}
-        asyncio.create_task(asyncio.to_thread(self._install_deckyhub_update, job_id, asset))
+        target = Path(DEFAULT_DOWNLOAD_DIR) / name
+        self.downloads[job_id] = {"state": "queued", "filename": name, "received": 0, "total": asset.get("size") or 0, "path": str(target), "error": None}
+        asyncio.create_task(asyncio.to_thread(self._download, job_id, asset, target, True))
         return {"jobId": job_id}
-
-    def _install_deckyhub_update(self, job_id: str, asset: dict):
-        name = Path(str(asset.get("name", ""))).name
-        archive = Path(DEFAULT_DOWNLOAD_DIR) / name
-        temp = archive.with_name(archive.name + ".part")
-        staging = None
-        try:
-            self.downloads[job_id]["state"] = "downloading"
-            archive.parent.mkdir(parents=True, exist_ok=True)
-            try:
-                self._download_with_urllib(job_id, asset, temp)
-            except URLError:
-                self._download_with_curl(job_id, asset, temp)
-            if self._sha256(temp) != asset["sha256"].lower():
-                raise RuntimeError("SHA256 verification failed")
-            os.replace(temp, archive)
-            staging = Path(tempfile.mkdtemp(prefix="deckyhub-update-", dir=Path(PLUGIN_DIR).parent))
-            with zipfile.ZipFile(archive) as bundle:
-                files = [entry for entry in bundle.infolist() if not entry.is_dir()]
-                if not files or sum(entry.file_size for entry in files) > 30 * 1024 * 1024:
-                    raise ValueError("Invalid DeckyHub update archive")
-                for entry in files:
-                    parts = Path(entry.filename).parts
-                    if len(parts) < 2 or parts[0] != "DeckyHub" or ".." in parts or Path(entry.filename).is_absolute():
-                        raise ValueError("Unsafe DeckyHub update archive")
-                    target = staging.joinpath(*parts[1:])
-                    target.parent.mkdir(parents=True, exist_ok=True)
-                    with bundle.open(entry) as source, open(target, "wb") as destination:
-                        shutil.copyfileobj(source, destination)
-            required = ("main.py", "package.json", "plugin.json", "dist/index.js")
-            if any(not (staging / path).is_file() for path in required):
-                raise ValueError("Incomplete DeckyHub update archive")
-            version = json.loads((staging / "package.json").read_text(encoding="utf-8")).get("version", "unknown")
-            for source in staging.rglob("*"):
-                if source.is_file():
-                    target = Path(PLUGIN_DIR) / source.relative_to(staging)
-                    target.parent.mkdir(parents=True, exist_ok=True)
-                    os.replace(source, target)
-            self.downloads[job_id]["state"] = "complete"
-            self.downloads[job_id]["version"] = str(version)
-        except InterruptedError:
-            self.downloads[job_id]["state"] = "cancelled"
-            temp.unlink(missing_ok=True)
-        except Exception as error:
-            self.downloads[job_id].update({"state": "error", "error": str(error)})
-            temp.unlink(missing_ok=True)
-        finally:
-            self.cancelled.discard(job_id)
-            if staging:
-                shutil.rmtree(staging, ignore_errors=True)
 
     def _next_name(self, target: Path) -> Path:
         for number in range(1, 1000):
@@ -268,7 +217,7 @@ class Plugin:
                 return candidate
         raise RuntimeError("Too many files with this name")
 
-    def _download(self, job_id: str, asset: dict, target: Path):
+    def _download(self, job_id: str, asset: dict, target: Path, require_checksum: bool = False):
         job, temp = self.downloads[job_id], target.with_name(target.name + ".part")
         try:
             job["state"] = "downloading"
@@ -297,7 +246,7 @@ class Plugin:
             self.cancelled.discard(job_id)
             return
         try:
-            if self.settings.get("verifySha256") and asset.get("sha256") and self._sha256(temp) != asset["sha256"].lower():
+            if (require_checksum or self.settings.get("verifySha256")) and asset.get("sha256") and self._sha256(temp) != asset["sha256"].lower():
                 raise RuntimeError("SHA256 verification failed")
             os.replace(temp, target)
             job["state"] = "complete"
@@ -320,7 +269,13 @@ class Plugin:
 
     def _download_with_curl(self, job_id: str, asset: dict, temp: Path):
         job = self.downloads[job_id]
-        process = subprocess.Popen(["curl", "--fail", "--location", "--silent", "--show-error", "--output", str(temp), asset["url"]], stderr=subprocess.PIPE, text=True)
+        curl = shutil.which("curl", path="/usr/bin:/bin")
+        if not curl:
+            raise RuntimeError("System curl is unavailable")
+        environment = os.environ.copy()
+        environment.pop("LD_LIBRARY_PATH", None)
+        environment.pop("LD_PRELOAD", None)
+        process = subprocess.Popen([curl, "--fail", "--location", "--silent", "--show-error", "--output", str(temp), asset["url"]], stderr=subprocess.PIPE, text=True, env=environment)
         while process.poll() is None:
             if job_id in self.cancelled:
                 process.terminate()
