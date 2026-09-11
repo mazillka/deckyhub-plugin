@@ -13,17 +13,18 @@ from urllib.request import Request, urlopen
 
 import decky
 
-from backend.registry import load_registry
-
 # Decky loads main.py with importlib; its plugin directory is not guaranteed to be on sys.path.
 PLUGIN_DIR = str(Path(__file__).resolve().parent)
 if PLUGIN_DIR not in sys.path:
     sys.path.insert(0, PLUGIN_DIR)
 
+from backend.registry import load_registry
+
 DEFAULT_DOWNLOAD_DIR = "/home/deck/Downloads"
 PLUGIN_DOWNLOAD_DIR = f"{DEFAULT_DOWNLOAD_DIR}/plugins"
 DECKYHUB_REPO = "mazillka/deckyhub-plugin"
 DECKYHUB_RELEASE_PREFIX = f"https://github.com/{DECKYHUB_REPO}/releases/download/"
+DECKYHUB_VERSION = "0.3.8"
 REPOSITORY_NAME = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 class Plugin:
     async def _main(self):
@@ -113,11 +114,13 @@ class Plugin:
         return self.settings
 
     async def get_deckyhub_info(self):
-        try:
-            package = json.loads((Path(PLUGIN_DIR) / "package.json").read_text(encoding="utf-8"))
-            return {"version": str(package.get("version", "unknown"))}
-        except (OSError, json.JSONDecodeError):
-            return {"version": "unknown"}
+        for directory in (Path(getattr(decky, "DECKY_PLUGIN_DIR", PLUGIN_DIR)), Path(PLUGIN_DIR)):
+            try:
+                package = json.loads((directory / "package.json").read_text(encoding="utf-8"))
+                return {"version": str(package["version"])}
+            except (KeyError, OSError, json.JSONDecodeError):
+                pass
+        return {"version": DECKYHUB_VERSION}
 
     async def save_settings(self, settings: dict):
         self.settings = {
