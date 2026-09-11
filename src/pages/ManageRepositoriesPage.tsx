@@ -3,11 +3,13 @@ import { ButtonItem, ConfirmModal, DropdownItem, PanelSection, PanelSectionRow, 
 import { useEffect, useState } from "react";
 import { FaSync } from "react-icons/fa";
 import { addCustomRepo, exportCustomRepos, getApps, getCustomRepos, getSettings, importCustomRepos, REGISTRY_UPDATED, refreshRegistry, removeCustomRepo, saveRepoSettings } from "../api";
+import { useT } from "../i18n";
 import type { App, ManagedRepo, RepoPreference, SearchRepo, Settings } from "../types";
 
 const RESULTS_PER_PAGE = 5;
 
 export function ManageRepositoriesPage() {
+  const t = useT();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchRepo[]>([]);
   const [page, setPage] = useState(0);
@@ -70,9 +72,9 @@ export function ManageRepositoriesPage() {
   const confirmRemove = (repo: string) =>
     showModal(
       <ConfirmModal
-        strTitle="Remove Repository"
-        strDescription={`Stop tracking ${repo}? You can add it again later from Discover.`}
-        strOKButtonText="Remove"
+        strTitle={t("repos.removeRepositoryTitle")}
+        strDescription={t("repos.removeRepositoryDesc", { repo })}
+        strOKButtonText={t("repos.removeConfirm")}
         bDestructiveWarning
         onOK={() => void remove(repo)}
       />
@@ -93,13 +95,13 @@ export function ManageRepositoriesPage() {
 
   const manageTab = (
     <>
-      <PanelSection title="Add GitHub Repository">
+      <PanelSection title={t("repos.addGithubRepository")}>
         <PanelSectionRow>
-          <TextField label="Search GitHub" value={query} onChange={(event) => setQuery(event.currentTarget.value)} />
+          <TextField label={t("repos.searchGithub")} value={query} onChange={(event) => setQuery(event.currentTarget.value)} />
         </PanelSectionRow>
         <PanelSectionRow>
           <ButtonItem layout="below" onClick={() => void search()} disabled={!query.trim() || searching}>
-            {searching ? "Searching…" : "Search"}
+            {searching ? t("repos.searching") : t("filter.search")}
           </ButtonItem>
         </PanelSectionRow>
         {(query || results.length > 0 || searchError) && (
@@ -113,7 +115,7 @@ export function ManageRepositoriesPage() {
                 setPage(0);
               }}
             >
-              Clear
+              {t("repos.clear")}
             </ButtonItem>
           </PanelSectionRow>
         )}
@@ -122,15 +124,13 @@ export function ManageRepositoriesPage() {
           <>
             <PanelSectionRow>
               <ButtonItem layout="below" disabled={page === 0} onClick={() => setPage((current) => current - 1)}>
-                Previous
+                {t("repos.previous")}
               </ButtonItem>
             </PanelSectionRow>
-            <PanelSectionRow>
-              Page {page + 1} of {Math.ceil(results.length / RESULTS_PER_PAGE)}
-            </PanelSectionRow>
+            <PanelSectionRow>{t("repos.pageOf", { page: page + 1, total: Math.ceil(results.length / RESULTS_PER_PAGE) })}</PanelSectionRow>
             <PanelSectionRow>
               <ButtonItem layout="below" disabled={(page + 1) * RESULTS_PER_PAGE >= results.length} onClick={() => setPage((current) => current + 1)}>
-                Next
+                {t("repos.next")}
               </ButtonItem>
             </PanelSectionRow>
           </>
@@ -143,45 +143,45 @@ export function ManageRepositoriesPage() {
           <PanelSection key={repo.full_name} title={repo.full_name}>
             <PanelSectionRow>
               <small>
-                {repo.description || "No description"} · ★ {repo.stargazers_count ?? 0}
+                {repo.description || t("repos.noDescription")} · ★ {repo.stargazers_count ?? 0}
               </small>
             </PanelSectionRow>
             <PanelSectionRow>
               <ButtonItem layout="below" disabled={added} onClick={() => void add(repo.full_name)}>
-                {added ? "Added" : "Add"}
+                {added ? t("repos.added") : t("repos.add")}
               </ButtonItem>
             </PanelSectionRow>
           </PanelSection>
         );
       })}
 
-      <PanelSection title="Managed Repositories">
+      <PanelSection title={t("repos.managedRepositories")}>
         <PanelSectionRow>
           <ButtonItem layout="below" onClick={() => void exportList()}>
-            Export
+            {t("repos.export")}
           </ButtonItem>
         </PanelSectionRow>
         <PanelSectionRow>
           <ButtonItem layout="below" onClick={() => void importList()}>
-            Import
+            {t("repos.import")}
           </ButtonItem>
         </PanelSectionRow>
         {customRepos.map((item) => (
           <PanelSectionRow key={item.repo}>
             <ButtonItem layout="below" onClick={() => confirmRemove(item.repo)}>
-              Remove {item.repo}
+              {t("repos.remove", { repo: item.repo })}
             </ButtonItem>
           </PanelSectionRow>
         ))}
-        {!customRepos.length && <PanelSectionRow>No custom repositories yet.</PanelSectionRow>}
+        {!customRepos.length && <PanelSectionRow>{t("repos.noCustomRepos")}</PanelSectionRow>}
       </PanelSection>
     </>
   );
 
   const settingsTab = (
     <>
-      <PanelSection title="Repository Settings">
-        <PanelSectionRow>Per-repo release, folder, and asset overrides.</PanelSectionRow>
+      <PanelSection title={t("repos.repositorySettings")}>
+        <PanelSectionRow>{t("repos.perRepoOverrides")}</PanelSectionRow>
         <PanelSectionRow>
           <ButtonItem
             layout="below"
@@ -193,7 +193,7 @@ export function ManageRepositoriesPage() {
               })
             }
           >
-            <FaSync /> Refresh Registry
+            <FaSync /> {t("repos.refreshRegistry")}
           </ButtonItem>
         </PanelSectionRow>
       </PanelSection>
@@ -208,10 +208,10 @@ export function ManageRepositoriesPage() {
           <PanelSection key={app.repo} title={app.name}>
             <PanelSectionRow>
               <DropdownItem
-                label="Release Channel"
+                label={t("repos.releaseChannel")}
                 rgOptions={[
-                  { label: "Stable", data: "stable" },
-                  { label: "Pre-release", data: "prerelease" },
+                  { label: t("repos.stable"), data: "stable" },
+                  { label: t("repos.prerelease"), data: "prerelease" },
                 ]}
                 selectedOption={value.channel}
                 onChange={({ data }) => update({ channel: data })}
@@ -219,9 +219,9 @@ export function ManageRepositoriesPage() {
             </PanelSectionRow>
             <PanelSectionRow>
               <DropdownItem
-                label="Download Folder"
+                label={t("settings.downloadFolder")}
                 rgOptions={[
-                  { label: "Use global setting", data: "default" },
+                  { label: t("repos.useGlobalSetting"), data: "default" },
                   { label: "/home/deck/Downloads/plugins", data: "plugins" },
                   { label: "/home/deck/Downloads", data: "downloads" },
                 ]}
@@ -231,7 +231,7 @@ export function ManageRepositoriesPage() {
             </PanelSectionRow>
             <PanelSectionRow>
               <TextField
-                label="Asset Filter"
+                label={t("repos.assetFilter")}
                 value={value.assetFilter.join(", ")}
                 onChange={(event) => update({ assetFilter: event.currentTarget.value.split(",").map((item) => item.trim()).filter(Boolean) })}
               />
@@ -251,8 +251,8 @@ export function ManageRepositoriesPage() {
         requestAnimationFrame(() => window.scrollTo(0, 0));
       }}
       tabs={[
-        { id: "manage", title: "Add & Manage", content: manageTab },
-        { id: "settings", title: "Repository Settings", content: settingsTab },
+        { id: "manage", title: t("repos.addManage"), content: manageTab },
+        { id: "settings", title: t("repos.repositorySettings"), content: settingsTab },
       ]}
     />
   );

@@ -1,7 +1,8 @@
 import { ButtonItem, Navigation, PanelSection, PanelSectionRow } from "@decky/ui";
 import { FaDownload } from "react-icons/fa";
+import { useT } from "../i18n";
 import type { App, Asset, Download } from "../types";
-import { readableBytes, status, statusColor } from "../utils";
+import { readableBytes, statusKey, statusColor } from "../utils";
 import { DownloadProgress } from "./DownloadProgress";
 
 export function AppCard({
@@ -15,16 +16,15 @@ export function AppCard({
   onDownload: (asset: Asset) => void;
   onCancel: (jobId: string) => void;
 }) {
+  const t = useT();
   const active = job && app.assets.some((asset) => asset.name === job.state.filename) ? job : null;
   return (
     <PanelSection title={`${app.name} · ${app.category}`}>
       <PanelSectionRow>
         <div>
-          <span style={{ color: statusColor(app) }}>{status(app)}</span>
+          <span style={{ color: statusColor(app) }}>{t(statusKey(app))}</span>
           <br />
-          <small>
-            Installed: {app.installedVersion ?? "—"} · Latest: {app.latestVersion ?? "—"}
-          </small>
+          <small>{t("appcard.installedLatest", { installed: app.installedVersion ?? "—", latest: app.latestVersion ?? "—" })}</small>
           {app.error && (
             <>
               <br />
@@ -36,10 +36,12 @@ export function AppCard({
       {active && (
         <PanelSectionRow>
           <div>
-            <strong>{active.state.state === "complete" ? "Download Complete" : active.state.state === "error" ? "Download Failed" : "Downloading…"}</strong>
+            <strong>
+              {active.state.state === "complete" ? t("appcard.downloadComplete") : active.state.state === "error" ? t("appcard.downloadFailed") : t("appcard.downloading")}
+            </strong>
             <br />
             <small>
-              {readableBytes(active.state.received)} / {active.state.total ? readableBytes(active.state.total) : "unknown size"}
+              {readableBytes(active.state.received)} / {active.state.total ? readableBytes(active.state.total) : t("appcard.unknownSize")}
             </small>
             <DownloadProgress download={active.state} />
             {active.state.error && (
@@ -50,7 +52,7 @@ export function AppCard({
             )}
             {active.state.state === "downloading" && (
               <ButtonItem layout="below" onClick={() => onCancel(active.id)}>
-                Cancel
+                {t("content.cancel")}
               </ButtonItem>
             )}
           </div>
@@ -59,7 +61,7 @@ export function AppCard({
       {app.assets[0] && (
         <PanelSectionRow>
           <ButtonItem layout="below" onClick={() => onDownload(app.assets[0])}>
-            <FaDownload /> Latest ({app.assets[0].name})
+            <FaDownload /> {t("appcard.latest", { name: app.assets[0].name })}
           </ButtonItem>
         </PanelSectionRow>
       )}
@@ -71,7 +73,7 @@ export function AppCard({
       {app.releaseUrl && (
         <PanelSectionRow>
           <ButtonItem layout="below" onClick={() => Navigation.NavigateToExternalWeb(app.releaseUrl!)}>
-            Release Page
+            {t("appcard.releasePage")}
           </ButtonItem>
         </PanelSectionRow>
       )}

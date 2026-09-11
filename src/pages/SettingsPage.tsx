@@ -2,12 +2,14 @@ import { toaster } from "@decky/api";
 import { ButtonItem, DropdownItem, Navigation, PanelSection, PanelSectionRow, ToggleField } from "@decky/ui";
 import { useEffect, useState } from "react";
 import { cancelDownload, getDeckyHubInfo, getDownload, getSettings, installDeckyHubUpdate, saveSettings } from "../api";
+import { LOCALE_CHANGED, LOCALES, useT } from "../i18n";
 import type { Asset, DeckyHubInfo, DeckyHubRelease, Download, Settings } from "../types";
 import { latestDeckyHubRelease } from "../utils";
 import { showDownloadComplete } from "../components/DownloadProgress";
 
 export function SettingsPage() {
-  const [settings, setSettings] = useState<Settings>({ verifySha256: true, overwriteExisting: true, downloadLocation: "plugins", updateChannel: "stable" });
+  const t = useT();
+  const [settings, setSettings] = useState<Settings>({ verifySha256: true, overwriteExisting: true, downloadLocation: "plugins", updateChannel: "stable", language: "auto" });
   const [deckyHubInfo, setDeckyHubInfo] = useState<DeckyHubInfo>({ version: "unknown" });
   const [deckyHubRelease, setDeckyHubRelease] = useState<DeckyHubRelease>({});
   const [updateJob, setUpdateJob] = useState<{ id: string; state: Download } | null>(null);
@@ -25,7 +27,7 @@ export function SettingsPage() {
 
   useEffect(() => {
     if (updateJob?.state.state !== "complete") return;
-    showDownloadComplete("DeckyHub Update Downloaded", updateJob.state.path);
+    showDownloadComplete(t, t("settings.deckyhubUpdate"), updateJob.state.path);
   }, [updateJob?.id, updateJob?.state.state]);
 
   const installUpdate = async (asset: Asset) => {
@@ -35,10 +37,10 @@ export function SettingsPage() {
 
   return (
     <>
-      <PanelSection title="DeckyHub Update">
+      <PanelSection title={t("settings.deckyhubUpdate")}>
         <PanelSectionRow>
-          Installed: {deckyHubInfo.version}
-          {deckyHubRelease.version && ` · Latest: ${deckyHubRelease.version}`}
+          {t("settings.installedVersion", { version: deckyHubInfo.version })}
+          {deckyHubRelease.version && ` ${t("settings.latestVersion", { version: deckyHubRelease.version })}`}
           {deckyHubRelease.error && (
             <>
               <br />
@@ -48,10 +50,10 @@ export function SettingsPage() {
         </PanelSectionRow>
         <PanelSectionRow>
           <DropdownItem
-            label="Update Channel"
+            label={t("settings.updateChannel")}
             rgOptions={[
-              { label: "Stable releases", data: "stable" },
-              { label: "Pre-releases", data: "prerelease" },
+              { label: t("settings.stableReleases"), data: "stable" },
+              { label: t("settings.preReleases"), data: "prerelease" },
             ]}
             selectedOption={settings.updateChannel}
             onChange={({ data }) => setSettings({ ...settings, updateChannel: data })}
@@ -59,13 +61,13 @@ export function SettingsPage() {
         </PanelSectionRow>
         <PanelSectionRow>
           <ButtonItem layout="below" onClick={() => void latestDeckyHubRelease(settings.updateChannel).then(setDeckyHubRelease)}>
-            Check Update
+            {t("settings.checkUpdate")}
           </ButtonItem>
         </PanelSectionRow>
         {deckyHubRelease.asset && (
           <PanelSectionRow>
             <ButtonItem layout="below" onClick={() => void installUpdate(deckyHubRelease.asset!)}>
-              Download Update
+              {t("settings.downloadUpdate")}
             </ButtonItem>
           </PanelSectionRow>
         )}
@@ -76,7 +78,7 @@ export function SettingsPage() {
             {updateJob.state.state === "complete" && (
               <>
                 <br />
-                <small>Downloaded to {updateJob.state.path || "the selected folder"}. Install it from Decky → Developer → Install Plugin from ZIP.</small>
+                <small>{t("settings.downloadedTo", { path: updateJob.state.path || t("dl.selectedFolder") })}</small>
               </>
             )}
             {updateJob.state.error && (
@@ -87,7 +89,7 @@ export function SettingsPage() {
             )}
             {["queued", "downloading"].includes(updateJob.state.state) && (
               <ButtonItem layout="below" onClick={() => void cancelDownload(updateJob.id)}>
-                Cancel
+                {t("content.cancel")}
               </ButtonItem>
             )}
           </PanelSectionRow>
@@ -95,17 +97,17 @@ export function SettingsPage() {
         {deckyHubRelease.url && (
           <PanelSectionRow>
             <ButtonItem layout="below" onClick={() => Navigation.NavigateToExternalWeb(deckyHubRelease.url!)}>
-              Release Page
+              {t("appcard.releasePage")}
             </ButtonItem>
           </PanelSectionRow>
         )}
       </PanelSection>
 
-      <PanelSection title="Download Settings">
-        <PanelSectionRow>Where release ZIPs are saved.</PanelSectionRow>
+      <PanelSection title={t("settings.downloadSettings")}>
+        <PanelSectionRow>{t("settings.whereZipsSaved")}</PanelSectionRow>
         <PanelSectionRow>
           <DropdownItem
-            label="Download Folder"
+            label={t("settings.downloadFolder")}
             rgOptions={[
               { label: "/home/deck/Downloads/plugins (default)", data: "plugins" },
               { label: "/home/deck/Downloads", data: "downloads" },
@@ -115,20 +117,30 @@ export function SettingsPage() {
           />
         </PanelSectionRow>
         <PanelSectionRow>
-          <ToggleField label="Verify SHA256" checked={settings.verifySha256} onChange={(checked) => setSettings({ ...settings, verifySha256: checked })} />
+          <ToggleField label={t("settings.verifySha256")} checked={settings.verifySha256} onChange={(checked) => setSettings({ ...settings, verifySha256: checked })} />
         </PanelSectionRow>
         <PanelSectionRow>
-          <ToggleField label="Overwrite Existing" checked={settings.overwriteExisting} onChange={(checked) => setSettings({ ...settings, overwriteExisting: checked })} />
+          <ToggleField label={t("settings.overwriteExisting")} checked={settings.overwriteExisting} onChange={(checked) => setSettings({ ...settings, overwriteExisting: checked })} />
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <DropdownItem
+            label={t("settings.language")}
+            rgOptions={[{ label: t("settings.autoDetect"), data: "auto" }, ...LOCALES.map((locale) => ({ label: locale.label, data: locale.code }))]}
+            selectedOption={settings.language}
+            onChange={({ data }) => setSettings({ ...settings, language: data })}
+          />
         </PanelSectionRow>
         <PanelSectionRow>
           <ButtonItem
             layout="below"
             onClick={async () => {
-              setSettings(await saveSettings(settings));
-              toaster.toast({ title: "DeckyHub", body: "Settings saved." });
+              const saved = await saveSettings(settings);
+              setSettings(saved);
+              window.dispatchEvent(new Event(LOCALE_CHANGED));
+              toaster.toast({ title: "DeckyHub", body: t("settings.saveSettings") });
             }}
           >
-            Save Settings
+            {t("settings.saveSettings")}
           </ButtonItem>
         </PanelSectionRow>
       </PanelSection>

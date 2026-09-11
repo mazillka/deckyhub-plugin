@@ -21,7 +21,7 @@ export type App = {
 
 export type UpdateChannel = "stable" | "prerelease";
 
-export type Settings = { verifySha256: boolean; overwriteExisting: boolean; downloadLocation: "plugins" | "downloads"; updateChannel: UpdateChannel };
+export type Settings = { verifySha256: boolean; overwriteExisting: boolean; downloadLocation: "plugins" | "downloads"; updateChannel: UpdateChannel; language: string };
 
 export type Download = { state: string; filename?: string; received?: number; total?: number; path?: string; error?: string };
 

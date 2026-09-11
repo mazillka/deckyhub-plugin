@@ -27,6 +27,7 @@ DECKYHUB_RELEASE_PREFIX = f"https://github.com/{DECKYHUB_REPO}/releases/download
 DECKYHUB_VERSION = "0.3.27"
 REGISTRY_URL = f"https://raw.githubusercontent.com/{DECKYHUB_REPO}/main/registry/apps.json"
 REPOSITORY_NAME = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
+SUPPORTED_LANGUAGES = {"auto", "en", "uk", "es", "de", "fr", "ja", "zh"}
 class Plugin:
     async def _main(self):
         self.settings_path = Path(decky.DECKY_PLUGIN_SETTINGS_DIR) / "settings.json"
@@ -47,11 +48,12 @@ class Plugin:
                 "overwriteExisting": bool(settings.get("overwriteExisting", True)),
                 "downloadLocation": "downloads" if settings.get("downloadLocation") == "downloads" else "plugins",
                 "updateChannel": "prerelease" if settings.get("updateChannel") == "prerelease" else "stable",
+                "language": settings.get("language") if settings.get("language") in SUPPORTED_LANGUAGES else "auto",
                 "customRepos": [repo for repo in repos if isinstance(repo, str) and REPOSITORY_NAME.fullmatch(repo)],
                 "repoSettings": settings.get("repoSettings", {}) if isinstance(settings.get("repoSettings"), dict) else {},
             }
         except (AttributeError, OSError, json.JSONDecodeError):
-            return {"verifySha256": True, "overwriteExisting": True, "downloadLocation": "plugins", "updateChannel": "stable", "customRepos": [], "repoSettings": {}}
+            return {"verifySha256": True, "overwriteExisting": True, "downloadLocation": "plugins", "updateChannel": "stable", "language": "auto", "customRepos": [], "repoSettings": {}}
 
     def _load_registry(self) -> list[dict]:
         try:
@@ -171,6 +173,7 @@ class Plugin:
             "overwriteExisting": bool(settings.get("overwriteExisting", True)),
             "downloadLocation": "downloads" if settings.get("downloadLocation") == "downloads" else "plugins",
             "updateChannel": "prerelease" if settings.get("updateChannel") == "prerelease" else "stable",
+            "language": settings.get("language") if settings.get("language") in SUPPORTED_LANGUAGES else "auto",
             "customRepos": getattr(self, "settings", {}).get("customRepos", []),
             "repoSettings": getattr(self, "settings", {}).get("repoSettings", {}),
         }

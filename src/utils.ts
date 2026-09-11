@@ -1,4 +1,5 @@
 import { fetchNoCors, toaster } from "@decky/api";
+import type { MessageKey } from "./i18n/en";
 import type { App, Asset, DeckyHubRelease, RepoPreference, UpdateChannel } from "./types";
 
 export const CACHE_TTL = 3 * 60 * 1000;
@@ -7,8 +8,8 @@ export const pageStyle = { boxSizing: "border-box" as const, height: "calc(100vh
 
 export const readableBytes = (bytes = 0) => (bytes > 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.ceil(bytes / 1024)} KB`);
 
-export const status = (app: App) =>
-  !app.installedVersion ? "Not Installed" : app.updateAvailable ? "Update Available" : app.updateAvailable === false ? "Up To Date" : "Installed";
+export const statusKey = (app: App): MessageKey =>
+  !app.installedVersion ? "filter.notInstalled" : app.updateAvailable ? "status.updateAvailable" : app.updateAvailable === false ? "status.upToDate" : "filter.installed";
 
 export const statusColor = (app: App) => (app.error ? "#ff6b6b" : app.updateAvailable ? "#f0c33c" : app.updateAvailable === false ? "#6bcb6b" : undefined);
 

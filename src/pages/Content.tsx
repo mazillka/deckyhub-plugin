@@ -3,17 +3,14 @@ import { ButtonItem, DropdownItem, Navigation, PanelSection, PanelSectionRow, Te
 import { useEffect, useState } from "react";
 import { FaSync } from "react-icons/fa";
 import { cancelDownload, downloadAsset, getApps, getDownload, getSettings, queueDownloads, REGISTRY_UPDATED } from "../api";
+import { useT } from "../i18n";
 import type { App, Asset, Download, RepoPreference, Settings, View } from "../types";
 import { hydrate, notifyUpdates } from "../utils";
 import { AppCard } from "../components/AppCard";
 import { showDownloadComplete } from "../components/DownloadProgress";
 
-const viewInfo: Record<View, { title: string; description: string; empty: string }> = {
-  updates: { title: "Updates", description: "Updates available for your installed tools.", empty: "Everything installed is up to date." },
-  discover: { title: "Discover", description: "Browse supported GitHub projects and their ZIP releases.", empty: "No repositories are available." },
-};
-
 export function Content({ fullPage }: { fullPage?: View }) {
+  const t = useT();
   const [apps, setApps] = useState<App[]>([]);
   const [view] = useState<View>(fullPage ?? "updates");
   const [loading, setLoading] = useState(true);
@@ -21,6 +18,11 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const [job, setJob] = useState<{ id: string; state: Download } | null>(null);
   const [query, setQuery] = useState("");
   const [installedFilter, setInstalledFilter] = useState("All");
+
+  const viewInfo: Record<View, { title: string; description: string; empty: string }> = {
+    updates: { title: t("nav.updates"), description: t("view.updatesDescription"), empty: t("view.updatesEmpty") },
+    discover: { title: t("nav.discover"), description: t("view.discoverDescription"), empty: t("view.discoverEmpty") },
+  };
 
   const load = async (force = false) => {
     setLoading(true);
@@ -59,7 +61,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
 
   useEffect(() => {
     if (job?.state.state !== "complete") return;
-    showDownloadComplete("Download Complete", job.state.path);
+    showDownloadComplete(t, t("appcard.downloadComplete"), job.state.path);
   }, [job?.id, job?.state.state]);
 
   const startDownload = async (asset: Asset, repo?: string) => {
@@ -68,17 +70,17 @@ export function Content({ fullPage }: { fullPage?: View }) {
   };
 
   const discoverFilters = view === "discover" && (
-    <PanelSection title="Filter Repositories">
+    <PanelSection>
       <PanelSectionRow>
-        <TextField label="Search" value={query} onChange={(event) => setQuery(event.currentTarget.value)} />
+        <TextField label={t("filter.search")} value={query} onChange={(event) => setQuery(event.currentTarget.value)} />
       </PanelSectionRow>
       <PanelSectionRow>
         <DropdownItem
-          label="Status"
+          label={t("filter.status")}
           rgOptions={[
-            { label: "All", data: "All" },
-            { label: "Installed", data: "Installed" },
-            { label: "Not Installed", data: "Not Installed" },
+            { label: t("filter.all"), data: "All" },
+            { label: t("filter.installed"), data: "Installed" },
+            { label: t("filter.notInstalled"), data: "Not Installed" },
           ]}
           selectedOption={installedFilter}
           onChange={({ data }) => setInstalledFilter(data)}
@@ -91,16 +93,16 @@ export function Content({ fullPage }: { fullPage?: View }) {
     <>
       {discoverFilters}
       {loading && (
-        <PanelSection title="Loading DeckyHub…">
-          <PanelSectionRow>Loading…</PanelSectionRow>
+        <PanelSection title={t("content.loadingTitle")}>
+          <PanelSectionRow>{t("content.loading")}</PanelSectionRow>
         </PanelSection>
       )}
       {loadError && (
-        <PanelSection title="Could Not Load DeckyHub">
+        <PanelSection title={t("content.loadErrorTitle")}>
           <PanelSectionRow>{loadError}</PanelSectionRow>
           <PanelSectionRow>
             <ButtonItem layout="below" onClick={() => void load(true)}>
-              Try Again
+              {t("content.tryAgain")}
             </ButtonItem>
           </PanelSectionRow>
         </PanelSection>
@@ -111,7 +113,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
             <PanelSectionRow>{info.description}</PanelSectionRow>
             <PanelSectionRow>
               <ButtonItem layout="below" onClick={() => void load(true)}>
-                <FaSync /> Refresh
+                <FaSync /> {t("content.refresh")}
               </ButtonItem>
             </PanelSectionRow>
             {view === "updates" && apps.some((app) => app.updateAvailable && app.assets[0]) && (
@@ -124,21 +126,21 @@ export function Content({ fullPage }: { fullPage?: View }) {
                     )
                   }
                 >
-                  Update All
+                  {t("content.updateAll")}
                 </ButtonItem>
               </PanelSectionRow>
             )}
             {job && (
               <PanelSectionRow>
                 <div>
-                  <strong>{job.state.filename ?? "Download"}</strong>
+                  <strong>{job.state.filename ?? t("content.download")}</strong>
                   <br />
                   <small>
                     {job.state.state} {job.state.total ? `· ${Math.round((100 * (job.state.received ?? 0)) / job.state.total)}%` : ""}
                   </small>
                   {job.state.state === "downloading" && (
                     <ButtonItem layout="below" onClick={() => void cancelDownload(job.id)}>
-                      Cancel
+                      {t("content.cancel")}
                     </ButtonItem>
                   )}
                 </div>
@@ -158,7 +160,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
             ))}
           {!apps.filter(filter).length && (
             <PanelSection title={info.empty}>
-              <PanelSectionRow>Use Discover to browse the registry.</PanelSectionRow>
+              <PanelSectionRow>{t("content.useDiscover")}</PanelSectionRow>
             </PanelSection>
           )}
         </>
@@ -168,25 +170,25 @@ export function Content({ fullPage }: { fullPage?: View }) {
 
   const navigation = (
     <>
-      <PanelSection title="Browse">
+      <PanelSection title={t("nav.browse")}>
         <PanelSectionRow>
           <ButtonItem layout="below" onClick={() => Navigation.Navigate("/deckyhub/updates")}>
-            Updates
+            {t("nav.updates")}
           </ButtonItem>
         </PanelSectionRow>
         <PanelSectionRow>
           <ButtonItem layout="below" onClick={() => Navigation.Navigate("/deckyhub/discover")}>
-            Discover
+            {t("nav.discover")}
           </ButtonItem>
         </PanelSectionRow>
         <PanelSectionRow>
           <ButtonItem layout="below" onClick={() => Navigation.Navigate("/deckyhub/repositories")}>
-            Repositories
+            {t("nav.repositories")}
           </ButtonItem>
         </PanelSectionRow>
         <PanelSectionRow>
           <ButtonItem layout="below" onClick={() => Navigation.Navigate("/deckyhub/settings")}>
-            Settings
+            {t("nav.settings")}
           </ButtonItem>
         </PanelSectionRow>
       </PanelSection>
