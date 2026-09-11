@@ -70,19 +70,23 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const discoverFilters = view === "discover" && (
     <PanelSection title="Filter Repositories">
       <PanelSectionRow>
-        <TextField label="Search" value={query} onChange={(event) => setQuery(event.currentTarget.value)} />
-      </PanelSectionRow>
-      <PanelSectionRow>
-        <DropdownItem
-          label="Status"
-          rgOptions={[
-            { label: "All", data: "All" },
-            { label: "Installed", data: "Installed" },
-            { label: "Not Installed", data: "Not Installed" },
-          ]}
-          selectedOption={installedFilter}
-          onChange={({ data }) => setInstalledFilter(data)}
-        />
+        <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ flex: 1 }}>
+            <TextField label="Search" value={query} onChange={(event) => setQuery(event.currentTarget.value)} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <DropdownItem
+              label="Status"
+              rgOptions={[
+                { label: "All", data: "All" },
+                { label: "Installed", data: "Installed" },
+                { label: "Not Installed", data: "Not Installed" },
+              ]}
+              selectedOption={installedFilter}
+              onChange={({ data }) => setInstalledFilter(data)}
+            />
+          </div>
+        </div>
       </PanelSectionRow>
     </PanelSection>
   );
