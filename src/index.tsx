@@ -1,5 +1,5 @@
 import { callable, definePlugin, fetchNoCors, FileSelectionType, openFilePicker, routerHook, toaster } from "@decky/api";
-import { ButtonItem, ConfirmModal, DropdownItem, Navigation, PanelSection, PanelSectionRow, ProgressBar, ScrollPanel, showModal, staticClasses, TextField, ToggleField } from "@decky/ui";
+import { ButtonItem, ConfirmModal, DropdownItem, Navigation, PanelSection, PanelSectionRow, ProgressBar, showModal, staticClasses, TextField, ToggleField } from "@decky/ui";
 import { useEffect, useState } from "react";
 import { FaDownload, FaGithub, FaSync } from "react-icons/fa";
 
@@ -33,7 +33,8 @@ const exportCustomRepos = callable<[], { path: string }>("export_custom_repos");
 const importCustomRepos = callable<[path: string], { added: string[] }>("import_custom_repos");
 const CACHE_TTL = 15 * 60 * 1000;
 const REGISTRY_UPDATED = "deckyhub-registry-updated";
-const pageStyle = { boxSizing: "border-box" as const, margin: "0 auto", maxWidth: 960, padding: "72px 24px 120px" };
+const UPDATE_NOTICE_KEY = "deckyhub-update-notice";
+const pageStyle = { boxSizing: "border-box" as const, margin: "0 auto", maxWidth: 960, padding: "16px 24px 32px" };
 const readableBytes = (bytes = 0) => bytes > 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.ceil(bytes / 1024)} KB`;
 const status = (app: App) => !app.installedVersion ? "Not installed" : app.updateAvailable ? "Update available" : app.updateAvailable === false ? "Up to date" : "Installed";
 const keyFor = (app: App) => `deckyhub-release:${app.repo}:${app.source}`;
@@ -67,6 +68,14 @@ function isUpdate(app: App, latest: string | null, publishedAt: string | null) {
 function matchingAssets(app: App, assets: any[]): Asset[] {
   const include = app.asset.include.map((word) => word.toLowerCase()), exclude = app.asset.exclude.map((word) => word.toLowerCase());
   return assets.filter((asset) => { const name = String(asset.name || "").toLowerCase(); return name.endsWith(".zip") && !exclude.some((word) => name.includes(word)) && (!include.length || include.every((word) => name.includes(word))); }).map((asset) => ({ name: asset.name, url: asset.browser_download_url, size: asset.size || 0, sha256: String(asset.digest || "").replace(/^sha256:/, "") || undefined }));
+}
+
+function notifyUpdates(apps: App[]) {
+  const updates = apps.filter((app) => app.updateAvailable && app.latestVersion);
+  const notice = updates.map((app) => `${app.repo}:${app.latestVersion}`).sort().join("|");
+  if (!notice || localStorage.getItem(UPDATE_NOTICE_KEY) === notice) return;
+  localStorage.setItem(UPDATE_NOTICE_KEY, notice);
+  toaster.toast({ title: `${updates.length} update${updates.length === 1 ? "" : "s"} available`, body: updates.map((app) => `${app.name} (${app.latestVersion})`).join(", ") });
 }
 
 async function latestDeckyHubRelease(channel: UpdateChannel): Promise<DeckyHubRelease> {
@@ -130,7 +139,7 @@ return <><PanelSection title="DeckyHub update"><PanelSectionRow>Installed: {deck
 function Content({ fullPage }: { fullPage?: View }) {
   const [apps, setApps] = useState<App[]>([]), [view] = useState<View>(fullPage ?? "updates"), [loading, setLoading] = useState(true), [loadError, setLoadError] = useState<string | null>(null);
   const [job, setJob] = useState<{ id: string; state: Download } | null>(null);
-  const load = async (force = false) => { setLoading(true); try { const local = (await getApps()).apps; setApps(local); setLoadError(null); setLoading(false); setApps(await Promise.all(local.map((app) => hydrate(app, force)))); } catch (error) { setLoadError(String(error)); setLoading(false); } };
+  const load = async (force = false) => { setLoading(true); try { const local = (await getApps()).apps; setApps(local); setLoadError(null); setLoading(false); const hydrated = await Promise.all(local.map((app) => hydrate(app, force))); setApps(hydrated); notifyUpdates(hydrated); } catch (error) { setLoadError(String(error)); setLoading(false); } };
   useEffect(() => { const refresh = () => void load(true); void load(); window.addEventListener(REGISTRY_UPDATED, refresh); return () => window.removeEventListener(REGISTRY_UPDATED, refresh); }, []);
   useEffect(() => { if (!job || !["queued", "downloading"].includes(job.state.state)) return; const timer = window.setInterval(() => void getDownload(job.id).then((state) => setJob({ id: job.id, state })), 500); return () => window.clearInterval(timer); }, [job]);
   useEffect(() => {
@@ -144,4 +153,4 @@ const list = (filter: (app: App) => boolean, info: typeof viewInfo[View]) => <>{
   return fullPage ? page : navigation;
 }
 
-export default definePlugin(() => { const fullscreen = (view: View) => <ScrollPanel><div style={pageStyle}><Content fullPage={view} /></div></ScrollPanel>; routerHook.addRoute("/deckyhub/updates", () => fullscreen("updates")); routerHook.addRoute("/deckyhub/discover", () => fullscreen("discover")); routerHook.addRoute("/deckyhub/settings", () => <ScrollPanel><div style={pageStyle}><SettingsPage /></div></ScrollPanel>); return { name: "DeckyHub", titleView: <div className={staticClasses.Title}>DeckyHub</div>, content: <Content />, icon: <FaGithub />, onDismount() { ["/deckyhub/updates", "/deckyhub/discover", "/deckyhub/settings"].forEach((path) => routerHook.removeRoute(path)); } }; });
+export default definePlugin(() => { const fullscreen = (view: View) => <div style={pageStyle}><Content fullPage={view} /></div>; routerHook.addRoute("/deckyhub/updates", () => fullscreen("updates")); routerHook.addRoute("/deckyhub/discover", () => fullscreen("discover")); routerHook.addRoute("/deckyhub/settings", () => <div style={pageStyle}><SettingsPage /></div>); return { name: "DeckyHub", titleView: <div className={staticClasses.Title}>DeckyHub</div>, content: <Content />, icon: <FaGithub />, onDismount() { ["/deckyhub/updates", "/deckyhub/discover", "/deckyhub/settings"].forEach((path) => routerHook.removeRoute(path)); } }; });
