@@ -36,7 +36,7 @@ export function ButtonItem({
       style={{
         display: layout === "below" ? "block" : "inline-block",
         width: layout === "below" ? "100%" : undefined,
-        margin: "4px 0",
+        margin: layout === "below" ? "4px 0" : 0,
         padding: "8px 10px",
         background: disabled ? "#2a2d34" : "#2a475e",
         color: disabled ? "#666" : "#fff",
