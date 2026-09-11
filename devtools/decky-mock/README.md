@@ -18,6 +18,8 @@ npm run dev              # frontend on :5183
 
 Open the printed `http://localhost:5183` URL. The left nav lists the QAM widget plus every route `src/index.tsx` registers (Updates, Discover, Repositories, Settings).
 
+![Discover page in the dev-mock, at Steam Deck density](screenshot.png)
+
 ## Known limitations
 
 - `openFilePicker()` is a `window.prompt()` for an absolute path — there's no native file dialog in a browser. Good enough to test the import flow if you paste a real path on your machine.
