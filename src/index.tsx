@@ -34,7 +34,7 @@ const importCustomRepos = callable<[path: string], { added: string[] }>("import_
 const CACHE_TTL = 15 * 60 * 1000;
 const REGISTRY_UPDATED = "deckyhub-registry-updated";
 const UPDATE_NOTICE_KEY = "deckyhub-update-notice";
-const pageStyle = { boxSizing: "border-box" as const, height: "calc(100vh - 160px)", margin: "64px auto 96px", maxWidth: 960, overflowY: "auto" as const, padding: "16px 24px 32px" };
+const pageStyle = { boxSizing: "border-box" as const, height: "calc(100vh - 160px)", margin: "64px 0 96px", overflowY: "auto" as const, padding: "16px 24px 32px", width: "100%" };
 const readableBytes = (bytes = 0) => bytes > 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.ceil(bytes / 1024)} KB`;
 const status = (app: App) => !app.installedVersion ? "Not installed" : app.updateAvailable ? "Update available" : app.updateAvailable === false ? "Up to date" : "Installed";
 const keyFor = (app: App) => `deckyhub-release:${app.repo}:${app.source}`;
