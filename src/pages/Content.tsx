@@ -96,7 +96,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
       {loading && (
         <PanelSection title={t("content.loadingTitle")}>
           <PanelSectionRow>
-            <Spinner /> {t("content.loading")}
+            <Spinner style={{ width: "1.1em", margin: "0 8px 0 0" }} /> {t("content.loading")}
           </PanelSectionRow>
         </PanelSection>
       )}
