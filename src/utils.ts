@@ -2,7 +2,7 @@ import { fetchNoCors, toaster } from "@decky/api";
 import type { MessageKey } from "./i18n/en";
 import type { App, Asset, DeckyHubRelease, RepoPreference, UpdateChannel } from "./types";
 
-export const CACHE_TTL = 3 * 60 * 1000;
+export const CACHE_TTL = 60 * 1000;
 export const UPDATE_NOTICE_KEY = "deckyhub-update-notice";
 export const pageStyle = { boxSizing: "border-box" as const, height: "calc(100vh - 192px)", margin: "96px 0 96px", overflowY: "auto" as const, padding: "8px 12px 12px", width: "100%" };
 

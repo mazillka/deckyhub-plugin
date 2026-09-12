@@ -68,7 +68,7 @@ Settings includes a **Check DeckyHub Update** option that looks for new stable r
 ## Good to know
 
 - DeckyHub talks to GitHub without needing you to log in, so very heavy use in a short time may hit GitHub's public rate limit — release info will just take a bit longer to refresh if that happens.
-- Release information is cached for 3 minutes, so pulling to refresh right after checking won't always show something new.
+- Release information is cached for 1 minute, so pulling to refresh right after checking won't always show something new.
 - Downloads only ever happen over HTTPS.
 
 ## Disclaimer
