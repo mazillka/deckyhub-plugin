@@ -2,7 +2,7 @@
 // The real components are scraped at runtime from Steam's own webpack bundle
 // (via findModuleExport), so nothing here is pixel-accurate — this exists to
 // exercise layout and logic, not to review visuals.
-import React, { createElement, useState, type ReactNode } from "react";
+import React, { createElement, useState, type CSSProperties, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 
 export function PanelSection({ title, children }: { title?: ReactNode; children?: ReactNode }) {
@@ -103,6 +103,36 @@ export function ToggleField({ label, checked, onChange }: { label?: string; chec
       {label}
       <input type="checkbox" checked={checked} onChange={(event) => onChange?.(event.target.checked)} />
     </label>
+  );
+}
+
+export function Focusable({ style, children, ...rest }: { style?: CSSProperties; children?: ReactNode; [key: string]: unknown }) {
+  const { "flow-children": _flowChildren, noFocusRing: _noFocusRing, onActivate: _onActivate, onCancel: _onCancel, ...divProps } = rest;
+  return (
+    <div style={style} {...(divProps as React.HTMLAttributes<HTMLDivElement>)}>
+      {children}
+    </div>
+  );
+}
+
+export function Spinner({ style }: { style?: CSSProperties }) {
+  const [tick] = useState(() => Math.random().toString(36).slice(2));
+  return (
+    <span
+      style={{
+        display: "inline-block",
+        width: 14,
+        height: 14,
+        border: "2px solid #3d4450",
+        borderTopColor: "#1a9fff",
+        borderRadius: "50%",
+        animation: `decky-mock-spin-${tick} 0.8s infinite linear`,
+        verticalAlign: "middle",
+        ...style,
+      }}
+    >
+      <style>{`@keyframes decky-mock-spin-${tick} { to { transform: rotate(360deg); } }`}</style>
+    </span>
   );
 }
 
