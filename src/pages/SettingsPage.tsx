@@ -5,7 +5,7 @@ import { cancelDownload, getDeckyHubInfo, getDownload, getSettings, installDecky
 import { LOCALE_CHANGED, LOCALES, useT } from "../i18n";
 import type { Asset, DeckyHubInfo, DeckyHubRelease, Download, Settings } from "../types";
 import { latestDeckyHubRelease } from "../utils";
-import { showDownloadComplete } from "../components/DownloadProgress";
+import { DownloadProgress, showDownloadComplete } from "../components/DownloadProgress";
 
 export function SettingsPage() {
   const t = useT();
@@ -85,6 +85,7 @@ export function SettingsPage() {
           <PanelSectionRow>
             {updateJob.state.filename}: {updateJob.state.state}{" "}
             {updateJob.state.total ? `(${Math.round((100 * (updateJob.state.received ?? 0)) / updateJob.state.total)}%)` : ""}
+            <DownloadProgress download={updateJob.state} />
             {updateJob.state.state === "complete" && (
               <>
                 <br />

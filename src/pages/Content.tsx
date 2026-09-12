@@ -1,5 +1,5 @@
 import { toaster } from "@decky/api";
-import { ButtonItem, DropdownItem, Focusable, Navigation, PanelSection, PanelSectionRow, TextField } from "@decky/ui";
+import { ButtonItem, DropdownItem, Focusable, Navigation, PanelSection, PanelSectionRow, Spinner, TextField } from "@decky/ui";
 import { useEffect, useState } from "react";
 import { FaSync } from "react-icons/fa";
 import { cancelDownload, downloadAsset, getApps, getDownload, getSettings, queueDownloads, REGISTRY_UPDATED } from "../api";
@@ -7,7 +7,7 @@ import { useT } from "../i18n";
 import type { App, Asset, Download, RepoPreference, Settings, View } from "../types";
 import { hydrate, notifyUpdates } from "../utils";
 import { AppCard } from "../components/AppCard";
-import { showDownloadComplete } from "../components/DownloadProgress";
+import { DownloadProgress, showDownloadComplete } from "../components/DownloadProgress";
 
 export function Content({ fullPage }: { fullPage?: View }) {
   const t = useT();
@@ -94,7 +94,9 @@ export function Content({ fullPage }: { fullPage?: View }) {
       {discoverFilters}
       {loading && (
         <PanelSection title={t("content.loadingTitle")}>
-          <PanelSectionRow>{t("content.loading")}</PanelSectionRow>
+          <PanelSectionRow>
+            <Spinner /> {t("content.loading")}
+          </PanelSectionRow>
         </PanelSection>
       )}
       {loadError && (
@@ -138,6 +140,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
                   <small>
                     {job.state.state} {job.state.total ? `· ${Math.round((100 * (job.state.received ?? 0)) / job.state.total)}%` : ""}
                   </small>
+                  <DownloadProgress download={job.state} />
                   {job.state.state === "downloading" && (
                     <ButtonItem layout="below" onClick={() => void cancelDownload(job.id)}>
                       {t("content.cancel")}
