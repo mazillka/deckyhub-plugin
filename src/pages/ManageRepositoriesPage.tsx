@@ -137,7 +137,7 @@ export function ManageRepositoriesPage() {
         )}
       </PanelSection>
 
-      <Focusable style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }} flow-children="right-wrap">
+      <Focusable style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }} flow-children="grid">
         {results.slice(page * RESULTS_PER_PAGE, page * RESULTS_PER_PAGE + RESULTS_PER_PAGE).map((repo) => {
           const added = existingRepos.has(repo.full_name.toLowerCase());
           return (
@@ -199,7 +199,7 @@ export function ManageRepositoriesPage() {
           </ButtonItem>
         </PanelSectionRow>
       </PanelSection>
-      <Focusable style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }} flow-children="right-wrap">
+      <Focusable style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }} flow-children="grid">
         {apps.map((app) => {
           const value = preference(app.repo);
           const update = (next: Partial<RepoPreference>) => {
