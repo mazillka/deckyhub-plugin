@@ -1,5 +1,5 @@
 import { FileSelectionType, fetchNoCors, openFilePicker, toaster } from "@decky/api";
-import { ButtonItem, ConfirmModal, DropdownItem, PanelSection, PanelSectionRow, showModal, Tabs, TextField } from "@decky/ui";
+import { ButtonItem, ConfirmModal, DropdownItem, Focusable, PanelSection, PanelSectionRow, showModal, Tabs, TextField } from "@decky/ui";
 import { useEffect, useState } from "react";
 import { FaSync } from "react-icons/fa";
 import { addCustomRepo, exportCustomRepos, getApps, getCustomRepos, getSettings, importCustomRepos, REGISTRY_UPDATED, refreshRegistry, removeCustomRepo, saveRepoSettings } from "../api";
@@ -137,7 +137,7 @@ export function ManageRepositoriesPage() {
         )}
       </PanelSection>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
+      <Focusable style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }} flow-children="right-wrap">
         {results.slice(page * RESULTS_PER_PAGE, page * RESULTS_PER_PAGE + RESULTS_PER_PAGE).map((repo) => {
           const added = existingRepos.has(repo.full_name.toLowerCase());
           return (
@@ -155,7 +155,7 @@ export function ManageRepositoriesPage() {
             </PanelSection>
           );
         })}
-      </div>
+      </Focusable>
 
       <PanelSection title={t("repos.managedRepositories")}>
         <PanelSectionRow>
@@ -199,7 +199,7 @@ export function ManageRepositoriesPage() {
           </ButtonItem>
         </PanelSectionRow>
       </PanelSection>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
+      <Focusable style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }} flow-children="right-wrap">
         {apps.map((app) => {
           const value = preference(app.repo);
           const update = (next: Partial<RepoPreference>) => {
@@ -242,7 +242,7 @@ export function ManageRepositoriesPage() {
             </PanelSection>
           );
         })}
-      </div>
+      </Focusable>
     </>
   );
 
