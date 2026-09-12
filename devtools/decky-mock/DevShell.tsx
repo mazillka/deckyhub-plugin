@@ -45,7 +45,62 @@ export default function DevShell() {
           </button>
         ))}
       </nav>
-      <main style={{ flex: 1, overflow: "auto", padding: 16 }}>{ActivePage ? <ActivePage /> : descriptor.content}</main>
+      <main style={{ flex: 1, position: "relative", overflow: "hidden", background: "#0b0d11" }}>
+        {ActivePage ? (
+          <>
+            {/* Simulates Steam's fixed top status bar, which overlays page content on real hardware */}
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 40,
+                background: "#0b0d11",
+                borderBottom: "1px solid #262a31",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "0 16px",
+                fontSize: 12,
+                color: "#8b929a",
+                zIndex: 10,
+              }}
+            >
+              <span>Steam</span>
+              <span>🔋 100% · 12:34 PM</span>
+            </div>
+            <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
+              <ActivePage />
+            </div>
+            {/* Simulates Steam's fixed bottom button-hint bar (A Select / B Back), which also overlays content */}
+            <div
+              style={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: 40,
+                background: "#0b0d11",
+                borderTop: "1px solid #262a31",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "flex-end",
+                gap: 16,
+                padding: "0 16px",
+                fontSize: 12,
+                color: "#8b929a",
+                zIndex: 10,
+              }}
+            >
+              <span>Ⓐ Select</span>
+              <span>Ⓑ Back</span>
+            </div>
+          </>
+        ) : (
+          <div style={{ padding: 16, overflow: "auto", height: "100%", boxSizing: "border-box" }}>{descriptor.content}</div>
+        )}
+      </main>
     </div>
   );
 }
