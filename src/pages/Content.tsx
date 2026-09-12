@@ -1,5 +1,5 @@
 import { toaster } from "@decky/api";
-import { ButtonItem, DropdownItem, Navigation, PanelSection, PanelSectionRow, TextField } from "@decky/ui";
+import { ButtonItem, DropdownItem, Focusable, Navigation, PanelSection, PanelSectionRow, TextField } from "@decky/ui";
 import { useEffect, useState } from "react";
 import { FaSync } from "react-icons/fa";
 import { cancelDownload, downloadAsset, getApps, getDownload, getSettings, queueDownloads, REGISTRY_UPDATED } from "../api";
@@ -147,7 +147,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
               </PanelSectionRow>
             )}
           </PanelSection>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
+          <Focusable style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }} flow-children="row-wrap">
             {apps
               .filter(
                 (app) =>
@@ -159,7 +159,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
               .map((app) => (
                 <AppCard key={app.id} app={app} job={job} onDownload={(asset) => void startDownload(asset, app.repo)} onCancel={(jobId) => void cancelDownload(jobId)} />
               ))}
-          </div>
+          </Focusable>
           {!apps.filter(filter).length && (
             <PanelSection title={info.empty}>
               <PanelSectionRow>{t("content.useDiscover")}</PanelSectionRow>
