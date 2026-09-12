@@ -150,7 +150,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
               </PanelSectionRow>
             )}
           </PanelSection>
-          <Focusable style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }} flow-children="row-wrap">
+          <Focusable style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }} flow-children="right-wrap">
             {apps
               .filter(
                 (app) =>
