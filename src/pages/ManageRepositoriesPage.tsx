@@ -1,5 +1,6 @@
 import { FileSelectionType, fetchNoCors, openFilePicker, toaster } from "@decky/api";
-import { ButtonItem, ConfirmModal, DropdownItem, Focusable, PanelSection, PanelSectionRow, showModal, Tabs, TextField } from "@decky/ui";
+import { ButtonItem, ConfirmModal, DropdownItem, PanelSection, PanelSectionRow, showModal, Tabs, TextField } from "@decky/ui";
+import { FocusableGrid } from "../components/FocusableGrid";
 import { useEffect, useState } from "react";
 import { FaSync } from "react-icons/fa";
 import { addCustomRepo, exportCustomRepos, getApps, getCustomRepos, getSettings, importCustomRepos, REGISTRY_UPDATED, refreshRegistry, removeCustomRepo, saveRepoSettings } from "../api";
@@ -137,11 +138,11 @@ export function ManageRepositoriesPage() {
         )}
       </PanelSection>
 
-      <Focusable style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }} flow-children="grid">
-        {results.slice(page * RESULTS_PER_PAGE, page * RESULTS_PER_PAGE + RESULTS_PER_PAGE).map((repo) => {
+      <FocusableGrid items={results.slice(page * RESULTS_PER_PAGE, page * RESULTS_PER_PAGE + RESULTS_PER_PAGE)} columns={3} keyFor={(repo) => repo.full_name}>
+        {(repo) => {
           const added = existingRepos.has(repo.full_name.toLowerCase());
           return (
-            <PanelSection key={repo.full_name} title={repo.full_name}>
+            <PanelSection title={repo.full_name}>
               <PanelSectionRow>
                 <small>
                   {repo.description || t("repos.noDescription")} · ★ {repo.stargazers_count ?? 0}
@@ -154,8 +155,8 @@ export function ManageRepositoriesPage() {
               </PanelSectionRow>
             </PanelSection>
           );
-        })}
-      </Focusable>
+        }}
+      </FocusableGrid>
 
       <PanelSection title={t("repos.managedRepositories")}>
         <PanelSectionRow>
@@ -199,8 +200,8 @@ export function ManageRepositoriesPage() {
           </ButtonItem>
         </PanelSectionRow>
       </PanelSection>
-      <Focusable style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }} flow-children="grid">
-        {apps.map((app) => {
+      <FocusableGrid items={apps} columns={3} keyFor={(app) => app.repo}>
+        {(app) => {
           const value = preference(app.repo);
           const update = (next: Partial<RepoPreference>) => {
             const saved = { ...value, ...next };
@@ -208,7 +209,7 @@ export function ManageRepositoriesPage() {
             void saveRepoSettings(app.repo, saved);
           };
           return (
-            <PanelSection key={app.repo} title={app.name}>
+            <PanelSection title={app.name}>
               <PanelSectionRow>
                 <DropdownItem
                   label={t("repos.releaseChannel")}
@@ -241,8 +242,8 @@ export function ManageRepositoriesPage() {
               </PanelSectionRow>
             </PanelSection>
           );
-        })}
-      </Focusable>
+        }}
+      </FocusableGrid>
     </>
   );
 

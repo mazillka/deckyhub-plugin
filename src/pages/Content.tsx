@@ -1,5 +1,5 @@
 import { toaster } from "@decky/api";
-import { ButtonItem, DropdownItem, Focusable, Navigation, PanelSection, PanelSectionRow, Spinner, TextField } from "@decky/ui";
+import { ButtonItem, DropdownItem, Navigation, PanelSection, PanelSectionRow, Spinner, TextField } from "@decky/ui";
 import { useEffect, useState } from "react";
 import { FaSync } from "react-icons/fa";
 import { cancelDownload, downloadAsset, getApps, getDownload, getSettings, queueDownloads, REGISTRY_UPDATED } from "../api";
@@ -8,6 +8,7 @@ import type { App, Asset, Download, RepoPreference, Settings, View } from "../ty
 import { hydrate, notifyUpdates } from "../utils";
 import { AppCard } from "../components/AppCard";
 import { DownloadProgress, showDownloadComplete } from "../components/DownloadProgress";
+import { FocusableGrid } from "../components/FocusableGrid";
 
 export function Content({ fullPage }: { fullPage?: View }) {
   const t = useT();
@@ -150,19 +151,19 @@ export function Content({ fullPage }: { fullPage?: View }) {
               </PanelSectionRow>
             )}
           </PanelSection>
-          <Focusable style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }} flow-children="grid">
-            {apps
-              .filter(
-                (app) =>
-                  filter(app) &&
-                  (view !== "discover" ||
-                    ((!query || `${app.name} ${app.repo}`.toLowerCase().includes(query.toLowerCase())) &&
-                      (installedFilter === "All" || (installedFilter === "Installed") === Boolean(app.installedVersion))))
-              )
-              .map((app) => (
-                <AppCard key={app.id} app={app} job={job} onDownload={(asset) => void startDownload(asset, app.repo)} onCancel={(jobId) => void cancelDownload(jobId)} />
-              ))}
-          </Focusable>
+          <FocusableGrid
+            items={apps.filter(
+              (app) =>
+                filter(app) &&
+                (view !== "discover" ||
+                  ((!query || `${app.name} ${app.repo}`.toLowerCase().includes(query.toLowerCase())) &&
+                    (installedFilter === "All" || (installedFilter === "Installed") === Boolean(app.installedVersion))))
+            )}
+            columns={fullPage ? 3 : 1}
+            keyFor={(app) => app.id}
+          >
+            {(app) => <AppCard app={app} job={job} onDownload={(asset) => void startDownload(asset, app.repo)} onCancel={(jobId) => void cancelDownload(jobId)} />}
+          </FocusableGrid>
           {!apps.filter(filter).length && (
             <PanelSection title={info.empty}>
               <PanelSectionRow>{t("content.useDiscover")}</PanelSectionRow>
