@@ -8,11 +8,13 @@ import { DownloadProgress } from "./DownloadProgress";
 export function AppCard({
   app,
   job,
+  downloadDisabled,
   onDownload,
   onCancel,
 }: {
   app: App;
   job?: { id: string; state: Download } | null;
+  downloadDisabled?: boolean;
   onDownload: (asset: Asset) => void;
   onCancel: (jobId: string) => void;
 }) {
@@ -60,14 +62,14 @@ export function AppCard({
       )}
       {app.assets[0] && (
         <PanelSectionRow>
-          <ButtonItem layout="below" onClick={() => onDownload(app.assets[0])}>
+          <ButtonItem layout="below" disabled={downloadDisabled} onClick={() => onDownload(app.assets[0])}>
             <FaDownload /> {t("appcard.latest", { name: app.assets[0].name })}
           </ButtonItem>
         </PanelSectionRow>
       )}
-      {app.assets.slice(1, 4).map((asset) => (
+      {app.assets.slice(1).map((asset) => (
         <PanelSectionRow key={asset.name}>
-          <ButtonItem layout="below" onClick={() => onDownload(asset)}>{`${asset.name} (${readableBytes(asset.size)})`}</ButtonItem>
+          <ButtonItem layout="below" disabled={downloadDisabled} onClick={() => onDownload(asset)}>{`${asset.name} (${readableBytes(asset.size)})`}</ButtonItem>
         </PanelSectionRow>
       ))}
       {app.releaseUrl && (

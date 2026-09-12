@@ -24,7 +24,7 @@ DEFAULT_DOWNLOAD_DIR = "/home/deck/Downloads"
 PLUGIN_DOWNLOAD_DIR = f"{DEFAULT_DOWNLOAD_DIR}/plugins"
 DECKYHUB_REPO = "mazillka/deckyhub-plugin"
 DECKYHUB_RELEASE_PREFIX = f"https://github.com/{DECKYHUB_REPO}/releases/download/"
-DECKYHUB_VERSION = "0.4.9"
+DECKYHUB_VERSION = "0.4.10"
 REGISTRY_URL = f"https://raw.githubusercontent.com/{DECKYHUB_REPO}/main/registry/apps.json"
 REPOSITORY_NAME = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 SUPPORTED_LANGUAGES = {"auto", "en", "uk", "es", "de", "fr", "ja", "zh"}
@@ -241,6 +241,9 @@ class Plugin:
     async def download_asset(self, asset: dict, repo: str | None = None):
         if not isinstance(asset.get("url"), str) or not asset["url"].startswith("https://"):
             raise ValueError("Only HTTPS release assets can be downloaded")
+        for job_id, job in self.downloads.items():
+            if job.get("repo") == repo and job.get("url") == asset["url"] and job["state"] in ("queued", "downloading"):
+                return {"jobId": job_id}
         name = Path(asset.get("name", "download")).name
         if not name or name in (".", ".."):
             raise ValueError("Invalid asset filename")
@@ -250,7 +253,7 @@ class Plugin:
         if target.exists() and not self.settings.get("overwriteExisting"):
             target = self._next_name(target)
         job_id = f"{name}-{len(self.downloads) + 1}"
-        self.downloads[job_id] = {"state": "queued", "filename": target.name, "received": 0, "total": asset.get("size") or 0, "path": str(target), "error": None}
+        self.downloads[job_id] = {"state": "queued", "filename": target.name, "received": 0, "total": asset.get("size") or 0, "path": str(target), "error": None, "repo": repo, "url": asset["url"]}
         self.download_queue.put_nowait((job_id, asset, target, False))
         return {"jobId": job_id}
 

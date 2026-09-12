@@ -19,6 +19,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const [job, setJob] = useState<{ id: string; state: Download } | null>(null);
   const [query, setQuery] = useState("");
   const [installedFilter, setInstalledFilter] = useState("All");
+  const downloading = Boolean(job && ["queued", "downloading"].includes(job.state.state));
 
   const viewInfo: Record<View, { title: string; description: string; empty: string }> = {
     updates: { title: t("nav.updates"), description: t("view.updatesDescription"), empty: t("view.updatesEmpty") },
@@ -67,7 +68,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
 
   const startDownload = async (asset: Asset, repo?: string) => {
     const result = await downloadAsset(asset, repo);
-    if (result.jobId) setJob({ id: result.jobId, state: { state: "queued" } });
+    if (result.jobId) setJob({ id: result.jobId, state: { state: "queued", filename: asset.name, total: asset.size } });
   };
 
   const discoverFilters = view === "discover" && (
@@ -90,8 +91,17 @@ export function Content({ fullPage }: { fullPage?: View }) {
     </PanelSection>
   );
 
-  const list = (filter: (app: App) => boolean, info: (typeof viewInfo)[View]) => (
-    <>
+  const list = (filter: (app: App) => boolean, info: (typeof viewInfo)[View]) => {
+    const visibleApps = apps.filter(
+      (app) =>
+        filter(app) &&
+        (view !== "discover" ||
+          ((!query || `${app.name} ${app.repo}`.toLowerCase().includes(query.toLowerCase())) &&
+            (installedFilter === "All" || (installedFilter === "Installed") === Boolean(app.installedVersion))))
+    );
+    const updates = apps.filter((app) => app.updateAvailable && app.assets[0]);
+    return (
+      <>
       {discoverFilters}
       {loading && (
         <PanelSection title={t("content.loadingTitle")}>
@@ -119,14 +129,18 @@ export function Content({ fullPage }: { fullPage?: View }) {
                 <FaSync /> {t("content.refresh")}
               </ButtonItem>
             </PanelSectionRow>
-            {view === "updates" && apps.some((app) => app.updateAvailable && app.assets[0]) && (
+            {view === "updates" && updates.length > 0 && (
               <PanelSectionRow>
                 <ButtonItem
                   layout="below"
+                  disabled={downloading}
                   onClick={() =>
-                    void queueDownloads(apps.filter((app) => app.updateAvailable && app.assets[0]).map((app) => ({ asset: app.assets[0], repo: app.repo }))).then((result) =>
-                      toaster.toast({ title: "DeckyHub", body: `${result.jobIds.length} updates queued.` })
-                    )
+                    void queueDownloads(updates.map((app) => ({ asset: app.assets[0], repo: app.repo }))).then((result) => {
+                      const asset = updates[updates.length - 1].assets[0];
+                      const jobId = result.jobIds[result.jobIds.length - 1];
+                      if (jobId) setJob({ id: jobId, state: { state: "queued", filename: asset.name, total: asset.size } });
+                      toaster.toast({ title: "DeckyHub", body: `${result.jobIds.length} updates queued.` });
+                    })
                   }
                 >
                   {t("content.updateAll")}
@@ -152,27 +166,22 @@ export function Content({ fullPage }: { fullPage?: View }) {
             )}
           </PanelSection>
           <FocusableGrid
-            items={apps.filter(
-              (app) =>
-                filter(app) &&
-                (view !== "discover" ||
-                  ((!query || `${app.name} ${app.repo}`.toLowerCase().includes(query.toLowerCase())) &&
-                    (installedFilter === "All" || (installedFilter === "Installed") === Boolean(app.installedVersion))))
-            )}
+            items={visibleApps}
             columns={fullPage ? 3 : 1}
             keyFor={(app) => app.id}
           >
-            {(app) => <AppCard app={app} job={job} onDownload={(asset) => void startDownload(asset, app.repo)} onCancel={(jobId) => void cancelDownload(jobId)} />}
+            {(app) => <AppCard app={app} job={job} downloadDisabled={downloading} onDownload={(asset) => void startDownload(asset, app.repo)} onCancel={(jobId) => void cancelDownload(jobId)} />}
           </FocusableGrid>
-          {!apps.filter(filter).length && (
+          {!visibleApps.length && (
             <PanelSection title={info.empty}>
               <PanelSectionRow>{t("content.useDiscover")}</PanelSectionRow>
             </PanelSection>
           )}
         </>
       )}
-    </>
-  );
+      </>
+    );
+  };
 
   const navigation = (
     <>

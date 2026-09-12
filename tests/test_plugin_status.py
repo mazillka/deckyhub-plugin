@@ -297,6 +297,19 @@ class PluginStatusTests(unittest.TestCase):
 
             self.assertEqual(plugin.downloads[result["jobId"]]["path"], str(target_dir / "asset (1).zip"))
 
+    def test_download_asset_reuses_an_active_matching_job(self):
+        plugin = Plugin()
+        plugin.settings = {"downloadLocation": "plugins", "overwriteExisting": True, "repoSettings": {}}
+        plugin.downloads = {}
+        plugin.download_queue = asyncio.Queue()
+        asset = {"name": "asset.zip", "url": "https://example.com/asset.zip"}
+
+        first = asyncio.run(plugin.download_asset(asset, "owner/repo"))
+        second = asyncio.run(plugin.download_asset(asset, "owner/repo"))
+
+        self.assertEqual(second["jobId"], first["jobId"])
+        self.assertEqual(len(plugin.downloads), 1)
+
     def test_repo_download_location_overrides_global_setting(self):
         plugin = Plugin()
         plugin.settings = {"downloadLocation": "plugins", "repoSettings": {"owner/repo": {"downloadLocation": "downloads"}}}
