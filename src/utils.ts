@@ -4,7 +4,7 @@ import type { App, Asset, DeckyHubRelease, RepoPreference, UpdateChannel } from 
 
 export const CACHE_TTL = 60 * 1000;
 export const UPDATE_NOTICE_KEY = "deckyhub-update-notice";
-export const pageStyle = { boxSizing: "border-box" as const, height: "calc(100vh - 192px)", margin: "96px 0 96px", overflowY: "auto" as const, padding: "8px 12px 12px", width: "100%" };
+export const pageStyle = { boxSizing: "border-box" as const, height: "calc(100% - 40px)", marginTop: "40px", overflowY: "auto" as const, padding: "8px 12px 12px", width: "100%" };
 
 export const readableBytes = (bytes = 0) => (bytes > 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.ceil(bytes / 1024)} KB`);
 
