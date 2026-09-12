@@ -32,9 +32,9 @@ export function Content({ fullPage }: { fullPage?: View }) {
       const preferences = (settings as Settings & { repoSettings?: Record<string, RepoPreference> }).repoSettings || {};
       setApps(local);
       setLoadError(null);
-      setLoading(false);
       const hydrated = await Promise.all(local.map((app) => hydrate(app, force, preferences[app.repo])));
       setApps(hydrated);
+      setLoading(false);
       notifyUpdates(hydrated);
     } catch (error) {
       setLoadError(String(error));
