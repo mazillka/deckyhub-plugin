@@ -37,6 +37,12 @@ jobs:
           cp -r backend dist registry release/DeckyHub/
           cp LICENSE main.py package.json plugin.json release/DeckyHub/
           (cd release && zip -r "../DeckyHub-${GITHUB_REF_NAME}.zip" DeckyHub)
+      - name: Verify release package
+        run: |
+          unzip -Z1 "DeckyHub-${GITHUB_REF_NAME}.zip" | grep -Fx "DeckyHub/main.py"
+          unzip -Z1 "DeckyHub-${GITHUB_REF_NAME}.zip" | grep -Fx "DeckyHub/plugin.json"
+          unzip -Z1 "DeckyHub-${GITHUB_REF_NAME}.zip" | grep -Fx "DeckyHub/dist/index.js"
+          sha256sum "DeckyHub-${GITHUB_REF_NAME}.zip"
       - name: Create GitHub Release
         run: gh release create "$GITHUB_REF_NAME" "DeckyHub-${GITHUB_REF_NAME}.zip" --generate-notes
         env:
