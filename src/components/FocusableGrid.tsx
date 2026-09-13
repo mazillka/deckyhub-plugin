@@ -25,9 +25,9 @@ export function FocusableGrid<T>({
       {rows.map((row, index) => (
         <Focusable key={index} flow-children="right" style={{ display: "flex", gap: 12, marginBottom: 12 }}>
           {row.map((item) => (
-            <div key={keyFor(item)} style={{ flex: 1, minWidth: 0 }}>
+            <Focusable key={keyFor(item)} flow-children="down" style={{ flex: 1, minWidth: 0 }}>
               {children(item)}
-            </div>
+            </Focusable>
           ))}
         </Focusable>
       ))}

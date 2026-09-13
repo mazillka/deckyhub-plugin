@@ -22,19 +22,20 @@ export default function DevShell() {
   }, []);
 
   useEffect(() => {
-    const moveFocus = (event: KeyboardEvent) => {
-      const direction = event.key.replace("Arrow", "");
+    const moveFocus = (direction: string) => {
       if (!(["Up", "Down", "Left", "Right"] as string[]).includes(direction)) return;
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement) return;
-      const targets = Array.from(document.querySelectorAll<HTMLElement>(".steam-screen button:not(:disabled), .steam-screen input:not(:disabled), .steam-screen select:not(:disabled)")).filter(
-        (target) => target.getClientRects().length,
-      );
       const current = document.activeElement as HTMLElement;
+      if (current instanceof HTMLInputElement || current instanceof HTMLSelectElement || current instanceof HTMLTextAreaElement) return;
+      const targets = Array.from(document.querySelectorAll<HTMLElement>(
+        ".steam-screen button:not(:disabled), .steam-screen a[href], .steam-screen input:not(:disabled):not([type=hidden]), .steam-screen select:not(:disabled), .steam-screen textarea:not(:disabled), .steam-screen [role=button]:not([aria-disabled=true]), .steam-screen [onclick], .steam-screen [tabindex]:not([tabindex='-1'])",
+      )).filter((target) => target.getClientRects().length).map((target) => {
+        if (target.tabIndex < 0) target.tabIndex = 0;
+        return target;
+      });
       if (!targets.length) return;
       if (!targets.includes(current)) {
-        event.preventDefault();
         targets[0].focus();
-        return;
+        return true;
       }
       const origin = current.getBoundingClientRect();
       const center = (rect: DOMRect, axis: "x" | "y") => axis === "x" ? rect.left + rect.width / 2 : rect.top + rect.height / 2;
@@ -51,12 +52,30 @@ export default function DevShell() {
         .filter(({ primary }) => primary > 1)
         .sort((a, b) => a.primary + a.secondary * 4 - (b.primary + b.secondary * 4))[0]?.target;
       if (next) {
-        event.preventDefault();
         next.focus();
+        return true;
       }
     };
-    document.addEventListener("keydown", moveFocus);
-    return () => document.removeEventListener("keydown", moveFocus);
+    const onKeyDown = (event: KeyboardEvent) => {
+      const moved = moveFocus(event.key.replace("Arrow", ""));
+      if (moved) event.preventDefault();
+    };
+    let lastDirection = "";
+    let frame = 0;
+    const pollController = () => {
+      const controller = navigator.getGamepads?.().find(Boolean);
+      const buttons = controller?.buttons;
+      const direction = buttons?.[12]?.pressed ? "Up" : buttons?.[13]?.pressed ? "Down" : buttons?.[14]?.pressed ? "Left" : buttons?.[15]?.pressed ? "Right" : Math.abs(controller?.axes[0] ?? 0) > Math.abs(controller?.axes[1] ?? 0) ? (controller!.axes[0] > .5 ? "Right" : controller!.axes[0] < -.5 ? "Left" : "") : controller?.axes[1] > .5 ? "Down" : controller?.axes[1] < -.5 ? "Up" : "";
+      if (direction && direction !== lastDirection) moveFocus(direction);
+      lastDirection = direction;
+      frame = requestAnimationFrame(pollController);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    frame = requestAnimationFrame(pollController);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      cancelAnimationFrame(frame);
+    };
   }, []);
 
   if (!descriptor) return null;
