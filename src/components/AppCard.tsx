@@ -1,4 +1,4 @@
-import { Button, Navigation, PanelSection, PanelSectionRow } from "@decky/ui";
+import { DialogButtonPrimary as Button, Navigation, PanelSection, PanelSectionRow } from "@decky/ui";
 import { FaDownload } from "react-icons/fa";
 import { useT } from "../i18n";
 import type { App, Asset, Download } from "../types";

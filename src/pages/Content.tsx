@@ -1,5 +1,5 @@
 import { toaster } from "@decky/api";
-import { Button, DropdownItem, Focusable, Navigation, PanelSection, PanelSectionRow, Spinner, TextField } from "@decky/ui";
+import { DialogButtonPrimary as Button, DropdownItem, Focusable, Navigation, PanelSection, PanelSectionRow, Spinner, TextField } from "@decky/ui";
 import { useEffect, useState } from "react";
 import { FaSync } from "react-icons/fa";
 import { cancelDownload, downloadAsset, getApps, getDownload, getSettings, queueDownloads, REGISTRY_UPDATED } from "../api";
@@ -80,6 +80,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
           </div>
           <div style={{ flex: "0 0 220px" }}>
             <DropdownItem
+              layout="below"
               label={t("filter.status")}
               rgOptions={[
                 { label: t("filter.all"), data: "All" },

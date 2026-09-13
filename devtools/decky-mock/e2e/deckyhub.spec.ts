@@ -44,6 +44,7 @@ test("Discover keeps search and status on one row", async ({ page }) => {
   expect(searchBox).not.toBeNull();
   expect(statusBox).not.toBeNull();
   expect(Math.abs(searchBox!.y - statusBox!.y)).toBeLessThan(20);
+  expect(Math.abs(searchBox!.height - statusBox!.height)).toBeLessThan(20);
   expect(statusBox!.x).toBeGreaterThan(searchBox!.x);
 });
 
@@ -113,9 +114,9 @@ test("DeckyHub hides a matching update package", async ({ page }) => {
   await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases/latest", (route) =>
     route.fulfill({
       json: {
-        tag_name: "v0.4.23",
-        html_url: "https://github.com/mazillka/deckyhub-plugin/releases/tag/v0.4.23",
-        assets: [{ name: "DeckyHub-v0.4.23.zip", browser_download_url: "https://github.com/mazillka/deckyhub-plugin/releases/download/v0.4.23/DeckyHub-v0.4.23.zip", digest: `sha256:${"a".repeat(64)}` }],
+        tag_name: "v0.4.24",
+        html_url: "https://github.com/mazillka/deckyhub-plugin/releases/tag/v0.4.24",
+        assets: [{ name: "DeckyHub-v0.4.24.zip", browser_download_url: "https://github.com/mazillka/deckyhub-plugin/releases/download/v0.4.24/DeckyHub-v0.4.24.zip", digest: `sha256:${"a".repeat(64)}` }],
       },
     })
   );

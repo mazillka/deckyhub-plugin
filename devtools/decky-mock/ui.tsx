@@ -58,6 +58,8 @@ export function Button({
   );
 }
 
+export const DialogButtonPrimary = Button;
+
 export function DropdownItem({
   label,
   rgOptions,

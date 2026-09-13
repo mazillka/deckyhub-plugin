@@ -1,5 +1,5 @@
 import { FileSelectionType, fetchNoCors, openFilePicker, toaster } from "@decky/api";
-import { Button, ConfirmModal, DropdownItem, Focusable, PanelSection, PanelSectionRow, showModal, Tabs, TextField } from "@decky/ui";
+import { DialogButtonPrimary as Button, ConfirmModal, DropdownItem, Focusable, PanelSection, PanelSectionRow, showModal, Tabs, TextField } from "@decky/ui";
 import { FocusableGrid } from "../components/FocusableGrid";
 import { useEffect, useState } from "react";
 import { addCustomRepo, exportCustomRepos, getApps, getCustomRepos, getSettings, importCustomRepos, REGISTRY_UPDATED, removeCustomRepo, saveRepoSettings } from "../api";
@@ -98,16 +98,16 @@ export function ManageRepositoriesPage() {
     <>
       <PanelSection title={t("repos.addGithubRepository")}>
         <PanelSectionRow>
-          <Focusable flow-children="right" style={{ display: "flex", alignItems: "flex-end", gap: 12 }}>
+          <Focusable flow-children="right" style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <TextField label={t("repos.searchGithub")} value={query} onChange={(event) => setQuery(event.currentTarget.value)} />
             </div>
-            <div style={{ flex: "0 0 160px" }}>
+            <div style={{ flex: "0 0 160px", paddingTop: 24 }}>
               <Button style={compactButtonStyle} onClick={() => void search()} disabled={!query.trim() || searching}>
                 {searching ? t("repos.searching") : t("filter.search")}
               </Button>
             </div>
-            <div style={{ flex: "0 0 120px" }}>
+            <div style={{ flex: "0 0 120px", paddingTop: 24 }}>
               <Button
                 style={compactButtonStyle}
                 onClick={() => {

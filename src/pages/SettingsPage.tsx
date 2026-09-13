@@ -1,5 +1,5 @@
 import { toaster } from "@decky/api";
-import { Button, ConfirmModal, DropdownItem, Navigation, PanelSection, PanelSectionRow, showModal, ToggleField } from "@decky/ui";
+import { DialogButtonPrimary as Button, ConfirmModal, DropdownItem, Navigation, PanelSection, PanelSectionRow, showModal, ToggleField } from "@decky/ui";
 import { useEffect, useState } from "react";
 import { cancelDownload, clearDownloads, getDeckyHubInfo, getDownload, getSettings, installDeckyHubUpdate, saveSettings } from "../api";
 import { LOCALE_CHANGED, LOCALES, useT } from "../i18n";
