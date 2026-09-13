@@ -5,7 +5,7 @@ import { routerHook } from "./api";
 export default function DevShell() {
   const [, forceUpdate] = useState(0);
   const [descriptor, setDescriptor] = useState<{ name: string; content?: React.ReactElement; onDismount?: () => void } | null>(null);
-  const [activePath, setActivePath] = useState<string | null>(null);
+  const [activePath, setActivePath] = useState<string | null>(() => new URLSearchParams(window.location.search).get("preview"));
 
   useEffect(() => {
     const onRoutesChanged = () => forceUpdate((value) => value + 1);
@@ -26,81 +26,43 @@ export default function DevShell() {
   const ActivePage = activePath ? routerHook._routes.get(activePath) : null;
 
   return (
-    <div style={{ display: "flex", height: "100%", background: "#15171c", color: "#e6ecf1", fontFamily: "sans-serif" }}>
-      <nav style={{ width: 220, borderRight: "1px solid #262a31", padding: 12, flexShrink: 0 }}>
-        <div style={{ fontWeight: 600, marginBottom: 12 }}>{descriptor.name} (dev mock)</div>
-        <button
-          onClick={() => setActivePath(null)}
-          style={{ display: "block", width: "100%", marginBottom: 6, padding: 8, textAlign: "left", background: activePath === null ? "#2a475e" : "transparent", color: "#e6ecf1", border: "1px solid #3d4450", borderRadius: 4, cursor: "pointer" }}
-        >
-          Quick Access widget
-        </button>
-        {routes.map(([path]) => (
-          <button
-            key={path}
-            onClick={() => setActivePath(path)}
-            style={{ display: "block", width: "100%", marginBottom: 6, padding: 8, textAlign: "left", background: activePath === path ? "#2a475e" : "transparent", color: "#e6ecf1", border: "1px solid #3d4450", borderRadius: 4, cursor: "pointer" }}
-          >
-            {path}
+    <div className="steam-mock">
+      <div className={`steam-deck${ActivePage ? " steam-deck-full" : ""}`}>
+        <nav className="preview-nav" aria-label="Developer preview routes">
+          <p className="preview-title">Preview</p>
+          <button className={`preview-route ${activePath === null ? "preview-route-active" : ""}`} onClick={() => setActivePath(null)}>
+            Quick Access widget
           </button>
-        ))}
-      </nav>
-      <main style={{ flex: 1, position: "relative", overflow: "hidden", background: "#0b0d11" }}>
+          {routes.map(([path]) => (
+            <button key={path} className={`preview-route ${activePath === path ? "preview-route-active" : ""}`} onClick={() => setActivePath(path)}>
+              {path}
+            </button>
+          ))}
+        </nav>
+        <main className="steam-screen">
         {ActivePage ? (
-          <>
-            {/* Simulates Steam's fixed top status bar, which overlays page content on real hardware */}
-            <div
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                height: 40,
-                background: "#0b0d11",
-                borderBottom: "1px solid #262a31",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "0 16px",
-                fontSize: 12,
-                color: "#8b929a",
-                zIndex: 10,
-              }}
-            >
-              <span>Steam</span>
-              <span>🔋 100% · 12:34 PM</span>
-            </div>
-            <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
+          <div className="steam-page">
+            <header className="steam-topbar">
+              <span className="steam-brand">STEAM</span>
+              <span>☁ Online &nbsp; ◉ 100% &nbsp; 12:34 PM</span>
+            </header>
+            <div className="steam-page-content">
               <ActivePage />
             </div>
-            {/* Simulates Steam's fixed bottom button-hint bar (A Select / B Back), which also overlays content */}
-            <div
-              style={{
-                position: "absolute",
-                bottom: 0,
-                left: 0,
-                right: 0,
-                height: 40,
-                background: "#0b0d11",
-                borderTop: "1px solid #262a31",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "flex-end",
-                gap: 16,
-                padding: "0 16px",
-                fontSize: 12,
-                color: "#8b929a",
-                zIndex: 10,
-              }}
-            >
-              <span>Ⓐ Select</span>
-              <span>Ⓑ Back</span>
-            </div>
-          </>
+            <footer className="steam-bottombar"><span>Ⓐ Select</span><span>Ⓑ Back</span></footer>
+          </div>
         ) : (
-          <div style={{ padding: 16, overflow: "auto", height: "100%", boxSizing: "border-box" }}>{descriptor.content}</div>
+          <div className="game-backdrop">
+            <aside className="qam-panel">
+              <header className="qam-header"><span className="qam-title">⋯ <span>Quick Access</span></span><span>⚙</span></header>
+              <p className="qam-app-name">{descriptor.name}</p>
+              <div className="qam-content">{descriptor.content}</div>
+              <footer className="steam-bottombar"><span>Ⓐ Select</span><span>Ⓑ Back</span></footer>
+            </aside>
+          </div>
         )}
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

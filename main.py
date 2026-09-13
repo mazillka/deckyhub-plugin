@@ -24,7 +24,7 @@ DEFAULT_DOWNLOAD_DIR = "/home/deck/Downloads"
 PLUGIN_DOWNLOAD_DIR = f"{DEFAULT_DOWNLOAD_DIR}/plugins"
 DECKYHUB_REPO = "mazillka/deckyhub-plugin"
 DECKYHUB_RELEASE_PREFIX = f"https://github.com/{DECKYHUB_REPO}/releases/download/"
-DECKYHUB_VERSION = "0.4.11"
+DECKYHUB_VERSION = "0.4.12"
 REGISTRY_URL = f"https://raw.githubusercontent.com/{DECKYHUB_REPO}/main/registry/apps.json"
 REPOSITORY_NAME = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 SUPPORTED_LANGUAGES = {"auto", "en", "uk", "es", "de", "fr", "ja", "zh"}
@@ -239,8 +239,9 @@ class Plugin:
         return {"added": added}
 
     async def download_asset(self, asset: dict, repo: str | None = None):
-        if not isinstance(asset.get("url"), str) or not asset["url"].startswith("https://"):
-            raise ValueError("Only HTTPS release assets can be downloaded")
+        prefix = f"https://github.com/{repo}/releases/download/" if isinstance(repo, str) and REPOSITORY_NAME.fullmatch(repo) else ""
+        if not prefix or not isinstance(asset.get("url"), str) or not asset["url"].startswith(prefix):
+            raise ValueError("Only GitHub release assets for the selected repository can be downloaded")
         for job_id, job in self.downloads.items():
             if job.get("repo") == repo and job.get("url") == asset["url"] and job["state"] in ("queued", "downloading"):
                 return {"jobId": job_id}

@@ -65,6 +65,18 @@ class Handler(BaseHTTPRequestHandler):
         self._cors()
         self.end_headers()
 
+    def do_GET(self):
+        if self.path != "/health":
+            self.send_error(404)
+            return
+        body = b'{"ok": true}'
+        self.send_response(200)
+        self._cors()
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
     def do_POST(self):
         length = int(self.headers.get("Content-Length", 0))
         payload = json.loads(self.rfile.read(length) or b"{}")
@@ -87,6 +99,6 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    port = 8642
+    port = int(sys.argv[1]) if len(sys.argv) > 1 else 8642
     print(f"[decky-mock] Backend bridge listening on http://127.0.0.1:{port}")
     ThreadingHTTPServer(("127.0.0.1", port), Handler).serve_forever()

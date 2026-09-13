@@ -25,6 +25,12 @@ jobs:
           pnpm run typecheck
           pnpm run build
           python3 -m unittest discover -s tests
+      - name: Run browser E2E tests
+        run: |
+          npm ci --prefix devtools/decky-mock
+          cd devtools/decky-mock
+          npx playwright install --with-deps chromium
+          npm run test:e2e
       - name: Package Decky plugin
         run: |
           mkdir -p release/DeckyHub

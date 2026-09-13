@@ -4,7 +4,7 @@ Local, browser-based preview of DeckyHub's UI, for iterating on `src/` without a
 
 **What's real:** `src/` is imported unmodified. All backend calls (`get_apps`, `download_asset`, settings, etc.) go through `dev-server.py` to the actual `main.py` `Plugin` class — same logic, same registry, same GitHub API calls the real plugin makes.
 
-**What's fake:** `@decky/ui` and `@decky/api` are swapped (via a Vite alias) for [ui.tsx](ui.tsx) and [api.ts](api.ts) — plain styled `<div>`/`<button>` stand-ins. The real `@decky/ui` components are scraped at runtime from Steam's own webpack bundle (they call `findModuleExport()` internally, confirmed by reading `node_modules/@decky/ui/src`), so there is no way to get pixel-accurate Decky styling outside the actual Steam Client. This mock is for exercising **layout and logic**, not for visual QA — always do a final check on real hardware (or `steam -gamepadui` on Linux) before shipping a UI change.
+**What's fake:** `@decky/ui` and `@decky/api` are swapped (via a Vite alias) for [ui.tsx](ui.tsx) and [api.ts](api.ts). The shell emulates Steam Deck's 1280×800 Gaming Mode: Quick Access is a right-side panel, routes render behind Steam-style top/bottom chrome, and controls use Steam-like focus styling. The real `@decky/ui` components are scraped at runtime from Steam's own webpack bundle, so this is a behavioral and layout approximation—not pixel-accurate SteamUI. Always do a final controller check on real hardware (or `steam -gamepadui` on Linux) before shipping a UI change.
 
 ## Run it
 
@@ -17,6 +17,15 @@ npm run dev              # frontend on :5183
 ```
 
 Open the printed `http://localhost:5183` URL. The left nav lists the QAM widget plus every route `src/index.tsx` registers (Updates, Discover, Repositories, Settings).
+
+## Browser tests
+
+Install Chromium once, then run the Playwright suite. It starts the mock frontend and backend bridge itself, with GitHub release data stubbed for repeatable tests.
+
+```bash
+npx playwright install chromium
+npm run test:e2e
+```
 
 ![Discover page in the dev-mock, at Steam Deck density](screenshot.png)
 

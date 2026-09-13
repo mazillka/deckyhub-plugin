@@ -7,15 +7,15 @@ import { createRoot } from "react-dom/client";
 
 export function PanelSection({ title, children }: { title?: ReactNode; children?: ReactNode }) {
   return (
-    <section style={{ margin: "0 0 12px", padding: "10px 12px", background: "#23262e", borderRadius: 6 }}>
-      {title && <h3 style={{ margin: "0 0 8px", fontSize: 13, color: "#8b929a", textTransform: "uppercase", letterSpacing: 0.5 }}>{title}</h3>}
+    <section className="steam-panel">
+      {title && <h3 className="steam-panel-title">{title}</h3>}
       {children}
     </section>
   );
 }
 
 export function PanelSectionRow({ children }: { children?: ReactNode }) {
-  return <div style={{ margin: "6px 0", fontSize: 13, color: "#c6d4df" }}>{children}</div>;
+  return <div className="steam-row">{children}</div>;
 }
 
 export function ButtonItem({
@@ -33,19 +33,7 @@ export function ButtonItem({
     <button
       onClick={onClick}
       disabled={disabled}
-      style={{
-        display: layout === "below" ? "block" : "inline-block",
-        width: layout === "below" ? "100%" : undefined,
-        margin: layout === "below" ? "4px 0" : 0,
-        padding: "8px 10px",
-        background: disabled ? "#2a2d34" : "#2a475e",
-        color: disabled ? "#666" : "#fff",
-        border: "1px solid #3d4450",
-        borderRadius: 4,
-        cursor: disabled ? "not-allowed" : "pointer",
-        fontSize: 13,
-        textAlign: "left",
-      }}
+      className="steam-button"
     >
       {children}
     </button>
@@ -64,7 +52,7 @@ export function DropdownItem({
   onChange: (option: { data: unknown }) => void;
 }) {
   return (
-    <label style={{ display: "block", fontSize: 12, color: "#8b929a" }}>
+    <label className="steam-field-label">
       {label}
       <select
         value={String(selectedOption)}
@@ -72,7 +60,7 @@ export function DropdownItem({
           const option = rgOptions.find((item) => String(item.data) === event.target.value);
           if (option) onChange(option);
         }}
-        style={{ display: "block", width: "100%", marginTop: 4, padding: 6, background: "#1a1d23", color: "#fff", border: "1px solid #3d4450", borderRadius: 4 }}
+        className="steam-select"
       >
         {rgOptions.map((option) => (
           <option key={String(option.data)} value={String(option.data)}>
@@ -86,12 +74,12 @@ export function DropdownItem({
 
 export function TextField({ label, value, onChange }: { label?: string; value?: string; onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void }) {
   return (
-    <label style={{ display: "block", fontSize: 12, color: "#8b929a" }}>
+    <label className="steam-field-label">
       {label}
       <input
         value={value}
         onChange={onChange}
-        style={{ display: "block", width: "100%", marginTop: 4, padding: 6, background: "#1a1d23", color: "#fff", border: "1px solid #3d4450", borderRadius: 4, boxSizing: "border-box" }}
+        className="steam-input"
       />
     </label>
   );
@@ -99,7 +87,7 @@ export function TextField({ label, value, onChange }: { label?: string; value?: 
 
 export function ToggleField({ label, checked, onChange }: { label?: string; checked?: boolean; onChange?: (checked: boolean) => void }) {
   return (
-    <label style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13, margin: "6px 0" }}>
+    <label className="steam-toggle">
       {label}
       <input type="checkbox" checked={checked} onChange={(event) => onChange?.(event.target.checked)} />
     </label>
@@ -107,9 +95,10 @@ export function ToggleField({ label, checked, onChange }: { label?: string; chec
 }
 
 export function Focusable({ style, children, ...rest }: { style?: CSSProperties; children?: ReactNode; [key: string]: unknown }) {
-  const { "flow-children": _flowChildren, noFocusRing: _noFocusRing, onActivate: _onActivate, onCancel: _onCancel, ...divProps } = rest;
+  const { "flow-children": flowChildren, noFocusRing: _noFocusRing, onActivate: _onActivate, onCancel: _onCancel, ...divProps } = rest;
+  const flowStyle = flowChildren === "right" ? { display: "flex", flexDirection: "row" as const } : flowChildren === "down" ? { display: "flex", flexDirection: "column" as const } : {};
   return (
-    <div style={style} {...(divProps as React.HTMLAttributes<HTMLDivElement>)}>
+    <div style={{ ...flowStyle, ...style }} {...(divProps as React.HTMLAttributes<HTMLDivElement>)}>
       {children}
     </div>
   );
@@ -175,18 +164,18 @@ export function ConfirmModal({
   closeModal?: () => void;
 }) {
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10000 }}>
-      <div style={{ background: "#23262e", padding: 20, borderRadius: 8, width: 360, color: "#e6ecf1", fontFamily: "sans-serif" }}>
+    <div className="steam-modal-backdrop">
+      <div className="steam-modal">
         <h3 style={{ margin: "0 0 10px" }}>{strTitle}</h3>
         <div style={{ fontSize: 13, marginBottom: 16 }}>{strDescription}</div>
-        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+        <div className="steam-modal-actions">
           {!bAlertDialog && (
             <button
               onClick={() => {
                 onCancel?.();
                 closeModal?.();
               }}
-              style={{ padding: "6px 12px", background: "transparent", color: "#c6d4df", border: "1px solid #3d4450", borderRadius: 4 }}
+              className="steam-tab"
             >
               {strCancelButtonText}
             </button>
@@ -196,7 +185,7 @@ export function ConfirmModal({
               onOK?.();
               closeModal?.();
             }}
-            style={{ padding: "6px 12px", background: bDestructiveWarning ? "#c0392b" : "#1a9fff", color: "#fff", border: "none", borderRadius: 4 }}
+            className="steam-button"
           >
             {strOKButtonText}
           </button>
@@ -236,20 +225,12 @@ export function Tabs({
   const active = tabs.find((tab) => tab.id === activeTab) ?? tabs[0];
   return (
     <div>
-      <div style={{ display: "flex", gap: 4, marginBottom: 12, borderBottom: "1px solid #262a31" }}>
+      <div className="steam-tabs">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => onShowTab(tab.id)}
-            style={{
-              padding: "8px 14px",
-              background: "transparent",
-              color: tab.id === active?.id ? "#fff" : "#8b929a",
-              border: "none",
-              borderBottom: tab.id === active?.id ? "2px solid #1a9fff" : "2px solid transparent",
-              cursor: "pointer",
-              fontSize: 13,
-            }}
+            className={`steam-tab ${tab.id === active?.id ? "steam-tab-active" : ""}`}
           >
             {tab.title}
           </button>

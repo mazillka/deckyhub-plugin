@@ -47,7 +47,10 @@
     </style>
   </head>
   <body>
-    <div id="deck-frame"><iframe src="/app.html" title="DeckyHub dev mock"></iframe></div>
+    <div id="deck-frame"><iframe id="deck-app" src="/app.html" title="DeckyHub dev mock"></iframe></div>
     <div id="deck-frame-label">1280×800 @ 215 PPI, scaled 2x (0.9) for comfortable inspection — matches a real device viewed at 200% zoom</div>
+    <script>
+      document.querySelector("#deck-app").src += window.location.search;
+    </script>
   </body>
 </html>

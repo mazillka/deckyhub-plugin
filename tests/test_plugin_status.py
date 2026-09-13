@@ -258,7 +258,16 @@ class PluginStatusTests(unittest.TestCase):
         plugin.download_queue = asyncio.Queue()
 
         with self.assertRaises(ValueError):
-            asyncio.run(plugin.download_asset({"name": "a.zip", "url": "http://example.com/a.zip"}))
+            asyncio.run(plugin.download_asset({"name": "a.zip", "url": "http://example.com/a.zip"}, "owner/repo"))
+
+    def test_download_asset_rejects_untrusted_https_url(self):
+        plugin = Plugin()
+        plugin.settings = {"downloadLocation": "plugins", "overwriteExisting": True, "repoSettings": {}}
+        plugin.downloads = {}
+        plugin.download_queue = asyncio.Queue()
+
+        with self.assertRaises(ValueError):
+            asyncio.run(plugin.download_asset({"name": "a.zip", "url": "https://example.com/a.zip"}, "owner/repo"))
 
     def test_download_asset_rejects_dotdot_filename(self):
         plugin = Plugin()
@@ -267,7 +276,7 @@ class PluginStatusTests(unittest.TestCase):
         plugin.download_queue = asyncio.Queue()
 
         with self.assertRaises(ValueError):
-            asyncio.run(plugin.download_asset({"name": "..", "url": "https://example.com/a"}))
+            asyncio.run(plugin.download_asset({"name": "..", "url": "https://github.com/owner/repo/releases/download/v1/a.zip"}, "owner/repo"))
 
     def test_download_asset_sanitizes_traversal_in_filename(self):
         with tempfile.TemporaryDirectory() as home:
@@ -278,7 +287,7 @@ class PluginStatusTests(unittest.TestCase):
             target_dir = Path(home) / "plugins"
 
             with patch.object(plugin, "_asset_download_dir", return_value=target_dir):
-                result = asyncio.run(plugin.download_asset({"name": "../../etc/passwd", "url": "https://example.com/a"}))
+                result = asyncio.run(plugin.download_asset({"name": "../../etc/passwd", "url": "https://github.com/owner/repo/releases/download/v1/a.zip"}, "owner/repo"))
 
             self.assertEqual(plugin.downloads[result["jobId"]]["path"], str(target_dir / "passwd"))
 
@@ -293,7 +302,7 @@ class PluginStatusTests(unittest.TestCase):
             (target_dir / "asset.zip").write_bytes(b"x")
 
             with patch.object(plugin, "_asset_download_dir", return_value=target_dir):
-                result = asyncio.run(plugin.download_asset({"name": "asset.zip", "url": "https://example.com/asset.zip"}))
+                result = asyncio.run(plugin.download_asset({"name": "asset.zip", "url": "https://github.com/owner/repo/releases/download/v1/asset.zip"}, "owner/repo"))
 
             self.assertEqual(plugin.downloads[result["jobId"]]["path"], str(target_dir / "asset (1).zip"))
 
@@ -303,7 +312,7 @@ class PluginStatusTests(unittest.TestCase):
             plugin.settings = {"downloadLocation": "plugins", "overwriteExisting": True, "repoSettings": {}}
             plugin.downloads = {}
             plugin.download_queue = asyncio.Queue()
-            asset = {"name": "asset.zip", "url": "https://example.com/asset.zip"}
+            asset = {"name": "asset.zip", "url": "https://github.com/owner/repo/releases/download/v1/asset.zip"}
 
             with patch.object(plugin, "_asset_download_dir", return_value=Path(home)):
                 first = asyncio.run(plugin.download_asset(asset, "owner/repo"))
@@ -370,8 +379,8 @@ class PluginStatusTests(unittest.TestCase):
                 result = asyncio.run(
                     plugin.queue_downloads(
                         [
-                            {"asset": {"name": "a.zip", "url": "https://example.com/a.zip"}, "repo": "owner/a"},
-                            {"asset": {"name": "b.zip", "url": "https://example.com/b.zip"}, "repo": "owner/b"},
+                            {"asset": {"name": "a.zip", "url": "https://github.com/owner/a/releases/download/v1/a.zip"}, "repo": "owner/a"},
+                            {"asset": {"name": "b.zip", "url": "https://github.com/owner/b/releases/download/v1/b.zip"}, "repo": "owner/b"},
                         ]
                     )
                 )

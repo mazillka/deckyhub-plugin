@@ -5,3 +5,6 @@ __pycache__/
 *.pyc
 *.part
 DeckyHub-*.zip
+devtools/decky-mock/playwright-report/
+devtools/decky-mock/test-results/
+devtools/decky-mock/*-current.png

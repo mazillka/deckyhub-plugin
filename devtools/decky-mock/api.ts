@@ -3,7 +3,7 @@
 // HTTP RPC endpoint, so backend logic is real even though the loader isn't.
 import type { ComponentType } from "react";
 
-const BRIDGE_URL = "http://127.0.0.1:8642";
+const BRIDGE_URL = new URLSearchParams(window.location.search).get("bridge") ?? "http://127.0.0.1:8642";
 
 async function call(route: string, ...args: unknown[]) {
   const response = await fetch(BRIDGE_URL, {
