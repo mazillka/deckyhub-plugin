@@ -58,8 +58,7 @@ export const ja: Record<MessageKey, string> = {
   "settings.downloadUpdate": "アップデートをダウンロード",
   "settings.downloadedTo": "{path} にダウンロードしました。Decky → Developer → Install Plugin from ZIP からインストールしてください。",
   "settings.downloadSettings": "ダウンロード設定",
-  "settings.whereZipsSaved": "リリースZIPの保存先。",
-  "settings.downloadFolder": "ダウンロードフォルダ",
+  "settings.whereZipsSaved": "すべてのリリースZIPは /home/deck/Downloads/deckyhub に保存されます。",
   "settings.verifySha256": "SHA256を検証",
   "settings.overwriteExisting": "既存のファイルを上書き",
   "settings.clearDownloads": "DeckyHub のダウンロードを消去",
@@ -94,6 +93,5 @@ export const ja: Record<MessageKey, string> = {
   "repos.releaseChannel": "リリースチャンネル",
   "repos.stable": "安定版",
   "repos.prerelease": "プレリリース",
-  "repos.useGlobalSetting": "全体設定を使用",
   "repos.assetFilter": "アセットフィルター",
 };

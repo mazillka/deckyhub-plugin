@@ -58,8 +58,7 @@ export const uk: Record<MessageKey, string> = {
   "settings.downloadUpdate": "Завантажити оновлення",
   "settings.downloadedTo": "Завантажено до {path}. Встановіть через Decky → Developer → Install Plugin from ZIP.",
   "settings.downloadSettings": "Налаштування завантажень",
-  "settings.whereZipsSaved": "Куди зберігаються ZIP-файли релізів.",
-  "settings.downloadFolder": "Папка завантажень",
+  "settings.whereZipsSaved": "Усі ZIP-файли релізів зберігаються в /home/deck/Downloads/deckyhub.",
   "settings.verifySha256": "Перевіряти SHA256",
   "settings.overwriteExisting": "Перезаписувати наявні файли",
   "settings.clearDownloads": "Очистити завантаження DeckyHub",
@@ -94,6 +93,5 @@ export const uk: Record<MessageKey, string> = {
   "repos.releaseChannel": "Канал релізів",
   "repos.stable": "Стабільний",
   "repos.prerelease": "Пре-реліз",
-  "repos.useGlobalSetting": "Використовувати загальне налаштування",
   "repos.assetFilter": "Фільтр файлів",
 };

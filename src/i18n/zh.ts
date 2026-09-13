@@ -58,8 +58,7 @@ export const zh: Record<MessageKey, string> = {
   "settings.downloadUpdate": "下载更新",
   "settings.downloadedTo": "已下载至 {path}。请通过 Decky → Developer → Install Plugin from ZIP 安装。",
   "settings.downloadSettings": "下载设置",
-  "settings.whereZipsSaved": "发行版 ZIP 文件的保存位置。",
-  "settings.downloadFolder": "下载文件夹",
+  "settings.whereZipsSaved": "所有发行版 ZIP 文件都保存到 /home/deck/Downloads/deckyhub。",
   "settings.verifySha256": "校验 SHA256",
   "settings.overwriteExisting": "覆盖已有文件",
   "settings.clearDownloads": "清空 DeckyHub 下载",
@@ -94,6 +93,5 @@ export const zh: Record<MessageKey, string> = {
   "repos.releaseChannel": "发布渠道",
   "repos.stable": "稳定版",
   "repos.prerelease": "预发布版",
-  "repos.useGlobalSetting": "使用全局设置",
   "repos.assetFilter": "资源过滤器",
 };

@@ -57,8 +57,7 @@ export const en = {
   "settings.downloadUpdate": "Download Update",
   "settings.downloadedTo": "Downloaded to {path}. Install it from Decky → Developer → Install Plugin from ZIP.",
   "settings.downloadSettings": "Download Settings",
-  "settings.whereZipsSaved": "Where release ZIPs are saved.",
-  "settings.downloadFolder": "Download Folder",
+  "settings.whereZipsSaved": "All release ZIPs are saved to /home/deck/Downloads/deckyhub.",
   "settings.verifySha256": "Verify SHA256",
   "settings.overwriteExisting": "Overwrite Existing",
   "settings.clearDownloads": "Clear DeckyHub Downloads",
@@ -93,7 +92,6 @@ export const en = {
   "repos.releaseChannel": "Release Channel",
   "repos.stable": "Stable",
   "repos.prerelease": "Pre-release",
-  "repos.useGlobalSetting": "Use global setting",
   "repos.assetFilter": "Asset Filter",
 };
 

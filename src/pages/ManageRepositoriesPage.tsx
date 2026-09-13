@@ -35,7 +35,7 @@ export function ManageRepositoriesPage() {
     refreshRepos();
   }, []);
 
-  const preference = (repo: string) => prefs[repo] || { channel: "stable", downloadLocation: "default", assetFilter: [] };
+  const preference = (repo: string) => prefs[repo] || { channel: "stable", assetFilter: [] };
 
   const search = async () => {
     setSearching(true);
@@ -213,18 +213,6 @@ export function ManageRepositoriesPage() {
                   ]}
                   selectedOption={value.channel}
                   onChange={({ data }) => update({ channel: data })}
-                />
-              </PanelSectionRow>
-              <PanelSectionRow>
-                <DropdownItem
-                  label={t("settings.downloadFolder")}
-                  rgOptions={[
-                    { label: t("repos.useGlobalSetting"), data: "default" },
-                    { label: "/home/deck/Downloads/deckyhub", data: "plugins" },
-                    { label: "/home/deck/Downloads", data: "downloads" },
-                  ]}
-                  selectedOption={value.downloadLocation}
-                  onChange={({ data }) => update({ downloadLocation: data })}
                 />
               </PanelSectionRow>
               <PanelSectionRow>

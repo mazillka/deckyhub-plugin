@@ -9,7 +9,7 @@ import { DownloadProgress, showDownloadComplete } from "../components/DownloadPr
 
 export function SettingsPage() {
   const t = useT();
-  const [settings, setSettings] = useState<Settings>({ verifySha256: true, overwriteExisting: true, downloadLocation: "plugins", updateChannel: "stable", language: "auto" });
+  const [settings, setSettings] = useState<Settings>({ verifySha256: true, overwriteExisting: true, updateChannel: "stable", language: "auto" });
   const [deckyHubInfo, setDeckyHubInfo] = useState<DeckyHubInfo>({ version: "unknown" });
   const [deckyHubRelease, setDeckyHubRelease] = useState<DeckyHubRelease>({});
   const [updateJob, setUpdateJob] = useState<{ id: string; state: Download } | null>(null);
@@ -147,17 +147,6 @@ export function SettingsPage() {
 
       <PanelSection title={t("settings.downloadSettings")}>
         <PanelSectionRow>{t("settings.whereZipsSaved")}</PanelSectionRow>
-        <PanelSectionRow>
-          <DropdownItem
-            label={t("settings.downloadFolder")}
-            rgOptions={[
-              { label: "/home/deck/Downloads/deckyhub (default)", data: "plugins" },
-              { label: "/home/deck/Downloads", data: "downloads" },
-            ]}
-            selectedOption={settings.downloadLocation}
-            onChange={({ data }) => update({ downloadLocation: data })}
-          />
-        </PanelSectionRow>
         <PanelSectionRow>
           <ToggleField label={t("settings.verifySha256")} checked={settings.verifySha256} onChange={(checked) => update({ verifySha256: checked })} />
         </PanelSectionRow>

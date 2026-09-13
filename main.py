@@ -24,7 +24,7 @@ DEFAULT_DOWNLOAD_DIR = "/home/deck/Downloads"
 PLUGIN_DOWNLOAD_DIR = f"{DEFAULT_DOWNLOAD_DIR}/deckyhub"
 DECKYHUB_REPO = "mazillka/deckyhub-plugin"
 DECKYHUB_RELEASE_PREFIX = f"https://github.com/{DECKYHUB_REPO}/releases/download/"
-DECKYHUB_VERSION = "0.4.22"
+DECKYHUB_VERSION = "0.4.23"
 REGISTRY_URL = f"https://raw.githubusercontent.com/{DECKYHUB_REPO}/main/registry/apps.json"
 REPOSITORY_NAME = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 SUPPORTED_LANGUAGES = {"auto", "en", "uk", "es", "de", "fr", "ja", "zh"}
@@ -46,14 +46,13 @@ class Plugin:
             return {
                 "verifySha256": bool(settings.get("verifySha256", True)),
                 "overwriteExisting": bool(settings.get("overwriteExisting", True)),
-                "downloadLocation": "downloads" if settings.get("downloadLocation") == "downloads" else "plugins",
                 "updateChannel": "prerelease" if settings.get("updateChannel") == "prerelease" else "stable",
                 "language": settings.get("language") if settings.get("language") in SUPPORTED_LANGUAGES else "auto",
                 "customRepos": [repo for repo in repos if isinstance(repo, str) and REPOSITORY_NAME.fullmatch(repo)],
                 "repoSettings": settings.get("repoSettings", {}) if isinstance(settings.get("repoSettings"), dict) else {},
             }
         except (AttributeError, OSError, json.JSONDecodeError):
-            return {"verifySha256": True, "overwriteExisting": True, "downloadLocation": "plugins", "updateChannel": "stable", "language": "auto", "customRepos": [], "repoSettings": {}}
+            return {"verifySha256": True, "overwriteExisting": True, "updateChannel": "stable", "language": "auto", "customRepos": [], "repoSettings": {}}
 
     def _load_registry(self) -> list[dict]:
         try:
@@ -144,7 +143,6 @@ class Plugin:
             raise ValueError("Repository must be owner/name")
         item = {
             "channel": "prerelease" if values.get("channel") == "prerelease" else "stable",
-            "downloadLocation": values.get("downloadLocation") if values.get("downloadLocation") in ("plugins", "downloads") else "default",
             "assetFilter": [value for value in values.get("assetFilter", []) if isinstance(value, str) and value.strip()][:10],
         }
         self.settings["repoSettings"][repo] = item
@@ -171,7 +169,6 @@ class Plugin:
         self.settings = {
             "verifySha256": bool(settings.get("verifySha256", True)),
             "overwriteExisting": bool(settings.get("overwriteExisting", True)),
-            "downloadLocation": "downloads" if settings.get("downloadLocation") == "downloads" else "plugins",
             "updateChannel": "prerelease" if settings.get("updateChannel") == "prerelease" else "stable",
             "language": settings.get("language") if settings.get("language") in SUPPORTED_LANGUAGES else "auto",
             "customRepos": getattr(self, "settings", {}).get("customRepos", []),
@@ -180,9 +177,8 @@ class Plugin:
         self._save_settings()
         return self.settings
 
-    def _asset_download_dir(self, repo: str | None = None) -> Path:
-        location = self.settings.get("repoSettings", {}).get(repo or "", {}).get("downloadLocation", self.settings.get("downloadLocation"))
-        return Path(DEFAULT_DOWNLOAD_DIR if location == "downloads" else PLUGIN_DOWNLOAD_DIR)
+    def _asset_download_dir(self) -> Path:
+        return Path(PLUGIN_DOWNLOAD_DIR)
 
     async def clear_downloads(self):
         directory = Path(PLUGIN_DOWNLOAD_DIR)
@@ -265,7 +261,7 @@ class Plugin:
         name = Path(asset.get("name", "download")).name
         if not name or name in (".", ".."):
             raise ValueError("Invalid asset filename")
-        target_dir = self._asset_download_dir(repo)
+        target_dir = self._asset_download_dir()
         target_dir.mkdir(parents=True, exist_ok=True)
         target = target_dir / name
         if target.exists() and not self.settings.get("overwriteExisting"):

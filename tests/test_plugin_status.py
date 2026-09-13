@@ -45,10 +45,8 @@ class PluginStatusTests(unittest.TestCase):
             settings = asyncio.run(plugin.save_settings({}))
 
             self.assertTrue(settings["overwriteExisting"])
-            self.assertEqual(settings["downloadLocation"], "plugins")
             self.assertEqual(plugin._asset_download_dir(), Path(main.PLUGIN_DOWNLOAD_DIR))
-            self.assertEqual(asyncio.run(plugin.save_settings({"downloadLocation": "downloads"}))["downloadLocation"], "downloads")
-            self.assertEqual(plugin._asset_download_dir(), Path(main.DEFAULT_DOWNLOAD_DIR))
+            self.assertNotIn("downloadLocation", asyncio.run(plugin.save_settings({"downloadLocation": "downloads"})))
 
     def test_clear_downloads_only_removes_deckyhub_contents(self):
         with tempfile.TemporaryDirectory() as home:
@@ -230,7 +228,7 @@ class PluginStatusTests(unittest.TestCase):
             )
 
             self.assertEqual(result["channel"], "prerelease")
-            self.assertEqual(result["downloadLocation"], "downloads")
+            self.assertNotIn("downloadLocation", result)
             self.assertEqual(len(result["assetFilter"]), 10)
             self.assertEqual(plugin.settings["repoSettings"]["owner/repo"], result)
 
@@ -339,12 +337,11 @@ class PluginStatusTests(unittest.TestCase):
             self.assertEqual(second["jobId"], first["jobId"])
             self.assertEqual(len(plugin.downloads), 1)
 
-    def test_repo_download_location_overrides_global_setting(self):
+    def test_legacy_download_locations_are_ignored(self):
         plugin = Plugin()
         plugin.settings = {"downloadLocation": "plugins", "repoSettings": {"owner/repo": {"downloadLocation": "downloads"}}}
 
-        self.assertEqual(plugin._asset_download_dir("owner/repo"), Path(main.DEFAULT_DOWNLOAD_DIR))
-        self.assertEqual(plugin._asset_download_dir("owner/other"), Path(main.PLUGIN_DOWNLOAD_DIR))
+        self.assertEqual(plugin._asset_download_dir(), Path(main.PLUGIN_DOWNLOAD_DIR))
 
     def test_download_marks_error_on_checksum_mismatch(self):
         with tempfile.TemporaryDirectory() as home:

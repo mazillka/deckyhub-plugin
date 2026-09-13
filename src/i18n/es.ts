@@ -58,8 +58,7 @@ export const es: Record<MessageKey, string> = {
   "settings.downloadUpdate": "Descargar actualización",
   "settings.downloadedTo": "Descargado en {path}. Instálalo desde Decky → Developer → Install Plugin from ZIP.",
   "settings.downloadSettings": "Ajustes de descarga",
-  "settings.whereZipsSaved": "Dónde se guardan los archivos ZIP de las versiones.",
-  "settings.downloadFolder": "Carpeta de descargas",
+  "settings.whereZipsSaved": "Todos los ZIP de versiones se guardan en /home/deck/Downloads/deckyhub.",
   "settings.verifySha256": "Verificar SHA256",
   "settings.overwriteExisting": "Sobrescribir archivos existentes",
   "settings.clearDownloads": "Limpiar descargas de DeckyHub",
@@ -94,6 +93,5 @@ export const es: Record<MessageKey, string> = {
   "repos.releaseChannel": "Canal de versiones",
   "repos.stable": "Estable",
   "repos.prerelease": "Preliminar",
-  "repos.useGlobalSetting": "Usar ajuste global",
   "repos.assetFilter": "Filtro de archivos",
 };

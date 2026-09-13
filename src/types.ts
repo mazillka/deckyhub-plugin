@@ -21,7 +21,7 @@ export type App = {
 
 export type UpdateChannel = "stable" | "prerelease";
 
-export type Settings = { verifySha256: boolean; overwriteExisting: boolean; downloadLocation: "plugins" | "downloads"; updateChannel: UpdateChannel; language: string };
+export type Settings = { verifySha256: boolean; overwriteExisting: boolean; updateChannel: UpdateChannel; language: string };
 
 export type Download = { state: string; filename?: string; received?: number; total?: number; path?: string; error?: string };
 
@@ -35,6 +35,6 @@ export type SearchRepo = { full_name: string; description?: string; stargazers_c
 
 export type ManagedRepo = { repo: string };
 
-export type RepoPreference = { channel: "stable" | "prerelease"; downloadLocation: "default" | "plugins" | "downloads"; assetFilter: string[] };
+export type RepoPreference = { channel: "stable" | "prerelease"; assetFilter: string[] };
 
 export type Job = { id: string; state: Download } | null;

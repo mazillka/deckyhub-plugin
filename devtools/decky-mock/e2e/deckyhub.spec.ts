@@ -113,9 +113,9 @@ test("DeckyHub hides a matching update package", async ({ page }) => {
   await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases/latest", (route) =>
     route.fulfill({
       json: {
-        tag_name: "v0.4.22",
-        html_url: "https://github.com/mazillka/deckyhub-plugin/releases/tag/v0.4.22",
-        assets: [{ name: "DeckyHub-v0.4.22.zip", browser_download_url: "https://github.com/mazillka/deckyhub-plugin/releases/download/v0.4.22/DeckyHub-v0.4.22.zip", digest: `sha256:${"a".repeat(64)}` }],
+        tag_name: "v0.4.23",
+        html_url: "https://github.com/mazillka/deckyhub-plugin/releases/tag/v0.4.23",
+        assets: [{ name: "DeckyHub-v0.4.23.zip", browser_download_url: "https://github.com/mazillka/deckyhub-plugin/releases/download/v0.4.23/DeckyHub-v0.4.23.zip", digest: `sha256:${"a".repeat(64)}` }],
       },
     })
   );
