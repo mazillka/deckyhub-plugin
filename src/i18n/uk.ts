@@ -53,7 +53,7 @@ export const uk: Record<MessageKey, string> = {
   "settings.stableReleases": "Стабільні релізи",
   "settings.preReleases": "Пре-релізи",
   "settings.checkUpdate": "Перевірити оновлення",
-  "settings.noUpdateAvailable": "Оновлень немає.",
+  "settings.noUpdateAvailable": "DeckyHub {version} уже оновлено до останньої версії.",
   "settings.updateAvailable": "Доступне оновлення DeckyHub {version}.",
   "settings.downloadUpdate": "Завантажити оновлення",
   "settings.downloadedTo": "Завантажено до {path}. Встановіть через Decky → Developer → Install Plugin from ZIP.",

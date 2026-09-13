@@ -1,39 +1,18 @@
 import { toaster } from "@decky/api";
-import { DialogButtonPrimary as Button, ConfirmModal, DropdownItem, Navigation, PanelSection, PanelSectionRow, showModal, ToggleField } from "@decky/ui";
+import { DialogButtonPrimary as Button, ConfirmModal, DropdownItem, PanelSection, PanelSectionRow, showModal, ToggleField } from "@decky/ui";
 import { useEffect, useState } from "react";
-import { cancelDownload, clearDownloads, getDeckyHubInfo, getDownload, getSettings, installDeckyHubUpdate, saveSettings } from "../api";
+import { clearDownloads, getSettings, saveSettings } from "../api";
 import { LOCALE_CHANGED, LOCALES, useT } from "../i18n";
-import type { Asset, DeckyHubInfo, DeckyHubRelease, Download, Settings } from "../types";
-import { compactButtonStyle, latestDeckyHubRelease, sectionDividerStyle } from "../utils";
-import { DownloadProgress, showDownloadComplete } from "../components/DownloadProgress";
+import type { Settings } from "../types";
+import { compactButtonStyle, sectionDividerStyle } from "../utils";
 
 export function SettingsPage() {
   const t = useT();
   const [settings, setSettings] = useState<Settings>({ verifySha256: true, overwriteExisting: true, updateChannel: "stable", language: "auto" });
-  const [deckyHubInfo, setDeckyHubInfo] = useState<DeckyHubInfo>({ version: "unknown" });
-  const [deckyHubRelease, setDeckyHubRelease] = useState<DeckyHubRelease>({});
-  const [updateJob, setUpdateJob] = useState<{ id: string; state: Download } | null>(null);
 
   useEffect(() => {
     void getSettings().then(setSettings);
-    void getDeckyHubInfo().then(setDeckyHubInfo);
   }, []);
-
-  useEffect(() => {
-    if (!updateJob || !["queued", "downloading"].includes(updateJob.state.state)) return;
-    const timer = window.setInterval(() => void getDownload(updateJob.id).then((state) => setUpdateJob({ id: updateJob.id, state })), 500);
-    return () => window.clearInterval(timer);
-  }, [updateJob]);
-
-  useEffect(() => {
-    if (updateJob?.state.state !== "complete") return;
-    showDownloadComplete(t, t("settings.deckyhubUpdate"), updateJob.state.path);
-  }, [updateJob?.id, updateJob?.state.state]);
-
-  const installUpdate = async (asset: Asset) => {
-    const result = await installDeckyHubUpdate(asset);
-    if (result.jobId) setUpdateJob({ id: result.jobId, state: { state: "queued", filename: asset.name, total: asset.size } });
-  };
 
   const update = (next: Partial<Settings>) => {
     const merged = { ...settings, ...next };
@@ -41,7 +20,6 @@ export function SettingsPage() {
     void saveSettings(merged).then((saved) => {
       setSettings(saved);
       if ("language" in next) window.dispatchEvent(new Event(LOCALE_CHANGED));
-      toaster.toast({ title: "DeckyHub", body: t("settings.saveSettings") });
     });
   };
 
@@ -56,40 +34,9 @@ export function SettingsPage() {
       />
     );
 
-  const upToDate = Boolean(
-    deckyHubRelease.version &&
-      deckyHubInfo.version !== "unknown" &&
-      deckyHubRelease.version.trim().replace(/^v/i, "") === deckyHubInfo.version.trim().replace(/^v/i, "")
-  );
-
-  const checkForUpdate = () =>
-    void latestDeckyHubRelease(settings.updateChannel).then((release) => {
-      setDeckyHubRelease(release);
-      if (release.version && !release.error && deckyHubInfo.version !== "unknown" && release.version.trim().replace(/^v/i, "") !== deckyHubInfo.version.trim().replace(/^v/i, "")) {
-        toaster.toast({ title: "DeckyHub", body: t("settings.updateAvailable", { version: release.version }) });
-      }
-    });
-
   return (
     <>
       <PanelSection title={t("settings.deckyhubUpdate")}>
-        <PanelSectionRow>
-          {t("settings.installedVersion", { version: deckyHubInfo.version })}
-          {deckyHubRelease.version && ` ${t("settings.latestVersion", { version: deckyHubRelease.version })}`}
-          {deckyHubRelease.error && (
-            <>
-              <br />
-              <small>{deckyHubRelease.error}</small>
-            </>
-          )}
-          {upToDate && (
-            <>
-              <br />
-              <small>{t("settings.noUpdateAvailable")}</small>
-            </>
-          )}
-        </PanelSectionRow>
-        <div aria-hidden style={sectionDividerStyle} />
         <PanelSectionRow>
           <DropdownItem
             label={t("settings.updateChannel")}
@@ -101,49 +48,6 @@ export function SettingsPage() {
             onChange={({ data }) => update({ updateChannel: data })}
           />
         </PanelSectionRow>
-        <PanelSectionRow>
-          <Button style={compactButtonStyle} onClick={checkForUpdate}>
-            {t("settings.checkUpdate")}
-          </Button>
-        </PanelSectionRow>
-        {deckyHubRelease.asset && !upToDate && (
-          <PanelSectionRow>
-            <Button style={compactButtonStyle} onClick={() => void installUpdate(deckyHubRelease.asset!)}>
-              {t("settings.downloadUpdate")}
-            </Button>
-          </PanelSectionRow>
-        )}
-        {updateJob && (
-          <PanelSectionRow>
-            {updateJob.state.filename}: {updateJob.state.state}{" "}
-            {updateJob.state.total ? `(${Math.round((100 * (updateJob.state.received ?? 0)) / updateJob.state.total)}%)` : ""}
-            <DownloadProgress download={updateJob.state} />
-            {updateJob.state.state === "complete" && (
-              <>
-                <br />
-                <small>{t("settings.downloadedTo", { path: updateJob.state.path || t("dl.selectedFolder") })}</small>
-              </>
-            )}
-            {updateJob.state.error && (
-              <>
-                <br />
-                <small>{updateJob.state.error}</small>
-              </>
-            )}
-            {["queued", "downloading"].includes(updateJob.state.state) && (
-              <Button style={compactButtonStyle} onClick={() => void cancelDownload(updateJob.id)}>
-                {t("content.cancel")}
-              </Button>
-            )}
-          </PanelSectionRow>
-        )}
-        {deckyHubRelease.url && (
-          <PanelSectionRow>
-            <Button style={compactButtonStyle} onClick={() => Navigation.NavigateToExternalWeb(deckyHubRelease.url!)}>
-              {t("appcard.releasePage")}
-            </Button>
-          </PanelSectionRow>
-        )}
       </PanelSection>
 
       <div aria-hidden style={sectionDividerStyle} />

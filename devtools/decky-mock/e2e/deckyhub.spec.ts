@@ -129,25 +129,24 @@ test("Clearing DeckyHub downloads requires confirmation", async ({ page }) => {
   await app.getByRole("button", { name: "Cancel", exact: true }).click();
 });
 
-test("DeckyHub hides a matching update package", async ({ page }) => {
+test("DeckyHub automatically hides a matching update package", async ({ page }) => {
   await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases/latest", (route) =>
     route.fulfill({
       json: {
-        tag_name: "v0.4.27",
-        html_url: "https://github.com/mazillka/deckyhub-plugin/releases/tag/v0.4.27",
-        assets: [{ name: "DeckyHub-v0.4.27.zip", browser_download_url: "https://github.com/mazillka/deckyhub-plugin/releases/download/v0.4.27/DeckyHub-v0.4.27.zip", digest: `sha256:${"a".repeat(64)}` }],
+        tag_name: "v0.4.28",
+        html_url: "https://github.com/mazillka/deckyhub-plugin/releases/tag/v0.4.28",
+        assets: [{ name: "DeckyHub-v0.4.28.zip", browser_download_url: "https://github.com/mazillka/deckyhub-plugin/releases/download/v0.4.28/DeckyHub-v0.4.28.zip", digest: `sha256:${"a".repeat(64)}` }],
       },
     })
   );
-  await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
+  await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await app.getByRole("button", { name: "Check Update", exact: true }).click();
-
-  await expect(app.getByText("No update available.")).toBeVisible();
+  await expect(app.getByText("DeckyHub 0.4.28 is already up to date.")).toBeVisible();
   await expect(app.getByRole("button", { name: "Download Update", exact: true })).toBeHidden();
+  await expect(app.getByRole("button", { name: "Release Page", exact: true })).toBeHidden();
 });
 
-test("DeckyHub notifies about an available update", async ({ page }) => {
+test("DeckyHub automatically notifies about an available update", async ({ page }) => {
   await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases/latest", (route) =>
     route.fulfill({
       json: {
@@ -157,11 +156,10 @@ test("DeckyHub notifies about an available update", async ({ page }) => {
       },
     })
   );
-  await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
+  await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await app.getByRole("button", { name: "Check Update", exact: true }).click();
-
   await expect(app.getByText("DeckyHub: DeckyHub update v9.9.9 is available.")).toBeVisible();
+  await expect(app.getByRole("button", { name: "Release Page", exact: true })).toBeVisible();
 });
 
 test("Repository pagination stays on one row", async ({ page }) => {

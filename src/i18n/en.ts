@@ -52,7 +52,7 @@ export const en = {
   "settings.stableReleases": "Stable releases",
   "settings.preReleases": "Pre-releases",
   "settings.checkUpdate": "Check Update",
-  "settings.noUpdateAvailable": "No update available.",
+  "settings.noUpdateAvailable": "DeckyHub {version} is already up to date.",
   "settings.updateAvailable": "DeckyHub update {version} is available.",
   "settings.downloadUpdate": "Download Update",
   "settings.downloadedTo": "Downloaded to {path}. Install it from Decky → Developer → Install Plugin from ZIP.",

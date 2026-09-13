@@ -9,6 +9,7 @@ import { compactButtonStyle, hydrate, notifyUpdates, sectionDividerStyle } from 
 import { AppCard } from "../components/AppCard";
 import { DownloadProgress, showDownloadComplete } from "../components/DownloadProgress";
 import { FocusableGrid } from "../components/FocusableGrid";
+import { DeckyHubUpdate } from "../components/DeckyHubUpdate";
 
 export function Content({ fullPage }: { fullPage?: View }) {
   const t = useT();
@@ -221,6 +222,8 @@ export function Content({ fullPage }: { fullPage?: View }) {
           </Button>
         </PanelSectionRow>
       </PanelSection>
+      <div aria-hidden style={sectionDividerStyle} />
+      <DeckyHubUpdate />
     </>
   );
 

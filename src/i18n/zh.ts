@@ -53,7 +53,7 @@ export const zh: Record<MessageKey, string> = {
   "settings.stableReleases": "稳定版",
   "settings.preReleases": "预发布版",
   "settings.checkUpdate": "检查更新",
-  "settings.noUpdateAvailable": "没有可用更新。",
+  "settings.noUpdateAvailable": "DeckyHub {version} 已是最新版本。",
   "settings.updateAvailable": "DeckyHub 更新 {version} 已可用。",
   "settings.downloadUpdate": "下载更新",
   "settings.downloadedTo": "已下载至 {path}。请通过 Decky → Developer → Install Plugin from ZIP 安装。",
