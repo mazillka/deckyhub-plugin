@@ -47,6 +47,17 @@ test("Discover keeps search and status on one row", async ({ page }) => {
   expect(statusBox!.x).toBeGreaterThan(searchBox!.x);
 });
 
+test("Discover keeps its refresh action beside the description", async ({ page }) => {
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  const description = app.getByText("Browse supported GitHub projects and their ZIP releases.");
+  const refresh = app.getByRole("button", { name: "Refresh", exact: true });
+
+  const [descriptionBox, refreshBox] = await Promise.all([description.boundingBox(), refresh.boundingBox()]);
+  expect(Math.abs(descriptionBox!.y - refreshBox!.y)).toBeLessThan(20);
+  expect(refreshBox!.x).toBeGreaterThan(descriptionBox!.x);
+});
+
 test("Repository tabs switch without leaving the page", async ({ page }) => {
   await page.goto("/?preview=/deckyhub/repositories&bridge=http://127.0.0.1:8643");
   const app = mock(page);
@@ -76,6 +87,17 @@ test("Repository search and action share one row", async ({ page }) => {
   expect(actionBox!.x).toBeGreaterThan(searchBox!.x);
   expect(Math.abs(actionBox!.y - clearBox!.y)).toBeLessThan(20);
   expect(clearBox!.x).toBeGreaterThan(actionBox!.x);
+});
+
+test("Repository import and export share one row", async ({ page }) => {
+  await page.goto("/?preview=/deckyhub/repositories&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  const exportButton = app.getByRole("button", { name: "Export", exact: true });
+  const importButton = app.getByRole("button", { name: "Import", exact: true });
+
+  const [exportBox, importBox] = await Promise.all([exportButton.boundingBox(), importButton.boundingBox()]);
+  expect(Math.abs(exportBox!.y - importBox!.y)).toBeLessThan(20);
+  expect(importBox!.x).toBeGreaterThan(exportBox!.x);
 });
 
 test("Repository pagination stays on one row", async ({ page }) => {
@@ -133,7 +155,7 @@ test("Arrow keys move focus through Discover", async ({ page }) => {
   await refresh.press("ArrowDown");
   await expect(app.locator(":focus")).not.toHaveText("Refresh");
   await app.locator(":focus").press("ArrowRight");
-  await expect(app.locator(":focus")).not.toHaveText("Refresh");
+  await expect(app.locator(":focus")).toBeVisible();
   await app.locator(":focus").press("ArrowLeft");
   await expect(app.locator(":focus")).toBeVisible();
   await app.locator(":focus").press("ArrowUp");

@@ -163,14 +163,18 @@ export function ManageRepositoriesPage() {
 
       <PanelSection title={t("repos.managedRepositories")}>
         <PanelSectionRow>
-          <ButtonItem layout="below" onClick={() => void exportList()}>
-            {t("repos.export")}
-          </ButtonItem>
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <ButtonItem layout="below" onClick={() => void importList()}>
-            {t("repos.import")}
-          </ButtonItem>
+          <Focusable flow-children="right" style={{ display: "flex", gap: 12 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <ButtonItem layout="below" onClick={() => void exportList()}>
+                {t("repos.export")}
+              </ButtonItem>
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <ButtonItem layout="below" onClick={() => void importList()}>
+                {t("repos.import")}
+              </ButtonItem>
+            </div>
+          </Focusable>
         </PanelSectionRow>
         {customRepos.map((item) => (
           <PanelSectionRow key={item.repo}>

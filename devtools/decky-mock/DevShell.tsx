@@ -41,16 +41,20 @@ export default function DevShell() {
       const center = (rect: DOMRect, axis: "x" | "y") => axis === "x" ? rect.left + rect.width / 2 : rect.top + rect.height / 2;
       const axis = direction === "Left" || direction === "Right" ? "x" : "y";
       const sign = direction === "Left" || direction === "Up" ? -1 : 1;
-      const next = targets
+      const candidates = targets
         .filter((target) => target !== current)
         .map((target) => {
           const rect = target.getBoundingClientRect();
           const primary = (center(rect, axis) - center(origin, axis)) * sign;
           const secondary = Math.abs(center(rect, axis === "x" ? "y" : "x") - center(origin, axis === "x" ? "y" : "x"));
-          return { target, primary, secondary };
+          const overlap = axis === "x"
+            ? Math.min(rect.bottom, origin.bottom) > Math.max(rect.top, origin.top)
+            : Math.min(rect.right, origin.right) > Math.max(rect.left, origin.left);
+          return { target, primary, secondary, overlap };
         })
-        .filter(({ primary }) => primary > 1)
-        .sort((a, b) => a.primary + a.secondary * 4 - (b.primary + b.secondary * 4))[0]?.target;
+        .filter(({ primary }) => primary > 1);
+      const next = (candidates.some(({ overlap }) => overlap) ? candidates.filter(({ overlap }) => overlap) : candidates)
+        .sort((a, b) => a.primary - b.primary || a.secondary - b.secondary)[0]?.target;
       if (next) {
         next.focus();
         return true;

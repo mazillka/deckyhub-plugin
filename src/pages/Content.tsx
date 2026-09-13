@@ -127,11 +127,15 @@ export function Content({ fullPage }: { fullPage?: View }) {
       {!loading && !loadError && (
         <>
           <PanelSection title={info.title}>
-            <PanelSectionRow>{info.description}</PanelSectionRow>
             <PanelSectionRow>
-              <ButtonItem layout="below" onClick={() => void load(true)}>
-                <FaSync /> {t("content.refresh")}
-              </ButtonItem>
+              <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>{info.description}</div>
+                <div style={{ flex: "0 0 180px" }}>
+                  <ButtonItem layout="below" onClick={() => void load(true)}>
+                    <FaSync /> {t("content.refresh")}
+                  </ButtonItem>
+                </div>
+              </Focusable>
             </PanelSectionRow>
             {view === "updates" && updates.length > 0 && (
               <PanelSectionRow>
