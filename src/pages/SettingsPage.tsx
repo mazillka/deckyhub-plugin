@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { cancelDownload, clearDownloads, getDeckyHubInfo, getDownload, getSettings, installDeckyHubUpdate, saveSettings } from "../api";
 import { LOCALE_CHANGED, LOCALES, useT } from "../i18n";
 import type { Asset, DeckyHubInfo, DeckyHubRelease, Download, Settings } from "../types";
-import { compactButtonStyle, latestDeckyHubRelease } from "../utils";
+import { compactButtonStyle, latestDeckyHubRelease, sectionDividerStyle } from "../utils";
 import { DownloadProgress, showDownloadComplete } from "../components/DownloadProgress";
 
 export function SettingsPage() {
@@ -144,6 +144,8 @@ export function SettingsPage() {
           </PanelSectionRow>
         )}
       </PanelSection>
+
+      <div aria-hidden style={sectionDividerStyle} />
 
       <PanelSection title={t("settings.downloadSettings")}>
         <PanelSectionRow>{t("settings.whereZipsSaved")}</PanelSectionRow>

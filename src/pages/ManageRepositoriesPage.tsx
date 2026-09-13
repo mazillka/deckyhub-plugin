@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { addCustomRepo, exportCustomRepos, getApps, getCustomRepos, getSettings, importCustomRepos, REGISTRY_UPDATED, removeCustomRepo, saveRepoSettings } from "../api";
 import { useT } from "../i18n";
 import type { App, ManagedRepo, RepoPreference, SearchRepo, Settings } from "../types";
-import { compactButtonStyle } from "../utils";
+import { compactButtonStyle, sectionDividerStyle } from "../utils";
 
 const RESULTS_PER_PAGE = 5;
 
@@ -142,6 +142,7 @@ export function ManageRepositoriesPage() {
           </PanelSectionRow>
         )}
       </PanelSection>
+      <div aria-hidden style={sectionDividerStyle} />
 
       <FocusableGrid items={results.slice(page * RESULTS_PER_PAGE, page * RESULTS_PER_PAGE + RESULTS_PER_PAGE)} columns={2} keyFor={(repo) => repo.full_name}>
         {(repo) => {
@@ -162,6 +163,8 @@ export function ManageRepositoriesPage() {
           );
         }}
       </FocusableGrid>
+
+      <div aria-hidden style={sectionDividerStyle} />
 
       <PanelSection title={t("repos.managedRepositories")}>
         <PanelSectionRow>

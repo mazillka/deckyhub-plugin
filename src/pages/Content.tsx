@@ -5,7 +5,7 @@ import { FaSync } from "react-icons/fa";
 import { cancelDownload, downloadAsset, getApps, getDownload, getSettings, queueDownloads, REGISTRY_UPDATED } from "../api";
 import { useT } from "../i18n";
 import type { App, Asset, Download, RepoPreference, Settings, View } from "../types";
-import { compactButtonStyle, hydrate, notifyUpdates } from "../utils";
+import { compactButtonStyle, hydrate, notifyUpdates, sectionDividerStyle } from "../utils";
 import { AppCard } from "../components/AppCard";
 import { DownloadProgress, showDownloadComplete } from "../components/DownloadProgress";
 import { FocusableGrid } from "../components/FocusableGrid";
@@ -177,6 +177,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
               </PanelSectionRow>
             )}
           </PanelSection>
+          <div aria-hidden style={sectionDividerStyle} />
           <FocusableGrid
             items={visibleApps}
             columns={2}

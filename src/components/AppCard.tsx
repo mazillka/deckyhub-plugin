@@ -2,7 +2,7 @@ import { DialogButtonPrimary as Button, Navigation, PanelSection, PanelSectionRo
 import { FaDownload } from "react-icons/fa";
 import { useT } from "../i18n";
 import type { App, Asset, Download } from "../types";
-import { compactButtonStyle, readableBytes, statusKey, statusColor } from "../utils";
+import { compactButtonStyle, readableBytes, sectionDividerStyle, statusKey, statusColor } from "../utils";
 import { DownloadProgress } from "./DownloadProgress";
 
 export function AppCard({
@@ -35,6 +35,7 @@ export function AppCard({
           )}
         </div>
       </PanelSectionRow>
+      <div aria-hidden style={sectionDividerStyle} />
       {active && (
         <PanelSectionRow>
           <div>
