@@ -100,6 +100,15 @@ test("Repository import and export share one row", async ({ page }) => {
   expect(importBox!.x).toBeGreaterThan(exportBox!.x);
 });
 
+test("Clearing DeckyHub downloads requires confirmation", async ({ page }) => {
+  await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  await app.getByRole("button", { name: "Clear DeckyHub Downloads", exact: true }).click();
+
+  await expect(app.getByText("Permanently remove all files in /home/deck/Downloads/deckyhub?")).toBeVisible();
+  await app.getByRole("button", { name: "Cancel", exact: true }).click();
+});
+
 test("Repository pagination stays on one row", async ({ page }) => {
   await page.route("https://api.github.com/search/repositories**", (route) =>
     route.fulfill({

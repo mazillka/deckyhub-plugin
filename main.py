@@ -21,7 +21,7 @@ if PLUGIN_DIR not in sys.path:
 from backend.registry import load_registry, parse_registry
 
 DEFAULT_DOWNLOAD_DIR = "/home/deck/Downloads"
-PLUGIN_DOWNLOAD_DIR = f"{DEFAULT_DOWNLOAD_DIR}/plugins"
+PLUGIN_DOWNLOAD_DIR = f"{DEFAULT_DOWNLOAD_DIR}/deckyhub"
 DECKYHUB_REPO = "mazillka/deckyhub-plugin"
 DECKYHUB_RELEASE_PREFIX = f"https://github.com/{DECKYHUB_REPO}/releases/download/"
 DECKYHUB_VERSION = "0.4.13"
@@ -183,6 +183,23 @@ class Plugin:
     def _asset_download_dir(self, repo: str | None = None) -> Path:
         location = self.settings.get("repoSettings", {}).get(repo or "", {}).get("downloadLocation", self.settings.get("downloadLocation"))
         return Path(DEFAULT_DOWNLOAD_DIR if location == "downloads" else PLUGIN_DOWNLOAD_DIR)
+
+    async def clear_downloads(self):
+        directory = Path(PLUGIN_DOWNLOAD_DIR)
+
+        def clear():
+            if not directory.is_dir():
+                return 0
+            removed = 0
+            for entry in directory.iterdir():
+                if entry.is_dir() and not entry.is_symlink():
+                    shutil.rmtree(entry)
+                else:
+                    entry.unlink()
+                removed += 1
+            return removed
+
+        return {"removed": await asyncio.to_thread(clear)}
 
     async def add_custom_repo(self, repo: str):
         repo = repo.strip()

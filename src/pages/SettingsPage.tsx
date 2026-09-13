@@ -1,7 +1,7 @@
 import { toaster } from "@decky/api";
-import { ButtonItem, DropdownItem, Navigation, PanelSection, PanelSectionRow, ToggleField } from "@decky/ui";
+import { ButtonItem, ConfirmModal, DropdownItem, Navigation, PanelSection, PanelSectionRow, showModal, ToggleField } from "@decky/ui";
 import { useEffect, useState } from "react";
-import { cancelDownload, getDeckyHubInfo, getDownload, getSettings, installDeckyHubUpdate, saveSettings } from "../api";
+import { cancelDownload, clearDownloads, getDeckyHubInfo, getDownload, getSettings, installDeckyHubUpdate, saveSettings } from "../api";
 import { LOCALE_CHANGED, LOCALES, useT } from "../i18n";
 import type { Asset, DeckyHubInfo, DeckyHubRelease, Download, Settings } from "../types";
 import { latestDeckyHubRelease } from "../utils";
@@ -44,6 +44,17 @@ export function SettingsPage() {
       toaster.toast({ title: "DeckyHub", body: t("settings.saveSettings") });
     });
   };
+
+  const confirmClearDownloads = () =>
+    showModal(
+      <ConfirmModal
+        strTitle={t("settings.clearDownloadsTitle")}
+        strDescription={t("settings.clearDownloadsDescription")}
+        strOKButtonText={t("settings.clearDownloads")}
+        bDestructiveWarning
+        onOK={() => void clearDownloads().then(({ removed }) => toaster.toast({ title: "DeckyHub", body: t("settings.downloadsCleared", { count: removed }) }))}
+      />
+    );
 
   return (
     <>
@@ -120,7 +131,7 @@ export function SettingsPage() {
           <DropdownItem
             label={t("settings.downloadFolder")}
             rgOptions={[
-              { label: "/home/deck/Downloads/plugins (default)", data: "plugins" },
+              { label: "/home/deck/Downloads/deckyhub (default)", data: "plugins" },
               { label: "/home/deck/Downloads", data: "downloads" },
             ]}
             selectedOption={settings.downloadLocation}
@@ -132,6 +143,11 @@ export function SettingsPage() {
         </PanelSectionRow>
         <PanelSectionRow>
           <ToggleField label={t("settings.overwriteExisting")} checked={settings.overwriteExisting} onChange={(checked) => update({ overwriteExisting: checked })} />
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <ButtonItem layout="below" onClick={confirmClearDownloads}>
+            {t("settings.clearDownloads")}
+          </ButtonItem>
         </PanelSectionRow>
         <PanelSectionRow>
           <DropdownItem

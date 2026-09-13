@@ -40,6 +40,24 @@ export function ButtonItem({
   );
 }
 
+export function Button({
+  onClick,
+  disabled,
+  children,
+  style,
+}: {
+  onClick?: () => void;
+  disabled?: boolean;
+  children?: ReactNode;
+  style?: CSSProperties;
+}) {
+  return (
+    <button onClick={onClick} disabled={disabled} className="steam-button" style={style}>
+      {children}
+    </button>
+  );
+}
+
 export function DropdownItem({
   label,
   rgOptions,

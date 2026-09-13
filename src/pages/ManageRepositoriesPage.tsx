@@ -1,5 +1,5 @@
 import { FileSelectionType, fetchNoCors, openFilePicker, toaster } from "@decky/api";
-import { ButtonItem, ConfirmModal, DropdownItem, Focusable, PanelSection, PanelSectionRow, showModal, Tabs, TextField } from "@decky/ui";
+import { Button, ButtonItem, ConfirmModal, DropdownItem, Focusable, PanelSection, PanelSectionRow, showModal, Tabs, TextField } from "@decky/ui";
 import { FocusableGrid } from "../components/FocusableGrid";
 import { useEffect, useState } from "react";
 import { addCustomRepo, exportCustomRepos, getApps, getCustomRepos, getSettings, importCustomRepos, REGISTRY_UPDATED, removeCustomRepo, saveRepoSettings } from "../api";
@@ -7,6 +7,7 @@ import { useT } from "../i18n";
 import type { App, ManagedRepo, RepoPreference, SearchRepo, Settings } from "../types";
 
 const RESULTS_PER_PAGE = 5;
+const compactButtonStyle = { width: "100%", minHeight: 40, padding: "8px 12px" };
 
 export function ManageRepositoriesPage() {
   const t = useT();
@@ -102,13 +103,13 @@ export function ManageRepositoriesPage() {
               <TextField label={t("repos.searchGithub")} value={query} onChange={(event) => setQuery(event.currentTarget.value)} />
             </div>
             <div style={{ flex: "0 0 160px" }}>
-              <ButtonItem layout="below" onClick={() => void search()} disabled={!query.trim() || searching}>
+              <Button style={compactButtonStyle} onClick={() => void search()} disabled={!query.trim() || searching}>
                 {searching ? t("repos.searching") : t("filter.search")}
-              </ButtonItem>
+              </Button>
             </div>
             <div style={{ flex: "0 0 120px" }}>
-              <ButtonItem
-                layout="below"
+              <Button
+                style={compactButtonStyle}
                 onClick={() => {
                   setQuery("");
                   setResults([]);
@@ -117,7 +118,7 @@ export function ManageRepositoriesPage() {
                 }}
               >
                 {t("repos.clear")}
-              </ButtonItem>
+              </Button>
             </div>
           </Focusable>
         </PanelSectionRow>
@@ -126,15 +127,15 @@ export function ManageRepositoriesPage() {
           <PanelSectionRow>
             <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{ flex: 1 }}>
-              <ButtonItem layout="below" disabled={page === 0} onClick={() => setPage((current) => current - 1)}>
+              <Button style={compactButtonStyle} disabled={page === 0} onClick={() => setPage((current) => current - 1)}>
                 {t("repos.previous")}
-              </ButtonItem>
+              </Button>
               </div>
               <span style={{ whiteSpace: "nowrap" }}>{t("repos.pageOf", { page: page + 1, total: Math.ceil(results.length / RESULTS_PER_PAGE) })}</span>
               <div style={{ flex: 1 }}>
-              <ButtonItem layout="below" disabled={(page + 1) * RESULTS_PER_PAGE >= results.length} onClick={() => setPage((current) => current + 1)}>
+              <Button style={compactButtonStyle} disabled={(page + 1) * RESULTS_PER_PAGE >= results.length} onClick={() => setPage((current) => current + 1)}>
                 {t("repos.next")}
-              </ButtonItem>
+              </Button>
               </div>
             </Focusable>
           </PanelSectionRow>
@@ -152,9 +153,9 @@ export function ManageRepositoriesPage() {
                 </small>
               </PanelSectionRow>
               <PanelSectionRow>
-                <ButtonItem layout="below" disabled={added} onClick={() => void add(repo.full_name)}>
+                <Button style={compactButtonStyle} disabled={added} onClick={() => void add(repo.full_name)}>
                   {added ? t("repos.added") : t("repos.add")}
-                </ButtonItem>
+                </Button>
               </PanelSectionRow>
             </PanelSection>
           );
@@ -165,14 +166,14 @@ export function ManageRepositoriesPage() {
         <PanelSectionRow>
           <Focusable flow-children="right" style={{ display: "flex", gap: 12 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <ButtonItem layout="below" onClick={() => void exportList()}>
+              <Button style={compactButtonStyle} onClick={() => void exportList()}>
                 {t("repos.export")}
-              </ButtonItem>
+              </Button>
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <ButtonItem layout="below" onClick={() => void importList()}>
+              <Button style={compactButtonStyle} onClick={() => void importList()}>
                 {t("repos.import")}
-              </ButtonItem>
+              </Button>
             </div>
           </Focusable>
         </PanelSectionRow>
@@ -219,7 +220,7 @@ export function ManageRepositoriesPage() {
                   label={t("settings.downloadFolder")}
                   rgOptions={[
                     { label: t("repos.useGlobalSetting"), data: "default" },
-                    { label: "/home/deck/Downloads/plugins", data: "plugins" },
+                    { label: "/home/deck/Downloads/deckyhub", data: "plugins" },
                     { label: "/home/deck/Downloads", data: "downloads" },
                   ]}
                   selectedOption={value.downloadLocation}

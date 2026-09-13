@@ -50,6 +50,24 @@ class PluginStatusTests(unittest.TestCase):
             self.assertEqual(asyncio.run(plugin.save_settings({"downloadLocation": "downloads"}))["downloadLocation"], "downloads")
             self.assertEqual(plugin._asset_download_dir(), Path(main.DEFAULT_DOWNLOAD_DIR))
 
+    def test_clear_downloads_only_removes_deckyhub_contents(self):
+        with tempfile.TemporaryDirectory() as home:
+            original_download_dir = main.PLUGIN_DOWNLOAD_DIR
+            main.PLUGIN_DOWNLOAD_DIR = str(Path(home) / "Downloads" / "deckyhub")
+            try:
+                directory = Path(main.PLUGIN_DOWNLOAD_DIR)
+                (directory / "nested").mkdir(parents=True)
+                (directory / "nested" / "asset.zip").write_bytes(b"zip")
+                (directory / "release.zip").write_bytes(b"zip")
+
+                result = asyncio.run(Plugin().clear_downloads())
+
+                self.assertEqual(result["removed"], 2)
+                self.assertTrue(directory.exists())
+                self.assertEqual(list(directory.iterdir()), [])
+            finally:
+                main.PLUGIN_DOWNLOAD_DIR = original_download_dir
+
     def test_update_channel_defaults_to_stable_and_accepts_prerelease(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = Plugin()
