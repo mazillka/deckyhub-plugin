@@ -142,27 +142,30 @@ export function ManageRepositoriesPage() {
           </PanelSectionRow>
         )}
       </PanelSection>
-      <div aria-hidden style={sectionDividerStyle} />
-
-      <FocusableGrid items={results.slice(page * RESULTS_PER_PAGE, page * RESULTS_PER_PAGE + RESULTS_PER_PAGE)} columns={2} keyFor={(repo) => repo.full_name}>
-        {(repo) => {
-          const added = existingRepos.has(repo.full_name.toLowerCase());
-          return (
-            <PanelSection title={repo.full_name}>
-              <PanelSectionRow>
-                <small>
-                  {repo.description || t("repos.noDescription")} · ★ {repo.stargazers_count ?? 0}
-                </small>
-              </PanelSectionRow>
-              <PanelSectionRow>
-                <Button style={compactButtonStyle} disabled={added} onClick={() => void add(repo.full_name)}>
-                  {added ? t("repos.added") : t("repos.add")}
-                </Button>
-              </PanelSectionRow>
-            </PanelSection>
-          );
-        }}
-      </FocusableGrid>
+      {results.length > 0 && (
+        <>
+          <div aria-hidden style={sectionDividerStyle} />
+          <FocusableGrid items={results.slice(page * RESULTS_PER_PAGE, page * RESULTS_PER_PAGE + RESULTS_PER_PAGE)} columns={2} keyFor={(repo) => repo.full_name}>
+            {(repo) => {
+              const added = existingRepos.has(repo.full_name.toLowerCase());
+              return (
+                <PanelSection title={repo.full_name}>
+                  <PanelSectionRow>
+                    <small>
+                      {repo.description || t("repos.noDescription")} · ★ {repo.stargazers_count ?? 0}
+                    </small>
+                  </PanelSectionRow>
+                  <PanelSectionRow>
+                    <Button style={compactButtonStyle} disabled={added} onClick={() => void add(repo.full_name)}>
+                      {added ? t("repos.added") : t("repos.add")}
+                    </Button>
+                  </PanelSectionRow>
+                </PanelSection>
+              );
+            }}
+          </FocusableGrid>
+        </>
+      )}
 
       <div aria-hidden style={sectionDividerStyle} />
 
@@ -198,6 +201,7 @@ export function ManageRepositoriesPage() {
       <PanelSection title={t("repos.repositorySettings")}>
         <PanelSectionRow>{t("repos.perRepoOverrides")}</PanelSectionRow>
       </PanelSection>
+      {apps.length > 0 && <div aria-hidden style={sectionDividerStyle} />}
       <FocusableGrid items={apps} columns={2} keyFor={(app) => app.repo}>
         {(app) => {
           const value = preference(app.repo);

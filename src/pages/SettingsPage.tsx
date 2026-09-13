@@ -89,6 +89,7 @@ export function SettingsPage() {
             </>
           )}
         </PanelSectionRow>
+        <div aria-hidden style={sectionDividerStyle} />
         <PanelSectionRow>
           <DropdownItem
             label={t("settings.updateChannel")}
@@ -160,6 +161,7 @@ export function SettingsPage() {
             {t("settings.clearDownloads")}
           </Button>
         </PanelSectionRow>
+        <div aria-hidden style={sectionDividerStyle} />
         <PanelSectionRow>
           <DropdownItem
             label={t("settings.language")}

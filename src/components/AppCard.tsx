@@ -20,6 +20,7 @@ export function AppCard({
 }) {
   const t = useT();
   const active = job && app.assets.some((asset) => asset.name === job.state.filename) ? job : null;
+  const hasActions = Boolean(active || app.assets.length || app.releaseUrl);
   return (
     <PanelSection title={`${app.name} · ${app.category}`}>
       <PanelSectionRow>
@@ -35,7 +36,7 @@ export function AppCard({
           )}
         </div>
       </PanelSectionRow>
-      <div aria-hidden style={sectionDividerStyle} />
+      {hasActions && <div aria-hidden style={sectionDividerStyle} />}
       {active && (
         <PanelSectionRow>
           <div>

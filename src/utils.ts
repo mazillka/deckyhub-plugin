@@ -6,7 +6,7 @@ export const CACHE_TTL = 60 * 1000;
 export const UPDATE_NOTICE_KEY = "deckyhub-update-notice";
 export const pageStyle = { boxSizing: "border-box" as const, height: "100%", overflowY: "auto" as const, padding: "64px 12px 96px", scrollPaddingBottom: 96, scrollPaddingTop: 64, width: "100%" };
 export const compactButtonStyle = { width: "100%", minHeight: 36, marginBottom: 8, padding: "6px 10px" };
-export const sectionDividerStyle = { borderTop: "1px solid rgba(255, 255, 255, 0.14)", margin: "12px 0" };
+export const sectionDividerStyle = { borderTop: "1px solid rgba(255, 255, 255, 0.14)", margin: "16px 0" };
 
 export const readableBytes = (bytes = 0) => (bytes > 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.ceil(bytes / 1024)} KB`);
 

@@ -111,6 +111,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
     return (
       <>
       {discoverFilters}
+      {discoverFilters && <div aria-hidden style={sectionDividerStyle} />}
       {loading && (
         <PanelSection title={t("content.loadingTitle")}>
           <PanelSectionRow>
