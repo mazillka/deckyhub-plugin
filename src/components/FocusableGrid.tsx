@@ -29,6 +29,9 @@ export function FocusableGrid<T>({
               {children(item)}
             </Focusable>
           ))}
+          {Array.from({ length: columns - row.length }, (_, index) => (
+            <div aria-hidden key={`empty-${index}`} style={{ flex: 1, minWidth: 0 }} />
+          ))}
         </Focusable>
       ))}
     </Focusable>
