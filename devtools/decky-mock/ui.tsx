@@ -60,6 +60,36 @@ export function Button({
 
 export const DialogButtonPrimary = Button;
 
+export function Dropdown({
+  rgOptions,
+  selectedOption,
+  onChange,
+  menuLabel,
+}: {
+  rgOptions: { label: ReactNode; data: unknown }[];
+  selectedOption: unknown;
+  onChange?: (option: { data: unknown }) => void;
+  menuLabel?: string;
+}) {
+  return (
+    <select
+      aria-label={menuLabel}
+      value={String(selectedOption)}
+      onChange={(event) => {
+        const option = rgOptions.find((item) => String(item.data) === event.target.value);
+        if (option) onChange?.(option);
+      }}
+      className="steam-select"
+    >
+      {rgOptions.map((option) => (
+        <option key={String(option.data)} value={String(option.data)}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  );
+}
+
 export function DropdownItem({
   label,
   rgOptions,

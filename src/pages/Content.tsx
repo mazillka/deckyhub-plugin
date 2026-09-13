@@ -1,5 +1,5 @@
 import { toaster } from "@decky/api";
-import { DialogButtonPrimary as Button, DropdownItem, Focusable, Navigation, PanelSection, PanelSectionRow, Spinner, TextField } from "@decky/ui";
+import { DialogButtonPrimary as Button, Dropdown, Focusable, Navigation, PanelSection, PanelSectionRow, Spinner, TextField } from "@decky/ui";
 import { useEffect, useState } from "react";
 import { FaSync } from "react-icons/fa";
 import { cancelDownload, downloadAsset, getApps, getDownload, getSettings, queueDownloads, REGISTRY_UPDATED } from "../api";
@@ -79,9 +79,11 @@ export function Content({ fullPage }: { fullPage?: View }) {
             <TextField label={t("filter.search")} value={query} onChange={(event) => setQuery(event.currentTarget.value)} />
           </div>
           <div style={{ flex: "0 0 220px" }}>
-            <DropdownItem
-              layout="below"
-              label={t("filter.status")}
+            <div style={{ fontSize: "0.85em" }}>
+              <div style={{ marginBottom: 4 }}>{t("filter.status")}</div>
+              <Dropdown
+                {...({ "aria-label": t("filter.status"), style: { width: "100%" } } as any)}
+                menuLabel={t("filter.status")}
               rgOptions={[
                 { label: t("filter.all"), data: "All" },
                 { label: t("filter.installed"), data: "Installed" },
@@ -89,7 +91,8 @@ export function Content({ fullPage }: { fullPage?: View }) {
               ]}
               selectedOption={installedFilter}
               onChange={({ data }) => setInstalledFilter(data)}
-            />
+              />
+            </div>
           </div>
         </Focusable>
       </PanelSectionRow>

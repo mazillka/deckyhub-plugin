@@ -19,6 +19,11 @@ test.beforeEach(async ({ page }) => {
 
 test("Quick Access navigation opens Discover", async ({ page }) => {
   const app = mock(page);
+  const [updates, discover] = await Promise.all([
+    app.getByRole("button", { name: "Updates", exact: true }).boundingBox(),
+    app.getByRole("button", { name: "Discover", exact: true }).boundingBox(),
+  ]);
+  expect(discover!.y - (updates!.y + updates!.height)).toBeGreaterThanOrEqual(6);
   await app.getByRole("button", { name: "Discover", exact: true }).click();
 
   await expect(app.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
@@ -90,6 +95,20 @@ test("Repository search and action share one row", async ({ page }) => {
   expect(clearBox!.x).toBeGreaterThan(actionBox!.x);
 });
 
+test("Repository search stays enabled but skips blank queries", async ({ page }) => {
+  let requests = 0;
+  await page.route("https://api.github.com/search/repositories**", (route) => {
+    requests++;
+    return route.fulfill({ json: { items: [] } });
+  });
+  await page.goto("/?preview=/deckyhub/repositories&bridge=http://127.0.0.1:8643");
+  const search = mock(page).getByRole("button", { name: "Search", exact: true });
+
+  await expect(search).toBeEnabled();
+  await search.click();
+  expect(requests).toBe(0);
+});
+
 test("Repository import and export share one row", async ({ page }) => {
   await page.goto("/?preview=/deckyhub/repositories&bridge=http://127.0.0.1:8643");
   const app = mock(page);
@@ -114,9 +133,9 @@ test("DeckyHub hides a matching update package", async ({ page }) => {
   await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases/latest", (route) =>
     route.fulfill({
       json: {
-        tag_name: "v0.4.24",
-        html_url: "https://github.com/mazillka/deckyhub-plugin/releases/tag/v0.4.24",
-        assets: [{ name: "DeckyHub-v0.4.24.zip", browser_download_url: "https://github.com/mazillka/deckyhub-plugin/releases/download/v0.4.24/DeckyHub-v0.4.24.zip", digest: `sha256:${"a".repeat(64)}` }],
+        tag_name: "v0.4.25",
+        html_url: "https://github.com/mazillka/deckyhub-plugin/releases/tag/v0.4.25",
+        assets: [{ name: "DeckyHub-v0.4.25.zip", browser_download_url: "https://github.com/mazillka/deckyhub-plugin/releases/download/v0.4.25/DeckyHub-v0.4.25.zip", digest: `sha256:${"a".repeat(64)}` }],
       },
     })
   );

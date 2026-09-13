@@ -38,6 +38,7 @@ export function ManageRepositoriesPage() {
   const preference = (repo: string) => prefs[repo] || { channel: "stable", assetFilter: [] };
 
   const search = async () => {
+    if (!query.trim() || searching) return;
     setSearching(true);
     try {
       setSearchError(null);
@@ -103,7 +104,7 @@ export function ManageRepositoriesPage() {
               <TextField label={t("repos.searchGithub")} value={query} onChange={(event) => setQuery(event.currentTarget.value)} />
             </div>
             <div style={{ flex: "0 0 160px", paddingTop: 24 }}>
-              <Button style={compactButtonStyle} onClick={() => void search()} disabled={!query.trim() || searching}>
+              <Button style={compactButtonStyle} onClick={() => void search()} disabled={searching}>
                 {searching ? t("repos.searching") : t("filter.search")}
               </Button>
             </div>
