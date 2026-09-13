@@ -53,6 +53,8 @@ export const fr: Record<MessageKey, string> = {
   "settings.stableReleases": "Versions stables",
   "settings.preReleases": "Versions préliminaires",
   "settings.checkUpdate": "Vérifier les mises à jour",
+  "settings.noUpdateAvailable": "Aucune mise à jour disponible.",
+  "settings.updateAvailable": "La mise à jour DeckyHub {version} est disponible.",
   "settings.downloadUpdate": "Télécharger la mise à jour",
   "settings.downloadedTo": "Téléchargé dans {path}. Installez-le depuis Decky → Developer → Install Plugin from ZIP.",
   "settings.downloadSettings": "Paramètres de téléchargement",

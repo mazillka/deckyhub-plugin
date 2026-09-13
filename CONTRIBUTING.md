@@ -31,7 +31,7 @@ The build produces `dist/index.js`. Decky Loader requires `plugin.json`, `main.p
 1. Install Decky Loader, switch to Desktop Mode, and build the plugin as above.
 2. Copy the built plugin files (`backend/`, `dist/`, `registry/`, `main.py`, `package.json`, and `plugin.json`) to `~/homebrew/plugins/DeckyHub`, or extract a release ZIP there.
 3. Restart/reload Decky Loader, then open the Quick Access Menu → Decky → DeckyHub.
-4. Run **Check for updates**, select an asset, and confirm the resulting file is in `/home/deck/Downloads`. Test cancel with a larger asset and ensure no `.part` file remains.
+4. Run **Check Update**, confirm a newer DeckyHub release shows a notification (and a matching release does not offer a download), then select an asset and confirm the resulting file is in `/home/deck/Downloads/deckyhub`. Test cancel with a larger asset and ensure no `.part` file remains.
 
 For development, rebuild the frontend after every change to `src/`, then reload the plugin. The backend uses only Python's standard library and needs no pip install.
 

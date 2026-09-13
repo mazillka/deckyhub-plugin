@@ -56,6 +56,20 @@ export function SettingsPage() {
       />
     );
 
+  const upToDate = Boolean(
+    deckyHubRelease.version &&
+      deckyHubInfo.version !== "unknown" &&
+      deckyHubRelease.version.trim().replace(/^v/i, "") === deckyHubInfo.version.trim().replace(/^v/i, "")
+  );
+
+  const checkForUpdate = () =>
+    void latestDeckyHubRelease(settings.updateChannel).then((release) => {
+      setDeckyHubRelease(release);
+      if (release.version && !release.error && deckyHubInfo.version !== "unknown" && release.version.trim().replace(/^v/i, "") !== deckyHubInfo.version.trim().replace(/^v/i, "")) {
+        toaster.toast({ title: "DeckyHub", body: t("settings.updateAvailable", { version: release.version }) });
+      }
+    });
+
   return (
     <>
       <PanelSection title={t("settings.deckyhubUpdate")}>
@@ -66,6 +80,12 @@ export function SettingsPage() {
             <>
               <br />
               <small>{deckyHubRelease.error}</small>
+            </>
+          )}
+          {upToDate && (
+            <>
+              <br />
+              <small>{t("settings.noUpdateAvailable")}</small>
             </>
           )}
         </PanelSectionRow>
@@ -81,11 +101,11 @@ export function SettingsPage() {
           />
         </PanelSectionRow>
         <PanelSectionRow>
-          <Button style={compactButtonStyle} onClick={() => void latestDeckyHubRelease(settings.updateChannel).then(setDeckyHubRelease)}>
+          <Button style={compactButtonStyle} onClick={checkForUpdate}>
             {t("settings.checkUpdate")}
           </Button>
         </PanelSectionRow>
-        {deckyHubRelease.asset && (
+        {deckyHubRelease.asset && !upToDate && (
           <PanelSectionRow>
             <Button style={compactButtonStyle} onClick={() => void installUpdate(deckyHubRelease.asset!)}>
               {t("settings.downloadUpdate")}

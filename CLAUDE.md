@@ -14,11 +14,12 @@ pnpm install
 pnpm run typecheck        # tsc --noEmit
 pnpm run build             # rollup -c -> dist/index.js
 pnpm run test:backend      # python -m unittest discover -s tests
+npm run test:e2e --prefix devtools/decky-mock
 ```
 
 Run a single backend test: `python -m unittest tests.test_plugin_status.PluginStatusTests.test_decky_plugin_detection_reads_manifest_and_package_version`. The backend uses only the Python standard library — no pip install needed.
 
-There is no frontend test suite; `pnpm run typecheck` is the correctness gate for `src/`.
+The Playwright suite in `devtools/decky-mock/` covers the browser UI; `pnpm run typecheck` remains the static correctness gate for `src/`.
 
 ### Local browser preview (no Steam Deck needed)
 
@@ -37,7 +38,7 @@ Pushing a `v*` tag triggers `.github/workflows/release.yml`: installs, typecheck
 - **Downloads are queued, not fire-and-forget**: `download_asset`/`install_deckyhub_update` push onto `self.download_queue`, drained one at a time by `_run_download_queue()` → `_download()`. Progress/state lives in `self.downloads[job_id]`, polled by the frontend via `get_download`. Cancellation is cooperative: `cancel_download` just adds the job_id to `self.cancelled`, and the running download loop checks that set. `_download` tries `urllib` first, falls back to system `curl` on `URLError` (some CDNs 403 Python's default UA/TLS stack). SHA-256 verification is opt-out for normal downloads, mandatory for DeckyHub self-updates.
 - **Version comparison** happens entirely client-side in `src/utils.ts` (`isUpdate`, `versionNumbers`) — the backend never decides "update available"; it just supplies `installedVersion`, and the frontend fetches `latestVersion`/`publishedAt` directly from the GitHub API and compares, per `app.versionStrategy` (`semver`, `release-date`, or `custom` regex via `versionPattern`).
 
-**Frontend (`src/`) talks to GitHub directly from the browser**, not through the Python backend — `hydrate()` and `latestDeckyHubRelease()` in `src/utils.ts` call `fetchNoCors` from `@decky/api` against `api.github.com`. This means release/version data is unauthenticated and rate-limited by GitHub per-device, cached 3 minutes in `localStorage` (`CACHE_TTL`, keyed per repo+source, bypassed with `force=true` on manual refresh).
+**Frontend (`src/`) talks to GitHub directly from the browser**, not through the Python backend — `hydrate()` and `latestDeckyHubRelease()` in `src/utils.ts` call `fetchNoCors` from `@decky/api` against `api.github.com`. This means release/version data is unauthenticated and rate-limited by GitHub per-device, cached for 1 minute in `localStorage` (`CACHE_TTL`, keyed per repo+source, bypassed with `force=true` on manual refresh).
 
 - **`Content.tsx`** is the shared list view for both the Updates and Discover routes (`fullPage` prop selects which), including the app grid, search/status filters, and the top-level download-job panel. **`AppCard.tsx`** renders one app's status/version/download UI. **`ManageRepositoriesPage.tsx`** and **`SettingsPage.tsx`** are separate routes registered in `src/index.tsx` via `routerHook.addRoute`.
 - **Custom-events-as-pub/sub**: cross-component signals (`REGISTRY_UPDATED` in `api.ts`, `LOCALE_CHANGED` in `i18n/index.tsx`) are plain `window.dispatchEvent`/`addEventListener` `CustomEvent`s, not React context — grep for these constants before assuming a settings change needs prop drilling.

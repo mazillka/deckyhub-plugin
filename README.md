@@ -10,8 +10,8 @@ It ships with a small curated list of popular Steam Deck tools, and you can add 
 
 - **Discover** — browse a curated list of Steam Deck plugins/tools, filter by search or installed status, and see release info at a glance, color-coded by status.
 - **Updates** — see which of your tracked, installed tools have a newer release available, and download updates in one tap. You'll also get a toast notification when new updates show up.
-- **Repositories** — two tabs: **Add & Manage** to search GitHub, add or remove tracked repositories, and export/import your list; **Repository Settings** for per-repository overrides (release channel, download folder, asset keyword filter) plus a manual registry refresh.
-- **Settings** — change the global download folder, toggle SHA-256 verification and overwriting existing files, and check for DeckyHub's own updates.
+- **Repositories** — two tabs: **Add & Manage** to search GitHub, add or remove tracked repositories, and export/import your list; **Repository Settings** for per-repository overrides (release channel, download folder, asset keyword filter).
+- **Settings** — change the global download folder, clear DeckyHub downloads with confirmation, toggle SHA-256 verification and overwriting existing files, and check for DeckyHub's own updates.
 
 DeckyHub only **downloads** files — it never installs or runs anything automatically. After a download finishes, you install it yourself from Desktop Mode via Decky → Developer → Install Plugin from ZIP. This keeps you in control of what actually runs on your system.
 
@@ -50,7 +50,7 @@ Shows every tracked tool that's installed and has a newer release available, alo
 
 ### Downloads
 
-Downloads are saved to `/home/deck/Downloads/plugins` by default (or `/home/deck/Downloads`, if you change that in Settings, or a per-repository override in Repositories → Repository Settings). Each card shows progress, file size, and a **Cancel** button while downloading. If a download is interrupted, no partial file is left behind.
+Downloads are saved to `/home/deck/Downloads/deckyhub` by default (or `/home/deck/Downloads`, if you change that in Settings, or a per-repository override in Repositories → Repository Settings). Settings can clear the default DeckyHub folder after confirmation. Each card shows progress, file size, and a **Cancel** button while downloading. If a download is interrupted, no partial file is left behind.
 
 When GitHub provides a checksum for a release asset, DeckyHub verifies it by default — turn off **Verify SHA256 When Available** in Settings if you don't want that check. By default, downloading a file again overwrites the previous copy; turn off **Overwrite Existing Files** in Settings if you'd rather keep both.
 
@@ -59,11 +59,11 @@ When GitHub provides a checksum for a release asset, DeckyHub verifies it by def
 Two tabs:
 
 - **Add & Manage** — search GitHub for a repository and tap **Add** (repositories you already track show **Already Added** instead, so you can tell at a glance). Results page five at a time. Export your custom repositories to `DeckyHub-repositories.json` in `/home/deck/Downloads` to back them up or share them, or import that file back in. Any repository you've added can be removed again here; the curated repositories that ship with DeckyHub stay available and can't be removed. Prefer a bigger screen? The [Registry Editor](https://mazillka.github.io/deckyhub-plugin/) is a browser-based tool for building or editing a repository list file before importing it.
-- **Repository Settings** — per-repository controls: switch a repository between stable and pre-release, filter which release assets show up (comma-separated keywords), or send its downloads to a different folder than your global default. Use **Refresh Registry From GitHub** to re-pull the curated list.
+- **Repository Settings** — per-repository controls: switch a repository between stable and pre-release, filter which release assets show up (comma-separated keywords), or send its downloads to a different folder than your global default.
 
 ### Keeping DeckyHub itself updated
 
-Settings includes a **Check DeckyHub Update** option that looks for new stable releases (or pre-releases, if you opt in) of DeckyHub itself and downloads the ZIP to `/home/deck/Downloads`. Install it the same way as any other plugin ZIP.
+Settings includes a **Check Update** option that looks for new stable releases (or pre-releases, if you opt in) of DeckyHub itself. A newer release triggers a notification; an installed matching package reports that no update is available. Downloaded update ZIPs are saved to `/home/deck/Downloads/deckyhub` and are installed the same way as any other plugin ZIP.
 
 ## Good to know
 

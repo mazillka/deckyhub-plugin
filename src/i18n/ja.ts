@@ -53,6 +53,8 @@ export const ja: Record<MessageKey, string> = {
   "settings.stableReleases": "安定版リリース",
   "settings.preReleases": "プレリリース",
   "settings.checkUpdate": "アップデートを確認",
+  "settings.noUpdateAvailable": "利用可能なアップデートはありません。",
+  "settings.updateAvailable": "DeckyHub のアップデート {version} を利用できます。",
   "settings.downloadUpdate": "アップデートをダウンロード",
   "settings.downloadedTo": "{path} にダウンロードしました。Decky → Developer → Install Plugin from ZIP からインストールしてください。",
   "settings.downloadSettings": "ダウンロード設定",

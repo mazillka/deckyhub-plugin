@@ -109,6 +109,41 @@ test("Clearing DeckyHub downloads requires confirmation", async ({ page }) => {
   await app.getByRole("button", { name: "Cancel", exact: true }).click();
 });
 
+test("DeckyHub hides a matching update package", async ({ page }) => {
+  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases/latest", (route) =>
+    route.fulfill({
+      json: {
+        tag_name: "v0.4.22",
+        html_url: "https://github.com/mazillka/deckyhub-plugin/releases/tag/v0.4.22",
+        assets: [{ name: "DeckyHub-v0.4.22.zip", browser_download_url: "https://github.com/mazillka/deckyhub-plugin/releases/download/v0.4.22/DeckyHub-v0.4.22.zip", digest: `sha256:${"a".repeat(64)}` }],
+      },
+    })
+  );
+  await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  await app.getByRole("button", { name: "Check Update", exact: true }).click();
+
+  await expect(app.getByText("No update available.")).toBeVisible();
+  await expect(app.getByRole("button", { name: "Download Update", exact: true })).toBeHidden();
+});
+
+test("DeckyHub notifies about an available update", async ({ page }) => {
+  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases/latest", (route) =>
+    route.fulfill({
+      json: {
+        tag_name: "v9.9.9",
+        html_url: "https://github.com/mazillka/deckyhub-plugin/releases/tag/v9.9.9",
+        assets: [{ name: "DeckyHub-v9.9.9.zip", browser_download_url: "https://github.com/mazillka/deckyhub-plugin/releases/download/v9.9.9/DeckyHub-v9.9.9.zip", digest: `sha256:${"b".repeat(64)}` }],
+      },
+    })
+  );
+  await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  await app.getByRole("button", { name: "Check Update", exact: true }).click();
+
+  await expect(app.getByText("DeckyHub: DeckyHub update v9.9.9 is available.")).toBeVisible();
+});
+
 test("Repository pagination stays on one row", async ({ page }) => {
   await page.route("https://api.github.com/search/repositories**", (route) =>
     route.fulfill({
