@@ -138,7 +138,7 @@ export function ManageRepositoriesPage() {
         )}
       </PanelSection>
 
-      <FocusableGrid items={results.slice(page * RESULTS_PER_PAGE, page * RESULTS_PER_PAGE + RESULTS_PER_PAGE)} columns={3} keyFor={(repo) => repo.full_name}>
+      <FocusableGrid items={results.slice(page * RESULTS_PER_PAGE, page * RESULTS_PER_PAGE + RESULTS_PER_PAGE)} columns={2} keyFor={(repo) => repo.full_name}>
         {(repo) => {
           const added = existingRepos.has(repo.full_name.toLowerCase());
           return (
@@ -200,7 +200,7 @@ export function ManageRepositoriesPage() {
           </ButtonItem>
         </PanelSectionRow>
       </PanelSection>
-      <FocusableGrid items={apps} columns={3} keyFor={(app) => app.repo}>
+      <FocusableGrid items={apps} columns={2} keyFor={(app) => app.repo}>
         {(app) => {
           const value = preference(app.repo);
           const update = (next: Partial<RepoPreference>) => {
@@ -251,10 +251,7 @@ export function ManageRepositoriesPage() {
     <Tabs
       activeTab={activeTab}
       autoFocusContents
-      onShowTab={(tab: string) => {
-        setActiveTab(tab);
-        requestAnimationFrame(() => window.scrollTo(0, 0));
-      }}
+      onShowTab={(tab: string) => setActiveTab(tab)}
       tabs={[
         { id: "manage", title: t("repos.addManage"), content: manageTab },
         { id: "settings", title: t("repos.repositorySettings"), content: settingsTab },

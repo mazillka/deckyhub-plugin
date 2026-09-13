@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <title>DeckyHub dev mock</title>
     <style>
+      :root { --deck-scale: .9; }
       /* Steam Deck's screen is 1280x800 (16:10), ~215 PPI over a 7" panel — much
          denser than a typical ~96 PPI desktop monitor. app.html loads inside a
          real 1280x800 iframe (so 100vh there correctly equals 800px, matching
@@ -26,8 +27,8 @@
         font-family: sans-serif;
       }
       #deck-frame {
-        width: calc(1280px * 0.9);
-        height: calc(800px * 0.9);
+        width: calc(1280px * var(--deck-scale));
+        height: calc(800px * var(--deck-scale));
         overflow: hidden;
         border: 2px solid #3d4450;
         border-radius: 8px;
@@ -37,7 +38,7 @@
         width: 1280px;
         height: 800px;
         border: 0;
-        transform: scale(0.9);
+        transform: scale(var(--deck-scale));
         transform-origin: top left;
       }
       #deck-frame-label {
@@ -48,9 +49,16 @@
   </head>
   <body>
     <div id="deck-frame"><iframe id="deck-app" src="/app.html" title="DeckyHub dev mock"></iframe></div>
-    <div id="deck-frame-label">1280×800 @ 215 PPI, scaled 2x (0.9) for comfortable inspection — matches a real device viewed at 200% zoom</div>
+    <div id="deck-frame-label">1280×800 @ 215 PPI · auto-fit enabled</div>
     <script>
       document.querySelector("#deck-app").src += window.location.search;
+      const fit = () => {
+        const scale = Math.max(0.1, Math.min(0.9, (innerWidth - 32) / 1280, (innerHeight - 48) / 800));
+        document.documentElement.style.setProperty("--deck-scale", scale);
+        document.querySelector("#deck-frame-label").textContent = `1280×800 @ 215 PPI · auto-fit ${Math.round(scale * 100)}%`;
+      };
+      addEventListener("resize", fit);
+      fit();
     </script>
   </body>
 </html>

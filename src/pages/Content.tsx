@@ -167,7 +167,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
           </PanelSection>
           <FocusableGrid
             items={visibleApps}
-            columns={fullPage ? 3 : 1}
+            columns={2}
             keyFor={(app) => app.id}
           >
             {(app) => <AppCard app={app} job={job} downloadDisabled={downloading} onDownload={(asset) => void startDownload(asset, app.repo)} onCancel={(jobId) => void cancelDownload(jobId)} />}
