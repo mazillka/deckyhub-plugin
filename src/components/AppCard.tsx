@@ -1,8 +1,8 @@
-import { ButtonItem, Navigation, PanelSection, PanelSectionRow } from "@decky/ui";
+import { Button, Navigation, PanelSection, PanelSectionRow } from "@decky/ui";
 import { FaDownload } from "react-icons/fa";
 import { useT } from "../i18n";
 import type { App, Asset, Download } from "../types";
-import { readableBytes, statusKey, statusColor } from "../utils";
+import { compactButtonStyle, readableBytes, statusKey, statusColor } from "../utils";
 import { DownloadProgress } from "./DownloadProgress";
 
 export function AppCard({
@@ -53,30 +53,30 @@ export function AppCard({
               </>
             )}
             {active.state.state === "downloading" && (
-              <ButtonItem layout="below" onClick={() => onCancel(active.id)}>
+              <Button style={compactButtonStyle} onClick={() => onCancel(active.id)}>
                 {t("content.cancel")}
-              </ButtonItem>
+              </Button>
             )}
           </div>
         </PanelSectionRow>
       )}
       {app.assets[0] && (
         <PanelSectionRow>
-          <ButtonItem layout="below" disabled={downloadDisabled} onClick={() => onDownload(app.assets[0])}>
+          <Button style={compactButtonStyle} disabled={downloadDisabled} onClick={() => onDownload(app.assets[0])}>
             <FaDownload /> {t("appcard.latest", { name: app.assets[0].name })}
-          </ButtonItem>
+          </Button>
         </PanelSectionRow>
       )}
       {app.assets.slice(1).map((asset) => (
         <PanelSectionRow key={asset.name}>
-          <ButtonItem layout="below" disabled={downloadDisabled} onClick={() => onDownload(asset)}>{`${asset.name} (${readableBytes(asset.size)})`}</ButtonItem>
+          <Button style={compactButtonStyle} disabled={downloadDisabled} onClick={() => onDownload(asset)}>{`${asset.name} (${readableBytes(asset.size)})`}</Button>
         </PanelSectionRow>
       ))}
       {app.releaseUrl && (
         <PanelSectionRow>
-          <ButtonItem layout="below" onClick={() => Navigation.NavigateToExternalWeb(app.releaseUrl!)}>
+          <Button style={compactButtonStyle} onClick={() => Navigation.NavigateToExternalWeb(app.releaseUrl!)}>
             {t("appcard.releasePage")}
-          </ButtonItem>
+          </Button>
         </PanelSectionRow>
       )}
     </PanelSection>

@@ -1,13 +1,13 @@
 import { FileSelectionType, fetchNoCors, openFilePicker, toaster } from "@decky/api";
-import { Button, ButtonItem, ConfirmModal, DropdownItem, Focusable, PanelSection, PanelSectionRow, showModal, Tabs, TextField } from "@decky/ui";
+import { Button, ConfirmModal, DropdownItem, Focusable, PanelSection, PanelSectionRow, showModal, Tabs, TextField } from "@decky/ui";
 import { FocusableGrid } from "../components/FocusableGrid";
 import { useEffect, useState } from "react";
 import { addCustomRepo, exportCustomRepos, getApps, getCustomRepos, getSettings, importCustomRepos, REGISTRY_UPDATED, removeCustomRepo, saveRepoSettings } from "../api";
 import { useT } from "../i18n";
 import type { App, ManagedRepo, RepoPreference, SearchRepo, Settings } from "../types";
+import { compactButtonStyle } from "../utils";
 
 const RESULTS_PER_PAGE = 5;
-const compactButtonStyle = { width: "100%", minHeight: 40, padding: "8px 12px" };
 
 export function ManageRepositoriesPage() {
   const t = useT();
@@ -179,9 +179,9 @@ export function ManageRepositoriesPage() {
         </PanelSectionRow>
         {customRepos.map((item) => (
           <PanelSectionRow key={item.repo}>
-            <ButtonItem layout="below" onClick={() => confirmRemove(item.repo)}>
+            <Button style={compactButtonStyle} onClick={() => confirmRemove(item.repo)}>
               {t("repos.remove", { repo: item.repo })}
-            </ButtonItem>
+            </Button>
           </PanelSectionRow>
         ))}
         {!customRepos.length && <PanelSectionRow>{t("repos.noCustomRepos")}</PanelSectionRow>}

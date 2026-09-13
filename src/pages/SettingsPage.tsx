@@ -1,10 +1,10 @@
 import { toaster } from "@decky/api";
-import { ButtonItem, ConfirmModal, DropdownItem, Navigation, PanelSection, PanelSectionRow, showModal, ToggleField } from "@decky/ui";
+import { Button, ConfirmModal, DropdownItem, Navigation, PanelSection, PanelSectionRow, showModal, ToggleField } from "@decky/ui";
 import { useEffect, useState } from "react";
 import { cancelDownload, clearDownloads, getDeckyHubInfo, getDownload, getSettings, installDeckyHubUpdate, saveSettings } from "../api";
 import { LOCALE_CHANGED, LOCALES, useT } from "../i18n";
 import type { Asset, DeckyHubInfo, DeckyHubRelease, Download, Settings } from "../types";
-import { latestDeckyHubRelease } from "../utils";
+import { compactButtonStyle, latestDeckyHubRelease } from "../utils";
 import { DownloadProgress, showDownloadComplete } from "../components/DownloadProgress";
 
 export function SettingsPage() {
@@ -81,15 +81,15 @@ export function SettingsPage() {
           />
         </PanelSectionRow>
         <PanelSectionRow>
-          <ButtonItem layout="below" onClick={() => void latestDeckyHubRelease(settings.updateChannel).then(setDeckyHubRelease)}>
+          <Button style={compactButtonStyle} onClick={() => void latestDeckyHubRelease(settings.updateChannel).then(setDeckyHubRelease)}>
             {t("settings.checkUpdate")}
-          </ButtonItem>
+          </Button>
         </PanelSectionRow>
         {deckyHubRelease.asset && (
           <PanelSectionRow>
-            <ButtonItem layout="below" onClick={() => void installUpdate(deckyHubRelease.asset!)}>
+            <Button style={compactButtonStyle} onClick={() => void installUpdate(deckyHubRelease.asset!)}>
               {t("settings.downloadUpdate")}
-            </ButtonItem>
+            </Button>
           </PanelSectionRow>
         )}
         {updateJob && (
@@ -110,17 +110,17 @@ export function SettingsPage() {
               </>
             )}
             {["queued", "downloading"].includes(updateJob.state.state) && (
-              <ButtonItem layout="below" onClick={() => void cancelDownload(updateJob.id)}>
+              <Button style={compactButtonStyle} onClick={() => void cancelDownload(updateJob.id)}>
                 {t("content.cancel")}
-              </ButtonItem>
+              </Button>
             )}
           </PanelSectionRow>
         )}
         {deckyHubRelease.url && (
           <PanelSectionRow>
-            <ButtonItem layout="below" onClick={() => Navigation.NavigateToExternalWeb(deckyHubRelease.url!)}>
+            <Button style={compactButtonStyle} onClick={() => Navigation.NavigateToExternalWeb(deckyHubRelease.url!)}>
               {t("appcard.releasePage")}
-            </ButtonItem>
+            </Button>
           </PanelSectionRow>
         )}
       </PanelSection>
@@ -145,9 +145,9 @@ export function SettingsPage() {
           <ToggleField label={t("settings.overwriteExisting")} checked={settings.overwriteExisting} onChange={(checked) => update({ overwriteExisting: checked })} />
         </PanelSectionRow>
         <PanelSectionRow>
-          <ButtonItem layout="below" onClick={confirmClearDownloads}>
+          <Button style={compactButtonStyle} onClick={confirmClearDownloads}>
             {t("settings.clearDownloads")}
-          </ButtonItem>
+          </Button>
         </PanelSectionRow>
         <PanelSectionRow>
           <DropdownItem

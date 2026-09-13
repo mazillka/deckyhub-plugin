@@ -1,11 +1,11 @@
 import { toaster } from "@decky/api";
-import { ButtonItem, DropdownItem, Focusable, Navigation, PanelSection, PanelSectionRow, Spinner, TextField } from "@decky/ui";
+import { Button, DropdownItem, Focusable, Navigation, PanelSection, PanelSectionRow, Spinner, TextField } from "@decky/ui";
 import { useEffect, useState } from "react";
 import { FaSync } from "react-icons/fa";
 import { cancelDownload, downloadAsset, getApps, getDownload, getSettings, queueDownloads, REGISTRY_UPDATED } from "../api";
 import { useT } from "../i18n";
 import type { App, Asset, Download, RepoPreference, Settings, View } from "../types";
-import { hydrate, notifyUpdates } from "../utils";
+import { compactButtonStyle, hydrate, notifyUpdates } from "../utils";
 import { AppCard } from "../components/AppCard";
 import { DownloadProgress, showDownloadComplete } from "../components/DownloadProgress";
 import { FocusableGrid } from "../components/FocusableGrid";
@@ -118,9 +118,9 @@ export function Content({ fullPage }: { fullPage?: View }) {
         <PanelSection title={t("content.loadErrorTitle")}>
           <PanelSectionRow>{loadError}</PanelSectionRow>
           <PanelSectionRow>
-            <ButtonItem layout="below" onClick={() => void load(true)}>
+            <Button style={compactButtonStyle} onClick={() => void load(true)}>
               {t("content.tryAgain")}
-            </ButtonItem>
+            </Button>
           </PanelSectionRow>
         </PanelSection>
       )}
@@ -131,16 +131,16 @@ export function Content({ fullPage }: { fullPage?: View }) {
               <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>{info.description}</div>
                 <div style={{ flex: "0 0 180px" }}>
-                  <ButtonItem layout="below" onClick={() => void load(true)}>
+                  <Button style={compactButtonStyle} onClick={() => void load(true)}>
                     <FaSync /> {t("content.refresh")}
-                  </ButtonItem>
+                  </Button>
                 </div>
               </Focusable>
             </PanelSectionRow>
             {view === "updates" && updates.length > 0 && (
               <PanelSectionRow>
-                <ButtonItem
-                  layout="below"
+                <Button
+                  style={compactButtonStyle}
                   disabled={downloading}
                   onClick={() =>
                     void queueDownloads(updates.map((app) => ({ asset: app.assets[0], repo: app.repo }))).then((result) => {
@@ -152,7 +152,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
                   }
                 >
                   {t("content.updateAll")}
-                </ButtonItem>
+                </Button>
               </PanelSectionRow>
             )}
             {job && (
@@ -165,9 +165,9 @@ export function Content({ fullPage }: { fullPage?: View }) {
                   </small>
                   <DownloadProgress download={job.state} />
                   {job.state.state === "downloading" && (
-                    <ButtonItem layout="below" onClick={() => void cancelDownload(job.id)}>
+                    <Button style={compactButtonStyle} onClick={() => void cancelDownload(job.id)}>
                       {t("content.cancel")}
-                    </ButtonItem>
+                    </Button>
                   )}
                 </div>
               </PanelSectionRow>
@@ -195,24 +195,24 @@ export function Content({ fullPage }: { fullPage?: View }) {
     <>
       <PanelSection title={t("nav.browse")}>
         <PanelSectionRow>
-          <ButtonItem layout="below" onClick={() => Navigation.Navigate("/deckyhub/updates")}>
+          <Button style={compactButtonStyle} onClick={() => Navigation.Navigate("/deckyhub/updates")}>
             {t("nav.updates")}
-          </ButtonItem>
+          </Button>
         </PanelSectionRow>
         <PanelSectionRow>
-          <ButtonItem layout="below" onClick={() => Navigation.Navigate("/deckyhub/discover")}>
+          <Button style={compactButtonStyle} onClick={() => Navigation.Navigate("/deckyhub/discover")}>
             {t("nav.discover")}
-          </ButtonItem>
+          </Button>
         </PanelSectionRow>
         <PanelSectionRow>
-          <ButtonItem layout="below" onClick={() => Navigation.Navigate("/deckyhub/repositories")}>
+          <Button style={compactButtonStyle} onClick={() => Navigation.Navigate("/deckyhub/repositories")}>
             {t("nav.repositories")}
-          </ButtonItem>
+          </Button>
         </PanelSectionRow>
         <PanelSectionRow>
-          <ButtonItem layout="below" onClick={() => Navigation.Navigate("/deckyhub/settings")}>
+          <Button style={compactButtonStyle} onClick={() => Navigation.Navigate("/deckyhub/settings")}>
             {t("nav.settings")}
-          </ButtonItem>
+          </Button>
         </PanelSectionRow>
       </PanelSection>
     </>
