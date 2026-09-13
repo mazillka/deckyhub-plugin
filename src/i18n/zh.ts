@@ -85,7 +85,6 @@ export const zh: Record<MessageKey, string> = {
   "repos.removeRepositoryDesc": "停止跟踪 {repo}？之后仍可从“发现”重新添加。",
   "repos.removeConfirm": "移除",
   "repos.perRepoOverrides": "为每个仓库单独设置发布渠道、文件夹和资源过滤器。",
-  "repos.refreshRegistry": "刷新注册表",
   "repos.releaseChannel": "发布渠道",
   "repos.stable": "稳定版",
   "repos.prerelease": "预发布版",

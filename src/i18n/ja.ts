@@ -85,7 +85,6 @@ export const ja: Record<MessageKey, string> = {
   "repos.removeRepositoryDesc": "{repo} の追跡を停止しますか？後で「見つける」から再度追加できます。",
   "repos.removeConfirm": "削除",
   "repos.perRepoOverrides": "リポジトリごとのチャンネル・フォルダ・アセットフィルターの設定。",
-  "repos.refreshRegistry": "レジストリを更新",
   "repos.releaseChannel": "リリースチャンネル",
   "repos.stable": "安定版",
   "repos.prerelease": "プレリリース",

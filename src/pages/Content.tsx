@@ -1,5 +1,5 @@
 import { toaster } from "@decky/api";
-import { ButtonItem, DropdownItem, Navigation, PanelSection, PanelSectionRow, Spinner, TextField } from "@decky/ui";
+import { ButtonItem, DropdownItem, Focusable, Navigation, PanelSection, PanelSectionRow, Spinner, TextField } from "@decky/ui";
 import { useEffect, useState } from "react";
 import { FaSync } from "react-icons/fa";
 import { cancelDownload, downloadAsset, getApps, getDownload, getSettings, queueDownloads, REGISTRY_UPDATED } from "../api";
@@ -74,19 +74,23 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const discoverFilters = view === "discover" && (
     <PanelSection>
       <PanelSectionRow>
-        <TextField label={t("filter.search")} value={query} onChange={(event) => setQuery(event.currentTarget.value)} />
-      </PanelSectionRow>
-      <PanelSectionRow>
-        <DropdownItem
-          label={t("filter.status")}
-          rgOptions={[
-            { label: t("filter.all"), data: "All" },
-            { label: t("filter.installed"), data: "Installed" },
-            { label: t("filter.notInstalled"), data: "Not Installed" },
-          ]}
-          selectedOption={installedFilter}
-          onChange={({ data }) => setInstalledFilter(data)}
-        />
+        <Focusable flow-children="right" style={{ display: "flex", gap: 12 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <TextField label={t("filter.search")} value={query} onChange={(event) => setQuery(event.currentTarget.value)} />
+          </div>
+          <div style={{ flex: "0 0 220px" }}>
+            <DropdownItem
+              label={t("filter.status")}
+              rgOptions={[
+                { label: t("filter.all"), data: "All" },
+                { label: t("filter.installed"), data: "Installed" },
+                { label: t("filter.notInstalled"), data: "Not Installed" },
+              ]}
+              selectedOption={installedFilter}
+              onChange={({ data }) => setInstalledFilter(data)}
+            />
+          </div>
+        </Focusable>
       </PanelSectionRow>
     </PanelSection>
   );

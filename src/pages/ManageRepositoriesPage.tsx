@@ -1,9 +1,8 @@
 import { FileSelectionType, fetchNoCors, openFilePicker, toaster } from "@decky/api";
-import { ButtonItem, ConfirmModal, DropdownItem, PanelSection, PanelSectionRow, showModal, Tabs, TextField } from "@decky/ui";
+import { ButtonItem, ConfirmModal, DropdownItem, Focusable, PanelSection, PanelSectionRow, showModal, Tabs, TextField } from "@decky/ui";
 import { FocusableGrid } from "../components/FocusableGrid";
 import { useEffect, useState } from "react";
-import { FaSync } from "react-icons/fa";
-import { addCustomRepo, exportCustomRepos, getApps, getCustomRepos, getSettings, importCustomRepos, REGISTRY_UPDATED, refreshRegistry, removeCustomRepo, saveRepoSettings } from "../api";
+import { addCustomRepo, exportCustomRepos, getApps, getCustomRepos, getSettings, importCustomRepos, REGISTRY_UPDATED, removeCustomRepo, saveRepoSettings } from "../api";
 import { useT } from "../i18n";
 import type { App, ManagedRepo, RepoPreference, SearchRepo, Settings } from "../types";
 
@@ -98,43 +97,47 @@ export function ManageRepositoriesPage() {
     <>
       <PanelSection title={t("repos.addGithubRepository")}>
         <PanelSectionRow>
-          <TextField label={t("repos.searchGithub")} value={query} onChange={(event) => setQuery(event.currentTarget.value)} />
+          <Focusable flow-children="right" style={{ display: "flex", alignItems: "flex-end", gap: 12 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <TextField label={t("repos.searchGithub")} value={query} onChange={(event) => setQuery(event.currentTarget.value)} />
+            </div>
+            <div style={{ flex: "0 0 160px" }}>
+              <ButtonItem layout="below" onClick={() => void search()} disabled={!query.trim() || searching}>
+                {searching ? t("repos.searching") : t("filter.search")}
+              </ButtonItem>
+            </div>
+            <div style={{ flex: "0 0 120px" }}>
+              <ButtonItem
+                layout="below"
+                onClick={() => {
+                  setQuery("");
+                  setResults([]);
+                  setSearchError(null);
+                  setPage(0);
+                }}
+              >
+                {t("repos.clear")}
+              </ButtonItem>
+            </div>
+          </Focusable>
         </PanelSectionRow>
-        <PanelSectionRow>
-          <ButtonItem layout="below" onClick={() => void search()} disabled={!query.trim() || searching}>
-            {searching ? t("repos.searching") : t("filter.search")}
-          </ButtonItem>
-        </PanelSectionRow>
-        {(query || results.length > 0 || searchError) && (
-          <PanelSectionRow>
-            <ButtonItem
-              layout="below"
-              onClick={() => {
-                setQuery("");
-                setResults([]);
-                setSearchError(null);
-                setPage(0);
-              }}
-            >
-              {t("repos.clear")}
-            </ButtonItem>
-          </PanelSectionRow>
-        )}
         {searchError && <PanelSectionRow>{searchError}</PanelSectionRow>}
         {results.length > RESULTS_PER_PAGE && (
-          <>
-            <PanelSectionRow>
+          <PanelSectionRow>
+            <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ flex: 1 }}>
               <ButtonItem layout="below" disabled={page === 0} onClick={() => setPage((current) => current - 1)}>
                 {t("repos.previous")}
               </ButtonItem>
-            </PanelSectionRow>
-            <PanelSectionRow>{t("repos.pageOf", { page: page + 1, total: Math.ceil(results.length / RESULTS_PER_PAGE) })}</PanelSectionRow>
-            <PanelSectionRow>
+              </div>
+              <span style={{ whiteSpace: "nowrap" }}>{t("repos.pageOf", { page: page + 1, total: Math.ceil(results.length / RESULTS_PER_PAGE) })}</span>
+              <div style={{ flex: 1 }}>
               <ButtonItem layout="below" disabled={(page + 1) * RESULTS_PER_PAGE >= results.length} onClick={() => setPage((current) => current + 1)}>
                 {t("repos.next")}
               </ButtonItem>
-            </PanelSectionRow>
-          </>
+              </div>
+            </Focusable>
+          </PanelSectionRow>
         )}
       </PanelSection>
 
@@ -185,20 +188,6 @@ export function ManageRepositoriesPage() {
     <>
       <PanelSection title={t("repos.repositorySettings")}>
         <PanelSectionRow>{t("repos.perRepoOverrides")}</PanelSectionRow>
-        <PanelSectionRow>
-          <ButtonItem
-            layout="below"
-            onClick={() =>
-              void refreshRegistry().then((result) => {
-                toaster.toast({ title: "DeckyHub", body: `Registry refreshed: ${result.count} repositories.` });
-                refreshRepos();
-                window.dispatchEvent(new Event(REGISTRY_UPDATED));
-              })
-            }
-          >
-            <FaSync /> {t("repos.refreshRegistry")}
-          </ButtonItem>
-        </PanelSectionRow>
       </PanelSection>
       <FocusableGrid items={apps} columns={2} keyFor={(app) => app.repo}>
         {(app) => {

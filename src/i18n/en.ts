@@ -84,7 +84,6 @@ export const en = {
   "repos.removeRepositoryDesc": "Stop tracking {repo}? You can add it again later from Discover.",
   "repos.removeConfirm": "Remove",
   "repos.perRepoOverrides": "Per-repo release, folder, and asset overrides.",
-  "repos.refreshRegistry": "Refresh Registry",
   "repos.releaseChannel": "Release Channel",
   "repos.stable": "Stable",
   "repos.prerelease": "Pre-release",

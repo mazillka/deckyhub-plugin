@@ -85,7 +85,6 @@ export const de: Record<MessageKey, string> = {
   "repos.removeRepositoryDesc": "{repo} nicht mehr verfolgen? Du kannst es später über Entdecken wieder hinzufügen.",
   "repos.removeConfirm": "Entfernen",
   "repos.perRepoOverrides": "Release-Kanal, Ordner und Asset-Filter pro Repository.",
-  "repos.refreshRegistry": "Register aktualisieren",
   "repos.releaseChannel": "Release-Kanal",
   "repos.stable": "Stabil",
   "repos.prerelease": "Vorabversion",

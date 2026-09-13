@@ -85,7 +85,6 @@ export const uk: Record<MessageKey, string> = {
   "repos.removeRepositoryDesc": "Припинити відстеження {repo}? Ви завжди зможете додати його знову з Огляду.",
   "repos.removeConfirm": "Видалити",
   "repos.perRepoOverrides": "Індивідуальні налаштування каналу, папки й фільтра файлів для кожного репозиторію.",
-  "repos.refreshRegistry": "Оновити реєстр",
   "repos.releaseChannel": "Канал релізів",
   "repos.stable": "Стабільний",
   "repos.prerelease": "Пре-реліз",

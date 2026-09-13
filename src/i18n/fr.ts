@@ -85,7 +85,6 @@ export const fr: Record<MessageKey, string> = {
   "repos.removeRepositoryDesc": "Arrêter de suivre {repo} ? Vous pourrez le rajouter plus tard depuis Découvrir.",
   "repos.removeConfirm": "Retirer",
   "repos.perRepoOverrides": "Canal, dossier et filtre de fichiers par dépôt.",
-  "repos.refreshRegistry": "Actualiser le registre",
   "repos.releaseChannel": "Canal de version",
   "repos.stable": "Stable",
   "repos.prerelease": "Préliminaire",
