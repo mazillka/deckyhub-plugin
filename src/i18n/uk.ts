@@ -7,7 +7,7 @@ export const uk: Record<MessageKey, string> = {
   "nav.settings": "Налаштування",
   "nav.browse": "Перегляд",
 
-  "view.updatesDescription": "Оновлення для ваших встановлених плагінів.",
+  "view.updatesDescription": "",
   "view.updatesEmpty": "Усе встановлене оновлено.",
   "view.discoverDescription": "Перегляд підтримуваних проєктів GitHub та їхніх ZIP-релізів.",
   "view.discoverEmpty": "Немає доступних репозиторіїв.",
@@ -23,7 +23,7 @@ export const uk: Record<MessageKey, string> = {
   "content.loadErrorTitle": "Не вдалося завантажити DeckyHub",
   "content.tryAgain": "Спробувати ще раз",
   "content.refresh": "Оновити",
-  "content.updateAll": "Оновити все",
+  "content.updateAll": "Завантажити всі оновлення",
   "content.download": "Завантаження",
   "content.cancel": "Скасувати",
   "content.useDiscover": "Скористайтесь Оглядом, щоб переглянути реєстр.",

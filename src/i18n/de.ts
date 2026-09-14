@@ -7,7 +7,7 @@ export const de: Record<MessageKey, string> = {
   "nav.settings": "Einstellungen",
   "nav.browse": "Durchsuchen",
 
-  "view.updatesDescription": "Updates für deine installierten Plugins.",
+  "view.updatesDescription": "",
   "view.updatesEmpty": "Alles Installierte ist aktuell.",
   "view.discoverDescription": "Unterstützte GitHub-Projekte und ihre ZIP-Releases durchsuchen.",
   "view.discoverEmpty": "Keine Repositories verfügbar.",
@@ -23,7 +23,7 @@ export const de: Record<MessageKey, string> = {
   "content.loadErrorTitle": "DeckyHub konnte nicht geladen werden",
   "content.tryAgain": "Erneut versuchen",
   "content.refresh": "Aktualisieren",
-  "content.updateAll": "Alle aktualisieren",
+  "content.updateAll": "Alle Updates herunterladen",
   "content.download": "Download",
   "content.cancel": "Abbrechen",
   "content.useDiscover": "Nutze Entdecken, um das Register zu durchsuchen.",

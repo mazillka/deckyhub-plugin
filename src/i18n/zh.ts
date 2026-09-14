@@ -7,7 +7,7 @@ export const zh: Record<MessageKey, string> = {
   "nav.settings": "设置",
   "nav.browse": "浏览",
 
-  "view.updatesDescription": "已安装插件的可用更新。",
+  "view.updatesDescription": "",
   "view.updatesEmpty": "所有已安装项目均为最新版本。",
   "view.discoverDescription": "浏览受支持的 GitHub 项目及其 ZIP 发行版。",
   "view.discoverEmpty": "没有可用的仓库。",
@@ -23,7 +23,7 @@ export const zh: Record<MessageKey, string> = {
   "content.loadErrorTitle": "无法加载 DeckyHub",
   "content.tryAgain": "重试",
   "content.refresh": "刷新",
-  "content.updateAll": "全部更新",
+  "content.updateAll": "下载全部更新",
   "content.download": "下载",
   "content.cancel": "取消",
   "content.useDiscover": "请使用“发现”浏览注册表。",

@@ -6,7 +6,7 @@ export const en = {
   "nav.settings": "Settings",
   "nav.browse": "Browse",
 
-  "view.updatesDescription": "Updates available for your installed plugins.",
+  "view.updatesDescription": "",
   "view.updatesEmpty": "Everything installed is up to date.",
   "view.discoverDescription": "Browse supported GitHub projects and their ZIP releases.",
   "view.discoverEmpty": "No repositories are available.",
@@ -22,7 +22,7 @@ export const en = {
   "content.loadErrorTitle": "Could Not Load DeckyHub",
   "content.tryAgain": "Try Again",
   "content.refresh": "Refresh",
-  "content.updateAll": "Update All",
+  "content.updateAll": "Download All Updates",
   "content.download": "Download",
   "content.cancel": "Cancel",
   "content.useDiscover": "Use Discover to browse the registry.",

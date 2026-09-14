@@ -7,7 +7,7 @@ export const ja: Record<MessageKey, string> = {
   "nav.settings": "設定",
   "nav.browse": "一覧",
 
-  "view.updatesDescription": "インストール済みプラグインのアップデートです。",
+  "view.updatesDescription": "",
   "view.updatesEmpty": "すべて最新の状態です。",
   "view.discoverDescription": "対応しているGitHubプロジェクトとそのZIPリリースを見つけます。",
   "view.discoverEmpty": "利用できるリポジトリがありません。",
@@ -23,7 +23,7 @@ export const ja: Record<MessageKey, string> = {
   "content.loadErrorTitle": "DeckyHubを読み込めませんでした",
   "content.tryAgain": "再試行",
   "content.refresh": "更新",
-  "content.updateAll": "すべて更新",
+  "content.updateAll": "すべてのアップデートをダウンロード",
   "content.download": "ダウンロード",
   "content.cancel": "キャンセル",
   "content.useDiscover": "「見つける」からレジストリを見てください。",

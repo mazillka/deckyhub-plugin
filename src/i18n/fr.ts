@@ -7,7 +7,7 @@ export const fr: Record<MessageKey, string> = {
   "nav.settings": "Paramètres",
   "nav.browse": "Parcourir",
 
-  "view.updatesDescription": "Mises à jour disponibles pour vos plugins installés.",
+  "view.updatesDescription": "",
   "view.updatesEmpty": "Tout est à jour.",
   "view.discoverDescription": "Parcourez les projets GitHub pris en charge et leurs versions ZIP.",
   "view.discoverEmpty": "Aucun dépôt disponible.",
@@ -23,7 +23,7 @@ export const fr: Record<MessageKey, string> = {
   "content.loadErrorTitle": "Impossible de charger DeckyHub",
   "content.tryAgain": "Réessayer",
   "content.refresh": "Actualiser",
-  "content.updateAll": "Tout mettre à jour",
+  "content.updateAll": "Télécharger toutes les mises à jour",
   "content.download": "Téléchargement",
   "content.cancel": "Annuler",
   "content.useDiscover": "Utilisez Découvrir pour parcourir le registre.",
