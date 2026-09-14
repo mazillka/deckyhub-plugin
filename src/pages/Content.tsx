@@ -135,8 +135,8 @@ export function Content({ fullPage }: { fullPage?: View }) {
           <PanelSection title={info.title}>
             <PanelSectionRow>
               <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ flex: 1, minWidth: 0 }}>{info.description}</div>
-                <div style={{ flex: "0 0 180px" }}>
+                {info.description && <div style={{ flex: 1, minWidth: 0 }}>{info.description}</div>}
+                <div style={{ flex: info.description ? "0 0 180px" : 1 }}>
                   <Button style={compactButtonStyle} onClick={() => void load(true)}>
                     <FaSync /> {t("content.refresh")}
                   </Button>
