@@ -133,15 +133,15 @@ test("DeckyHub automatically hides a matching update package", async ({ page }) 
   await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases/latest", (route) =>
     route.fulfill({
       json: {
-        tag_name: "v0.4.28",
-        html_url: "https://github.com/mazillka/deckyhub-plugin/releases/tag/v0.4.28",
-        assets: [{ name: "DeckyHub-v0.4.28.zip", browser_download_url: "https://github.com/mazillka/deckyhub-plugin/releases/download/v0.4.28/DeckyHub-v0.4.28.zip", digest: `sha256:${"a".repeat(64)}` }],
+        tag_name: "v1.0.0",
+        html_url: "https://github.com/mazillka/deckyhub-plugin/releases/tag/v1.0.0",
+        assets: [{ name: "DeckyHub-v1.0.0.zip", browser_download_url: "https://github.com/mazillka/deckyhub-plugin/releases/download/v1.0.0/DeckyHub-v1.0.0.zip", digest: `sha256:${"a".repeat(64)}` }],
       },
     })
   );
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await expect(app.getByText("DeckyHub 0.4.28 is already up to date.")).toBeVisible();
+  await expect(app.getByText("DeckyHub 1.0.0 is already up to date.")).toBeVisible();
   await expect(app.getByRole("button", { name: "Download Update", exact: true })).toBeHidden();
   await expect(app.getByRole("button", { name: "Release Page", exact: true })).toBeHidden();
 });
