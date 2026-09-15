@@ -1,4 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
+import { readFileSync } from "node:fs";
+
+const deckyHubVersion = JSON.parse(readFileSync(new URL("../../../package.json", import.meta.url), "utf8")).version;
+const deckyHubTag = `v${deckyHubVersion}`;
 
 const release = {
   tag_name: "plugin-v1.2.3",
@@ -133,15 +137,15 @@ test("DeckyHub automatically hides a matching update package", async ({ page }) 
   await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases/latest", (route) =>
     route.fulfill({
       json: {
-        tag_name: "v1.0.0",
-        html_url: "https://github.com/mazillka/deckyhub-plugin/releases/tag/v1.0.0",
-        assets: [{ name: "DeckyHub-v1.0.0.zip", browser_download_url: "https://github.com/mazillka/deckyhub-plugin/releases/download/v1.0.0/DeckyHub-v1.0.0.zip", digest: `sha256:${"a".repeat(64)}` }],
+        tag_name: deckyHubTag,
+        html_url: `https://github.com/mazillka/deckyhub-plugin/releases/tag/${deckyHubTag}`,
+        assets: [{ name: `DeckyHub-${deckyHubTag}.zip`, browser_download_url: `https://github.com/mazillka/deckyhub-plugin/releases/download/${deckyHubTag}/DeckyHub-${deckyHubTag}.zip`, digest: `sha256:${"a".repeat(64)}` }],
       },
     })
   );
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await expect(app.getByText("DeckyHub 1.0.0 is already up to date.")).toBeVisible();
+  await expect(app.getByText(`DeckyHub ${deckyHubVersion} is already up to date.`)).toBeVisible();
   await expect(app.getByRole("button", { name: "Download Update", exact: true })).toBeHidden();
   await expect(app.getByRole("button", { name: "Release Page", exact: true })).toBeHidden();
 });
