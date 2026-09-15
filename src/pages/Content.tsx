@@ -1,6 +1,6 @@
 import { toaster } from "@decky/api";
 import { DialogButtonPrimary as Button, Dropdown, Focusable, Navigation, PanelSection, PanelSectionRow, Spinner, TextField } from "@decky/ui";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FaSync } from "react-icons/fa";
 import { cancelDownload, downloadAsset, getApps, getDownload, getSettings, queueDownloads, REGISTRY_UPDATED } from "../api";
 import { useT } from "../i18n";
@@ -17,10 +17,12 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const [view] = useState<View>(fullPage ?? "updates");
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [job, setJob] = useState<{ id: string; state: Download } | null>(null);
+  const [jobs, setJobs] = useState<Record<string, Download>>({});
+  const completedJobs = useRef(new Set<string>());
   const [query, setQuery] = useState("");
   const [installedFilter, setInstalledFilter] = useState("All");
-  const downloading = Boolean(job && ["queued", "downloading"].includes(job.state.state));
+  const activeJobs = Object.entries(jobs).filter(([, job]) => ["queued", "downloading"].includes(job.state));
+  const downloading = activeJobs.length > 0;
 
   const viewInfo: Record<View, { title: string; description: string; empty: string }> = {
     updates: { title: t("nav.updates"), description: t("view.updatesDescription"), empty: t("view.updatesEmpty") },
@@ -57,20 +59,39 @@ export function Content({ fullPage }: { fullPage?: View }) {
   }, []);
 
   useEffect(() => {
-    if (!job || !["queued", "downloading"].includes(job.state.state)) return;
-    const timer = window.setInterval(() => void getDownload(job.id).then((state) => setJob({ id: job.id, state })), 500);
+    if (!activeJobs.length) return;
+    const updateJobs = () =>
+      void Promise.all(activeJobs.map(async ([id]) => [id, await getDownload(id)] as const)).then(
+        (states) => setJobs((current) => ({ ...current, ...Object.fromEntries(states) })),
+        (error) => setJobs((current) => ({
+          ...current,
+          ...Object.fromEntries(activeJobs.map(([id, job]) => [id, { ...job, state: "error", error: String(error) }])),
+        })),
+      );
+    const timer = window.setInterval(updateJobs, 500);
     return () => window.clearInterval(timer);
-  }, [job]);
+  }, [activeJobs.map(([id]) => id).join(",")]);
 
   useEffect(() => {
-    if (job?.state.state !== "complete") return;
-    showDownloadComplete(t, t("appcard.downloadComplete"), job.state.path);
-  }, [job?.id, job?.state.state]);
+    Object.entries(jobs).forEach(([id, job]) => {
+      if (job.state === "complete" && !completedJobs.current.has(id)) {
+        completedJobs.current.add(id);
+        showDownloadComplete(t, t("appcard.downloadComplete"), job.path);
+      }
+    });
+  }, [jobs]);
 
   const startDownload = async (asset: Asset, repo?: string) => {
-    const result = await downloadAsset(asset, repo);
-    if (result.jobId) setJob({ id: result.jobId, state: { state: "queued", filename: asset.name, total: asset.size } });
+    try {
+      const result = await downloadAsset(asset, repo);
+      if (result.jobId) setJobs((current) => ({ ...current, [result.jobId!]: { state: "queued", filename: asset.name, total: asset.size, repo } }));
+    } catch (error) {
+      toaster.toast({ title: "DeckyHub", body: String(error) });
+    }
   };
+
+  const cancel = (jobId: string) =>
+    void cancelDownload(jobId).catch((error) => toaster.toast({ title: "DeckyHub", body: String(error) }));
 
   const discoverFilters = view === "discover" && (
     <PanelSection>
@@ -150,34 +171,29 @@ export function Content({ fullPage }: { fullPage?: View }) {
                   disabled={downloading}
                   onClick={() =>
                     void queueDownloads(updates.map((app) => ({ asset: app.assets[0], repo: app.repo }))).then((result) => {
-                      const asset = updates[updates.length - 1].assets[0];
-                      const jobId = result.jobIds[result.jobIds.length - 1];
-                      if (jobId) setJob({ id: jobId, state: { state: "queued", filename: asset.name, total: asset.size } });
+                      setJobs((current) => ({
+                        ...current,
+                        ...Object.fromEntries(result.jobIds.map((id, index) => [id, { state: "queued", filename: updates[index].assets[0].name, total: updates[index].assets[0].size, repo: updates[index].repo }])),
+                      }));
                       toaster.toast({ title: "DeckyHub", body: `${result.jobIds.length} updates queued.` });
-                    })
+                    }).catch((error) => toaster.toast({ title: "DeckyHub", body: String(error) }))
                   }
                 >
                   {t("content.updateAll")}
                 </Button>
               </PanelSectionRow>
             )}
-            {job && (
-              <PanelSectionRow>
+            {activeJobs.map(([id, job]) => (
+              <PanelSectionRow key={id}>
                 <div>
-                  <strong>{job.state.filename ?? t("content.download")}</strong>
+                  <strong>{job.filename ?? t("content.download")}</strong>
                   <br />
-                  <small>
-                    {job.state.state} {job.state.total ? `· ${Math.round((100 * (job.state.received ?? 0)) / job.state.total)}%` : ""}
-                  </small>
-                  <DownloadProgress download={job.state} />
-                  {job.state.state === "downloading" && (
-                    <Button style={compactButtonStyle} onClick={() => void cancelDownload(job.id)}>
-                      {t("content.cancel")}
-                    </Button>
-                  )}
+                  <small>{job.state} {job.total ? `· ${Math.round((100 * (job.received ?? 0)) / job.total)}%` : ""}</small>
+                  <DownloadProgress download={job} />
+                  {job.state === "downloading" && <Button style={compactButtonStyle} onClick={() => cancel(id)}>{t("content.cancel")}</Button>}
                 </div>
               </PanelSectionRow>
-            )}
+            ))}
           </PanelSection>
           <div aria-hidden style={sectionDividerStyle} />
           <FocusableGrid
@@ -185,7 +201,10 @@ export function Content({ fullPage }: { fullPage?: View }) {
             columns={2}
             keyFor={(app) => app.id}
           >
-            {(app) => <AppCard app={app} job={job} downloadDisabled={downloading} onDownload={(asset) => void startDownload(asset, app.repo)} onCancel={(jobId) => void cancelDownload(jobId)} />}
+            {(app) => {
+              const match = Object.entries(jobs).find(([, job]) => job.repo === app.repo && app.assets.some((asset) => asset.name === job.filename));
+              return <AppCard app={app} job={match && { id: match[0], state: match[1] }} downloadDisabled={downloading} onDownload={(asset) => void startDownload(asset, app.repo)} onCancel={cancel} />;
+            }}
           </FocusableGrid>
           {!visibleApps.length && (
             <PanelSection title={info.empty}>

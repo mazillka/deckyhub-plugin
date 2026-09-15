@@ -252,15 +252,10 @@ class Plugin:
         return {"added": added}
 
     async def download_asset(self, asset: dict, repo: str | None = None):
-        prefix = f"https://github.com/{repo}/releases/download/" if isinstance(repo, str) and REPOSITORY_NAME.fullmatch(repo) else ""
-        if not prefix or not isinstance(asset.get("url"), str) or not asset["url"].startswith(prefix):
-            raise ValueError("Only GitHub release assets for the selected repository can be downloaded")
+        name = self._validate_download_asset(asset, repo)
         for job_id, job in self.downloads.items():
             if job.get("repo") == repo and job.get("url") == asset["url"] and job["state"] in ("queued", "downloading"):
                 return {"jobId": job_id}
-        name = Path(asset.get("name", "download")).name
-        if not name or name in (".", ".."):
-            raise ValueError("Invalid asset filename")
         target_dir = self._asset_download_dir()
         target_dir.mkdir(parents=True, exist_ok=True)
         target = target_dir / name
@@ -272,11 +267,26 @@ class Plugin:
         return {"jobId": job_id}
 
     async def queue_downloads(self, items: list[dict]):
-        jobs = []
+        entries = []
         for item in items:
-            result = await self.download_asset(item.get("asset", {}), item.get("repo"))
+            asset, repo = item.get("asset", {}), item.get("repo")
+            self._validate_download_asset(asset, repo)
+            entries.append((asset, repo))
+        jobs = []
+        for asset, repo in entries:
+            result = await self.download_asset(asset, repo)
             jobs.append(result["jobId"])
         return {"jobIds": jobs}
+
+    @staticmethod
+    def _validate_download_asset(asset: dict, repo: str | None) -> str:
+        prefix = f"https://github.com/{repo}/releases/download/" if isinstance(repo, str) and REPOSITORY_NAME.fullmatch(repo) else ""
+        if not isinstance(asset, dict) or not prefix or not isinstance(asset.get("url"), str) or not asset["url"].startswith(prefix):
+            raise ValueError("Only GitHub release assets for the selected repository can be downloaded")
+        name = Path(asset.get("name", "download")).name
+        if not name or name in (".", ".."):
+            raise ValueError("Invalid asset filename")
+        return name
 
     async def install_deckyhub_update(self, asset: dict):
         url, name = asset.get("url"), Path(str(asset.get("name", ""))).name
@@ -366,7 +376,7 @@ class Plugin:
         environment = os.environ.copy()
         environment.pop("LD_LIBRARY_PATH", None)
         environment.pop("LD_PRELOAD", None)
-        process = subprocess.Popen([curl, "--fail", "--location", "--silent", "--show-error", "--output", str(temp), asset["url"]], stderr=subprocess.PIPE, text=True, env=environment)
+        process = subprocess.Popen([curl, "--fail", "--location", "--silent", "--show-error", "--connect-timeout", "15", "--max-time", "300", "--output", str(temp), asset["url"]], stderr=subprocess.PIPE, text=True, env=environment)
         while process.poll() is None:
             if job_id in self.cancelled:
                 process.terminate()

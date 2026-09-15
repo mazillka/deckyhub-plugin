@@ -26,7 +26,7 @@ export function DeckyHubUpdate() {
     void Promise.all([getSettings(), getDeckyHubInfo()]).then(([settings, nextInfo]) => {
       setChannel(settings.updateChannel);
       setInfo(nextInfo);
-    });
+    }).catch((error) => setRelease({ error: String(error) }));
   }, []);
 
   useEffect(() => {
@@ -35,7 +35,10 @@ export function DeckyHubUpdate() {
 
   useEffect(() => {
     if (!job || !["queued", "downloading"].includes(job.state.state)) return;
-    const timer = window.setInterval(() => void getDownload(job.id).then((state) => setJob({ id: job.id, state })), 500);
+    const timer = window.setInterval(() => void getDownload(job.id).then(
+      (state) => setJob({ id: job.id, state }),
+      (error) => setJob((current) => current && { ...current, state: { ...current.state, state: "error", error: String(error) } }),
+    ), 500);
     return () => window.clearInterval(timer);
   }, [job]);
 
@@ -46,8 +49,12 @@ export function DeckyHubUpdate() {
   const upToDate = Boolean(release.version && info.version !== "unknown" && release.version.trim().replace(/^v/i, "") === info.version.trim().replace(/^v/i, ""));
 
   const installUpdate = async (asset: Asset) => {
-    const result = await installDeckyHubUpdate(asset);
-    if (result.jobId) setJob({ id: result.jobId, state: { state: "queued", filename: asset.name, total: asset.size } });
+    try {
+      const result = await installDeckyHubUpdate(asset);
+      if (result.jobId) setJob({ id: result.jobId, state: { state: "queued", filename: asset.name, total: asset.size } });
+    } catch (error) {
+      setRelease((current) => ({ ...current, error: String(error) }));
+    }
   };
 
   return (
@@ -77,7 +84,7 @@ export function DeckyHubUpdate() {
           <DownloadProgress download={job.state} />
           {job.state.state === "complete" && <small>{t("settings.downloadedTo", { path: job.state.path || t("dl.selectedFolder") })}</small>}
           {job.state.error && <small>{job.state.error}</small>}
-          {["queued", "downloading"].includes(job.state.state) && <Button style={compactButtonStyle} onClick={() => void cancelDownload(job.id)}>{t("content.cancel")}</Button>}
+          {["queued", "downloading"].includes(job.state.state) && <Button style={compactButtonStyle} onClick={() => void cancelDownload(job.id).catch((error) => setJob((current) => current && { ...current, state: { ...current.state, state: "error", error: String(error) } }))}>{t("content.cancel")}</Button>}
         </PanelSectionRow>
       )}
       {release.url && !upToDate && (

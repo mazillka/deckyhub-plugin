@@ -23,7 +23,7 @@ export type UpdateChannel = "stable" | "prerelease";
 
 export type Settings = { verifySha256: boolean; overwriteExisting: boolean; updateChannel: UpdateChannel; language: string };
 
-export type Download = { state: string; filename?: string; received?: number; total?: number; path?: string; error?: string };
+export type Download = { state: string; filename?: string; repo?: string; received?: number; total?: number; path?: string; error?: string };
 
 export type DeckyHubInfo = { version: string };
 

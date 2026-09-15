@@ -1,11 +1,11 @@
-import { FileSelectionType, fetchNoCors, openFilePicker, toaster } from "@decky/api";
+import { FileSelectionType, openFilePicker, toaster } from "@decky/api";
 import { DialogButtonPrimary as Button, ConfirmModal, DropdownItem, Focusable, PanelSection, PanelSectionRow, showModal, Tabs, TextField } from "@decky/ui";
 import { FocusableGrid } from "../components/FocusableGrid";
 import { useEffect, useState } from "react";
 import { addCustomRepo, exportCustomRepos, getApps, getCustomRepos, getSettings, importCustomRepos, REGISTRY_UPDATED, removeCustomRepo, saveRepoSettings } from "../api";
 import { useT } from "../i18n";
 import type { App, ManagedRepo, RepoPreference, SearchRepo, Settings } from "../types";
-import { compactButtonStyle, sectionDividerStyle } from "../utils";
+import { compactButtonStyle, fetchWithTimeout, sectionDividerStyle } from "../utils";
 
 const RESULTS_PER_PAGE = 5;
 
@@ -42,7 +42,7 @@ export function ManageRepositoriesPage() {
     setSearching(true);
     try {
       setSearchError(null);
-      const response = await fetchNoCors(`https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&sort=stars&order=desc&per_page=25`, {
+      const response = await fetchWithTimeout(`https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&sort=stars&order=desc&per_page=25`, {
         headers: { Accept: "application/vnd.github+json" },
       });
       if (!response.ok) throw new Error(`GitHub API returned ${response.status}`);

@@ -140,6 +140,8 @@ class PluginStatusTests(unittest.TestCase):
             command = popen.call_args.args[0]
             environment = popen.call_args.kwargs["env"]
             self.assertEqual(command[0], "/usr/bin/curl")
+            self.assertIn("--connect-timeout", command)
+            self.assertIn("--max-time", command)
             self.assertNotIn("LD_LIBRARY_PATH", environment)
 
     def test_custom_repository_is_saved(self):
@@ -402,6 +404,22 @@ class PluginStatusTests(unittest.TestCase):
 
             self.assertEqual(len(result["jobIds"]), 2)
             self.assertEqual(len(plugin.downloads), 2)
+
+    def test_queue_downloads_validates_every_item_before_queueing(self):
+        plugin = Plugin()
+        plugin.downloads = {}
+        plugin.download_queue = asyncio.Queue()
+        valid = {"name": "plugin.zip", "url": "https://github.com/owner/repo/releases/download/v1/plugin.zip"}
+        invalid = {"name": "plugin.zip", "url": "https://example.com/plugin.zip"}
+
+        with self.assertRaises(ValueError):
+            asyncio.run(plugin.queue_downloads([
+                {"asset": valid, "repo": "owner/repo"},
+                {"asset": invalid, "repo": "owner/repo"},
+            ]))
+
+        self.assertEqual(plugin.downloads, {})
+        self.assertTrue(plugin.download_queue.empty())
 
     def test_refresh_registry_replaces_apps_and_writes_cache(self):
         with tempfile.TemporaryDirectory() as home:

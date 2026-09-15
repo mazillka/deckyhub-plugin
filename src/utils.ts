@@ -8,6 +8,10 @@ export const pageStyle = { boxSizing: "border-box" as const, height: "100%", ove
 export const compactButtonStyle = { width: "100%", minHeight: 36, marginBottom: 8, padding: "6px 10px" };
 export const sectionDividerStyle = { borderTop: "1px solid rgba(255, 255, 255, 0.14)", margin: "16px 0" };
 
+export function fetchWithTimeout(input: string, init?: RequestInit) {
+  return fetchNoCors(input, { ...init, signal: AbortSignal.timeout(15_000) });
+}
+
 export const readableBytes = (bytes = 0) => (bytes > 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.ceil(bytes / 1024)} KB`);
 
 export const statusKey = (app: App): MessageKey =>
@@ -67,7 +71,7 @@ export function notifyUpdates(apps: App[]) {
 export async function latestDeckyHubRelease(channel: UpdateChannel): Promise<DeckyHubRelease> {
   try {
     const endpoint = channel === "prerelease" ? "releases?per_page=20" : "releases/latest";
-    const response = await fetchNoCors(`https://api.github.com/repos/mazillka/deckyhub-plugin/${endpoint}`, { headers: { Accept: "application/vnd.github+json" } });
+    const response = await fetchWithTimeout(`https://api.github.com/repos/mazillka/deckyhub-plugin/${endpoint}`, { headers: { Accept: "application/vnd.github+json" } });
     if (!response.ok) throw new Error(`GitHub API returned ${response.status}`);
     const body = await response.json();
     const release = Array.isArray(body) ? body.find((item) => item.prerelease && !item.draft) : body;
@@ -90,7 +94,7 @@ export async function hydrate(app: App, force: boolean, preference?: RepoPrefere
           : preference?.channel === "prerelease" || app.releaseTagInclude
           ? `/repos/${app.repo}/releases?per_page=20`
           : `/repos/${app.repo}/releases/latest`;
-      const response = await fetchNoCors(`https://api.github.com${endpoint}`, { headers: { Accept: "application/vnd.github+json" } });
+      const response = await fetchWithTimeout(`https://api.github.com${endpoint}`, { headers: { Accept: "application/vnd.github+json" } });
       if (!response.ok) throw new Error(`GitHub API returned ${response.status}`);
       const body = await response.json();
       release = Array.isArray(body)
