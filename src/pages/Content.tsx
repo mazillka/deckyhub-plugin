@@ -11,6 +11,9 @@ import { DownloadProgress, showDownloadComplete } from "../components/DownloadPr
 import { FocusableGrid } from "../components/FocusableGrid";
 import { DeckyHubUpdate } from "../components/DeckyHubUpdate";
 
+const RELEASE_CONCURRENCY = 4;
+const CARDS_PER_PAGE = 20;
+
 export function Content({ fullPage }: { fullPage?: View }) {
   const t = useT();
   const [apps, setApps] = useState<App[]>([]);
@@ -22,6 +25,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const reportedErrors = useRef(new Set<string>());
   const [query, setQuery] = useState("");
   const [installedFilter, setInstalledFilter] = useState("All");
+  const [cardPage, setCardPage] = useState(0);
   const quickAccessRef = useRef<HTMLDivElement>(null);
   const activeJobs = Object.entries(jobs).filter(([, job]) => ["queued", "downloading"].includes(job.state));
   const downloading = activeJobs.length > 0;
@@ -38,9 +42,13 @@ export function Content({ fullPage }: { fullPage?: View }) {
       const local = appData.apps;
       const preferences = (settings as Settings & { repoSettings?: Record<string, RepoPreference> }).repoSettings || {};
       const tracked = view === "updates" ? local.filter((app) => app.installedVersion) : local;
+      setCardPage(0);
       setApps(tracked);
       setLoadError(null);
-      const hydrated = await Promise.all(tracked.map((app) => hydrate(app, force, preferences[app.repo])));
+      const hydrated: App[] = [];
+      for (let index = 0; index < tracked.length; index += RELEASE_CONCURRENCY) {
+        hydrated.push(...await Promise.all(tracked.slice(index, index + RELEASE_CONCURRENCY).map((app) => hydrate(app, force, preferences[app.repo]))));
+      }
       setApps(hydrated);
       setLoading(false);
       notifyUpdates(hydrated);
@@ -110,7 +118,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
       <PanelSectionRow>
         <Focusable flow-children="right" style={{ display: "flex", gap: 12 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <TextField label={t("filter.search")} value={query} onChange={(event) => setQuery(event.currentTarget.value)} />
+            <TextField label={t("filter.search")} value={query} onChange={(event) => { setQuery(event.currentTarget.value); setCardPage(0); }} />
           </div>
           <div style={{ flex: "0 0 220px" }}>
             <div style={{ fontSize: "0.85em" }}>
@@ -124,7 +132,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
                 { label: t("filter.notInstalled"), data: "Not Installed" },
               ]}
               selectedOption={installedFilter}
-              onChange={({ data }) => setInstalledFilter(data)}
+              onChange={({ data }) => { setInstalledFilter(data); setCardPage(0); }}
               />
             </div>
           </div>
@@ -142,6 +150,9 @@ export function Content({ fullPage }: { fullPage?: View }) {
             (installedFilter === "All" || (installedFilter === "Installed") === Boolean(app.installedVersion))))
     );
     const updates = apps.filter((app) => app.updateAvailable && app.assets[0]);
+    const pageCount = Math.max(1, Math.ceil(visibleApps.length / CARDS_PER_PAGE));
+    const currentPage = Math.min(cardPage, pageCount - 1);
+    const displayedApps = visibleApps.slice(currentPage * CARDS_PER_PAGE, (currentPage + 1) * CARDS_PER_PAGE);
     return (
       <>
       {discoverFilters}
@@ -210,7 +221,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
           </PanelSection>
           <div aria-hidden style={sectionDividerStyle} />
           <FocusableGrid
-            items={visibleApps}
+            items={displayedApps}
             columns={2}
             keyFor={(app) => app.id}
           >
@@ -219,6 +230,25 @@ export function Content({ fullPage }: { fullPage?: View }) {
               return <AppCard app={app} job={match && { id: match[0], state: match[1] }} downloadDisabled={downloading} onDownload={(asset) => void startDownload(asset, app.repo)} onCancel={cancel} />;
             }}
           </FocusableGrid>
+          {visibleApps.length > CARDS_PER_PAGE && (
+            <PanelSection>
+              <PanelSectionRow>
+                <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ flex: 1 }}>
+                    <Button style={compactButtonStyle} disabled={currentPage === 0} onClick={() => setCardPage((current) => current - 1)}>
+                      {t("repos.previous")}
+                    </Button>
+                  </div>
+                  <span style={{ whiteSpace: "nowrap" }}>{t("repos.pageOf", { page: currentPage + 1, total: pageCount })}</span>
+                  <div style={{ flex: 1 }}>
+                    <Button style={compactButtonStyle} disabled={currentPage + 1 === pageCount} onClick={() => setCardPage((current) => current + 1)}>
+                      {t("repos.next")}
+                    </Button>
+                  </div>
+                </Focusable>
+              </PanelSectionRow>
+            </PanelSection>
+          )}
           {!visibleApps.length && (
             <PanelSection title={info.empty}>
               <PanelSectionRow>{t("content.useDiscover")}</PanelSectionRow>

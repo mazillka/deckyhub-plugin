@@ -121,7 +121,16 @@ class Plugin:
     async def get_apps(self):
         apps = [*self.apps, *self._custom_apps()]
         installed_plugins = await asyncio.to_thread(self._scan_installed_plugins)
-        installed = await asyncio.gather(*(asyncio.to_thread(self._installed_version, app, installed_plugins) for app in apps))
+        installed = [None] * len(apps)
+        command_checks = []
+        for index, app in enumerate(apps):
+            if app.get("detect", {}).get("type") == "decky-plugin":
+                installed[index] = self._decky_plugin_version(app["detect"], installed_plugins)
+            else:
+                command_checks.append((index, app))
+        command_versions = await asyncio.gather(*(asyncio.to_thread(self._installed_version, app, installed_plugins) for _, app in command_checks))
+        for (index, _), version in zip(command_checks, command_versions):
+            installed[index] = version
         return {"apps": [{**app, "installedVersion": version, "latestVersion": None, "publishedAt": None, "releaseUrl": None, "assets": [], "updateAvailable": None, "error": None} for app, version in zip(apps, installed)]}
 
     async def refresh_registry(self):
