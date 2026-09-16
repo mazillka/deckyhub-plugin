@@ -75,20 +75,20 @@ export default function DevShell() {
       if (moved) event.preventDefault();
     };
     let lastDirection = "";
-    let frame = 0;
+    let pollTimer = 0;
     const pollController = () => {
       const controller = navigator.getGamepads?.().find(Boolean);
       const buttons = controller?.buttons;
       const direction = buttons?.[12]?.pressed ? "Up" : buttons?.[13]?.pressed ? "Down" : buttons?.[14]?.pressed ? "Left" : buttons?.[15]?.pressed ? "Right" : Math.abs(controller?.axes[0] ?? 0) > Math.abs(controller?.axes[1] ?? 0) ? (controller!.axes[0] > .5 ? "Right" : controller!.axes[0] < -.5 ? "Left" : "") : controller?.axes[1] > .5 ? "Down" : controller?.axes[1] < -.5 ? "Up" : "";
       if (direction && direction !== lastDirection) moveFocus(direction);
       lastDirection = direction;
-      frame = requestAnimationFrame(pollController);
+      pollTimer = window.setTimeout(pollController, 100);
     };
     document.addEventListener("keydown", onKeyDown);
-    frame = requestAnimationFrame(pollController);
+    pollController();
     return () => {
       document.removeEventListener("keydown", onKeyDown);
-      cancelAnimationFrame(frame);
+      window.clearTimeout(pollTimer);
     };
   }, []);
 
