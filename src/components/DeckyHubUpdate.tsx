@@ -87,7 +87,7 @@ export function DeckyHubUpdate() {
           {["queued", "downloading"].includes(job.state.state) && <Button style={compactButtonStyle} onClick={() => void cancelDownload(job.id).catch((error) => setJob((current) => current && { ...current, state: { ...current.state, state: "error", error: String(error) } }))}>{t("content.cancel")}</Button>}
         </PanelSectionRow>
       )}
-      {release.url && !upToDate && (
+      {release.url && (
         <PanelSectionRow>
           <Button style={compactButtonStyle} onClick={() => Navigation.NavigateToExternalWeb(release.url!)}>{t("appcard.releasePage")}</Button>
         </PanelSectionRow>
