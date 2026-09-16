@@ -1,0 +1,9 @@
+#!/bin/sh
+
+branch=$(git branch --show-current)
+case "$branch" in
+  main|staging)
+    echo "Direct commits to $branch are blocked. Create a <topic> branch first." >&2
+    exit 1
+    ;;
+esac
