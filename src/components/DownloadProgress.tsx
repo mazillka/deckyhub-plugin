@@ -21,13 +21,20 @@ export function showDownloadComplete(t: (key: MessageKey, vars?: Record<string, 
     <ConfirmModal
       strTitle={title}
       strDescription={
-        <>
-          <div>{t("dl.savedTo")}</div>
-          <div>{path || t("dl.selectedFolder")}</div>
-          <br />
-          <div>{t("dl.installInDecky")}</div>
-          <div>{t("dl.installPath")}</div>
-        </>
+        <div style={{ display: "grid", gap: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, color: "#d6f5ff" }}>
+            <span style={{ alignItems: "center", background: "#1a9fff", borderRadius: "50%", color: "#fff", display: "inline-flex", fontSize: 18, fontWeight: 700, height: 28, justifyContent: "center", width: 28 }}>✓</span>
+            <strong>{t("appcard.downloadComplete")}</strong>
+          </div>
+          <div>
+            <div style={{ color: "#8fcef4", fontSize: "0.9em", marginBottom: 5 }}>{t("dl.savedTo")}</div>
+            <div style={{ background: "rgba(26, 159, 255, 0.16)", border: "1px solid rgba(100, 200, 255, 0.5)", borderRadius: 4, color: "#fff", overflowWrap: "anywhere", padding: "8px 10px" }}>{path || t("dl.selectedFolder")}</div>
+          </div>
+          <div style={{ borderLeft: "3px solid #1a9fff", paddingLeft: 10 }}>
+            <div style={{ color: "#8fcef4", fontSize: "0.9em", marginBottom: 3 }}>{t("dl.installInDecky")}</div>
+            <strong style={{ color: "#fff" }}>{t("dl.installPath")}</strong>
+          </div>
+        </div>
       }
       strOKButtonText={t("dl.ok")}
       bAlertDialog
