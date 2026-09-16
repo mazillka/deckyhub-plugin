@@ -252,29 +252,38 @@ class Plugin:
         return {"added": added}
 
     async def download_asset(self, asset: dict, repo: str | None = None):
-        name = self._validate_download_asset(asset, repo)
-        for job_id, job in self.downloads.items():
-            if job.get("repo") == repo and job.get("url") == asset["url"] and job["state"] in ("queued", "downloading"):
-                return {"jobId": job_id}
-        target_dir = self._asset_download_dir()
-        target_dir.mkdir(parents=True, exist_ok=True)
-        target = target_dir / name
-        if target.exists() and not self.settings.get("overwriteExisting"):
-            target = self._next_name(target)
-        job_id = f"{name}-{len(self.downloads) + 1}"
-        self.downloads[job_id] = {"state": "queued", "filename": target.name, "received": 0, "total": asset.get("size") or 0, "path": str(target), "error": None, "repo": repo, "url": asset["url"]}
-        self.download_queue.put_nowait((job_id, asset, target, False))
-        return {"jobId": job_id}
+        try:
+            name = self._validate_download_asset(asset, repo)
+            for job_id, job in self.downloads.items():
+                if job.get("repo") == repo and job.get("url") == asset["url"] and job["state"] in ("queued", "downloading"):
+                    return {"jobId": job_id}
+            target_dir = self._asset_download_dir()
+            target_dir.mkdir(parents=True, exist_ok=True)
+            target = target_dir / name
+            if target.exists() and not self.settings.get("overwriteExisting"):
+                target = self._next_name(target)
+            job_id = f"{name}-{len(self.downloads) + 1}"
+            self.downloads[job_id] = {"state": "queued", "filename": target.name, "received": 0, "total": asset.get("size") or 0, "path": str(target), "error": None, "repo": repo, "url": asset["url"]}
+            self.download_queue.put_nowait((job_id, asset, target, False))
+            return {"jobId": job_id}
+        except (OSError, ValueError) as error:
+            name = asset.get("name", "download") if isinstance(asset, dict) else "download"
+            return {"error": f"Can't start {name}: {error}"}
 
     async def queue_downloads(self, items: list[dict]):
-        entries = []
-        for item in items:
-            asset, repo = item.get("asset", {}), item.get("repo")
-            self._validate_download_asset(asset, repo)
-            entries.append((asset, repo))
+        try:
+            entries = []
+            for item in items:
+                asset, repo = item.get("asset", {}), item.get("repo")
+                self._validate_download_asset(asset, repo)
+                entries.append((asset, repo))
+        except (AttributeError, ValueError) as error:
+            return {"error": f"Can't queue updates: {error}"}
         jobs = []
         for asset, repo in entries:
             result = await self.download_asset(asset, repo)
+            if result.get("error"):
+                return result
             jobs.append(result["jobId"])
         return {"jobIds": jobs}
 

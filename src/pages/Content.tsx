@@ -19,8 +19,10 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [jobs, setJobs] = useState<Record<string, Download>>({});
   const completedJobs = useRef(new Set<string>());
+  const reportedErrors = useRef(new Set<string>());
   const [query, setQuery] = useState("");
   const [installedFilter, setInstalledFilter] = useState("All");
+  const quickAccessRef = useRef<HTMLDivElement>(null);
   const activeJobs = Object.entries(jobs).filter(([, job]) => ["queued", "downloading"].includes(job.state));
   const downloading = activeJobs.length > 0;
 
@@ -59,6 +61,10 @@ export function Content({ fullPage }: { fullPage?: View }) {
   }, []);
 
   useEffect(() => {
+    if (!fullPage) requestAnimationFrame(() => quickAccessRef.current?.scrollIntoView({ block: "start" }));
+  }, [fullPage]);
+
+  useEffect(() => {
     if (!activeJobs.length) return;
     const updateJobs = () =>
       void Promise.all(activeJobs.map(async ([id]) => [id, await getDownload(id)] as const)).then(
@@ -78,12 +84,17 @@ export function Content({ fullPage }: { fullPage?: View }) {
         completedJobs.current.add(id);
         showDownloadComplete(t, t("appcard.downloadComplete"), job.path);
       }
+      if (job.state === "error" && !reportedErrors.current.has(id)) {
+        reportedErrors.current.add(id);
+        toaster.toast({ title: "DeckyHub download failed", body: job.error || "The download failed without a reported reason." });
+      }
     });
   }, [jobs]);
 
   const startDownload = async (asset: Asset, repo?: string) => {
     try {
       const result = await downloadAsset(asset, repo);
+      if (result.error) throw new Error(result.error);
       if (result.jobId) setJobs((current) => ({ ...current, [result.jobId!]: { state: "queued", filename: asset.name, total: asset.size, repo } }));
     } catch (error) {
       toaster.toast({ title: "DeckyHub", body: String(error) });
@@ -171,11 +182,12 @@ export function Content({ fullPage }: { fullPage?: View }) {
                   disabled={downloading}
                   onClick={() =>
                     void queueDownloads(updates.map((app) => ({ asset: app.assets[0], repo: app.repo }))).then((result) => {
+                      if (result.error) throw new Error(result.error);
                       setJobs((current) => ({
                         ...current,
-                        ...Object.fromEntries(result.jobIds.map((id, index) => [id, { state: "queued", filename: updates[index].assets[0].name, total: updates[index].assets[0].size, repo: updates[index].repo }])),
+                        ...Object.fromEntries(result.jobIds!.map((id, index) => [id, { state: "queued", filename: updates[index].assets[0].name, total: updates[index].assets[0].size, repo: updates[index].repo }])),
                       }));
-                      toaster.toast({ title: "DeckyHub", body: `${result.jobIds.length} updates queued.` });
+                      toaster.toast({ title: "DeckyHub", body: `${result.jobIds!.length} updates queued.` });
                     }).catch((error) => toaster.toast({ title: "DeckyHub", body: String(error) }))
                   }
                 >
@@ -247,5 +259,5 @@ export function Content({ fullPage }: { fullPage?: View }) {
   );
 
   const page = view === "updates" ? list((app) => app.updateAvailable === true, viewInfo.updates) : list(() => true, viewInfo.discover);
-  return fullPage ? page : navigation;
+  return fullPage ? page : <div ref={quickAccessRef}>{navigation}</div>;
 }

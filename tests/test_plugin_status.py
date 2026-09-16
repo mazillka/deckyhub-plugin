@@ -269,32 +269,32 @@ class PluginStatusTests(unittest.TestCase):
             finally:
                 main.DEFAULT_DOWNLOAD_DIR = original_download_dir
 
-    def test_download_asset_rejects_non_https_url(self):
+    def test_download_asset_returns_error_for_non_https_url(self):
         plugin = Plugin()
         plugin.settings = {"downloadLocation": "plugins", "overwriteExisting": True, "repoSettings": {}}
         plugin.downloads = {}
         plugin.download_queue = asyncio.Queue()
 
-        with self.assertRaises(ValueError):
-            asyncio.run(plugin.download_asset({"name": "a.zip", "url": "http://example.com/a.zip"}, "owner/repo"))
+        result = asyncio.run(plugin.download_asset({"name": "a.zip", "url": "http://example.com/a.zip"}, "owner/repo"))
+        self.assertEqual(result["error"], "Can't start a.zip: Only GitHub release assets for the selected repository can be downloaded")
 
-    def test_download_asset_rejects_untrusted_https_url(self):
+    def test_download_asset_returns_error_for_untrusted_https_url(self):
         plugin = Plugin()
         plugin.settings = {"downloadLocation": "plugins", "overwriteExisting": True, "repoSettings": {}}
         plugin.downloads = {}
         plugin.download_queue = asyncio.Queue()
 
-        with self.assertRaises(ValueError):
-            asyncio.run(plugin.download_asset({"name": "a.zip", "url": "https://example.com/a.zip"}, "owner/repo"))
+        result = asyncio.run(plugin.download_asset({"name": "a.zip", "url": "https://example.com/a.zip"}, "owner/repo"))
+        self.assertEqual(result["error"], "Can't start a.zip: Only GitHub release assets for the selected repository can be downloaded")
 
-    def test_download_asset_rejects_dotdot_filename(self):
+    def test_download_asset_returns_error_for_dotdot_filename(self):
         plugin = Plugin()
         plugin.settings = {"downloadLocation": "plugins", "overwriteExisting": True, "repoSettings": {}}
         plugin.downloads = {}
         plugin.download_queue = asyncio.Queue()
 
-        with self.assertRaises(ValueError):
-            asyncio.run(plugin.download_asset({"name": "..", "url": "https://github.com/owner/repo/releases/download/v1/a.zip"}, "owner/repo"))
+        result = asyncio.run(plugin.download_asset({"name": "..", "url": "https://github.com/owner/repo/releases/download/v1/a.zip"}, "owner/repo"))
+        self.assertEqual(result["error"], "Can't start ..: Invalid asset filename")
 
     def test_download_asset_sanitizes_traversal_in_filename(self):
         with tempfile.TemporaryDirectory() as home:
@@ -412,12 +412,12 @@ class PluginStatusTests(unittest.TestCase):
         valid = {"name": "plugin.zip", "url": "https://github.com/owner/repo/releases/download/v1/plugin.zip"}
         invalid = {"name": "plugin.zip", "url": "https://example.com/plugin.zip"}
 
-        with self.assertRaises(ValueError):
-            asyncio.run(plugin.queue_downloads([
-                {"asset": valid, "repo": "owner/repo"},
-                {"asset": invalid, "repo": "owner/repo"},
-            ]))
+        result = asyncio.run(plugin.queue_downloads([
+            {"asset": valid, "repo": "owner/repo"},
+            {"asset": invalid, "repo": "owner/repo"},
+        ]))
 
+        self.assertEqual(result["error"], "Can't queue updates: Only GitHub release assets for the selected repository can be downloaded")
         self.assertEqual(plugin.downloads, {})
         self.assertTrue(plugin.download_queue.empty())
 
