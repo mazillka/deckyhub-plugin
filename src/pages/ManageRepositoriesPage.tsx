@@ -21,6 +21,7 @@ export function ManageRepositoriesPage() {
   const [apps, setApps] = useState<App[]>([]);
   const [prefs, setPrefs] = useState<Record<string, RepoPreference>>({});
   const [activeTab, setActiveTab] = useState("manage");
+  const [settingsQuery, setSettingsQuery] = useState("");
 
   const refreshRepos = () => {
     void getCustomRepos().then((result) => setCustomRepos(result.repos));
@@ -200,9 +201,12 @@ export function ManageRepositoriesPage() {
     <>
       <PanelSection title={t("repos.repositorySettings")}>
         <PanelSectionRow>{t("repos.perRepoOverrides")}</PanelSectionRow>
+        <PanelSectionRow>
+          <TextField label={t("filter.search")} value={settingsQuery} onChange={(event) => setSettingsQuery(event.currentTarget.value)} />
+        </PanelSectionRow>
       </PanelSection>
       {apps.length > 0 && <div aria-hidden style={sectionDividerStyle} />}
-      <FocusableGrid items={apps} columns={2} keyFor={(app) => app.repo}>
+      <FocusableGrid items={apps.filter((app) => `${app.name} ${app.repo}`.toLowerCase().includes(settingsQuery.trim().toLowerCase()))} columns={2} keyFor={(app) => app.repo}>
         {(app) => {
           const value = preference(app.repo);
           const update = (next: Partial<RepoPreference>) => {
