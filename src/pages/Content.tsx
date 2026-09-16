@@ -37,9 +37,10 @@ export function Content({ fullPage }: { fullPage?: View }) {
       const [appData, settings] = await Promise.all([getApps(), getSettings()]);
       const local = appData.apps;
       const preferences = (settings as Settings & { repoSettings?: Record<string, RepoPreference> }).repoSettings || {};
-      setApps(local);
+      const tracked = view === "updates" ? local.filter((app) => app.installedVersion) : local;
+      setApps(tracked);
       setLoadError(null);
-      const hydrated = await Promise.all(local.map((app) => hydrate(app, force, preferences[app.repo])));
+      const hydrated = await Promise.all(tracked.map((app) => hydrate(app, force, preferences[app.repo])));
       setApps(hydrated);
       setLoading(false);
       notifyUpdates(hydrated);
