@@ -21,6 +21,10 @@ Run a single backend test: `python -m unittest tests.test_plugin_status.PluginSt
 
 The Playwright suite in `devtools/decky-mock/` covers the browser UI; `pnpm run typecheck` remains the static correctness gate for `src/`.
 
+### Branches
+
+Create work branches as `<short-kebab-case-topic>`; add an ISO date suffix only when needed for uniqueness. Do not work directly on `main`.
+
 ### Local browser preview (no Steam Deck needed)
 
 `devtools/decky-mock/` swaps `@decky/ui`/`@decky/api` for plain `<div>`/`<button>` stand-ins (`devtools/decky-mock/ui.tsx`, `api.ts`) and bridges backend calls to the real, running `main.py`. Two processes, both from that folder: `python dev-server.py` (backend bridge on :8642) and `npm run dev` (frontend on :5183, first run needs `npm install`). This is for exercising layout and logic only — real `@decky/ui` components are scraped at runtime from Steam's own webpack bundle (`findModuleExport()`), so nothing here is pixel-accurate. **Any new `@decky/ui` import used in `src/` needs a matching stand-in added to `devtools/decky-mock/ui.tsx`**, or the mock's build fails with "No matching export in ui.tsx". Always do a final visual/gamepad check on real hardware before shipping a UI change — this mock can't validate Steam's focus/gamepad-nav system at all.
