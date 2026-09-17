@@ -133,7 +133,7 @@ test("Clearing DeckyHub downloads requires confirmation", async ({ page }) => {
   await app.getByRole("button", { name: "Cancel", exact: true }).click();
 });
 
-test("DeckyHub automatically hides a matching update package", async ({ page }) => {
+test("DeckyHub hides a matching update package but keeps its release page", async ({ page }) => {
   await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases/latest", (route) =>
     route.fulfill({
       json: {
@@ -147,7 +147,7 @@ test("DeckyHub automatically hides a matching update package", async ({ page }) 
   const app = mock(page);
   await expect(app.getByText(`DeckyHub ${deckyHubVersion} is already up to date.`)).toBeVisible();
   await expect(app.getByRole("button", { name: "Download Update", exact: true })).toBeHidden();
-  await expect(app.getByRole("button", { name: "Release Page", exact: true })).toBeHidden();
+  await expect(app.getByRole("button", { name: "Release Page", exact: true })).toBeVisible();
 });
 
 test("DeckyHub automatically notifies about an available update", async ({ page }) => {
