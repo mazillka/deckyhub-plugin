@@ -60,14 +60,16 @@ export function DeckyHubUpdate() {
   return (
     <PanelSection title={t("settings.deckyhubUpdate")}>
       <PanelSectionRow>
-        {t("settings.installedVersion", { version: info.version })}
-        {release.version && ` ${t("settings.latestVersion", { version: release.version })}`}
-        {(release.error || upToDate) && (
-          <>
-            <br />
-            <small>{release.error || t("settings.noUpdateAvailable", { version: info.version })}</small>
-          </>
-        )}
+        <div>
+          <div>{t("settings.installedVersion", { version: info.version })}</div>
+          {release.version && <div>{t("settings.latestVersion", { version: release.version })}</div>}
+          {(release.error || upToDate) && (
+            <>
+              <br />
+              <small>{release.error || t("settings.noUpdateAvailable", { version: info.version })}</small>
+            </>
+          )}
+        </div>
       </PanelSectionRow>
       <div aria-hidden style={sectionDividerStyle} />
       <PanelSectionRow>
