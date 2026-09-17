@@ -104,7 +104,7 @@ export default function DevShell() {
           <button className={`preview-route ${activePath === null ? "preview-route-active" : ""}`} onClick={() => setActivePath(null)}>
             Quick Access widget
           </button>
-          <button className="preview-route" onClick={() => showDownloadComplete(previewText, previewText("appcard.downloadComplete"), "/home/deck/Downloads/deckyhub/DeckyHub-v1.0.2-rc.3.zip")}>
+          <button className="preview-route" onClick={() => showDownloadComplete(previewText, previewText("appcard.downloadComplete"), "/home/deck/Downloads/deckyhub/DeckyHub-v1.0.2-rc.4.zip")}>
             Download complete modal
           </button>
           {routes.map(([path]) => (
