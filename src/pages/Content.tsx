@@ -222,7 +222,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
           <div aria-hidden style={sectionDividerStyle} />
           <FocusableGrid
             items={displayedApps}
-            columns={2}
+            columns={fullPage ? 2 : 1}
             keyFor={(app) => app.id}
           >
             {(app) => {

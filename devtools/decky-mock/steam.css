@@ -74,6 +74,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .qam-title { display: flex; gap: 9px; align-items: center; }
 .qam-app-name { margin: 16px 20px 8px; color: #8fa5bb; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; }
 .qam-content { flex: 1; overflow: auto; padding: 0 12px 12px; }
+.qam-panel .steam-bottombar { position: static; flex: 0 0 44px; }
 
 .steam-page { position: absolute; inset: 0; background: linear-gradient(180deg, #172636, #0b121b); }
 .steam-topbar { position: absolute; z-index: 10; inset: 0 0 auto; height: 48px; background: #0b111ae8; border-bottom: 1px solid #425568; font-size: 12px; }
