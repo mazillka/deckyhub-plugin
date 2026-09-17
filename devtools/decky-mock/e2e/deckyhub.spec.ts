@@ -35,6 +35,16 @@ test("Quick Access navigation opens Discover", async ({ page }) => {
   await expect(app.getByRole("heading", { name: "MAKO Decky · Frame Generation" })).toBeVisible();
 });
 
+test("Quick Access keeps its controller footer below its content", async ({ page }) => {
+  const app = mock(page);
+  const content = app.locator(".qam-content");
+  const footer = app.locator(".qam-panel .steam-bottombar");
+  const [contentBox, footerBox] = await Promise.all([content.boundingBox(), footer.boundingBox()]);
+  expect(contentBox).not.toBeNull();
+  expect(footerBox).not.toBeNull();
+  expect(footerBox!.y).toBeGreaterThanOrEqual(contentBox!.y + contentBox!.height);
+});
+
 test("direct preview URLs render the requested page", async ({ page }) => {
   await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
 
