@@ -21,7 +21,7 @@ const MOTION_CSS = `
 `;
 
 function Motion({ children }: { children: ReactNode }) {
-  return <div className="deckyhub-motion"><style>{MOTION_CSS}</style>{children}</div>;
+  return <div className="deckyhub-motion" style={{ height: "100%" }}><style>{MOTION_CSS}</style>{children}</div>;
 }
 
 export default definePlugin(() => {
