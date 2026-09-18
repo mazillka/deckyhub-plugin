@@ -74,7 +74,11 @@ export async function latestDeckyHubRelease(channel: UpdateChannel): Promise<Dec
     const response = await fetchWithTimeout(`https://api.github.com/repos/mazillka/deckyhub-plugin/${endpoint}`, { headers: { Accept: "application/vnd.github+json" } });
     if (!response.ok) throw new Error(`GitHub API returned ${response.status}`);
     const body = await response.json();
-    const release = Array.isArray(body) ? body.find((item) => item.prerelease && !item.draft) : body;
+    const release = Array.isArray(body)
+      ? body.filter((item) => item.prerelease && !item.draft).sort(
+        (a, b) => (Date.parse(String(b.published_at)) || 0) - (Date.parse(String(a.published_at)) || 0),
+      )[0]
+      : body;
     const asset = (release?.assets || []).find((item: any) => /^DeckyHub-.*\.zip$/i.test(String(item.name)));
     const sha256 = String(asset?.digest || "").replace(/^sha256:/, "");
     if (!asset || !String(asset.name).startsWith("DeckyHub-") || !/^[0-9a-f]{64}$/i.test(sha256)) throw new Error("DeckyHub release ZIP with SHA-256 checksum not found");
