@@ -46,6 +46,9 @@ threading.Thread(target=_run_loop, daemon=True, name="decky-mock-loop").start()
 asyncio.run_coroutine_threadsafe(plugin._main(), loop).result()
 print(f"[decky-mock] Plugin ready. Fake DECKY_HOME: {fake_decky.DECKY_HOME}")
 
+# Fixed, never-completing job for the DevShell's "Download progress modal" preview button.
+plugin.downloads["preview-job"] = {"state": "downloading", "filename": "Decky-Framegen.zip", "received": 60_100_000, "total": 199_600_000, "path": None, "error": None}
+
 
 def call_route(route: str, args: list):
     method = getattr(plugin, route, None)

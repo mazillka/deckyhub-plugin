@@ -23,8 +23,6 @@ export const uk: Record<MessageKey, string> = {
   "content.loadErrorTitle": "Не вдалося завантажити DeckyHub",
   "content.tryAgain": "Спробувати ще раз",
   "content.refresh": "Оновити",
-  "content.updateAll": "Завантажити всі оновлення",
-  "content.download": "Завантаження",
   "content.cancel": "Скасувати",
   "content.useDiscover": "Скористайтесь Оглядом, щоб переглянути реєстр.",
 
@@ -33,17 +31,15 @@ export const uk: Record<MessageKey, string> = {
 
   "appcard.installedLatest": "Встановлено: {installed} · Остання: {latest}",
   "appcard.downloadComplete": "Завантаження завершено",
-  "appcard.downloadFailed": "Помилка завантаження",
-  "appcard.downloading": "Завантаження…",
-  "appcard.unknownSize": "розмір невідомий",
   "appcard.latest": "Остання версія ({name})",
   "appcard.releasePage": "Сторінка релізу",
 
+  "dl.downloading": "Завантаження {filename}",
   "dl.preparing": "Підготовка завантаження…",
   "dl.savedTo": "ZIP-файл збережено до:",
   "dl.selectedFolder": "вибраної папки завантажень",
   "dl.installInDecky": "Встановіть у Decky:",
-  "dl.installPath": "Developer → Install Plugin from ZIP",
+  "dl.installPath": "Settings → Developer → Install Plugin from ZIP",
   "dl.ok": "ОК",
 
   "settings.deckyhubUpdate": "Оновлення DeckyHub",
@@ -56,7 +52,6 @@ export const uk: Record<MessageKey, string> = {
   "settings.noUpdateAvailable": "DeckyHub {version} уже оновлено до останньої версії.",
   "settings.updateAvailable": "Доступне оновлення DeckyHub {version}.",
   "settings.downloadUpdate": "Завантажити оновлення",
-  "settings.downloadedTo": "Завантажено до {path}. Встановіть через Decky → Developer → Install Plugin from ZIP.",
   "settings.downloadSettings": "Налаштування завантажень",
   "settings.whereZipsSaved": "Усі ZIP-файли релізів зберігаються в /home/deck/Downloads/deckyhub.",
   "settings.verifySha256": "Перевіряти SHA256",

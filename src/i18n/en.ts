@@ -22,8 +22,6 @@ export const en = {
   "content.loadErrorTitle": "Could Not Load DeckyHub",
   "content.tryAgain": "Try Again",
   "content.refresh": "Refresh",
-  "content.updateAll": "Download All Updates",
-  "content.download": "Download",
   "content.cancel": "Cancel",
   "content.useDiscover": "Use Discover to browse the registry.",
 
@@ -32,17 +30,15 @@ export const en = {
 
   "appcard.installedLatest": "Installed: {installed} · Latest: {latest}",
   "appcard.downloadComplete": "Download Complete",
-  "appcard.downloadFailed": "Download Failed",
-  "appcard.downloading": "Downloading…",
-  "appcard.unknownSize": "unknown size",
   "appcard.latest": "Latest ({name})",
   "appcard.releasePage": "Release Page",
 
+  "dl.downloading": "Downloading {filename}",
   "dl.preparing": "Preparing download…",
   "dl.savedTo": "The ZIP was saved to:",
   "dl.selectedFolder": "the selected download folder",
   "dl.installInDecky": "Install it in Decky:",
-  "dl.installPath": "Developer → Install Plugin from ZIP",
+  "dl.installPath": "Settings → Developer → Install Plugin from ZIP",
   "dl.ok": "OK",
 
   "settings.deckyhubUpdate": "DeckyHub Update",
@@ -55,7 +51,6 @@ export const en = {
   "settings.noUpdateAvailable": "DeckyHub {version} is already up to date.",
   "settings.updateAvailable": "DeckyHub update {version} is available.",
   "settings.downloadUpdate": "Download Update",
-  "settings.downloadedTo": "Downloaded to {path}. Install it from Decky → Developer → Install Plugin from ZIP.",
   "settings.downloadSettings": "Download Settings",
   "settings.whereZipsSaved": "All release ZIPs are saved to /home/deck/Downloads/deckyhub.",
   "settings.verifySha256": "Verify SHA256",

@@ -23,8 +23,6 @@ export const ja: Record<MessageKey, string> = {
   "content.loadErrorTitle": "DeckyHubを読み込めませんでした",
   "content.tryAgain": "再試行",
   "content.refresh": "更新",
-  "content.updateAll": "すべてのアップデートをダウンロード",
-  "content.download": "ダウンロード",
   "content.cancel": "キャンセル",
   "content.useDiscover": "「見つける」からレジストリを見てください。",
 
@@ -33,17 +31,15 @@ export const ja: Record<MessageKey, string> = {
 
   "appcard.installedLatest": "インストール済み: {installed} ・ 最新: {latest}",
   "appcard.downloadComplete": "ダウンロード完了",
-  "appcard.downloadFailed": "ダウンロード失敗",
-  "appcard.downloading": "ダウンロード中…",
-  "appcard.unknownSize": "サイズ不明",
   "appcard.latest": "最新版（{name}）",
   "appcard.releasePage": "リリースページ",
 
+  "dl.downloading": "{filename} をダウンロード中",
   "dl.preparing": "ダウンロードを準備中…",
   "dl.savedTo": "ZIPの保存先:",
   "dl.selectedFolder": "選択したダウンロードフォルダ",
   "dl.installInDecky": "Deckyでインストール:",
-  "dl.installPath": "Developer → Install Plugin from ZIP",
+  "dl.installPath": "Settings → Developer → Install Plugin from ZIP",
   "dl.ok": "OK",
 
   "settings.deckyhubUpdate": "DeckyHubのアップデート",
@@ -56,7 +52,6 @@ export const ja: Record<MessageKey, string> = {
   "settings.noUpdateAvailable": "DeckyHub {version} はすでに最新です。",
   "settings.updateAvailable": "DeckyHub のアップデート {version} を利用できます。",
   "settings.downloadUpdate": "アップデートをダウンロード",
-  "settings.downloadedTo": "{path} にダウンロードしました。Decky → Developer → Install Plugin from ZIP からインストールしてください。",
   "settings.downloadSettings": "ダウンロード設定",
   "settings.whereZipsSaved": "すべてのリリースZIPは /home/deck/Downloads/deckyhub に保存されます。",
   "settings.verifySha256": "SHA256を検証",

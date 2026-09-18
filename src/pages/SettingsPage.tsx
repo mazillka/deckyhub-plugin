@@ -77,7 +77,7 @@ export function SettingsPage() {
         <PanelSectionRow>
           <div style={{ padding: "4px 0" }}>
             <strong>Downloaded items</strong>
-            {downloads.length ? <small style={{ display: "block", maxHeight: 56, overflowY: "auto", lineHeight: 1.35 }}>{downloads.map((item, index) => <span key={item.name}>{index ? " · " : ""}{item.name}{item.directory ? "/" : ""}</span>)}</small> : <div><small>No downloaded items.</small></div>}
+            {downloads.length ? <small style={{ display: "block", maxHeight: 56, overflowY: "auto", lineHeight: 1.35 }}>{downloads.map((item, index) => <span key={item.name}>{index ? " · " : ""}<span style={{ color: "#6bcb6b" }}>{item.name}{item.directory ? "/" : ""}</span></span>)}</small> : <div><small>No downloaded items.</small></div>}
           </div>
         </PanelSectionRow>
       </PanelSection>

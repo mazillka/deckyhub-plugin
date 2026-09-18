@@ -1,16 +1,11 @@
 import { useEffect, useState } from "react";
-import { showDownloadComplete } from "../../src/components/DownloadProgress";
-import type { MessageKey } from "../../src/i18n/en";
+import { showDownloadModal } from "../../src/components/DownloadProgress";
+import { en, type MessageKey } from "../../src/i18n/en";
+import { substitute } from "../../src/i18n";
 import pluginFactory from "../../src/index";
 import { routerHook } from "./api";
 
-const previewText = (key: MessageKey) => ({
-  "appcard.downloadComplete": "Download Complete",
-  "dl.savedTo": "Saved to",
-  "dl.installInDecky": "Install it in Decky Loader",
-  "dl.installPath": "Settings → Developer → Install Plugin from ZIP",
-  "dl.ok": "OK",
-}[key] ?? key);
+const previewText = (key: MessageKey, vars?: Record<string, string | number>) => substitute(en[key], vars);
 
 export default function DevShell() {
   const [, forceUpdate] = useState(0);
@@ -104,7 +99,10 @@ export default function DevShell() {
           <button className={`preview-route ${activePath === null ? "preview-route-active" : ""}`} onClick={() => setActivePath(null)}>
             Quick Access widget
           </button>
-          <button className="preview-route" onClick={() => showDownloadComplete(previewText, previewText("appcard.downloadComplete"), "/home/deck/Downloads/deckyhub/DeckyHub-v1.0.2-rc.4.zip")}>
+          <button className="preview-route" onClick={() => showDownloadModal(previewText, "preview-job", { state: "downloading", filename: "Decky-Framegen.zip", received: 57.3 * 1024 * 1024, total: 190.3 * 1024 * 1024 })}>
+            Download progress modal
+          </button>
+          <button className="preview-route" onClick={() => showDownloadModal(previewText, "preview-job", { state: "complete", path: "/home/deck/Downloads/deckyhub/DeckyHub-v1.0.2-rc.4.zip" })}>
             Download complete modal
           </button>
           {routes.map(([path]) => (

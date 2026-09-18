@@ -23,8 +23,6 @@ export const zh: Record<MessageKey, string> = {
   "content.loadErrorTitle": "无法加载 DeckyHub",
   "content.tryAgain": "重试",
   "content.refresh": "刷新",
-  "content.updateAll": "下载全部更新",
-  "content.download": "下载",
   "content.cancel": "取消",
   "content.useDiscover": "请使用“发现”浏览注册表。",
 
@@ -33,17 +31,15 @@ export const zh: Record<MessageKey, string> = {
 
   "appcard.installedLatest": "已安装：{installed} · 最新：{latest}",
   "appcard.downloadComplete": "下载完成",
-  "appcard.downloadFailed": "下载失败",
-  "appcard.downloading": "正在下载…",
-  "appcard.unknownSize": "大小未知",
   "appcard.latest": "最新版本（{name}）",
   "appcard.releasePage": "发行页面",
 
+  "dl.downloading": "正在下载 {filename}",
   "dl.preparing": "正在准备下载…",
   "dl.savedTo": "ZIP 文件已保存至：",
   "dl.selectedFolder": "所选下载文件夹",
   "dl.installInDecky": "在 Decky 中安装：",
-  "dl.installPath": "Developer → Install Plugin from ZIP",
+  "dl.installPath": "Settings → Developer → Install Plugin from ZIP",
   "dl.ok": "确定",
 
   "settings.deckyhubUpdate": "DeckyHub 更新",
@@ -56,7 +52,6 @@ export const zh: Record<MessageKey, string> = {
   "settings.noUpdateAvailable": "DeckyHub {version} 已是最新版本。",
   "settings.updateAvailable": "DeckyHub 更新 {version} 已可用。",
   "settings.downloadUpdate": "下载更新",
-  "settings.downloadedTo": "已下载至 {path}。请通过 Decky → Developer → Install Plugin from ZIP 安装。",
   "settings.downloadSettings": "下载设置",
   "settings.whereZipsSaved": "所有发行版 ZIP 文件都保存到 /home/deck/Downloads/deckyhub。",
   "settings.verifySha256": "校验 SHA256",

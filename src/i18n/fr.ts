@@ -23,8 +23,6 @@ export const fr: Record<MessageKey, string> = {
   "content.loadErrorTitle": "Impossible de charger DeckyHub",
   "content.tryAgain": "Réessayer",
   "content.refresh": "Actualiser",
-  "content.updateAll": "Télécharger toutes les mises à jour",
-  "content.download": "Téléchargement",
   "content.cancel": "Annuler",
   "content.useDiscover": "Utilisez Découvrir pour parcourir le registre.",
 
@@ -33,17 +31,15 @@ export const fr: Record<MessageKey, string> = {
 
   "appcard.installedLatest": "Installé : {installed} · Dernière : {latest}",
   "appcard.downloadComplete": "Téléchargement terminé",
-  "appcard.downloadFailed": "Échec du téléchargement",
-  "appcard.downloading": "Téléchargement…",
-  "appcard.unknownSize": "taille inconnue",
   "appcard.latest": "Dernière version ({name})",
   "appcard.releasePage": "Page de la version",
 
+  "dl.downloading": "Téléchargement de {filename}",
   "dl.preparing": "Préparation du téléchargement…",
   "dl.savedTo": "Le fichier ZIP a été enregistré dans :",
   "dl.selectedFolder": "le dossier de téléchargement sélectionné",
   "dl.installInDecky": "Installez-le dans Decky :",
-  "dl.installPath": "Developer → Install Plugin from ZIP",
+  "dl.installPath": "Settings → Developer → Install Plugin from ZIP",
   "dl.ok": "OK",
 
   "settings.deckyhubUpdate": "Mise à jour de DeckyHub",
@@ -56,7 +52,6 @@ export const fr: Record<MessageKey, string> = {
   "settings.noUpdateAvailable": "DeckyHub {version} est déjà à jour.",
   "settings.updateAvailable": "La mise à jour DeckyHub {version} est disponible.",
   "settings.downloadUpdate": "Télécharger la mise à jour",
-  "settings.downloadedTo": "Téléchargé dans {path}. Installez-le depuis Decky → Developer → Install Plugin from ZIP.",
   "settings.downloadSettings": "Paramètres de téléchargement",
   "settings.whereZipsSaved": "Tous les ZIP de version sont enregistrés dans /home/deck/Downloads/deckyhub.",
   "settings.verifySha256": "Vérifier le SHA256",

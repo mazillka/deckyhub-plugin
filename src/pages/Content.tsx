@@ -2,12 +2,12 @@ import { toaster } from "@decky/api";
 import { DialogButtonPrimary as Button, Dropdown, Focusable, Navigation, PanelSection, PanelSectionRow, Spinner, TextField } from "@decky/ui";
 import { useEffect, useRef, useState } from "react";
 import { FaSync } from "react-icons/fa";
-import { cancelDownload, downloadAsset, getApps, getDownload, getSettings, queueDownloads, REGISTRY_UPDATED } from "../api";
+import { downloadAsset, getApps, getSettings, REGISTRY_UPDATED } from "../api";
 import { useT } from "../i18n";
-import type { App, Asset, Download, RepoPreference, Settings, View } from "../types";
+import type { App, Asset, RepoPreference, Settings, View } from "../types";
 import { compactButtonStyle, hydrate, notifyUpdates, sectionDividerStyle } from "../utils";
 import { AppCard } from "../components/AppCard";
-import { DownloadProgress, showDownloadComplete } from "../components/DownloadProgress";
+import { showDownloadModal } from "../components/DownloadProgress";
 import { FocusableGrid } from "../components/FocusableGrid";
 import { DeckyHubUpdate } from "../components/DeckyHubUpdate";
 
@@ -20,15 +20,11 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const [view] = useState<View>(fullPage ?? "updates");
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [jobs, setJobs] = useState<Record<string, Download>>({});
-  const completedJobs = useRef(new Set<string>());
-  const reportedErrors = useRef(new Set<string>());
+  const [downloading, setDownloading] = useState(false);
   const [query, setQuery] = useState("");
   const [installedFilter, setInstalledFilter] = useState("All");
   const [cardPage, setCardPage] = useState(0);
   const quickAccessRef = useRef<HTMLDivElement>(null);
-  const activeJobs = Object.entries(jobs).filter(([, job]) => ["queued", "downloading"].includes(job.state));
-  const downloading = activeJobs.length > 0;
 
   const viewInfo: Record<View, { title: string; description: string; empty: string }> = {
     updates: { title: t("nav.updates"), description: t("view.updatesDescription"), empty: t("view.updatesEmpty") },
@@ -73,45 +69,21 @@ export function Content({ fullPage }: { fullPage?: View }) {
     if (!fullPage) requestAnimationFrame(() => quickAccessRef.current?.scrollIntoView({ block: "start" }));
   }, [fullPage]);
 
-  useEffect(() => {
-    if (!activeJobs.length) return;
-    const updateJobs = () =>
-      void Promise.all(activeJobs.map(async ([id]) => [id, await getDownload(id)] as const)).then(
-        (states) => setJobs((current) => ({ ...current, ...Object.fromEntries(states) })),
-        (error) => setJobs((current) => ({
-          ...current,
-          ...Object.fromEntries(activeJobs.map(([id, job]) => [id, { ...job, state: "error", error: String(error) }])),
-        })),
-      );
-    const timer = window.setInterval(updateJobs, 500);
-    return () => window.clearInterval(timer);
-  }, [activeJobs.map(([id]) => id).join(",")]);
-
-  useEffect(() => {
-    Object.entries(jobs).forEach(([id, job]) => {
-      if (job.state === "complete" && !completedJobs.current.has(id)) {
-        completedJobs.current.add(id);
-        showDownloadComplete(t, t("appcard.downloadComplete"), job.path);
-      }
-      if (job.state === "error" && !reportedErrors.current.has(id)) {
-        reportedErrors.current.add(id);
-        toaster.toast({ title: "DeckyHub download failed", body: job.error || "The download failed without a reported reason." });
-      }
-    });
-  }, [jobs]);
-
   const startDownload = async (asset: Asset, repo?: string) => {
     try {
       const result = await downloadAsset(asset, repo);
       if (result.error) throw new Error(result.error);
-      if (result.jobId) setJobs((current) => ({ ...current, [result.jobId!]: { state: "queued", filename: asset.name, total: asset.size, repo } }));
+      if (result.jobId) {
+        setDownloading(true);
+        showDownloadModal(t, result.jobId, { state: "queued", filename: asset.name, total: asset.size }, (state) => {
+          setDownloading(false);
+          if (state.state === "error") toaster.toast({ title: "DeckyHub download failed", body: state.error || "The download failed without a reported reason." });
+        });
+      }
     } catch (error) {
       toaster.toast({ title: "DeckyHub", body: String(error) });
     }
   };
-
-  const cancel = (jobId: string) =>
-    void cancelDownload(jobId).catch((error) => toaster.toast({ title: "DeckyHub", body: String(error) }));
 
   const discoverFilters = view === "discover" && (
     <PanelSection>
@@ -149,7 +121,6 @@ export function Content({ fullPage }: { fullPage?: View }) {
           ((!query || `${app.name} ${app.repo}`.toLowerCase().includes(query.toLowerCase())) &&
             (installedFilter === "All" || (installedFilter === "Installed") === Boolean(app.installedVersion))))
     );
-    const updates = apps.filter((app) => app.updateAvailable && app.assets[0]);
     const pageCount = Math.max(1, Math.ceil(visibleApps.length / CARDS_PER_PAGE));
     const currentPage = Math.min(cardPage, pageCount - 1);
     const displayedApps = visibleApps.slice(currentPage * CARDS_PER_PAGE, (currentPage + 1) * CARDS_PER_PAGE);
@@ -187,37 +158,6 @@ export function Content({ fullPage }: { fullPage?: View }) {
                 </div>
               </Focusable>
             </PanelSectionRow>
-            {view === "updates" && updates.length > 0 && (
-              <PanelSectionRow>
-                <Button
-                  style={compactButtonStyle}
-                  disabled={downloading}
-                  onClick={() =>
-                    void queueDownloads(updates.map((app) => ({ asset: app.assets[0], repo: app.repo }))).then((result) => {
-                      if (result.error) throw new Error(result.error);
-                      setJobs((current) => ({
-                        ...current,
-                        ...Object.fromEntries(result.jobIds!.map((id, index) => [id, { state: "queued", filename: updates[index].assets[0].name, total: updates[index].assets[0].size, repo: updates[index].repo }])),
-                      }));
-                      toaster.toast({ title: "DeckyHub", body: `${result.jobIds!.length} updates queued.` });
-                    }).catch((error) => toaster.toast({ title: "DeckyHub", body: String(error) }))
-                  }
-                >
-                  {t("content.updateAll")}
-                </Button>
-              </PanelSectionRow>
-            )}
-            {activeJobs.map(([id, job]) => (
-              <PanelSectionRow key={id}>
-                <div>
-                  <strong>{job.filename ?? t("content.download")}</strong>
-                  <br />
-                  <small>{job.state} {job.total ? `· ${Math.round((100 * (job.received ?? 0)) / job.total)}%` : ""}</small>
-                  <DownloadProgress download={job} />
-                  {job.state === "downloading" && <Button style={compactButtonStyle} onClick={() => cancel(id)}>{t("content.cancel")}</Button>}
-                </div>
-              </PanelSectionRow>
-            ))}
           </PanelSection>
           <div aria-hidden style={sectionDividerStyle} />
           <FocusableGrid
@@ -225,10 +165,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
             columns={fullPage ? 2 : 1}
             keyFor={(app) => app.id}
           >
-            {(app) => {
-              const match = Object.entries(jobs).find(([, job]) => job.repo === app.repo && app.assets.some((asset) => asset.name === job.filename));
-              return <AppCard app={app} job={match && { id: match[0], state: match[1] }} downloadDisabled={downloading} onDownload={(asset) => void startDownload(asset, app.repo)} onCancel={cancel} />;
-            }}
+            {(app) => <AppCard app={app} downloadDisabled={downloading} onDownload={(asset) => void startDownload(asset, app.repo)} />}
           </FocusableGrid>
           {visibleApps.length > CARDS_PER_PAGE && (
             <PanelSection>
