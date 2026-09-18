@@ -47,7 +47,7 @@ export const en = {
 
   "settings.deckyhubUpdate": "DeckyHub Update",
   "settings.installedVersion": "Installed: {version}",
-  "settings.latestVersion": "· Latest: {version}",
+  "settings.latestVersion": "Latest: {version}",
   "settings.updateChannel": "Update Channel",
   "settings.stableReleases": "Stable releases",
   "settings.preReleases": "Pre-releases",

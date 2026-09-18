@@ -48,7 +48,7 @@ export const ja: Record<MessageKey, string> = {
 
   "settings.deckyhubUpdate": "DeckyHubのアップデート",
   "settings.installedVersion": "インストール済み: {version}",
-  "settings.latestVersion": "・ 最新: {version}",
+  "settings.latestVersion": "最新: {version}",
   "settings.updateChannel": "更新チャンネル",
   "settings.stableReleases": "安定版リリース",
   "settings.preReleases": "プレリリース",

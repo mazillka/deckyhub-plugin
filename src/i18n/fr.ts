@@ -48,7 +48,7 @@ export const fr: Record<MessageKey, string> = {
 
   "settings.deckyhubUpdate": "Mise à jour de DeckyHub",
   "settings.installedVersion": "Installé : {version}",
-  "settings.latestVersion": "· Dernière : {version}",
+  "settings.latestVersion": "Dernière : {version}",
   "settings.updateChannel": "Canal de mise à jour",
   "settings.stableReleases": "Versions stables",
   "settings.preReleases": "Versions préliminaires",

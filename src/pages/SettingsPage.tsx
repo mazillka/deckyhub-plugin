@@ -60,25 +60,31 @@ export function SettingsPage() {
       <div aria-hidden style={sectionDividerStyle} />
 
       <PanelSection title={t("settings.downloadSettings")}>
-        <PanelSectionRow>{t("settings.whereZipsSaved")}</PanelSectionRow>
-        <PanelSectionRow>
-          <div>
-            <strong>Downloaded items</strong>
-            {downloads.length ? downloads.map((item) => <div key={item.name}><small>{item.name}{item.directory ? "/" : ""}</small></div>) : <div><small>No downloaded items.</small></div>}
-          </div>
-        </PanelSectionRow>
+        <PanelSectionRow><small>{t("settings.whereZipsSaved")}</small></PanelSectionRow>
+        <div aria-hidden style={sectionDividerStyle} />
         <PanelSectionRow>
           <ToggleField label={t("settings.verifySha256")} checked={settings.verifySha256} onChange={(checked) => update({ verifySha256: checked })} />
         </PanelSectionRow>
         <PanelSectionRow>
           <ToggleField label={t("settings.overwriteExisting")} checked={settings.overwriteExisting} onChange={(checked) => update({ overwriteExisting: checked })} />
         </PanelSectionRow>
+        <div aria-hidden style={sectionDividerStyle} />
         <PanelSectionRow>
           <Button style={compactButtonStyle} onClick={confirmClearDownloads}>
             {t("settings.clearDownloads")}
           </Button>
         </PanelSectionRow>
-        <div aria-hidden style={sectionDividerStyle} />
+        <PanelSectionRow>
+          <div style={{ padding: "4px 0" }}>
+            <strong>Downloaded items</strong>
+            {downloads.length ? downloads.map((item) => <div key={item.name}><small>{item.name}{item.directory ? "/" : ""}</small></div>) : <div><small>No downloaded items.</small></div>}
+          </div>
+        </PanelSectionRow>
+      </PanelSection>
+
+      <div aria-hidden style={sectionDividerStyle} />
+
+      <PanelSection title={t("settings.language")}>
         <PanelSectionRow>
           <DropdownItem
             label={t("settings.language")}

@@ -60,14 +60,11 @@ export function DeckyHubUpdate() {
   return (
     <PanelSection title={t("settings.deckyhubUpdate")}>
       <PanelSectionRow>
-        <div>
+        <div style={{ display: "grid", gap: 4 }}>
           <div>{t("settings.installedVersion", { version: info.version })}</div>
           {release.version && <div>{t("settings.latestVersion", { version: release.version })}</div>}
           {(release.error || upToDate) && (
-            <>
-              <br />
-              <small>{release.error || t("settings.noUpdateAvailable", { version: info.version })}</small>
-            </>
+            <small style={{ color: release.error ? "#ff6b6b" : "#6bcb6b", marginTop: 4 }}>{release.error || t("settings.noUpdateAvailable", { version: info.version })}</small>
           )}
         </div>
       </PanelSectionRow>

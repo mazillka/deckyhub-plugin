@@ -48,7 +48,7 @@ export const uk: Record<MessageKey, string> = {
 
   "settings.deckyhubUpdate": "Оновлення DeckyHub",
   "settings.installedVersion": "Встановлено: {version}",
-  "settings.latestVersion": "· Остання: {version}",
+  "settings.latestVersion": "Остання: {version}",
   "settings.updateChannel": "Канал оновлень",
   "settings.stableReleases": "Стабільні релізи",
   "settings.preReleases": "Пре-релізи",
