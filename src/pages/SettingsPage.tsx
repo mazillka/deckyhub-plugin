@@ -1,7 +1,7 @@
 import { toaster } from "@decky/api";
 import { DialogButtonPrimary as Button, ConfirmModal, DropdownItem, PanelSection, PanelSectionRow, showModal, ToggleField } from "@decky/ui";
 import { useEffect, useState } from "react";
-import { clearDownloads, getSettings, saveSettings } from "../api";
+import { clearDownloads, getSettings, listDownloads, saveSettings } from "../api";
 import { LOCALE_CHANGED, LOCALES, useT } from "../i18n";
 import type { Settings } from "../types";
 import { compactButtonStyle, sectionDividerStyle } from "../utils";
@@ -9,9 +9,13 @@ import { compactButtonStyle, sectionDividerStyle } from "../utils";
 export function SettingsPage() {
   const t = useT();
   const [settings, setSettings] = useState<Settings>({ verifySha256: true, overwriteExisting: true, updateChannel: "stable", language: "auto" });
+  const [downloads, setDownloads] = useState<{ name: string; directory: boolean }[]>([]);
+
+  const refreshDownloads = () => void listDownloads().then(({ items }) => setDownloads(items));
 
   useEffect(() => {
     void getSettings().then(setSettings);
+    refreshDownloads();
   }, []);
 
   const update = (next: Partial<Settings>) => {
@@ -30,7 +34,10 @@ export function SettingsPage() {
         strDescription={t("settings.clearDownloadsDescription")}
         strOKButtonText={t("settings.clearDownloads")}
         bDestructiveWarning
-        onOK={() => void clearDownloads().then(({ removed }) => toaster.toast({ title: "DeckyHub", body: t("settings.downloadsCleared", { count: removed }) }))}
+        onOK={() => void clearDownloads().then(({ removed }) => {
+          setDownloads([]);
+          toaster.toast({ title: "DeckyHub", body: t("settings.downloadsCleared", { count: removed }) });
+        })}
       />
     );
 
@@ -54,6 +61,12 @@ export function SettingsPage() {
 
       <PanelSection title={t("settings.downloadSettings")}>
         <PanelSectionRow>{t("settings.whereZipsSaved")}</PanelSectionRow>
+        <PanelSectionRow>
+          <div>
+            <strong>Downloaded items</strong>
+            {downloads.length ? downloads.map((item) => <div key={item.name}><small>{item.name}{item.directory ? "/" : ""}</small></div>) : <div><small>No downloaded items.</small></div>}
+          </div>
+        </PanelSectionRow>
         <PanelSectionRow>
           <ToggleField label={t("settings.verifySha256")} checked={settings.verifySha256} onChange={(checked) => update({ verifySha256: checked })} />
         </PanelSectionRow>

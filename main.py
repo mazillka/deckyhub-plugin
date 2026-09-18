@@ -206,6 +206,26 @@ class Plugin:
 
         return {"removed": await asyncio.to_thread(clear)}
 
+    async def list_downloads(self):
+        directory = Path(PLUGIN_DOWNLOAD_DIR)
+
+        def list_items():
+            if not directory.is_dir():
+                return []
+            return [{"name": entry.name, "directory": entry.is_dir() and not entry.is_symlink()} for entry in sorted(directory.iterdir(), key=lambda entry: entry.name.casefold())]
+
+        return {"items": await asyncio.to_thread(list_items)}
+
+    async def list_downloads(self):
+        directory = Path(PLUGIN_DOWNLOAD_DIR)
+
+        def list_items():
+            if not directory.is_dir():
+                return []
+            return [{"name": entry.name, "directory": entry.is_dir() and not entry.is_symlink()} for entry in sorted(directory.iterdir(), key=lambda entry: entry.name.casefold())]
+
+        return {"items": await asyncio.to_thread(list_items)}
+
     async def add_custom_repo(self, repo: str):
         repo = repo.strip()
         if not REPOSITORY_NAME.fullmatch(repo):

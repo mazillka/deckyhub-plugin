@@ -16,6 +16,7 @@ export const exportCustomRepos = callable<[], { path: string }>("export_custom_r
 export const importCustomRepos = callable<[path: string], { added: string[] }>("import_custom_repos");
 export const queueDownloads = callable<[items: { asset: Asset; repo?: string }[]], { jobIds?: string[]; error?: string }>("queue_downloads");
 export const clearDownloads = callable<[], { removed: number }>("clear_downloads");
+export const listDownloads = callable<[], { items: { name: string; directory: boolean }[] }>("list_downloads");
 export const saveRepoSettings = callable<[repo: string, values: RepoPreference], RepoPreference>("save_repo_settings");
 
 export const REGISTRY_UPDATED = "deckyhub-registry-updated";
