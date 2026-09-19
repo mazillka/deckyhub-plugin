@@ -103,16 +103,6 @@
       "asset": { "include": [".zip"], "exclude": ["source"] }
     },
     {
-      "id": "junk-store",
-      "name": "Junk-Store",
-      "repo": "ebenbruyns/junkstore",
-      "category": "Game Libraries",
-      "versionStrategy": "semver",
-      "source": "releases",
-      "detect": { "type": "decky-plugin", "names": ["Junk-Store"] },
-      "asset": { "include": [".zip"], "exclude": ["source"] }
-    },
-    {
       "id": "css-loader",
       "name": "CSS Loader",
       "repo": "DeckThemes/SDH-CssLoader",
@@ -120,16 +110,6 @@
       "versionStrategy": "semver",
       "source": "releases",
       "detect": { "type": "decky-plugin", "names": ["CSS Loader"] },
-      "asset": { "include": [".zip"], "exclude": ["source"] }
-    },
-    {
-      "id": "steamgriddb",
-      "name": "SteamGridDB",
-      "repo": "SteamGridDB/decky-steamgriddb",
-      "category": "Game Libraries",
-      "versionStrategy": "semver",
-      "source": "releases",
-      "detect": { "type": "decky-plugin", "names": ["SteamGridDB"] },
       "asset": { "include": [".zip"], "exclude": ["source"] }
     }
   ]
