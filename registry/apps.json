@@ -51,6 +51,66 @@
       "source": "releases",
       "detect": { "type": "decky-plugin", "names": ["Nexus Mods"] },
       "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "decky-proton-launch",
+      "name": "Decky Proton Launch",
+      "repo": "moi952/decky-proton-launch",
+      "category": "Launch Options",
+      "versionStrategy": "semver",
+      "source": "releases",
+      "detect": { "type": "decky-plugin", "names": ["Decky Proton Launch"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "decky-launch-options",
+      "name": "Launch Options",
+      "repo": "Wurielle/decky-launch-options",
+      "category": "Launch Options",
+      "versionStrategy": "semver",
+      "source": "releases",
+      "detect": { "type": "decky-plugin", "names": ["Launch Options"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "decky-nonsteam-badges",
+      "name": "Non-Steam Badges",
+      "repo": "sebet/decky-nonsteam-badges",
+      "category": "Game Libraries",
+      "versionStrategy": "semver",
+      "source": "releases",
+      "detect": { "type": "decky-plugin", "names": ["Non-Steam Badges"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "decky-undervolt",
+      "name": "Decky-Undervolt",
+      "repo": "totallynotbakadestroyer/Decky-Undervolt",
+      "category": "Performance",
+      "versionStrategy": "semver",
+      "source": "releases",
+      "detect": { "type": "decky-plugin", "names": ["Decky-Undervolt"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "protondb-decky",
+      "name": "ProtonDB Badges",
+      "repo": "bschelst/protondb-decky",
+      "category": "Game Libraries",
+      "versionStrategy": "semver",
+      "source": "releases",
+      "detect": { "type": "decky-plugin", "names": ["ProtonDB Badges"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "junk-store",
+      "name": "Junk-Store",
+      "repo": "ebenbruyns/junkstore",
+      "category": "Game Libraries",
+      "versionStrategy": "semver",
+      "source": "releases",
+      "detect": { "type": "decky-plugin", "names": ["Junk-Store"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
     }
   ]
 }
