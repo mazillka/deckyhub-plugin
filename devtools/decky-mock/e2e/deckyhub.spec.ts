@@ -32,7 +32,7 @@ test("Quick Access navigation opens Discover", async ({ page }) => {
 
   await expect(app.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
   await expect(app.getByText("STEAM", { exact: true })).toBeVisible();
-  await expect(app.getByRole("heading", { name: "MAKO Decky · Frame Generation" })).toBeVisible();
+  await expect(app.getByRole("heading", { name: "MAKO Decky" })).toBeVisible();
 });
 
 test("Quick Access keeps its controller footer below its content", async ({ page }) => {
@@ -218,7 +218,7 @@ test("Discover exposes every matching release asset", async ({ page }) => {
   const app = mock(page);
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
 
-  const makoCard = app.getByRole("heading", { name: "MAKO Decky · Frame Generation" }).locator("..");
+  const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
   await expect(makoCard.getByRole("button", { name: "mako-decky-5.zip (1 KB)" })).toBeVisible();
 });
 

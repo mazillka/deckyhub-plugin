@@ -16,7 +16,7 @@ export function AppCard({
   const t = useT();
   const hasActions = Boolean(app.assets.length || app.releaseUrl);
   return (
-    <PanelSection title={`${app.name} · ${app.category}`}>
+    <PanelSection title={app.name}>
       <PanelSectionRow>
         <div>
           <span style={{ color: statusColor(app) }}>{t(statusKey(app))}</span>
