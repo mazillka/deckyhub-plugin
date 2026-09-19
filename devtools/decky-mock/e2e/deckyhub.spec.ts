@@ -46,6 +46,22 @@ test("Quick Access keeps its controller footer below its content", async ({ page
   expect(footerBox!.y).toBeGreaterThanOrEqual(contentBox!.y + contentBox!.height);
 });
 
+test("download modal actions use the full modal width", async ({ page }) => {
+  const app = mock(page);
+  const expectFullWidth = async (name: string) => {
+    const [button, modal] = await Promise.all([app.getByRole("button", { name, exact: true }).boundingBox(), app.locator(".steam-modal").boundingBox()]);
+    expect(button).not.toBeNull();
+    expect(modal).not.toBeNull();
+    expect(button!.width).toBeGreaterThanOrEqual(modal!.width - 48);
+  };
+
+  await app.getByRole("button", { name: "Download progress modal", exact: true }).click();
+  await expectFullWidth("Cancel");
+  await app.getByRole("button", { name: "Cancel", exact: true }).click();
+  await app.getByRole("button", { name: "Download complete modal", exact: true }).click();
+  await expectFullWidth("OK");
+});
+
 test("direct preview URLs render the requested page", async ({ page }) => {
   await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
 

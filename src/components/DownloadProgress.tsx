@@ -1,4 +1,4 @@
-import { ConfirmModal, ProgressBar, showModal } from "@decky/ui";
+import { DialogButtonPrimary as Button, ModalRoot, ProgressBar, showModal } from "@decky/ui";
 import { useEffect, useState } from "react";
 import { cancelDownload, getDownload } from "../api";
 import { useT } from "../i18n";
@@ -42,12 +42,8 @@ function DownloadModal({
   const progress = state.total ? Math.min(100, (100 * (state.received ?? 0)) / state.total) : 0;
 
   return (
-    <ConfirmModal
-      bAlertDialog
-      strOKButtonText={active ? t("content.cancel") : t("dl.ok")}
-      onOK={() => { if (active) void cancelDownload(jobId); }}
-      strDescription={
-        <div style={{ display: "grid", gap: 14 }}>
+    <ModalRoot closeModal={closeModal}>
+      <div style={{ display: "grid", gap: 14 }}>
           {active && (
             <div style={{ display: "grid", gap: 16 }}>
               <strong style={{ overflowWrap: "anywhere" }}>{t("dl.downloading", { filename: state.filename ?? "" })}</strong>
@@ -72,10 +68,14 @@ function DownloadModal({
               </div>
             </>
           )}
-        </div>
-      }
-      closeModal={closeModal}
-    />
+        <Button style={{ margin: 0, width: "100%" }} onClick={() => {
+          if (active) void cancelDownload(jobId);
+          closeModal?.();
+        }}>
+          {active ? t("content.cancel") : t("dl.ok")}
+        </Button>
+      </div>
+    </ModalRoot>
   );
 }
 
