@@ -33,6 +33,7 @@ test("Quick Access navigation opens Discover", async ({ page }) => {
   await expect(app.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
   await expect(app.getByText("STEAM", { exact: true })).toBeVisible();
   await expect(app.getByRole("heading", { name: "MAKO Decky" })).toBeVisible();
+  await expect(app.getByText("Boosts frame rates with Lossless Scaling frame generation.")).toBeVisible();
 });
 
 test("Quick Access keeps its controller footer below its content", async ({ page }) => {

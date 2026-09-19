@@ -4,6 +4,7 @@
     {
       "id": "mako-decky",
       "name": "MAKO Decky",
+      "description": "Boosts frame rates with Lossless Scaling frame generation.",
       "repo": "eugeniosegala/MAKO",
       "category": "Frame Generation",
       "versionStrategy": "semver",
@@ -15,6 +16,7 @@
     {
       "id": "decky-lsfg-vk",
       "name": "Decky LSFG-VK",
+      "description": "Enables and tunes LSFG-VK frame generation for compatible games.",
       "repo": "xXJSONDeruloXx/decky-lsfg-vk",
       "category": "Frame Generation",
       "versionStrategy": "semver",
@@ -25,6 +27,7 @@
     {
       "id": "unifideck",
       "name": "Unifideck",
+      "description": "Launch and manage non-Steam game libraries.",
       "repo": "mubaraknumann/unifideck",
       "category": "Game Libraries",
       "versionStrategy": "semver",
@@ -35,6 +38,7 @@
     {
       "id": "decky-framegen",
       "name": "Decky Framegen",
+      "description": "Controls Lossless Scaling frame generation for games.",
       "repo": "xXJSONDeruloXx/Decky-Framegen",
       "category": "Frame Generation",
       "versionStrategy": "semver",
@@ -45,6 +49,7 @@
     {
       "id": "decky-nexus",
       "name": "Nexus Mods",
+      "description": "Browse and manage Nexus Mods from Gaming Mode.",
       "repo": "RedRanger14/decky-nexus",
       "category": "Mod Managers",
       "versionStrategy": "semver",
@@ -55,6 +60,7 @@
     {
       "id": "decky-proton-launch",
       "name": "Decky Proton Launch",
+      "description": "Set Proton versions and launch options per game.",
       "repo": "moi952/decky-proton-launch",
       "category": "Launch Options",
       "versionStrategy": "semver",
@@ -65,6 +71,7 @@
     {
       "id": "decky-launch-options",
       "name": "Launch Options",
+      "description": "Create and apply reusable game launch options.",
       "repo": "Wurielle/decky-launch-options",
       "category": "Launch Options",
       "versionStrategy": "semver",
@@ -75,6 +82,7 @@
     {
       "id": "decky-nonsteam-badges",
       "name": "Non-Steam Badges",
+      "description": "Shows compatibility badges for non-Steam games.",
       "repo": "sebet/decky-nonsteam-badges",
       "category": "Game Libraries",
       "versionStrategy": "semver",
@@ -85,6 +93,7 @@
     {
       "id": "decky-undervolt",
       "name": "Decky-Undervolt",
+      "description": "Adjust CPU and GPU undervolting from Gaming Mode.",
       "repo": "totallynotbakadestroyer/Decky-Undervolt",
       "category": "Performance",
       "versionStrategy": "semver",
@@ -95,6 +104,7 @@
     {
       "id": "protondb-decky",
       "name": "ProtonDB Badges",
+      "description": "Displays ProtonDB compatibility ratings in your library.",
       "repo": "bschelst/protondb-decky",
       "category": "Game Libraries",
       "versionStrategy": "semver",
@@ -105,6 +115,7 @@
     {
       "id": "css-loader",
       "name": "CSS Loader",
+      "description": "Applies custom themes and CSS to the Steam interface.",
       "repo": "DeckThemes/SDH-CssLoader",
       "category": "Customization",
       "versionStrategy": "semver",

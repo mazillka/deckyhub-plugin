@@ -19,6 +19,8 @@ export function AppCard({
     <PanelSection title={app.name}>
       <PanelSectionRow>
         <div>
+          {app.description && <small>{app.description}</small>}
+          {app.description && <br />}
           <span style={{ color: statusColor(app) }}>{t(statusKey(app))}</span>
           <br />
           <small>{t("appcard.installedLatest", { installed: app.installedVersion ?? "—", latest: app.latestVersion ?? "—" })}</small>
