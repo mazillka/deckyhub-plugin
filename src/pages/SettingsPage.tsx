@@ -6,6 +6,8 @@ import { LOCALE_CHANGED, LOCALES, useT } from "../i18n";
 import type { Settings } from "../types";
 import { compactButtonStyle, sectionDividerStyle } from "../utils";
 
+const CLEAR_LIST_LIMIT = 50;
+
 export function SettingsPage() {
   const t = useT();
   const [settings, setSettings] = useState<Settings>({ verifySha256: true, overwriteExisting: true, updateChannel: "stable", language: "auto" });
@@ -31,7 +33,19 @@ export function SettingsPage() {
     showModal(
       <ConfirmModal
         strTitle={t("settings.clearDownloadsTitle")}
-        strDescription={t("settings.clearDownloadsDescription")}
+        strDescription={
+          <>
+            {t("settings.clearDownloadsDescription")}
+            {downloads.length > 0 && (
+              <div style={{ margin: "8px 0 0", color: "#6bcb6b" }}>
+                {downloads.slice(0, CLEAR_LIST_LIMIT).map((item, index) => (
+                  <span key={item.name}>{index ? " · " : ""}{item.name}{item.directory ? "/" : ""}</span>
+                ))}
+                {downloads.length > CLEAR_LIST_LIMIT && <span> · +{downloads.length - CLEAR_LIST_LIMIT} more</span>}
+              </div>
+            )}
+          </>
+        }
         strOKButtonText={t("settings.clearDownloads")}
         bDestructiveWarning
         onOK={() => void clearDownloads().then(({ removed }) => {
