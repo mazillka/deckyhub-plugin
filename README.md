@@ -1,29 +1,45 @@
 # DeckyHub
 
-DeckyHub is a Decky Loader plugin for Steam Deck (and other Decky-compatible handhelds) that helps you discover, install, and update other plugins and tools straight from Gaming Mode — no Desktop Mode browsing required to find them.
+<div align="center">
+
+### Menu
+<img src="screenshots/menu.jpg" width="600">
+
+### Discover
+<img src="screenshots/discover.jpg" width="600">
+
+### Updates
+<img src="screenshots/updates.jpg" width="600">
+
+</div>
+
+**Your Steam Deck's plugin store — right inside Gaming Mode.**
+
+Tired of tabbing out to Desktop Mode, hunting through GitHub releases, and manually downloading ZIPs every time a plugin updates? DeckyHub brings plugin discovery and updates straight to your controller. Browse a curated catalog of the best Steam Deck tools, track any GitHub repo you want, and get notified the moment an update drops — all without leaving your couch.
 
 It ships with a small curated list of popular Steam Deck tools, and you can add any GitHub repository you like.
 
 > **A note on how this is made.** Most of DeckyHub's code was written with the help of AI tools (Claude and Codex). That doesn't mean it ships untested — every release is verified on real hardware before it goes out. I'm telling you this upfront so you know exactly what you're installing and how it got built.
+
+## Why you'll like it
+
+- **Never miss an update** — DeckyHub checks your installed plugins against their latest GitHub releases and pings you with a toast the moment something new is available.
+- **No more zip-hunting** — search, download, and see exactly which release asset you need without opening a browser.
+- **Built for the couch** — full gamepad navigation, color-coded status at a glance, and one-tap downloads designed for Gaming Mode, not a desktop browser squeezed onto a small screen.
+- **You stay in control** — DeckyHub only downloads files, it never installs or runs anything automatically. Nothing touches your system until you say so.
 
 ## What it does
 
 - **Discover** — browse a curated list of Steam Deck plugins/tools, filter by search or installed status, and see release info at a glance, color-coded by status.
 - **Updates** — see which of your tracked, installed tools have a newer release available, and download updates in one tap. You'll also get a toast notification when new updates show up.
 - **Repositories** — two tabs: **Add & Manage** to search GitHub, add or remove tracked repositories, and export/import your list; **Repository Settings** for release-channel and asset-keyword overrides.
-- **Settings** — shows the fixed DeckyHub download folder, clears its contents with confirmation, toggles SHA-256 verification and overwriting existing files, and checks for DeckyHub's own updates.
+- **Settings** — shows the fixed DeckyHub download folder, clears its contents with confirmation, toggles SHA-256 verification and overwriting existing files, checks for DeckyHub's own updates, and lets you pick how many items show per row (1–3) in the app grid.
 
 DeckyHub only **downloads** files — it never installs or runs anything automatically. After a download finishes, you install it yourself from Desktop Mode via Decky → Developer → Install Plugin from ZIP. This keeps you in control of what actually runs on your system.
 
-## Screenshots
-
-| Menu | Discover | Updates |
-| --- | --- | --- |
-| ![Menu](screenshots/menu.jpg) | ![Discover](screenshots/discover.jpg) | ![Updates](screenshots/updates.jpg) |
-
 ## Bundled repositories
 
-DeckyHub ships tracking these repositories out of the box — no setup needed, they show up in Discover immediately:
+No setup, no configuration — these show up in Discover the moment you install DeckyHub:
 
 | Tool | Category | Repository |
 | --- | --- | --- |
@@ -33,7 +49,7 @@ DeckyHub ships tracking these repositories out of the box — no setup needed, t
 | Decky Framegen | Frame Generation | [xXJSONDeruloXx/Decky-Framegen](https://github.com/xXJSONDeruloXx/Decky-Framegen) |
 | Nexus Mods | Mod Managers | [RedRanger14/decky-nexus](https://github.com/RedRanger14/decky-nexus) |
 
-Add any other GitHub repository from **Repositories → Add & Manage**.
+Want more? Add any other GitHub repository from **Repositories → Add & Manage** in seconds.
 
 ## Installing DeckyHub
 
@@ -83,6 +99,6 @@ DeckyHub is only a discovery and download tool. All rights to the plugins and to
 
 ## Getting help
 
-If something isn't working, please open an issue on the [GitHub repository](https://github.com/mazillka/deckyhub-plugin/issues) with a description of what happened.
+Found a bug or have an idea? Open an issue on the [GitHub repository](https://github.com/mazillka/deckyhub-plugin/issues) with a description of what happened — feedback and suggestions are always welcome.
 
 Want to build DeckyHub from source or contribute a change? See [CONTRIBUTING.md](CONTRIBUTING.md).
