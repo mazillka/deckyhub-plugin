@@ -5,7 +5,7 @@
   "api_version": 2,
   "publish": {
     "tags": ["github", "updates", "downloads"],
-    "description": "Discover GitHub releases for popular Steam Deck tools and download them safely.",
+    "description": "Discover, track, and safely download GitHub releases for Steam Deck tools from Gaming Mode.",
     "image": ""
   }
 }

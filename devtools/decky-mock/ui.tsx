@@ -60,6 +60,14 @@ export function Button({
 
 export const DialogButtonPrimary = Button;
 
+export function ModalRoot({ children }: { children?: ReactNode }) {
+  return (
+    <div className="steam-modal-backdrop">
+      <div className="steam-modal">{children}</div>
+    </div>
+  );
+}
+
 export function Dropdown({
   rgOptions,
   selectedOption,

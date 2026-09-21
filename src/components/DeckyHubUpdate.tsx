@@ -1,18 +1,18 @@
 import { toaster } from "@decky/api";
 import { DialogButtonPrimary as Button, Navigation, PanelSection, PanelSectionRow } from "@decky/ui";
 import { useEffect, useState } from "react";
-import { cancelDownload, getDeckyHubInfo, getDownload, getSettings, installDeckyHubUpdate } from "../api";
+import { getDeckyHubInfo, getSettings, installDeckyHubUpdate } from "../api";
 import { useT } from "../i18n";
-import type { Asset, DeckyHubInfo, DeckyHubRelease, Download, UpdateChannel } from "../types";
+import type { Asset, DeckyHubInfo, DeckyHubRelease, UpdateChannel } from "../types";
 import { compactButtonStyle, latestDeckyHubRelease, sectionDividerStyle } from "../utils";
-import { DownloadProgress, showDownloadComplete } from "./DownloadProgress";
+import { showDownloadModal } from "./DownloadProgress";
 
 export function DeckyHubUpdate() {
   const t = useT();
   const [channel, setChannel] = useState<UpdateChannel>("stable");
   const [info, setInfo] = useState<DeckyHubInfo>({ version: "unknown" });
   const [release, setRelease] = useState<DeckyHubRelease>({});
-  const [job, setJob] = useState<{ id: string; state: Download } | null>(null);
+  const [downloading, setDownloading] = useState(false);
 
   const checkForUpdate = () =>
     void latestDeckyHubRelease(channel).then((next) => {
@@ -33,25 +33,15 @@ export function DeckyHubUpdate() {
     if (info.version !== "unknown") checkForUpdate();
   }, [channel, info.version]);
 
-  useEffect(() => {
-    if (!job || !["queued", "downloading"].includes(job.state.state)) return;
-    const timer = window.setInterval(() => void getDownload(job.id).then(
-      (state) => setJob({ id: job.id, state }),
-      (error) => setJob((current) => current && { ...current, state: { ...current.state, state: "error", error: String(error) } }),
-    ), 500);
-    return () => window.clearInterval(timer);
-  }, [job]);
-
-  useEffect(() => {
-    if (job?.state.state === "complete") showDownloadComplete(t, t("settings.deckyhubUpdate"), job.state.path);
-  }, [job?.id, job?.state.state]);
-
   const upToDate = Boolean(release.version && info.version !== "unknown" && release.version.trim().replace(/^v/i, "") === info.version.trim().replace(/^v/i, ""));
 
   const installUpdate = async (asset: Asset) => {
     try {
       const result = await installDeckyHubUpdate(asset);
-      if (result.jobId) setJob({ id: result.jobId, state: { state: "queued", filename: asset.name, total: asset.size } });
+      if (result.jobId) {
+        setDownloading(true);
+        showDownloadModal(t, result.jobId, { state: "queued", filename: asset.name, total: asset.size }, () => setDownloading(false));
+      }
     } catch (error) {
       setRelease((current) => ({ ...current, error: String(error) }));
     }
@@ -60,14 +50,13 @@ export function DeckyHubUpdate() {
   return (
     <PanelSection title={t("settings.deckyhubUpdate")}>
       <PanelSectionRow>
-        {t("settings.installedVersion", { version: info.version })}
-        {release.version && ` ${t("settings.latestVersion", { version: release.version })}`}
-        {(release.error || upToDate) && (
-          <>
-            <br />
-            <small>{release.error || t("settings.noUpdateAvailable", { version: info.version })}</small>
-          </>
-        )}
+        <div style={{ display: "grid", gap: 4 }}>
+          <div>{t("settings.installedVersion", { version: info.version })}</div>
+          {release.version && <div>{t("settings.latestVersion", { version: release.version })}</div>}
+          {(release.error || upToDate) && (
+            <small style={{ color: release.error ? "#ff6b6b" : "#6bcb6b", marginTop: 4 }}>{release.error || t("settings.noUpdateAvailable", { version: info.version })}</small>
+          )}
+        </div>
       </PanelSectionRow>
       <div aria-hidden style={sectionDividerStyle} />
       <PanelSectionRow>
@@ -75,19 +64,10 @@ export function DeckyHubUpdate() {
       </PanelSectionRow>
       {release.asset && !upToDate && (
         <PanelSectionRow>
-          <Button style={compactButtonStyle} onClick={() => void installUpdate(release.asset!)}>{t("settings.downloadUpdate")}</Button>
+          <Button style={compactButtonStyle} disabled={downloading} onClick={() => void installUpdate(release.asset!)}>{t("settings.downloadUpdate")}</Button>
         </PanelSectionRow>
       )}
-      {job && (
-        <PanelSectionRow>
-          {job.state.filename}: {job.state.state} {job.state.total ? `(${Math.round((100 * (job.state.received ?? 0)) / job.state.total)}%)` : ""}
-          <DownloadProgress download={job.state} />
-          {job.state.state === "complete" && <small>{t("settings.downloadedTo", { path: job.state.path || t("dl.selectedFolder") })}</small>}
-          {job.state.error && <small>{job.state.error}</small>}
-          {["queued", "downloading"].includes(job.state.state) && <Button style={compactButtonStyle} onClick={() => void cancelDownload(job.id).catch((error) => setJob((current) => current && { ...current, state: { ...current.state, state: "error", error: String(error) } }))}>{t("content.cancel")}</Button>}
-        </PanelSectionRow>
-      )}
-      {release.url && !upToDate && (
+      {release.url && (
         <PanelSectionRow>
           <Button style={compactButtonStyle} onClick={() => Navigation.NavigateToExternalWeb(release.url!)}>{t("appcard.releasePage")}</Button>
         </PanelSectionRow>

@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
+import { showDownloadModal } from "../../src/components/DownloadProgress";
+import { en, type MessageKey } from "../../src/i18n/en";
+import { substitute } from "../../src/i18n";
 import pluginFactory from "../../src/index";
 import { routerHook } from "./api";
+
+const previewText = (key: MessageKey, vars?: Record<string, string | number>) => substitute(en[key], vars);
 
 export default function DevShell() {
   const [, forceUpdate] = useState(0);
@@ -65,20 +70,20 @@ export default function DevShell() {
       if (moved) event.preventDefault();
     };
     let lastDirection = "";
-    let frame = 0;
+    let pollTimer = 0;
     const pollController = () => {
       const controller = navigator.getGamepads?.().find(Boolean);
       const buttons = controller?.buttons;
       const direction = buttons?.[12]?.pressed ? "Up" : buttons?.[13]?.pressed ? "Down" : buttons?.[14]?.pressed ? "Left" : buttons?.[15]?.pressed ? "Right" : Math.abs(controller?.axes[0] ?? 0) > Math.abs(controller?.axes[1] ?? 0) ? (controller!.axes[0] > .5 ? "Right" : controller!.axes[0] < -.5 ? "Left" : "") : controller?.axes[1] > .5 ? "Down" : controller?.axes[1] < -.5 ? "Up" : "";
       if (direction && direction !== lastDirection) moveFocus(direction);
       lastDirection = direction;
-      frame = requestAnimationFrame(pollController);
+      pollTimer = window.setTimeout(pollController, 100);
     };
     document.addEventListener("keydown", onKeyDown);
-    frame = requestAnimationFrame(pollController);
+    pollController();
     return () => {
       document.removeEventListener("keydown", onKeyDown);
-      cancelAnimationFrame(frame);
+      window.clearTimeout(pollTimer);
     };
   }, []);
 
@@ -93,6 +98,12 @@ export default function DevShell() {
           <p className="preview-title">Preview</p>
           <button className={`preview-route ${activePath === null ? "preview-route-active" : ""}`} onClick={() => setActivePath(null)}>
             Quick Access widget
+          </button>
+          <button className="preview-route" onClick={() => showDownloadModal(previewText, "preview-job", { state: "downloading", filename: "Decky-Framegen.zip", received: 57.3 * 1024 * 1024, total: 190.3 * 1024 * 1024 })}>
+            Download progress modal
+          </button>
+          <button className="preview-route" onClick={() => showDownloadModal(previewText, "preview-job", { state: "complete", path: "/home/deck/Downloads/deckyhub/DeckyHub-v1.0.2-rc.4.zip" })}>
+            Download complete modal
           </button>
           {routes.map(([path]) => (
             <button key={path} className={`preview-route ${activePath === path ? "preview-route-active" : ""}`} onClick={() => setActivePath(path)}>

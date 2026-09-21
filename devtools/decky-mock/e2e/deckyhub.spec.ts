@@ -32,7 +32,34 @@ test("Quick Access navigation opens Discover", async ({ page }) => {
 
   await expect(app.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
   await expect(app.getByText("STEAM", { exact: true })).toBeVisible();
-  await expect(app.getByRole("heading", { name: "MAKO Decky · Frame Generation" })).toBeVisible();
+  await expect(app.getByRole("heading", { name: "MAKO Decky" })).toBeVisible();
+  await expect(app.getByText("Boosts frame rates with Lossless Scaling frame generation.")).toBeVisible();
+});
+
+test("Quick Access keeps its controller footer below its content", async ({ page }) => {
+  const app = mock(page);
+  const content = app.locator(".qam-content");
+  const footer = app.locator(".qam-panel .steam-bottombar");
+  const [contentBox, footerBox] = await Promise.all([content.boundingBox(), footer.boundingBox()]);
+  expect(contentBox).not.toBeNull();
+  expect(footerBox).not.toBeNull();
+  expect(footerBox!.y).toBeGreaterThanOrEqual(contentBox!.y + contentBox!.height);
+});
+
+test("download modal actions use the full modal width", async ({ page }) => {
+  const app = mock(page);
+  const expectFullWidth = async (name: string) => {
+    const [button, modal] = await Promise.all([app.getByRole("button", { name, exact: true }).boundingBox(), app.locator(".steam-modal").boundingBox()]);
+    expect(button).not.toBeNull();
+    expect(modal).not.toBeNull();
+    expect(button!.width).toBeGreaterThanOrEqual(modal!.width - 48);
+  };
+
+  await app.getByRole("button", { name: "Download progress modal", exact: true }).click();
+  await expectFullWidth("Cancel");
+  await app.getByRole("button", { name: "Cancel", exact: true }).click();
+  await app.getByRole("button", { name: "Download complete modal", exact: true }).click();
+  await expectFullWidth("OK");
 });
 
 test("direct preview URLs render the requested page", async ({ page }) => {
@@ -133,7 +160,7 @@ test("Clearing DeckyHub downloads requires confirmation", async ({ page }) => {
   await app.getByRole("button", { name: "Cancel", exact: true }).click();
 });
 
-test("DeckyHub automatically hides a matching update package", async ({ page }) => {
+test("DeckyHub hides a matching update package but keeps its release page", async ({ page }) => {
   await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases/latest", (route) =>
     route.fulfill({
       json: {
@@ -147,7 +174,7 @@ test("DeckyHub automatically hides a matching update package", async ({ page }) 
   const app = mock(page);
   await expect(app.getByText(`DeckyHub ${deckyHubVersion} is already up to date.`)).toBeVisible();
   await expect(app.getByRole("button", { name: "Download Update", exact: true })).toBeHidden();
-  await expect(app.getByRole("button", { name: "Release Page", exact: true })).toBeHidden();
+  await expect(app.getByRole("button", { name: "Release Page", exact: true })).toBeVisible();
 });
 
 test("DeckyHub automatically notifies about an available update", async ({ page }) => {
@@ -208,7 +235,7 @@ test("Discover exposes every matching release asset", async ({ page }) => {
   const app = mock(page);
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
 
-  const makoCard = app.getByRole("heading", { name: "MAKO Decky · Frame Generation" }).locator("..");
+  const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
   await expect(makoCard.getByRole("button", { name: "mako-decky-5.zip (1 KB)" })).toBeVisible();
 });
 

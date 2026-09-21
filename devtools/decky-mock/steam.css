@@ -14,7 +14,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 }
 
 .steam-mock {
-  min-height: 100%;
+  height: 100%;
   display: grid;
   place-items: center;
   padding: 16px;
@@ -23,7 +23,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 
 .steam-deck {
   position: relative;
-  width: min(1280px, 100%);
+  width: auto;
+  max-width: 100%;
+  height: 100%;
   aspect-ratio: 16 / 10;
   overflow: hidden;
   border: 1px solid #4d6479;
@@ -72,6 +74,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .qam-title { display: flex; gap: 9px; align-items: center; }
 .qam-app-name { margin: 16px 20px 8px; color: #8fa5bb; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; }
 .qam-content { flex: 1; overflow: auto; padding: 0 12px 12px; }
+.qam-panel .steam-bottombar { position: static; flex: 0 0 44px; }
 
 .steam-page { position: absolute; inset: 0; background: linear-gradient(180deg, #172636, #0b121b); }
 .steam-topbar { position: absolute; z-index: 10; inset: 0 0 auto; height: 48px; background: #0b111ae8; border-bottom: 1px solid #425568; font-size: 12px; }
@@ -88,7 +91,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .steam-deck-full .steam-button { min-height: 36px; margin: 4px 0; padding: 8px 12px; background: linear-gradient(90deg, #4c7690, #385c72); border-color: #7898aa; }
 .steam-deck-full .steam-input, .steam-deck-full .steam-select { padding: 9px; background: #182630; border-color: #7392a4; }
 
-.steam-deck-full .preview-nav { top: auto; bottom: 0; left: 0; display: flex; width: auto; min-height: 44px; align-items: center; gap: 4px; padding: 4px 8px; border: 0; border-radius: 0; background: transparent; backdrop-filter: none; }
+.steam-deck-full .preview-nav { top: auto; bottom: 56px; left: 0; display: flex; width: auto; min-height: 44px; align-items: center; gap: 4px; padding: 4px 8px; border: 0; border-radius: 0; background: transparent; backdrop-filter: none; }
 .steam-deck-full .preview-title { display: none; }
 .steam-deck-full .preview-route { width: auto; margin: 0; padding: 7px 8px; font-size: 10px; }
 

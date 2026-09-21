@@ -24,7 +24,7 @@ DEFAULT_DOWNLOAD_DIR = "/home/deck/Downloads"
 PLUGIN_DOWNLOAD_DIR = f"{DEFAULT_DOWNLOAD_DIR}/deckyhub"
 DECKYHUB_REPO = "mazillka/deckyhub-plugin"
 DECKYHUB_RELEASE_PREFIX = f"https://github.com/{DECKYHUB_REPO}/releases/download/"
-DECKYHUB_VERSION = "1.0.0"
+DECKYHUB_VERSION = "1.0.2"
 REGISTRY_URL = f"https://raw.githubusercontent.com/{DECKYHUB_REPO}/main/registry/apps.json"
 REPOSITORY_NAME = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 SUPPORTED_LANGUAGES = {"auto", "en", "uk", "es", "de", "fr", "ja", "zh"}
@@ -121,7 +121,16 @@ class Plugin:
     async def get_apps(self):
         apps = [*self.apps, *self._custom_apps()]
         installed_plugins = await asyncio.to_thread(self._scan_installed_plugins)
-        installed = await asyncio.gather(*(asyncio.to_thread(self._installed_version, app, installed_plugins) for app in apps))
+        installed = [None] * len(apps)
+        command_checks = []
+        for index, app in enumerate(apps):
+            if app.get("detect", {}).get("type") == "decky-plugin":
+                installed[index] = self._decky_plugin_version(app["detect"], installed_plugins)
+            else:
+                command_checks.append((index, app))
+        command_versions = await asyncio.gather(*(asyncio.to_thread(self._installed_version, app, installed_plugins) for _, app in command_checks))
+        for (index, _), version in zip(command_checks, command_versions):
+            installed[index] = version
         return {"apps": [{**app, "installedVersion": version, "latestVersion": None, "publishedAt": None, "releaseUrl": None, "assets": [], "updateAvailable": None, "error": None} for app, version in zip(apps, installed)]}
 
     async def refresh_registry(self):
@@ -197,6 +206,26 @@ class Plugin:
 
         return {"removed": await asyncio.to_thread(clear)}
 
+    async def list_downloads(self):
+        directory = Path(PLUGIN_DOWNLOAD_DIR)
+
+        def list_items():
+            if not directory.is_dir():
+                return []
+            return [{"name": entry.name, "directory": entry.is_dir() and not entry.is_symlink()} for entry in sorted(directory.iterdir(), key=lambda entry: entry.name.casefold())]
+
+        return {"items": await asyncio.to_thread(list_items)}
+
+    async def list_downloads(self):
+        directory = Path(PLUGIN_DOWNLOAD_DIR)
+
+        def list_items():
+            if not directory.is_dir():
+                return []
+            return [{"name": entry.name, "directory": entry.is_dir() and not entry.is_symlink()} for entry in sorted(directory.iterdir(), key=lambda entry: entry.name.casefold())]
+
+        return {"items": await asyncio.to_thread(list_items)}
+
     async def add_custom_repo(self, repo: str):
         repo = repo.strip()
         if not REPOSITORY_NAME.fullmatch(repo):
@@ -252,29 +281,38 @@ class Plugin:
         return {"added": added}
 
     async def download_asset(self, asset: dict, repo: str | None = None):
-        name = self._validate_download_asset(asset, repo)
-        for job_id, job in self.downloads.items():
-            if job.get("repo") == repo and job.get("url") == asset["url"] and job["state"] in ("queued", "downloading"):
-                return {"jobId": job_id}
-        target_dir = self._asset_download_dir()
-        target_dir.mkdir(parents=True, exist_ok=True)
-        target = target_dir / name
-        if target.exists() and not self.settings.get("overwriteExisting"):
-            target = self._next_name(target)
-        job_id = f"{name}-{len(self.downloads) + 1}"
-        self.downloads[job_id] = {"state": "queued", "filename": target.name, "received": 0, "total": asset.get("size") or 0, "path": str(target), "error": None, "repo": repo, "url": asset["url"]}
-        self.download_queue.put_nowait((job_id, asset, target, False))
-        return {"jobId": job_id}
+        try:
+            name = self._validate_download_asset(asset, repo)
+            for job_id, job in self.downloads.items():
+                if job.get("repo") == repo and job.get("url") == asset["url"] and job["state"] in ("queued", "downloading"):
+                    return {"jobId": job_id}
+            target_dir = self._asset_download_dir()
+            target_dir.mkdir(parents=True, exist_ok=True)
+            target = target_dir / name
+            if target.exists() and not self.settings.get("overwriteExisting"):
+                target = self._next_name(target)
+            job_id = f"{name}-{len(self.downloads) + 1}"
+            self.downloads[job_id] = {"state": "queued", "filename": target.name, "received": 0, "total": asset.get("size") or 0, "path": str(target), "error": None, "repo": repo, "url": asset["url"]}
+            self.download_queue.put_nowait((job_id, asset, target, False))
+            return {"jobId": job_id}
+        except (OSError, ValueError) as error:
+            name = asset.get("name", "download") if isinstance(asset, dict) else "download"
+            return {"error": f"Can't start {name}: {error}"}
 
     async def queue_downloads(self, items: list[dict]):
-        entries = []
-        for item in items:
-            asset, repo = item.get("asset", {}), item.get("repo")
-            self._validate_download_asset(asset, repo)
-            entries.append((asset, repo))
+        try:
+            entries = []
+            for item in items:
+                asset, repo = item.get("asset", {}), item.get("repo")
+                self._validate_download_asset(asset, repo)
+                entries.append((asset, repo))
+        except (AttributeError, ValueError) as error:
+            return {"error": f"Can't queue updates: {error}"}
         jobs = []
         for asset, repo in entries:
             result = await self.download_asset(asset, repo)
+            if result.get("error"):
+                return result
             jobs.append(result["jobId"])
         return {"jobIds": jobs}
 

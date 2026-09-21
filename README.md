@@ -46,11 +46,11 @@ To track a repository that isn't in the curated list, go to **Repositories**, se
 
 ### Updates
 
-Shows every tracked tool that's installed and has a newer release available, along with its installed and latest version. Use **Download All Updates** to queue every pending update at once, or download them one at a time.
+Shows every tracked tool that's installed and has a newer release available, along with its installed and latest version. Download updates one at a time.
 
 ### Downloads
 
-All downloads are saved to `/home/deck/Downloads/deckyhub`. Settings can clear that folder after confirmation. Each card shows progress, file size, and a **Cancel** button while downloading. If a download is interrupted, no partial file is left behind.
+All downloads are saved to `/home/deck/Downloads/deckyhub`. Settings can clear that folder after confirmation. Starting a download opens a progress dialog with a **Cancel** button; once it finishes, the same dialog shows where the ZIP was saved and how to install it. If a download is interrupted, no partial file is left behind.
 
 When GitHub provides a checksum for a release asset, DeckyHub verifies it by default — turn off **Verify SHA256 When Available** in Settings if you don't want that check. By default, downloading a file again overwrites the previous copy; turn off **Overwrite Existing Files** in Settings if you'd rather keep both.
 

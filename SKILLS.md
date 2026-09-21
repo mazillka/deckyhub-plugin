@@ -26,5 +26,6 @@ cd devtools/decky-mock && npm run test:e2e
 
 ## Release
 
+- Create work branches as `<short-kebab-case-topic>`; add an ISO date suffix only when needed for uniqueness. Do not work directly on `main`.
 - Bump `DECKYHUB_VERSION` in `main.py` and `version` in `package.json` together.
 - Push a `v*` tag only after all checks pass.

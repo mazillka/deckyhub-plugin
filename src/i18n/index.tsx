@@ -37,10 +37,14 @@ function detectLocale(): Locale {
   return "en";
 }
 
-function translate(locale: Locale, key: MessageKey, vars?: Record<string, string | number>) {
-  const template = MESSAGES[locale][key] ?? MESSAGES.en[key] ?? key;
+export function substitute(template: string, vars?: Record<string, string | number>) {
   if (!vars) return template;
   return Object.entries(vars).reduce((text, [name, value]) => text.split(`{${name}}`).join(String(value)), template);
+}
+
+function translate(locale: Locale, key: MessageKey, vars?: Record<string, string | number>) {
+  const template = MESSAGES[locale][key] ?? MESSAGES.en[key] ?? key;
+  return substitute(template, vars);
 }
 
 type TranslateFn = (key: MessageKey, vars?: Record<string, string | number>) => string;

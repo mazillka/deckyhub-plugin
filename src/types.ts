@@ -3,6 +3,7 @@ export type Asset = { name: string; url: string; size: number; sha256?: string }
 export type App = {
   id: string;
   name: string;
+  description?: string;
   repo: string;
   category: string;
   source: "releases" | "tags";
