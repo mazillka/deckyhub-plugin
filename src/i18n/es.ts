@@ -28,7 +28,6 @@ export const es: Record<MessageKey, string> = {
   "status.updateAvailable": "Actualización disponible",
   "status.upToDate": "Actualizado",
 
-  "appcard.installedLatest": "Instalado: {installed} · Última: {latest}",
   "appcard.downloadComplete": "Descarga completa",
   "appcard.latest": "Última versión ({name})",
   "appcard.releasePage": "Página de la versión",

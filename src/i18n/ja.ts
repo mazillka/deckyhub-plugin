@@ -28,7 +28,6 @@ export const ja: Record<MessageKey, string> = {
   "status.updateAvailable": "更新あり",
   "status.upToDate": "最新",
 
-  "appcard.installedLatest": "インストール済み: {installed} ・ 最新: {latest}",
   "appcard.downloadComplete": "ダウンロード完了",
   "appcard.latest": "最新版（{name}）",
   "appcard.releasePage": "リリースページ",

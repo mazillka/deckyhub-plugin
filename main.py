@@ -28,7 +28,7 @@ DECKYHUB_VERSION = "1.0.3-rc.1"
 REGISTRY_URL = f"https://raw.githubusercontent.com/{DECKYHUB_REPO}/main/registry/apps.json"
 REPOSITORY_NAME = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 SUPPORTED_LANGUAGES = {"auto", "en", "uk", "es", "de", "fr", "ja", "zh"}
-DEFAULT_COLUMNS_PER_ROW = 2
+DEFAULT_COLUMNS_PER_ROW = 3
 
 
 def _coerce_columns_per_row(value) -> int:

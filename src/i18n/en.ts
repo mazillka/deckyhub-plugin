@@ -27,7 +27,6 @@ export const en = {
   "status.updateAvailable": "Update Available",
   "status.upToDate": "Up To Date",
 
-  "appcard.installedLatest": "Installed: {installed} · Latest: {latest}",
   "appcard.downloadComplete": "Download Complete",
   "appcard.latest": "Latest ({name})",
   "appcard.releasePage": "Release Page",

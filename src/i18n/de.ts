@@ -28,7 +28,6 @@ export const de: Record<MessageKey, string> = {
   "status.updateAvailable": "Update verfügbar",
   "status.upToDate": "Aktuell",
 
-  "appcard.installedLatest": "Installiert: {installed} · Neueste: {latest}",
   "appcard.downloadComplete": "Download abgeschlossen",
   "appcard.latest": "Neueste ({name})",
   "appcard.releasePage": "Release-Seite",

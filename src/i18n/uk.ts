@@ -28,7 +28,6 @@ export const uk: Record<MessageKey, string> = {
   "status.updateAvailable": "Є оновлення",
   "status.upToDate": "Останньої версії",
 
-  "appcard.installedLatest": "Встановлено: {installed} · Остання: {latest}",
   "appcard.downloadComplete": "Завантаження завершено",
   "appcard.latest": "Остання версія ({name})",
   "appcard.releasePage": "Сторінка релізу",

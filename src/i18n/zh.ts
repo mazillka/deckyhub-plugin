@@ -28,7 +28,6 @@ export const zh: Record<MessageKey, string> = {
   "status.updateAvailable": "有更新",
   "status.upToDate": "已是最新",
 
-  "appcard.installedLatest": "已安装：{installed} · 最新：{latest}",
   "appcard.downloadComplete": "下载完成",
   "appcard.latest": "最新版本（{name}）",
   "appcard.releasePage": "发行页面",

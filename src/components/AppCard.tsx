@@ -22,7 +22,9 @@ export function AppCard({
           <small style={cardDescriptionStyle}>{app.description || " "}</small>
           <span style={{ color: statusColor(app) }}>{t(statusKey(app))}</span>
           <br />
-          <small>{t("appcard.installedLatest", { installed: app.installedVersion ?? "—", latest: app.latestVersion ?? "—" })}</small>
+          <small>{t("settings.installedVersion", { version: app.installedVersion ?? "—" })}</small>
+          <br />
+          <small>{t("settings.latestVersion", { version: app.latestVersion ?? "—" })}</small>
           {app.error && (
             <>
               <br />
