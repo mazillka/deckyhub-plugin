@@ -4,13 +4,13 @@ import { useEffect, useState } from "react";
 import { clearDownloads, getSettings, listDownloads, saveSettings } from "../api";
 import { LOCALE_CHANGED, LOCALES, useT } from "../i18n";
 import type { Settings } from "../types";
-import { compactButtonStyle, sectionDividerStyle } from "../utils";
+import { compactButtonStyle, DEFAULT_COLUMNS_PER_ROW, sectionDividerStyle } from "../utils";
 
 const CLEAR_LIST_LIMIT = 50;
 
 export function SettingsPage() {
   const t = useT();
-  const [settings, setSettings] = useState<Settings>({ verifySha256: true, overwriteExisting: true, updateChannel: "stable", language: "auto" });
+  const [settings, setSettings] = useState<Settings>({ verifySha256: true, overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: DEFAULT_COLUMNS_PER_ROW });
   const [downloads, setDownloads] = useState<{ name: string; directory: boolean }[]>([]);
 
   const refreshDownloads = () => void listDownloads().then(({ items }) => setDownloads(items));
@@ -105,6 +105,19 @@ export function SettingsPage() {
             rgOptions={[{ label: t("settings.autoDetect"), data: "auto" }, ...LOCALES.map((locale) => ({ label: locale.label, data: locale.code }))]}
             selectedOption={settings.language}
             onChange={({ data }) => update({ language: data })}
+          />
+        </PanelSectionRow>
+      </PanelSection>
+
+      <div aria-hidden style={sectionDividerStyle} />
+
+      <PanelSection title={t("settings.displaySettings")}>
+        <PanelSectionRow>
+          <DropdownItem
+            label={t("settings.itemsPerRow")}
+            rgOptions={[1, 2, 3].map((count) => ({ label: String(count), data: count }))}
+            selectedOption={settings.columnsPerRow}
+            onChange={({ data }) => update({ columnsPerRow: data })}
           />
         </PanelSectionRow>
       </PanelSection>

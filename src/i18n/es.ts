@@ -62,6 +62,8 @@ export const es: Record<MessageKey, string> = {
   "settings.saveSettings": "Guardar ajustes",
   "settings.language": "Idioma",
   "settings.autoDetect": "Detección automática",
+  "settings.displaySettings": "Ajustes de pantalla",
+  "settings.itemsPerRow": "Elementos por fila",
 
   "repos.addManage": "Añadir y gestionar",
   "repos.repositorySettings": "Ajustes de repositorios",

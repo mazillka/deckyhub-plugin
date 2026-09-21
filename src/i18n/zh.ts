@@ -62,6 +62,8 @@ export const zh: Record<MessageKey, string> = {
   "settings.saveSettings": "保存设置",
   "settings.language": "语言",
   "settings.autoDetect": "自动检测",
+  "settings.displaySettings": "显示设置",
+  "settings.itemsPerRow": "每行显示数量",
 
   "repos.addManage": "添加与管理",
   "repos.repositorySettings": "仓库设置",

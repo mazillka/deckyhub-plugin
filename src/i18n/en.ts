@@ -61,6 +61,8 @@ export const en = {
   "settings.saveSettings": "Save Settings",
   "settings.language": "Language",
   "settings.autoDetect": "Auto-detect",
+  "settings.displaySettings": "Display Settings",
+  "settings.itemsPerRow": "Items Per Row",
 
   "repos.addManage": "Add & Manage",
   "repos.repositorySettings": "Repository Settings",

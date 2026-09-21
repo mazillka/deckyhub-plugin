@@ -28,6 +28,15 @@ DECKYHUB_VERSION = "1.0.2"
 REGISTRY_URL = f"https://raw.githubusercontent.com/{DECKYHUB_REPO}/main/registry/apps.json"
 REPOSITORY_NAME = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 SUPPORTED_LANGUAGES = {"auto", "en", "uk", "es", "de", "fr", "ja", "zh"}
+DEFAULT_COLUMNS_PER_ROW = 2
+
+
+def _coerce_columns_per_row(value) -> int:
+    try:
+        columns = int(value)
+    except (TypeError, ValueError):
+        return DEFAULT_COLUMNS_PER_ROW
+    return columns if columns in (1, 2, 3) else DEFAULT_COLUMNS_PER_ROW
 class Plugin:
     async def _main(self):
         self.settings_path = Path(decky.DECKY_PLUGIN_SETTINGS_DIR) / "settings.json"
@@ -48,11 +57,12 @@ class Plugin:
                 "overwriteExisting": bool(settings.get("overwriteExisting", True)),
                 "updateChannel": "prerelease" if settings.get("updateChannel") == "prerelease" else "stable",
                 "language": settings.get("language") if settings.get("language") in SUPPORTED_LANGUAGES else "auto",
+                "columnsPerRow": _coerce_columns_per_row(settings.get("columnsPerRow")),
                 "customRepos": [repo for repo in repos if isinstance(repo, str) and REPOSITORY_NAME.fullmatch(repo)],
                 "repoSettings": settings.get("repoSettings", {}) if isinstance(settings.get("repoSettings"), dict) else {},
             }
         except (AttributeError, OSError, json.JSONDecodeError):
-            return {"verifySha256": True, "overwriteExisting": True, "updateChannel": "stable", "language": "auto", "customRepos": [], "repoSettings": {}}
+            return {"verifySha256": True, "overwriteExisting": True, "updateChannel": "stable", "language": "auto", "columnsPerRow": DEFAULT_COLUMNS_PER_ROW, "customRepos": [], "repoSettings": {}}
 
     def _load_registry(self) -> list[dict]:
         try:
@@ -180,6 +190,7 @@ class Plugin:
             "overwriteExisting": bool(settings.get("overwriteExisting", True)),
             "updateChannel": "prerelease" if settings.get("updateChannel") == "prerelease" else "stable",
             "language": settings.get("language") if settings.get("language") in SUPPORTED_LANGUAGES else "auto",
+            "columnsPerRow": _coerce_columns_per_row(settings.get("columnsPerRow")),
             "customRepos": getattr(self, "settings", {}).get("customRepos", []),
             "repoSettings": getattr(self, "settings", {}).get("repoSettings", {}),
         }

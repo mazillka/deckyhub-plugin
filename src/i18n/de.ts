@@ -62,6 +62,8 @@ export const de: Record<MessageKey, string> = {
   "settings.saveSettings": "Einstellungen speichern",
   "settings.language": "Sprache",
   "settings.autoDetect": "Automatisch erkennen",
+  "settings.displaySettings": "Anzeigeeinstellungen",
+  "settings.itemsPerRow": "Elemente pro Zeile",
 
   "repos.addManage": "Hinzufügen & Verwalten",
   "repos.repositorySettings": "Repository-Einstellungen",

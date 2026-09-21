@@ -62,6 +62,8 @@ export const ja: Record<MessageKey, string> = {
   "settings.saveSettings": "設定を保存",
   "settings.language": "言語",
   "settings.autoDetect": "自動検出",
+  "settings.displaySettings": "表示設定",
+  "settings.itemsPerRow": "1行あたりの項目数",
 
   "repos.addManage": "追加と管理",
   "repos.repositorySettings": "リポジトリ設定",

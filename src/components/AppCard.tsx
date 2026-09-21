@@ -2,7 +2,7 @@ import { DialogButtonPrimary as Button, Navigation, PanelSection, PanelSectionRo
 import { FaDownload } from "react-icons/fa";
 import { useT } from "../i18n";
 import type { App, Asset } from "../types";
-import { compactButtonStyle, readableBytes, sectionDividerStyle, statusKey, statusColor } from "../utils";
+import { cardDescriptionStyle, compactButtonStyle, readableBytes, sectionDividerStyle, statusKey, statusColor } from "../utils";
 
 export function AppCard({
   app,
@@ -19,8 +19,7 @@ export function AppCard({
     <PanelSection title={app.name}>
       <PanelSectionRow>
         <div>
-          {app.description && <small>{app.description}</small>}
-          {app.description && <br />}
+          <small style={cardDescriptionStyle}>{app.description || " "}</small>
           <span style={{ color: statusColor(app) }}>{t(statusKey(app))}</span>
           <br />
           <small>{t("appcard.installedLatest", { installed: app.installedVersion ?? "—", latest: app.latestVersion ?? "—" })}</small>

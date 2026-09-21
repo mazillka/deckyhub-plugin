@@ -5,7 +5,7 @@ import { FaSync } from "react-icons/fa";
 import { downloadAsset, getApps, getSettings, REGISTRY_UPDATED } from "../api";
 import { useT } from "../i18n";
 import type { App, Asset, RepoPreference, Settings, View } from "../types";
-import { compactButtonStyle, hydrate, notifyUpdates, sectionDividerStyle } from "../utils";
+import { compactButtonStyle, DEFAULT_COLUMNS_PER_ROW, hydrate, notifyUpdates, sectionDividerStyle } from "../utils";
 import { AppCard } from "../components/AppCard";
 import { showDownloadModal } from "../components/DownloadProgress";
 import { FocusableGrid } from "../components/FocusableGrid";
@@ -24,6 +24,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const [query, setQuery] = useState("");
   const [installedFilter, setInstalledFilter] = useState("All");
   const [cardPage, setCardPage] = useState(0);
+  const [columnsPerRow, setColumnsPerRow] = useState(DEFAULT_COLUMNS_PER_ROW);
   const quickAccessRef = useRef<HTMLDivElement>(null);
 
   const viewInfo: Record<View, { title: string; description: string; empty: string }> = {
@@ -37,6 +38,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
       const [appData, settings] = await Promise.all([getApps(), getSettings()]);
       const local = appData.apps;
       const preferences = (settings as Settings & { repoSettings?: Record<string, RepoPreference> }).repoSettings || {};
+      setColumnsPerRow(settings.columnsPerRow || DEFAULT_COLUMNS_PER_ROW);
       const tracked = view === "updates" ? local.filter((app) => app.installedVersion) : local;
       setCardPage(0);
       setApps(tracked);
@@ -164,7 +166,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
           <div aria-hidden style={sectionDividerStyle} />
           <FocusableGrid
             items={displayedApps}
-            columns={fullPage ? 2 : 1}
+            columns={fullPage ? columnsPerRow : 1}
             keyFor={(app) => app.id}
           >
             {(app) => <AppCard app={app} downloadDisabled={downloading} onDownload={(asset) => void startDownload(asset, app.repo)} />}

@@ -62,6 +62,8 @@ export const uk: Record<MessageKey, string> = {
   "settings.saveSettings": "Зберегти налаштування",
   "settings.language": "Мова",
   "settings.autoDetect": "Визначати автоматично",
+  "settings.displaySettings": "Налаштування вигляду",
+  "settings.itemsPerRow": "Елементів у рядку",
 
   "repos.addManage": "Додати й керувати",
   "repos.repositorySettings": "Налаштування репозиторіїв",

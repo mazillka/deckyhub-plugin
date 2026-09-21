@@ -4,9 +4,19 @@ import type { App, Asset, DeckyHubRelease, RepoPreference, UpdateChannel } from 
 
 export const CACHE_TTL = 60 * 1000;
 export const UPDATE_NOTICE_KEY = "deckyhub-update-notice";
+export const DEFAULT_COLUMNS_PER_ROW = 2;
 export const pageStyle = { boxSizing: "border-box" as const, height: "100%", overflowY: "auto" as const, padding: "64px 12px 96px", scrollPaddingBottom: 96, scrollPaddingTop: 64, width: "100%" };
 export const compactButtonStyle = { width: "100%", minHeight: 36, marginBottom: 8, padding: "6px 10px" };
 export const sectionDividerStyle = { borderTop: "1px solid rgba(255, 255, 255, 0.14)", margin: "16px 0" };
+// Reserves a fixed two-line height so cards in the same grid row stay aligned regardless of description length.
+export const cardDescriptionStyle = {
+  display: "-webkit-box",
+  WebkitLineClamp: 2,
+  WebkitBoxOrient: "vertical" as const,
+  overflow: "hidden",
+  minHeight: "2.6em",
+  lineHeight: "1.3em",
+};
 
 export function fetchWithTimeout(input: string, init?: RequestInit) {
   return fetchNoCors(input, { ...init, signal: AbortSignal.timeout(15_000) });
