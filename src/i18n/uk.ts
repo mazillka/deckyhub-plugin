@@ -18,7 +18,6 @@ export const uk: Record<MessageKey, string> = {
   "filter.installed": "Встановлено",
   "filter.notInstalled": "Не встановлено",
 
-  "content.loadingTitle": "Завантаження DeckyHub…",
   "content.loading": "Завантаження…",
   "content.loadErrorTitle": "Не вдалося завантажити DeckyHub",
   "content.tryAgain": "Спробувати ще раз",

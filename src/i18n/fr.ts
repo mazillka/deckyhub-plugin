@@ -18,7 +18,6 @@ export const fr: Record<MessageKey, string> = {
   "filter.installed": "Installé",
   "filter.notInstalled": "Non installé",
 
-  "content.loadingTitle": "Chargement de DeckyHub…",
   "content.loading": "Chargement…",
   "content.loadErrorTitle": "Impossible de charger DeckyHub",
   "content.tryAgain": "Réessayer",

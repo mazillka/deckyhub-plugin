@@ -18,7 +18,6 @@ export const zh: Record<MessageKey, string> = {
   "filter.installed": "已安装",
   "filter.notInstalled": "未安装",
 
-  "content.loadingTitle": "正在加载 DeckyHub…",
   "content.loading": "加载中…",
   "content.loadErrorTitle": "无法加载 DeckyHub",
   "content.tryAgain": "重试",

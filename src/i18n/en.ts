@@ -17,7 +17,6 @@ export const en = {
   "filter.installed": "Installed",
   "filter.notInstalled": "Not Installed",
 
-  "content.loadingTitle": "Loading DeckyHub…",
   "content.loading": "Loading…",
   "content.loadErrorTitle": "Could Not Load DeckyHub",
   "content.tryAgain": "Try Again",

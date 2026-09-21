@@ -129,9 +129,11 @@ export function Content({ fullPage }: { fullPage?: View }) {
       {discoverFilters}
       {discoverFilters && <div aria-hidden style={sectionDividerStyle} />}
       {loading && (
-        <PanelSection title={t("content.loadingTitle")}>
+        <PanelSection>
           <PanelSectionRow>
-            <Spinner style={{ width: "1.1em", margin: "0 8px 0 0" }} /> {t("content.loading")}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, minHeight: "50vh" }}>
+              <Spinner style={{ width: "1.1em" }} /> {t("content.loading")}
+            </div>
           </PanelSectionRow>
         </PanelSection>
       )}

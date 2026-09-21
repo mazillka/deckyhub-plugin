@@ -18,7 +18,6 @@ export const ja: Record<MessageKey, string> = {
   "filter.installed": "インストール済み",
   "filter.notInstalled": "未インストール",
 
-  "content.loadingTitle": "DeckyHubを読み込み中…",
   "content.loading": "読み込み中…",
   "content.loadErrorTitle": "DeckyHubを読み込めませんでした",
   "content.tryAgain": "再試行",
