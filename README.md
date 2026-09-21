@@ -15,6 +15,12 @@ It ships with a small curated list of popular Steam Deck tools, and you can add 
 
 DeckyHub only **downloads** files — it never installs or runs anything automatically. After a download finishes, you install it yourself from Desktop Mode via Decky → Developer → Install Plugin from ZIP. This keeps you in control of what actually runs on your system.
 
+## Screenshots
+
+| Menu | Discover | Updates |
+| --- | --- | --- |
+| ![Menu](screenshots/menu.jpg) | ![Discover](screenshots/discover.jpg) | ![Updates](screenshots/updates.jpg) |
+
 ## Bundled repositories
 
 DeckyHub ships tracking these repositories out of the box — no setup needed, they show up in Discover immediately:
