@@ -30,8 +30,7 @@ function isLocale(value: unknown): value is Locale {
 }
 
 function detectLocale(): Locale {
-  const candidates = typeof navigator !== "undefined" && navigator.languages?.length ? navigator.languages : [typeof navigator !== "undefined" ? navigator.language : "en"];
-  for (const raw of candidates) {
+  for (const raw of navigator.languages ?? [navigator.language]) {
     const code = raw.toLowerCase().split("-")[0];
     if (isLocale(code)) return code;
   }
@@ -39,8 +38,7 @@ function detectLocale(): Locale {
 }
 
 export function substitute(template: string, vars?: Record<string, string | number>) {
-  if (!vars) return template;
-  return Object.entries(vars).reduce((text, [name, value]) => text.split(`{${name}}`).join(String(value)), template);
+  return template.replace(/\{(\w+)\}/g, (match, name) => String(vars?.[name] ?? match));
 }
 
 function translate(locale: Locale, key: MessageKey, vars?: Record<string, string | number>) {
