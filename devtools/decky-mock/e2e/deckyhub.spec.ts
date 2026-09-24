@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 
 const deckyHubVersion = JSON.parse(readFileSync(new URL("../../../package.json", import.meta.url), "utf8")).version;
 const deckyHubTag = `v${deckyHubVersion}`;
@@ -532,6 +532,38 @@ test("Settings' token link opens GitHub's token page", async ({ page, context })
   const popupPromise = page.waitForEvent("popup");
   await mock(page).locator(".deckyhub-token-link").click();
   expect((await popupPromise).url()).toBe("https://github.com/settings/tokens");
+});
+
+test("Updates offers Install update for an outdated Decky plugin and hands it to Decky's installer", async ({ page }) => {
+  // dev-server.py scans .dev-data/plugins/*/plugin.json as the installed
+  // Decky plugins, so seed an old MAKO there for the length of this test.
+  const pluginDir = new URL("../.dev-data/plugins/e2e-mako/", import.meta.url);
+  mkdirSync(pluginDir, { recursive: true });
+  writeFileSync(new URL("plugin.json", pluginDir), JSON.stringify({ name: "MAKO - Frame Generation", version: "1.0.0" }));
+  const sha256 = "c".repeat(64);
+  const url = "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v1.2.3/mako-decky.zip";
+  await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases**", (route) =>
+    route.fulfill({ json: [{ tag_name: "plugin-v1.2.3", prerelease: false, draft: false, published_at: "2026-01-01T00:00:00Z", html_url: "https://github.com/eugeniosegala/MAKO/releases/tag/plugin-v1.2.3", assets: [{ name: "mako-decky.zip", browser_download_url: url, size: 1024, digest: `sha256:${sha256}` }] }] })
+  );
+  // Stand-in for Decky Loader's own WS bridge: records install requests.
+  await page.addInitScript(() => {
+    const calls: unknown[][] = [];
+    Object.assign(window, { __installCalls: calls, DeckyBackend: { call: async (...args: unknown[]) => void calls.push(args), addEventListener() {}, removeEventListener() {} } });
+  });
+
+  try {
+    await page.goto("/?preview=/deckyhub/updates&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+    await makoCard.getByRole("button", { name: "Install update", exact: true }).click();
+
+    const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
+    await expect.poll(() => frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([
+      ["utilities/install_plugin", url, "MAKO - Frame Generation", "plugin-v1.2.3", sha256, 2],
+    ]);
+  } finally {
+    rmSync(pluginDir, { recursive: true, force: true });
+  }
 });
 
 test("Settings shows how many GitHub requests are left", async ({ page }) => {

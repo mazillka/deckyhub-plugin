@@ -13,6 +13,8 @@ export type App = {
   releaseTagInclude?: string;
   asset: { include: string[]; exclude: string[] };
   installedVersion?: string | null;
+  // Installed Decky plugin's own manifest name (decky-plugin detection only).
+  pluginName?: string | null;
   latestVersion?: string | null;
   publishedAt?: string | null;
   releaseUrl?: string | null;

@@ -26,7 +26,7 @@ It ships with a small curated list of popular Steam Deck tools, and you can add 
 - **Never miss an update** — DeckyHub checks your installed plugins against their latest GitHub releases and pings you with a toast the moment something new is available.
 - **No more zip-hunting** — search, download, and see exactly which release asset you need without opening a browser.
 - **Built for the couch** — full gamepad navigation, color-coded status at a glance, and one-tap downloads designed for Gaming Mode, not a desktop browser squeezed onto a small screen.
-- **You stay in control** — for every app/plugin DeckyHub tracks, it only downloads files; it never installs or runs anything automatically. Nothing touches your system until you say so. The one exception is updating DeckyHub itself, where you can opt into a one-tap automatic update alongside the classic download-and-install-yourself option.
+- **You stay in control** — DeckyHub never installs or runs anything automatically. Nothing touches your system until you say so. Installed Decky plugins with a pending update get an optional **Install update** button on the Updates page, and DeckyHub itself offers a one-tap update — both go through Decky Loader's own installer and its confirmation dialog, alongside the classic download-and-install-yourself option.
 
 ## What it does
 
@@ -35,7 +35,7 @@ It ships with a small curated list of popular Steam Deck tools, and you can add 
 - **Repositories** — search GitHub, add or remove tracked repositories, and export/import your list. Per-repository release-channel overrides live behind each app's **Download** button on Discover/Updates instead.
 - **Settings** — shows the fixed DeckyHub download folder, toggles overwriting existing files, lets you add an optional GitHub personal access token to raise the API rate limit, checks for DeckyHub's own updates, and lets you pick how many items show per row (1–3) in the app grid. A separate **Cleanup** section clears the download folder's contents with confirmation.
 
-For every tracked app/plugin, DeckyHub only **downloads** files — it never installs or runs anything automatically. After a download finishes, you install it yourself from Desktop Mode via Decky → Developer → Install Plugin from ZIP. This keeps you in control of what actually runs on your system. The only exception is DeckyHub's own updates, which offer an optional one-tap automatic install (see [Keeping DeckyHub itself updated](#keeping-deckyhub-itself-updated)).
+DeckyHub never installs or runs anything automatically. **Download ZIP** saves a release, which you install yourself via Decky → Developer → Install Plugin from ZIP. For an installed Decky plugin with a pending update, the Updates page also offers **Install update**, which hands that release ZIP to Decky Loader's own installer (the one the Decky Store uses); Decky asks you to confirm, verifies its SHA-256 checksum and installs it. It's only offered when GitHub publishes a checksum for the ZIP. DeckyHub's own updates work the same way (see [Keeping DeckyHub itself updated](#keeping-deckyhub-itself-updated)).
 
 ## Bundled repositories
 

@@ -224,6 +224,10 @@ export function installDeckyPlugin(asset: Asset, pluginName: string, version: st
   return backend.call("utilities/install_plugin", asset.url, pluginName, normalizeVersion(version), asset.sha256 ?? "", installType);
 }
 
+// Updates-page "Install update" is offered only for installed Decky plugins
+// whose newest matching ZIP carries a checksum the loader can verify.
+export const canInstallUpdate = (app: App) => Boolean(app.updateAvailable && app.pluginName && app.assets[0]?.sha256);
+
 export function selfUpdateStageKey(key: string | undefined): MessageKey {
   switch ((key ?? "").split(".").pop()) {
     case "start":
