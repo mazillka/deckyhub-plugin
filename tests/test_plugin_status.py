@@ -66,7 +66,34 @@ class PluginStatusTests(unittest.TestCase):
             plugin.settings_path = Path(home) / "settings.json"
 
             self.assertEqual(asyncio.run(plugin.save_settings({}))["githubToken"], "")
-            self.assertEqual(asyncio.run(plugin.save_settings({"githubToken": 12345}))["githubToken"], "")
+            for bogus in (12345, None, [], {}, 1.5, True):
+                self.assertEqual(asyncio.run(plugin.save_settings({"githubToken": bogus}))["githubToken"], "", msg=f"value: {bogus!r}")
+
+    def test_github_token_is_capped_at_255_characters(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.settings_path = Path(home) / "settings.json"
+
+            saved = asyncio.run(plugin.save_settings({"githubToken": "x" * 400}))
+            self.assertEqual(len(saved["githubToken"]), 255)
+
+    def test_github_token_whitespace_only_becomes_empty(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.settings_path = Path(home) / "settings.json"
+
+            self.assertEqual(asyncio.run(plugin.save_settings({"githubToken": "   "}))["githubToken"], "")
+
+    def test_loading_settings_from_before_github_token_existed_defaults_it_to_empty(self):
+        # Simulates a user upgrading from a version of DeckyHub that predates
+        # this setting: their on-disk settings.json simply has no such key.
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.settings_path = Path(home) / "settings.json"
+            plugin.settings_path.write_text(json.dumps({"overwriteExisting": True, "updateChannel": "stable"}), encoding="utf-8")
+
+            loaded = plugin._load_settings()
+            self.assertEqual(loaded["githubToken"], "")
 
     def test_clear_downloads_only_removes_deckyhub_contents(self):
         with tempfile.TemporaryDirectory() as home:
