@@ -7,6 +7,7 @@ import { useT } from "../i18n";
 import type { App, Asset, RepoPreference, Settings, View } from "../types";
 import { compactButtonStyle, DEFAULT_COLUMNS_PER_ROW, hydrate, notifyUpdates, sectionDividerStyle } from "../utils";
 import { AppCard } from "../components/AppCard";
+import { CleanupSection } from "../components/CleanupSection";
 import { showDownloadModal } from "../components/DownloadProgress";
 import { FocusableGrid } from "../components/FocusableGrid";
 import { DeckyHubUpdate } from "../components/DeckyHubUpdate";
@@ -227,6 +228,8 @@ export function Content({ fullPage }: { fullPage?: View }) {
       </PanelSection>
       <div aria-hidden style={sectionDividerStyle} />
       <DeckyHubUpdate />
+      <div aria-hidden style={sectionDividerStyle} />
+      <CleanupSection />
     </>
   );
 

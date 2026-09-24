@@ -1,6 +1,6 @@
 import { fetchNoCors, toaster } from "@decky/api";
 import type { MessageKey } from "./i18n/en";
-import type { App, Asset, DeckyHubRelease, RepoPreference, UpdateChannel } from "./types";
+import type { App, Asset, DeckyHubRelease, DeckyHubReleaseOption, RepoPreference, UpdateChannel } from "./types";
 
 export const CACHE_TTL = 60 * 1000;
 export const UPDATE_NOTICE_KEY = "deckyhub-update-notice";
@@ -44,6 +44,60 @@ function cached(app: App, force: boolean): any | null {
 function versionNumbers(value: string, pattern?: string) {
   const match = pattern ? value.match(new RegExp(pattern, "i")) : value.match(/v?(\d+(?:\.\d+)+)/i);
   return match ? (match[1] || match[0]).replace(/^v/i, "").split(".").map(Number) : null;
+}
+
+export const normalizeVersion = (value: string) => value.trim().replace(/^v/i, "");
+
+// Decky Loader's PluginInstallType enum (backend enums.py) — passed to the
+// global `utilities/install_plugin` route to tell its native installer what
+// kind of operation this is.
+export const PLUGIN_INSTALL_TYPE = { REINSTALL: 1, UPDATE: 2, DOWNGRADE: 3 } as const;
+
+export function resolveDeckyHubInstallType(latestVersion: string, installedVersion: string): 1 | 2 | 3 {
+  const target = versionNumbers(latestVersion);
+  const current = installedVersion === "unknown" ? null : versionNumbers(installedVersion);
+  if (!target || !current) return PLUGIN_INSTALL_TYPE.UPDATE;
+  for (let i = 0; i < Math.max(target.length, current.length); i++) {
+    const t = target[i] || 0, c = current[i] || 0;
+    if (t !== c) return t > c ? PLUGIN_INSTALL_TYPE.UPDATE : PLUGIN_INSTALL_TYPE.DOWNGRADE;
+  }
+  return PLUGIN_INSTALL_TYPE.REINSTALL;
+}
+
+// window.DeckyBackend is Decky Loader's own internal WS bridge, separate from
+// this plugin's `@decky/api` connection (which is scoped to this plugin's own
+// backend and cannot reach loader-global routes like `utilities/install_plugin`).
+// In Gaming Mode the Quick Access Menu renders in its own popup window opened
+// via window.open(), where DeckyBackend lives only on window.opener.
+declare global {
+  interface Window {
+    DeckyBackend?: {
+      call<Args extends unknown[] = unknown[], Return = unknown>(route: string, ...args: Args): Promise<Return>;
+      addEventListener<Args extends unknown[] = unknown[]>(event: string, listener: (...args: Args) => void): void;
+      removeEventListener<Args extends unknown[] = unknown[]>(event: string, listener: (...args: Args) => void): void;
+    };
+  }
+}
+
+export const getDeckyBackend = () => window.DeckyBackend ?? window.opener?.DeckyBackend ?? null;
+
+export function selfUpdateStageKey(key: string | undefined): MessageKey {
+  switch ((key ?? "").split(".").pop()) {
+    case "start":
+      return "settings.selfUpdateStageStart";
+    case "download_zip":
+    case "increment_count":
+      return "settings.selfUpdateStageDownload";
+    case "open_zip":
+    case "parse_zip":
+      return "settings.selfUpdateStageVerify";
+    case "uninstalling_previous":
+      return "settings.selfUpdateStageRemove";
+    case "installing_plugin":
+      return "settings.selfUpdateStageInstall";
+    default:
+      return "settings.selfUpdateStageWorking";
+  }
 }
 
 function isUpdate(app: App, latest: string | null, publishedAt: string | null) {
@@ -95,6 +149,34 @@ export async function latestDeckyHubRelease(channel: UpdateChannel): Promise<Dec
     return { version: release.tag_name || release.name, url: release.html_url, asset: { name: asset.name, url: asset.browser_download_url, size: asset.size || 0, sha256 } };
   } catch (error) {
     return { error: String(error) };
+  }
+}
+
+// Recent DeckyHub releases (stable and pre-release together) for the version
+// picker in DeckyHubUpdateModal — lets the user reinstall or downgrade to a
+// specific past release, not just install whatever is newest.
+export async function listDeckyHubReleases(limit = 20): Promise<{ items: DeckyHubReleaseOption[]; error?: string }> {
+  try {
+    const response = await fetchWithTimeout(`https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=${limit}`, { headers: { Accept: "application/vnd.github+json" } });
+    if (!response.ok) throw new Error(`GitHub API returned ${response.status}`);
+    const body = await response.json();
+    const items: DeckyHubReleaseOption[] = (Array.isArray(body) ? body : [])
+      .filter((item: any) => !item.draft)
+      .map((item: any) => {
+        const asset = (item.assets || []).find((a: any) => /^DeckyHub-.*\.zip$/i.test(String(a.name)));
+        const sha256 = String(asset?.digest || "").replace(/^sha256:/, "");
+        const validAsset = asset && String(asset.name).startsWith("DeckyHub-") && /^[0-9a-f]{64}$/i.test(sha256);
+        return {
+          tag: String(item.tag_name || item.name),
+          version: String(item.tag_name || item.name),
+          prerelease: Boolean(item.prerelease),
+          url: item.html_url || "https://github.com/mazillka/deckyhub-plugin/releases",
+          asset: validAsset ? { name: asset.name, url: asset.browser_download_url, size: asset.size || 0, sha256 } : undefined,
+        };
+      });
+    return { items };
+  } catch (error) {
+    return { items: [], error: String(error) };
   }
 }
 

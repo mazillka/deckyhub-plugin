@@ -1,18 +1,20 @@
 import { toaster } from "@decky/api";
-import { DialogButtonPrimary as Button, Navigation, PanelSection, PanelSectionRow } from "@decky/ui";
+import { DialogButtonPrimary as Button, PanelSection, PanelSectionRow, showModal } from "@decky/ui";
 import { useEffect, useState } from "react";
-import { getDeckyHubInfo, getSettings, installDeckyHubUpdate } from "../api";
+import { getDeckyHubInfo, getSettings } from "../api";
 import { useT } from "../i18n";
-import type { Asset, DeckyHubInfo, DeckyHubRelease, UpdateChannel } from "../types";
-import { compactButtonStyle, latestDeckyHubRelease, sectionDividerStyle } from "../utils";
-import { showDownloadModal } from "./DownloadProgress";
+import type { DeckyHubInfo, DeckyHubRelease, UpdateChannel } from "../types";
+import { compactButtonStyle, latestDeckyHubRelease } from "../utils";
+import { DeckyHubUpdateModal } from "./DeckyHubUpdateModal";
 
+// Deliberately thin: a header naming the installed version and a single
+// "Update" button. Everything else (latest version, self-update progress,
+// download-zip fallback, release page, re-check) lives in DeckyHubUpdateModal.
 export function DeckyHubUpdate() {
   const t = useT();
   const [channel, setChannel] = useState<UpdateChannel>("stable");
   const [info, setInfo] = useState<DeckyHubInfo>({ version: "unknown" });
   const [release, setRelease] = useState<DeckyHubRelease>({});
-  const [downloading, setDownloading] = useState(false);
 
   const checkForUpdate = () =>
     void latestDeckyHubRelease(channel).then((next) => {
@@ -34,44 +36,23 @@ export function DeckyHubUpdate() {
   }, [channel, info.version]);
 
   const upToDate = Boolean(release.version && info.version !== "unknown" && release.version.trim().replace(/^v/i, "") === info.version.trim().replace(/^v/i, ""));
-
-  const installUpdate = async (asset: Asset) => {
-    try {
-      const result = await installDeckyHubUpdate(asset);
-      if (result.jobId) {
-        setDownloading(true);
-        showDownloadModal(t, result.jobId, { state: "queued", filename: asset.name, total: asset.size }, () => setDownloading(false));
-      }
-    } catch (error) {
-      setRelease((current) => ({ ...current, error: String(error) }));
-    }
-  };
+  const loading = info.version === "unknown";
+  const title = loading ? `${t("settings.checkingVersion")}…` : `${t("settings.current")} - v${info.version}`;
+  const buttonLabel =
+    release.asset && !upToDate && release.version
+      ? t("settings.updateButtonAvailable", { version: release.version.trim().replace(/^v/i, "") })
+      : t("settings.updateButton");
 
   return (
-    <PanelSection title={t("settings.deckyhubUpdate")}>
+    <PanelSection title={title}>
       <PanelSectionRow>
-        <div style={{ display: "grid", gap: 4 }}>
-          <div>{t("settings.installedVersion", { version: info.version })}</div>
-          {release.version && <div>{t("settings.latestVersion", { version: release.version })}</div>}
-          {(release.error || upToDate) && (
-            <small style={{ color: release.error ? "#ff6b6b" : "#6bcb6b", marginTop: 4 }}>{release.error || t("settings.noUpdateAvailable", { version: info.version })}</small>
-          )}
-        </div>
+        <Button
+          style={compactButtonStyle}
+          onClick={() => showModal(<DeckyHubUpdateModal t={t} info={info} channel={channel} onCheckUpdate={checkForUpdate} onChannelChange={setChannel} />)}
+        >
+          {buttonLabel}
+        </Button>
       </PanelSectionRow>
-      <div aria-hidden style={sectionDividerStyle} />
-      <PanelSectionRow>
-        <Button style={compactButtonStyle} onClick={checkForUpdate}>{t("settings.checkUpdate")}</Button>
-      </PanelSectionRow>
-      {release.asset && !upToDate && (
-        <PanelSectionRow>
-          <Button style={compactButtonStyle} disabled={downloading} onClick={() => void installUpdate(release.asset!)}>{t("settings.downloadUpdate")}</Button>
-        </PanelSectionRow>
-      )}
-      {release.url && (
-        <PanelSectionRow>
-          <Button style={compactButtonStyle} onClick={() => Navigation.NavigateToExternalWeb(release.url!)}>{t("appcard.releasePage")}</Button>
-        </PanelSectionRow>
-      )}
     </PanelSection>
   );
 }

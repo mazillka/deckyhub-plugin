@@ -210,6 +210,7 @@ export function ConfirmModal({
   onOK,
   onCancel,
   closeModal,
+  children,
 }: {
   strTitle?: ReactNode;
   strDescription?: ReactNode;
@@ -220,12 +221,14 @@ export function ConfirmModal({
   onOK?: () => void;
   onCancel?: () => void;
   closeModal?: () => void;
+  children?: ReactNode;
 }) {
   return (
     <div className="steam-modal-backdrop">
       <div className="steam-modal">
         <h3 style={{ margin: "0 0 10px" }}>{strTitle}</h3>
-        <div style={{ fontSize: 13, marginBottom: 16 }}>{strDescription}</div>
+        {strDescription && <div style={{ fontSize: 13, marginBottom: 16 }}>{strDescription}</div>}
+        {children && <div style={{ marginBottom: 16 }}>{children}</div>}
         <div className="steam-modal-actions">
           {!bAlertDialog && (
             <button

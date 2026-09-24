@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 import json
 import sys
 import tempfile
@@ -163,7 +164,7 @@ class PluginStatusTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as home:
             plugin = Plugin()
             plugin.settings_path = Path(home) / "settings.json"
-            plugin.settings = {"verifySha256": True, "overwriteExisting": False, "customRepos": []}
+            plugin.settings = {"overwriteExisting": False, "customRepos": []}
             plugin.apps = []
 
             result = asyncio.run(plugin.add_custom_repo("owner/repository"))
@@ -187,7 +188,7 @@ class PluginStatusTests(unittest.TestCase):
             sys.modules["decky"].DECKY_HOME = home
             plugin = Plugin()
             plugin.settings_path = Path(home) / "settings.json"
-            plugin.settings = {"verifySha256": True, "overwriteExisting": False, "customRepos": ["owner/unused"]}
+            plugin.settings = {"overwriteExisting": False, "customRepos": ["owner/unused"]}
             plugin.apps = []
 
             result = asyncio.run(plugin.remove_custom_repo("owner/unused"))
@@ -202,7 +203,7 @@ class PluginStatusTests(unittest.TestCase):
             try:
                 plugin = Plugin()
                 plugin.settings_path = Path(home) / "settings.json"
-                plugin.settings = {"verifySha256": True, "overwriteExisting": False, "customRepos": ["owner/one"]}
+                plugin.settings = {"overwriteExisting": False, "customRepos": ["owner/one"]}
                 plugin.apps = []
 
                 exported = Path(asyncio.run(plugin.export_custom_repos())["path"])
@@ -363,7 +364,7 @@ class PluginStatusTests(unittest.TestCase):
     def test_download_marks_error_on_checksum_mismatch(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = Plugin()
-            plugin.settings = {"verifySha256": True}
+            plugin.settings = {}
             plugin.downloads = {"job": {"state": "queued", "received": 0, "total": 0}}
             plugin.cancelled = set()
             target = Path(home) / "asset.zip"
@@ -377,6 +378,37 @@ class PluginStatusTests(unittest.TestCase):
             self.assertEqual(plugin.downloads["job"]["state"], "error")
             self.assertIn("SHA256", plugin.downloads["job"]["error"])
             self.assertFalse(target.exists())
+
+    def test_download_completes_when_checksum_matches_without_any_setting(self):
+        # Verification is unconditional now that "Verify SHA256" was removed as a
+        # setting: this asserts it still succeeds (not just still fails) with a
+        # settings dict that doesn't mention checksums at all.
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.settings = {}
+            plugin.downloads = {"job": {"state": "queued", "received": 0, "total": 0}}
+            plugin.cancelled = set()
+            target = Path(home) / "asset.zip"
+            digest = hashlib.sha256(b"data").hexdigest()
+
+            def fake_download(job_id, asset, temp):
+                temp.write_bytes(b"data")
+
+            with patch.object(plugin, "_download_with_urllib", side_effect=fake_download):
+                plugin._download("job", {"url": "https://example.com/a", "sha256": digest}, target)
+
+            self.assertEqual(plugin.downloads["job"]["state"], "complete")
+            self.assertEqual(target.read_bytes(), b"data")
+
+    def test_saved_settings_no_longer_expose_verify_sha256(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.settings_path = Path(home) / "settings.json"
+
+            saved = asyncio.run(plugin.save_settings({"verifySha256": False}))
+
+            self.assertNotIn("verifySha256", saved)
+            self.assertNotIn("verifySha256", plugin._load_settings())
 
     def test_cancel_download_marks_job_and_get_download_reports_missing_by_default(self):
         plugin = Plugin()

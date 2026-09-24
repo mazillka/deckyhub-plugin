@@ -53,7 +53,6 @@ class Plugin:
             settings = json.loads(self.settings_path.read_text(encoding="utf-8"))
             repos = settings.get("customRepos", [])
             return {
-                "verifySha256": bool(settings.get("verifySha256", True)),
                 "overwriteExisting": bool(settings.get("overwriteExisting", True)),
                 "updateChannel": "prerelease" if settings.get("updateChannel") == "prerelease" else "stable",
                 "language": settings.get("language") if settings.get("language") in SUPPORTED_LANGUAGES else "auto",
@@ -62,7 +61,7 @@ class Plugin:
                 "repoSettings": settings.get("repoSettings", {}) if isinstance(settings.get("repoSettings"), dict) else {},
             }
         except (AttributeError, OSError, json.JSONDecodeError):
-            return {"verifySha256": True, "overwriteExisting": True, "updateChannel": "stable", "language": "auto", "columnsPerRow": DEFAULT_COLUMNS_PER_ROW, "customRepos": [], "repoSettings": {}}
+            return {"overwriteExisting": True, "updateChannel": "stable", "language": "auto", "columnsPerRow": DEFAULT_COLUMNS_PER_ROW, "customRepos": [], "repoSettings": {}}
 
     def _load_registry(self) -> list[dict]:
         try:
@@ -186,7 +185,6 @@ class Plugin:
 
     async def save_settings(self, settings: dict):
         self.settings = {
-            "verifySha256": bool(settings.get("verifySha256", True)),
             "overwriteExisting": bool(settings.get("overwriteExisting", True)),
             "updateChannel": "prerelease" if settings.get("updateChannel") == "prerelease" else "stable",
             "language": settings.get("language") if settings.get("language") in SUPPORTED_LANGUAGES else "auto",
@@ -304,7 +302,7 @@ class Plugin:
                 target = self._next_name(target)
             job_id = f"{name}-{len(self.downloads) + 1}"
             self.downloads[job_id] = {"state": "queued", "filename": target.name, "received": 0, "total": asset.get("size") or 0, "path": str(target), "error": None, "repo": repo, "url": asset["url"]}
-            self.download_queue.put_nowait((job_id, asset, target, False))
+            self.download_queue.put_nowait((job_id, asset, target))
             return {"jobId": job_id}
         except (OSError, ValueError) as error:
             name = asset.get("name", "download") if isinstance(asset, dict) else "download"
@@ -349,14 +347,14 @@ class Plugin:
         if target.exists() and not self.settings.get("overwriteExisting"):
             target = self._next_name(target)
         self.downloads[job_id] = {"state": "queued", "filename": name, "received": 0, "total": asset.get("size") or 0, "path": str(target), "error": None}
-        self.download_queue.put_nowait((job_id, asset, target, True))
+        self.download_queue.put_nowait((job_id, asset, target))
         return {"jobId": job_id}
 
     async def _run_download_queue(self):
         while True:
-            job_id, asset, target, require_checksum = await self.download_queue.get()
+            job_id, asset, target = await self.download_queue.get()
             try:
-                await asyncio.to_thread(self._download, job_id, asset, target, require_checksum)
+                await asyncio.to_thread(self._download, job_id, asset, target)
             finally:
                 self.download_queue.task_done()
 
@@ -367,7 +365,7 @@ class Plugin:
                 return candidate
         raise RuntimeError("Too many files with this name")
 
-    def _download(self, job_id: str, asset: dict, target: Path, require_checksum: bool = False):
+    def _download(self, job_id: str, asset: dict, target: Path):
         job, temp = self.downloads[job_id], target.with_name(target.name + ".part")
         try:
             job["state"] = "downloading"
@@ -396,7 +394,7 @@ class Plugin:
             self.cancelled.discard(job_id)
             return
         try:
-            if (require_checksum or self.settings.get("verifySha256")) and asset.get("sha256") and self._sha256(temp) != asset["sha256"].lower():
+            if asset.get("sha256") and self._sha256(temp) != asset["sha256"].lower():
                 raise RuntimeError("SHA256 verification failed")
             os.replace(temp, target)
             job["state"] = "complete"

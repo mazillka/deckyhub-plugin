@@ -22,13 +22,15 @@ export type App = {
 
 export type UpdateChannel = "stable" | "prerelease";
 
-export type Settings = { verifySha256: boolean; overwriteExisting: boolean; updateChannel: UpdateChannel; language: string; columnsPerRow: 1 | 2 | 3 };
+export type Settings = { overwriteExisting: boolean; updateChannel: UpdateChannel; language: string; columnsPerRow: 1 | 2 | 3 };
 
 export type Download = { state: string; filename?: string; repo?: string; received?: number; total?: number; path?: string; error?: string };
 
 export type DeckyHubInfo = { version: string };
 
 export type DeckyHubRelease = { version?: string; asset?: Asset; url?: string; error?: string };
+
+export type DeckyHubReleaseOption = { tag: string; version: string; prerelease: boolean; asset?: Asset; url: string };
 
 export type View = "updates" | "discover";
 

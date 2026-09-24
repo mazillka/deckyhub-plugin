@@ -54,3 +54,5 @@ Pushing a `v*` Git tag starts the GitHub Actions release workflow. It installs t
 ## Security boundaries
 
 Registry entries are trusted project data. Download URLs must be HTTPS and filenames are reduced to a basename. Normal downloads verify a SHA-256 checksum when GitHub exposes one; DeckyHub self-updates require one. GitHub API access is unauthenticated, so users may encounter GitHub's public API rate limit.
+
+Every other tracked app/plugin is download-only: DeckyHub never installs or runs anything on the user's behalf. The one exception is updating **DeckyHub itself** — the primary button in `src/components/DeckyHubUpdateModal.tsx` (opened from the thin "Current - vX.Y.Z" panel in `DeckyHubUpdate.tsx`) hands the selected release's asset URL, plugin name, version, and SHA-256 to Decky Loader's own global `utilities/install_plugin` route via `window.DeckyBackend` (not `@decky/api`'s plugin-scoped `call`, which cannot reach it), the same mechanism the Decky Store uses. It only ever fires on an explicit tap of that button; the "Download ZIP" button next to it stays as the always-available fallback.
