@@ -8,9 +8,8 @@ export type App = {
   description?: string;
   repo: string;
   category: string;
-  source: "releases" | "tags";
-  versionStrategy: "semver" | "release-date" | "custom";
-  versionPattern?: string;
+  source: "releases";
+  versionStrategy: "semver";
   releaseTagInclude?: string;
   asset: { include: string[]; exclude: string[] };
   installedVersion?: string | null;

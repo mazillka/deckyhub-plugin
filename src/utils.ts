@@ -103,9 +103,9 @@ function writeCache(key: string, data: unknown): void {
   }
 }
 
-function versionNumbers(value: string, pattern?: string) {
-  const match = pattern ? value.match(new RegExp(pattern, "i")) : value.match(/v?(\d+(?:\.\d+)+)/i);
-  return match ? (match[1] || match[0]).replace(/^v/i, "").split(".").map(Number) : null;
+function versionNumbers(value: string) {
+  const match = value.match(/v?(\d+(?:\.\d+)+)/i);
+  return match ? match[1].split(".").map(Number) : null;
 }
 
 export const normalizeVersion = (value: string) => value.trim().replace(/^v/i, "");
@@ -211,12 +211,10 @@ export function selfUpdateStageKey(key: string | undefined): MessageKey {
   }
 }
 
-function isUpdate(app: App, latest: string | null, publishedAt: string | null) {
-  if (!app.installedVersion || (!latest && !publishedAt)) return null;
-  if (app.versionStrategy === "release-date")
-    return publishedAt && !Number.isNaN(Date.parse(app.installedVersion)) ? Date.parse(app.installedVersion) < Date.parse(publishedAt) : null;
-  const installed = versionNumbers(app.installedVersion, app.versionStrategy === "custom" ? app.versionPattern : undefined);
-  const target = latest ? versionNumbers(latest, app.versionStrategy === "custom" ? app.versionPattern : undefined) : null;
+function isUpdate(app: App, latest: string | null) {
+  if (!app.installedVersion || !latest) return null;
+  const installed = versionNumbers(app.installedVersion);
+  const target = versionNumbers(latest);
   if (!installed || !target) return null;
   for (let i = 0; i < Math.max(installed.length, target.length); i++) {
     if ((installed[i] || 0) !== (target[i] || 0)) return (installed[i] || 0) < (target[i] || 0);
@@ -314,12 +312,7 @@ export async function hydrate(app: App, force: boolean, preference?: RepoPrefere
   try {
     let release = readCache<any>(keyFor(app), force);
     if (!release) {
-      const endpoint =
-        app.source === "tags"
-          ? `/repos/${app.repo}/tags?per_page=1`
-          : preference?.channel === "prerelease" || app.releaseTagInclude
-          ? `/repos/${app.repo}/releases?per_page=20`
-          : `/repos/${app.repo}/releases/latest`;
+      const endpoint = preference?.channel === "prerelease" || app.releaseTagInclude ? `/repos/${app.repo}/releases?per_page=20` : `/repos/${app.repo}/releases/latest`;
       const response = await fetchWithTimeout(`https://api.github.com${endpoint}`, { headers: githubHeaders() });
       if (!response.ok) throw await githubResponseError(response);
       const body = await response.json();
@@ -330,9 +323,7 @@ export async function hydrate(app: App, force: boolean, preference?: RepoPrefere
       release = Array.isArray(body)
         ? preference?.channel === "prerelease"
           ? body.filter((item) => item.prerelease && !item.draft).sort(byRawPublishedDesc)[0]
-          : app.releaseTagInclude
-          ? body.filter((item) => String(item.tag_name || "").toLowerCase().includes(app.releaseTagInclude!.toLowerCase())).sort(byRawPublishedDesc)[0]
-          : { tag_name: body[0]?.name, html_url: `https://github.com/${app.repo}/releases`, assets: [] }
+          : body.filter((item) => String(item.tag_name || "").toLowerCase().includes(app.releaseTagInclude!.toLowerCase())).sort(byRawPublishedDesc)[0]
         : body;
       if (!release) throw new Error("No matching release found");
       writeCache(keyFor(app), release);
@@ -346,7 +337,7 @@ export async function hydrate(app: App, force: boolean, preference?: RepoPrefere
       publishedAt,
       releaseUrl: release.html_url || `https://github.com/${app.repo}/releases`,
       assets: matchingAssets(app, release.assets || [], preference?.assetFilter),
-      updateAvailable: isUpdate(app, latestVersion, publishedAt),
+      updateAvailable: isUpdate(app, latestVersion),
     };
   } catch (error) {
     return { ...app, channel, error: String(error) };
@@ -356,10 +347,8 @@ export async function hydrate(app: App, force: boolean, preference?: RepoPrefere
 // Recent releases for a tracked app's own version picker (AppDetailsModal) —
 // unlike hydrate()'s single "current release" fetch, this returns the last
 // ~20 so the user can pick a specific past version to download, not just
-// whatever's newest. Only meaningful for GitHub Releases-backed apps: a
-// "tags" source has no release assets to offer, so it always returns empty.
+// whatever's newest.
 export async function listAppReleases(app: App, preference?: RepoPreference, force = false): Promise<{ items: AppReleaseOption[]; error?: string }> {
-  if (app.source === "tags") return { items: [] };
   const cacheKey = `deckyhub-app-releases:${app.repo}:${app.source}`;
   const cached = readCache<AppReleaseOption[]>(cacheKey, force);
   if (cached) return { items: cached };
