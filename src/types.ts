@@ -22,7 +22,7 @@ export type App = {
   channel?: UpdateChannel;
 };
 
-export type Settings = { overwriteExisting: boolean; updateChannel: UpdateChannel; language: string; columnsPerRow: 1 | 2 | 3; githubToken: string };
+export type Settings = { overwriteExisting: boolean; updateChannel: UpdateChannel; language: string; columnsPerRow: 1 | 2 | 3; githubToken: string; repoSettings?: Record<string, RepoPreference> };
 
 export type Download = { state: string; filename?: string; repo?: string; received?: number; total?: number; path?: string; error?: string };
 

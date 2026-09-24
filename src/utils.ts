@@ -241,31 +241,6 @@ export function notifyUpdates(apps: App[]) {
   toaster.toast({ title: `${updates.length} update${updates.length === 1 ? "" : "s"} available`, body: updates.map((app) => `${app.name} (${app.latestVersion})`).join(", ") });
 }
 
-export async function latestDeckyHubRelease(channel: UpdateChannel, force = false): Promise<DeckyHubRelease> {
-  const cacheKey = `deckyhub-selfupdate:${channel}`;
-  const cached = readCache<DeckyHubRelease>(cacheKey, force);
-  if (cached) return cached;
-  try {
-    const endpoint = channel === "prerelease" ? "releases?per_page=20" : "releases/latest";
-    const response = await fetchWithTimeout(`https://api.github.com/repos/mazillka/deckyhub-plugin/${endpoint}`, { headers: githubHeaders() });
-    if (!response.ok) throw await githubResponseError(response);
-    const body = await response.json();
-    const release = Array.isArray(body)
-      ? body.filter((item) => item.prerelease && !item.draft).sort(
-        (a, b) => (Date.parse(String(b.published_at)) || 0) - (Date.parse(String(a.published_at)) || 0),
-      )[0]
-      : body;
-    const asset = (release?.assets || []).find((item: any) => /^DeckyHub-.*\.zip$/i.test(String(item.name)));
-    const sha256 = String(asset?.digest || "").replace(/^sha256:/, "");
-    if (!asset || !String(asset.name).startsWith("DeckyHub-") || !/^[0-9a-f]{64}$/i.test(sha256)) throw new Error("DeckyHub release ZIP with SHA-256 checksum not found");
-    const result: DeckyHubRelease = { version: release.tag_name || release.name, url: release.html_url, asset: { name: asset.name, url: asset.browser_download_url, size: asset.size || 0, sha256 } };
-    writeCache(cacheKey, result);
-    return result;
-  } catch (error) {
-    return { error: String(error) };
-  }
-}
-
 // GitHub's list-releases endpoint doesn't reliably come back sorted newest
 // first — observed in the wild returning a just-published release sandwiched
 // in the middle of the array — so every version picker below sorts by
@@ -305,6 +280,14 @@ export async function listDeckyHubReleases(limit = 20, force = false): Promise<{
   } catch (error) {
     return { items: [], error: String(error) };
   }
+}
+
+// Newest release on the given channel for the QAM "Update" button — reuses
+// listDeckyHubReleases() (and its cache) instead of a second GitHub request.
+export async function latestDeckyHubRelease(channel: UpdateChannel, force = false): Promise<DeckyHubRelease> {
+  const { items, error } = await listDeckyHubReleases(20, force);
+  const release = items.find((item) => item.prerelease === (channel === "prerelease"));
+  return release?.asset ? { version: release.version, asset: release.asset } : { error: error ?? "DeckyHub release ZIP with SHA-256 checksum not found" };
 }
 
 export async function hydrate(app: App, force: boolean, preference?: RepoPreference): Promise<App> {

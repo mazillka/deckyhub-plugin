@@ -189,7 +189,6 @@ test("DeckyHub offers to reinstall the matching version and keeps its release pa
     html_url: `https://github.com/mazillka/deckyhub-plugin/releases/tag/${deckyHubTag}`,
     assets: [{ name: `DeckyHub-${deckyHubTag}.zip`, browser_download_url: `https://github.com/mazillka/deckyhub-plugin/releases/download/${deckyHubTag}/DeckyHub-${deckyHubTag}.zip`, digest: `sha256:${"a".repeat(64)}` }],
   };
-  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases/latest", (route) => route.fulfill({ json: deckyHubRelease }));
   await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) => route.fulfill({ json: [deckyHubRelease] }));
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
@@ -206,7 +205,6 @@ test("DeckyHub automatically notifies about an available update", async ({ page 
     html_url: "https://github.com/mazillka/deckyhub-plugin/releases/tag/v9.9.9",
     assets: [{ name: "DeckyHub-v9.9.9.zip", browser_download_url: "https://github.com/mazillka/deckyhub-plugin/releases/download/v9.9.9/DeckyHub-v9.9.9.zip", digest: `sha256:${"b".repeat(64)}` }],
   };
-  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases/latest", (route) => route.fulfill({ json: newerRelease }));
   await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) => route.fulfill({ json: [newerRelease] }));
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
@@ -229,7 +227,6 @@ test("DeckyHub version picker offers to downgrade to an older release", async ({
     html_url: "https://github.com/mazillka/deckyhub-plugin/releases/tag/v0.9.0",
     assets: [{ name: "DeckyHub-v0.9.0.zip", browser_download_url: "https://github.com/mazillka/deckyhub-plugin/releases/download/v0.9.0/DeckyHub-v0.9.0.zip", digest: `sha256:${"c".repeat(64)}` }],
   };
-  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases/latest", (route) => route.fulfill({ json: installedRelease }));
   await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) => route.fulfill({ json: [installedRelease, olderRelease] }));
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
@@ -254,7 +251,6 @@ test("DeckyHub's Check for Updates snaps the version picker back to the channel'
     html_url: "https://github.com/mazillka/deckyhub-plugin/releases/tag/v0.9.0",
     assets: [{ name: "DeckyHub-v0.9.0.zip", browser_download_url: "https://github.com/mazillka/deckyhub-plugin/releases/download/v0.9.0/DeckyHub-v0.9.0.zip", digest: `sha256:${"c".repeat(64)}` }],
   };
-  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases/latest", (route) => route.fulfill({ json: installedRelease }));
   await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) => route.fulfill({ json: [installedRelease, olderRelease] }));
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
@@ -287,13 +283,12 @@ test("DeckyHub distinguishes rc versions sharing the same release number", async
   const installedRelease = makeRelease(deckyHubTag);
   const olderRcRelease = makeRelease(olderRcTag);
   const newerRcRelease = makeRelease(newerRcTag);
-  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases/latest", (route) => route.fulfill({ json: installedRelease }));
   await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) =>
     route.fulfill({ json: [newerRcRelease, installedRelease, olderRcRelease] })
   );
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await app.getByRole("button", { name: "Update", exact: true }).click();
+  await app.getByRole("button", { name: /^Update \(.* available\)$/ }).click();
 
   // The modal defaults to the channel's newest release (newerRcRelease is
   // versions[0] in the mocked list), not the installed one, so it shows
@@ -324,14 +319,13 @@ test("DeckyHub picks the newest release by publish date even when GitHub returns
   const installedRelease = makeRelease(deckyHubTag, "2026-01-01T00:00:00Z");
   const olderRcRelease = makeRelease(olderRcTag, "2026-01-02T00:00:00Z");
   const newerRcRelease = makeRelease(newerRcTag, "2026-01-03T00:00:00Z");
-  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases/latest", (route) => route.fulfill({ json: installedRelease }));
   await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) =>
     // Out-of-order on purpose: the newest release (by published_at) isn't array[0].
     route.fulfill({ json: [installedRelease, newerRcRelease, olderRcRelease] })
   );
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await app.getByRole("button", { name: "Update", exact: true }).click();
+  await app.getByRole("button", { name: /^Update \(.* available\)$/ }).click();
 
   await expect(app.getByRole("button", { name: `Update to ${newerRcTag}`, exact: true })).toBeVisible();
   await expect(app.locator(".steam-modal").getByLabel("Version")).toHaveValue(newerRcRelease.tag_name);
@@ -346,7 +340,6 @@ test("DeckyHub falls back to a clear message when automatic update can't reach D
     html_url: `https://github.com/mazillka/deckyhub-plugin/releases/tag/${deckyHubTag}`,
     assets: [{ name: `DeckyHub-${deckyHubTag}.zip`, browser_download_url: `https://github.com/mazillka/deckyhub-plugin/releases/download/${deckyHubTag}/DeckyHub-${deckyHubTag}.zip`, digest: `sha256:${"a".repeat(64)}` }],
   };
-  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases/latest", (route) => route.fulfill({ json: deckyHubRelease }));
   await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) => route.fulfill({ json: [deckyHubRelease] }));
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
@@ -372,7 +365,6 @@ test("DeckyHub version picker re-filters by channel and leaves the channel as it
     html_url: "https://github.com/mazillka/deckyhub-plugin/releases/tag/v2.0.0-beta",
     assets: [{ name: "DeckyHub-v2.0.0-beta.zip", browser_download_url: "https://github.com/mazillka/deckyhub-plugin/releases/download/v2.0.0-beta/DeckyHub-v2.0.0-beta.zip", digest: `sha256:${"d".repeat(64)}` }],
   };
-  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases/latest", (route) => route.fulfill({ json: stableRelease }));
   await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) => route.fulfill({ json: [stableRelease, prereleaseRelease] }));
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);

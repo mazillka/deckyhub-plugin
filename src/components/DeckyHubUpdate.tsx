@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { getDeckyHubInfo, getSettings } from "../api";
 import { useT } from "../i18n";
 import type { DeckyHubInfo, DeckyHubRelease, UpdateChannel } from "../types";
-import { compactButtonStyle, latestDeckyHubRelease } from "../utils";
+import { compactButtonStyle, latestDeckyHubRelease, normalizeVersion } from "../utils";
 import { DeckyHubUpdateModal } from "./DeckyHubUpdateModal";
 
 // Deliberately thin: a header naming the installed version and a single
@@ -19,7 +19,7 @@ export function DeckyHubUpdate() {
   const checkForUpdate = (force = false) =>
     void latestDeckyHubRelease(channel, force).then((next) => {
       setRelease(next);
-      if (next.version && !next.error && info.version !== "unknown" && next.version.trim().replace(/^v/i, "") !== info.version.trim().replace(/^v/i, "")) {
+      if (next.version && !next.error && info.version !== "unknown" && normalizeVersion(next.version) !== normalizeVersion(info.version)) {
         toaster.toast({ title: "DeckyHub", body: t("settings.updateAvailable", { version: next.version }) });
       }
     });
@@ -35,12 +35,12 @@ export function DeckyHubUpdate() {
     if (info.version !== "unknown") checkForUpdate();
   }, [channel, info.version]);
 
-  const upToDate = Boolean(release.version && info.version !== "unknown" && release.version.trim().replace(/^v/i, "") === info.version.trim().replace(/^v/i, ""));
+  const upToDate = Boolean(release.version && info.version !== "unknown" && normalizeVersion(release.version) === normalizeVersion(info.version));
   const loading = info.version === "unknown";
   const title = loading ? `${t("settings.checkingVersion")}…` : `${t("settings.current")} - v${info.version}`;
   const buttonLabel =
     release.asset && !upToDate && release.version
-      ? t("settings.updateButtonAvailable", { version: release.version.trim().replace(/^v/i, "") })
+      ? t("settings.updateButtonAvailable", { version: normalizeVersion(release.version) })
       : t("settings.updateButton");
 
   return (
