@@ -35,24 +35,6 @@ export function SettingsPage() {
 
   return (
     <>
-      <PanelSection title={t("settings.downloadSettings")}>
-        <PanelSectionRow>
-          <div style={{ display: "grid", gap: 8 }}>
-            <small>{t("settings.whereZipsSaved")}</small>
-            <div style={{ borderLeft: "3px solid #1a9fff", paddingLeft: 10 }}>
-              <div style={{ color: "#8fcef4", fontSize: "0.9em", marginBottom: 3 }}>{t("dl.installInDecky")}</div>
-              <strong style={{ color: "#fff" }}>{t("dl.installPath")}</strong>
-            </div>
-          </div>
-        </PanelSectionRow>
-        <div aria-hidden style={sectionDividerStyle} />
-        <PanelSectionRow>
-          <ToggleField label={t("settings.overwriteExisting")} checked={settings.overwriteExisting} onChange={(checked) => update({ overwriteExisting: checked })} />
-        </PanelSectionRow>
-      </PanelSection>
-
-      <div aria-hidden style={sectionDividerStyle} />
-
       <PanelSection title={t("settings.githubAccess")}>
         <PanelSectionRow>
           <div style={{ display: "grid", gap: 8 }}>
@@ -72,6 +54,24 @@ export function SettingsPage() {
           <Button style={compactButtonStyle} disabled={tokenDraft.trim() === settings.githubToken} onClick={() => update({ githubToken: tokenDraft.trim() })}>
             {t("settings.saveSettings")}
           </Button>
+        </PanelSectionRow>
+      </PanelSection>
+
+      <div aria-hidden style={sectionDividerStyle} />
+
+      <PanelSection title={t("settings.downloadSettings")}>
+        <PanelSectionRow>
+          <div style={{ display: "grid", gap: 8 }}>
+            <small>{t("settings.whereZipsSaved")}</small>
+            <div style={{ borderLeft: "3px solid #1a9fff", paddingLeft: 10 }}>
+              <div style={{ color: "#8fcef4", fontSize: "0.9em", marginBottom: 3 }}>{t("dl.installInDecky")}</div>
+              <strong style={{ color: "#fff" }}>{t("dl.installPath")}</strong>
+            </div>
+          </div>
+        </PanelSectionRow>
+        <div aria-hidden style={sectionDividerStyle} />
+        <PanelSectionRow>
+          <ToggleField label={t("settings.overwriteExisting")} checked={settings.overwriteExisting} onChange={(checked) => update({ overwriteExisting: checked })} />
         </PanelSectionRow>
       </PanelSection>
 
