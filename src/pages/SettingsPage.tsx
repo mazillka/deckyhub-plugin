@@ -14,6 +14,8 @@ export function SettingsPage() {
   // the committed `settings.githubToken` until that button is pressed.
   const [tokenDraft, setTokenDraft] = useState("");
   const [quota, setQuota] = useState<Awaited<ReturnType<typeof githubCoreQuota>>>(null);
+  // Same green/yellow/red as the app cards' status colors.
+  const quotaColor = !quota || quota.remaining > quota.limit / 2 ? "#6bcb6b" : quota.remaining > quota.limit / 10 ? "#f0c33c" : "#ff6b6b";
   const refreshQuota = () => void githubCoreQuota().then(setQuota, () => setQuota(null));
 
   useEffect(() => {
@@ -53,6 +55,11 @@ export function SettingsPage() {
               field below is otherwise the page's first focus stop. */}
           <Focusable onActivate={() => {}} style={{ display: "grid", gap: 8 }}>
             <small>{t("settings.githubTokenIntro")}</small>
+            {quota && (
+              <strong className="deckyhub-github-quota" style={{ borderLeft: `3px solid ${quotaColor}`, color: quotaColor, paddingLeft: 10 }}>
+                {t("settings.githubQuota", { remaining: quota.remaining, limit: quota.limit, minutes: Math.max(1, Math.ceil((quota.reset * 1000 - Date.now()) / 60_000)) })}
+              </strong>
+            )}
             <div style={{ borderLeft: "3px solid #1a9fff", paddingLeft: 10 }}>
               <div style={{ color: "#8fcef4", fontSize: "0.9em", marginBottom: 3 }}>{t("settings.githubTokenHowTo")}</div>
               <strong style={{ color: "#fff" }}>github.com/settings/tokens</strong>
@@ -69,13 +76,6 @@ export function SettingsPage() {
             {t("settings.saveSettings")}
           </Button>
         </PanelSectionRow>
-        {quota && (
-          <PanelSectionRow>
-            <small className="deckyhub-github-quota" style={{ opacity: 0.75 }}>
-              {t("settings.githubQuota", { remaining: quota.remaining, limit: quota.limit, minutes: Math.max(1, Math.ceil((quota.reset * 1000 - Date.now()) / 60_000)) })}
-            </small>
-          </PanelSectionRow>
-        )}
       </PanelSection>
 
       <div aria-hidden style={sectionDividerStyle} />
