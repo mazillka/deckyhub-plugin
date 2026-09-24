@@ -53,14 +53,40 @@ export const normalizeVersion = (value: string) => value.trim().replace(/^v/i, "
 // kind of operation this is.
 export const PLUGIN_INSTALL_TYPE = { REINSTALL: 1, UPDATE: 2, DOWNGRADE: 3 } as const;
 
+// DeckyHub's own versions can carry a pre-release suffix ("1.0.3-rc.2"),
+// which versionNumbers() above deliberately ignores (it only wants the
+// release-number part for third-party apps). That made every "1.0.3-rc.N"
+// compare as an identical "1.0.3" here, so switching between rc.1/rc.2/rc.3
+// in the version picker always resolved to Reinstall. Parse the suffix too.
+function parseDeckyHubVersion(value: string) {
+  const [release, prerelease] = normalizeVersion(value).split(/-(.+)/, 2);
+  return { release: release.split(".").map((part) => Number(part) || 0), prerelease: prerelease ?? null };
+}
+
+// A version with no pre-release suffix outranks the same release number with
+// one ("1.0.3" > "1.0.3-rc.9"); between two suffixed versions, compare their
+// trailing number ("rc.2" > "rc.1"), falling back to plain string order if a
+// suffix doesn't end in one (covers anything other than "-rc.N" gracefully).
+function comparePrerelease(target: string | null, current: string | null): number {
+  if (target === current) return 0;
+  if (target === null) return 1;
+  if (current === null) return -1;
+  const targetNumber = Number(target.match(/(\d+)$/)?.[1]);
+  const currentNumber = Number(current.match(/(\d+)$/)?.[1]);
+  if (!Number.isNaN(targetNumber) && !Number.isNaN(currentNumber) && targetNumber !== currentNumber) return targetNumber > currentNumber ? 1 : -1;
+  return target > current ? 1 : target < current ? -1 : 0;
+}
+
 export function resolveDeckyHubInstallType(latestVersion: string, installedVersion: string): 1 | 2 | 3 {
-  const target = versionNumbers(latestVersion);
-  const current = installedVersion === "unknown" ? null : versionNumbers(installedVersion);
-  if (!target || !current) return PLUGIN_INSTALL_TYPE.UPDATE;
-  for (let i = 0; i < Math.max(target.length, current.length); i++) {
-    const t = target[i] || 0, c = current[i] || 0;
+  if (installedVersion === "unknown") return PLUGIN_INSTALL_TYPE.UPDATE;
+  const target = parseDeckyHubVersion(latestVersion);
+  const current = parseDeckyHubVersion(installedVersion);
+  for (let i = 0; i < Math.max(target.release.length, current.release.length); i++) {
+    const t = target.release[i] || 0, c = current.release[i] || 0;
     if (t !== c) return t > c ? PLUGIN_INSTALL_TYPE.UPDATE : PLUGIN_INSTALL_TYPE.DOWNGRADE;
   }
+  const prereleaseCmp = comparePrerelease(target.prerelease, current.prerelease);
+  if (prereleaseCmp !== 0) return prereleaseCmp > 0 ? PLUGIN_INSTALL_TYPE.UPDATE : PLUGIN_INSTALL_TYPE.DOWNGRADE;
   return PLUGIN_INSTALL_TYPE.REINSTALL;
 }
 

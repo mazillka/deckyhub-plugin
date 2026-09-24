@@ -4,6 +4,17 @@ import { readFileSync } from "node:fs";
 const deckyHubVersion = JSON.parse(readFileSync(new URL("../../../package.json", import.meta.url), "utf8")).version;
 const deckyHubTag = `v${deckyHubVersion}`;
 
+// Adjacent rc tags sharing the installed version's release number (e.g.
+// "1.0.3-rc.2" and "1.0.3-rc.4" around an installed "1.0.3-rc.3") — derived
+// from whatever the real installed version happens to be, so the regression
+// test below stays valid across future version bumps instead of hardcoding
+// a specific rc number that will eventually go stale.
+const rcMatch = deckyHubVersion.match(/^(.*-rc\.)(\d+)$/);
+const rcPrefix = rcMatch ? rcMatch[1] : `${deckyHubVersion}-rc.`;
+const rcNumber = rcMatch ? Number(rcMatch[2]) : 1;
+const olderRcTag = `v${rcPrefix}${Math.max(rcNumber - 1, 1)}`;
+const newerRcTag = `v${rcPrefix}${rcNumber + 1}`;
+
 const release = {
   tag_name: "plugin-v1.2.3",
   html_url: "https://github.com/example/project/releases/tag/plugin-v1.2.3",
@@ -217,6 +228,38 @@ test("DeckyHub version picker offers to downgrade to an older release", async ({
   await app.getByLabel("Version").selectOption({ label: "v0.9.0" });
 
   await expect(app.getByRole("button", { name: "Downgrade to v0.9.0", exact: true })).toBeVisible();
+});
+
+test("DeckyHub distinguishes rc versions sharing the same release number", async ({ page }) => {
+  // Regression test: versionNumbers()'s regex used to strip the "-rc.N"
+  // suffix entirely, so "1.0.3-rc.1"/"-rc.2"/"-rc.3" all parsed as the same
+  // "1.0.3" and switching between them in the version picker always showed
+  // "Reinstall" — never "Update" or "Downgrade" — no matter which was picked.
+  const makeRelease = (tag: string) => ({
+    tag_name: tag,
+    prerelease: false,
+    html_url: `https://github.com/mazillka/deckyhub-plugin/releases/tag/${tag}`,
+    assets: [{ name: `DeckyHub-${tag}.zip`, browser_download_url: `https://github.com/mazillka/deckyhub-plugin/releases/download/${tag}/DeckyHub-${tag}.zip`, digest: `sha256:${"a".repeat(64)}` }],
+  });
+  const installedRelease = makeRelease(deckyHubTag);
+  const olderRcRelease = makeRelease(olderRcTag);
+  const newerRcRelease = makeRelease(newerRcTag);
+  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases/latest", (route) => route.fulfill({ json: installedRelease }));
+  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) =>
+    route.fulfill({ json: [newerRcRelease, installedRelease, olderRcRelease] })
+  );
+  await page.goto("/?bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  await app.getByRole("button", { name: "Update", exact: true }).click();
+  await expect(app.getByRole("button", { name: `Reinstall v${deckyHubVersion}`, exact: true })).toBeVisible();
+
+  await app.getByLabel("Version").selectOption({ label: olderRcTag });
+  await expect(app.getByRole("button", { name: `Downgrade to ${olderRcTag}`, exact: true })).toBeVisible();
+
+  // versions[0] in the mocked list (newerRcRelease) is labelled "(latest)"
+  // since it isn't the installed one.
+  await app.getByLabel("Version").selectOption({ label: `${newerRcTag} (latest)` });
+  await expect(app.getByRole("button", { name: `Update to ${newerRcTag}`, exact: true })).toBeVisible();
 });
 
 test("DeckyHub falls back to a clear message when automatic update can't reach Decky Loader", async ({ page }) => {
