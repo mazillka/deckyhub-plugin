@@ -10,6 +10,7 @@ import { AppCard } from "../components/AppCard";
 import { CleanupSection } from "../components/CleanupSection";
 import { showDownloadModal } from "../components/DownloadProgress";
 import { FocusableGrid } from "../components/FocusableGrid";
+import { RateLimitBanner } from "../components/RateLimitBanner";
 import { DeckyHubUpdate } from "../components/DeckyHubUpdate";
 
 const RELEASE_CONCURRENCY = 4;
@@ -252,5 +253,15 @@ export function Content({ fullPage }: { fullPage?: View }) {
   );
 
   const page = view === "updates" ? list((app) => app.updateAvailable === true, viewInfo.updates) : list(() => true, viewInfo.discover);
-  return fullPage ? page : <div ref={quickAccessRef}>{navigation}</div>;
+  return fullPage ? (
+    <>
+      <RateLimitBanner />
+      {page}
+    </>
+  ) : (
+    <div ref={quickAccessRef}>
+      <RateLimitBanner />
+      {navigation}
+    </div>
+  );
 }

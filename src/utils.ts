@@ -39,6 +39,19 @@ let githubToken = "";
 
 export function setGithubToken(token: string) {
   githubToken = token.trim();
+  // A token lifts the limit that the banner is warning about.
+  if (githubToken) reportRateLimit(null, 0);
+}
+
+// Latest unauthenticated rate-limit hit, shown by RateLimitBanner on every
+// screen that calls GitHub. Module state + a window event rather than React
+// state, since githubResponseError() below has no component tree.
+export const RATE_LIMIT_CHANGED = "deckyhub-rate-limit-changed";
+export let rateLimit = { until: 0, minutesKnown: false };
+
+export function reportRateLimit(minutes: number | null, until = Date.now() + (minutes ?? 15) * 60_000) {
+  rateLimit = { until, minutesKnown: minutes !== null };
+  window.dispatchEvent(new Event(RATE_LIMIT_CHANGED));
 }
 
 export function githubHeaders(): Record<string, string> {
@@ -64,6 +77,7 @@ export async function githubResponseError(response: Response): Promise<Error> {
     : remaining === "0" && Number.isFinite(resetAt) && resetAt > 0
     ? minutesUntil(resetAt)
     : null;
+  if (!githubToken) reportRateLimit(minutes);
   const hint = githubToken ? "" : " Add a GitHub token in Settings to raise this limit.";
   return new Error(
     minutes ? `GitHub API rate limit reached — try again in about ${minutes} minute${minutes === 1 ? "" : "s"}.${hint}` : `GitHub API rate limit reached — try again later.${hint}`,

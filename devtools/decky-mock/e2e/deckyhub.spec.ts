@@ -446,7 +446,9 @@ test("A GitHub rate limit surfaces a friendly message instead of a raw status co
   await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases?per_page=20", (route) =>
     route.fulfill({
       status: 403,
-      headers: { "x-ratelimit-remaining": "0", "x-ratelimit-reset": String(resetInTwoMinutes) },
+      // GitHub exposes these to browsers via CORS; without this header the
+      // mock's cross-origin fetch can't read them and the wait time is lost.
+      headers: { "x-ratelimit-remaining": "0", "x-ratelimit-reset": String(resetInTwoMinutes), "access-control-expose-headers": "x-ratelimit-remaining, x-ratelimit-reset" },
       json: { message: "API rate limit exceeded" },
     })
   );
@@ -456,6 +458,24 @@ test("A GitHub rate limit surfaces a friendly message instead of a raw status co
   const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
   await expect(makoCard.getByText(/GitHub API rate limit reached/)).toBeVisible();
   await expect(makoCard.getByText("GitHub API returned 403", { exact: true })).toBeHidden();
+
+  // Without a token, the limit also raises one header banner (even though
+  // several apps hit it) that links straight to the token setting.
+  const banner = app.locator(".deckyhub-rate-limit");
+  await expect(banner).toHaveCount(1);
+  await expect(banner.getByText("GitHub rate limit reached")).toBeVisible();
+  await expect(banner.getByText(/Try again in about \d+ min\. Add a GitHub token in Settings/)).toBeVisible();
+
+  // It follows the user to other GitHub-backed screens until dismissed.
+  await app.getByRole("button", { name: "/deckyhub/repositories" }).click();
+  await expect(banner).toHaveCount(1);
+  await banner.getByRole("button", { name: "Dismiss", exact: true }).click();
+  await expect(banner).toHaveCount(0);
+
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await expect(banner).toHaveCount(1);
+  await banner.getByRole("button", { name: "Open Settings", exact: true }).click();
+  await expect(app.getByText("GitHub Token")).toBeVisible();
 });
 
 test("The rate-limit message suggests adding a GitHub token only when none is configured", async ({ page }) => {
@@ -484,6 +504,7 @@ test("The rate-limit message suggests adding a GitHub token only when none is co
 
     await expect(makoCard.getByText(/GitHub API rate limit reached/)).toBeVisible();
     await expect(makoCard.getByText(/Add a GitHub token in Settings/)).toBeHidden();
+    await expect(app.locator(".deckyhub-rate-limit")).toHaveCount(0);
   } finally {
     await bridgeCall(page, "save_settings", { overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: 3, githubToken: "" });
   }

@@ -1,6 +1,7 @@
 import { FileSelectionType, openFilePicker, toaster } from "@decky/api";
 import { DialogButtonPrimary as Button, ConfirmModal, Focusable, PanelSection, PanelSectionRow, showModal, TextField } from "@decky/ui";
 import { FocusableGrid } from "../components/FocusableGrid";
+import { RateLimitBanner } from "../components/RateLimitBanner";
 import { useEffect, useState } from "react";
 import { addCustomRepo, exportCustomRepos, getApps, getCustomRepos, importCustomRepos, REGISTRY_UPDATED, removeCustomRepo } from "../api";
 import { useT } from "../i18n";
@@ -88,6 +89,7 @@ export function ManageRepositoriesPage() {
 
   return (
     <>
+      <RateLimitBanner />
       <PanelSection title={t("repos.addGithubRepository")}>
         <PanelSectionRow>
           <Focusable flow-children="right" style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
