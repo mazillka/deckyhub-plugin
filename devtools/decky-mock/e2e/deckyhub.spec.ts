@@ -767,6 +767,9 @@ test("Clearing a previously-saved GitHub token removes it from GitHub API reques
 
     const app = mock(page);
     await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+    // Wait for the seeded token to load; clearing the field before that
+    // leaves nothing to save, and Save stays disabled.
+    await expect(app.getByLabel("GitHub Token")).toHaveValue("ghp_temp_token");
     await app.getByLabel("GitHub Token").fill("");
     const saveButton = app.getByRole("button", { name: "Save Settings", exact: true });
     await saveButton.click();

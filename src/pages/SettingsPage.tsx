@@ -19,7 +19,8 @@ export function SettingsPage() {
   useEffect(() => {
     void getSettings().then((loaded) => {
       setSettings(loaded);
-      setTokenDraft(loaded.githubToken);
+      // Keep anything typed before this load resolved instead of clobbering it.
+      setTokenDraft((draft) => draft || loaded.githubToken);
       // Prime the token here too so the quota reflects it, rather than racing
       // I18nProvider's own priming of the same value.
       setGithubToken(loaded.githubToken);
