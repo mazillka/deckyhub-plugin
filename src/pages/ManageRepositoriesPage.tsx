@@ -1,10 +1,10 @@
 import { FileSelectionType, openFilePicker, toaster } from "@decky/api";
-import { DialogButtonPrimary as Button, ConfirmModal, DropdownItem, Focusable, PanelSection, PanelSectionRow, showModal, Tabs, TextField } from "@decky/ui";
+import { DialogButtonPrimary as Button, ConfirmModal, Focusable, PanelSection, PanelSectionRow, showModal, TextField } from "@decky/ui";
 import { FocusableGrid } from "../components/FocusableGrid";
 import { useEffect, useState } from "react";
-import { addCustomRepo, exportCustomRepos, getApps, getCustomRepos, getSettings, importCustomRepos, REGISTRY_UPDATED, removeCustomRepo, saveRepoSettings } from "../api";
+import { addCustomRepo, exportCustomRepos, getApps, getCustomRepos, importCustomRepos, REGISTRY_UPDATED, removeCustomRepo } from "../api";
 import { useT } from "../i18n";
-import type { App, ManagedRepo, RepoPreference, SearchRepo, Settings } from "../types";
+import type { ManagedRepo, SearchRepo } from "../types";
 import { compactButtonStyle, fetchWithTimeout, sectionDividerStyle } from "../utils";
 
 const RESULTS_PER_PAGE = 5;
@@ -18,25 +18,15 @@ export function ManageRepositoriesPage() {
   const [searchError, setSearchError] = useState<string | null>(null);
   const [customRepos, setCustomRepos] = useState<ManagedRepo[]>([]);
   const [existingRepos, setExistingRepos] = useState<Set<string>>(new Set());
-  const [apps, setApps] = useState<App[]>([]);
-  const [prefs, setPrefs] = useState<Record<string, RepoPreference>>({});
-  const [activeTab, setActiveTab] = useState("manage");
-  const [settingsQuery, setSettingsQuery] = useState("");
 
   const refreshRepos = () => {
     void getCustomRepos().then((result) => setCustomRepos(result.repos));
-    void getApps().then((result) => {
-      setApps(result.apps);
-      setExistingRepos(new Set(result.apps.map((app) => app.repo.toLowerCase())));
-    });
-    void getSettings().then((settings) => setPrefs((settings as Settings & { repoSettings?: Record<string, RepoPreference> }).repoSettings || {}));
+    void getApps().then((result) => setExistingRepos(new Set(result.apps.map((app) => app.repo.toLowerCase()))));
   };
 
   useEffect(() => {
     refreshRepos();
   }, []);
-
-  const preference = (repo: string) => prefs[repo] || { channel: "stable", assetFilter: [] };
 
   const search = async () => {
     if (!query.trim() || searching) return;
@@ -197,59 +187,5 @@ export function ManageRepositoriesPage() {
     </>
   );
 
-  const settingsTab = (
-    <>
-      <PanelSection title={t("repos.repositorySettings")}>
-        <PanelSectionRow>{t("repos.perRepoOverrides")}</PanelSectionRow>
-        <PanelSectionRow>
-          <TextField label={t("filter.search")} value={settingsQuery} onChange={(event) => setSettingsQuery(event.currentTarget.value)} />
-        </PanelSectionRow>
-      </PanelSection>
-      {apps.length > 0 && <div aria-hidden style={sectionDividerStyle} />}
-      <FocusableGrid items={apps.filter((app) => `${app.name} ${app.repo}`.toLowerCase().includes(settingsQuery.trim().toLowerCase()))} columns={2} keyFor={(app) => app.repo}>
-        {(app) => {
-          const value = preference(app.repo);
-          const update = (next: Partial<RepoPreference>) => {
-            const saved = { ...value, ...next };
-            setPrefs({ ...prefs, [app.repo]: saved });
-            void saveRepoSettings(app.repo, saved);
-          };
-          return (
-            <PanelSection title={app.name}>
-              <PanelSectionRow>
-                <DropdownItem
-                  label={t("repos.releaseChannel")}
-                  rgOptions={[
-                    { label: t("repos.stable"), data: "stable" },
-                    { label: t("repos.prerelease"), data: "prerelease" },
-                  ]}
-                  selectedOption={value.channel}
-                  onChange={({ data }) => update({ channel: data })}
-                />
-              </PanelSectionRow>
-              <PanelSectionRow>
-                <TextField
-                  label={t("repos.assetFilter")}
-                  value={value.assetFilter.join(", ")}
-                  onChange={(event) => update({ assetFilter: event.currentTarget.value.split(",").map((item) => item.trim()).filter(Boolean) })}
-                />
-              </PanelSectionRow>
-            </PanelSection>
-          );
-        }}
-      </FocusableGrid>
-    </>
-  );
-
-  return (
-    <Tabs
-      activeTab={activeTab}
-      autoFocusContents
-      onShowTab={(tab: string) => setActiveTab(tab)}
-      tabs={[
-        { id: "manage", title: t("repos.addManage"), content: manageTab },
-        { id: "settings", title: t("repos.repositorySettings"), content: settingsTab },
-      ]}
-    />
-  );
+  return manageTab;
 }

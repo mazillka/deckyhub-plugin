@@ -106,16 +106,12 @@ test("Discover keeps its refresh action beside the description", async ({ page }
   expect(refreshBox!.x).toBeGreaterThan(descriptionBox!.x);
 });
 
-test("Repository tabs switch without leaving the page", async ({ page }) => {
+test("Repositories page renders Add & Manage directly, with no tabs", async ({ page }) => {
   await page.goto("/?preview=/deckyhub/repositories&bridge=http://127.0.0.1:8643");
   const app = mock(page);
 
-  await app.getByRole("button", { name: "Repository Settings", exact: true }).click();
-  await expect(app.getByText("Per-repo release, folder, and asset overrides.")).toBeVisible();
-
-  await app.getByRole("button", { name: "Add & Manage", exact: true }).click();
   await expect(app.getByLabel("Search GitHub")).toBeVisible();
-  await expect(page).toHaveURL(/preview=\/deckyhub\/repositories/);
+  await expect(app.getByRole("button", { name: "Repository Settings", exact: true })).toHaveCount(0);
 });
 
 test("Repository search and action share one row", async ({ page }) => {
@@ -415,6 +411,80 @@ test("Discover exposes every matching release asset", async ({ page }) => {
 
   const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
   await expect(makoCard.getByRole("button", { name: "mako-decky-5.zip (1 KB)" })).toBeVisible();
+});
+
+const makoReleases = [
+  {
+    tag_name: "plugin-v1.3.0",
+    prerelease: false,
+    draft: false,
+    html_url: "https://github.com/eugeniosegala/MAKO/releases/tag/plugin-v1.3.0",
+    assets: [{ name: "mako-decky-1.zip", browser_download_url: "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v1.3.0/mako-decky-1.zip", size: 2048 }],
+  },
+  {
+    tag_name: "plugin-v1.2.3",
+    prerelease: false,
+    draft: false,
+    html_url: "https://github.com/eugeniosegala/MAKO/releases/tag/plugin-v1.2.3",
+    assets: [{ name: "mako-decky-1.zip", browser_download_url: "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v1.2.3/mako-decky-1.zip", size: 1024 }],
+  },
+  {
+    tag_name: "plugin-v1.4.0-beta",
+    prerelease: true,
+    draft: false,
+    html_url: "https://github.com/eugeniosegala/MAKO/releases/tag/plugin-v1.4.0-beta",
+    assets: [{ name: "mako-decky-1.zip", browser_download_url: "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v1.4.0-beta/mako-decky-1.zip", size: 4096 }],
+  },
+];
+
+test("Discover's Details modal lists versions for the selected channel", async ({ page }) => {
+  await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases?per_page=20", (route) => route.fulfill({ json: makoReleases }));
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+  await makoCard.getByRole("button", { name: "Details", exact: true }).click();
+
+  // Every card on the page also has its own "Installed: —" line, so scope
+  // assertions to the modal itself rather than the whole (iframe) document.
+  const modal = app.locator(".steam-modal");
+  await expect(modal.getByText("Installed: —", { exact: true })).toBeVisible();
+  await expect(modal.getByLabel("Version")).toHaveValue("plugin-v1.3.0");
+  await expect(modal.getByRole("button", { name: "Download Selected Version", exact: true })).toBeVisible();
+  await expect(modal.getByRole("button", { name: "Release Page", exact: true })).toBeVisible();
+
+  await modal.getByLabel("Version").selectOption({ label: "vplugin-v1.2.3" });
+  await expect(modal.getByLabel("Version")).toHaveValue("plugin-v1.2.3");
+
+  await modal.getByRole("button", { name: "Close", exact: true }).click();
+  await expect(modal).toBeHidden();
+});
+
+test("Discover's Details modal channel picker updates the card's Channel label", async ({ page }) => {
+  await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases?per_page=20", (route) => route.fulfill({ json: makoReleases }));
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+
+  await expect(makoCard.getByText("Channel: Stable", { exact: true })).toBeVisible();
+
+  try {
+    await makoCard.getByRole("button", { name: "Details", exact: true }).click();
+    await app.getByLabel("Update Channel").selectOption({ label: "Pre-releases" });
+    await expect(app.getByLabel("Version")).toHaveValue("plugin-v1.4.0-beta");
+
+    await app.getByRole("button", { name: "Close", exact: true }).click();
+    await expect(makoCard.getByText("Channel: Pre-release", { exact: true })).toBeVisible();
+  } finally {
+    // save_repo_settings persists to the real (shared) settings.json via the
+    // dev bridge — round-trip it back to the default directly so this test
+    // doesn't leave MAKO's channel overridden for later tests/runs.
+    await page.evaluate(async () => {
+      const bridge = "http://127.0.0.1:8643";
+      const call = (route: string, ...args: unknown[]) =>
+        fetch(bridge, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ route, args }) }).then((res) => res.json());
+      await call("save_repo_settings", "eugeniosegala/MAKO", { channel: "stable", assetFilter: [] });
+    });
+  }
 });
 
 test("Arrow keys move focus through Discover", async ({ page }) => {

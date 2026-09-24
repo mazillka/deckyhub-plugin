@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { FaSync } from "react-icons/fa";
 import { downloadAsset, getApps, getSettings, REGISTRY_UPDATED } from "../api";
 import { useT } from "../i18n";
-import type { App, Asset, RepoPreference, Settings, View } from "../types";
+import type { App, Asset, RepoPreference, Settings, UpdateChannel, View } from "../types";
 import { compactButtonStyle, DEFAULT_COLUMNS_PER_ROW, hydrate, notifyUpdates, sectionDividerStyle } from "../utils";
 import { AppCard } from "../components/AppCard";
 import { CleanupSection } from "../components/CleanupSection";
@@ -26,6 +26,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const [installedFilter, setInstalledFilter] = useState("All");
   const [cardPage, setCardPage] = useState(0);
   const [columnsPerRow, setColumnsPerRow] = useState(DEFAULT_COLUMNS_PER_ROW);
+  const [repoPreferences, setRepoPreferences] = useState<Record<string, RepoPreference>>({});
   const quickAccessRef = useRef<HTMLDivElement>(null);
 
   const viewInfo: Record<View, { title: string; description: string; empty: string }> = {
@@ -39,6 +40,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
       const [appData, settings] = await Promise.all([getApps(), getSettings()]);
       const local = appData.apps;
       const preferences = (settings as Settings & { repoSettings?: Record<string, RepoPreference> }).repoSettings || {};
+      setRepoPreferences(preferences);
       setColumnsPerRow(settings.columnsPerRow || DEFAULT_COLUMNS_PER_ROW);
       const tracked = view === "updates" ? local.filter((app) => app.installedVersion) : local;
       setCardPage(0);
@@ -86,6 +88,14 @@ export function Content({ fullPage }: { fullPage?: View }) {
     } catch (error) {
       toaster.toast({ title: "DeckyHub", body: String(error) });
     }
+  };
+
+  // AppDetailsModal persists the change itself (saveRepoSettings); this just
+  // keeps the card's "Channel: …" label and the cached preference in sync
+  // without a full reload.
+  const changeAppChannel = (repo: string, channel: UpdateChannel) => {
+    setRepoPreferences((current) => ({ ...current, [repo]: { channel, assetFilter: current[repo]?.assetFilter ?? [] } }));
+    setApps((current) => current.map((app) => (app.repo === repo ? { ...app, channel } : app)));
   };
 
   const discoverFilters = view === "discover" && (
@@ -170,7 +180,15 @@ export function Content({ fullPage }: { fullPage?: View }) {
             columns={fullPage ? columnsPerRow : 1}
             keyFor={(app) => app.id}
           >
-            {(app) => <AppCard app={app} downloadDisabled={downloading} onDownload={(asset) => void startDownload(asset, app.repo)} />}
+            {(app) => (
+              <AppCard
+                app={app}
+                preference={repoPreferences[app.repo] ?? { channel: "stable", assetFilter: [] }}
+                downloadDisabled={downloading}
+                onDownload={(asset) => void startDownload(asset, app.repo)}
+                onChannelChange={changeAppChannel}
+              />
+            )}
           </FocusableGrid>
           {visibleApps.length > CARDS_PER_PAGE && (
             <PanelSection>

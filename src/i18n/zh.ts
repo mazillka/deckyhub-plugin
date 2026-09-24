@@ -31,6 +31,12 @@ export const zh: Record<MessageKey, string> = {
   "appcard.downloadComplete": "下载完成",
   "appcard.latest": "最新版本（{name}）",
   "appcard.releasePage": "发行页面",
+  "appcard.channel": "渠道：{channel}",
+  "appcard.channelStable": "稳定版",
+  "appcard.channelPrerelease": "预发布版",
+  "appcard.details": "详情",
+  "appcard.downloadSelected": "下载所选版本",
+  "appcard.noMatchingAsset": "此版本没有匹配的下载项。",
 
   "dl.downloading": "正在下载 {filename}",
   "dl.preparing": "正在准备下载…",
@@ -85,7 +91,6 @@ export const zh: Record<MessageKey, string> = {
   "settings.itemsPerRow": "每行显示数量",
 
   "repos.addManage": "添加与管理",
-  "repos.repositorySettings": "仓库设置",
   "repos.addGithubRepository": "添加 GitHub 仓库",
   "repos.searchGithub": "搜索 GitHub",
   "repos.searching": "搜索中…",
@@ -104,9 +109,4 @@ export const zh: Record<MessageKey, string> = {
   "repos.removeRepositoryTitle": "移除仓库",
   "repos.removeRepositoryDesc": "停止跟踪 {repo}？之后仍可从“发现”重新添加。",
   "repos.removeConfirm": "移除",
-  "repos.perRepoOverrides": "为每个仓库单独设置发布渠道、文件夹和资源过滤器。",
-  "repos.releaseChannel": "发布渠道",
-  "repos.stable": "稳定版",
-  "repos.prerelease": "预发布版",
-  "repos.assetFilter": "资源过滤器",
 };

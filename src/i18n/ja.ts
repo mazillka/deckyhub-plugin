@@ -31,6 +31,12 @@ export const ja: Record<MessageKey, string> = {
   "appcard.downloadComplete": "ダウンロード完了",
   "appcard.latest": "最新版（{name}）",
   "appcard.releasePage": "リリースページ",
+  "appcard.channel": "チャンネル: {channel}",
+  "appcard.channelStable": "安定版",
+  "appcard.channelPrerelease": "プレリリース",
+  "appcard.details": "詳細",
+  "appcard.downloadSelected": "選択したバージョンをダウンロード",
+  "appcard.noMatchingAsset": "このバージョンに一致するダウンロードはありません。",
 
   "dl.downloading": "{filename} をダウンロード中",
   "dl.preparing": "ダウンロードを準備中…",
@@ -85,7 +91,6 @@ export const ja: Record<MessageKey, string> = {
   "settings.itemsPerRow": "1行あたりの項目数",
 
   "repos.addManage": "追加と管理",
-  "repos.repositorySettings": "リポジトリ設定",
   "repos.addGithubRepository": "GitHubリポジトリを追加",
   "repos.searchGithub": "GitHubを検索",
   "repos.searching": "検索中…",
@@ -104,9 +109,4 @@ export const ja: Record<MessageKey, string> = {
   "repos.removeRepositoryTitle": "リポジトリを削除",
   "repos.removeRepositoryDesc": "{repo} の追跡を停止しますか？後で「見つける」から再度追加できます。",
   "repos.removeConfirm": "削除",
-  "repos.perRepoOverrides": "リポジトリごとのチャンネル・フォルダ・アセットフィルターの設定。",
-  "repos.releaseChannel": "リリースチャンネル",
-  "repos.stable": "安定版",
-  "repos.prerelease": "プレリリース",
-  "repos.assetFilter": "アセットフィルター",
 };

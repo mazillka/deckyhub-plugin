@@ -1,6 +1,6 @@
 import { fetchNoCors, toaster } from "@decky/api";
 import type { MessageKey } from "./i18n/en";
-import type { App, Asset, DeckyHubRelease, DeckyHubReleaseOption, RepoPreference, UpdateChannel } from "./types";
+import type { App, AppReleaseOption, Asset, DeckyHubRelease, DeckyHubReleaseOption, RepoPreference, UpdateChannel } from "./types";
 
 export const CACHE_TTL = 60 * 1000;
 export const UPDATE_NOTICE_KEY = "deckyhub-update-notice";
@@ -139,7 +139,7 @@ function isUpdate(app: App, latest: string | null, publishedAt: string | null) {
   return false;
 }
 
-function matchingAssets(app: App, assets: any[], extraInclude: string[] = []): Asset[] {
+export function matchingAssets(app: App, assets: any[], extraInclude: string[] = []): Asset[] {
   const include = [...app.asset.include, ...extraInclude].map((word) => word.toLowerCase());
   const exclude = app.asset.exclude.map((word) => word.toLowerCase());
   return assets
@@ -207,6 +207,7 @@ export async function listDeckyHubReleases(limit = 20): Promise<{ items: DeckyHu
 }
 
 export async function hydrate(app: App, force: boolean, preference?: RepoPreference): Promise<App> {
+  const channel: UpdateChannel = preference?.channel ?? "stable";
   try {
     let release = cached(app, force);
     if (!release) {
@@ -233,6 +234,7 @@ export async function hydrate(app: App, force: boolean, preference?: RepoPrefere
     const publishedAt = release.published_at || null;
     return {
       ...app,
+      channel,
       latestVersion,
       publishedAt,
       releaseUrl: release.html_url || `https://github.com/${app.repo}/releases`,
@@ -240,6 +242,34 @@ export async function hydrate(app: App, force: boolean, preference?: RepoPrefere
       updateAvailable: isUpdate(app, latestVersion, publishedAt),
     };
   } catch (error) {
-    return { ...app, error: String(error) };
+    return { ...app, channel, error: String(error) };
+  }
+}
+
+// Recent releases for a tracked app's own version picker (AppDetailsModal) —
+// unlike hydrate()'s single "current release" fetch, this returns the last
+// ~20 so the user can pick a specific past version to download, not just
+// whatever's newest. Only meaningful for GitHub Releases-backed apps: a
+// "tags" source has no release assets to offer, so it always returns empty.
+export async function listAppReleases(app: App, preference?: RepoPreference): Promise<{ items: AppReleaseOption[]; error?: string }> {
+  if (app.source === "tags") return { items: [] };
+  try {
+    const response = await fetchWithTimeout(`https://api.github.com/repos/${app.repo}/releases?per_page=20`, { headers: { Accept: "application/vnd.github+json" } });
+    if (!response.ok) throw new Error(`GitHub API returned ${response.status}`);
+    const body = await response.json();
+    const items: AppReleaseOption[] = (Array.isArray(body) ? body : [])
+      .filter((item: any) => !item.draft)
+      .filter((item: any) => !app.releaseTagInclude || String(item.tag_name || item.name || "").toLowerCase().includes(app.releaseTagInclude!.toLowerCase()))
+      .map((item: any) => ({
+        tag: String(item.tag_name || item.name),
+        version: String(item.tag_name || item.name),
+        prerelease: Boolean(item.prerelease),
+        publishedAt: item.published_at || null,
+        url: item.html_url || `https://github.com/${app.repo}/releases`,
+        assets: matchingAssets(app, item.assets || [], preference?.assetFilter),
+      }));
+    return { items };
+  } catch (error) {
+    return { items: [], error: String(error) };
   }
 }

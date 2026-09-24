@@ -31,6 +31,12 @@ export const de: Record<MessageKey, string> = {
   "appcard.downloadComplete": "Download abgeschlossen",
   "appcard.latest": "Neueste ({name})",
   "appcard.releasePage": "Release-Seite",
+  "appcard.channel": "Kanal: {channel}",
+  "appcard.channelStable": "Stabil",
+  "appcard.channelPrerelease": "Vorabversion",
+  "appcard.details": "Details",
+  "appcard.downloadSelected": "Ausgewählte Version herunterladen",
+  "appcard.noMatchingAsset": "Kein passender Download für diese Version.",
 
   "dl.downloading": "{filename} wird heruntergeladen",
   "dl.preparing": "Download wird vorbereitet…",
@@ -85,7 +91,6 @@ export const de: Record<MessageKey, string> = {
   "settings.itemsPerRow": "Elemente pro Zeile",
 
   "repos.addManage": "Hinzufügen & Verwalten",
-  "repos.repositorySettings": "Repository-Einstellungen",
   "repos.addGithubRepository": "GitHub-Repository hinzufügen",
   "repos.searchGithub": "Auf GitHub suchen",
   "repos.searching": "Wird gesucht…",
@@ -104,9 +109,4 @@ export const de: Record<MessageKey, string> = {
   "repos.removeRepositoryTitle": "Repository entfernen",
   "repos.removeRepositoryDesc": "{repo} nicht mehr verfolgen? Du kannst es später über Entdecken wieder hinzufügen.",
   "repos.removeConfirm": "Entfernen",
-  "repos.perRepoOverrides": "Release-Kanal, Ordner und Asset-Filter pro Repository.",
-  "repos.releaseChannel": "Release-Kanal",
-  "repos.stable": "Stabil",
-  "repos.prerelease": "Vorabversion",
-  "repos.assetFilter": "Asset-Filter",
 };

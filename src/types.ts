@@ -1,5 +1,7 @@
 export type Asset = { name: string; url: string; size: number; sha256?: string };
 
+export type UpdateChannel = "stable" | "prerelease";
+
 export type App = {
   id: string;
   name: string;
@@ -18,9 +20,8 @@ export type App = {
   assets: Asset[];
   updateAvailable?: boolean | null;
   error?: string | null;
+  channel?: UpdateChannel;
 };
-
-export type UpdateChannel = "stable" | "prerelease";
 
 export type Settings = { overwriteExisting: boolean; updateChannel: UpdateChannel; language: string; columnsPerRow: 1 | 2 | 3 };
 
@@ -31,6 +32,8 @@ export type DeckyHubInfo = { version: string };
 export type DeckyHubRelease = { version?: string; asset?: Asset; url?: string; error?: string };
 
 export type DeckyHubReleaseOption = { tag: string; version: string; prerelease: boolean; asset?: Asset; url: string };
+
+export type AppReleaseOption = { tag: string; version: string; prerelease: boolean; publishedAt: string | null; url: string; assets: Asset[] };
 
 export type View = "updates" | "discover";
 

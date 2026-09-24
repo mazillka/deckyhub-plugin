@@ -31,6 +31,12 @@ export const es: Record<MessageKey, string> = {
   "appcard.downloadComplete": "Descarga completa",
   "appcard.latest": "Última versión ({name})",
   "appcard.releasePage": "Página de la versión",
+  "appcard.channel": "Canal: {channel}",
+  "appcard.channelStable": "Estable",
+  "appcard.channelPrerelease": "Preliminar",
+  "appcard.details": "Detalles",
+  "appcard.downloadSelected": "Descargar versión seleccionada",
+  "appcard.noMatchingAsset": "No hay descarga disponible para esta versión.",
 
   "dl.downloading": "Descargando {filename}",
   "dl.preparing": "Preparando descarga…",
@@ -85,7 +91,6 @@ export const es: Record<MessageKey, string> = {
   "settings.itemsPerRow": "Elementos por fila",
 
   "repos.addManage": "Añadir y gestionar",
-  "repos.repositorySettings": "Ajustes de repositorios",
   "repos.addGithubRepository": "Añadir repositorio de GitHub",
   "repos.searchGithub": "Buscar en GitHub",
   "repos.searching": "Buscando…",
@@ -104,9 +109,4 @@ export const es: Record<MessageKey, string> = {
   "repos.removeRepositoryTitle": "Quitar repositorio",
   "repos.removeRepositoryDesc": "¿Dejar de seguir {repo}? Puedes volver a añadirlo desde Descubrir.",
   "repos.removeConfirm": "Quitar",
-  "repos.perRepoOverrides": "Canal, carpeta y filtro de archivos por repositorio.",
-  "repos.releaseChannel": "Canal de versiones",
-  "repos.stable": "Estable",
-  "repos.prerelease": "Preliminar",
-  "repos.assetFilter": "Filtro de archivos",
 };

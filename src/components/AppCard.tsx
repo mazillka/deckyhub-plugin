@@ -1,17 +1,22 @@
-import { DialogButtonPrimary as Button, Navigation, PanelSection, PanelSectionRow } from "@decky/ui";
+import { DialogButtonPrimary as Button, Navigation, PanelSection, PanelSectionRow, showModal } from "@decky/ui";
 import { FaDownload } from "react-icons/fa";
 import { useT } from "../i18n";
-import type { App, Asset } from "../types";
+import type { App, Asset, RepoPreference, UpdateChannel } from "../types";
 import { cardDescriptionStyle, compactButtonStyle, readableBytes, sectionDividerStyle, statusKey, statusColor } from "../utils";
+import { AppDetailsModal } from "./AppDetailsModal";
 
 export function AppCard({
   app,
+  preference,
   downloadDisabled,
   onDownload,
+  onChannelChange,
 }: {
   app: App;
+  preference: RepoPreference;
   downloadDisabled?: boolean;
   onDownload: (asset: Asset) => void;
+  onChannelChange: (repo: string, channel: UpdateChannel) => void;
 }) {
   const t = useT();
   const hasActions = Boolean(app.assets.length || app.releaseUrl);
@@ -25,6 +30,10 @@ export function AppCard({
           <small>{t("settings.installedVersion", { version: app.installedVersion ?? "—" })}</small>
           <br />
           <small>{t("settings.latestVersion", { version: app.latestVersion ?? "—" })}</small>
+          <br />
+          <small style={{ color: app.channel === "prerelease" ? "#ffa94d" : undefined }}>
+            {t("appcard.channel", { channel: t(app.channel === "prerelease" ? "appcard.channelPrerelease" : "appcard.channelStable") })}
+          </small>
           {app.error && (
             <>
               <br />
@@ -53,6 +62,24 @@ export function AppCard({
           </Button>
         </PanelSectionRow>
       )}
+      <PanelSectionRow>
+        <Button
+          style={compactButtonStyle}
+          onClick={() =>
+            showModal(
+              <AppDetailsModal
+                t={t}
+                app={app}
+                preference={preference}
+                onDownload={onDownload}
+                onChannelChange={(channel) => onChannelChange(app.repo, channel)}
+              />
+            )
+          }
+        >
+          {t("appcard.details")}
+        </Button>
+      </PanelSectionRow>
     </PanelSection>
   );
 }

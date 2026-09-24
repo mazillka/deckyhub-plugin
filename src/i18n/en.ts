@@ -30,6 +30,12 @@ export const en = {
   "appcard.downloadComplete": "Download Complete",
   "appcard.latest": "Latest ({name})",
   "appcard.releasePage": "Release Page",
+  "appcard.channel": "Channel: {channel}",
+  "appcard.channelStable": "Stable",
+  "appcard.channelPrerelease": "Pre-release",
+  "appcard.details": "Details",
+  "appcard.downloadSelected": "Download Selected Version",
+  "appcard.noMatchingAsset": "No matching download for this version.",
 
   "dl.downloading": "Downloading {filename}",
   "dl.preparing": "Preparing download…",
@@ -84,7 +90,6 @@ export const en = {
   "settings.itemsPerRow": "Items Per Row",
 
   "repos.addManage": "Add & Manage",
-  "repos.repositorySettings": "Repository Settings",
   "repos.addGithubRepository": "Add GitHub Repository",
   "repos.searchGithub": "Search GitHub",
   "repos.searching": "Searching…",
@@ -103,11 +108,6 @@ export const en = {
   "repos.removeRepositoryTitle": "Remove Repository",
   "repos.removeRepositoryDesc": "Stop tracking {repo}? You can add it again later from Discover.",
   "repos.removeConfirm": "Remove",
-  "repos.perRepoOverrides": "Per-repo release, folder, and asset overrides.",
-  "repos.releaseChannel": "Release Channel",
-  "repos.stable": "Stable",
-  "repos.prerelease": "Pre-release",
-  "repos.assetFilter": "Asset Filter",
 };
 
 export type MessageKey = keyof typeof en;

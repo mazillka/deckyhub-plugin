@@ -31,6 +31,12 @@ export const uk: Record<MessageKey, string> = {
   "appcard.downloadComplete": "Завантаження завершено",
   "appcard.latest": "Остання версія ({name})",
   "appcard.releasePage": "Сторінка релізу",
+  "appcard.channel": "Канал: {channel}",
+  "appcard.channelStable": "Стабільний",
+  "appcard.channelPrerelease": "Пре-реліз",
+  "appcard.details": "Деталі",
+  "appcard.downloadSelected": "Завантажити обрану версію",
+  "appcard.noMatchingAsset": "Немає відповідного завантаження для цієї версії.",
 
   "dl.downloading": "Завантаження {filename}",
   "dl.preparing": "Підготовка завантаження…",
@@ -85,7 +91,6 @@ export const uk: Record<MessageKey, string> = {
   "settings.itemsPerRow": "Елементів у рядку",
 
   "repos.addManage": "Додати й керувати",
-  "repos.repositorySettings": "Налаштування репозиторіїв",
   "repos.addGithubRepository": "Додати репозиторій GitHub",
   "repos.searchGithub": "Пошук на GitHub",
   "repos.searching": "Пошук…",
@@ -104,9 +109,4 @@ export const uk: Record<MessageKey, string> = {
   "repos.removeRepositoryTitle": "Видалити репозиторій",
   "repos.removeRepositoryDesc": "Припинити відстеження {repo}? Ви завжди зможете додати його знову з Огляду.",
   "repos.removeConfirm": "Видалити",
-  "repos.perRepoOverrides": "Індивідуальні налаштування каналу, папки й фільтра файлів для кожного репозиторію.",
-  "repos.releaseChannel": "Канал релізів",
-  "repos.stable": "Стабільний",
-  "repos.prerelease": "Пре-реліз",
-  "repos.assetFilter": "Фільтр файлів",
 };
