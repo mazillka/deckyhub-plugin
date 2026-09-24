@@ -32,7 +32,7 @@ It ships with a small curated list of popular Steam Deck tools, and you can add 
 
 - **Discover** — browse a curated list of Steam Deck plugins/tools, filter by search or installed status, and see release info at a glance, color-coded by status.
 - **Updates** — see which of your tracked, installed tools have a newer release available, and download updates in one tap. You'll also get a toast notification when new updates show up.
-- **Repositories** — two tabs: **Add & Manage** to search GitHub, add or remove tracked repositories, and export/import your list; **Repository Settings** for release-channel and asset-keyword overrides.
+- **Repositories** — search GitHub, add or remove tracked repositories, and export/import your list. Per-repository release-channel overrides live in each app's **Details** view on Discover/Updates instead.
 - **Settings** — shows the fixed DeckyHub download folder, toggles overwriting existing files, lets you add an optional GitHub personal access token to raise the API rate limit, checks for DeckyHub's own updates, and lets you pick how many items show per row (1–3) in the app grid. A separate **Cleanup** section clears the download folder's contents with confirmation.
 
 For every tracked app/plugin, DeckyHub only **downloads** files — it never installs or runs anything automatically. After a download finishes, you install it yourself from Desktop Mode via Decky → Developer → Install Plugin from ZIP. This keeps you in control of what actually runs on your system. The only exception is DeckyHub's own updates, which offer an optional one-tap automatic install (see [Keeping DeckyHub itself updated](#keeping-deckyhub-itself-updated)).
@@ -49,7 +49,7 @@ No setup, no configuration — these show up in Discover the moment you install 
 | Decky Framegen | Frame Generation | [xXJSONDeruloXx/Decky-Framegen](https://github.com/xXJSONDeruloXx/Decky-Framegen) |
 | Nexus Mods | Mod Managers | [RedRanger14/decky-nexus](https://github.com/RedRanger14/decky-nexus) |
 
-Want more? Add any other GitHub repository from **Repositories → Add & Manage** in seconds.
+Want more? Add any other GitHub repository from **Repositories** in seconds.
 
 ## Installing DeckyHub
 
@@ -62,7 +62,7 @@ Want more? Add any other GitHub repository from **Repositories → Add & Manage*
 
 ### Discover
 
-Browse the bundled list or search within it, and filter by **Status** — All, Installed, or Not Installed. Each card is color-coded (green once it's up to date, yellow when an update is available, red on an error) so you can spot what needs attention at a glance. Tap **Download Latest** on any card to grab the recommended release asset, or one of the other listed assets from that release.
+Browse the bundled list or search within it, and filter by **Status** — All, Installed, or Not Installed. Each card is color-coded (green once it's up to date, yellow when an update is available, red on an error) so you can spot what needs attention at a glance, and shows which release **Channel** (stable or pre-release) it's tracking. Tap **Details** on any card to pick a channel and version, then download the release asset you want.
 
 To track a repository that isn't in the curated list, go to **Repositories**, search for it, and add it — it'll show up in Discover from then on.
 
@@ -78,10 +78,9 @@ When GitHub provides a checksum for a release asset, DeckyHub always verifies it
 
 ### Repositories
 
-Two tabs:
+Search GitHub for a repository and tap **Add** (repositories you already track show **Already Added** instead, so you can tell at a glance). Results page five at a time. Export your custom repositories to `DeckyHub-repositories.json` in `/home/deck/Downloads` to back them up or share them, or import that file back in. Any repository you've added can be removed again here; the curated repositories that ship with DeckyHub stay available and can't be removed. Prefer a bigger screen? The [Registry Editor](https://mazillka.github.io/deckyhub-plugin/) is a browser-based tool for building or editing a repository list file before importing it.
 
-- **Add & Manage** — search GitHub for a repository and tap **Add** (repositories you already track show **Already Added** instead, so you can tell at a glance). Results page five at a time. Export your custom repositories to `DeckyHub-repositories.json` in `/home/deck/Downloads` to back them up or share them, or import that file back in. Any repository you've added can be removed again here; the curated repositories that ship with DeckyHub stay available and can't be removed. Prefer a bigger screen? The [Registry Editor](https://mazillka.github.io/deckyhub-plugin/) is a browser-based tool for building or editing a repository list file before importing it.
-- **Repository Settings** — per-repository controls: switch a repository between stable and pre-release, or filter which release assets show up (comma-separated keywords).
+To switch a tracked app between stable and pre-release releases, open its **Details** view from its card on Discover or Updates — that's also where you pick a specific version and download it.
 
 ### Keeping DeckyHub itself updated
 
