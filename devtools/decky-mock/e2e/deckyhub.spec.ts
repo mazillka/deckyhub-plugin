@@ -708,12 +708,16 @@ test("Settings loads a previously saved GitHub token and keeps Save disabled unt
   }
 });
 
-test("Clearing the GitHub token stops sending the Authorization header", async ({ page }) => {
-  // Scoped to one app's Details modal, using its own "Check for Updates"
-  // (force=true) to bypass the release cache, rather than navigating the
-  // whole Discover grid twice and reaching into the iframe's localStorage
-  // from the outer page — that version was slow and flaky in CI (a 30s
-  // timeout) despite passing locally every time.
+test("Clearing a previously-saved GitHub token removes it from GitHub API requests", async ({ page }) => {
+  // "Saving a GitHub token" above already proves the "token set → header
+  // sent" half in CI, so this only exercises the other direction, and seeds
+  // the starting token via the bridge instead of the Settings UI to keep
+  // the step count down. An earlier, heavier version of this test (proving
+  // both directions in one test, via full Discover-grid navigation) passed
+  // locally every time but hit CI's 30s test timeout twice in a row — this
+  // is deliberately the leanest version that still forces a real re-fetch
+  // (via "Check for Updates") rather than risking a cache hit that would
+  // make the final assertion trivially true regardless of the real fix.
   let authHeader: string | undefined;
   await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases**", (route) => {
     authHeader = route.request().headers()["authorization"];
@@ -721,39 +725,19 @@ test("Clearing the GitHub token stops sending the Authorization header", async (
   });
 
   try {
-    const app = mock(page);
-    const tokenField = app.getByLabel("GitHub Token");
-    const saveButton = app.getByRole("button", { name: "Save Settings", exact: true });
-    const modal = app.locator(".steam-modal");
+    await bridgeCall(page, "save_settings", { overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: 3, githubToken: "ghp_temp_token" });
 
+    const app = mock(page);
     await app.getByRole("button", { name: "/deckyhub/settings" }).click();
-    await tokenField.fill("ghp_temp_token");
+    await app.getByLabel("GitHub Token").fill("");
+    const saveButton = app.getByRole("button", { name: "Save Settings", exact: true });
     await saveButton.click();
     await expect(saveButton).toBeDisabled();
 
     await app.getByRole("button", { name: "/deckyhub/discover" }).click();
     const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
     await makoCard.getByRole("button", { name: "Details", exact: true }).click();
-    await expect(modal.getByRole("button", { name: "Download", exact: true })).toBeVisible();
-    expect(authHeader).toBe("Bearer ghp_temp_token");
-
-    // Force a real re-fetch to prove this, rather than one that a cache hit
-    // would skip — which would make the final assertion trivially true
-    // regardless of whether clearing the token actually did anything.
-    authHeader = undefined;
-    await modal.getByRole("button", { name: "Check for Updates", exact: true }).click();
-    await expect(modal.getByRole("button", { name: "Download", exact: true })).toBeVisible();
-    expect(authHeader).toBe("Bearer ghp_temp_token");
-    await modal.getByRole("button", { name: "Close", exact: true }).click();
-
-    await app.getByRole("button", { name: "/deckyhub/settings" }).click();
-    await tokenField.fill("");
-    await saveButton.click();
-    await expect(saveButton).toBeDisabled();
-
-    await app.getByRole("button", { name: "/deckyhub/discover" }).click();
-    await makoCard.getByRole("button", { name: "Details", exact: true }).click();
-    authHeader = undefined;
+    const modal = app.locator(".steam-modal");
     await modal.getByRole("button", { name: "Check for Updates", exact: true }).click();
     await expect(modal.getByRole("button", { name: "Download", exact: true })).toBeVisible();
 
