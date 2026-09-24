@@ -407,6 +407,23 @@ test("Discover reports an empty filtered result", async ({ page }) => {
   await expect(app.getByRole("heading", { name: "No repositories are available." })).toBeVisible();
 });
 
+test("A GitHub rate limit surfaces a friendly message instead of a raw status code", async ({ page }) => {
+  const resetInTwoMinutes = Math.floor(Date.now() / 1000) + 120;
+  await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases?per_page=20", (route) =>
+    route.fulfill({
+      status: 403,
+      headers: { "x-ratelimit-remaining": "0", "x-ratelimit-reset": String(resetInTwoMinutes) },
+      json: { message: "API rate limit exceeded" },
+    })
+  );
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+
+  const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+  await expect(makoCard.getByText(/GitHub API rate limit reached/)).toBeVisible();
+  await expect(makoCard.getByText("GitHub API returned 403", { exact: true })).toBeHidden();
+});
+
 test("Discover's Details modal exposes every matching release asset", async ({ page }) => {
   const multiAssetRelease = {
     tag_name: "plugin-v1.2.3",
