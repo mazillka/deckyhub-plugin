@@ -33,6 +33,7 @@ npm run test:e2e
 
 - `openFilePicker()` is a `window.prompt()` for an absolute path — there's no native file dialog in a browser. Good enough to test the import flow if you paste a real path on your machine.
 - `Navigation.NavigateToExternalWeb()` opens a new browser tab instead of Steam's overlay browser.
+- Outside the Playwright suite, GitHub isn't stubbed: browsing the mock spends your own IP's 60 requests/hour. Settings shows what's left; add a token there if you iterate a lot.
 - Toasts, modals, and tabs are simplified divs/buttons, not Steam's real components.
 - The backend bridge stores its settings/registry cache under `.dev-data/` (gitignored) instead of `~/.config/decky-loader/...`, and fakes `decky.DECKY_HOME` for the "installed plugin" scan — so nothing here will ever show as "installed" unless you create fake `plugin.json` files under `.dev-data/plugins/<name>/`.
 - This whole `devtools/` folder is standalone tooling with its own `package.json` — it's not part of the plugin build and isn't shipped in releases.
