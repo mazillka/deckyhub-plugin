@@ -565,7 +565,7 @@ test("Discover's Details modal exposes every matching release asset", async ({ p
   await makoCard.getByRole("button", { name: "Download", exact: true }).click();
 
   const modal = app.locator(".steam-modal");
-  await expect(modal.getByRole("button", { name: "Download", exact: true })).toBeVisible();
+  await expect(modal.getByRole("button", { name: "Download ZIP", exact: true })).toBeVisible();
   await expect(modal.getByRole("button", { name: "mako-decky-5.zip (1 KB)" })).toBeVisible();
 });
 
@@ -587,7 +587,7 @@ test("Reopening Details within the cache window doesn't re-fetch its release lis
   const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
 
   await makoCard.getByRole("button", { name: "Download", exact: true }).click();
-  await expect(app.locator(".steam-modal").getByRole("button", { name: "Download", exact: true })).toBeVisible();
+  await expect(app.locator(".steam-modal").getByRole("button", { name: "Download ZIP", exact: true })).toBeVisible();
   await app.locator(".steam-modal").getByRole("button", { name: "Close", exact: true }).click();
 
   // hydrate() (the card itself) and listAppReleases() (the modal) hit the
@@ -595,7 +595,7 @@ test("Reopening Details within the cache window doesn't re-fetch its release lis
   // reopening it should add none, since both are still within CACHE_TTL.
   const requestsAfterFirstOpen = requests;
   await makoCard.getByRole("button", { name: "Download", exact: true }).click();
-  await expect(app.locator(".steam-modal").getByRole("button", { name: "Download", exact: true })).toBeVisible();
+  await expect(app.locator(".steam-modal").getByRole("button", { name: "Download ZIP", exact: true })).toBeVisible();
 
   expect(requests).toBe(requestsAfterFirstOpen);
 });
@@ -636,7 +636,7 @@ test("Discover's Details modal lists versions for the selected channel", async (
   const modal = app.locator(".steam-modal");
   await expect(modal.getByText("Installed: —", { exact: true })).toBeVisible();
   await expect(modal.getByLabel("Version")).toHaveValue("plugin-v1.3.0");
-  await expect(modal.getByRole("button", { name: "Download", exact: true })).toBeVisible();
+  await expect(modal.getByRole("button", { name: "Download ZIP", exact: true })).toBeVisible();
   await expect(modal.getByRole("button", { name: "Release Page", exact: true })).toBeVisible();
 
   await modal.getByLabel("Version").selectOption({ label: "vplugin-v1.2.3" });
@@ -790,7 +790,7 @@ test("Clearing a previously-saved GitHub token removes it from GitHub API reques
     await makoCard.getByRole("button", { name: "Download", exact: true }).click();
     const modal = app.locator(".steam-modal");
     await modal.getByRole("button", { name: "Check for Updates", exact: true }).click();
-    await expect(modal.getByRole("button", { name: "Download", exact: true })).toBeVisible();
+    await expect(modal.getByRole("button", { name: "Download ZIP", exact: true })).toBeVisible();
 
     expect(authHeader).toBeUndefined();
   } finally {
