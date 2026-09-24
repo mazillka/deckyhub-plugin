@@ -407,12 +407,28 @@ test("Discover reports an empty filtered result", async ({ page }) => {
   await expect(app.getByRole("heading", { name: "No repositories are available." })).toBeVisible();
 });
 
-test("Discover exposes every matching release asset", async ({ page }) => {
+test("Discover's Details modal exposes every matching release asset", async ({ page }) => {
+  const multiAssetRelease = {
+    tag_name: "plugin-v1.2.3",
+    prerelease: false,
+    draft: false,
+    html_url: "https://github.com/eugeniosegala/MAKO/releases/tag/plugin-v1.2.3",
+    assets: Array.from({ length: 5 }, (_, index) => ({
+      name: `mako-decky-${index + 1}.zip`,
+      browser_download_url: `https://github.com/eugeniosegala/MAKO/releases/download/plugin-v1.2.3/mako-decky-${index + 1}.zip`,
+      size: 1024,
+    })),
+  };
+  await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases?per_page=20", (route) => route.fulfill({ json: [multiAssetRelease] }));
   const app = mock(page);
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
 
   const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
-  await expect(makoCard.getByRole("button", { name: "mako-decky-5.zip (1 KB)" })).toBeVisible();
+  await makoCard.getByRole("button", { name: "Details", exact: true }).click();
+
+  const modal = app.locator(".steam-modal");
+  await expect(modal.getByRole("button", { name: "Download Selected Version", exact: true })).toBeVisible();
+  await expect(modal.getByRole("button", { name: "mako-decky-5.zip (1 KB)" })).toBeVisible();
 });
 
 const makoReleases = [

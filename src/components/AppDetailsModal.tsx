@@ -16,6 +16,7 @@ export function AppDetailsModal({
   t,
   app,
   preference: initialPreference,
+  downloadDisabled,
   onDownload,
   onChannelChange,
   closeModal,
@@ -23,6 +24,7 @@ export function AppDetailsModal({
   t: T;
   app: App;
   preference: RepoPreference;
+  downloadDisabled?: boolean;
   onDownload: (asset: Asset) => void;
   onChannelChange: (channel: UpdateChannel) => void;
   closeModal?: () => void;
@@ -105,14 +107,14 @@ export function AppDetailsModal({
         {selectedRelease && (
           <>
             {selectedRelease.assets[0] ? (
-              <Button style={modalButtonStyle} onClick={() => onDownload(selectedRelease.assets[0])}>
+              <Button style={modalButtonStyle} disabled={downloadDisabled} onClick={() => onDownload(selectedRelease.assets[0])}>
                 {t("appcard.downloadSelected")}
               </Button>
             ) : (
               <small style={{ color: "#ff6b6b" }}>{t("appcard.noMatchingAsset")}</small>
             )}
             {selectedRelease.assets.slice(1).map((asset) => (
-              <Button key={asset.name} style={modalButtonStyle} onClick={() => onDownload(asset)}>
+              <Button key={asset.name} style={modalButtonStyle} disabled={downloadDisabled} onClick={() => onDownload(asset)}>
                 {`${asset.name} (${readableBytes(asset.size)})`}
               </Button>
             ))}
