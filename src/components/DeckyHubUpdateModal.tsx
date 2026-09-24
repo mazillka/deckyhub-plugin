@@ -44,13 +44,20 @@ export function DeckyHubUpdateModal({
   const [selfUpdateError, setSelfUpdateError] = useState<string | null>(null);
   const selfUpdatingRef = useRef(false);
 
-  const loadVersions = async (forChannel: UpdateChannel) => {
+  const loadVersions = async (forChannel: UpdateChannel, { pinLatest = false } = {}) => {
     setLoadingVersions(true);
     const { items, error } = await listDeckyHubReleases();
     const filtered = items.filter((item) => item.prerelease === (forChannel === "prerelease"));
     setVersions(filtered);
     setFetchError(error ?? null);
     setSelectedTag((current) => {
+      // "Check for Updates" (pinLatest) always jumps to the channel's newest
+      // release, even if the user had an older one selected to inspect a
+      // downgrade — that's the point of explicitly checking. The initial
+      // load and a channel switch keep whatever's still selected, or fall
+      // back to the installed match, so opening the modal doesn't yank the
+      // selection away from what's already running.
+      if (pinLatest) return filtered[0]?.tag ?? "";
       if (current && filtered.some((item) => item.tag === current)) return current;
       const installed = filtered.find((item) => normalizeVersion(item.version) === normalizeVersion(info.version));
       return installed?.tag ?? filtered[0]?.tag ?? "";
@@ -104,7 +111,7 @@ export function DeckyHubUpdateModal({
     setChecking(true);
     onCheckUpdate();
     try {
-      await loadVersions(channel);
+      await loadVersions(channel, { pinLatest: true });
     } finally {
       setChecking(false);
     }

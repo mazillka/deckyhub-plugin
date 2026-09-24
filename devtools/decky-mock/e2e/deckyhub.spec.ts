@@ -230,6 +230,38 @@ test("DeckyHub version picker offers to downgrade to an older release", async ({
   await expect(app.getByRole("button", { name: "Downgrade to v0.9.0", exact: true })).toBeVisible();
 });
 
+test("DeckyHub's Check for Updates snaps the version picker back to the channel's latest", async ({ page }) => {
+  const installedRelease = {
+    tag_name: deckyHubTag,
+    prerelease: false,
+    html_url: `https://github.com/mazillka/deckyhub-plugin/releases/tag/${deckyHubTag}`,
+    assets: [{ name: `DeckyHub-${deckyHubTag}.zip`, browser_download_url: `https://github.com/mazillka/deckyhub-plugin/releases/download/${deckyHubTag}/DeckyHub-${deckyHubTag}.zip`, digest: `sha256:${"a".repeat(64)}` }],
+  };
+  const olderRelease = {
+    tag_name: "v0.9.0",
+    prerelease: false,
+    html_url: "https://github.com/mazillka/deckyhub-plugin/releases/tag/v0.9.0",
+    assets: [{ name: "DeckyHub-v0.9.0.zip", browser_download_url: "https://github.com/mazillka/deckyhub-plugin/releases/download/v0.9.0/DeckyHub-v0.9.0.zip", digest: `sha256:${"c".repeat(64)}` }],
+  };
+  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases/latest", (route) => route.fulfill({ json: installedRelease }));
+  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) => route.fulfill({ json: [installedRelease, olderRelease] }));
+  await page.goto("/?bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  await app.getByRole("button", { name: "Update", exact: true }).click();
+
+  // Pick the older release to inspect a downgrade...
+  await app.getByLabel("Version").selectOption({ label: "v0.9.0" });
+  await expect(app.getByLabel("Version")).toHaveValue("v0.9.0");
+
+  // ...then explicitly check for updates: the selection should jump back to
+  // the channel's newest release (here, the installed one), not stay parked
+  // on whatever was selected before.
+  await app.getByRole("button", { name: "Check for Updates", exact: true }).click();
+
+  await expect(app.getByLabel("Version")).toHaveValue(deckyHubTag);
+  await expect(app.getByRole("button", { name: `Reinstall v${deckyHubVersion}`, exact: true })).toBeVisible();
+});
+
 test("DeckyHub distinguishes rc versions sharing the same release number", async ({ page }) => {
   // Regression test: versionNumbers()'s regex used to strip the "-rc.N"
   // suffix entirely, so "1.0.3-rc.1"/"-rc.2"/"-rc.3" all parsed as the same
