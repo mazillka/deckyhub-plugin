@@ -14,7 +14,6 @@ export const getCustomRepos = callable<[], { repos: ManagedRepo[] }>("get_custom
 export const removeCustomRepo = callable<[repo: string], { removed: boolean; repo: string }>("remove_custom_repo");
 export const exportCustomRepos = callable<[], { path: string }>("export_custom_repos");
 export const importCustomRepos = callable<[path: string], { added: string[] }>("import_custom_repos");
-export const queueDownloads = callable<[items: { asset: Asset; repo?: string }[]], { jobIds?: string[]; error?: string }>("queue_downloads");
 export const clearDownloads = callable<[], { removed: number }>("clear_downloads");
 export const listDownloads = callable<[], { items: { name: string; directory: boolean }[] }>("list_downloads");
 export const saveRepoSettings = callable<[repo: string, values: RepoPreference], RepoPreference>("save_repo_settings");

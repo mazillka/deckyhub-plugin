@@ -6,10 +6,7 @@ import { I18nProvider } from "./i18n";
 import { Content } from "./pages/Content";
 import { ManageRepositoriesPage } from "./pages/ManageRepositoriesPage";
 import { SettingsPage } from "./pages/SettingsPage";
-import type { View } from "./types";
 import { pageStyle } from "./utils";
-
-const ROUTES = ["/deckyhub/updates", "/deckyhub/discover", "/deckyhub/settings", "/deckyhub/repositories"];
 
 const MOTION_CSS = `
   @media (prefers-reduced-motion: no-preference) {
@@ -24,49 +21,36 @@ function Motion({ children }: { children: ReactNode }) {
   return <div className="deckyhub-motion" style={{ height: "100%" }}><style>{MOTION_CSS}</style>{children}</div>;
 }
 
+const ROUTES: Record<string, () => ReactNode> = {
+  "/deckyhub/updates": () => <Content fullPage="updates" />,
+  "/deckyhub/discover": () => <Content fullPage="discover" />,
+  "/deckyhub/settings": () => <SettingsPage />,
+  "/deckyhub/repositories": () => <ManageRepositoriesPage />,
+};
+
 export default definePlugin(() => {
-  const fullscreen = (view: View) => (
-    <Motion>
-      <div style={pageStyle}>
-        <I18nProvider>
-          <Content fullPage={view} />
-        </I18nProvider>
-      </div>
-    </Motion>
-  );
-  routerHook.addRoute("/deckyhub/updates", () => fullscreen("updates"));
-  routerHook.addRoute("/deckyhub/discover", () => fullscreen("discover"));
-  routerHook.addRoute("/deckyhub/settings", () => (
-    <Motion>
-      <div style={pageStyle}>
-        <I18nProvider>
-          <SettingsPage />
-        </I18nProvider>
-      </div>
-    </Motion>
-  ));
-  routerHook.addRoute("/deckyhub/repositories", () => (
-    <Motion>
-      <div style={pageStyle}>
-        <I18nProvider>
-          <ManageRepositoriesPage />
-        </I18nProvider>
-      </div>
-    </Motion>
-  ));
+  for (const [path, page] of Object.entries(ROUTES)) {
+    routerHook.addRoute(path, () => (
+      <Motion>
+        <div style={pageStyle}>
+          <I18nProvider>{page()}</I18nProvider>
+        </div>
+      </Motion>
+    ));
+  }
   return {
     name: "DeckyHub",
     titleView: <div className={staticClasses.Title}>DeckyHub</div>,
     content: (
       <Motion>
-      <I18nProvider>
-        <Content />
-      </I18nProvider>
+        <I18nProvider>
+          <Content />
+        </I18nProvider>
       </Motion>
     ),
     icon: <FaGithub />,
     onDismount() {
-      ROUTES.forEach((path) => routerHook.removeRoute(path));
+      Object.keys(ROUTES).forEach((path) => routerHook.removeRoute(path));
     },
   };
 });

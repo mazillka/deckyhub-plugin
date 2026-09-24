@@ -80,9 +80,3 @@ export function useT(): TFunc {
   if (!ctx) throw new Error("useT must be used within I18nProvider");
   return ctx.t;
 }
-
-export function useLocale(): Locale {
-  const ctx = useContext(I18nContext);
-  if (!ctx) throw new Error("useLocale must be used within I18nProvider");
-  return ctx.locale;
-}

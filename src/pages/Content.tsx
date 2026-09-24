@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { FaSync } from "react-icons/fa";
 import { downloadAsset, getApps, getSettings, REGISTRY_UPDATED } from "../api";
 import { useT } from "../i18n";
-import type { App, Asset, RepoPreference, Settings, UpdateChannel, View } from "../types";
+import type { App, Asset, RepoPreference, UpdateChannel, View } from "../types";
 import { compactButtonStyle, DEFAULT_COLUMNS_PER_ROW, hydrate, notifyUpdates, sectionDividerStyle } from "../utils";
 import { AppCard } from "../components/AppCard";
 import { CleanupSection } from "../components/CleanupSection";
@@ -18,7 +18,7 @@ const CARDS_PER_PAGE = 20;
 export function Content({ fullPage }: { fullPage?: View }) {
   const t = useT();
   const [apps, setApps] = useState<App[]>([]);
-  const [view] = useState<View>(fullPage ?? "updates");
+  const view: View = fullPage ?? "updates";
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
@@ -39,7 +39,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
     try {
       const [appData, settings] = await Promise.all([getApps(), getSettings()]);
       const local = appData.apps;
-      const preferences = (settings as Settings & { repoSettings?: Record<string, RepoPreference> }).repoSettings || {};
+      const preferences = settings.repoSettings || {};
       setRepoPreferences(preferences);
       setColumnsPerRow(settings.columnsPerRow || DEFAULT_COLUMNS_PER_ROW);
       const tracked = view === "updates" ? local.filter((app) => app.installedVersion) : local;

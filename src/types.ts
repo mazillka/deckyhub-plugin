@@ -28,7 +28,7 @@ export type Download = { state: string; filename?: string; repo?: string; receiv
 
 export type DeckyHubInfo = { version: string };
 
-export type DeckyHubRelease = { version?: string; asset?: Asset; url?: string; error?: string };
+export type DeckyHubRelease = { version?: string; asset?: Asset; error?: string };
 
 export type DeckyHubReleaseOption = { tag: string; version: string; prerelease: boolean; publishedAt: string | null; asset?: Asset; url: string };
 
@@ -41,5 +41,3 @@ export type SearchRepo = { full_name: string; description?: string; stargazers_c
 export type ManagedRepo = { repo: string };
 
 export type RepoPreference = { channel: "stable" | "prerelease"; assetFilter: string[] };
-
-export type Job = { id: string; state: Download } | null;

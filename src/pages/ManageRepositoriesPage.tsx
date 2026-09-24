@@ -86,7 +86,7 @@ export function ManageRepositoriesPage() {
     toaster.toast({ title: "DeckyHub", body: result.added.length ? `Imported: ${result.added.join(", ")}` : "No new repositories to import." });
   };
 
-  const manageTab = (
+  return (
     <>
       <PanelSection title={t("repos.addGithubRepository")}>
         <PanelSectionRow>
@@ -186,6 +186,4 @@ export function ManageRepositoriesPage() {
       </PanelSection>
     </>
   );
-
-  return manageTab;
 }
