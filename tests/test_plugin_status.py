@@ -24,7 +24,7 @@ class PluginStatusTests(unittest.TestCase):
             plugin = Plugin()
 
             installed_plugins = plugin._scan_installed_plugins()
-            self.assertEqual(plugin._installed_version({"detect": {"type": "decky-plugin", "names": ["MAKO - Frame Generation", "MAKO Decky"]}}, installed_plugins), "3.2.1")
+            self.assertEqual(plugin._decky_plugin_version(plugin._match_decky_plugin({"type": "decky-plugin", "names": ["MAKO - Frame Generation", "MAKO Decky"]}, installed_plugins)), "3.2.1")
 
     def test_get_apps_reports_the_installed_plugin_name(self):
         with tempfile.TemporaryDirectory() as home:
@@ -52,7 +52,7 @@ class PluginStatusTests(unittest.TestCase):
             plugin = Plugin()
 
             installed_plugins = plugin._scan_installed_plugins()
-            self.assertEqual(plugin._installed_version({"detect": {"type": "decky-plugin", "names": ["Decky-Framegen", "Decky Framegen"]}}, installed_plugins), "1.2.3")
+            self.assertEqual(plugin._decky_plugin_version(plugin._match_decky_plugin({"type": "decky-plugin", "names": ["Decky-Framegen", "Decky Framegen"]}, installed_plugins)), "1.2.3")
 
     def test_overwrite_setting_defaults_to_false(self):
         with tempfile.TemporaryDirectory() as home:
@@ -461,7 +461,7 @@ class PluginStatusTests(unittest.TestCase):
             plugin = Plugin()
 
             installed_plugins = plugin._scan_installed_plugins()
-            self.assertEqual(plugin._installed_version({"detect": {"type": "decky-plugin", "repo": "owner/repo"}}, installed_plugins), "9.9.9")
+            self.assertEqual(plugin._decky_plugin_version(plugin._match_decky_plugin({"type": "decky-plugin", "repo": "owner/repo"}, installed_plugins)), "9.9.9")
 
 
 if __name__ == "__main__":

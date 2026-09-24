@@ -90,10 +90,8 @@ class Plugin:
             scanned.append((manifest_path, manifest, self._plugin_repository(manifest_path, manifest)))
         return scanned
 
-    def _installed_version(self, app: dict, installed_plugins: list[tuple[Path, dict, str | None]]) -> str | None:
+    def _installed_version(self, app: dict) -> str | None:
         rule = app.get("detect", {})
-        if rule.get("type") == "decky-plugin":
-            return self._decky_plugin_version(rule, installed_plugins)
         command = rule.get("command")
         if not command or not shutil.which(command):
             return None
@@ -112,8 +110,7 @@ class Plugin:
                 return manifest_path, manifest
         return None
 
-    def _decky_plugin_version(self, rule: dict, installed_plugins: list[tuple[Path, dict, str | None]]) -> str | None:
-        match = self._match_decky_plugin(rule, installed_plugins)
+    def _decky_plugin_version(self, match: tuple[Path, dict] | None) -> str | None:
         if not match:
             return None
         manifest_path, manifest = match
@@ -149,12 +146,12 @@ class Plugin:
         command_checks = []
         for index, app in enumerate(apps):
             if app.get("detect", {}).get("type") == "decky-plugin":
-                installed[index] = self._decky_plugin_version(app["detect"], installed_plugins)
                 match = self._match_decky_plugin(app["detect"], installed_plugins)
+                installed[index] = self._decky_plugin_version(match)
                 plugin_names[index] = match[1].get("name") if match else None
             else:
                 command_checks.append((index, app))
-        command_versions = await asyncio.gather(*(asyncio.to_thread(self._installed_version, app, installed_plugins) for _, app in command_checks))
+        command_versions = await asyncio.gather(*(asyncio.to_thread(self._installed_version, app) for _, app in command_checks))
         for (index, _), version in zip(command_checks, command_versions):
             installed[index] = version
         return {"apps": [{**app, "installedVersion": version, "pluginName": name, "latestVersion": None, "publishedAt": None, "releaseUrl": None, "assets": [], "updateAvailable": None, "error": None} for app, version, name in zip(apps, installed, plugin_names)]}
