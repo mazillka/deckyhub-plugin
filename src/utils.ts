@@ -100,8 +100,6 @@ export const statusKey = (app: App): MessageKey =>
 
 export const statusColor = (app: App) => (!app.installedVersion || app.error ? "#ff6b6b" : app.updateAvailable ? "#f0c33c" : app.updateAvailable === false ? "#6bcb6b" : undefined);
 
-const keyFor = (app: App) => `deckyhub-release:${app.repo}:${app.source}`;
-
 // Shared by every GitHub-fetching function below — a plain localStorage
 // {at, data} envelope read back only when still under CACHE_TTL and not
 // explicitly bypassed. Only successful results are ever written (see each
@@ -258,15 +256,13 @@ function isUpdate(app: App, latest: string | null) {
   return false;
 }
 
-export function matchingAssets(app: App, assets: any[], extraInclude: string[] = []): Asset[] {
+function matchingAssets(app: App, assets: Asset[], extraInclude: string[] = []): Asset[] {
   const include = [...app.asset.include, ...extraInclude].map((word) => word.toLowerCase());
   const exclude = app.asset.exclude.map((word) => word.toLowerCase());
-  return assets
-    .filter((asset) => {
-      const name = String(asset.name || "").toLowerCase();
-      return name.endsWith(".zip") && !exclude.some((word) => name.includes(word)) && (!include.length || include.every((word) => name.includes(word)));
-    })
-    .map((asset) => ({ name: asset.name, url: asset.browser_download_url, size: asset.size || 0, sha256: String(asset.digest || "").replace(/^sha256:/, "") || undefined }));
+  return assets.filter((asset) => {
+    const name = asset.name.toLowerCase();
+    return name.endsWith(".zip") && !exclude.some((word) => name.includes(word)) && (!include.length || include.every((word) => name.includes(word)));
+  });
 }
 
 export function notifyUpdates(apps: App[]) {
@@ -277,119 +273,86 @@ export function notifyUpdates(apps: App[]) {
   toaster.toast({ title: `${updates.length} update${updates.length === 1 ? "" : "s"} available`, body: updates.map((app) => `${app.name} (${app.latestVersion})`).join(", ") });
 }
 
-// GitHub's list-releases endpoint doesn't reliably come back sorted newest
-// first — observed in the wild returning a just-published release sandwiched
-// in the middle of the array — so every version picker below sorts by
-// published date itself instead of trusting response order for "latest".
-const byPublishedDesc = (a: { publishedAt: string | null }, b: { publishedAt: string | null }) =>
-  (Date.parse(b.publishedAt || "") || 0) - (Date.parse(a.publishedAt || "") || 0);
+// A repo's recent non-draft releases with every asset, newest first — the one
+// GitHub fetch behind the cards (hydrate), both version pickers and DeckyHub's
+// own update check, cached per repo so they share it. Callers apply their own
+// tag/asset filters on top, so a changed filter never serves stale results.
+// GitHub's list endpoint isn't reliably sorted newest-first (a just-published
+// release has been seen mid-array), so sort by published date here.
+type Release = { tag: string; prerelease: boolean; publishedAt: string | null; url: string; assets: Asset[] };
 
-// Recent DeckyHub releases (stable and pre-release together) for the version
-// picker in DeckyHubUpdateModal — lets the user reinstall or downgrade to a
-// specific past release, not just install whatever is newest.
-export async function listDeckyHubReleases(limit = 20, force = false): Promise<{ items: DeckyHubReleaseOption[]; error?: string }> {
-  const cacheKey = `deckyhub-releases:${limit}`;
-  const cached = readCache<DeckyHubReleaseOption[]>(cacheKey, force);
-  if (cached) return { items: cached };
+async function fetchReleases(repo: string, force: boolean): Promise<Release[]> {
+  const cacheKey = `deckyhub-releases:${repo}`;
+  const cached = readCache<Release[]>(cacheKey, force);
+  if (cached) return cached;
+  const response = await fetchWithTimeout(`https://api.github.com/repos/${repo}/releases?per_page=20`, { headers: githubHeaders() });
+  if (!response.ok) throw await githubResponseError(response);
+  const body = await response.json();
+  const releases: Release[] = (Array.isArray(body) ? body : [])
+    .filter((item: any) => !item.draft)
+    .map((item: any) => ({
+      tag: String(item.tag_name || item.name),
+      prerelease: Boolean(item.prerelease),
+      publishedAt: item.published_at || null,
+      url: item.html_url || `https://github.com/${repo}/releases`,
+      assets: (item.assets || []).map((asset: any) => ({ name: String(asset.name || ""), url: asset.browser_download_url, size: asset.size || 0, sha256: String(asset.digest || "").replace(/^sha256:/, "") || undefined })),
+    }))
+    .sort((a: Release, b: Release) => (Date.parse(b.publishedAt || "") || 0) - (Date.parse(a.publishedAt || "") || 0));
+  writeCache(cacheKey, releases);
+  return releases;
+}
+
+// DeckyHub's own recent releases (both channels) for its update window's
+// version picker, each with its DeckyHub-*.zip only when it carries a SHA-256
+// — Decky Loader's installer needs one to verify the download.
+export async function listDeckyHubReleases(force = false): Promise<{ items: DeckyHubReleaseOption[]; error?: string }> {
   try {
-    const response = await fetchWithTimeout(`https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=${limit}`, { headers: githubHeaders() });
-    if (!response.ok) throw await githubResponseError(response);
-    const body = await response.json();
-    const items: DeckyHubReleaseOption[] = (Array.isArray(body) ? body : [])
-      .filter((item: any) => !item.draft)
-      .map((item: any) => {
-        const asset = (item.assets || []).find((a: any) => /^DeckyHub-.*\.zip$/i.test(String(a.name)));
-        const sha256 = String(asset?.digest || "").replace(/^sha256:/, "");
-        const validAsset = asset && String(asset.name).startsWith("DeckyHub-") && /^[0-9a-f]{64}$/i.test(sha256);
-        return {
-          tag: String(item.tag_name || item.name),
-          version: String(item.tag_name || item.name),
-          prerelease: Boolean(item.prerelease),
-          publishedAt: item.published_at || null,
-          url: item.html_url || "https://github.com/mazillka/deckyhub-plugin/releases",
-          asset: validAsset ? { name: asset.name, url: asset.browser_download_url, size: asset.size || 0, sha256 } : undefined,
-        };
-      })
-      .sort(byPublishedDesc);
-    writeCache(cacheKey, items);
+    const items = (await fetchReleases("mazillka/deckyhub-plugin", force)).map(({ assets, ...release }) => ({
+      ...release,
+      version: release.tag,
+      asset: assets.find((asset) => /^DeckyHub-.*\.zip$/i.test(asset.name) && /^[0-9a-f]{64}$/i.test(asset.sha256 ?? "")),
+    }));
     return { items };
   } catch (error) {
     return { items: [], error: String(error) };
   }
 }
 
-// Newest release on the given channel for the QAM "Update" button — reuses
-// listDeckyHubReleases() (and its cache) instead of a second GitHub request.
+// Newest release on the given channel for the QAM "Update" button.
 export async function latestDeckyHubRelease(channel: UpdateChannel, force = false): Promise<DeckyHubRelease> {
-  const { items, error } = await listDeckyHubReleases(20, force);
+  const { items, error } = await listDeckyHubReleases(force);
   const release = items.find((item) => item.prerelease === (channel === "prerelease"));
   return release?.asset ? { version: release.version, asset: release.asset } : { error: error ?? "DeckyHub release ZIP with SHA-256 checksum not found" };
 }
 
-export async function hydrate(app: App, force: boolean, preference?: RepoPreference): Promise<App> {
-  const channel: UpdateChannel = preference?.channel ?? "stable";
-  try {
-    let release = readCache<any>(keyFor(app), force);
-    if (!release) {
-      const endpoint = preference?.channel === "prerelease" || app.releaseTagInclude ? `/repos/${app.repo}/releases?per_page=20` : `/repos/${app.repo}/releases/latest`;
-      const response = await fetchWithTimeout(`https://api.github.com${endpoint}`, { headers: githubHeaders() });
-      if (!response.ok) throw await githubResponseError(response);
-      const body = await response.json();
-      // GitHub's list-releases response isn't reliably ordered newest-first
-      // (see byPublishedDesc above), so pick the newest match by published
-      // date rather than trusting which one comes first in the array.
-      const byRawPublishedDesc = (a: any, b: any) => (Date.parse(b.published_at) || 0) - (Date.parse(a.published_at) || 0);
-      release = Array.isArray(body)
-        ? preference?.channel === "prerelease"
-          ? body.filter((item) => item.prerelease && !item.draft).sort(byRawPublishedDesc)[0]
-          : body.filter((item) => String(item.tag_name || "").toLowerCase().includes(app.releaseTagInclude!.toLowerCase())).sort(byRawPublishedDesc)[0]
-        : body;
-      if (!release) throw new Error("No matching release found");
-      writeCache(keyFor(app), release);
-    }
-    const latestVersion = release.tag_name || release.name || null;
-    const publishedAt = release.published_at || null;
-    return {
-      ...app,
-      channel,
-      latestVersion,
-      publishedAt,
-      releaseUrl: release.html_url || `https://github.com/${app.repo}/releases`,
-      assets: matchingAssets(app, release.assets || [], preference?.assetFilter),
-      updateAvailable: isUpdate(app, latestVersion),
-    };
-  } catch (error) {
-    return { ...app, channel, error: String(error) };
-  }
-}
-
-// Recent releases for a tracked app's own version picker (AppDetailsModal) —
-// unlike hydrate()'s single "current release" fetch, this returns the last
-// ~20 so the user can pick a specific past version to download, not just
-// whatever's newest.
+// A tracked app's recent releases (tag-filtered, assets matched to its
+// filters) for its version picker in AppDetailsModal.
 export async function listAppReleases(app: App, preference?: RepoPreference, force = false): Promise<{ items: AppReleaseOption[]; error?: string }> {
-  const cacheKey = `deckyhub-app-releases:${app.repo}:${app.source}`;
-  const cached = readCache<AppReleaseOption[]>(cacheKey, force);
-  if (cached) return { items: cached };
   try {
-    const response = await fetchWithTimeout(`https://api.github.com/repos/${app.repo}/releases?per_page=20`, { headers: githubHeaders() });
-    if (!response.ok) throw await githubResponseError(response);
-    const body = await response.json();
-    const items: AppReleaseOption[] = (Array.isArray(body) ? body : [])
-      .filter((item: any) => !item.draft)
-      .filter((item: any) => !app.releaseTagInclude || String(item.tag_name || item.name || "").toLowerCase().includes(app.releaseTagInclude!.toLowerCase()))
-      .map((item: any) => ({
-        tag: String(item.tag_name || item.name),
-        version: String(item.tag_name || item.name),
-        prerelease: Boolean(item.prerelease),
-        publishedAt: item.published_at || null,
-        url: item.html_url || `https://github.com/${app.repo}/releases`,
-        assets: matchingAssets(app, item.assets || [], preference?.assetFilter),
-      }))
-      .sort(byPublishedDesc);
-    writeCache(cacheKey, items);
+    const tagInclude = app.releaseTagInclude?.toLowerCase();
+    const items = (await fetchReleases(app.repo, force))
+      .filter((release) => !tagInclude || release.tag.toLowerCase().includes(tagInclude))
+      .map((release) => ({ ...release, version: release.tag, assets: matchingAssets(app, release.assets, preference?.assetFilter) }));
     return { items };
   } catch (error) {
     return { items: [], error: String(error) };
   }
+}
+
+// Fills in a card's latest release for its channel and whether it's newer
+// than what's installed.
+export async function hydrate(app: App, force: boolean, preference?: RepoPreference): Promise<App> {
+  const channel: UpdateChannel = preference?.channel ?? "stable";
+  const { items, error } = await listAppReleases(app, preference, force);
+  const release = items.find((item) => item.prerelease === (channel === "prerelease"));
+  if (!release) return { ...app, channel, error: error ?? "No matching release found" };
+  return {
+    ...app,
+    channel,
+    latestVersion: release.tag,
+    publishedAt: release.publishedAt,
+    releaseUrl: release.url,
+    assets: release.assets,
+    updateAvailable: isUpdate(app, release.tag),
+  };
 }

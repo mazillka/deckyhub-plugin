@@ -43,7 +43,8 @@ function bridgeCall(page: Page, route: string, ...args: unknown[]) {
 }
 
 test.beforeEach(async ({ page }) => {
-  await page.route("https://api.github.com/**", (route) => route.fulfill({ json: release }));
+  // Every release lookup hits GET /repos/{repo}/releases, which returns a list.
+  await page.route("https://api.github.com/**", (route) => route.fulfill({ json: [release] }));
   await page.goto("/?bridge=http://127.0.0.1:8643");
 });
 
@@ -622,10 +623,11 @@ test("Reopening Details within the cache window doesn't re-fetch its release lis
   await expect(app.locator(".steam-modal").getByRole("button", { name: "Download ZIP", exact: true })).toBeVisible();
   await app.locator(".steam-modal").getByRole("button", { name: "Close", exact: true }).click();
 
-  // hydrate() (the card itself) and listAppReleases() (the modal) hit the
-  // same endpoint independently, so opening Details fresh costs 2 requests —
-  // reopening it should add none, since both are still within CACHE_TTL.
+  // The card (hydrate) and the modal (listAppReleases) share fetchReleases()'s
+  // per-repo cache, so the whole flow costs one request — and reopening the
+  // modal adds none while it's still within CACHE_TTL.
   const requestsAfterFirstOpen = requests;
+  expect(requestsAfterFirstOpen).toBe(1);
   await makoCard.getByRole("button", { name: "Download", exact: true }).click();
   await expect(app.locator(".steam-modal").getByRole("button", { name: "Download ZIP", exact: true })).toBeVisible();
 
@@ -742,7 +744,7 @@ test("Saving a GitHub token in Settings adds it to GitHub API requests", async (
   let authHeader: string | undefined;
   await page.route("https://api.github.com/**", (route) => {
     authHeader = route.request().headers()["authorization"];
-    return route.fulfill({ json: release });
+    return route.fulfill({ json: [release] });
   });
 
   try {

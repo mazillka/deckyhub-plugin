@@ -44,7 +44,7 @@ export function DeckyHubUpdateModal({
 
   const loadVersions = async (forChannel: UpdateChannel, { pinLatest = false } = {}) => {
     setLoadingVersions(true);
-    const { items, error } = await listDeckyHubReleases(20, pinLatest);
+    const { items, error } = await listDeckyHubReleases(pinLatest);
     const filtered = items.filter((item) => item.prerelease === (forChannel === "prerelease"));
     setVersions(filtered);
     setFetchError(error ?? null);
