@@ -448,6 +448,37 @@ test("Discover's Details modal exposes every matching release asset", async ({ p
   await expect(modal.getByRole("button", { name: "mako-decky-5.zip (1 KB)" })).toBeVisible();
 });
 
+test("Reopening Details within the cache window doesn't re-fetch its release list", async ({ page }) => {
+  let requests = 0;
+  const release = {
+    tag_name: "plugin-v1.2.3",
+    prerelease: false,
+    draft: false,
+    html_url: "https://github.com/eugeniosegala/MAKO/releases/tag/plugin-v1.2.3",
+    assets: [{ name: "mako-decky-1.zip", browser_download_url: "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v1.2.3/mako-decky-1.zip", size: 1024 }],
+  };
+  await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases?per_page=20", (route) => {
+    requests++;
+    return route.fulfill({ json: [release] });
+  });
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+
+  await makoCard.getByRole("button", { name: "Details", exact: true }).click();
+  await expect(app.locator(".steam-modal").getByRole("button", { name: "Download", exact: true })).toBeVisible();
+  await app.locator(".steam-modal").getByRole("button", { name: "Close", exact: true }).click();
+
+  // hydrate() (the card itself) and listAppReleases() (the modal) hit the
+  // same endpoint independently, so opening Details fresh costs 2 requests —
+  // reopening it should add none, since both are still within CACHE_TTL.
+  const requestsAfterFirstOpen = requests;
+  await makoCard.getByRole("button", { name: "Details", exact: true }).click();
+  await expect(app.locator(".steam-modal").getByRole("button", { name: "Download", exact: true })).toBeVisible();
+
+  expect(requests).toBe(requestsAfterFirstOpen);
+});
+
 const makoReleases = [
   {
     tag_name: "plugin-v1.3.0",

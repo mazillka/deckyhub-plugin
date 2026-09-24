@@ -94,8 +94,8 @@ If automatic update isn't available for some reason (e.g. running inside an olde
 
 ## Good to know
 
-- DeckyHub talks to GitHub without needing you to log in, so very heavy use in a short time may hit GitHub's public rate limit — release info will just take a bit longer to refresh if that happens.
-- Release information is cached for 1 minute, so pulling to refresh right after checking won't always show something new.
+- DeckyHub talks to GitHub without needing you to log in, so very heavy use in a short time may still hit GitHub's public rate limit — if it does, the error names it as a rate limit and says roughly how long to wait, rather than just a raw status code.
+- Release information is cached for 5 minutes, so opening the same app's Details or the DeckyHub update modal again shortly after won't always show something new. Every "Check for Updates" and "Refresh" button bypasses this and asks GitHub directly.
 - Downloads only ever happen over HTTPS.
 
 ## Disclaimer

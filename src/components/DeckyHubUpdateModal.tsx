@@ -8,7 +8,7 @@ import { PLUGIN_INSTALL_TYPE, getDeckyBackend, listDeckyHubReleases, normalizeVe
 import { showDownloadModal } from "./DownloadProgress";
 
 const PLUGIN_NAME = "DeckyHub";
-const modalButtonStyle = { width: "100%", minHeight: 36, padding: "6px 10px" };
+const modalButtonStyle = { width: "100%", minHeight: 36, padding: "6px 10px", textAlign: "center" as const };
 
 type T = (key: MessageKey, vars?: Record<string, string | number>) => string;
 
@@ -46,7 +46,7 @@ export function DeckyHubUpdateModal({
 
   const loadVersions = async (forChannel: UpdateChannel, { pinLatest = false } = {}) => {
     setLoadingVersions(true);
-    const { items, error } = await listDeckyHubReleases();
+    const { items, error } = await listDeckyHubReleases(20, pinLatest);
     const filtered = items.filter((item) => item.prerelease === (forChannel === "prerelease"));
     setVersions(filtered);
     setFetchError(error ?? null);

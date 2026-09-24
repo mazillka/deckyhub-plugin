@@ -5,7 +5,7 @@ import type { MessageKey } from "../i18n/en";
 import type { App, AppReleaseOption, Asset, RepoPreference, UpdateChannel } from "../types";
 import { listAppReleases, normalizeVersion, readableBytes, sectionDividerStyle } from "../utils";
 
-const modalButtonStyle = { width: "100%", minHeight: 36, padding: "6px 10px" };
+const modalButtonStyle = { width: "100%", minHeight: 36, padding: "6px 10px", textAlign: "center" as const };
 
 type T = (key: MessageKey, vars?: Record<string, string | number>) => string;
 
@@ -37,7 +37,7 @@ export function AppDetailsModal({
 
   const loadReleases = async (forChannel: UpdateChannel, { pinLatest = false } = {}) => {
     setLoading(true);
-    const { items, error } = await listAppReleases(app, initialPreference);
+    const { items, error } = await listAppReleases(app, initialPreference, pinLatest);
     const filtered = items.filter((item) => item.prerelease === (forChannel === "prerelease"));
     setReleases(filtered);
     setFetchError(error ?? null);

@@ -2,11 +2,17 @@ import { fetchNoCors, toaster } from "@decky/api";
 import type { MessageKey } from "./i18n/en";
 import type { App, AppReleaseOption, Asset, DeckyHubRelease, DeckyHubReleaseOption, RepoPreference, UpdateChannel } from "./types";
 
-export const CACHE_TTL = 60 * 1000;
+// GitHub's unauthenticated core API allows 60 requests/hour per device —
+// easy to burn through when Discover/Updates hydrates every tracked app on
+// each load, plus the DeckyHub and per-app version pickers each fetch their
+// own release list on every open. 5 minutes trades a little staleness for
+// substantially fewer requests; every cache read is bypassed by force=true
+// wherever the user explicitly asks to check (Refresh, Check for Updates).
+export const CACHE_TTL = 5 * 60 * 1000;
 export const UPDATE_NOTICE_KEY = "deckyhub-update-notice";
 export const DEFAULT_COLUMNS_PER_ROW = 3;
 export const pageStyle = { boxSizing: "border-box" as const, height: "100%", overflowY: "auto" as const, padding: "64px 12px 96px", scrollPaddingBottom: 96, scrollPaddingTop: 64, width: "100%" };
-export const compactButtonStyle = { width: "100%", minHeight: 36, marginBottom: 8, padding: "6px 10px" };
+export const compactButtonStyle = { width: "100%", minHeight: 36, marginBottom: 8, padding: "6px 10px", textAlign: "center" as const };
 export const sectionDividerStyle = { borderTop: "1px solid rgba(255, 255, 255, 0.14)", margin: "16px 0" };
 // Reserves a fixed two-line height so cards in the same grid row stay aligned regardless of description length.
 export const cardDescriptionStyle = {
@@ -52,13 +58,27 @@ export const statusColor = (app: App) => (!app.installedVersion || app.error ? "
 
 const keyFor = (app: App) => `deckyhub-release:${app.repo}:${app.source}`;
 
-function cached(app: App, force: boolean): any | null {
+// Shared by every GitHub-fetching function below — a plain localStorage
+// {at, data} envelope read back only when still under CACHE_TTL and not
+// explicitly bypassed. Only successful results are ever written (see each
+// call site's try/catch), so a transient failure never "poisons" the cache
+// for the next attempt.
+function readCache<T>(key: string, force: boolean): T | null {
   if (force) return null;
   try {
-    const value = JSON.parse(localStorage.getItem(keyFor(app)) || "null");
-    return value && Date.now() - value.at < CACHE_TTL ? value.data : null;
+    const value = JSON.parse(localStorage.getItem(key) || "null");
+    return value && Date.now() - value.at < CACHE_TTL ? (value.data as T) : null;
   } catch {
     return null;
+  }
+}
+
+function writeCache(key: string, data: unknown): void {
+  try {
+    localStorage.setItem(key, JSON.stringify({ at: Date.now(), data }));
+  } catch {
+    // Quota exceeded or storage disabled (private browsing) — caching is a
+    // nice-to-have, never worth failing the fetch that already succeeded.
   }
 }
 
@@ -179,7 +199,10 @@ export function notifyUpdates(apps: App[]) {
   toaster.toast({ title: `${updates.length} update${updates.length === 1 ? "" : "s"} available`, body: updates.map((app) => `${app.name} (${app.latestVersion})`).join(", ") });
 }
 
-export async function latestDeckyHubRelease(channel: UpdateChannel): Promise<DeckyHubRelease> {
+export async function latestDeckyHubRelease(channel: UpdateChannel, force = false): Promise<DeckyHubRelease> {
+  const cacheKey = `deckyhub-selfupdate:${channel}`;
+  const cached = readCache<DeckyHubRelease>(cacheKey, force);
+  if (cached) return cached;
   try {
     const endpoint = channel === "prerelease" ? "releases?per_page=20" : "releases/latest";
     const response = await fetchWithTimeout(`https://api.github.com/repos/mazillka/deckyhub-plugin/${endpoint}`, { headers: { Accept: "application/vnd.github+json" } });
@@ -193,7 +216,9 @@ export async function latestDeckyHubRelease(channel: UpdateChannel): Promise<Dec
     const asset = (release?.assets || []).find((item: any) => /^DeckyHub-.*\.zip$/i.test(String(item.name)));
     const sha256 = String(asset?.digest || "").replace(/^sha256:/, "");
     if (!asset || !String(asset.name).startsWith("DeckyHub-") || !/^[0-9a-f]{64}$/i.test(sha256)) throw new Error("DeckyHub release ZIP with SHA-256 checksum not found");
-    return { version: release.tag_name || release.name, url: release.html_url, asset: { name: asset.name, url: asset.browser_download_url, size: asset.size || 0, sha256 } };
+    const result: DeckyHubRelease = { version: release.tag_name || release.name, url: release.html_url, asset: { name: asset.name, url: asset.browser_download_url, size: asset.size || 0, sha256 } };
+    writeCache(cacheKey, result);
+    return result;
   } catch (error) {
     return { error: String(error) };
   }
@@ -202,7 +227,10 @@ export async function latestDeckyHubRelease(channel: UpdateChannel): Promise<Dec
 // Recent DeckyHub releases (stable and pre-release together) for the version
 // picker in DeckyHubUpdateModal — lets the user reinstall or downgrade to a
 // specific past release, not just install whatever is newest.
-export async function listDeckyHubReleases(limit = 20): Promise<{ items: DeckyHubReleaseOption[]; error?: string }> {
+export async function listDeckyHubReleases(limit = 20, force = false): Promise<{ items: DeckyHubReleaseOption[]; error?: string }> {
+  const cacheKey = `deckyhub-releases:${limit}`;
+  const cached = readCache<DeckyHubReleaseOption[]>(cacheKey, force);
+  if (cached) return { items: cached };
   try {
     const response = await fetchWithTimeout(`https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=${limit}`, { headers: { Accept: "application/vnd.github+json" } });
     if (!response.ok) throw await githubResponseError(response);
@@ -221,6 +249,7 @@ export async function listDeckyHubReleases(limit = 20): Promise<{ items: DeckyHu
           asset: validAsset ? { name: asset.name, url: asset.browser_download_url, size: asset.size || 0, sha256 } : undefined,
         };
       });
+    writeCache(cacheKey, items);
     return { items };
   } catch (error) {
     return { items: [], error: String(error) };
@@ -230,7 +259,7 @@ export async function listDeckyHubReleases(limit = 20): Promise<{ items: DeckyHu
 export async function hydrate(app: App, force: boolean, preference?: RepoPreference): Promise<App> {
   const channel: UpdateChannel = preference?.channel ?? "stable";
   try {
-    let release = cached(app, force);
+    let release = readCache<any>(keyFor(app), force);
     if (!release) {
       const endpoint =
         app.source === "tags"
@@ -249,7 +278,7 @@ export async function hydrate(app: App, force: boolean, preference?: RepoPrefere
           : { tag_name: body[0]?.name, html_url: `https://github.com/${app.repo}/releases`, assets: [] }
         : body;
       if (!release) throw new Error("No matching release found");
-      localStorage.setItem(keyFor(app), JSON.stringify({ at: Date.now(), data: release }));
+      writeCache(keyFor(app), release);
     }
     const latestVersion = release.tag_name || release.name || null;
     const publishedAt = release.published_at || null;
@@ -272,8 +301,11 @@ export async function hydrate(app: App, force: boolean, preference?: RepoPrefere
 // ~20 so the user can pick a specific past version to download, not just
 // whatever's newest. Only meaningful for GitHub Releases-backed apps: a
 // "tags" source has no release assets to offer, so it always returns empty.
-export async function listAppReleases(app: App, preference?: RepoPreference): Promise<{ items: AppReleaseOption[]; error?: string }> {
+export async function listAppReleases(app: App, preference?: RepoPreference, force = false): Promise<{ items: AppReleaseOption[]; error?: string }> {
   if (app.source === "tags") return { items: [] };
+  const cacheKey = `deckyhub-app-releases:${app.repo}:${app.source}`;
+  const cached = readCache<AppReleaseOption[]>(cacheKey, force);
+  if (cached) return { items: cached };
   try {
     const response = await fetchWithTimeout(`https://api.github.com/repos/${app.repo}/releases?per_page=20`, { headers: { Accept: "application/vnd.github+json" } });
     if (!response.ok) throw await githubResponseError(response);
@@ -289,6 +321,7 @@ export async function listAppReleases(app: App, preference?: RepoPreference): Pr
         url: item.html_url || `https://github.com/${app.repo}/releases`,
         assets: matchingAssets(app, item.assets || [], preference?.assetFilter),
       }));
+    writeCache(cacheKey, items);
     return { items };
   } catch (error) {
     return { items: [], error: String(error) };

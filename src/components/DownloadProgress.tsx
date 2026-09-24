@@ -68,7 +68,7 @@ function DownloadModal({
               </div>
             </>
           )}
-        <Button style={{ margin: 0, width: "100%" }} onClick={() => {
+        <Button style={{ margin: 0, width: "100%", textAlign: "center" }} onClick={() => {
           if (active) void cancelDownload(jobId);
           closeModal?.();
         }}>

@@ -16,8 +16,8 @@ export function DeckyHubUpdate() {
   const [info, setInfo] = useState<DeckyHubInfo>({ version: "unknown" });
   const [release, setRelease] = useState<DeckyHubRelease>({});
 
-  const checkForUpdate = () =>
-    void latestDeckyHubRelease(channel).then((next) => {
+  const checkForUpdate = (force = false) =>
+    void latestDeckyHubRelease(channel, force).then((next) => {
       setRelease(next);
       if (next.version && !next.error && info.version !== "unknown" && next.version.trim().replace(/^v/i, "") !== info.version.trim().replace(/^v/i, "")) {
         toaster.toast({ title: "DeckyHub", body: t("settings.updateAvailable", { version: next.version }) });
@@ -48,7 +48,7 @@ export function DeckyHubUpdate() {
       <PanelSectionRow>
         <Button
           style={compactButtonStyle}
-          onClick={() => showModal(<DeckyHubUpdateModal t={t} info={info} channel={channel} onCheckUpdate={checkForUpdate} onChannelChange={setChannel} />)}
+          onClick={() => showModal(<DeckyHubUpdateModal t={t} info={info} channel={channel} onCheckUpdate={() => checkForUpdate(true)} onChannelChange={setChannel} />)}
         >
           {buttonLabel}
         </Button>
