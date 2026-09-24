@@ -709,16 +709,22 @@ test("Settings loads a previously saved GitHub token and keeps Save disabled unt
 });
 
 test("Clearing the GitHub token stops sending the Authorization header", async ({ page }) => {
+  // Scoped to one app's Details modal, using its own "Check for Updates"
+  // (force=true) to bypass the release cache, rather than navigating the
+  // whole Discover grid twice and reaching into the iframe's localStorage
+  // from the outer page — that version was slow and flaky in CI (a 30s
+  // timeout) despite passing locally every time.
   let authHeader: string | undefined;
-  await page.route("https://api.github.com/**", (route) => {
+  await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases**", (route) => {
     authHeader = route.request().headers()["authorization"];
-    return route.fulfill({ json: release });
+    return route.fulfill({ json: [release] });
   });
 
   try {
     const app = mock(page);
     const tokenField = app.getByLabel("GitHub Token");
     const saveButton = app.getByRole("button", { name: "Save Settings", exact: true });
+    const modal = app.locator(".steam-modal");
 
     await app.getByRole("button", { name: "/deckyhub/settings" }).click();
     await tokenField.fill("ghp_temp_token");
@@ -726,20 +732,19 @@ test("Clearing the GitHub token stops sending the Authorization header", async (
     await expect(saveButton).toBeDisabled();
 
     await app.getByRole("button", { name: "/deckyhub/discover" }).click();
-    await expect(app.getByText("Latest: plugin-v1.2.3", { exact: true }).first()).toBeVisible();
+    const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+    await makoCard.getByRole("button", { name: "Details", exact: true }).click();
+    await expect(modal.getByRole("button", { name: "Download", exact: true })).toBeVisible();
     expect(authHeader).toBe("Bearer ghp_temp_token");
 
-    // The 5-minute release cache would otherwise skip the network on the
-    // next check entirely, masking whether a fresh request still carries a
-    // (stale) header — clear it before clearing the token.
-    await page.evaluate(() => {
-      const frame = (document.querySelector("iframe") as HTMLIFrameElement | null)?.contentWindow;
-      if (!frame) return;
-      Object.keys(frame.localStorage)
-        .filter((key) => key.startsWith("deckyhub-"))
-        .forEach((key) => frame.localStorage.removeItem(key));
-    });
+    // Force a real re-fetch to prove this, rather than one that a cache hit
+    // would skip — which would make the final assertion trivially true
+    // regardless of whether clearing the token actually did anything.
     authHeader = undefined;
+    await modal.getByRole("button", { name: "Check for Updates", exact: true }).click();
+    await expect(modal.getByRole("button", { name: "Download", exact: true })).toBeVisible();
+    expect(authHeader).toBe("Bearer ghp_temp_token");
+    await modal.getByRole("button", { name: "Close", exact: true }).click();
 
     await app.getByRole("button", { name: "/deckyhub/settings" }).click();
     await tokenField.fill("");
@@ -747,7 +752,10 @@ test("Clearing the GitHub token stops sending the Authorization header", async (
     await expect(saveButton).toBeDisabled();
 
     await app.getByRole("button", { name: "/deckyhub/discover" }).click();
-    await expect(app.getByText("Latest: plugin-v1.2.3", { exact: true }).first()).toBeVisible();
+    await makoCard.getByRole("button", { name: "Details", exact: true }).click();
+    authHeader = undefined;
+    await modal.getByRole("button", { name: "Check for Updates", exact: true }).click();
+    await expect(modal.getByRole("button", { name: "Download", exact: true })).toBeVisible();
 
     expect(authHeader).toBeUndefined();
   } finally {
