@@ -107,20 +107,26 @@ class Plugin:
         except (OSError, subprocess.SubprocessError):
             return "installed"
 
-    def _decky_plugin_version(self, rule: dict, installed_plugins: list[tuple[Path, dict, str | None]]) -> str | None:
+    def _match_decky_plugin(self, rule: dict, installed_plugins: list[tuple[Path, dict, str | None]]) -> tuple[Path, dict] | None:
         names = {name.casefold() for name in rule.get("names", [])}
         expected_repo = str(rule.get("repo", "")).casefold()
         for manifest_path, manifest, repo in installed_plugins:
-            if manifest.get("name", "").casefold() not in names and (not expected_repo or repo != expected_repo):
-                continue
-            if manifest.get("version"):
-                return str(manifest["version"])
-            try:
-                package = json.loads((manifest_path.parent / "package.json").read_text(encoding="utf-8"))
-                return str(package.get("version") or "installed")
-            except (OSError, json.JSONDecodeError):
-                return "installed"
+            if manifest.get("name", "").casefold() in names or (expected_repo and repo == expected_repo):
+                return manifest_path, manifest
         return None
+
+    def _decky_plugin_version(self, rule: dict, installed_plugins: list[tuple[Path, dict, str | None]]) -> str | None:
+        match = self._match_decky_plugin(rule, installed_plugins)
+        if not match:
+            return None
+        manifest_path, manifest = match
+        if manifest.get("version"):
+            return str(manifest["version"])
+        try:
+            package = json.loads((manifest_path.parent / "package.json").read_text(encoding="utf-8"))
+            return str(package.get("version") or "installed")
+        except (OSError, json.JSONDecodeError):
+            return "installed"
 
     def _plugin_repository(self, manifest_path: Path, manifest: dict) -> str | None:
         try:
@@ -140,16 +146,21 @@ class Plugin:
         apps = [*self.apps, *self._custom_apps()]
         installed_plugins = await asyncio.to_thread(self._scan_installed_plugins)
         installed = [None] * len(apps)
+        # The installed plugin's own name, which Decky Loader's install_plugin
+        # route needs to update it in place (see "Install update" on the cards).
+        plugin_names = [None] * len(apps)
         command_checks = []
         for index, app in enumerate(apps):
             if app.get("detect", {}).get("type") == "decky-plugin":
                 installed[index] = self._decky_plugin_version(app["detect"], installed_plugins)
+                match = self._match_decky_plugin(app["detect"], installed_plugins)
+                plugin_names[index] = match[1].get("name") if match else None
             else:
                 command_checks.append((index, app))
         command_versions = await asyncio.gather(*(asyncio.to_thread(self._installed_version, app, installed_plugins) for _, app in command_checks))
         for (index, _), version in zip(command_checks, command_versions):
             installed[index] = version
-        return {"apps": [{**app, "installedVersion": version, "latestVersion": None, "publishedAt": None, "releaseUrl": None, "assets": [], "updateAvailable": None, "error": None} for app, version in zip(apps, installed)]}
+        return {"apps": [{**app, "installedVersion": version, "pluginName": name, "latestVersion": None, "publishedAt": None, "releaseUrl": None, "assets": [], "updateAvailable": None, "error": None} for app, version, name in zip(apps, installed, plugin_names)]}
 
     async def save_repo_settings(self, repo: str, values: dict):
         if not REPOSITORY_NAME.fullmatch(repo):

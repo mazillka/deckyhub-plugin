@@ -26,6 +26,22 @@ class PluginStatusTests(unittest.TestCase):
             installed_plugins = plugin._scan_installed_plugins()
             self.assertEqual(plugin._installed_version({"detect": {"type": "decky-plugin", "names": ["MAKO - Frame Generation", "MAKO Decky"]}}, installed_plugins), "3.2.1")
 
+    def test_get_apps_reports_the_installed_plugin_name(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin_dir = Path(home) / "plugins" / "mako"
+            plugin_dir.mkdir(parents=True)
+            (plugin_dir / "plugin.json").write_text(json.dumps({"name": "MAKO - Frame Generation", "version": "3.2.1"}), encoding="utf-8")
+            sys.modules["decky"].DECKY_HOME = home
+            plugin = Plugin()
+            plugin.settings = {"customRepos": []}
+            plugin.apps = [
+                {"repo": "owner/mako", "detect": {"type": "decky-plugin", "names": ["MAKO Decky", "MAKO - Frame Generation"]}},
+                {"repo": "owner/missing", "detect": {"type": "decky-plugin", "names": ["Missing"]}},
+            ]
+
+            apps = asyncio.run(plugin.get_apps())["apps"]
+            self.assertEqual([(app["installedVersion"], app["pluginName"]) for app in apps], [("3.2.1", "MAKO - Frame Generation"), (None, None)])
+
     def test_decky_framegen_detection_matches_its_manifest_name(self):
         with tempfile.TemporaryDirectory() as home:
             plugin_dir = Path(home) / "plugins" / "decky-framegen"
