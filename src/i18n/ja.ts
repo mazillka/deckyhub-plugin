@@ -35,7 +35,7 @@ export const ja: Record<MessageKey, string> = {
   "appcard.channelStable": "安定版",
   "appcard.channelPrerelease": "プレリリース",
   "appcard.details": "詳細",
-  "appcard.downloadSelected": "選択したバージョンをダウンロード",
+  "appcard.downloadSelected": "ダウンロード",
   "appcard.noMatchingAsset": "このバージョンに一致するダウンロードはありません。",
 
   "dl.downloading": "{filename} をダウンロード中",

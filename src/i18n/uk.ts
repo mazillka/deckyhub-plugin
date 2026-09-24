@@ -35,7 +35,7 @@ export const uk: Record<MessageKey, string> = {
   "appcard.channelStable": "Стабільний",
   "appcard.channelPrerelease": "Пре-реліз",
   "appcard.details": "Деталі",
-  "appcard.downloadSelected": "Завантажити обрану версію",
+  "appcard.downloadSelected": "Завантажити",
   "appcard.noMatchingAsset": "Немає відповідного завантаження для цієї версії.",
 
   "dl.downloading": "Завантаження {filename}",

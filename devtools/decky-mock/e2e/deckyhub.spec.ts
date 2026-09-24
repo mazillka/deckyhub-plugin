@@ -427,7 +427,7 @@ test("Discover's Details modal exposes every matching release asset", async ({ p
   await makoCard.getByRole("button", { name: "Details", exact: true }).click();
 
   const modal = app.locator(".steam-modal");
-  await expect(modal.getByRole("button", { name: "Download Selected Version", exact: true })).toBeVisible();
+  await expect(modal.getByRole("button", { name: "Download", exact: true })).toBeVisible();
   await expect(modal.getByRole("button", { name: "mako-decky-5.zip (1 KB)" })).toBeVisible();
 });
 
@@ -467,7 +467,7 @@ test("Discover's Details modal lists versions for the selected channel", async (
   const modal = app.locator(".steam-modal");
   await expect(modal.getByText("Installed: —", { exact: true })).toBeVisible();
   await expect(modal.getByLabel("Version")).toHaveValue("plugin-v1.3.0");
-  await expect(modal.getByRole("button", { name: "Download Selected Version", exact: true })).toBeVisible();
+  await expect(modal.getByRole("button", { name: "Download", exact: true })).toBeVisible();
   await expect(modal.getByRole("button", { name: "Release Page", exact: true })).toBeVisible();
 
   await modal.getByLabel("Version").selectOption({ label: "vplugin-v1.2.3" });

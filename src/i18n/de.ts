@@ -35,7 +35,7 @@ export const de: Record<MessageKey, string> = {
   "appcard.channelStable": "Stabil",
   "appcard.channelPrerelease": "Vorabversion",
   "appcard.details": "Details",
-  "appcard.downloadSelected": "Ausgewählte Version herunterladen",
+  "appcard.downloadSelected": "Herunterladen",
   "appcard.noMatchingAsset": "Kein passender Download für diese Version.",
 
   "dl.downloading": "{filename} wird heruntergeladen",
