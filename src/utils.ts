@@ -29,13 +29,30 @@ export function fetchWithTimeout(input: string, init?: RequestInit) {
   return fetchNoCors(input, { ...init, signal: AbortSignal.timeout(15_000) });
 }
 
-// GitHub's unauthenticated REST API is what every fetch in this file hits —
-// no login, no token — so a 403/429 here is almost always its rate limit
-// (60 req/hr for the core API, 10/min for search), not a real access error.
-// The raw "GitHub API returned 403" that used to surface gave no indication
-// of that, so pull whatever wait-time hint the response actually offers
-// (some responses omit these headers entirely — that's fine, the message
-// just degrades to a generic one) instead of guessing.
+// GitHub's unauthenticated REST API allows only 60 requests/hour (10/min for
+// search) per device, versus 5,000/hour once a personal access token is set
+// in Settings — see setGithubToken(). Held in module scope (not React state)
+// since it's read from plain async functions with no component tree of
+// their own; every route's I18nProvider primes it from getSettings() on
+// mount and re-primes it whenever Settings saves a new one (see i18n/index.tsx).
+let githubToken = "";
+
+export function setGithubToken(token: string) {
+  githubToken = token.trim();
+}
+
+export function githubHeaders(): Record<string, string> {
+  return githubToken ? { Accept: "application/vnd.github+json", Authorization: `Bearer ${githubToken}` } : { Accept: "application/vnd.github+json" };
+}
+
+// GitHub's REST API is what every fetch in this file hits — unauthenticated
+// by default, so a 403/429 here is almost always its rate limit (60 req/hr
+// for the core API, 10/min for search; 5,000/hr and 30/min once a token is
+// set), not a real access error. The raw "GitHub API returned 403" that
+// used to surface gave no indication of that, so pull whatever wait-time
+// hint the response actually offers (some responses omit these headers
+// entirely — that's fine, the message just degrades to a generic one)
+// instead of guessing, and nudge toward adding a token when none is set.
 export async function githubResponseError(response: Response): Promise<Error> {
   if (response.status !== 403 && response.status !== 429) return new Error(`GitHub API returned ${response.status}`);
   const minutesUntil = (epochSeconds: number) => Math.max(1, Math.ceil((epochSeconds * 1000 - Date.now()) / 60_000));
@@ -47,7 +64,10 @@ export async function githubResponseError(response: Response): Promise<Error> {
     : remaining === "0" && Number.isFinite(resetAt) && resetAt > 0
     ? minutesUntil(resetAt)
     : null;
-  return new Error(minutes ? `GitHub API rate limit reached — try again in about ${minutes} minute${minutes === 1 ? "" : "s"}.` : "GitHub API rate limit reached — try again later.");
+  const hint = githubToken ? "" : " Add a GitHub token in Settings to raise this limit.";
+  return new Error(
+    minutes ? `GitHub API rate limit reached — try again in about ${minutes} minute${minutes === 1 ? "" : "s"}.${hint}` : `GitHub API rate limit reached — try again later.${hint}`,
+  );
 }
 
 export const readableBytes = (bytes = 0) => (bytes > 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.ceil(bytes / 1024)} KB`);
@@ -229,7 +249,7 @@ export async function latestDeckyHubRelease(channel: UpdateChannel, force = fals
   if (cached) return cached;
   try {
     const endpoint = channel === "prerelease" ? "releases?per_page=20" : "releases/latest";
-    const response = await fetchWithTimeout(`https://api.github.com/repos/mazillka/deckyhub-plugin/${endpoint}`, { headers: { Accept: "application/vnd.github+json" } });
+    const response = await fetchWithTimeout(`https://api.github.com/repos/mazillka/deckyhub-plugin/${endpoint}`, { headers: githubHeaders() });
     if (!response.ok) throw await githubResponseError(response);
     const body = await response.json();
     const release = Array.isArray(body)
@@ -263,7 +283,7 @@ export async function listDeckyHubReleases(limit = 20, force = false): Promise<{
   const cached = readCache<DeckyHubReleaseOption[]>(cacheKey, force);
   if (cached) return { items: cached };
   try {
-    const response = await fetchWithTimeout(`https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=${limit}`, { headers: { Accept: "application/vnd.github+json" } });
+    const response = await fetchWithTimeout(`https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=${limit}`, { headers: githubHeaders() });
     if (!response.ok) throw await githubResponseError(response);
     const body = await response.json();
     const items: DeckyHubReleaseOption[] = (Array.isArray(body) ? body : [])
@@ -300,7 +320,7 @@ export async function hydrate(app: App, force: boolean, preference?: RepoPrefere
           : preference?.channel === "prerelease" || app.releaseTagInclude
           ? `/repos/${app.repo}/releases?per_page=20`
           : `/repos/${app.repo}/releases/latest`;
-      const response = await fetchWithTimeout(`https://api.github.com${endpoint}`, { headers: { Accept: "application/vnd.github+json" } });
+      const response = await fetchWithTimeout(`https://api.github.com${endpoint}`, { headers: githubHeaders() });
       if (!response.ok) throw await githubResponseError(response);
       const body = await response.json();
       // GitHub's list-releases response isn't reliably ordered newest-first
@@ -344,7 +364,7 @@ export async function listAppReleases(app: App, preference?: RepoPreference, for
   const cached = readCache<AppReleaseOption[]>(cacheKey, force);
   if (cached) return { items: cached };
   try {
-    const response = await fetchWithTimeout(`https://api.github.com/repos/${app.repo}/releases?per_page=20`, { headers: { Accept: "application/vnd.github+json" } });
+    const response = await fetchWithTimeout(`https://api.github.com/repos/${app.repo}/releases?per_page=20`, { headers: githubHeaders() });
     if (!response.ok) throw await githubResponseError(response);
     const body = await response.json();
     const items: AppReleaseOption[] = (Array.isArray(body) ? body : [])

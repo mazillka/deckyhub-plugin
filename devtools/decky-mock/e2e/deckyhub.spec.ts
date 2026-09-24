@@ -628,6 +628,43 @@ test("Discover's card picks the newest pre-release by publish date, not array or
   }
 });
 
+test("Saving a GitHub token in Settings adds it to GitHub API requests", async ({ page }) => {
+  let authHeader: string | undefined;
+  await page.route("https://api.github.com/**", (route) => {
+    authHeader = route.request().headers()["authorization"];
+    return route.fulfill({ json: release });
+  });
+  const call = (route: string, ...args: unknown[]) =>
+    page.evaluate(
+      ([route, args]) =>
+        fetch("http://127.0.0.1:8643", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ route, args }) }).then((res) => res.json()),
+      [route, args] as const
+    );
+
+  try {
+    const app = mock(page);
+    await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+    await app.getByLabel("GitHub Token").fill("ghp_test_token_abc123");
+    const saveButton = app.getByRole("button", { name: "Save Settings", exact: true });
+    await saveButton.click();
+    // The button re-disables only once the save round-trip resolves and
+    // settings state updates, so waiting for that avoids racing the
+    // navigation below against an in-flight save (see save_repo_settings'
+    // channel-reset tests above for the same race under a different route).
+    await expect(saveButton).toBeDisabled();
+
+    // /deckyhub/discover mounts a brand-new I18nProvider (one per route, see
+    // AGENTS.md), which re-primes the GitHub token from backend settings on
+    // mount — same mechanism as its locale refresh — so no reload is needed.
+    await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+    await expect(app.getByText("Latest: plugin-v1.2.3", { exact: true }).first()).toBeVisible();
+
+    expect(authHeader).toBe("Bearer ghp_test_token_abc123");
+  } finally {
+    await call("save_settings", { overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: 3, githubToken: "" });
+  }
+});
+
 test("Arrow keys move focus through Discover", async ({ page }) => {
   await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
   const app = mock(page);

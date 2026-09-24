@@ -49,6 +49,25 @@ class PluginStatusTests(unittest.TestCase):
             self.assertEqual(plugin._asset_download_dir(), Path(main.PLUGIN_DOWNLOAD_DIR))
             self.assertNotIn("downloadLocation", asyncio.run(plugin.save_settings({"downloadLocation": "downloads"})))
 
+    def test_github_token_is_trimmed_and_persisted(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.settings_path = Path(home) / "settings.json"
+
+            saved = asyncio.run(plugin.save_settings({"githubToken": "  ghp_example  "}))
+            self.assertEqual(saved["githubToken"], "ghp_example")
+
+            reloaded = plugin._load_settings()
+            self.assertEqual(reloaded["githubToken"], "ghp_example")
+
+    def test_github_token_defaults_to_empty_and_rejects_non_string(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.settings_path = Path(home) / "settings.json"
+
+            self.assertEqual(asyncio.run(plugin.save_settings({}))["githubToken"], "")
+            self.assertEqual(asyncio.run(plugin.save_settings({"githubToken": 12345}))["githubToken"], "")
+
     def test_clear_downloads_only_removes_deckyhub_contents(self):
         with tempfile.TemporaryDirectory() as home:
             original_download_dir = main.PLUGIN_DOWNLOAD_DIR

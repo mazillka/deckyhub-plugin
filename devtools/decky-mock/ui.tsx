@@ -130,15 +130,33 @@ export function DropdownItem({
   );
 }
 
-export function TextField({ label, value, onChange }: { label?: string; value?: string; onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void }) {
+export function TextField({
+  label,
+  value,
+  onChange,
+  bIsPassword,
+  bShowClearAction,
+}: {
+  label?: string;
+  value?: string;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  bIsPassword?: boolean;
+  bShowClearAction?: boolean;
+}) {
   return (
     <label className="steam-field-label">
       {label}
-      <input
-        value={value}
-        onChange={onChange}
-        className="steam-input"
-      />
+      <input type={bIsPassword ? "password" : "text"} value={value} onChange={onChange} className="steam-input" />
+      {bShowClearAction && value && (
+        <button
+          type="button"
+          aria-label="Clear"
+          className="steam-button"
+          onClick={() => onChange?.({ currentTarget: { value: "" } } as React.ChangeEvent<HTMLInputElement>)}
+        >
+          Clear
+        </button>
+      )}
     </label>
   );
 }

@@ -1,16 +1,24 @@
-import { DropdownItem, PanelSection, PanelSectionRow, ToggleField } from "@decky/ui";
+import { DialogButtonPrimary as Button, DropdownItem, PanelSection, PanelSectionRow, TextField, ToggleField } from "@decky/ui";
 import { useEffect, useState } from "react";
 import { getSettings, saveSettings } from "../api";
 import { LOCALE_CHANGED, LOCALES, useT } from "../i18n";
 import type { Settings } from "../types";
-import { DEFAULT_COLUMNS_PER_ROW, sectionDividerStyle } from "../utils";
+import { DEFAULT_COLUMNS_PER_ROW, compactButtonStyle, sectionDividerStyle } from "../utils";
 
 export function SettingsPage() {
   const t = useT();
-  const [settings, setSettings] = useState<Settings>({ overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: DEFAULT_COLUMNS_PER_ROW });
+  const [settings, setSettings] = useState<Settings>({ overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: DEFAULT_COLUMNS_PER_ROW, githubToken: "" });
+  // The token field saves on an explicit button (below), not per keystroke
+  // like the other settings — typing a 40+ character token would otherwise
+  // fire a save on every keystroke. This tracks the field independently of
+  // the committed `settings.githubToken` until that button is pressed.
+  const [tokenDraft, setTokenDraft] = useState("");
 
   useEffect(() => {
-    void getSettings().then(setSettings);
+    void getSettings().then((loaded) => {
+      setSettings(loaded);
+      setTokenDraft(loaded.githubToken);
+    });
   }, []);
 
   const update = (next: Partial<Settings>) => {
@@ -18,7 +26,10 @@ export function SettingsPage() {
     setSettings(merged);
     void saveSettings(merged).then((saved) => {
       setSettings(saved);
-      if ("language" in next) window.dispatchEvent(new Event(LOCALE_CHANGED));
+      if ("githubToken" in next) setTokenDraft(saved.githubToken);
+      // Every mounted I18nProvider (one per route) re-syncs both the locale
+      // and the GitHub token off this event — see i18n/index.tsx.
+      if ("language" in next || "githubToken" in next) window.dispatchEvent(new Event(LOCALE_CHANGED));
     });
   };
 
@@ -37,6 +48,30 @@ export function SettingsPage() {
         <div aria-hidden style={sectionDividerStyle} />
         <PanelSectionRow>
           <ToggleField label={t("settings.overwriteExisting")} checked={settings.overwriteExisting} onChange={(checked) => update({ overwriteExisting: checked })} />
+        </PanelSectionRow>
+      </PanelSection>
+
+      <div aria-hidden style={sectionDividerStyle} />
+
+      <PanelSection title={t("settings.githubAccess")}>
+        <PanelSectionRow>
+          <div style={{ display: "grid", gap: 8 }}>
+            <small>{t("settings.githubTokenIntro")}</small>
+            <div style={{ borderLeft: "3px solid #1a9fff", paddingLeft: 10 }}>
+              <div style={{ color: "#8fcef4", fontSize: "0.9em", marginBottom: 3 }}>{t("settings.githubTokenHowTo")}</div>
+              <strong style={{ color: "#fff" }}>github.com/settings/tokens</strong>
+            </div>
+            <small style={{ opacity: 0.75 }}>{t("settings.githubTokenNote")}</small>
+          </div>
+        </PanelSectionRow>
+        <div aria-hidden style={sectionDividerStyle} />
+        <PanelSectionRow>
+          <TextField label={t("settings.githubToken")} value={tokenDraft} bIsPassword bShowClearAction onChange={(event) => setTokenDraft(event.currentTarget.value)} />
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <Button style={compactButtonStyle} disabled={tokenDraft.trim() === settings.githubToken} onClick={() => update({ githubToken: tokenDraft.trim() })}>
+            {t("settings.saveSettings")}
+          </Button>
         </PanelSectionRow>
       </PanelSection>
 

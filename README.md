@@ -33,7 +33,7 @@ It ships with a small curated list of popular Steam Deck tools, and you can add 
 - **Discover** — browse a curated list of Steam Deck plugins/tools, filter by search or installed status, and see release info at a glance, color-coded by status.
 - **Updates** — see which of your tracked, installed tools have a newer release available, and download updates in one tap. You'll also get a toast notification when new updates show up.
 - **Repositories** — two tabs: **Add & Manage** to search GitHub, add or remove tracked repositories, and export/import your list; **Repository Settings** for release-channel and asset-keyword overrides.
-- **Settings** — shows the fixed DeckyHub download folder, toggles overwriting existing files, checks for DeckyHub's own updates, and lets you pick how many items show per row (1–3) in the app grid. A separate **Cleanup** section clears the download folder's contents with confirmation.
+- **Settings** — shows the fixed DeckyHub download folder, toggles overwriting existing files, lets you add an optional GitHub personal access token to raise the API rate limit, checks for DeckyHub's own updates, and lets you pick how many items show per row (1–3) in the app grid. A separate **Cleanup** section clears the download folder's contents with confirmation.
 
 For every tracked app/plugin, DeckyHub only **downloads** files — it never installs or runs anything automatically. After a download finishes, you install it yourself from Desktop Mode via Decky → Developer → Install Plugin from ZIP. This keeps you in control of what actually runs on your system. The only exception is DeckyHub's own updates, which offer an optional one-tap automatic install (see [Keeping DeckyHub itself updated](#keeping-deckyhub-itself-updated)).
 
@@ -94,7 +94,7 @@ If automatic update isn't available for some reason (e.g. running inside an olde
 
 ## Good to know
 
-- DeckyHub talks to GitHub without needing you to log in, so very heavy use in a short time may still hit GitHub's public rate limit — if it does, the error names it as a rate limit and says roughly how long to wait, rather than just a raw status code.
+- DeckyHub talks to GitHub without needing you to log in, so very heavy use in a short time may still hit GitHub's public rate limit (60 requests/hour) — if it does, the error names it as a rate limit and says roughly how long to wait, rather than just a raw status code. Add a personal access token in **Settings → GitHub Access** (no scopes needed — it only reads public repos and releases) to raise that to 5,000/hour; the token stays on your device and is only ever sent to `api.github.com`.
 - Release information is cached for 5 minutes, so opening the same app's Details or the DeckyHub update modal again shortly after won't always show something new. Every "Check for Updates" and "Refresh" button bypasses this and asks GitHub directly.
 - Downloads only ever happen over HTTPS.
 

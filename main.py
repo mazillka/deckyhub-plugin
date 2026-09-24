@@ -37,6 +37,16 @@ def _coerce_columns_per_row(value) -> int:
     except (TypeError, ValueError):
         return DEFAULT_COLUMNS_PER_ROW
     return columns if columns in (1, 2, 3) else DEFAULT_COLUMNS_PER_ROW
+
+
+# The frontend sends this straight to api.github.com's Authorization header
+# (see githubHeaders() in src/utils.ts) — it never touches the backend's own
+# network calls, which only hit raw.githubusercontent.com/release-asset CDN
+# URLs and aren't subject to the api.github.com rate limit this is for.
+def _coerce_github_token(value) -> str:
+    return value.strip()[:255] if isinstance(value, str) else ""
+
+
 class Plugin:
     async def _main(self):
         self.settings_path = Path(decky.DECKY_PLUGIN_SETTINGS_DIR) / "settings.json"
@@ -59,9 +69,10 @@ class Plugin:
                 "columnsPerRow": _coerce_columns_per_row(settings.get("columnsPerRow")),
                 "customRepos": [repo for repo in repos if isinstance(repo, str) and REPOSITORY_NAME.fullmatch(repo)],
                 "repoSettings": settings.get("repoSettings", {}) if isinstance(settings.get("repoSettings"), dict) else {},
+                "githubToken": _coerce_github_token(settings.get("githubToken")),
             }
         except (AttributeError, OSError, json.JSONDecodeError):
-            return {"overwriteExisting": True, "updateChannel": "stable", "language": "auto", "columnsPerRow": DEFAULT_COLUMNS_PER_ROW, "customRepos": [], "repoSettings": {}}
+            return {"overwriteExisting": True, "updateChannel": "stable", "language": "auto", "columnsPerRow": DEFAULT_COLUMNS_PER_ROW, "customRepos": [], "repoSettings": {}, "githubToken": ""}
 
     def _load_registry(self) -> list[dict]:
         try:
@@ -191,6 +202,7 @@ class Plugin:
             "columnsPerRow": _coerce_columns_per_row(settings.get("columnsPerRow")),
             "customRepos": getattr(self, "settings", {}).get("customRepos", []),
             "repoSettings": getattr(self, "settings", {}).get("repoSettings", {}),
+            "githubToken": _coerce_github_token(settings.get("githubToken")),
         }
         self._save_settings()
         return self.settings

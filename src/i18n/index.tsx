@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { getSettings } from "../api";
+import { setGithubToken } from "../utils";
 import { en, type MessageKey, type TFunc } from "./en";
 import { uk } from "./uk";
 import { es } from "./es";
@@ -53,7 +54,16 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const [preference, setPreference] = useState<string>("auto");
 
   useEffect(() => {
-    const refresh = () => void getSettings().then((settings) => setPreference((settings as { language?: string }).language || "auto"));
+    // Every route mounts its own I18nProvider instance (see index.tsx), so
+    // this doubles as the one place that primes the GitHub token for every
+    // api.github.com call in this tree — see setGithubToken() in utils.ts.
+    // SettingsPage re-dispatches LOCALE_CHANGED whenever the token changes
+    // too, not just the language, so this re-syncs both on save.
+    const refresh = () =>
+      void getSettings().then((settings) => {
+        setPreference(settings.language || "auto");
+        setGithubToken(settings.githubToken || "");
+      });
     refresh();
     window.addEventListener(LOCALE_CHANGED, refresh);
     return () => window.removeEventListener(LOCALE_CHANGED, refresh);

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { addCustomRepo, exportCustomRepos, getApps, getCustomRepos, importCustomRepos, REGISTRY_UPDATED, removeCustomRepo } from "../api";
 import { useT } from "../i18n";
 import type { ManagedRepo, SearchRepo } from "../types";
-import { compactButtonStyle, fetchWithTimeout, githubResponseError, sectionDividerStyle } from "../utils";
+import { compactButtonStyle, fetchWithTimeout, githubHeaders, githubResponseError, sectionDividerStyle } from "../utils";
 
 const RESULTS_PER_PAGE = 5;
 
@@ -34,7 +34,7 @@ export function ManageRepositoriesPage() {
     try {
       setSearchError(null);
       const response = await fetchWithTimeout(`https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&sort=stars&order=desc&per_page=25`, {
-        headers: { Accept: "application/vnd.github+json" },
+        headers: githubHeaders(),
       });
       if (!response.ok) throw await githubResponseError(response);
       setResults((await response.json()).items || []);
