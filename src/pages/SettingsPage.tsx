@@ -1,4 +1,4 @@
-import { DialogButtonPrimary as Button, DropdownItem, PanelSection, PanelSectionRow, TextField, ToggleField } from "@decky/ui";
+import { DialogButtonPrimary as Button, DropdownItem, Focusable, PanelSection, PanelSectionRow, TextField, ToggleField } from "@decky/ui";
 import { useEffect, useState } from "react";
 import { getSettings, saveSettings } from "../api";
 import { LOCALE_CHANGED, LOCALES, useT } from "../i18n";
@@ -47,14 +47,17 @@ export function SettingsPage() {
     <>
       <PanelSection title={t("settings.githubAccess")}>
         <PanelSectionRow>
-          <div style={{ display: "grid", gap: 8 }}>
+          {/* Focusable (via onActivate) so the controller can move up onto
+              this text: Steam only scrolls to follow focus, and the token
+              field below is otherwise the page's first focus stop. */}
+          <Focusable onActivate={() => {}} style={{ display: "grid", gap: 8 }}>
             <small>{t("settings.githubTokenIntro")}</small>
             <div style={{ borderLeft: "3px solid #1a9fff", paddingLeft: 10 }}>
               <div style={{ color: "#8fcef4", fontSize: "0.9em", marginBottom: 3 }}>{t("settings.githubTokenHowTo")}</div>
               <strong style={{ color: "#fff" }}>github.com/settings/tokens</strong>
             </div>
             <small style={{ opacity: 0.75 }}>{t("settings.githubTokenNote")}</small>
-          </div>
+          </Focusable>
         </PanelSectionRow>
         <div aria-hidden style={sectionDividerStyle} />
         <PanelSectionRow>

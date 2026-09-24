@@ -510,6 +510,20 @@ test("The rate-limit message suggests adding a GitHub token only when none is co
   }
 });
 
+test("Settings' GitHub Access intro is a controller focus stop above the token field", async ({ page }) => {
+  await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  await expect(app.getByLabel("GitHub Token")).toBeVisible();
+
+  // Steam only scrolls to follow focus, so the intro must be focusable or the
+  // controller can never scroll back up to it from the token field.
+  const intro = app.locator("[tabindex]", { hasText: "Without a token, GitHub limits this device" });
+  await intro.focus();
+  await expect(intro).toBeFocused();
+  await intro.press("ArrowDown");
+  await expect(app.getByLabel("GitHub Token")).toBeFocused();
+});
+
 test("Settings shows how many GitHub requests are left", async ({ page }) => {
   const resetInTenMinutes = Math.floor(Date.now() / 1000) + 600;
   await page.route("https://api.github.com/rate_limit", (route) =>
