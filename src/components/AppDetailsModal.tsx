@@ -35,16 +35,22 @@ export function AppDetailsModal({
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
-  const loadReleases = async (forChannel: UpdateChannel) => {
+  const loadReleases = async (forChannel: UpdateChannel, { pinLatest = false } = {}) => {
     setLoading(true);
     const { items, error } = await listAppReleases(app, initialPreference);
     const filtered = items.filter((item) => item.prerelease === (forChannel === "prerelease"));
     setReleases(filtered);
     setFetchError(error ?? null);
     setSelectedTag((current) => {
-      if (current && filtered.some((item) => item.tag === current)) return current;
-      const installed = filtered.find((item) => app.installedVersion && normalizeVersion(item.version) === normalizeVersion(app.installedVersion));
-      return installed?.tag ?? filtered[0]?.tag ?? "";
+      // Always default to the channel's newest release — opening the modal
+      // (or switching channel) should point at what's actually available,
+      // not silently pre-select "the version you already have" just because
+      // it happens to be in the list. "Check for Updates" (pinLatest)
+      // additionally overrides a still-valid manual selection (e.g. an
+      // older version picked to look at); the initial load and a channel
+      // switch only fall back to latest when there's no selection to keep.
+      if (!pinLatest && current && filtered.some((item) => item.tag === current)) return current;
+      return filtered[0]?.tag ?? "";
     });
     setLoading(false);
   };
@@ -127,7 +133,7 @@ export function AppDetailsModal({
               {t("appcard.releasePage")}
             </Button>
           )}
-          <Button style={{ ...modalButtonStyle, flex: 1 }} disabled={loading} onClick={() => void loadReleases(channel)}>
+          <Button style={{ ...modalButtonStyle, flex: 1 }} disabled={loading} onClick={() => void loadReleases(channel, { pinLatest: true })}>
             {loading ? t("settings.checkingUpdate") : t("settings.checkUpdate")}
           </Button>
         </Focusable>
