@@ -1,9 +1,20 @@
 import { DialogButtonPrimary as Button, DropdownItem, Focusable, PanelSection, PanelSectionRow, TextField, ToggleField } from "@decky/ui";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { FaFolderOpen, FaInfoCircle, FaLock } from "react-icons/fa";
 import { getSettings, saveSettings } from "../api";
 import { LOCALE_CHANGED, LOCALES, useT } from "../i18n";
 import type { Settings } from "../types";
 import { DEFAULT_COLUMNS_PER_ROW, compactButtonStyle, githubCoreQuota, sectionDividerStyle, setGithubToken } from "../utils";
+
+// Explanatory text with a leading icon, bright enough to read at a glance.
+function IconNote({ icon, children }: { icon: ReactNode; children: ReactNode }) {
+  return (
+    <div style={{ alignItems: "flex-start", color: "#d6f5ff", display: "flex", fontSize: "0.9em", gap: 8 }}>
+      <span style={{ color: "#8fcef4", display: "flex", flexShrink: 0, marginTop: 2 }}>{icon}</span>
+      <span>{children}</span>
+    </div>
+  );
+}
 
 export function SettingsPage() {
   const t = useT();
@@ -54,7 +65,7 @@ export function SettingsPage() {
               this text: Steam only scrolls to follow focus, and the token
               field below is otherwise the page's first focus stop. */}
           <Focusable onActivate={() => {}} style={{ display: "grid", gap: 8 }}>
-            <small>{t("settings.githubTokenIntro")}</small>
+            <IconNote icon={<FaInfoCircle />}>{t("settings.githubTokenIntro")}</IconNote>
             {quota && (
               <strong className="deckyhub-github-quota" style={{ borderLeft: `3px solid ${quotaColor}`, color: quotaColor, paddingLeft: 10 }}>
                 {t("settings.githubQuota", { remaining: quota.remaining, limit: quota.limit, minutes: Math.max(1, Math.ceil((quota.reset * 1000 - Date.now()) / 60_000)) })}
@@ -64,7 +75,7 @@ export function SettingsPage() {
               <div style={{ color: "#8fcef4", fontSize: "0.9em", marginBottom: 3 }}>{t("settings.githubTokenHowTo")}</div>
               <strong style={{ color: "#fff" }}>github.com/settings/tokens</strong>
             </div>
-            <small style={{ opacity: 0.75 }}>{t("settings.githubTokenNote")}</small>
+            <IconNote icon={<FaLock />}>{t("settings.githubTokenNote")}</IconNote>
           </Focusable>
         </PanelSectionRow>
         <div aria-hidden style={sectionDividerStyle} />
@@ -83,7 +94,7 @@ export function SettingsPage() {
       <PanelSection title={t("settings.downloadSettings")}>
         <PanelSectionRow>
           <div style={{ display: "grid", gap: 8 }}>
-            <small>{t("settings.whereZipsSaved")}</small>
+            <IconNote icon={<FaFolderOpen />}>{t("settings.whereZipsSaved")}</IconNote>
             <div style={{ borderLeft: "3px solid #1a9fff", paddingLeft: 10 }}>
               <div style={{ color: "#8fcef4", fontSize: "0.9em", marginBottom: 3 }}>{t("dl.installInDecky")}</div>
               <strong style={{ color: "#fff" }}>{t("dl.installPath")}</strong>
