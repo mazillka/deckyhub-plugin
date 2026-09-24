@@ -215,6 +215,15 @@ declare global {
 
 export const getDeckyBackend = () => window.DeckyBackend ?? window.opener?.DeckyBackend ?? null;
 
+// Hands a verified release ZIP to Decky Loader's own installer — the route the
+// Decky Store uses. The loader shows its native confirm/progress dialog and
+// does the download, SHA-256 check and install itself.
+export function installDeckyPlugin(asset: Asset, pluginName: string, version: string, installType: 1 | 2 | 3) {
+  const backend = getDeckyBackend();
+  if (!backend) return Promise.reject(new Error("Decky Loader's installer is unavailable"));
+  return backend.call("utilities/install_plugin", asset.url, pluginName, normalizeVersion(version), asset.sha256 ?? "", installType);
+}
+
 export function selfUpdateStageKey(key: string | undefined): MessageKey {
   switch ((key ?? "").split(".").pop()) {
     case "start":

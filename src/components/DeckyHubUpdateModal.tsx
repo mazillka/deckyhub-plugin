@@ -4,7 +4,7 @@ import { FaDownload } from "react-icons/fa";
 import { getSettings, installDeckyHubUpdate, saveSettings } from "../api";
 import type { TFunc } from "../i18n/en";
 import type { Asset, DeckyHubInfo, DeckyHubReleaseOption, UpdateChannel } from "../types";
-import { PLUGIN_INSTALL_TYPE, buildVersionOptions, getDeckyBackend, listDeckyHubReleases, modalButtonStyle, normalizeVersion, resolveDeckyHubInstallType, sectionDividerStyle, selectDefaultTag, selfUpdateStageKey } from "../utils";
+import { PLUGIN_INSTALL_TYPE, buildVersionOptions, getDeckyBackend, installDeckyPlugin, listDeckyHubReleases, modalButtonStyle, normalizeVersion, resolveDeckyHubInstallType, sectionDividerStyle, selectDefaultTag, selfUpdateStageKey } from "../utils";
 import { showDownloadModal } from "./DownloadProgress";
 import { VersionPickerPanel } from "./VersionPickerPanel";
 
@@ -122,7 +122,7 @@ export function DeckyHubUpdateModal({
     setSelfUpdateError(null);
     const installType = resolveDeckyHubInstallType(release.version, info.version);
     try {
-      await backend.call("utilities/install_plugin", asset.url, PLUGIN_NAME, normalizeVersion(release.version), asset.sha256 ?? "", installType);
+      await installDeckyPlugin(asset, PLUGIN_NAME, release.version, installType);
     } catch (error) {
       selfUpdatingRef.current = false;
       setSelfUpdating(false);
