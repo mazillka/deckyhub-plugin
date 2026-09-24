@@ -1,7 +1,7 @@
 import { DialogButtonPrimary as Button, Focusable, ModalRoot, Navigation, ProgressBar } from "@decky/ui";
 import { useEffect, useRef, useState } from "react";
 import { FaDownload } from "react-icons/fa";
-import { getSettings, installDeckyHubUpdate, saveSettings } from "../api";
+import { downloadAsset, getSettings, saveSettings } from "../api";
 import type { TFunc } from "../i18n/en";
 import type { Asset, DeckyHubInfo, DeckyHubReleaseOption, UpdateChannel } from "../types";
 import { PLUGIN_INSTALL_TYPE, buildVersionOptions, getDeckyBackend, installDeckyPlugin, listDeckyHubReleases, modalButtonStyle, normalizeVersion, resolveDeckyHubInstallType, sectionDividerStyle, selectDefaultTag, selfUpdateStageKey } from "../utils";
@@ -130,9 +130,10 @@ export function DeckyHubUpdateModal({
     }
   };
 
-  const installZip = async (asset: Asset) => {
+  const downloadZip = async (asset: Asset) => {
     try {
-      const result = await installDeckyHubUpdate(asset);
+      const result = await downloadAsset(asset, "mazillka/deckyhub-plugin");
+      if (result.error) throw new Error(result.error);
       if (result.jobId) {
         setDownloading(true);
         showDownloadModal(t, result.jobId, { state: "queued", filename: asset.name, total: asset.size }, () => setDownloading(false));
@@ -189,7 +190,7 @@ export function DeckyHubUpdateModal({
             >
               <FaDownload /> {primaryLabel}
             </Button>
-            <Button style={modalButtonStyle} disabled={busy || !selectedRelease.asset} onClick={() => void installZip(selectedRelease.asset!)}>
+            <Button style={modalButtonStyle} disabled={busy || !selectedRelease.asset} onClick={() => void downloadZip(selectedRelease.asset!)}>
               {t("settings.downloadUpdate")}
             </Button>
           </>

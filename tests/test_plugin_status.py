@@ -155,29 +155,6 @@ class PluginStatusTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as home, patch.object(sys.modules["decky"], "DECKY_PLUGIN_DIR", home, create=True), patch.object(main, "PLUGIN_DIR", home):
             self.assertEqual(asyncio.run(Plugin().get_deckyhub_info())["version"], main.DECKYHUB_VERSION)
 
-    def test_update_rejects_untrusted_asset_url(self):
-        with self.assertRaises(ValueError):
-            asyncio.run(Plugin().install_deckyhub_update({"name": "DeckyHub.zip", "url": "https://example.com/DeckyHub.zip"}))
-
-    def test_update_requires_release_checksum(self):
-        with self.assertRaises(ValueError):
-            asyncio.run(Plugin().install_deckyhub_update({"name": "DeckyHub-v1.zip", "url": "https://github.com/mazillka/deckyhub-plugin/releases/download/v1/DeckyHub-v1.zip"}))
-
-    def test_update_uses_the_configured_download_folder(self):
-        async def begin_update():
-            with tempfile.TemporaryDirectory() as home:
-                plugin = Plugin()
-                plugin.settings = {"downloadLocation": "plugins", "overwriteExisting": True}
-                plugin.downloads, plugin.cancelled = {}, set()
-                plugin.download_queue = asyncio.Queue()
-                target_dir = Path(home) / "plugins"
-                asset = {"name": "DeckyHub-v1.zip", "url": "https://github.com/mazillka/deckyhub-plugin/releases/download/v1/DeckyHub-v1.zip", "sha256": "a" * 64}
-                with patch("main.PLUGIN_DOWNLOAD_DIR", str(target_dir)):
-                    result = await plugin.install_deckyhub_update(asset)
-                return plugin.downloads[result["jobId"]]["path"]
-
-        self.assertTrue(asyncio.run(begin_update()).endswith(str(Path("plugins") / "DeckyHub-v1.zip")))
-
     def test_download_reports_progress_before_one_megabyte(self):
         class Response:
             headers = {"Content-Length": "3"}

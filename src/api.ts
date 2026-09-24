@@ -8,7 +8,6 @@ export const downloadAsset = callable<[asset: Asset, repo?: string], { jobId?: s
 export const getDownload = callable<[jobId: string], Download>("get_download");
 export const cancelDownload = callable<[jobId: string], { ok: boolean }>("cancel_download");
 export const getDeckyHubInfo = callable<[], DeckyHubInfo>("get_deckyhub_info");
-export const installDeckyHubUpdate = callable<[asset: Asset], { jobId?: string }>("install_deckyhub_update");
 export const addCustomRepo = callable<[repo: string], { added: boolean; repo: string }>("add_custom_repo");
 export const getCustomRepos = callable<[], { repos: ManagedRepo[] }>("get_custom_repos");
 export const removeCustomRepo = callable<[repo: string], { removed: boolean; repo: string }>("remove_custom_repo");

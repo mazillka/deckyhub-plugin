@@ -22,8 +22,6 @@ from backend.registry import load_registry
 
 DEFAULT_DOWNLOAD_DIR = "/home/deck/Downloads"
 PLUGIN_DOWNLOAD_DIR = f"{DEFAULT_DOWNLOAD_DIR}/deckyhub"
-DECKYHUB_REPO = "mazillka/deckyhub-plugin"
-DECKYHUB_RELEASE_PREFIX = f"https://github.com/{DECKYHUB_REPO}/releases/download/"
 DECKYHUB_VERSION = "1.0.3-rc.22"
 REPOSITORY_NAME = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 SUPPORTED_LANGUAGES = {"auto", "en", "uk", "es", "de", "fr", "ja", "zh"}
@@ -307,21 +305,6 @@ class Plugin:
         if not name or name in (".", ".."):
             raise ValueError("Invalid asset filename")
         return name
-
-    async def install_deckyhub_update(self, asset: dict):
-        url, name = asset.get("url"), Path(str(asset.get("name", ""))).name
-        digest = asset.get("sha256")
-        if not isinstance(url, str) or not url.startswith(DECKYHUB_RELEASE_PREFIX) or not name.startswith("DeckyHub-") or not name.endswith(".zip") or not isinstance(digest, str) or not re.fullmatch(r"[0-9a-fA-F]{64}", digest):
-            raise ValueError("Invalid DeckyHub release asset")
-        job_id = f"deckyhub-update-{len(self.downloads) + 1}"
-        target_dir = Path(PLUGIN_DOWNLOAD_DIR)
-        target_dir.mkdir(parents=True, exist_ok=True)
-        target = target_dir / name
-        if target.exists() and not self.settings.get("overwriteExisting"):
-            target = self._next_name(target)
-        self.downloads[job_id] = {"state": "queued", "filename": name, "received": 0, "total": asset.get("size") or 0, "path": str(target), "error": None}
-        self.download_queue.put_nowait((job_id, asset, target))
-        return {"jobId": job_id}
 
     async def _run_download_queue(self):
         while True:
