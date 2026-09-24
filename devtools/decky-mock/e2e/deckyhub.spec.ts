@@ -27,6 +27,21 @@ const release = {
 
 const mock = (page: Page) => page.frameLocator("iframe");
 
+const BRIDGE_URL = "http://127.0.0.1:8643";
+
+// Round-trips a request straight to the dev-server bridge (bypassing the
+// app's own UI), used to seed or reset state — most often settings.json,
+// which is a REAL SHARED FILE on disk across every test run and interactive
+// preview session. Always await this before the test that used it finishes,
+// since an unawaited call races Playwright's own page teardown.
+function bridgeCall(page: Page, route: string, ...args: unknown[]) {
+  return page.evaluate(
+    ([bridge, route, args]) =>
+      fetch(bridge, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ route, args }) }).then((res) => res.json()),
+    [BRIDGE_URL, route, args] as const,
+  );
+}
+
 test.beforeEach(async ({ page }) => {
   await page.route("https://api.github.com/**", (route) => route.fulfill({ json: release }));
   await page.goto("/?bridge=http://127.0.0.1:8643");
@@ -375,13 +390,8 @@ test("DeckyHub version picker re-filters by channel and leaves the channel as it
   // page down as soon as this function returns, racing the unawaited save).
   // Round-trip the bridge directly and await it so the reset actually lands
   // before this test — and the suite — finishes.
-  await page.evaluate(async () => {
-    const bridge = "http://127.0.0.1:8643";
-    const call = (route: string, ...args: unknown[]) =>
-      fetch(bridge, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ route, args }) }).then((res) => res.json());
-    const { result: settings } = await call("get_settings");
-    await call("save_settings", { ...settings, updateChannel: "stable" });
-  });
+  const { result: settings } = await bridgeCall(page, "get_settings");
+  await bridgeCall(page, "save_settings", { ...settings, updateChannel: "stable" });
 });
 
 test("DeckyHub update modal's Close button is full width and dismisses the modal", async ({ page }) => {
@@ -454,6 +464,37 @@ test("A GitHub rate limit surfaces a friendly message instead of a raw status co
   const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
   await expect(makoCard.getByText(/GitHub API rate limit reached/)).toBeVisible();
   await expect(makoCard.getByText("GitHub API returned 403", { exact: true })).toBeHidden();
+});
+
+test("The rate-limit message suggests adding a GitHub token only when none is configured", async ({ page }) => {
+  const resetInTwoMinutes = Math.floor(Date.now() / 1000) + 120;
+  await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases?per_page=20", (route) =>
+    route.fulfill({
+      status: 403,
+      headers: { "x-ratelimit-remaining": "0", "x-ratelimit-reset": String(resetInTwoMinutes) },
+      json: { message: "API rate limit exceeded" },
+    })
+  );
+
+  try {
+    const app = mock(page);
+    await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+    const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+    await expect(makoCard.getByText(/Add a GitHub token in Settings/)).toBeVisible();
+
+    // A fresh route mount re-primes the token from backend settings (same
+    // mechanism proven by the "Saving a GitHub token" test below) — no
+    // reload needed. 403 responses are never cached (see hydrate()'s
+    // catch block), so this navigation re-fetches for real either way.
+    await bridgeCall(page, "save_settings", { overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: 3, githubToken: "ghp_already_set" });
+    await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+    await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+
+    await expect(makoCard.getByText(/GitHub API rate limit reached/)).toBeVisible();
+    await expect(makoCard.getByText(/Add a GitHub token in Settings/)).toBeHidden();
+  } finally {
+    await bridgeCall(page, "save_settings", { overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: 3, githubToken: "" });
+  }
 });
 
 test("Discover's Details modal exposes every matching release asset", async ({ page }) => {
@@ -576,12 +617,7 @@ test("Discover's Details modal channel picker updates the card's Channel label",
     // save_repo_settings persists to the real (shared) settings.json via the
     // dev bridge — round-trip it back to the default directly so this test
     // doesn't leave MAKO's channel overridden for later tests/runs.
-    await page.evaluate(async () => {
-      const bridge = "http://127.0.0.1:8643";
-      const call = (route: string, ...args: unknown[]) =>
-        fetch(bridge, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ route, args }) }).then((res) => res.json());
-      await call("save_repo_settings", "eugeniosegala/MAKO", { channel: "stable", assetFilter: [] });
-    });
+    await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "stable", assetFilter: [] });
   }
 });
 
@@ -611,20 +647,14 @@ test("Discover's card picks the newest pre-release by publish date, not array or
     // Out-of-order on purpose: the newest pre-release (by published_at) isn't array[0].
     route.fulfill({ json: [olderBeta, newerBeta] })
   );
-  const call = (route: string, ...args: unknown[]) =>
-    page.evaluate(
-      ([route, args]) =>
-        fetch("http://127.0.0.1:8643", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ route, args }) }).then((res) => res.json()),
-      [route, args] as const
-    );
-  await call("save_repo_settings", "eugeniosegala/MAKO", { channel: "prerelease", assetFilter: [] });
+  await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "prerelease", assetFilter: [] });
   try {
     await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
     const app = mock(page);
     const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
     await expect(makoCard.getByText(`Latest: ${newerBeta.tag_name}`, { exact: true })).toBeVisible();
   } finally {
-    await call("save_repo_settings", "eugeniosegala/MAKO", { channel: "stable", assetFilter: [] });
+    await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "stable", assetFilter: [] });
   }
 });
 
@@ -634,12 +664,6 @@ test("Saving a GitHub token in Settings adds it to GitHub API requests", async (
     authHeader = route.request().headers()["authorization"];
     return route.fulfill({ json: release });
   });
-  const call = (route: string, ...args: unknown[]) =>
-    page.evaluate(
-      ([route, args]) =>
-        fetch("http://127.0.0.1:8643", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ route, args }) }).then((res) => res.json()),
-      [route, args] as const
-    );
 
   try {
     const app = mock(page);
@@ -661,7 +685,94 @@ test("Saving a GitHub token in Settings adds it to GitHub API requests", async (
 
     expect(authHeader).toBe("Bearer ghp_test_token_abc123");
   } finally {
-    await call("save_settings", { overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: 3, githubToken: "" });
+    await bridgeCall(page, "save_settings", { overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: 3, githubToken: "" });
+  }
+});
+
+test("Settings loads a previously saved GitHub token and keeps Save disabled until it changes", async ({ page }) => {
+  try {
+    await bridgeCall(page, "save_settings", { overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: 3, githubToken: "ghp_preexisting_token" });
+
+    const app = mock(page);
+    await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+    const tokenField = app.getByLabel("GitHub Token");
+    const saveButton = app.getByRole("button", { name: "Save Settings", exact: true });
+
+    await expect(tokenField).toHaveValue("ghp_preexisting_token");
+    await expect(saveButton).toBeDisabled();
+
+    await tokenField.fill("ghp_preexisting_token_edited");
+    await expect(saveButton).toBeEnabled();
+  } finally {
+    await bridgeCall(page, "save_settings", { overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: 3, githubToken: "" });
+  }
+});
+
+test("Clearing the GitHub token stops sending the Authorization header", async ({ page }) => {
+  let authHeader: string | undefined;
+  await page.route("https://api.github.com/**", (route) => {
+    authHeader = route.request().headers()["authorization"];
+    return route.fulfill({ json: release });
+  });
+
+  try {
+    const app = mock(page);
+    const tokenField = app.getByLabel("GitHub Token");
+    const saveButton = app.getByRole("button", { name: "Save Settings", exact: true });
+
+    await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+    await tokenField.fill("ghp_temp_token");
+    await saveButton.click();
+    await expect(saveButton).toBeDisabled();
+
+    await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+    await expect(app.getByText("Latest: plugin-v1.2.3", { exact: true }).first()).toBeVisible();
+    expect(authHeader).toBe("Bearer ghp_temp_token");
+
+    // The 5-minute release cache would otherwise skip the network on the
+    // next check entirely, masking whether a fresh request still carries a
+    // (stale) header — clear it before clearing the token.
+    await page.evaluate(() => {
+      const frame = (document.querySelector("iframe") as HTMLIFrameElement | null)?.contentWindow;
+      if (!frame) return;
+      Object.keys(frame.localStorage)
+        .filter((key) => key.startsWith("deckyhub-"))
+        .forEach((key) => frame.localStorage.removeItem(key));
+    });
+    authHeader = undefined;
+
+    await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+    await tokenField.fill("");
+    await saveButton.click();
+    await expect(saveButton).toBeDisabled();
+
+    await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+    await expect(app.getByText("Latest: plugin-v1.2.3", { exact: true }).first()).toBeVisible();
+
+    expect(authHeader).toBeUndefined();
+  } finally {
+    await bridgeCall(page, "save_settings", { overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: 3, githubToken: "" });
+  }
+});
+
+test("GitHub repository search also sends the saved token", async ({ page }) => {
+  let authHeader: string | undefined;
+  await page.route("https://api.github.com/search/repositories**", (route) => {
+    authHeader = route.request().headers()["authorization"];
+    return route.fulfill({ json: { items: [] } });
+  });
+
+  try {
+    await bridgeCall(page, "save_settings", { overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: 3, githubToken: "ghp_search_token" });
+
+    const app = mock(page);
+    await app.getByRole("button", { name: "/deckyhub/repositories" }).click();
+    await app.getByLabel("Search GitHub").fill("some-repo");
+    await app.getByRole("button", { name: "Search", exact: true }).click();
+
+    await expect.poll(() => authHeader).toBe("Bearer ghp_search_token");
+  } finally {
+    await bridgeCall(page, "save_settings", { overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: 3, githubToken: "" });
   }
 });
 
