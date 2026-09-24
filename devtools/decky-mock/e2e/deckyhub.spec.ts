@@ -292,6 +292,38 @@ test("DeckyHub distinguishes rc versions sharing the same release number", async
   await expect(app.getByRole("button", { name: `Reinstall v${deckyHubVersion}`, exact: true })).toBeVisible();
 });
 
+test("DeckyHub picks the newest release by publish date even when GitHub returns the list out of order", async ({ page }) => {
+  // Regression test: GitHub's list-releases endpoint has been observed
+  // returning a just-published release sandwiched in the middle of the
+  // array instead of first, so trusting array order for "latest" silently
+  // pointed the version picker (and its "(latest)" tag) at a stale release.
+  // The mock below deliberately places the truly-newest release (by
+  // published_at) in the middle of the response to reproduce that.
+  const makeRelease = (tag: string, publishedAt: string) => ({
+    tag_name: tag,
+    prerelease: false,
+    published_at: publishedAt,
+    html_url: `https://github.com/mazillka/deckyhub-plugin/releases/tag/${tag}`,
+    assets: [{ name: `DeckyHub-${tag}.zip`, browser_download_url: `https://github.com/mazillka/deckyhub-plugin/releases/download/${tag}/DeckyHub-${tag}.zip`, digest: `sha256:${"a".repeat(64)}` }],
+  });
+  const installedRelease = makeRelease(deckyHubTag, "2026-01-01T00:00:00Z");
+  const olderRcRelease = makeRelease(olderRcTag, "2026-01-02T00:00:00Z");
+  const newerRcRelease = makeRelease(newerRcTag, "2026-01-03T00:00:00Z");
+  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases/latest", (route) => route.fulfill({ json: installedRelease }));
+  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) =>
+    // Out-of-order on purpose: the newest release (by published_at) isn't array[0].
+    route.fulfill({ json: [installedRelease, newerRcRelease, olderRcRelease] })
+  );
+  await page.goto("/?bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  await app.getByRole("button", { name: "Update", exact: true }).click();
+
+  await expect(app.getByRole("button", { name: `Update to ${newerRcTag}`, exact: true })).toBeVisible();
+  await expect(app.locator(".steam-modal").getByLabel("Version")).toHaveValue(newerRcRelease.tag_name);
+  const options = await app.locator(".steam-modal").getByLabel("Version").locator("option").allTextContents();
+  expect(options.find((label) => label.includes("(latest)"))).toBe(`${newerRcTag} (latest)`);
+});
+
 test("DeckyHub falls back to a clear message when automatic update can't reach Decky Loader", async ({ page }) => {
   const deckyHubRelease = {
     tag_name: deckyHubTag,
@@ -550,6 +582,49 @@ test("Discover's Details modal channel picker updates the card's Channel label",
         fetch(bridge, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ route, args }) }).then((res) => res.json());
       await call("save_repo_settings", "eugeniosegala/MAKO", { channel: "stable", assetFilter: [] });
     });
+  }
+});
+
+test("Discover's card picks the newest pre-release by publish date, not array order", async ({ page }) => {
+  // Regression test for the same GitHub list-order bug as the DeckyHub
+  // version-picker fix, but for hydrate() — the function driving every
+  // card's own "Latest: …" line and update status, not just a picker. The
+  // mock deliberately puts the truly-newest pre-release second in the
+  // array to reproduce GitHub returning the list out of order.
+  const olderBeta = {
+    tag_name: "plugin-v1.4.0-beta.1",
+    prerelease: true,
+    draft: false,
+    published_at: "2026-01-01T00:00:00Z",
+    html_url: "https://github.com/eugeniosegala/MAKO/releases/tag/plugin-v1.4.0-beta.1",
+    assets: [{ name: "mako-decky-1.zip", browser_download_url: "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v1.4.0-beta.1/mako-decky-1.zip", size: 1024 }],
+  };
+  const newerBeta = {
+    tag_name: "plugin-v1.4.0-beta.2",
+    prerelease: true,
+    draft: false,
+    published_at: "2026-01-02T00:00:00Z",
+    html_url: "https://github.com/eugeniosegala/MAKO/releases/tag/plugin-v1.4.0-beta.2",
+    assets: [{ name: "mako-decky-1.zip", browser_download_url: "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v1.4.0-beta.2/mako-decky-1.zip", size: 1024 }],
+  };
+  await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases?per_page=20", (route) =>
+    // Out-of-order on purpose: the newest pre-release (by published_at) isn't array[0].
+    route.fulfill({ json: [olderBeta, newerBeta] })
+  );
+  const call = (route: string, ...args: unknown[]) =>
+    page.evaluate(
+      ([route, args]) =>
+        fetch("http://127.0.0.1:8643", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ route, args }) }).then((res) => res.json()),
+      [route, args] as const
+    );
+  await call("save_repo_settings", "eugeniosegala/MAKO", { channel: "prerelease", assetFilter: [] });
+  try {
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+    await expect(makoCard.getByText(`Latest: ${newerBeta.tag_name}`, { exact: true })).toBeVisible();
+  } finally {
+    await call("save_repo_settings", "eugeniosegala/MAKO", { channel: "stable", assetFilter: [] });
   }
 });
 

@@ -31,7 +31,7 @@ export type DeckyHubInfo = { version: string };
 
 export type DeckyHubRelease = { version?: string; asset?: Asset; url?: string; error?: string };
 
-export type DeckyHubReleaseOption = { tag: string; version: string; prerelease: boolean; asset?: Asset; url: string };
+export type DeckyHubReleaseOption = { tag: string; version: string; prerelease: boolean; publishedAt: string | null; asset?: Asset; url: string };
 
 export type AppReleaseOption = { tag: string; version: string; prerelease: boolean; publishedAt: string | null; url: string; assets: Asset[] };
 

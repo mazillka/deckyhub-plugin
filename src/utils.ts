@@ -224,6 +224,13 @@ export async function latestDeckyHubRelease(channel: UpdateChannel, force = fals
   }
 }
 
+// GitHub's list-releases endpoint doesn't reliably come back sorted newest
+// first — observed in the wild returning a just-published release sandwiched
+// in the middle of the array — so every version picker below sorts by
+// published date itself instead of trusting response order for "latest".
+const byPublishedDesc = (a: { publishedAt: string | null }, b: { publishedAt: string | null }) =>
+  (Date.parse(b.publishedAt || "") || 0) - (Date.parse(a.publishedAt || "") || 0);
+
 // Recent DeckyHub releases (stable and pre-release together) for the version
 // picker in DeckyHubUpdateModal — lets the user reinstall or downgrade to a
 // specific past release, not just install whatever is newest.
@@ -245,10 +252,12 @@ export async function listDeckyHubReleases(limit = 20, force = false): Promise<{
           tag: String(item.tag_name || item.name),
           version: String(item.tag_name || item.name),
           prerelease: Boolean(item.prerelease),
+          publishedAt: item.published_at || null,
           url: item.html_url || "https://github.com/mazillka/deckyhub-plugin/releases",
           asset: validAsset ? { name: asset.name, url: asset.browser_download_url, size: asset.size || 0, sha256 } : undefined,
         };
-      });
+      })
+      .sort(byPublishedDesc);
     writeCache(cacheKey, items);
     return { items };
   } catch (error) {
@@ -270,11 +279,15 @@ export async function hydrate(app: App, force: boolean, preference?: RepoPrefere
       const response = await fetchWithTimeout(`https://api.github.com${endpoint}`, { headers: { Accept: "application/vnd.github+json" } });
       if (!response.ok) throw await githubResponseError(response);
       const body = await response.json();
+      // GitHub's list-releases response isn't reliably ordered newest-first
+      // (see byPublishedDesc above), so pick the newest match by published
+      // date rather than trusting which one comes first in the array.
+      const byRawPublishedDesc = (a: any, b: any) => (Date.parse(b.published_at) || 0) - (Date.parse(a.published_at) || 0);
       release = Array.isArray(body)
         ? preference?.channel === "prerelease"
-          ? body.find((item) => item.prerelease && !item.draft)
+          ? body.filter((item) => item.prerelease && !item.draft).sort(byRawPublishedDesc)[0]
           : app.releaseTagInclude
-          ? body.find((item) => String(item.tag_name || "").toLowerCase().includes(app.releaseTagInclude!.toLowerCase()))
+          ? body.filter((item) => String(item.tag_name || "").toLowerCase().includes(app.releaseTagInclude!.toLowerCase())).sort(byRawPublishedDesc)[0]
           : { tag_name: body[0]?.name, html_url: `https://github.com/${app.repo}/releases`, assets: [] }
         : body;
       if (!release) throw new Error("No matching release found");
@@ -320,7 +333,8 @@ export async function listAppReleases(app: App, preference?: RepoPreference, for
         publishedAt: item.published_at || null,
         url: item.html_url || `https://github.com/${app.repo}/releases`,
         assets: matchingAssets(app, item.assets || [], preference?.assetFilter),
-      }));
+      }))
+      .sort(byPublishedDesc);
     writeCache(cacheKey, items);
     return { items };
   } catch (error) {
