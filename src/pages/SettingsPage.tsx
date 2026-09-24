@@ -1,6 +1,6 @@
-import { DialogButtonPrimary as Button, DropdownItem, Focusable, PanelSection, PanelSectionRow, TextField, ToggleField } from "@decky/ui";
+import { DialogButtonPrimary as Button, DropdownItem, Focusable, Navigation, PanelSection, PanelSectionRow, TextField, ToggleField } from "@decky/ui";
 import { useEffect, useState, type ReactNode } from "react";
-import { FaFolderOpen, FaInfoCircle, FaLock } from "react-icons/fa";
+import { FaExternalLinkAlt, FaFolderOpen, FaInfoCircle, FaLock } from "react-icons/fa";
 import { getSettings, saveSettings } from "../api";
 import { LOCALE_CHANGED, LOCALES, useT } from "../i18n";
 import type { Settings } from "../types";
@@ -27,6 +27,7 @@ export function SettingsPage() {
   const [quota, setQuota] = useState<Awaited<ReturnType<typeof githubCoreQuota>>>(null);
   // Same green/yellow/red as the app cards' status colors.
   const quotaColor = !quota || quota.remaining > quota.limit / 2 ? "#6bcb6b" : quota.remaining > quota.limit / 10 ? "#f0c33c" : "#ff6b6b";
+  const openTokenPage = () => Navigation.NavigateToExternalWeb("https://github.com/settings/tokens");
   const refreshQuota = () => void githubCoreQuota().then(setQuota, () => setQuota(null));
 
   useEffect(() => {
@@ -61,22 +62,31 @@ export function SettingsPage() {
     <>
       <PanelSection title={t("settings.githubAccess")}>
         <PanelSectionRow>
-          {/* Focusable (via onActivate) so the controller can move up onto
-              this text: Steam only scrolls to follow focus, and the token
-              field below is otherwise the page's first focus stop. */}
-          <Focusable onActivate={() => {}} style={{ display: "grid", gap: 8 }}>
-            <IconNote icon={<FaInfoCircle />}>{t("settings.githubTokenIntro")}</IconNote>
-            {quota && (
-              <strong className="deckyhub-github-quota" style={{ borderLeft: `3px solid ${quotaColor}`, color: quotaColor, paddingLeft: 10 }}>
-                {t("settings.githubQuota", { remaining: quota.remaining, limit: quota.limit, minutes: Math.max(1, Math.ceil((quota.reset * 1000 - Date.now()) / 60_000)) })}
-              </strong>
-            )}
-            <div style={{ borderLeft: "3px solid #1a9fff", paddingLeft: 10 }}>
+          <div style={{ display: "grid", gap: 8 }}>
+            {/* Focusable (via onActivate) so the controller can move up onto
+                this text: Steam only scrolls to follow focus. */}
+            <Focusable onActivate={() => {}} style={{ display: "grid", gap: 8 }}>
+              <IconNote icon={<FaInfoCircle />}>{t("settings.githubTokenIntro")}</IconNote>
+              {quota && (
+                <strong className="deckyhub-github-quota" style={{ borderLeft: `3px solid ${quotaColor}`, color: quotaColor, paddingLeft: 10 }}>
+                  {t("settings.githubQuota", { remaining: quota.remaining, limit: quota.limit, minutes: Math.max(1, Math.ceil((quota.reset * 1000 - Date.now()) / 60_000)) })}
+                </strong>
+              )}
+            </Focusable>
+            {/* A button (A / tap) that opens the token page in Steam's browser. */}
+            <Focusable
+              className="deckyhub-token-link"
+              onActivate={openTokenPage}
+              onClick={openTokenPage}
+              style={{ borderLeft: "3px solid #1a9fff", cursor: "pointer", paddingLeft: 10 }}
+            >
               <div style={{ color: "#8fcef4", fontSize: "0.9em", marginBottom: 3 }}>{t("settings.githubTokenHowTo")}</div>
-              <strong style={{ color: "#fff" }}>github.com/settings/tokens</strong>
-            </div>
+              <strong style={{ alignItems: "center", color: "#fff", display: "inline-flex", gap: 6, textDecoration: "underline" }}>
+                github.com/settings/tokens <FaExternalLinkAlt size="0.8em" />
+              </strong>
+            </Focusable>
             <IconNote icon={<FaLock />}>{t("settings.githubTokenNote")}</IconNote>
-          </Focusable>
+          </div>
         </PanelSectionRow>
         <div aria-hidden style={sectionDividerStyle} />
         <PanelSectionRow>

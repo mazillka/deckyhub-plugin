@@ -521,7 +521,17 @@ test("Settings' GitHub Access intro is a controller focus stop above the token f
   await intro.focus();
   await expect(intro).toBeFocused();
   await intro.press("ArrowDown");
+  await expect(app.locator(".deckyhub-token-link")).toBeFocused();
+  await app.locator(".deckyhub-token-link").press("ArrowDown");
   await expect(app.getByLabel("GitHub Token")).toBeFocused();
+});
+
+test("Settings' token link opens GitHub's token page", async ({ page, context }) => {
+  await context.route("https://github.com/**", (route) => route.fulfill({ body: "tokens page" }));
+  await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
+  const popupPromise = page.waitForEvent("popup");
+  await mock(page).locator(".deckyhub-token-link").click();
+  expect((await popupPromise).url()).toBe("https://github.com/settings/tokens");
 });
 
 test("Settings shows how many GitHub requests are left", async ({ page }) => {
