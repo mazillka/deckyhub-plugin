@@ -90,6 +90,7 @@ export const zh: Record<MessageKey, string> = {
   "settings.githubTokenHowTo": "创建时请保持所有权限未勾选，地址为：",
   "settings.githubTokenNote": "DeckyHub 只读取公开仓库和发布版本。令牌仅保存在本地设置中，且只会发送给 api.github.com。",
   "settings.githubToken": "GitHub 令牌",
+  "settings.githubQuota": "GitHub 剩余请求：{remaining} / {limit}(约 {minutes} 分钟后重置)",
   "rateLimit.title": "已达到 GitHub 请求上限",
   "rateLimit.retryIn": "请在约 {minutes} 分钟后重试。",
   "rateLimit.retryLater": "请稍后重试。",

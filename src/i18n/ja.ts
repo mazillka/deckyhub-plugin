@@ -90,6 +90,7 @@ export const ja: Record<MessageKey, string> = {
   "settings.githubTokenHowTo": "権限をすべてチェックしないまま、以下で作成してください:",
   "settings.githubTokenNote": "DeckyHubは公開リポジトリとリリースを読み取るだけです。トークンはこの設定にローカル保存され、api.github.comにのみ送信されます。",
   "settings.githubToken": "GitHubトークン",
+  "settings.githubQuota": "GitHubリクエスト残り: {remaining} / {limit}(約{minutes}分後にリセット)",
   "rateLimit.title": "GitHubのリクエスト上限に達しました",
   "rateLimit.retryIn": "約{minutes}分後にもう一度お試しください。",
   "rateLimit.retryLater": "しばらくしてからもう一度お試しください。",

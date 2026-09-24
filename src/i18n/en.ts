@@ -89,6 +89,7 @@ export const en = {
   "settings.githubTokenHowTo": "Create one with every scope left unchecked at:",
   "settings.githubTokenNote": "DeckyHub only reads public repos and releases. The token is stored locally in these settings and sent only to api.github.com.",
   "settings.githubToken": "GitHub Token",
+  "settings.githubQuota": "GitHub requests left: {remaining} of {limit} (resets in {minutes} min)",
   "rateLimit.title": "GitHub rate limit reached",
   "rateLimit.retryIn": "Try again in about {minutes} min.",
   "rateLimit.retryLater": "Try again later.",

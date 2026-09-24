@@ -510,6 +510,17 @@ test("The rate-limit message suggests adding a GitHub token only when none is co
   }
 });
 
+test("Settings shows how many GitHub requests are left", async ({ page }) => {
+  const resetInTenMinutes = Math.floor(Date.now() / 1000) + 600;
+  await page.route("https://api.github.com/rate_limit", (route) =>
+    route.fulfill({ json: { resources: { core: { limit: 60, remaining: 42, reset: resetInTenMinutes }, search: { limit: 10, remaining: 10, reset: resetInTenMinutes } } } })
+  );
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+
+  await expect(app.locator(".deckyhub-github-quota")).toHaveText(/^GitHub requests left: 42 of 60 \(resets in (10|11) min\)$/);
+});
+
 test("Discover's Details modal exposes every matching release asset", async ({ page }) => {
   const multiAssetRelease = {
     tag_name: "plugin-v1.2.3",

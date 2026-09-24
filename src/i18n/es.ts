@@ -90,6 +90,7 @@ export const es: Record<MessageKey, string> = {
   "settings.githubTokenHowTo": "Créalo dejando todos los permisos sin marcar en:",
   "settings.githubTokenNote": "DeckyHub solo lee repositorios y lanzamientos públicos. El token se guarda localmente en estos ajustes y solo se envía a api.github.com.",
   "settings.githubToken": "Token de GitHub",
+  "settings.githubQuota": "Solicitudes a GitHub restantes: {remaining} de {limit} (se restablece en {minutes} min)",
   "rateLimit.title": "Se alcanzó el límite de GitHub",
   "rateLimit.retryIn": "Vuelve a intentarlo en unos {minutes} min.",
   "rateLimit.retryLater": "Vuelve a intentarlo más tarde.",

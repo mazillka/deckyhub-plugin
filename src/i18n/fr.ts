@@ -90,6 +90,7 @@ export const fr: Record<MessageKey, string> = {
   "settings.githubTokenHowTo": "Créez-en un en laissant toutes les autorisations décochées sur :",
   "settings.githubTokenNote": "DeckyHub ne fait que lire les dépôts et versions publics. Le jeton est stocké localement dans ces paramètres et envoyé uniquement à api.github.com.",
   "settings.githubToken": "Jeton GitHub",
+  "settings.githubQuota": "Requêtes GitHub restantes : {remaining} sur {limit} (réinitialisation dans {minutes} min)",
   "rateLimit.title": "Limite de requêtes GitHub atteinte",
   "rateLimit.retryIn": "Réessayez dans environ {minutes} min.",
   "rateLimit.retryLater": "Réessayez plus tard.",

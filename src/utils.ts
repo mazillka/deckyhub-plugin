@@ -84,6 +84,15 @@ export async function githubResponseError(response: Response): Promise<Error> {
   );
 }
 
+// GitHub's own quota report for this device (or token). Querying it doesn't
+// count against the limit. Only the hourly "core" bucket is returned — that's
+// the one release checks drain; search has its own tiny per-minute bucket.
+export async function githubCoreQuota(): Promise<{ limit: number; remaining: number; reset: number } | null> {
+  const response = await fetchWithTimeout("https://api.github.com/rate_limit", { headers: githubHeaders() });
+  if (!response.ok) throw await githubResponseError(response);
+  return (await response.json()).resources?.core ?? null;
+}
+
 export const readableBytes = (bytes = 0) => (bytes > 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.ceil(bytes / 1024)} KB`);
 
 export const statusKey = (app: App): MessageKey =>

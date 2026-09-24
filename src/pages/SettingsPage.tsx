@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { getSettings, saveSettings } from "../api";
 import { LOCALE_CHANGED, LOCALES, useT } from "../i18n";
 import type { Settings } from "../types";
-import { DEFAULT_COLUMNS_PER_ROW, compactButtonStyle, sectionDividerStyle } from "../utils";
+import { DEFAULT_COLUMNS_PER_ROW, compactButtonStyle, githubCoreQuota, sectionDividerStyle, setGithubToken } from "../utils";
 
 export function SettingsPage() {
   const t = useT();
@@ -13,11 +13,17 @@ export function SettingsPage() {
   // fire a save on every keystroke. This tracks the field independently of
   // the committed `settings.githubToken` until that button is pressed.
   const [tokenDraft, setTokenDraft] = useState("");
+  const [quota, setQuota] = useState<Awaited<ReturnType<typeof githubCoreQuota>>>(null);
+  const refreshQuota = () => void githubCoreQuota().then(setQuota, () => setQuota(null));
 
   useEffect(() => {
     void getSettings().then((loaded) => {
       setSettings(loaded);
       setTokenDraft(loaded.githubToken);
+      // Prime the token here too so the quota reflects it, rather than racing
+      // I18nProvider's own priming of the same value.
+      setGithubToken(loaded.githubToken);
+      refreshQuota();
     });
   }, []);
 
@@ -26,7 +32,11 @@ export function SettingsPage() {
     setSettings(merged);
     void saveSettings(merged).then((saved) => {
       setSettings(saved);
-      if ("githubToken" in next) setTokenDraft(saved.githubToken);
+      if ("githubToken" in next) {
+        setTokenDraft(saved.githubToken);
+        setGithubToken(saved.githubToken);
+        refreshQuota();
+      }
       // Every mounted I18nProvider (one per route) re-syncs both the locale
       // and the GitHub token off this event — see i18n/index.tsx.
       if ("language" in next || "githubToken" in next) window.dispatchEvent(new Event(LOCALE_CHANGED));
@@ -55,6 +65,13 @@ export function SettingsPage() {
             {t("settings.saveSettings")}
           </Button>
         </PanelSectionRow>
+        {quota && (
+          <PanelSectionRow>
+            <small className="deckyhub-github-quota" style={{ opacity: 0.75 }}>
+              {t("settings.githubQuota", { remaining: quota.remaining, limit: quota.limit, minutes: Math.max(1, Math.ceil((quota.reset * 1000 - Date.now()) / 60_000)) })}
+            </small>
+          </PanelSectionRow>
+        )}
       </PanelSection>
 
       <div aria-hidden style={sectionDividerStyle} />

@@ -90,6 +90,7 @@ export const uk: Record<MessageKey, string> = {
   "settings.githubTokenHowTo": "Створіть його, залишивши всі права доступу невибраними, на:",
   "settings.githubTokenNote": "DeckyHub лише читає публічні репозиторії та релізи. Токен зберігається локально в цих налаштуваннях і надсилається лише на api.github.com.",
   "settings.githubToken": "GitHub-токен",
+  "settings.githubQuota": "Залишилось запитів до GitHub: {remaining} з {limit} (скидання через {minutes} хв)",
   "rateLimit.title": "Досягнуто ліміту запитів GitHub",
   "rateLimit.retryIn": "Спробуйте знову приблизно через {minutes} хв.",
   "rateLimit.retryLater": "Спробуйте пізніше.",
