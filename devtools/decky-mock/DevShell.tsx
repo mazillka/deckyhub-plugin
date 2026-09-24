@@ -3,6 +3,7 @@ import { showDownloadModal } from "../../src/components/DownloadProgress";
 import { en, type MessageKey } from "../../src/i18n/en";
 import { substitute } from "../../src/i18n";
 import pluginFactory from "../../src/index";
+import { reportRateLimit } from "../../src/utils";
 import { routerHook } from "./api";
 
 const previewText = (key: MessageKey, vars?: Record<string, string | number>) => substitute(en[key], vars);
@@ -104,6 +105,9 @@ export default function DevShell() {
           </button>
           <button className="preview-route" onClick={() => showDownloadModal(previewText, "preview-job", { state: "complete", path: "/home/deck/Downloads/deckyhub/DeckyHub-v1.0.2-rc.4.zip" })}>
             Download complete modal
+          </button>
+          <button className="preview-route" onClick={() => reportRateLimit(12)}>
+            Rate limit banner
           </button>
           {routes.map(([path]) => (
             <button key={path} className={`preview-route ${activePath === path ? "preview-route-active" : ""}`} onClick={() => setActivePath(path)}>

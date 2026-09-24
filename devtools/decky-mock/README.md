@@ -16,7 +16,7 @@ npm install             # first time only
 npm run dev              # frontend on :5183
 ```
 
-Open the printed `http://localhost:5183` URL. The left nav lists the QAM widget, every route `src/index.tsx` registers (Updates, Discover, Repositories, Settings), and two standalone buttons that open the real download-progress/download-complete modal without starting an actual download.
+Open the printed `http://localhost:5183` URL. The left nav lists the QAM widget, every route `src/index.tsx` registers (Updates, Discover, Repositories, Settings), and standalone buttons that open the real download-progress/download-complete modals without starting an actual download, plus one that raises the GitHub rate-limit banner on the current screen without exhausting the real limit.
 
 ## Browser tests
 
