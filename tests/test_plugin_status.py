@@ -151,9 +151,9 @@ class PluginStatusTests(unittest.TestCase):
             self.assertEqual(asyncio.run(plugin.save_settings({}))["updateChannel"], "stable")
             self.assertEqual(asyncio.run(plugin.save_settings({"updateChannel": "prerelease"}))["updateChannel"], "prerelease")
 
-    def test_deckyhub_version_has_a_fallback_when_package_is_not_extracted(self):
+    def test_deckyhub_version_is_unknown_when_package_is_not_extracted(self):
         with tempfile.TemporaryDirectory() as home, patch.object(sys.modules["decky"], "DECKY_PLUGIN_DIR", home, create=True), patch.object(main, "PLUGIN_DIR", home):
-            self.assertEqual(asyncio.run(Plugin().get_deckyhub_info())["version"], main.DECKYHUB_VERSION)
+            self.assertEqual(asyncio.run(Plugin().get_deckyhub_info())["version"], "unknown")
 
     def test_download_reports_progress_before_one_megabyte(self):
         class Response:

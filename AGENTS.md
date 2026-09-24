@@ -39,7 +39,7 @@ The Playwright suite in `devtools/decky-mock/` covers the browser UI; `pnpm run 
 
 ## Release
 
-For a release, bump both `DECKYHUB_VERSION` in `main.py` and `version` in `package.json`, then push a `v*` tag. This triggers `.github/workflows/release.yml`: installs, typechecks, builds, runs backend tests, runs the browser E2E suite in `devtools/decky-mock/`, zips `plugin.json` + `main.py` + `backend/` + `dist/` + `registry/` + `LICENSE`, and attaches `DeckyHub-vX.Y.Z.zip` to a GitHub release.
+For a release, bump `version` in `package.json` (the backend reads it at runtime), then push a `v*` tag. This triggers `.github/workflows/release.yml`: installs, typechecks, builds, runs backend tests, runs the browser E2E suite in `devtools/decky-mock/`, zips `plugin.json` + `main.py` + `backend/` + `dist/` + `registry/` + `LICENSE`, and attaches `DeckyHub-vX.Y.Z.zip` to a GitHub release.
 
 ## Architecture
 

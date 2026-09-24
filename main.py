@@ -22,7 +22,6 @@ from backend.registry import load_registry
 
 DEFAULT_DOWNLOAD_DIR = "/home/deck/Downloads"
 PLUGIN_DOWNLOAD_DIR = f"{DEFAULT_DOWNLOAD_DIR}/deckyhub"
-DECKYHUB_VERSION = "1.0.3-rc.22"
 REPOSITORY_NAME = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 SUPPORTED_LANGUAGES = {"auto", "en", "uk", "es", "de", "fr", "ja", "zh"}
 DEFAULT_COLUMNS_PER_ROW = 3
@@ -185,7 +184,7 @@ class Plugin:
                 return {"version": str(package["version"])}
             except (KeyError, OSError, json.JSONDecodeError):
                 pass
-        return {"version": DECKYHUB_VERSION}
+        return {"version": "unknown"}
 
     async def save_settings(self, settings: dict):
         self.settings = {
