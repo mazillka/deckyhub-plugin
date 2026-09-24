@@ -2,11 +2,9 @@ import { DialogButtonPrimary as Button, ModalRoot, ProgressBar, showModal } from
 import { useEffect, useState } from "react";
 import { cancelDownload, getDownload } from "../api";
 import { useT } from "../i18n";
-import type { MessageKey } from "../i18n/en";
+import type { TFunc } from "../i18n/en";
 import type { Download } from "../types";
 import { readableBytes } from "../utils";
-
-type T = (key: MessageKey, vars?: Record<string, string | number>) => string;
 
 const ACTIVE_STATES = ["queued", "downloading"];
 
@@ -17,7 +15,7 @@ function DownloadModal({
   onSettled,
   closeModal,
 }: {
-  t: T;
+  t: TFunc;
   jobId: string;
   initial: Download;
   onSettled?: (state: Download) => void;
@@ -79,6 +77,6 @@ function DownloadModal({
   );
 }
 
-export function showDownloadModal(t: T, jobId: string, initial: Download, onSettled?: (state: Download) => void) {
+export function showDownloadModal(t: TFunc, jobId: string, initial: Download, onSettled?: (state: Download) => void) {
   showModal(<DownloadModal t={t} jobId={jobId} initial={initial} onSettled={onSettled} />);
 }

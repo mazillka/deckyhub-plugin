@@ -111,3 +111,9 @@ export const en = {
 };
 
 export type MessageKey = keyof typeof en;
+
+// Shared shape of a resolved translate function — every component that
+// receives `t` as a prop (because it's rendered outside I18nProvider's
+// context via showModal(), see AGENTS.md) types it with this instead of
+// redeclaring the same function type locally.
+export type TFunc = (key: MessageKey, vars?: Record<string, string | number>) => string;

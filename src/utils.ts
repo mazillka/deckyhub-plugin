@@ -1,5 +1,5 @@
 import { fetchNoCors, toaster } from "@decky/api";
-import type { MessageKey } from "./i18n/en";
+import type { MessageKey, TFunc } from "./i18n/en";
 import type { App, AppReleaseOption, Asset, DeckyHubRelease, DeckyHubReleaseOption, RepoPreference, UpdateChannel } from "./types";
 
 // GitHub's unauthenticated core API allows 60 requests/hour per device —
@@ -13,6 +13,7 @@ export const UPDATE_NOTICE_KEY = "deckyhub-update-notice";
 export const DEFAULT_COLUMNS_PER_ROW = 3;
 export const pageStyle = { boxSizing: "border-box" as const, height: "100%", overflowY: "auto" as const, padding: "64px 12px 96px", scrollPaddingBottom: 96, scrollPaddingTop: 64, width: "100%" };
 export const compactButtonStyle = { width: "100%", minHeight: 36, marginBottom: 8, padding: "6px 10px", textAlign: "center" as const };
+export const modalButtonStyle = { width: "100%", minHeight: 36, padding: "6px 10px", textAlign: "center" as const };
 export const sectionDividerStyle = { borderTop: "1px solid rgba(255, 255, 255, 0.14)", margin: "16px 0" };
 // Reserves a fixed two-line height so cards in the same grid row stay aligned regardless of description length.
 export const cardDescriptionStyle = {
@@ -88,6 +89,29 @@ function versionNumbers(value: string, pattern?: string) {
 }
 
 export const normalizeVersion = (value: string) => value.trim().replace(/^v/i, "");
+
+// Shared by DeckyHubUpdateModal and AppDetailsModal's version pickers: keep
+// the current selection if it's still present in the (channel-filtered)
+// list and this isn't a forced refresh, otherwise fall back to the newest
+// item. "Check for Updates"/"Refresh" (pinLatest) overrides a still-valid
+// manual selection on purpose, since that's the point of explicitly checking.
+export function selectDefaultTag<T extends { tag: string }>(filtered: T[], current: string, pinLatest: boolean): string {
+  if (!pinLatest && current && filtered.some((item) => item.tag === current)) return current;
+  return filtered[0]?.tag ?? "";
+}
+
+// Shared by the same two version pickers: label each release with "v" plus
+// an "(installed)"/"(latest)" suffix — items[0] is the newest since every
+// release-list fetch above sorts by publish date before returning.
+export function buildVersionOptions<T extends { tag: string; version: string }>(items: T[], installedVersion: string | null | undefined, t: TFunc): { data: string; label: string }[] {
+  return items.map((item) => {
+    const version = normalizeVersion(item.version);
+    const isInstalled = Boolean(installedVersion) && version === normalizeVersion(installedVersion!);
+    const isLatest = items[0]?.tag === item.tag;
+    const suffix = isInstalled ? ` (${t("settings.installedLabel")})` : isLatest ? ` (${t("settings.latestLabel")})` : "";
+    return { data: item.tag, label: `v${version}${suffix}` };
+  });
+}
 
 // Decky Loader's PluginInstallType enum (backend enums.py) — passed to the
 // global `utilities/install_plugin` route to tell its native installer what

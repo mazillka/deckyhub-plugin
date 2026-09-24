@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { getSettings } from "../api";
-import { en, type MessageKey } from "./en";
+import { en, type MessageKey, type TFunc } from "./en";
 import { uk } from "./uk";
 import { es } from "./es";
 import { de } from "./de";
@@ -47,9 +47,7 @@ function translate(locale: Locale, key: MessageKey, vars?: Record<string, string
   return substitute(template, vars);
 }
 
-type TranslateFn = (key: MessageKey, vars?: Record<string, string | number>) => string;
-
-const I18nContext = createContext<{ locale: Locale; t: TranslateFn } | null>(null);
+const I18nContext = createContext<{ locale: Locale; t: TFunc } | null>(null);
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [preference, setPreference] = useState<string>("auto");
@@ -62,12 +60,12 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const locale = preference === "auto" ? detectLocale() : isLocale(preference) ? preference : "en";
-  const t: TranslateFn = (key, vars) => translate(locale, key, vars);
+  const t: TFunc = (key, vars) => translate(locale, key, vars);
 
   return <I18nContext.Provider value={{ locale, t }}>{children}</I18nContext.Provider>;
 }
 
-export function useT(): TranslateFn {
+export function useT(): TFunc {
   const ctx = useContext(I18nContext);
   if (!ctx) throw new Error("useT must be used within I18nProvider");
   return ctx.t;

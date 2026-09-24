@@ -1,16 +1,14 @@
-import { DialogButtonPrimary as Button, DropdownItem, Focusable, ModalRoot, Navigation, ProgressBar } from "@decky/ui";
+import { DialogButtonPrimary as Button, Focusable, ModalRoot, Navigation, ProgressBar } from "@decky/ui";
 import { useEffect, useRef, useState } from "react";
 import { FaDownload } from "react-icons/fa";
 import { getSettings, installDeckyHubUpdate, saveSettings } from "../api";
-import type { MessageKey } from "../i18n/en";
+import type { TFunc } from "../i18n/en";
 import type { Asset, DeckyHubInfo, DeckyHubReleaseOption, UpdateChannel } from "../types";
-import { PLUGIN_INSTALL_TYPE, getDeckyBackend, listDeckyHubReleases, normalizeVersion, resolveDeckyHubInstallType, sectionDividerStyle, selfUpdateStageKey } from "../utils";
+import { PLUGIN_INSTALL_TYPE, buildVersionOptions, getDeckyBackend, listDeckyHubReleases, modalButtonStyle, normalizeVersion, resolveDeckyHubInstallType, sectionDividerStyle, selectDefaultTag, selfUpdateStageKey } from "../utils";
 import { showDownloadModal } from "./DownloadProgress";
+import { VersionPickerPanel } from "./VersionPickerPanel";
 
 const PLUGIN_NAME = "DeckyHub";
-const modalButtonStyle = { width: "100%", minHeight: 36, padding: "6px 10px", textAlign: "center" as const };
-
-type T = (key: MessageKey, vars?: Record<string, string | number>) => string;
 
 // showModal() mounts onto a separate root from the QAM panel (Decky's own
 // MAIN-window modal manager in production; a fresh React root in the local
@@ -24,7 +22,7 @@ export function DeckyHubUpdateModal({
   onChannelChange,
   closeModal,
 }: {
-  t: T;
+  t: TFunc;
   info: DeckyHubInfo;
   channel: UpdateChannel;
   onCheckUpdate: () => void;
@@ -50,18 +48,7 @@ export function DeckyHubUpdateModal({
     const filtered = items.filter((item) => item.prerelease === (forChannel === "prerelease"));
     setVersions(filtered);
     setFetchError(error ?? null);
-    setSelectedTag((current) => {
-      // Always default to the channel's newest release — opening the modal
-      // (or switching channel) should point at what's actually available to
-      // install, not silently pre-select "Reinstall <current>" just because
-      // that happens to match what's running. "Check for Updates" (pinLatest)
-      // additionally overrides a still-valid manual selection (e.g. an older
-      // version picked to inspect a downgrade), since that's the point of
-      // explicitly checking; the initial load and a channel switch only fall
-      // back to latest when there's no selection to keep.
-      if (!pinLatest && current && filtered.some((item) => item.tag === current)) return current;
-      return filtered[0]?.tag ?? "";
-    });
+    setSelectedTag((current) => selectDefaultTag(filtered, current, pinLatest));
     setLoadingVersions(false);
   };
 
@@ -155,13 +142,7 @@ export function DeckyHubUpdateModal({
     }
   };
 
-  const versionOptions = versions.map((item) => {
-    const version = normalizeVersion(item.version);
-    const isInstalled = version === normalizeVersion(info.version);
-    const isLatest = versions[0]?.tag === item.tag;
-    const suffix = isInstalled ? ` (${t("settings.installedLabel")})` : isLatest ? ` (${t("settings.latestLabel")})` : "";
-    return { data: item.tag, label: `v${version}${suffix}` };
-  });
+  const versionOptions = buildVersionOptions(versions, info.version, t);
 
   const displayVersion = selectedRelease ? normalizeVersion(selectedRelease.version) : "";
   const installType = selectedRelease ? resolveDeckyHubInstallType(selectedRelease.version, info.version) : PLUGIN_INSTALL_TYPE.UPDATE;
@@ -176,33 +157,19 @@ export function DeckyHubUpdateModal({
   return (
     <ModalRoot closeModal={closeModal}>
       <div style={{ display: "grid", gap: 10 }}>
-        <strong style={{ fontSize: 16 }}>{t("settings.deckyhubUpdate")}</strong>
-        <div style={{ fontSize: 13, opacity: 0.75 }}>{t("settings.current")} - v{info.version}</div>
-
-        <div style={{ display: "grid", gap: 8, padding: 12, background: "rgba(0, 0, 0, 0.2)", borderRadius: 8 }}>
-          <DropdownItem
-            label={t("settings.updateChannel")}
-            rgOptions={[
-              { label: t("settings.stableReleases"), data: "stable" },
-              { label: t("settings.preReleases"), data: "prerelease" },
-            ]}
-            selectedOption={channel}
-            disabled={busy}
-            onChange={({ data }) => void changeChannel(data as UpdateChannel)}
-          />
-          {versionOptions.length > 0 && (
-            <DropdownItem
-              label={t("settings.version")}
-              rgOptions={versionOptions}
-              selectedOption={selectedTag}
-              disabled={busy}
-              onChange={({ data }) => setSelectedTag(String(data))}
-            />
-          )}
-        </div>
-
-        {(fetchError || selfUpdateError) && <small style={{ color: "#ff6b6b" }}>{fetchError || selfUpdateError}</small>}
-        {!loadingVersions && !fetchError && versions.length === 0 && <small style={{ color: "#ff6b6b" }}>{t("settings.noReleasesFound")}</small>}
+        <VersionPickerPanel
+          t={t}
+          title={t("settings.deckyhubUpdate")}
+          subtitle={`${t("settings.current")} - v${info.version}`}
+          channel={channel}
+          onChannelChange={(next) => void changeChannel(next)}
+          versionOptions={versionOptions}
+          selectedTag={selectedTag}
+          onVersionChange={setSelectedTag}
+          disabled={busy}
+          error={fetchError || selfUpdateError}
+          isEmpty={!loadingVersions && !fetchError && versions.length === 0}
+        />
 
         {selfUpdating && (
           <div style={{ display: "grid", gap: 6 }}>
