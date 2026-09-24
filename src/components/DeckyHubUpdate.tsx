@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { getDeckyHubInfo, getSettings } from "../api";
 import { useT } from "../i18n";
 import type { DeckyHubInfo, DeckyHubRelease, UpdateChannel } from "../types";
-import { compactButtonStyle, latestDeckyHubRelease, normalizeVersion } from "../utils";
+import { compactButtonStyle, latestDeckyHubRelease, normalizeVersion, PLUGIN_INSTALL_TYPE, resolveDeckyHubInstallType } from "../utils";
 import { DeckyHubUpdateModal } from "./DeckyHubUpdateModal";
 
 // Deliberately thin: a header naming the installed version and a single
@@ -16,10 +16,15 @@ export function DeckyHubUpdate() {
   const [info, setInfo] = useState<DeckyHubInfo>({ version: "unknown" });
   const [release, setRelease] = useState<DeckyHubRelease>({});
 
+  // Only a strictly newer release counts as available — e.g. a pre-release
+  // install on the stable channel mustn't be offered the older stable one.
+  const isNewer = (version?: string) =>
+    Boolean(version && info.version !== "unknown" && resolveDeckyHubInstallType(version, info.version) === PLUGIN_INSTALL_TYPE.UPDATE);
+
   const checkForUpdate = (force = false) =>
     void latestDeckyHubRelease(channel, force).then((next) => {
       setRelease(next);
-      if (next.version && !next.error && info.version !== "unknown" && normalizeVersion(next.version) !== normalizeVersion(info.version)) {
+      if (next.version && !next.error && isNewer(next.version)) {
         toaster.toast({ title: "DeckyHub", body: t("settings.updateAvailable", { version: next.version }) });
       }
     });
@@ -35,11 +40,10 @@ export function DeckyHubUpdate() {
     if (info.version !== "unknown") checkForUpdate();
   }, [channel, info.version]);
 
-  const upToDate = Boolean(release.version && info.version !== "unknown" && normalizeVersion(release.version) === normalizeVersion(info.version));
   const loading = info.version === "unknown";
   const title = loading ? `${t("settings.checkingVersion")}…` : `${t("settings.current")} - v${info.version}`;
   const buttonLabel =
-    release.asset && !upToDate && release.version
+    release.asset && release.version && isNewer(release.version)
       ? t("settings.updateButtonAvailable", { version: normalizeVersion(release.version) })
       : t("settings.updateButton");
 

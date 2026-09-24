@@ -215,6 +215,25 @@ test("DeckyHub automatically notifies about an available update", async ({ page 
   await expect(app.getByRole("button", { name: "Release Page", exact: true })).toBeVisible();
 });
 
+test("DeckyHub doesn't advertise an older release as an available update", async ({ page }) => {
+  // The installed version is a pre-release (package.json); the stable
+  // channel's newest release is older, so it must not show as "available".
+  const olderStable = {
+    tag_name: "v0.9.0",
+    prerelease: false,
+    html_url: "https://github.com/mazillka/deckyhub-plugin/releases/tag/v0.9.0",
+    assets: [{ name: "DeckyHub-v0.9.0.zip", browser_download_url: "https://github.com/mazillka/deckyhub-plugin/releases/download/v0.9.0/DeckyHub-v0.9.0.zip", digest: `sha256:${"c".repeat(64)}` }],
+  };
+  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) => route.fulfill({ json: [olderStable] }));
+  await page.goto("/?bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+
+  await expect(app.getByRole("button", { name: "Update", exact: true })).toBeVisible();
+  await expect(app.getByText(/DeckyHub update v0\.9\.0 is available/)).toHaveCount(0);
+  await app.getByRole("button", { name: "Update", exact: true }).click();
+  await expect(app.getByRole("button", { name: "Downgrade to v0.9.0", exact: true })).toBeVisible();
+});
+
 test("DeckyHub version picker offers to downgrade to an older release", async ({ page }) => {
   const installedRelease = {
     tag_name: deckyHubTag,
