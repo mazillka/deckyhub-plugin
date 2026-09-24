@@ -562,7 +562,7 @@ test("Discover's Details modal exposes every matching release asset", async ({ p
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
 
   const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
-  await makoCard.getByRole("button", { name: "Details", exact: true }).click();
+  await makoCard.getByRole("button", { name: "Download", exact: true }).click();
 
   const modal = app.locator(".steam-modal");
   await expect(modal.getByRole("button", { name: "Download", exact: true })).toBeVisible();
@@ -586,7 +586,7 @@ test("Reopening Details within the cache window doesn't re-fetch its release lis
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
   const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
 
-  await makoCard.getByRole("button", { name: "Details", exact: true }).click();
+  await makoCard.getByRole("button", { name: "Download", exact: true }).click();
   await expect(app.locator(".steam-modal").getByRole("button", { name: "Download", exact: true })).toBeVisible();
   await app.locator(".steam-modal").getByRole("button", { name: "Close", exact: true }).click();
 
@@ -594,7 +594,7 @@ test("Reopening Details within the cache window doesn't re-fetch its release lis
   // same endpoint independently, so opening Details fresh costs 2 requests —
   // reopening it should add none, since both are still within CACHE_TTL.
   const requestsAfterFirstOpen = requests;
-  await makoCard.getByRole("button", { name: "Details", exact: true }).click();
+  await makoCard.getByRole("button", { name: "Download", exact: true }).click();
   await expect(app.locator(".steam-modal").getByRole("button", { name: "Download", exact: true })).toBeVisible();
 
   expect(requests).toBe(requestsAfterFirstOpen);
@@ -629,7 +629,7 @@ test("Discover's Details modal lists versions for the selected channel", async (
   await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
   const app = mock(page);
   const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
-  await makoCard.getByRole("button", { name: "Details", exact: true }).click();
+  await makoCard.getByRole("button", { name: "Download", exact: true }).click();
 
   // Every card on the page also has its own "Installed: —" line, so scope
   // assertions to the modal itself rather than the whole (iframe) document.
@@ -655,7 +655,7 @@ test("Discover's Details modal channel picker updates the card's Channel label",
   await expect(makoCard.getByText("Channel: Stable", { exact: true })).toBeVisible();
 
   try {
-    await makoCard.getByRole("button", { name: "Details", exact: true }).click();
+    await makoCard.getByRole("button", { name: "Download", exact: true }).click();
     await app.getByLabel("Update Channel").selectOption({ label: "Pre-releases" });
     await expect(app.getByLabel("Version")).toHaveValue("plugin-v1.4.0-beta");
 
@@ -787,7 +787,7 @@ test("Clearing a previously-saved GitHub token removes it from GitHub API reques
 
     await app.getByRole("button", { name: "/deckyhub/discover" }).click();
     const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
-    await makoCard.getByRole("button", { name: "Details", exact: true }).click();
+    await makoCard.getByRole("button", { name: "Download", exact: true }).click();
     const modal = app.locator(".steam-modal");
     await modal.getByRole("button", { name: "Check for Updates", exact: true }).click();
     await expect(modal.getByRole("button", { name: "Download", exact: true })).toBeVisible();

@@ -81,7 +81,7 @@ export function AppDetailsModal({
           <>
             {selectedRelease.assets[0] ? (
               <Button style={modalButtonStyle} disabled={downloadDisabled} onClick={() => onDownload(selectedRelease.assets[0])}>
-                {t("appcard.downloadSelected")}
+                {t("appcard.download")}
               </Button>
             ) : (
               <small style={{ color: "#ff6b6b" }}>{t("appcard.noMatchingAsset")}</small>

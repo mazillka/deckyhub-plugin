@@ -56,7 +56,7 @@ export function AppCard({
             )
           }
         >
-          {t("appcard.details")}
+          {t("appcard.download")}
         </Button>
       </PanelSectionRow>
     </PanelSection>
