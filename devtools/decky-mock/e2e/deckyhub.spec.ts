@@ -279,15 +279,17 @@ test("DeckyHub distinguishes rc versions sharing the same release number", async
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
   await app.getByRole("button", { name: "Update", exact: true }).click();
-  await expect(app.getByRole("button", { name: `Reinstall v${deckyHubVersion}`, exact: true })).toBeVisible();
+
+  // The modal defaults to the channel's newest release (newerRcRelease is
+  // versions[0] in the mocked list), not the installed one, so it shows
+  // "Update to …" immediately rather than "Reinstall …".
+  await expect(app.getByRole("button", { name: `Update to ${newerRcTag}`, exact: true })).toBeVisible();
 
   await app.getByLabel("Version").selectOption({ label: olderRcTag });
   await expect(app.getByRole("button", { name: `Downgrade to ${olderRcTag}`, exact: true })).toBeVisible();
 
-  // versions[0] in the mocked list (newerRcRelease) is labelled "(latest)"
-  // since it isn't the installed one.
-  await app.getByLabel("Version").selectOption({ label: `${newerRcTag} (latest)` });
-  await expect(app.getByRole("button", { name: `Update to ${newerRcTag}`, exact: true })).toBeVisible();
+  await app.getByLabel("Version").selectOption({ label: `${deckyHubTag} (installed)` });
+  await expect(app.getByRole("button", { name: `Reinstall v${deckyHubVersion}`, exact: true })).toBeVisible();
 });
 
 test("DeckyHub falls back to a clear message when automatic update can't reach Decky Loader", async ({ page }) => {

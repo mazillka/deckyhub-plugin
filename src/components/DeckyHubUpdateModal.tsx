@@ -51,16 +51,16 @@ export function DeckyHubUpdateModal({
     setVersions(filtered);
     setFetchError(error ?? null);
     setSelectedTag((current) => {
-      // "Check for Updates" (pinLatest) always jumps to the channel's newest
-      // release, even if the user had an older one selected to inspect a
-      // downgrade — that's the point of explicitly checking. The initial
-      // load and a channel switch keep whatever's still selected, or fall
-      // back to the installed match, so opening the modal doesn't yank the
-      // selection away from what's already running.
-      if (pinLatest) return filtered[0]?.tag ?? "";
-      if (current && filtered.some((item) => item.tag === current)) return current;
-      const installed = filtered.find((item) => normalizeVersion(item.version) === normalizeVersion(info.version));
-      return installed?.tag ?? filtered[0]?.tag ?? "";
+      // Always default to the channel's newest release — opening the modal
+      // (or switching channel) should point at what's actually available to
+      // install, not silently pre-select "Reinstall <current>" just because
+      // that happens to match what's running. "Check for Updates" (pinLatest)
+      // additionally overrides a still-valid manual selection (e.g. an older
+      // version picked to inspect a downgrade), since that's the point of
+      // explicitly checking; the initial load and a channel switch only fall
+      // back to latest when there's no selection to keep.
+      if (!pinLatest && current && filtered.some((item) => item.tag === current)) return current;
+      return filtered[0]?.tag ?? "";
     });
     setLoadingVersions(false);
   };
