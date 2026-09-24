@@ -46,7 +46,6 @@ class PluginStatusTests(unittest.TestCase):
             settings = asyncio.run(plugin.save_settings({}))
 
             self.assertTrue(settings["overwriteExisting"])
-            self.assertEqual(plugin._asset_download_dir(), Path(main.PLUGIN_DOWNLOAD_DIR))
             self.assertNotIn("downloadLocation", asyncio.run(plugin.save_settings({"downloadLocation": "downloads"})))
 
     def test_github_token_is_trimmed_and_persisted(self):
@@ -157,7 +156,7 @@ class PluginStatusTests(unittest.TestCase):
                 plugin.download_queue = asyncio.Queue()
                 target_dir = Path(home) / "plugins"
                 asset = {"name": "DeckyHub-v1.zip", "url": "https://github.com/mazillka/deckyhub-plugin/releases/download/v1/DeckyHub-v1.zip", "sha256": "a" * 64}
-                with patch.object(plugin, "_asset_download_dir", return_value=target_dir):
+                with patch("main.PLUGIN_DOWNLOAD_DIR", str(target_dir)):
                     result = await plugin.install_deckyhub_update(asset)
                 return plugin.downloads[result["jobId"]]["path"]
 
@@ -366,7 +365,7 @@ class PluginStatusTests(unittest.TestCase):
             plugin.download_queue = asyncio.Queue()
             target_dir = Path(home) / "plugins"
 
-            with patch.object(plugin, "_asset_download_dir", return_value=target_dir):
+            with patch("main.PLUGIN_DOWNLOAD_DIR", str(target_dir)):
                 result = asyncio.run(plugin.download_asset({"name": "../../etc/passwd", "url": "https://github.com/owner/repo/releases/download/v1/a.zip"}, "owner/repo"))
 
             self.assertEqual(plugin.downloads[result["jobId"]]["path"], str(target_dir / "passwd"))
@@ -381,7 +380,7 @@ class PluginStatusTests(unittest.TestCase):
             target_dir.mkdir(parents=True)
             (target_dir / "asset.zip").write_bytes(b"x")
 
-            with patch.object(plugin, "_asset_download_dir", return_value=target_dir):
+            with patch("main.PLUGIN_DOWNLOAD_DIR", str(target_dir)):
                 result = asyncio.run(plugin.download_asset({"name": "asset.zip", "url": "https://github.com/owner/repo/releases/download/v1/asset.zip"}, "owner/repo"))
 
             self.assertEqual(plugin.downloads[result["jobId"]]["path"], str(target_dir / "asset (1).zip"))
@@ -394,18 +393,12 @@ class PluginStatusTests(unittest.TestCase):
             plugin.download_queue = asyncio.Queue()
             asset = {"name": "asset.zip", "url": "https://github.com/owner/repo/releases/download/v1/asset.zip"}
 
-            with patch.object(plugin, "_asset_download_dir", return_value=Path(home)):
+            with patch("main.PLUGIN_DOWNLOAD_DIR", str(Path(home))):
                 first = asyncio.run(plugin.download_asset(asset, "owner/repo"))
                 second = asyncio.run(plugin.download_asset(asset, "owner/repo"))
 
             self.assertEqual(second["jobId"], first["jobId"])
             self.assertEqual(len(plugin.downloads), 1)
-
-    def test_legacy_download_locations_are_ignored(self):
-        plugin = Plugin()
-        plugin.settings = {"downloadLocation": "plugins", "repoSettings": {"owner/repo": {"downloadLocation": "downloads"}}}
-
-        self.assertEqual(plugin._asset_download_dir(), Path(main.PLUGIN_DOWNLOAD_DIR))
 
     def test_download_marks_error_on_checksum_mismatch(self):
         with tempfile.TemporaryDirectory() as home:
@@ -476,70 +469,6 @@ class PluginStatusTests(unittest.TestCase):
 
             installed_plugins = plugin._scan_installed_plugins()
             self.assertEqual(plugin._installed_version({"detect": {"type": "decky-plugin", "repo": "owner/repo"}}, installed_plugins), "9.9.9")
-
-    def test_queue_downloads_creates_a_job_per_item(self):
-        with tempfile.TemporaryDirectory() as home:
-            plugin = Plugin()
-            plugin.settings = {"downloadLocation": "plugins", "overwriteExisting": True, "repoSettings": {}}
-            plugin.downloads = {}
-            plugin.download_queue = asyncio.Queue()
-            target_dir = Path(home) / "plugins"
-
-            with patch.object(plugin, "_asset_download_dir", return_value=target_dir):
-                result = asyncio.run(
-                    plugin.queue_downloads(
-                        [
-                            {"asset": {"name": "a.zip", "url": "https://github.com/owner/a/releases/download/v1/a.zip"}, "repo": "owner/a"},
-                            {"asset": {"name": "b.zip", "url": "https://github.com/owner/b/releases/download/v1/b.zip"}, "repo": "owner/b"},
-                        ]
-                    )
-                )
-
-            self.assertEqual(len(result["jobIds"]), 2)
-            self.assertEqual(len(plugin.downloads), 2)
-
-    def test_queue_downloads_validates_every_item_before_queueing(self):
-        plugin = Plugin()
-        plugin.downloads = {}
-        plugin.download_queue = asyncio.Queue()
-        valid = {"name": "plugin.zip", "url": "https://github.com/owner/repo/releases/download/v1/plugin.zip"}
-        invalid = {"name": "plugin.zip", "url": "https://example.com/plugin.zip"}
-
-        result = asyncio.run(plugin.queue_downloads([
-            {"asset": valid, "repo": "owner/repo"},
-            {"asset": invalid, "repo": "owner/repo"},
-        ]))
-
-        self.assertEqual(result["error"], "Can't queue updates: Only GitHub release assets for the selected repository can be downloaded")
-        self.assertEqual(plugin.downloads, {})
-        self.assertTrue(plugin.download_queue.empty())
-
-    def test_refresh_registry_replaces_apps_and_writes_cache(self):
-        with tempfile.TemporaryDirectory() as home:
-            plugin = Plugin()
-            plugin.registry_path = Path(home) / "registry.json"
-            plugin.apps = []
-            payload = {
-                "schemaVersion": 1,
-                "apps": [{"id": "a", "name": "A", "repo": "owner/a", "category": "Cat", "versionStrategy": "semver", "source": "releases", "asset": {"include": [], "exclude": []}}],
-            }
-
-            class Response:
-                def __enter__(self):
-                    return self
-
-                def __exit__(self, *_):
-                    return False
-
-                def read(self):
-                    return json.dumps(payload).encode("utf-8")
-
-            with patch("main.urlopen", return_value=Response()):
-                result = asyncio.run(plugin.refresh_registry())
-
-            self.assertEqual(result["count"], 1)
-            self.assertEqual(plugin.apps[0]["repo"], "owner/a")
-            self.assertTrue(plugin.registry_path.exists())
 
 
 if __name__ == "__main__":

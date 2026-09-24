@@ -18,14 +18,13 @@ PLUGIN_DIR = str(Path(__file__).resolve().parent)
 if PLUGIN_DIR not in sys.path:
     sys.path.insert(0, PLUGIN_DIR)
 
-from backend.registry import load_registry, parse_registry
+from backend.registry import load_registry
 
 DEFAULT_DOWNLOAD_DIR = "/home/deck/Downloads"
 PLUGIN_DOWNLOAD_DIR = f"{DEFAULT_DOWNLOAD_DIR}/deckyhub"
 DECKYHUB_REPO = "mazillka/deckyhub-plugin"
 DECKYHUB_RELEASE_PREFIX = f"https://github.com/{DECKYHUB_REPO}/releases/download/"
 DECKYHUB_VERSION = "1.0.3-rc.15"
-REGISTRY_URL = f"https://raw.githubusercontent.com/{DECKYHUB_REPO}/main/registry/apps.json"
 REPOSITORY_NAME = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 SUPPORTED_LANGUAGES = {"auto", "en", "uk", "es", "de", "fr", "ja", "zh"}
 DEFAULT_COLUMNS_PER_ROW = 3
@@ -47,12 +46,21 @@ def _coerce_github_token(value) -> str:
     return value.strip()[:255] if isinstance(value, str) else ""
 
 
+def _coerce_settings(settings: dict) -> dict:
+    return {
+        "overwriteExisting": bool(settings.get("overwriteExisting", True)),
+        "updateChannel": "prerelease" if settings.get("updateChannel") == "prerelease" else "stable",
+        "language": settings.get("language") if settings.get("language") in SUPPORTED_LANGUAGES else "auto",
+        "columnsPerRow": _coerce_columns_per_row(settings.get("columnsPerRow")),
+        "githubToken": _coerce_github_token(settings.get("githubToken")),
+    }
+
+
 class Plugin:
     async def _main(self):
         self.settings_path = Path(decky.DECKY_PLUGIN_SETTINGS_DIR) / "settings.json"
         self.settings = self._load_settings()
-        self.registry_path = Path(decky.DECKY_PLUGIN_SETTINGS_DIR) / "registry.json"
-        self.apps = self._load_registry()
+        self.apps = load_registry(decky.DECKY_PLUGIN_DIR)
         self.downloads: dict[str, dict] = {}
         self.cancelled: set[str] = set()
         self.download_queue: asyncio.Queue = asyncio.Queue()
@@ -63,22 +71,12 @@ class Plugin:
             settings = json.loads(self.settings_path.read_text(encoding="utf-8"))
             repos = settings.get("customRepos", [])
             return {
-                "overwriteExisting": bool(settings.get("overwriteExisting", True)),
-                "updateChannel": "prerelease" if settings.get("updateChannel") == "prerelease" else "stable",
-                "language": settings.get("language") if settings.get("language") in SUPPORTED_LANGUAGES else "auto",
-                "columnsPerRow": _coerce_columns_per_row(settings.get("columnsPerRow")),
+                **_coerce_settings(settings),
                 "customRepos": [repo for repo in repos if isinstance(repo, str) and REPOSITORY_NAME.fullmatch(repo)],
                 "repoSettings": settings.get("repoSettings", {}) if isinstance(settings.get("repoSettings"), dict) else {},
-                "githubToken": _coerce_github_token(settings.get("githubToken")),
             }
         except (AttributeError, OSError, json.JSONDecodeError):
-            return {"overwriteExisting": True, "updateChannel": "stable", "language": "auto", "columnsPerRow": DEFAULT_COLUMNS_PER_ROW, "customRepos": [], "repoSettings": {}, "githubToken": ""}
-
-    def _load_registry(self) -> list[dict]:
-        try:
-            return parse_registry(json.loads(self.registry_path.read_text(encoding="utf-8")))
-        except (OSError, json.JSONDecodeError, ValueError):
-            return load_registry(decky.DECKY_PLUGIN_DIR)
+            return {**_coerce_settings({}), "customRepos": [], "repoSettings": {}}
 
     def _save_settings(self):
         self.settings_path.parent.mkdir(parents=True, exist_ok=True)
@@ -153,20 +151,6 @@ class Plugin:
             installed[index] = version
         return {"apps": [{**app, "installedVersion": version, "latestVersion": None, "publishedAt": None, "releaseUrl": None, "assets": [], "updateAvailable": None, "error": None} for app, version in zip(apps, installed)]}
 
-    async def refresh_registry(self):
-        def fetch():
-            request = Request(REGISTRY_URL, headers={"User-Agent": "DeckyHub"})
-            with urlopen(request, timeout=20) as response:
-                return json.loads(response.read().decode("utf-8"))
-        payload = await asyncio.to_thread(fetch)
-        apps = parse_registry(payload)
-        self.registry_path.parent.mkdir(parents=True, exist_ok=True)
-        temporary = self.registry_path.with_suffix(".part")
-        temporary.write_text(json.dumps(payload), encoding="utf-8")
-        os.replace(temporary, self.registry_path)
-        self.apps = apps
-        return {"count": len(apps)}
-
     async def save_repo_settings(self, repo: str, values: dict):
         if not REPOSITORY_NAME.fullmatch(repo):
             raise ValueError("Repository must be owner/name")
@@ -196,19 +180,12 @@ class Plugin:
 
     async def save_settings(self, settings: dict):
         self.settings = {
-            "overwriteExisting": bool(settings.get("overwriteExisting", True)),
-            "updateChannel": "prerelease" if settings.get("updateChannel") == "prerelease" else "stable",
-            "language": settings.get("language") if settings.get("language") in SUPPORTED_LANGUAGES else "auto",
-            "columnsPerRow": _coerce_columns_per_row(settings.get("columnsPerRow")),
+            **_coerce_settings(settings),
             "customRepos": getattr(self, "settings", {}).get("customRepos", []),
             "repoSettings": getattr(self, "settings", {}).get("repoSettings", {}),
-            "githubToken": _coerce_github_token(settings.get("githubToken")),
         }
         self._save_settings()
         return self.settings
-
-    def _asset_download_dir(self) -> Path:
-        return Path(PLUGIN_DOWNLOAD_DIR)
 
     async def clear_downloads(self):
         directory = Path(PLUGIN_DOWNLOAD_DIR)
@@ -226,16 +203,6 @@ class Plugin:
             return removed
 
         return {"removed": await asyncio.to_thread(clear)}
-
-    async def list_downloads(self):
-        directory = Path(PLUGIN_DOWNLOAD_DIR)
-
-        def list_items():
-            if not directory.is_dir():
-                return []
-            return [{"name": entry.name, "directory": entry.is_dir() and not entry.is_symlink()} for entry in sorted(directory.iterdir(), key=lambda entry: entry.name.casefold())]
-
-        return {"items": await asyncio.to_thread(list_items)}
 
     async def list_downloads(self):
         directory = Path(PLUGIN_DOWNLOAD_DIR)
@@ -307,7 +274,7 @@ class Plugin:
             for job_id, job in self.downloads.items():
                 if job.get("repo") == repo and job.get("url") == asset["url"] and job["state"] in ("queued", "downloading"):
                     return {"jobId": job_id}
-            target_dir = self._asset_download_dir()
+            target_dir = Path(PLUGIN_DOWNLOAD_DIR)
             target_dir.mkdir(parents=True, exist_ok=True)
             target = target_dir / name
             if target.exists() and not self.settings.get("overwriteExisting"):
@@ -319,23 +286,6 @@ class Plugin:
         except (OSError, ValueError) as error:
             name = asset.get("name", "download") if isinstance(asset, dict) else "download"
             return {"error": f"Can't start {name}: {error}"}
-
-    async def queue_downloads(self, items: list[dict]):
-        try:
-            entries = []
-            for item in items:
-                asset, repo = item.get("asset", {}), item.get("repo")
-                self._validate_download_asset(asset, repo)
-                entries.append((asset, repo))
-        except (AttributeError, ValueError) as error:
-            return {"error": f"Can't queue updates: {error}"}
-        jobs = []
-        for asset, repo in entries:
-            result = await self.download_asset(asset, repo)
-            if result.get("error"):
-                return result
-            jobs.append(result["jobId"])
-        return {"jobIds": jobs}
 
     @staticmethod
     def _validate_download_asset(asset: dict, repo: str | None) -> str:
@@ -353,7 +303,7 @@ class Plugin:
         if not isinstance(url, str) or not url.startswith(DECKYHUB_RELEASE_PREFIX) or not name.startswith("DeckyHub-") or not name.endswith(".zip") or not isinstance(digest, str) or not re.fullmatch(r"[0-9a-fA-F]{64}", digest):
             raise ValueError("Invalid DeckyHub release asset")
         job_id = f"deckyhub-update-{len(self.downloads) + 1}"
-        target_dir = self._asset_download_dir()
+        target_dir = Path(PLUGIN_DOWNLOAD_DIR)
         target_dir.mkdir(parents=True, exist_ok=True)
         target = target_dir / name
         if target.exists() and not self.settings.get("overwriteExisting"):
@@ -381,35 +331,17 @@ class Plugin:
         job, temp = self.downloads[job_id], target.with_name(target.name + ".part")
         try:
             job["state"] = "downloading"
-            self._download_with_urllib(job_id, asset, temp)
-        except InterruptedError:
-            job["state"] = "cancelled"
-            temp.unlink(missing_ok=True)
-            self.cancelled.discard(job_id)
-            return
-        except URLError:
             try:
+                self._download_with_urllib(job_id, asset, temp)
+            except URLError:
                 self._download_with_curl(job_id, asset, temp)
-            except InterruptedError:
-                job["state"] = "cancelled"
-                temp.unlink(missing_ok=True)
-                self.cancelled.discard(job_id)
-                return
-            except Exception as error:
-                job.update({"state": "error", "error": str(error)})
-                temp.unlink(missing_ok=True)
-                self.cancelled.discard(job_id)
-                return
-        except Exception as error:
-            job.update({"state": "error", "error": str(error)})
-            temp.unlink(missing_ok=True)
-            self.cancelled.discard(job_id)
-            return
-        try:
             if asset.get("sha256") and self._sha256(temp) != asset["sha256"].lower():
                 raise RuntimeError("SHA256 verification failed")
             os.replace(temp, target)
             job["state"] = "complete"
+        except InterruptedError:
+            job["state"] = "cancelled"
+            temp.unlink(missing_ok=True)
         except Exception as error:
             job.update({"state": "error", "error": str(error)})
             temp.unlink(missing_ok=True)
