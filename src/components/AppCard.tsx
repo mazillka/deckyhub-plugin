@@ -1,7 +1,7 @@
 import { DialogButtonPrimary as Button, PanelSection, PanelSectionRow, showModal } from "@decky/ui";
 import { useT } from "../i18n";
 import type { App, Asset, HideableButton, RepoPreference, UpdateChannel } from "../types";
-import { compactButtonStyle, cardDescriptionStyle, statusKey, statusColor } from "../utils";
+import { compactButtonStyle, cardDescriptionStyle, displayVersion, statusKey, statusColor } from "../utils";
 import { AppDetailsModal } from "./AppDetailsModal";
 
 export function AppCard({
@@ -29,9 +29,9 @@ export function AppCard({
           <small style={cardDescriptionStyle}>{app.description || " "}</small>
           <span style={{ color: statusColor(app) }}>{t(statusKey(app))}</span>
           <br />
-          <small>{t("settings.installedVersion", { version: app.installedVersion ?? "—" })}</small>
+          <small>{t("settings.installedVersion", { version: app.installedVersion ? displayVersion(app.installedVersion) : "—" })}</small>
           <br />
-          <small>{t("settings.latestVersion", { version: app.latestVersion ?? "—" })}</small>
+          <small>{t("settings.latestVersion", { version: app.latestVersion ? displayVersion(app.latestVersion) : "—" })}</small>
           <br />
           <small style={{ color: app.channel === "prerelease" ? "#ffa94d" : undefined }}>
             {t("appcard.channel", { channel: t(app.channel === "prerelease" ? "appcard.channelPrerelease" : "appcard.channelStable") })}

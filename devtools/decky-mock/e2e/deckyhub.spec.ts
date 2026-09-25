@@ -604,8 +604,8 @@ test("The Manage window offers Install for a Decky plugin that isn't installed y
   const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
   await makoCard.getByRole("button", { name: "Manage", exact: true }).click();
   const modal = app.locator(".steam-modal");
-  // A prefixed tag is shown as-is, not as "vplugin-v1.2.3".
-  await expect(modal.getByLabel("Version").locator("option")).toHaveText(["plugin-v1.2.3 (latest)"]);
+  // Every version shows as v*.*.*, whatever the tag's prefix.
+  await expect(modal.getByLabel("Version").locator("option")).toHaveText(["v1.2.3 (latest)"]);
   await expect(modal.getByRole("button", { name: "Update", exact: true })).toHaveCount(0);
   await modal.getByRole("button", { name: "Install", exact: true }).click();
 
@@ -809,7 +809,7 @@ test("Discover's Details modal lists versions for the selected channel", async (
   await expect(modal.getByRole("button", { name: "Download ZIP", exact: true })).toBeVisible();
   await expect(modal.getByRole("button", { name: "Release Page", exact: true })).toBeVisible();
 
-  await modal.getByLabel("Version").selectOption({ label: "plugin-v1.2.3" });
+  await modal.getByLabel("Version").selectOption({ label: "v1.2.3" });
   await expect(modal.getByLabel("Version")).toHaveValue("plugin-v1.2.3");
 
   await modal.getByRole("button", { name: "Close", exact: true }).click();
@@ -870,7 +870,7 @@ test("Discover's card picks the newest pre-release by publish date, not array or
     await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
     const app = mock(page);
     const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
-    await expect(makoCard.getByText(`Latest: ${newerBeta.tag_name}`, { exact: true })).toBeVisible();
+    await expect(makoCard.getByText("Latest: v1.4.0-beta.2", { exact: true })).toBeVisible();
   } finally {
     await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "stable", assetFilter: [] });
   }
@@ -899,7 +899,7 @@ test("Saving a GitHub token in Settings adds it to GitHub API requests", async (
     // AGENTS.md), which re-primes the GitHub token from backend settings on
     // mount — same mechanism as its locale refresh — so no reload is needed.
     await app.getByRole("button", { name: "/deckyhub/discover" }).click();
-    await expect(app.getByText("Latest: plugin-v1.2.3", { exact: true }).first()).toBeVisible();
+    await expect(app.getByText("Latest: v1.2.3", { exact: true }).first()).toBeVisible();
 
     expect(authHeader).toBe("Bearer ghp_test_token_abc123");
   } finally {

@@ -150,8 +150,7 @@ export function buildVersionOptions<T extends { tag: string; version: string }>(
     const isInstalled = Boolean(installedVersion) && version === normalizeVersion(installedVersion!);
     const isLatest = items[0]?.tag === item.tag;
     const suffix = isInstalled ? ` (${t("settings.installedLabel")})` : isLatest ? ` (${t("settings.latestLabel")})` : "";
-    // "v" only in front of a bare version number, not tags like "plugin-v3.3.0".
-    return { data: item.tag, label: `${/^\d/.test(version) ? "v" : ""}${version}${suffix}` };
+    return { data: item.tag, label: `${displayVersion(item.version)}${suffix}` };
   });
 }
 
@@ -162,6 +161,14 @@ export const PLUGIN_INSTALL_TYPE = { INSTALL: 0, REINSTALL: 1, UPDATE: 2, DOWNGR
 
 // DeckyHub's own versions can carry a pre-release suffix ("1.0.3-rc.2"),
 // which versionNumbers() above deliberately ignores (it only wants the
+// One display format for every version: "v" + the version number, keeping a
+// pre-release suffix — "plugin-v3.3.0" → v3.3.0, "Release-0.7.5" → v0.7.5,
+// "1.0.3-rc.2" → v1.0.3-rc.2. Anything without a version number is shown as is.
+export function displayVersion(value: string) {
+  const match = value.match(/(\d+(?:\.\d+)+)(-[0-9A-Za-z.-]+)?/);
+  return match ? `v${match[1]}${match[2] ?? ""}` : value;
+}
+
 // release-number part for third-party apps). That made every "1.0.3-rc.N"
 // compare as an identical "1.0.3" here, so switching between rc.1/rc.2/rc.3
 // in the version picker always resolved to Reinstall. Parse the suffix too.
