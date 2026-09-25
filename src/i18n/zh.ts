@@ -102,6 +102,7 @@ export const zh: Record<MessageKey, string> = {
   "settings.autoDetect": "自动检测",
   "settings.displaySettings": "显示设置",
   "settings.itemsPerRow": "每行显示数量",
+  "settings.hideButton": "隐藏「{button}」",
 
   "repos.addManage": "添加与管理",
   "repos.addGithubRepository": "添加 GitHub 仓库",

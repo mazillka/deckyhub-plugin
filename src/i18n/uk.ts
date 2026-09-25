@@ -102,6 +102,7 @@ export const uk: Record<MessageKey, string> = {
   "settings.autoDetect": "Визначати автоматично",
   "settings.displaySettings": "Налаштування вигляду",
   "settings.itemsPerRow": "Елементів у рядку",
+  "settings.hideButton": "Приховати «{button}»",
 
   "repos.addManage": "Додати й керувати",
   "repos.addGithubRepository": "Додати репозиторій GitHub",

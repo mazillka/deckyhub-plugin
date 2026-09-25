@@ -102,6 +102,7 @@ export const de: Record<MessageKey, string> = {
   "settings.autoDetect": "Automatisch erkennen",
   "settings.displaySettings": "Anzeigeeinstellungen",
   "settings.itemsPerRow": "Elemente pro Zeile",
+  "settings.hideButton": "„{button}“ ausblenden",
 
   "repos.addManage": "Hinzufügen & Verwalten",
   "repos.addGithubRepository": "GitHub-Repository hinzufügen",

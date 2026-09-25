@@ -1,6 +1,6 @@
 import { DialogButtonPrimary as Button, PanelSection, PanelSectionRow, showModal } from "@decky/ui";
 import { useT } from "../i18n";
-import type { App, Asset, RepoPreference, UpdateChannel } from "../types";
+import type { App, Asset, HideableButton, RepoPreference, UpdateChannel } from "../types";
 import { compactButtonStyle, cardDescriptionStyle, statusKey, statusColor } from "../utils";
 import { AppDetailsModal } from "./AppDetailsModal";
 
@@ -8,12 +8,14 @@ export function AppCard({
   app,
   preference,
   downloadDisabled,
+  hiddenButtons,
   onDownload,
   onChannelChange,
 }: {
   app: App;
   preference: RepoPreference;
   downloadDisabled?: boolean;
+  hiddenButtons: HideableButton[];
   onDownload: (asset: Asset) => void;
   onChannelChange: (repo: string, channel: UpdateChannel) => void;
 }) {
@@ -50,6 +52,7 @@ export function AppCard({
                 app={app}
                 preference={preference}
                 downloadDisabled={downloadDisabled}
+                hiddenButtons={hiddenButtons}
                 onDownload={onDownload}
                 onChannelChange={(channel) => onChannelChange(app.repo, channel)}
               />

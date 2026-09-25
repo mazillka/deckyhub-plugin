@@ -3,8 +3,17 @@ import { useEffect, useState, type ReactNode } from "react";
 import { FaExternalLinkAlt, FaFolderOpen, FaInfoCircle, FaLock } from "react-icons/fa";
 import { getSettings, saveSettings } from "../api";
 import { LOCALE_CHANGED, LOCALES, useT } from "../i18n";
-import type { Settings } from "../types";
+import type { MessageKey } from "../i18n/en";
+import type { HideableButton, Settings } from "../types";
 import { DEFAULT_COLUMNS_PER_ROW, compactButtonStyle, githubCoreQuota, sectionDividerStyle, setGithubToken } from "../utils";
+
+// Each hideable Manage-window button, labelled with its own translation.
+const HIDEABLE_BUTTONS: [HideableButton, MessageKey][] = [
+  ["downloadZip", "settings.downloadUpdate"],
+  ["install", "appcard.install"],
+  ["update", "appcard.update"],
+  ["releasePage", "appcard.releasePage"],
+];
 
 // Explanatory text with a leading icon, bright enough to read at a glance.
 function IconNote({ icon, children }: { icon: ReactNode; children: ReactNode }) {
@@ -18,7 +27,7 @@ function IconNote({ icon, children }: { icon: ReactNode; children: ReactNode }) 
 
 export function SettingsPage() {
   const t = useT();
-  const [settings, setSettings] = useState<Settings>({ overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: DEFAULT_COLUMNS_PER_ROW, githubToken: "" });
+  const [settings, setSettings] = useState<Settings>({ overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: DEFAULT_COLUMNS_PER_ROW, githubToken: "", hiddenButtons: [] });
   // The token field saves on an explicit button (below), not per keystroke
   // like the other settings — typing a 40+ character token would otherwise
   // fire a save on every keystroke. This tracks the field independently of
@@ -141,6 +150,15 @@ export function SettingsPage() {
             onChange={({ data }) => update({ columnsPerRow: data })}
           />
         </PanelSectionRow>
+        {HIDEABLE_BUTTONS.map(([name, label]) => (
+          <PanelSectionRow key={name}>
+            <ToggleField
+              label={t("settings.hideButton", { button: t(label) })}
+              checked={settings.hiddenButtons.includes(name)}
+              onChange={(checked) => update({ hiddenButtons: checked ? [...settings.hiddenButtons, name] : settings.hiddenButtons.filter((hidden) => hidden !== name) })}
+            />
+          </PanelSectionRow>
+        ))}
       </PanelSection>
     </>
   );

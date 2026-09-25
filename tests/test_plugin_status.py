@@ -75,6 +75,16 @@ class PluginStatusTests(unittest.TestCase):
             reloaded = plugin._load_settings()
             self.assertEqual(reloaded["githubToken"], "ghp_example")
 
+    def test_hidden_buttons_keep_only_known_names(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.settings_path = Path(home) / "settings.json"
+
+            self.assertEqual(asyncio.run(plugin.save_settings({}))["hiddenButtons"], [])
+            self.assertEqual(asyncio.run(plugin.save_settings({"hiddenButtons": ["releasePage", "bogus", 3, "install"]}))["hiddenButtons"], ["install", "releasePage"])
+            self.assertEqual(asyncio.run(plugin.save_settings({"hiddenButtons": "downloadZipinstall"}))["hiddenButtons"], [])
+            self.assertEqual(plugin._load_settings()["hiddenButtons"], [])
+
     def test_github_token_defaults_to_empty_and_rejects_non_string(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = Plugin()

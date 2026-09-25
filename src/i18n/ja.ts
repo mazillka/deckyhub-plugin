@@ -102,6 +102,7 @@ export const ja: Record<MessageKey, string> = {
   "settings.autoDetect": "自動検出",
   "settings.displaySettings": "表示設定",
   "settings.itemsPerRow": "1行あたりの項目数",
+  "settings.hideButton": "「{button}」を非表示",
 
   "repos.addManage": "追加と管理",
   "repos.addGithubRepository": "GitHubリポジトリを追加",

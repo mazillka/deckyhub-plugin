@@ -102,6 +102,7 @@ export const es: Record<MessageKey, string> = {
   "settings.autoDetect": "Detección automática",
   "settings.displaySettings": "Ajustes de pantalla",
   "settings.itemsPerRow": "Elementos por fila",
+  "settings.hideButton": "Ocultar «{button}»",
 
   "repos.addManage": "Añadir y gestionar",
   "repos.addGithubRepository": "Añadir repositorio de GitHub",

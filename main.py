@@ -23,6 +23,7 @@ from backend.registry import load_registry
 DEFAULT_DOWNLOAD_DIR = "/home/deck/Downloads"
 PLUGIN_DOWNLOAD_DIR = f"{DEFAULT_DOWNLOAD_DIR}/deckyhub"
 REPOSITORY_NAME = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
+HIDEABLE_BUTTONS = ("downloadZip", "install", "update", "releasePage")
 SUPPORTED_LANGUAGES = {"auto", "en", "uk", "es", "de", "fr", "ja", "zh"}
 DEFAULT_COLUMNS_PER_ROW = 3
 
@@ -50,6 +51,8 @@ def _coerce_settings(settings: dict) -> dict:
         "language": settings.get("language") if settings.get("language") in SUPPORTED_LANGUAGES else "auto",
         "columnsPerRow": _coerce_columns_per_row(settings.get("columnsPerRow")),
         "githubToken": _coerce_github_token(settings.get("githubToken")),
+        # Manage-window buttons the user chose to hide (Display Settings).
+        "hiddenButtons": [name for name in HIDEABLE_BUTTONS if isinstance(settings.get("hiddenButtons"), list) and name in settings["hiddenButtons"]],
     }
 
 

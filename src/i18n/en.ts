@@ -101,6 +101,7 @@ export const en = {
   "settings.autoDetect": "Auto-detect",
   "settings.displaySettings": "Display Settings",
   "settings.itemsPerRow": "Items Per Row",
+  "settings.hideButton": "Hide “{button}”",
 
   "repos.addManage": "Add & Manage",
   "repos.addGithubRepository": "Add GitHub Repository",

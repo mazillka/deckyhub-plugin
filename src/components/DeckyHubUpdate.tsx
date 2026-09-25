@@ -52,7 +52,8 @@ export function DeckyHubUpdate() {
       <PanelSectionRow>
         <Button
           style={compactButtonStyle}
-          onClick={() => showModal(<DeckyHubUpdateModal t={t} info={info} channel={channel} onCheckUpdate={() => checkForUpdate(true)} onChannelChange={setChannel} />)}
+          // Read settings on open so Display Settings' hidden buttons are current.
+          onClick={() => void getSettings().then((settings) => showModal(<DeckyHubUpdateModal t={t} info={info} channel={channel} onCheckUpdate={() => checkForUpdate(true)} onChannelChange={setChannel} hiddenButtons={settings.hiddenButtons} />))}
         >
           {buttonLabel}
         </Button>

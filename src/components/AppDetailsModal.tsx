@@ -3,7 +3,7 @@ import { DialogButtonPrimary as Button, Focusable, ModalRoot, Navigation } from 
 import { useEffect, useState } from "react";
 import { saveRepoSettings } from "../api";
 import type { TFunc } from "../i18n/en";
-import type { App, AppReleaseOption, Asset, RepoPreference, UpdateChannel } from "../types";
+import type { App, AppReleaseOption, Asset, HideableButton, RepoPreference, UpdateChannel } from "../types";
 import { buildVersionOptions, getDeckyBackend, installAction, installDeckyPlugin, listAppReleases, modalButtonStyle, PLUGIN_INSTALL_TYPE, readableBytes, sectionDividerStyle, selectDefaultTag } from "../utils";
 import { VersionPickerPanel } from "./VersionPickerPanel";
 
@@ -15,6 +15,7 @@ export function AppDetailsModal({
   app,
   preference: initialPreference,
   downloadDisabled,
+  hiddenButtons,
   onDownload,
   onChannelChange,
   closeModal,
@@ -23,6 +24,7 @@ export function AppDetailsModal({
   app: App;
   preference: RepoPreference;
   downloadDisabled?: boolean;
+  hiddenButtons: HideableButton[];
   onDownload: (asset: Asset) => void;
   onChannelChange: (channel: UpdateChannel) => void;
   closeModal?: () => void;
@@ -93,19 +95,19 @@ export function AppDetailsModal({
 
         {selectedRelease && (
           <>
-            {install && (
+            {install && !hiddenButtons.includes(install.type === PLUGIN_INSTALL_TYPE.INSTALL ? "install" : "update") && (
               <Button style={modalButtonStyle} onClick={() => runInstall(selectedRelease, install)}>
                 {t(install.type === PLUGIN_INSTALL_TYPE.INSTALL ? "appcard.install" : "appcard.update")}
               </Button>
             )}
-            {selectedRelease.assets[0] ? (
+            {hiddenButtons.includes("downloadZip") ? null : selectedRelease.assets[0] ? (
               <Button style={modalButtonStyle} disabled={downloadDisabled} onClick={() => onDownload(selectedRelease.assets[0])}>
                 {t("settings.downloadUpdate")}
               </Button>
             ) : (
               <small style={{ color: "#ff6b6b" }}>{t("appcard.noMatchingAsset")}</small>
             )}
-            {selectedRelease.assets.slice(1).map((asset) => (
+            {!hiddenButtons.includes("downloadZip") && selectedRelease.assets.slice(1).map((asset) => (
               <Button key={asset.name} style={modalButtonStyle} disabled={downloadDisabled} onClick={() => onDownload(asset)}>
                 {`${asset.name} (${readableBytes(asset.size)})`}
               </Button>
@@ -114,7 +116,7 @@ export function AppDetailsModal({
         )}
 
         <Focusable style={{ display: "flex", gap: 8 }}>
-          {selectedRelease?.url && (
+          {selectedRelease?.url && !hiddenButtons.includes("releasePage") && (
             <Button style={{ ...modalButtonStyle, flex: 1 }} onClick={() => Navigation.NavigateToExternalWeb(selectedRelease.url)}>
               {t("appcard.releasePage")}
             </Button>

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { FaSync } from "react-icons/fa";
 import { downloadAsset, getApps, getSettings, REGISTRY_UPDATED } from "../api";
 import { useT } from "../i18n";
-import type { App, Asset, RepoPreference, UpdateChannel, View } from "../types";
+import type { App, Asset, HideableButton, RepoPreference, UpdateChannel, View } from "../types";
 import { compactButtonStyle, DEFAULT_COLUMNS_PER_ROW, getDeckyBackend, hydrate, notifyUpdates, sectionDividerStyle } from "../utils";
 import { AppCard } from "../components/AppCard";
 import { CleanupSection } from "../components/CleanupSection";
@@ -28,6 +28,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const [cardPage, setCardPage] = useState(0);
   const [columnsPerRow, setColumnsPerRow] = useState(DEFAULT_COLUMNS_PER_ROW);
   const [repoPreferences, setRepoPreferences] = useState<Record<string, RepoPreference>>({});
+  const [hiddenButtons, setHiddenButtons] = useState<HideableButton[]>([]);
   const quickAccessRef = useRef<HTMLDivElement>(null);
 
   const viewInfo: Record<View, { title: string; description: string; empty: string }> = {
@@ -43,6 +44,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
       const preferences = settings.repoSettings || {};
       setRepoPreferences(preferences);
       setColumnsPerRow(settings.columnsPerRow || DEFAULT_COLUMNS_PER_ROW);
+      setHiddenButtons(settings.hiddenButtons ?? []);
       const tracked = view === "updates" ? local.filter((app) => app.installedVersion) : local;
       setCardPage(0);
       setApps(tracked);
@@ -196,6 +198,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
                 app={app}
                 preference={repoPreferences[app.repo] ?? { channel: "stable", assetFilter: [] }}
                 downloadDisabled={downloading}
+                hiddenButtons={hiddenButtons}
                 onDownload={(asset) => void startDownload(asset, app.repo)}
                 onChannelChange={changeAppChannel}
               />

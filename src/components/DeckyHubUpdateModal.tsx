@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { FaDownload } from "react-icons/fa";
 import { downloadAsset, getSettings, saveSettings } from "../api";
 import type { TFunc } from "../i18n/en";
-import type { Asset, DeckyHubInfo, DeckyHubReleaseOption, UpdateChannel } from "../types";
+import type { Asset, DeckyHubInfo, DeckyHubReleaseOption, UpdateChannel, HideableButton } from "../types";
 import { PLUGIN_INSTALL_TYPE, buildVersionOptions, getDeckyBackend, installDeckyPlugin, listDeckyHubReleases, modalButtonStyle, normalizeVersion, resolveDeckyHubInstallType, sectionDividerStyle, selectDefaultTag, selfUpdateStageKey } from "../utils";
 import { showDownloadModal } from "./DownloadProgress";
 import { VersionPickerPanel } from "./VersionPickerPanel";
@@ -20,6 +20,7 @@ export function DeckyHubUpdateModal({
   channel: initialChannel,
   onCheckUpdate,
   onChannelChange,
+  hiddenButtons,
   closeModal,
 }: {
   t: TFunc;
@@ -27,6 +28,7 @@ export function DeckyHubUpdateModal({
   channel: UpdateChannel;
   onCheckUpdate: () => void;
   onChannelChange: (channel: UpdateChannel) => void;
+  hiddenButtons: HideableButton[];
   closeModal?: () => void;
 }) {
   const [channel, setChannel] = useState(initialChannel);
@@ -183,21 +185,26 @@ export function DeckyHubUpdateModal({
 
         {selectedRelease && (
           <>
-            <Button
-              style={{ ...modalButtonStyle, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
-              disabled={busy || !selectedRelease.asset}
-              onClick={() => void selfUpdate(selectedRelease)}
-            >
-              <FaDownload /> {primaryLabel}
-            </Button>
-            <Button style={modalButtonStyle} disabled={busy || !selectedRelease.asset} onClick={() => void downloadZip(selectedRelease.asset!)}>
-              {t("settings.downloadUpdate")}
-            </Button>
+            {/* Display Settings' "Hide Update" covers Update/Reinstall/Downgrade. */}
+            {!hiddenButtons.includes("update") && (
+              <Button
+                style={{ ...modalButtonStyle, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+                disabled={busy || !selectedRelease.asset}
+                onClick={() => void selfUpdate(selectedRelease)}
+              >
+                <FaDownload /> {primaryLabel}
+              </Button>
+            )}
+            {!hiddenButtons.includes("downloadZip") && (
+              <Button style={modalButtonStyle} disabled={busy || !selectedRelease.asset} onClick={() => void downloadZip(selectedRelease.asset!)}>
+                {t("settings.downloadUpdate")}
+              </Button>
+            )}
           </>
         )}
 
         <Focusable style={{ display: "flex", gap: 8 }}>
-          {selectedRelease?.url && (
+          {selectedRelease?.url && !hiddenButtons.includes("releasePage") && (
             <Button style={{ ...modalButtonStyle, flex: 1 }} onClick={() => Navigation.NavigateToExternalWeb(selectedRelease.url)}>
               {t("appcard.releasePage")}
             </Button>

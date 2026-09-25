@@ -614,6 +614,48 @@ test("The Manage window offers Install for a Decky plugin that isn't installed y
   ]);
 });
 
+test("Display Settings can hide the Manage window's buttons", async ({ page }) => {
+  await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases**", (route) =>
+    route.fulfill({ json: [{ tag_name: "plugin-v1.2.3", prerelease: false, draft: false, published_at: "2026-01-01T00:00:00Z", html_url: "https://github.com/eugeniosegala/MAKO/releases/tag/plugin-v1.2.3", assets: [{ name: "mako-decky.zip", browser_download_url: "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v1.2.3/mako-decky.zip", size: 1024, digest: `sha256:${"e".repeat(64)}` }] }] })
+  );
+  const app = mock(page);
+  const openManage = async () => {
+    await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+    await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
+    return app.locator(".steam-modal");
+  };
+
+  try {
+    // settings.json is shared with any interactive mock session; start clean.
+    await bridgeCall(page, "save_settings", { overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: 3, githubToken: "" });
+    let modal = await openManage();
+    for (const name of ["Install", "Download ZIP", "Release Page"]) await expect(modal.getByRole("button", { name, exact: true })).toBeVisible();
+    await modal.getByRole("button", { name: "Close", exact: true }).click();
+
+    await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+    for (const name of ["Download ZIP", "Install", "Release Page"]) await app.getByText(`Hide “${name}”`, { exact: true }).click();
+    await expect(app.getByLabel("Hide “Release Page”")).toBeChecked();
+
+    modal = await openManage();
+    await expect(modal.getByRole("button", { name: "Check for Updates", exact: true })).toBeVisible();
+    for (const name of ["Install", "Download ZIP", "Release Page"]) await expect(modal.getByRole("button", { name, exact: true })).toHaveCount(0);
+    await modal.getByRole("button", { name: "Close", exact: true }).click();
+
+    // DeckyHub's own update window honours the same toggles ("Hide Update"
+    // covers its Update/Reinstall/Downgrade button).
+    await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+    await app.getByText("Hide “Update”", { exact: true }).click();
+    await expect(app.getByLabel("Hide “Update”")).toBeChecked();
+    await app.getByRole("button", { name: "Quick Access widget" }).click();
+    await app.locator(".qam-content").getByRole("button", { name: /^Update( \(.*\))?$/ }).click();
+    modal = app.locator(".steam-modal");
+    await expect(modal.getByRole("button", { name: "Check for Updates", exact: true })).toBeVisible();
+    await expect(modal.getByRole("button", { name: /^(Update to|Reinstall|Downgrade to|Download ZIP|Release Page)/ })).toHaveCount(0);
+  } finally {
+    await bridgeCall(page, "save_settings", { overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: 3, githubToken: "" });
+  }
+});
+
 test("Settings shows how many GitHub requests are left", async ({ page }) => {
   const resetInTenMinutes = Math.floor(Date.now() / 1000) + 600;
   await page.route("https://api.github.com/rate_limit", (route) =>

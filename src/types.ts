@@ -25,7 +25,10 @@ export type App = {
   channel?: UpdateChannel;
 };
 
-export type Settings = { overwriteExisting: boolean; updateChannel: UpdateChannel; language: string; columnsPerRow: 1 | 2 | 3; githubToken: string; repoSettings?: Record<string, RepoPreference> };
+// Manage-window buttons that Display Settings can hide.
+export type HideableButton = "downloadZip" | "install" | "update" | "releasePage";
+
+export type Settings = { overwriteExisting: boolean; updateChannel: UpdateChannel; language: string; columnsPerRow: 1 | 2 | 3; githubToken: string; hiddenButtons: HideableButton[]; repoSettings?: Record<string, RepoPreference> };
 
 export type Download = { state: string; filename?: string; repo?: string; received?: number; total?: number; path?: string; error?: string };
 
