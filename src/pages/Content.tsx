@@ -13,7 +13,9 @@ import { FocusableGrid } from "../components/FocusableGrid";
 import { RateLimitBanner } from "../components/RateLimitBanner";
 import { DeckyHubUpdate } from "../components/DeckyHubUpdate";
 
-const RELEASE_CONCURRENCY = 4;
+// ponytail: fixed pool of 8 GitHub requests in flight; lower it if the registry grows
+// big enough to trip GitHub's secondary (burst) rate limit.
+const RELEASE_CONCURRENCY = 8;
 const CARDS_PER_PAGE = 20;
 
 export function Content({ fullPage }: { fullPage?: View }) {
@@ -36,7 +38,11 @@ export function Content({ fullPage }: { fullPage?: View }) {
     discover: { title: t("nav.discover"), description: t("view.discoverDescription"), empty: t("view.discoverEmpty") },
   };
 
+  // Bumped per load() so a slower, older load can't overwrite a newer one.
+  const loadRun = useRef(0);
+
   const load = async (force = false) => {
+    const run = ++loadRun.current;
     setLoading(true);
     try {
       const [appData, settings] = await Promise.all([getApps(), getSettings()]);
@@ -49,11 +55,22 @@ export function Content({ fullPage }: { fullPage?: View }) {
       setCardPage(0);
       setApps(tracked);
       setLoadError(null);
-      const hydrated: App[] = [];
-      for (let index = 0; index < tracked.length; index += RELEASE_CONCURRENCY) {
-        hydrated.push(...await Promise.all(tracked.slice(index, index + RELEASE_CONCURRENCY).map((app) => hydrate(app, force, preferences[app.repo]))));
-      }
-      setApps(hydrated);
+      // Discover shows every card straight away and fills each in as its
+      // release arrives; Updates waits, since it lists only apps with an update.
+      if (view === "discover") setLoading(false);
+      const hydrated = [...tracked];
+      let next = 0;
+      // A rolling pool: each finished request starts the next, rather than
+      // waiting for the slowest one in a fixed batch.
+      const worker = async () => {
+        while (next < tracked.length) {
+          const index = next++;
+          hydrated[index] = await hydrate(tracked[index], force, preferences[tracked[index].repo]);
+          if (run === loadRun.current) setApps((current) => current.map((app) => (app.id === hydrated[index].id ? hydrated[index] : app)));
+        }
+      };
+      await Promise.all(Array.from({ length: Math.min(RELEASE_CONCURRENCY, tracked.length) }, worker));
+      if (run !== loadRun.current) return;
       setLoading(false);
       notifyUpdates(hydrated);
     } catch (error) {
@@ -63,7 +80,9 @@ export function Content({ fullPage }: { fullPage?: View }) {
   };
 
   useEffect(() => {
-    const refresh = () => void load(true);
+    // Automatic refreshes go through the release cache; only the Refresh and
+    // Check for Updates buttons force a fresh fetch.
+    const refresh = () => void load();
     void load();
     const timer = window.setInterval(refresh, 15 * 60 * 1000);
     window.addEventListener(REGISTRY_UPDATED, refresh);

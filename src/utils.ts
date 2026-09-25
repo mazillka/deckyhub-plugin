@@ -2,13 +2,12 @@ import { fetchNoCors, toaster } from "@decky/api";
 import type { MessageKey, TFunc } from "./i18n/en";
 import type { App, AppReleaseOption, Asset, DeckyHubRelease, DeckyHubReleaseOption, RepoPreference, UpdateChannel } from "./types";
 
-// GitHub's unauthenticated core API allows 60 requests/hour per device —
-// easy to burn through when Discover/Updates hydrates every tracked app on
-// each load, plus the DeckyHub and per-app version pickers each fetch their
-// own release list on every open. 5 minutes trades a little staleness for
-// substantially fewer requests; every cache read is bypassed by force=true
-// wherever the user explicitly asks to check (Refresh, Check for Updates).
-export const CACHE_TTL = 5 * 60 * 1000;
+// GitHub's unauthenticated core API allows 60 requests/hour per IP, easy to
+// burn through when Discover/Updates check every tracked app. Release lists
+// are cached for 30 minutes (one shared entry per repo, see fetchReleases);
+// every cache read is bypassed by force=true wherever the user explicitly asks
+// to check (Refresh, Check for Updates).
+export const CACHE_TTL = 30 * 60 * 1000;
 export const UPDATE_NOTICE_KEY = "deckyhub-update-notice";
 export const DEFAULT_COLUMNS_PER_ROW = 3;
 export const pageStyle = { boxSizing: "border-box" as const, height: "100%", overflowY: "auto" as const, padding: "64px 12px 96px", scrollPaddingBottom: 96, scrollPaddingTop: 64, width: "100%" };
