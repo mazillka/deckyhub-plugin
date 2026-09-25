@@ -218,9 +218,19 @@ export const getDeckyBackend = () => window.DeckyBackend ?? window.opener?.Decky
 // Decky Store uses. The loader shows its native confirm/progress dialog and
 // does the download, SHA-256 check and install itself.
 export function installDeckyPlugin(asset: Asset, pluginName: string, version: string, installType: 0 | 1 | 2 | 3) {
+  return callDeckyLoader("utilities/install_plugin", asset.url, pluginName, normalizeVersion(version), asset.sha256 ?? "", installType);
+}
+
+// Decky Loader's uninstall deletes the plugin's folder and its settings right
+// away, with no dialog of its own — callers must confirm first.
+export function uninstallDeckyPlugin(pluginName: string) {
+  return callDeckyLoader("utilities/uninstall_plugin", pluginName);
+}
+
+function callDeckyLoader(route: string, ...args: unknown[]) {
   const backend = getDeckyBackend();
-  if (!backend) return Promise.reject(new Error("Decky Loader's installer is unavailable"));
-  return backend.call("utilities/install_plugin", asset.url, pluginName, normalizeVersion(version), asset.sha256 ?? "", installType);
+  if (!backend) return Promise.reject(new Error("Decky Loader is unavailable right now"));
+  return backend.call(route, ...args);
 }
 
 // What the Manage window can hand to Decky Loader's installer for the selected

@@ -36,6 +36,10 @@ export const en = {
   "appcard.manage": "Manage",
   "appcard.install": "Install",
   "appcard.update": "Update",
+  "appcard.uninstall": "Uninstall",
+  "appcard.uninstallTitle": "Uninstall {name}?",
+  "appcard.uninstallDescription": "This removes the plugin and its settings from this device. You can install it again later.",
+  "appcard.uninstalled": "{name} was uninstalled.",
   "appcard.noMatchingAsset": "No matching download for this version.",
 
   "dl.downloading": "Downloading {filename}",

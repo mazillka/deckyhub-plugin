@@ -37,6 +37,10 @@ export const fr: Record<MessageKey, string> = {
   "appcard.manage": "Gérer",
   "appcard.install": "Installer",
   "appcard.update": "Mettre à jour",
+  "appcard.uninstall": "Désinstaller",
+  "appcard.uninstallTitle": "Désinstaller {name} ?",
+  "appcard.uninstallDescription": "Le plugin et ses paramètres seront supprimés de cet appareil. Vous pourrez le réinstaller plus tard.",
+  "appcard.uninstalled": "{name} a été désinstallé.",
   "appcard.noMatchingAsset": "Aucun téléchargement disponible pour cette version.",
 
   "dl.downloading": "Téléchargement de {filename}",

@@ -11,6 +11,7 @@ export function AppCard({
   hiddenButtons,
   onDownload,
   onChannelChange,
+  onUninstalled,
 }: {
   app: App;
   preference: RepoPreference;
@@ -18,6 +19,7 @@ export function AppCard({
   hiddenButtons: HideableButton[];
   onDownload: (asset: Asset) => void;
   onChannelChange: (repo: string, channel: UpdateChannel) => void;
+  onUninstalled: () => void;
 }) {
   const t = useT();
   return (
@@ -55,6 +57,7 @@ export function AppCard({
                 hiddenButtons={hiddenButtons}
                 onDownload={onDownload}
                 onChannelChange={(channel) => onChannelChange(app.repo, channel)}
+                onUninstalled={onUninstalled}
               />
             )
           }

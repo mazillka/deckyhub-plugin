@@ -201,6 +201,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
                 hiddenButtons={hiddenButtons}
                 onDownload={(asset) => void startDownload(asset, app.repo)}
                 onChannelChange={changeAppChannel}
+                onUninstalled={() => void load()}
               />
             )}
           </FocusableGrid>

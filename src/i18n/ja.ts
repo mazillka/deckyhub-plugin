@@ -37,6 +37,10 @@ export const ja: Record<MessageKey, string> = {
   "appcard.manage": "管理",
   "appcard.install": "インストール",
   "appcard.update": "アップデート",
+  "appcard.uninstall": "アンインストール",
+  "appcard.uninstallTitle": "{name}をアンインストールしますか？",
+  "appcard.uninstallDescription": "このプラグインと設定がこのデバイスから削除されます。後で再インストールできます。",
+  "appcard.uninstalled": "{name}をアンインストールしました。",
   "appcard.noMatchingAsset": "このバージョンに一致するダウンロードはありません。",
 
   "dl.downloading": "{filename} をダウンロード中",

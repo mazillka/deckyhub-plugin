@@ -37,6 +37,10 @@ export const uk: Record<MessageKey, string> = {
   "appcard.manage": "Керувати",
   "appcard.install": "Встановити",
   "appcard.update": "Оновити",
+  "appcard.uninstall": "Видалити",
+  "appcard.uninstallTitle": "Видалити {name}?",
+  "appcard.uninstallDescription": "Плагін і його налаштування буде видалено з цього пристрою. Пізніше його можна встановити знову.",
+  "appcard.uninstalled": "{name} видалено.",
   "appcard.noMatchingAsset": "Немає відповідного завантаження для цієї версії.",
 
   "dl.downloading": "Завантаження {filename}",

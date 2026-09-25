@@ -1,10 +1,10 @@
 import { toaster } from "@decky/api";
-import { DialogButtonPrimary as Button, Focusable, ModalRoot, Navigation } from "@decky/ui";
+import { DialogButtonPrimary as Button, ConfirmModal, Focusable, ModalRoot, Navigation, showModal } from "@decky/ui";
 import { useEffect, useState } from "react";
 import { saveRepoSettings } from "../api";
 import type { TFunc } from "../i18n/en";
 import type { App, AppReleaseOption, Asset, HideableButton, RepoPreference, UpdateChannel } from "../types";
-import { buildVersionOptions, getDeckyBackend, installAction, installDeckyPlugin, listAppReleases, modalButtonStyle, PLUGIN_INSTALL_TYPE, readableBytes, sectionDividerStyle, selectDefaultTag } from "../utils";
+import { buildVersionOptions, getDeckyBackend, installAction, installDeckyPlugin, listAppReleases, modalButtonStyle, PLUGIN_INSTALL_TYPE, readableBytes, sectionDividerStyle, selectDefaultTag, uninstallDeckyPlugin } from "../utils";
 import { VersionPickerPanel } from "./VersionPickerPanel";
 
 // showModal() mounts onto a separate root from the caller's tree (see the
@@ -18,6 +18,7 @@ export function AppDetailsModal({
   hiddenButtons,
   onDownload,
   onChannelChange,
+  onUninstalled,
   closeModal,
 }: {
   t: TFunc;
@@ -27,6 +28,7 @@ export function AppDetailsModal({
   hiddenButtons: HideableButton[];
   onDownload: (asset: Asset) => void;
   onChannelChange: (channel: UpdateChannel) => void;
+  onUninstalled: () => void;
   closeModal?: () => void;
 }) {
   const [channel, setChannel] = useState<UpdateChannel>(initialPreference.channel);
@@ -73,6 +75,29 @@ export function AppDetailsModal({
       toaster.toast({ title: "DeckyHub", body: String(error) }),
     );
   };
+
+  // Installed Decky plugins can be removed through Decky Loader — never
+  // DeckyHub itself from here. The loader doesn't confirm, so we do.
+  const canUninstall = Boolean(app.pluginName && app.pluginName !== "DeckyHub");
+  const confirmUninstall = () =>
+    showModal(
+      <ConfirmModal
+        strTitle={t("appcard.uninstallTitle", { name: app.name })}
+        strDescription={t("appcard.uninstallDescription")}
+        strOKButtonText={t("appcard.uninstall")}
+        bDestructiveWarning
+        onOK={() =>
+          void uninstallDeckyPlugin(app.pluginName!).then(
+            () => {
+              toaster.toast({ title: "DeckyHub", body: t("appcard.uninstalled", { name: app.name }) });
+              closeModal?.();
+              onUninstalled();
+            },
+            (error: unknown) => toaster.toast({ title: "DeckyHub", body: String(error) }),
+          )
+        }
+      />,
+    );
 
   return (
     <ModalRoot closeModal={closeModal}>
@@ -125,6 +150,12 @@ export function AppDetailsModal({
             {loading ? t("settings.checkingUpdate") : t("settings.checkUpdate")}
           </Button>
         </Focusable>
+
+        {canUninstall && (
+          <Button style={{ ...modalButtonStyle, color: "#ff6b6b" }} onClick={confirmUninstall}>
+            {t("appcard.uninstall")}
+          </Button>
+        )}
 
         <Button style={modalButtonStyle} onClick={closeModal}>
           {t("settings.close")}

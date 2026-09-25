@@ -658,6 +658,36 @@ test("Display Settings can hide the Manage window's buttons", async ({ page }) =
   }
 });
 
+test("The Manage window uninstalls an installed Decky plugin after confirming", async ({ page }) => {
+  const pluginDir = new URL("../.dev-data/plugins/e2e-mako-uninstall/", import.meta.url);
+  mkdirSync(pluginDir, { recursive: true });
+  writeFileSync(new URL("plugin.json", pluginDir), JSON.stringify({ name: "MAKO - Frame Generation", version: "1.0.0" }));
+  // Stand-in for Decky Loader's WS bridge: records calls without deleting anything.
+  await page.addInitScript(() => {
+    const calls: unknown[][] = [];
+    Object.assign(window, { __loaderCalls: calls, DeckyBackend: { call: async (...args: unknown[]) => void calls.push(args), addEventListener() {}, removeEventListener() {} } });
+  });
+
+  try {
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
+    await app.locator(".steam-modal").getByRole("button", { name: "Uninstall", exact: true }).click();
+
+    // Decky Loader deletes without asking, so DeckyHub confirms first.
+    const confirm = app.locator(".steam-modal", { hasText: "Uninstall MAKO Decky?" });
+    await expect(confirm.getByText("This removes the plugin and its settings from this device.", { exact: false })).toBeVisible();
+    const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
+    const calls = () => frame.evaluate(() => (window as unknown as { __loaderCalls: unknown[][] }).__loaderCalls);
+    expect(await calls()).toEqual([]);
+    await confirm.getByRole("button", { name: "Uninstall", exact: true }).click();
+
+    await expect.poll(calls).toEqual([["utilities/uninstall_plugin", "MAKO - Frame Generation"]]);
+  } finally {
+    rmSync(pluginDir, { recursive: true, force: true });
+  }
+});
+
 test("Settings shows how many GitHub requests are left", async ({ page }) => {
   const resetInTenMinutes = Math.floor(Date.now() / 1000) + 600;
   await page.route("https://api.github.com/rate_limit", (route) =>

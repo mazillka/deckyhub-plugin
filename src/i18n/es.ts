@@ -37,6 +37,10 @@ export const es: Record<MessageKey, string> = {
   "appcard.manage": "Gestionar",
   "appcard.install": "Instalar",
   "appcard.update": "Actualizar",
+  "appcard.uninstall": "Desinstalar",
+  "appcard.uninstallTitle": "¿Desinstalar {name}?",
+  "appcard.uninstallDescription": "Se eliminarán el plugin y su configuración de este dispositivo. Podrás instalarlo de nuevo más tarde.",
+  "appcard.uninstalled": "{name} se desinstaló.",
   "appcard.noMatchingAsset": "No hay descarga disponible para esta versión.",
 
   "dl.downloading": "Descargando {filename}",
