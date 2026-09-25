@@ -688,6 +688,19 @@ test("The Manage window uninstalls an installed Decky plugin after confirming", 
   }
 });
 
+test("Release Page closes the Manage window before opening the page", async ({ page, context }) => {
+  await context.route("https://github.com/**", (route) => route.fulfill({ body: "release page" }));
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
+  const popupPromise = page.waitForEvent("popup");
+  await app.locator(".steam-modal").getByRole("button", { name: "Release Page", exact: true }).click();
+
+  // Steam's browser would otherwise open underneath the still-open modal.
+  expect((await popupPromise).url()).toBe(release.html_url);
+  await expect(app.locator(".steam-modal")).toHaveCount(0);
+});
+
 test("Settings shows how many GitHub requests are left", async ({ page }) => {
   const resetInTenMinutes = Math.floor(Date.now() / 1000) + 600;
   await page.route("https://api.github.com/rate_limit", (route) =>

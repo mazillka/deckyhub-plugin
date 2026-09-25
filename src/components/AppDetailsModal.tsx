@@ -142,7 +142,12 @@ export function AppDetailsModal({
 
         <Focusable style={{ display: "flex", gap: 8 }}>
           {selectedRelease?.url && !hiddenButtons.includes("releasePage") && (
-            <Button style={{ ...modalButtonStyle, flex: 1 }} onClick={() => Navigation.NavigateToExternalWeb(selectedRelease.url)}>
+            <Button style={{ ...modalButtonStyle, flex: 1 }} onClick={() => {
+                // Close first: Steam's browser otherwise opens underneath this modal.
+                closeModal?.();
+                Navigation.NavigateToExternalWeb(selectedRelease.url);
+              }}
+            >
               {t("appcard.releasePage")}
             </Button>
           )}
