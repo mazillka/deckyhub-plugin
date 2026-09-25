@@ -150,7 +150,8 @@ export function buildVersionOptions<T extends { tag: string; version: string }>(
     const isInstalled = Boolean(installedVersion) && version === normalizeVersion(installedVersion!);
     const isLatest = items[0]?.tag === item.tag;
     const suffix = isInstalled ? ` (${t("settings.installedLabel")})` : isLatest ? ` (${t("settings.latestLabel")})` : "";
-    return { data: item.tag, label: `v${version}${suffix}` };
+    // "v" only in front of a bare version number, not tags like "plugin-v3.3.0".
+    return { data: item.tag, label: `${/^\d/.test(version) ? "v" : ""}${version}${suffix}` };
   });
 }
 
