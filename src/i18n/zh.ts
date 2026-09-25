@@ -34,7 +34,7 @@ export const zh: Record<MessageKey, string> = {
   "appcard.channel": "渠道：{channel}",
   "appcard.channelStable": "稳定版",
   "appcard.channelPrerelease": "预发布版",
-  "appcard.download": "下载",
+  "appcard.manage": "管理",
   "appcard.installUpdate": "安装更新",
   "appcard.noMatchingAsset": "此版本没有匹配的下载项。",
 

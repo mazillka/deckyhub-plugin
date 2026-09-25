@@ -32,7 +32,7 @@ It ships with a small curated list of popular Steam Deck tools, and you can add 
 
 - **Discover** — browse a curated list of Steam Deck plugins/tools, filter by search or installed status, and see release info at a glance, color-coded by status.
 - **Updates** — see which of your tracked, installed tools have a newer release available, and download updates in one tap. You'll also get a toast notification when new updates show up.
-- **Repositories** — search GitHub, add or remove tracked repositories, and export/import your list. Per-repository release-channel overrides live behind each app's **Download** button on Discover/Updates instead.
+- **Repositories** — search GitHub, add or remove tracked repositories, and export/import your list. Per-repository release-channel overrides live behind each app's **Manage** button on Discover/Updates instead.
 - **Settings** — shows the fixed DeckyHub download folder, toggles overwriting existing files, lets you add an optional GitHub personal access token to raise the API rate limit, checks for DeckyHub's own updates, and lets you pick how many items show per row (1–3) in the app grid. A separate **Cleanup** section clears the download folder's contents with confirmation.
 
 DeckyHub never installs or runs anything automatically. **Download ZIP** saves a release, which you install yourself via Decky → Developer → Install Plugin from ZIP. For an installed Decky plugin with a pending update, the Updates page also offers **Install update**, which hands that release ZIP to Decky Loader's own installer (the one the Decky Store uses); Decky asks you to confirm, verifies its SHA-256 checksum and installs it. It's only offered when GitHub publishes a checksum for the ZIP. DeckyHub's own updates work the same way (see [Keeping DeckyHub itself updated](#keeping-deckyhub-itself-updated)).
@@ -62,7 +62,7 @@ Want more? Add any other GitHub repository from **Repositories** in seconds.
 
 ### Discover
 
-Browse the bundled list or search within it, and filter by **Status** — All, Installed, or Not Installed. Each card is color-coded (green once it's up to date, yellow when an update is available, red on an error) so you can spot what needs attention at a glance, and shows which release **Channel** (stable or pre-release) it's tracking. Tap **Download** on any card to pick a channel and version, then download the release asset you want.
+Browse the bundled list or search within it, and filter by **Status** — All, Installed, or Not Installed. Each card is color-coded (green once it's up to date, yellow when an update is available, red on an error) so you can spot what needs attention at a glance, and shows which release **Channel** (stable or pre-release) it's tracking. Tap **Manage** on any card to pick a channel and version, then download the release asset you want.
 
 To track a repository that isn't in the curated list, go to **Repositories**, search for it, and add it — it'll show up in Discover from then on.
 
@@ -80,7 +80,7 @@ When GitHub provides a checksum for a release asset, DeckyHub always verifies it
 
 Search GitHub for a repository and tap **Add** (repositories you already track show **Already Added** instead, so you can tell at a glance). Results page five at a time. Export your custom repositories to `DeckyHub-repositories.json` in `/home/deck/Downloads` to back them up or share them, or import that file back in. Any repository you've added can be removed again here; the curated repositories that ship with DeckyHub stay available and can't be removed. Prefer a bigger screen? The [Registry Editor](https://mazillka.github.io/deckyhub-plugin/) is a browser-based tool for building or editing a repository list file before importing it.
 
-To switch a tracked app between stable and pre-release releases, tap **Download** on its card on Discover or Updates — that's also where you pick a specific version and download it.
+To switch a tracked app between stable and pre-release releases, tap **Manage** on its card on Discover or Updates — that's also where you pick a specific version and download it.
 
 ### Keeping DeckyHub itself updated
 
@@ -94,7 +94,7 @@ If automatic update isn't available for some reason (e.g. running inside an olde
 ## Good to know
 
 - DeckyHub talks to GitHub without needing you to log in, so very heavy use in a short time may still hit GitHub's public rate limit (60 requests/hour) — if it does, the error names it as a rate limit and says roughly how long to wait, rather than just a raw status code. Add a personal access token in **Settings → GitHub Access** (no scopes needed — it only reads public repos and releases) to raise that to 5,000/hour; the token stays on your device and is only ever sent to `api.github.com`.
-- Release information is cached for 5 minutes, so opening the same app's Download window or the DeckyHub update modal again shortly after won't always show something new. Every "Check for Updates" and "Refresh" button bypasses this and asks GitHub directly.
+- Release information is cached for 5 minutes, so opening the same app's Manage window or the DeckyHub update modal again shortly after won't always show something new. Every "Check for Updates" and "Refresh" button bypasses this and asks GitHub directly.
 - Downloads only ever happen over HTTPS.
 
 ## Disclaimer
