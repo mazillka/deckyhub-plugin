@@ -712,6 +712,33 @@ test("Release Page closes the Manage window before opening the page", async ({ p
   await expect(app.locator(".steam-modal")).toHaveCount(0);
 });
 
+test("Compact interface shrinks DeckyHub's buttons and spacing, Default restores them", async ({ page }) => {
+  const app = mock(page);
+  const minHeight = (locator: ReturnType<typeof app.locator>) => locator.evaluate((el) => getComputedStyle(el).minHeight);
+  try {
+    await bridgeCall(page, "save_settings", { overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: 3, githubToken: "" });
+    await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+    const save = app.getByRole("button", { name: "Save Settings", exact: true });
+    await expect.poll(() => minHeight(save)).toBe("36px");
+
+    await app.getByLabel("Interface").selectOption({ label: "Compact" });
+    await expect.poll(() => minHeight(save)).toBe("28px");
+
+    // Modals follow too: they render in the same document as the variables.
+    await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+    await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
+    const close = app.locator(".steam-modal").getByRole("button", { name: "Close", exact: true });
+    await expect.poll(() => minHeight(close)).toBe("28px");
+    await close.click();
+
+    await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+    await app.getByLabel("Interface").selectOption({ label: "Default" });
+    await expect.poll(() => minHeight(app.getByRole("button", { name: "Save Settings", exact: true }))).toBe("36px");
+  } finally {
+    await bridgeCall(page, "save_settings", { overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: 3, githubToken: "" });
+  }
+});
+
 test("Settings shows how many GitHub requests are left", async ({ page }) => {
   const resetInTenMinutes = Math.floor(Date.now() / 1000) + 600;
   await page.route("https://api.github.com/rate_limit", (route) =>

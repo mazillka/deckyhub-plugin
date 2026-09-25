@@ -5,7 +5,7 @@ import { FaExclamationTriangle } from "react-icons/fa";
 import { clearDownloads, listDownloads } from "../api";
 import { useT } from "../i18n";
 import type { TFunc } from "../i18n/en";
-import { compactButtonStyle, modalButtonStyle } from "../utils";
+import { compactButtonStyle, modalButtonStyle, windowGap } from "../utils";
 
 const CLEAR_LIST_LIMIT = 50;
 
@@ -17,7 +17,7 @@ type DownloadEntry = { name: string; directory: boolean };
 function ClearDownloadsModal({ t, downloads, onConfirm, closeModal }: { t: TFunc; downloads: DownloadEntry[]; onConfirm: () => void; closeModal?: () => void }) {
   return (
     <ModalRoot closeModal={closeModal}>
-      <div style={{ display: "grid", gap: 10 }}>
+      <div style={{ display: "grid", gap: windowGap }}>
         <strong style={{ fontSize: 16 }}>{t("settings.clearDownloadsTitle")}</strong>
         {/* Deletion can't be undone, so the question reads as a warning. */}
         <div style={{ alignItems: "flex-start", color: "#ff6b6b", display: "flex", fontSize: "1.1em", fontWeight: 700, gap: 8 }}>

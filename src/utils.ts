@@ -12,9 +12,40 @@ export const CACHE_TTL = 5 * 60 * 1000;
 export const UPDATE_NOTICE_KEY = "deckyhub-update-notice";
 export const DEFAULT_COLUMNS_PER_ROW = 3;
 export const pageStyle = { boxSizing: "border-box" as const, height: "100%", overflowY: "auto" as const, padding: "64px 12px 96px", scrollPaddingBottom: 96, scrollPaddingTop: 64, width: "100%" };
-export const compactButtonStyle = { width: "100%", minHeight: 36, marginBottom: 8, padding: "6px 10px", textAlign: "center" as const };
-export const modalButtonStyle = { width: "100%", minHeight: 36, padding: "6px 10px", textAlign: "center" as const };
-export const sectionDividerStyle = { borderTop: "1px solid rgba(255, 255, 255, 0.14)", margin: "16px 0" };
+// Sizes read CSS variables that fall back to the Default density; the Compact
+// setting overrides them on the page root (see applyDensity).
+export const compactButtonStyle = { width: "100%", minHeight: "var(--dh-button-height, 36px)", marginBottom: "var(--dh-button-gap, 8px)", padding: "var(--dh-button-padding, 6px 10px)", textAlign: "center" as const };
+export const modalButtonStyle = { width: "100%", minHeight: "var(--dh-button-height, 36px)", padding: "var(--dh-button-padding, 6px 10px)", textAlign: "center" as const };
+export const sectionDividerStyle = { borderTop: "1px solid rgba(255, 255, 255, 0.14)", margin: "var(--dh-divider-margin, 16px) 0" };
+export const windowGap = "var(--dh-window-gap, 10px)";
+export const gridGap = "var(--dh-grid-gap, 12px)";
+
+const COMPACT_SIZES: Record<string, string> = {
+  "--dh-button-height": "28px",
+  "--dh-button-padding": "2px 10px",
+  "--dh-button-gap": "4px",
+  "--dh-divider-margin": "8px",
+  "--dh-window-gap": "6px",
+  "--dh-grid-gap": "8px",
+};
+
+// Applies Display Settings' density to this window and, in Gaming Mode, to the
+// main window the Quick Access popup was opened from (where modals render).
+export function applyDensity(density: string) {
+  let opener: Document | undefined;
+  try {
+    opener = window.opener?.document;
+  } catch {
+    // A cross-origin opener isn't ours to style.
+  }
+  for (const root of [document.documentElement, opener?.documentElement]) {
+    if (!root) continue;
+    for (const [name, value] of Object.entries(COMPACT_SIZES)) {
+      if (density === "compact") root.style.setProperty(name, value);
+      else root.style.removeProperty(name);
+    }
+  }
+}
 // Reserves a fixed two-line height so cards in the same grid row stay aligned regardless of description length.
 export const cardDescriptionStyle = {
   display: "-webkit-box",
@@ -131,6 +162,14 @@ function versionNumbers(value: string) {
 
 export const normalizeVersion = (value: string) => value.trim().replace(/^v/i, "");
 
+// One display format for every version: "v" + the version number, keeping a
+// pre-release suffix — "plugin-v3.3.0" → v3.3.0, "Release-0.7.5" → v0.7.5,
+// "1.0.3-rc.2" → v1.0.3-rc.2. Anything without a version number is shown as is.
+export function displayVersion(value: string) {
+  const match = value.match(/(\d+(?:\.\d+)+)(-[0-9A-Za-z.-]+)?/);
+  return match ? `v${match[1]}${match[2] ?? ""}` : value;
+}
+
 // Shared by DeckyHubUpdateModal and AppDetailsModal's version pickers: keep
 // the current selection if it's still present in the (channel-filtered)
 // list and this isn't a forced refresh, otherwise fall back to the newest
@@ -161,14 +200,6 @@ export const PLUGIN_INSTALL_TYPE = { INSTALL: 0, REINSTALL: 1, UPDATE: 2, DOWNGR
 
 // DeckyHub's own versions can carry a pre-release suffix ("1.0.3-rc.2"),
 // which versionNumbers() above deliberately ignores (it only wants the
-// One display format for every version: "v" + the version number, keeping a
-// pre-release suffix — "plugin-v3.3.0" → v3.3.0, "Release-0.7.5" → v0.7.5,
-// "1.0.3-rc.2" → v1.0.3-rc.2. Anything without a version number is shown as is.
-export function displayVersion(value: string) {
-  const match = value.match(/(\d+(?:\.\d+)+)(-[0-9A-Za-z.-]+)?/);
-  return match ? `v${match[1]}${match[2] ?? ""}` : value;
-}
-
 // release-number part for third-party apps). That made every "1.0.3-rc.N"
 // compare as an identical "1.0.3" here, so switching between rc.1/rc.2/rc.3
 // in the version picker always resolved to Reinstall. Parse the suffix too.

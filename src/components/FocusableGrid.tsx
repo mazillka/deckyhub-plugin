@@ -1,5 +1,6 @@
 import { Focusable } from "@decky/ui";
 import type { ReactNode } from "react";
+import { gridGap } from "../utils";
 
 /**
  * Steam's gamepad-nav doesn't reliably support any single "wrapping grid"
@@ -23,7 +24,7 @@ export function FocusableGrid<T>({
   return (
     <Focusable flow-children="down">
       {rows.map((row, index) => (
-        <Focusable key={index} flow-children="right" style={{ display: "flex", gap: 12, marginBottom: 12 }}>
+        <Focusable key={index} flow-children="right" style={{ display: "flex", gap: gridGap, marginBottom: gridGap }}>
           {row.map((item) => (
             <Focusable key={keyFor(item)} flow-children="down" style={{ flex: 1, minWidth: 0 }}>
               {children(item)}

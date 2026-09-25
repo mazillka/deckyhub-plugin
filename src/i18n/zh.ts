@@ -106,6 +106,9 @@ export const zh: Record<MessageKey, string> = {
   "settings.language": "语言",
   "settings.autoDetect": "自动检测",
   "settings.displaySettings": "显示设置",
+  "settings.density": "界面",
+  "settings.densityDefault": "默认",
+  "settings.densityCompact": "紧凑",
   "settings.itemsPerRow": "每行显示数量",
   "settings.hideButton": "隐藏「{button}」",
 

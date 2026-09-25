@@ -106,6 +106,9 @@ export const uk: Record<MessageKey, string> = {
   "settings.language": "Мова",
   "settings.autoDetect": "Визначати автоматично",
   "settings.displaySettings": "Налаштування вигляду",
+  "settings.density": "Інтерфейс",
+  "settings.densityDefault": "Стандартний",
+  "settings.densityCompact": "Компактний",
   "settings.itemsPerRow": "Елементів у рядку",
   "settings.hideButton": "Приховати «{button}»",
 

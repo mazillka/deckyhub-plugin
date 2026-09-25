@@ -51,6 +51,7 @@ def _coerce_settings(settings: dict) -> dict:
         "language": settings.get("language") if settings.get("language") in SUPPORTED_LANGUAGES else "auto",
         "columnsPerRow": _coerce_columns_per_row(settings.get("columnsPerRow")),
         "githubToken": _coerce_github_token(settings.get("githubToken")),
+        "density": "compact" if settings.get("density") == "compact" else "default",
         # Manage-window buttons the user chose to hide (Display Settings).
         "hiddenButtons": [name for name in HIDEABLE_BUTTONS if isinstance(settings.get("hiddenButtons"), list) and name in settings["hiddenButtons"]],
     }

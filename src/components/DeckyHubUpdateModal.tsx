@@ -4,7 +4,7 @@ import { FaDownload } from "react-icons/fa";
 import { downloadAsset, getSettings, saveSettings } from "../api";
 import type { TFunc } from "../i18n/en";
 import type { Asset, DeckyHubInfo, DeckyHubReleaseOption, UpdateChannel, HideableButton } from "../types";
-import { PLUGIN_INSTALL_TYPE, buildVersionOptions, getDeckyBackend, installDeckyPlugin, listDeckyHubReleases, modalButtonStyle, normalizeVersion, resolveDeckyHubInstallType, sectionDividerStyle, selectDefaultTag, selfUpdateStageKey } from "../utils";
+import { PLUGIN_INSTALL_TYPE, buildVersionOptions, getDeckyBackend, installDeckyPlugin, listDeckyHubReleases, modalButtonStyle, normalizeVersion, resolveDeckyHubInstallType, sectionDividerStyle, selectDefaultTag, selfUpdateStageKey, windowGap } from "../utils";
 import { showDownloadModal } from "./DownloadProgress";
 import { VersionPickerPanel } from "./VersionPickerPanel";
 
@@ -159,7 +159,7 @@ export function DeckyHubUpdateModal({
 
   return (
     <ModalRoot closeModal={closeModal}>
-      <div style={{ display: "grid", gap: 10 }}>
+      <div style={{ display: "grid", gap: windowGap }}>
         <VersionPickerPanel
           t={t}
           title={t("settings.deckyhubUpdate")}

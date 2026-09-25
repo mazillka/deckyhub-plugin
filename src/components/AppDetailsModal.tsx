@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { saveRepoSettings } from "../api";
 import type { TFunc } from "../i18n/en";
 import type { App, AppReleaseOption, Asset, HideableButton, RepoPreference, UpdateChannel } from "../types";
-import { buildVersionOptions, displayVersion, getDeckyBackend, installAction, installDeckyPlugin, listAppReleases, modalButtonStyle, PLUGIN_INSTALL_TYPE, readableBytes, sectionDividerStyle, selectDefaultTag, uninstallDeckyPlugin } from "../utils";
+import { buildVersionOptions, displayVersion, getDeckyBackend, installAction, installDeckyPlugin, listAppReleases, modalButtonStyle, PLUGIN_INSTALL_TYPE, readableBytes, sectionDividerStyle, selectDefaultTag, uninstallDeckyPlugin, windowGap } from "../utils";
 import { VersionPickerPanel } from "./VersionPickerPanel";
 
 // showModal() mounts onto a separate root from the caller's tree (see the
@@ -101,7 +101,7 @@ export function AppDetailsModal({
 
   return (
     <ModalRoot closeModal={closeModal}>
-      <div style={{ display: "grid", gap: 10 }}>
+      <div style={{ display: "grid", gap: windowGap }}>
         <VersionPickerPanel
           t={t}
           title={app.name}

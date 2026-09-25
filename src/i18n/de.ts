@@ -106,6 +106,9 @@ export const de: Record<MessageKey, string> = {
   "settings.language": "Sprache",
   "settings.autoDetect": "Automatisch erkennen",
   "settings.displaySettings": "Anzeigeeinstellungen",
+  "settings.density": "Oberfläche",
+  "settings.densityDefault": "Standard",
+  "settings.densityCompact": "Kompakt",
   "settings.itemsPerRow": "Elemente pro Zeile",
   "settings.hideButton": "„{button}“ ausblenden",
 

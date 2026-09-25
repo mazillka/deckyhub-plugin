@@ -106,6 +106,9 @@ export const ja: Record<MessageKey, string> = {
   "settings.language": "言語",
   "settings.autoDetect": "自動検出",
   "settings.displaySettings": "表示設定",
+  "settings.density": "インターフェース",
+  "settings.densityDefault": "標準",
+  "settings.densityCompact": "コンパクト",
   "settings.itemsPerRow": "1行あたりの項目数",
   "settings.hideButton": "「{button}」を非表示",
 

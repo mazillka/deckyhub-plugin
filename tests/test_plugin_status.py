@@ -75,6 +75,15 @@ class PluginStatusTests(unittest.TestCase):
             reloaded = plugin._load_settings()
             self.assertEqual(reloaded["githubToken"], "ghp_example")
 
+    def test_density_defaults_to_default_and_accepts_compact(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.settings_path = Path(home) / "settings.json"
+
+            self.assertEqual(asyncio.run(plugin.save_settings({}))["density"], "default")
+            self.assertEqual(asyncio.run(plugin.save_settings({"density": "compact"}))["density"], "compact")
+            self.assertEqual(asyncio.run(plugin.save_settings({"density": "tiny"}))["density"], "default")
+
     def test_hidden_buttons_keep_only_known_names(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = Plugin()

@@ -105,6 +105,9 @@ export const en = {
   "settings.language": "Language",
   "settings.autoDetect": "Auto-detect",
   "settings.displaySettings": "Display Settings",
+  "settings.density": "Interface",
+  "settings.densityDefault": "Default",
+  "settings.densityCompact": "Compact",
   "settings.itemsPerRow": "Items Per Row",
   "settings.hideButton": "Hide “{button}”",
 
