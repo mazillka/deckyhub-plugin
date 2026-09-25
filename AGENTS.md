@@ -41,6 +41,13 @@ The Playwright suite in `devtools/decky-mock/` covers the browser UI; `pnpm run 
 
 For a release, bump `version` in `package.json` (the backend reads it at runtime), then push a `v*` tag. This triggers `.github/workflows/release.yml`: installs, typechecks, builds, runs backend tests, runs the browser E2E suite in `devtools/decky-mock/`, zips `plugin.json` + `main.py` + `backend/` + `dist/` + `registry/` + `LICENSE`, and attaches `DeckyHub-vX.Y.Z.zip` to a GitHub release.
 
+**Every release (pre-releases too) gets human-friendly release notes.** The workflow's `--generate-notes` only lists raw commit/PR titles, so once the release exists, replace its body with `gh release edit vX.Y.Z --notes-file <file>`:
+
+- Cover everything since the previous release tag (`git log --no-merges <previous-tag>..vX.Y.Z`), described as it ends up, not step by step — a feature renamed or moved twice is one line in its final form.
+- Group under **New**, **Changed** and **Fixed** (omit empty groups); plain language a Steam Deck user understands — what they'll see or can now do, not function names, commit hashes or version-bump commits.
+- Keep internal-only work (refactors, tests, tooling) to an optional short **Under the hood** list.
+- End with a short **Try it on your Deck** list of what to check on real hardware when the release touches UI, controller navigation or installing.
+
 ## Architecture
 
 **Backend (`main.py`, `backend/registry.py`) is one `Plugin` class** exposing async methods Decky calls directly from the frontend via `callable()` (see `src/api.ts` for the full RPC surface — `get_apps`, `download_asset`, `save_settings`, etc.). There's no HTTP API of its own.
