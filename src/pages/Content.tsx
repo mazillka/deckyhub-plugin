@@ -261,7 +261,6 @@ export function Content({ fullPage }: { fullPage?: View }) {
       </PanelSection>
       <div aria-hidden style={sectionDividerStyle} />
       <DeckyHubUpdate />
-      <div aria-hidden style={sectionDividerStyle} />
       <CleanupSection />
     </>
   );

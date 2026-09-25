@@ -85,7 +85,6 @@ export const es: Record<MessageKey, string> = {
   "settings.whereZipsSaved": "Todos los ZIP de versiones se guardan en /home/deck/Downloads/deckyhub, y su suma SHA-256 se verifica automáticamente cuando GitHub la proporciona.",
   "settings.overwriteExisting": "Sobrescribir archivos existentes",
   "settings.cleanup": "Limpieza",
-  "settings.clearDownloads": "Vaciar carpeta de descargas de DeckyHub",
   "settings.emptyFolder": "Vaciar carpeta",
   "settings.clearDownloadsTitle": "Vaciar carpeta de descargas de DeckyHub",
   "settings.clearDownloadsDescription": "¿Eliminar permanentemente todos los archivos de /home/deck/Downloads/deckyhub?",

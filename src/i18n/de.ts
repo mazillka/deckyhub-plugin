@@ -85,7 +85,6 @@ export const de: Record<MessageKey, string> = {
   "settings.whereZipsSaved": "Alle Release-ZIP-Dateien werden in /home/deck/Downloads/deckyhub gespeichert; ihre SHA-256-Prüfsumme wird automatisch überprüft, sofern GitHub eine bereitstellt.",
   "settings.overwriteExisting": "Vorhandene Dateien überschreiben",
   "settings.cleanup": "Bereinigung",
-  "settings.clearDownloads": "DeckyHub-Downloads-Ordner leeren",
   "settings.emptyFolder": "Ordner leeren",
   "settings.clearDownloadsTitle": "DeckyHub-Downloads-Ordner leeren",
   "settings.clearDownloadsDescription": "Alle Dateien in /home/deck/Downloads/deckyhub dauerhaft entfernen?",

@@ -85,7 +85,6 @@ export const zh: Record<MessageKey, string> = {
   "settings.whereZipsSaved": "所有发行版 ZIP 都会保存到 /home/deck/Downloads/deckyhub，如果 GitHub 提供 SHA-256 校验和，将自动进行校验。",
   "settings.overwriteExisting": "覆盖已有文件",
   "settings.cleanup": "清理",
-  "settings.clearDownloads": "清空 DeckyHub 下载文件夹",
   "settings.emptyFolder": "清空文件夹",
   "settings.clearDownloadsTitle": "清空 DeckyHub 下载文件夹",
   "settings.clearDownloadsDescription": "要永久删除 /home/deck/Downloads/deckyhub 中的所有文件吗？",

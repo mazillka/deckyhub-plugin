@@ -174,10 +174,19 @@ test("Repository import and export share one row", async ({ page }) => {
   expect(importBox!.x).toBeGreaterThan(exportBox!.x);
 });
 
-test("Clearing DeckyHub downloads requires confirmation", async ({ page }) => {
-  await page.goto("/?bridge=http://127.0.0.1:8643");
+test("Cleanup shows only when the downloads folder has files, and clearing requires confirmation", async ({ page }) => {
+  // dev-server.py points the bridge's download folder at .dev-data/downloads.
+  const downloads = new URL("../.dev-data/downloads/", import.meta.url);
+  rmSync(downloads, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
   const app = mock(page);
-  await app.getByRole("button", { name: "Empty DeckyHub Downloads Folder", exact: true }).click();
+  await page.goto("/?bridge=http://127.0.0.1:8643");
+  await expect(app.getByRole("button", { name: "Updates", exact: true })).toBeVisible();
+  await expect(app.getByText("Cleanup", { exact: true })).toHaveCount(0);
+
+  mkdirSync(downloads, { recursive: true });
+  writeFileSync(new URL("old-plugin.zip", downloads), "zip");
+  await page.goto("/?bridge=http://127.0.0.1:8643");
+  await app.locator(".qam-content").getByRole("button", { name: "Empty Folder", exact: true }).click();
 
   await expect(app.getByText("Permanently remove all files in /home/deck/Downloads/deckyhub?")).toBeVisible();
   // The two actions stack full-width, each on its own line.
@@ -188,8 +197,12 @@ test("Clearing DeckyHub downloads requires confirmation", async ({ page }) => {
   ]);
   expect(cancel!.y).toBeGreaterThanOrEqual(confirm!.y + confirm!.height);
   expect(Math.abs(cancel!.width - confirm!.width)).toBeLessThan(2);
-  await modal.getByRole("button", { name: "Cancel", exact: true }).click();
-  await expect(modal).toHaveCount(0);
+  await expect(modal.getByText("old-plugin.zip")).toBeVisible();
+
+  // Emptying it removes the file and the section with it.
+  await modal.getByRole("button", { name: "Empty Folder", exact: true }).click();
+  await expect(app.locator(".qam-content").getByRole("button", { name: "Empty Folder", exact: true })).toHaveCount(0);
+  await expect(app.getByText("Cleanup", { exact: true })).toHaveCount(0);
 });
 
 test("DeckyHub offers to reinstall the matching version and keeps its release page", async ({ page }) => {

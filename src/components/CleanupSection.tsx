@@ -5,7 +5,7 @@ import { FaExclamationTriangle } from "react-icons/fa";
 import { clearDownloads, listDownloads } from "../api";
 import { useT } from "../i18n";
 import type { TFunc } from "../i18n/en";
-import { compactButtonStyle, modalButtonStyle, windowGap } from "../utils";
+import { compactButtonStyle, modalButtonStyle, sectionDividerStyle, windowGap } from "../utils";
 
 const CLEAR_LIST_LIMIT = 50;
 
@@ -63,13 +63,19 @@ export function CleanupSection() {
       toaster.toast({ title: "DeckyHub", body: t("settings.downloadsCleared", { count: removed }) });
     });
 
+  // Nothing to clean up: hide the whole section (and its divider).
+  if (!downloads.length) return null;
+
   return (
-    <PanelSection title={t("settings.cleanup")}>
-      <PanelSectionRow>
-        <Button style={compactButtonStyle} onClick={() => showModal(<ClearDownloadsModal t={t} downloads={downloads} onConfirm={clear} />)}>
-          {t("settings.clearDownloads")}
-        </Button>
-      </PanelSectionRow>
-    </PanelSection>
+    <>
+      <div aria-hidden style={sectionDividerStyle} />
+      <PanelSection title={t("settings.cleanup")}>
+        <PanelSectionRow>
+          <Button style={compactButtonStyle} onClick={() => showModal(<ClearDownloadsModal t={t} downloads={downloads} onConfirm={clear} />)}>
+            {t("settings.emptyFolder")}
+          </Button>
+        </PanelSectionRow>
+      </PanelSection>
+    </>
   );
 }

@@ -33,6 +33,12 @@ sys.modules["decky"] = fake_decky
 sys.path.insert(0, str(REPO_ROOT))
 from main import Plugin  # noqa: E402
 
+import main  # noqa: E402
+
+# Keep the mock's downloads inside .dev-data instead of a real /home/deck path
+# (which on Windows resolves to <drive>:\home\deck, outside the repo).
+main.PLUGIN_DOWNLOAD_DIR = str(DEV_DATA / "downloads")
+
 loop = asyncio.new_event_loop()
 plugin = Plugin()
 

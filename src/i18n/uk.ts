@@ -85,7 +85,6 @@ export const uk: Record<MessageKey, string> = {
   "settings.whereZipsSaved": "Усі ZIP-файли релізів зберігаються в /home/deck/Downloads/deckyhub, а їхня контрольна сума SHA-256 перевіряється автоматично, якщо GitHub її надає.",
   "settings.overwriteExisting": "Перезаписувати наявні файли",
   "settings.cleanup": "Очищення",
-  "settings.clearDownloads": "Очистити папку завантажень DeckyHub",
   "settings.emptyFolder": "Очистити папку",
   "settings.clearDownloadsTitle": "Очистити папку завантажень DeckyHub",
   "settings.clearDownloadsDescription": "Назавжди видалити всі файли в /home/deck/Downloads/deckyhub?",

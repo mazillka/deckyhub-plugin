@@ -84,7 +84,6 @@ export const en = {
   "settings.whereZipsSaved": "All release ZIPs are saved to /home/deck/Downloads/deckyhub, with their SHA-256 checksum verified automatically when GitHub provides one.",
   "settings.overwriteExisting": "Overwrite Existing",
   "settings.cleanup": "Cleanup",
-  "settings.clearDownloads": "Empty DeckyHub Downloads Folder",
   "settings.emptyFolder": "Empty Folder",
   "settings.clearDownloadsTitle": "Empty DeckyHub Downloads Folder",
   "settings.clearDownloadsDescription": "Permanently remove all files in /home/deck/Downloads/deckyhub?",

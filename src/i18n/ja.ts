@@ -85,7 +85,6 @@ export const ja: Record<MessageKey, string> = {
   "settings.whereZipsSaved": "すべてのリリースZIPは /home/deck/Downloads/deckyhub に保存され、GitHubがSHA-256チェックサムを提供する場合は自動的に検証されます。",
   "settings.overwriteExisting": "既存のファイルを上書き",
   "settings.cleanup": "クリーンアップ",
-  "settings.clearDownloads": "DeckyHub のダウンロードフォルダを空にする",
   "settings.emptyFolder": "フォルダーを空にする",
   "settings.clearDownloadsTitle": "DeckyHub のダウンロードフォルダを空にする",
   "settings.clearDownloadsDescription": "/home/deck/Downloads/deckyhub 内のすべてのファイルを完全に削除しますか？",
