@@ -1,9 +1,10 @@
+import { toaster } from "@decky/api";
 import { DialogButtonPrimary as Button, Focusable, ModalRoot, Navigation } from "@decky/ui";
 import { useEffect, useState } from "react";
 import { saveRepoSettings } from "../api";
 import type { TFunc } from "../i18n/en";
 import type { App, AppReleaseOption, Asset, RepoPreference, UpdateChannel } from "../types";
-import { buildVersionOptions, listAppReleases, modalButtonStyle, readableBytes, sectionDividerStyle, selectDefaultTag } from "../utils";
+import { buildVersionOptions, getDeckyBackend, installAction, installDeckyPlugin, listAppReleases, modalButtonStyle, PLUGIN_INSTALL_TYPE, readableBytes, sectionDividerStyle, selectDefaultTag } from "../utils";
 import { VersionPickerPanel } from "./VersionPickerPanel";
 
 // showModal() mounts onto a separate root from the caller's tree (see the
@@ -58,6 +59,19 @@ export function AppDetailsModal({
 
   const versionOptions = buildVersionOptions(releases, app.installedVersion, t);
 
+  // Hands the selected release to Decky Loader's installer, which shows its own
+  // confirm/progress dialog; Content reloads the list once the loader finishes.
+  const install = selectedRelease && installAction(app, selectedRelease);
+  const runInstall = (release: AppReleaseOption, action: NonNullable<typeof install>) => {
+    if (!getDeckyBackend()) {
+      toaster.toast({ title: "DeckyHub", body: t("settings.selfUpdateUnavailable") });
+      return;
+    }
+    installDeckyPlugin(release.assets[0], action.name, release.tag, action.type).catch((error: unknown) =>
+      toaster.toast({ title: "DeckyHub", body: String(error) }),
+    );
+  };
+
   return (
     <ModalRoot closeModal={closeModal}>
       <div style={{ display: "grid", gap: 10 }}>
@@ -79,6 +93,11 @@ export function AppDetailsModal({
 
         {selectedRelease && (
           <>
+            {install && (
+              <Button style={modalButtonStyle} onClick={() => runInstall(selectedRelease, install)}>
+                {t(install.type === PLUGIN_INSTALL_TYPE.INSTALL ? "appcard.install" : "appcard.update")}
+              </Button>
+            )}
             {selectedRelease.assets[0] ? (
               <Button style={modalButtonStyle} disabled={downloadDisabled} onClick={() => onDownload(selectedRelease.assets[0])}>
                 {t("settings.downloadUpdate")}

@@ -34,7 +34,8 @@ export const en = {
   "appcard.channelStable": "Stable",
   "appcard.channelPrerelease": "Pre-release",
   "appcard.manage": "Manage",
-  "appcard.installUpdate": "Install update",
+  "appcard.install": "Install",
+  "appcard.update": "Update",
   "appcard.noMatchingAsset": "No matching download for this version.",
 
   "dl.downloading": "Downloading {filename}",

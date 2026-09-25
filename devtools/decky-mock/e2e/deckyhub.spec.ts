@@ -554,7 +554,7 @@ test("Settings' token link opens GitHub's token page", async ({ page, context })
   expect((await popupPromise).url()).toBe("https://github.com/settings/tokens");
 });
 
-test("Updates offers Install update for an outdated Decky plugin and hands it to Decky's installer", async ({ page }) => {
+test("The Download window offers Update for an outdated Decky plugin and hands it to Decky's installer", async ({ page }) => {
   // dev-server.py scans .dev-data/plugins/*/plugin.json as the installed
   // Decky plugins, so seed an old MAKO there for the length of this test.
   const pluginDir = new URL("../.dev-data/plugins/e2e-mako/", import.meta.url);
@@ -575,7 +575,9 @@ test("Updates offers Install update for an outdated Decky plugin and hands it to
     await page.goto("/?preview=/deckyhub/updates&bridge=http://127.0.0.1:8643");
     const app = mock(page);
     const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
-    await makoCard.getByRole("button", { name: "Install update", exact: true }).click();
+    await expect(makoCard.getByRole("button", { name: "Update", exact: true })).toHaveCount(0);
+    await makoCard.getByRole("button", { name: "Manage", exact: true }).click();
+    await app.locator(".steam-modal").getByRole("button", { name: "Update", exact: true }).click();
 
     const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
     await expect.poll(() => frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([
@@ -584,6 +586,32 @@ test("Updates offers Install update for an outdated Decky plugin and hands it to
   } finally {
     rmSync(pluginDir, { recursive: true, force: true });
   }
+});
+
+test("The Manage window offers Install for a Decky plugin that isn't installed yet", async ({ page }) => {
+  const sha256 = "d".repeat(64);
+  const url = "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v1.2.3/mako-decky.zip";
+  await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases**", (route) =>
+    route.fulfill({ json: [{ tag_name: "plugin-v1.2.3", prerelease: false, draft: false, published_at: "2026-01-01T00:00:00Z", html_url: "https://github.com/eugeniosegala/MAKO/releases/tag/plugin-v1.2.3", assets: [{ name: "mako-decky.zip", browser_download_url: url, size: 1024, digest: `sha256:${sha256}` }] }] })
+  );
+  await page.addInitScript(() => {
+    const calls: unknown[][] = [];
+    Object.assign(window, { __installCalls: calls, DeckyBackend: { call: async (...args: unknown[]) => void calls.push(args), addEventListener() {}, removeEventListener() {} } });
+  });
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+  await makoCard.getByRole("button", { name: "Manage", exact: true }).click();
+  const modal = app.locator(".steam-modal");
+  await expect(modal.getByRole("button", { name: "Update", exact: true })).toHaveCount(0);
+  await modal.getByRole("button", { name: "Install", exact: true }).click();
+
+  // A fresh install is named after the registry's first detection name, the
+  // plugin's own manifest name, with Decky's INSTALL (0) type.
+  const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
+  await expect.poll(() => frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([
+    ["utilities/install_plugin", url, "MAKO - Frame Generation", "plugin-v1.2.3", sha256, 0],
+  ]);
 });
 
 test("Settings shows how many GitHub requests are left", async ({ page }) => {

@@ -157,7 +157,7 @@ export function buildVersionOptions<T extends { tag: string; version: string }>(
 // Decky Loader's PluginInstallType enum (backend enums.py) — passed to the
 // global `utilities/install_plugin` route to tell its native installer what
 // kind of operation this is.
-export const PLUGIN_INSTALL_TYPE = { REINSTALL: 1, UPDATE: 2, DOWNGRADE: 3 } as const;
+export const PLUGIN_INSTALL_TYPE = { INSTALL: 0, REINSTALL: 1, UPDATE: 2, DOWNGRADE: 3 } as const;
 
 // DeckyHub's own versions can carry a pre-release suffix ("1.0.3-rc.2"),
 // which versionNumbers() above deliberately ignores (it only wants the
@@ -216,15 +216,24 @@ export const getDeckyBackend = () => window.DeckyBackend ?? window.opener?.Decky
 // Hands a verified release ZIP to Decky Loader's own installer — the route the
 // Decky Store uses. The loader shows its native confirm/progress dialog and
 // does the download, SHA-256 check and install itself.
-export function installDeckyPlugin(asset: Asset, pluginName: string, version: string, installType: 1 | 2 | 3) {
+export function installDeckyPlugin(asset: Asset, pluginName: string, version: string, installType: 0 | 1 | 2 | 3) {
   const backend = getDeckyBackend();
   if (!backend) return Promise.reject(new Error("Decky Loader's installer is unavailable"));
   return backend.call("utilities/install_plugin", asset.url, pluginName, normalizeVersion(version), asset.sha256 ?? "", installType);
 }
 
-// Updates-page "Install update" is offered only for installed Decky plugins
-// whose newest matching ZIP carries a checksum the loader can verify.
-export const canInstallUpdate = (app: App) => Boolean(app.updateAvailable && app.pluginName && app.assets[0]?.sha256);
+// What the Manage window can hand to Decky Loader's installer for the selected
+// release, if anything: "Update" for an installed Decky plugin when
+// the release is newer, "Install" for a registry Decky plugin that isn't
+// installed yet — either way only when its ZIP carries a checksum the loader
+// can verify. A fresh install has no installed manifest to name it, so it
+// uses the detection rule's first name (the plugin's manifest name).
+export function installAction(app: App, release: { tag: string; assets: Asset[] }): { type: 0 | 2; name: string } | null {
+  if (!release.assets[0]?.sha256) return null;
+  if (app.pluginName) return isUpdate(app, release.tag) ? { type: PLUGIN_INSTALL_TYPE.UPDATE, name: app.pluginName } : null;
+  if (!app.installedVersion && app.detect?.type === "decky-plugin") return { type: PLUGIN_INSTALL_TYPE.INSTALL, name: app.detect.names?.[0] ?? app.name };
+  return null;
+}
 
 export function selfUpdateStageKey(key: string | undefined): MessageKey {
   switch ((key ?? "").split(".").pop()) {

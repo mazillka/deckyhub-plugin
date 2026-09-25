@@ -5,7 +5,7 @@ import { FaSync } from "react-icons/fa";
 import { downloadAsset, getApps, getSettings, REGISTRY_UPDATED } from "../api";
 import { useT } from "../i18n";
 import type { App, Asset, RepoPreference, UpdateChannel, View } from "../types";
-import { canInstallUpdate, compactButtonStyle, DEFAULT_COLUMNS_PER_ROW, getDeckyBackend, hydrate, installDeckyPlugin, notifyUpdates, PLUGIN_INSTALL_TYPE, sectionDividerStyle } from "../utils";
+import { compactButtonStyle, DEFAULT_COLUMNS_PER_ROW, getDeckyBackend, hydrate, notifyUpdates, sectionDividerStyle } from "../utils";
 import { AppCard } from "../components/AppCard";
 import { CleanupSection } from "../components/CleanupSection";
 import { showDownloadModal } from "../components/DownloadProgress";
@@ -99,16 +99,6 @@ export function Content({ fullPage }: { fullPage?: View }) {
     } catch (error) {
       toaster.toast({ title: "DeckyHub", body: String(error) });
     }
-  };
-
-  const installUpdate = (app: App) => {
-    if (!getDeckyBackend()) {
-      toaster.toast({ title: "DeckyHub", body: t("settings.selfUpdateUnavailable") });
-      return;
-    }
-    installDeckyPlugin(app.assets[0], app.pluginName!, app.latestVersion ?? "", PLUGIN_INSTALL_TYPE.UPDATE).catch((error: unknown) =>
-      toaster.toast({ title: "DeckyHub", body: String(error) }),
-    );
   };
 
   // AppDetailsModal persists the change itself (saveRepoSettings); this just
@@ -208,7 +198,6 @@ export function Content({ fullPage }: { fullPage?: View }) {
                 downloadDisabled={downloading}
                 onDownload={(asset) => void startDownload(asset, app.repo)}
                 onChannelChange={changeAppChannel}
-                onInstallUpdate={view === "updates" && canInstallUpdate(app) ? () => installUpdate(app) : undefined}
               />
             )}
           </FocusableGrid>

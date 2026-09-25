@@ -10,14 +10,12 @@ export function AppCard({
   downloadDisabled,
   onDownload,
   onChannelChange,
-  onInstallUpdate,
 }: {
   app: App;
   preference: RepoPreference;
   downloadDisabled?: boolean;
   onDownload: (asset: Asset) => void;
   onChannelChange: (repo: string, channel: UpdateChannel) => void;
-  onInstallUpdate?: () => void;
 }) {
   const t = useT();
   return (
@@ -42,13 +40,6 @@ export function AppCard({
           )}
         </div>
       </PanelSectionRow>
-      {onInstallUpdate && (
-        <PanelSectionRow>
-          <Button style={compactButtonStyle} onClick={onInstallUpdate}>
-            {t("appcard.installUpdate")}
-          </Button>
-        </PanelSectionRow>
-      )}
       <PanelSectionRow>
         <Button
           style={compactButtonStyle}
