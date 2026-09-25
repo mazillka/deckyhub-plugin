@@ -86,6 +86,7 @@ export const zh: Record<MessageKey, string> = {
   "settings.overwriteExisting": "覆盖已有文件",
   "settings.cleanup": "清理",
   "settings.clearDownloads": "清空 DeckyHub 下载文件夹",
+  "settings.emptyFolder": "清空文件夹",
   "settings.clearDownloadsTitle": "清空 DeckyHub 下载文件夹",
   "settings.clearDownloadsDescription": "要永久删除 /home/deck/Downloads/deckyhub 中的所有文件吗？",
   "settings.downloadsCleared": "已从 DeckyHub 下载中移除 {count} 项。",

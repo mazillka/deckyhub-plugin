@@ -180,7 +180,16 @@ test("Clearing DeckyHub downloads requires confirmation", async ({ page }) => {
   await app.getByRole("button", { name: "Empty DeckyHub Downloads Folder", exact: true }).click();
 
   await expect(app.getByText("Permanently remove all files in /home/deck/Downloads/deckyhub?")).toBeVisible();
-  await app.getByRole("button", { name: "Cancel", exact: true }).click();
+  // The two actions stack full-width, each on its own line.
+  const modal = app.locator(".steam-modal");
+  const [confirm, cancel] = await Promise.all([
+    modal.getByRole("button", { name: "Empty Folder", exact: true }).boundingBox(),
+    modal.getByRole("button", { name: "Cancel", exact: true }).boundingBox(),
+  ]);
+  expect(cancel!.y).toBeGreaterThanOrEqual(confirm!.y + confirm!.height);
+  expect(Math.abs(cancel!.width - confirm!.width)).toBeLessThan(2);
+  await modal.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(modal).toHaveCount(0);
 });
 
 test("DeckyHub offers to reinstall the matching version and keeps its release page", async ({ page }) => {

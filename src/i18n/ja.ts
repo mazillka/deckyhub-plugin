@@ -86,6 +86,7 @@ export const ja: Record<MessageKey, string> = {
   "settings.overwriteExisting": "既存のファイルを上書き",
   "settings.cleanup": "クリーンアップ",
   "settings.clearDownloads": "DeckyHub のダウンロードフォルダを空にする",
+  "settings.emptyFolder": "フォルダーを空にする",
   "settings.clearDownloadsTitle": "DeckyHub のダウンロードフォルダを空にする",
   "settings.clearDownloadsDescription": "/home/deck/Downloads/deckyhub 内のすべてのファイルを完全に削除しますか？",
   "settings.downloadsCleared": "DeckyHub のダウンロードから {count} 件削除しました。",

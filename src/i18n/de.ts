@@ -86,6 +86,7 @@ export const de: Record<MessageKey, string> = {
   "settings.overwriteExisting": "Vorhandene Dateien überschreiben",
   "settings.cleanup": "Bereinigung",
   "settings.clearDownloads": "DeckyHub-Downloads-Ordner leeren",
+  "settings.emptyFolder": "Ordner leeren",
   "settings.clearDownloadsTitle": "DeckyHub-Downloads-Ordner leeren",
   "settings.clearDownloadsDescription": "Alle Dateien in /home/deck/Downloads/deckyhub dauerhaft entfernen?",
   "settings.downloadsCleared": "{count} Elemente aus DeckyHub-Downloads entfernt.",

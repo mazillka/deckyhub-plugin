@@ -86,6 +86,7 @@ export const uk: Record<MessageKey, string> = {
   "settings.overwriteExisting": "Перезаписувати наявні файли",
   "settings.cleanup": "Очищення",
   "settings.clearDownloads": "Очистити папку завантажень DeckyHub",
+  "settings.emptyFolder": "Очистити папку",
   "settings.clearDownloadsTitle": "Очистити папку завантажень DeckyHub",
   "settings.clearDownloadsDescription": "Назавжди видалити всі файли в /home/deck/Downloads/deckyhub?",
   "settings.downloadsCleared": "Видалено {count} елементів із завантажень DeckyHub.",

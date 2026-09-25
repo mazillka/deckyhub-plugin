@@ -85,6 +85,7 @@ export const en = {
   "settings.overwriteExisting": "Overwrite Existing",
   "settings.cleanup": "Cleanup",
   "settings.clearDownloads": "Empty DeckyHub Downloads Folder",
+  "settings.emptyFolder": "Empty Folder",
   "settings.clearDownloadsTitle": "Empty DeckyHub Downloads Folder",
   "settings.clearDownloadsDescription": "Permanently remove all files in /home/deck/Downloads/deckyhub?",
   "settings.downloadsCleared": "Removed {count} items from DeckyHub downloads.",
