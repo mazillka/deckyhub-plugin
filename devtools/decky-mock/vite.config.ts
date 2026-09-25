@@ -11,5 +11,7 @@ export default defineConfig({
       "@decky/ui": path.resolve(__dirname, "ui.tsx"),
     },
   },
-  server: { port: 5183 },
+  // .dev-data holds the bridge's settings and fake installed plugins; watching
+  // it keeps Windows handles open and makes tests' folder cleanup fail (EPERM).
+  server: { port: 5183, watch: { ignored: ["**/.dev-data/**"] } },
 });

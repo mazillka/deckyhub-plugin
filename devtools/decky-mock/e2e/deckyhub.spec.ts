@@ -584,7 +584,8 @@ test("The Download window offers Update for an outdated Decky plugin and hands i
       ["utilities/install_plugin", url, "MAKO - Frame Generation", "plugin-v1.2.3", sha256, 2],
     ]);
   } finally {
-    rmSync(pluginDir, { recursive: true, force: true });
+    // Retries: on Windows the bridge's plugin scan can briefly lock the folder.
+    rmSync(pluginDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
   }
 });
 
@@ -684,7 +685,8 @@ test("The Manage window uninstalls an installed Decky plugin after confirming", 
 
     await expect.poll(calls).toEqual([["utilities/uninstall_plugin", "MAKO - Frame Generation"]]);
   } finally {
-    rmSync(pluginDir, { recursive: true, force: true });
+    // Retries: on Windows the bridge's plugin scan can briefly lock the folder.
+    rmSync(pluginDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
   }
 });
 
