@@ -38,7 +38,11 @@ export function VersionPickerPanel({
       <div style={{ fontSize: 13, opacity: 0.75 }}>{subtitle}</div>
 
       <div style={{ display: "grid", gap: 8, padding: 12, background: "rgba(0, 0, 0, 0.2)", borderRadius: 8 }}>
+        {/* Inline label + no separator: Steam's dropdown height is fixed, so
+            this is what keeps each row short. */}
         <DropdownItem
+          layout="inline"
+          bottomSeparator="none"
           label={t("settings.updateChannel")}
           rgOptions={[
             { label: t("settings.stableReleases"), data: "stable" },
@@ -49,7 +53,7 @@ export function VersionPickerPanel({
           onChange={({ data }) => onChannelChange(data as UpdateChannel)}
         />
         {versionOptions.length > 0 && (
-          <DropdownItem label={t("settings.version")} rgOptions={versionOptions} selectedOption={selectedTag} disabled={disabled} onChange={({ data }) => onVersionChange(String(data))} />
+          <DropdownItem layout="inline" bottomSeparator="none" label={t("settings.version")} rgOptions={versionOptions} selectedOption={selectedTag} disabled={disabled} onChange={({ data }) => onVersionChange(String(data))} />
         )}
       </div>
 

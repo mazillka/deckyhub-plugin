@@ -103,16 +103,21 @@ export function DropdownItem({
   rgOptions,
   selectedOption,
   onChange,
+  layout,
 }: {
   label?: string;
   rgOptions: { label: ReactNode; data: unknown }[];
   selectedOption: unknown;
   onChange: (option: { data: unknown }) => void;
+  layout?: "below" | "inline";
 }) {
+  // Like Steam's Field: "inline" puts the label beside the control instead of above it.
+  const inline = layout === "inline";
   return (
-    <label className="steam-field-label">
+    <label className="steam-field-label" style={inline ? { display: "flex", alignItems: "center", gap: 12 } : undefined}>
       {label}
       <select
+        style={inline ? { flex: 1, marginTop: 0, width: "auto" } : undefined}
         value={String(selectedOption)}
         onChange={(event) => {
           const option = rgOptions.find((item) => String(item.data) === event.target.value);
