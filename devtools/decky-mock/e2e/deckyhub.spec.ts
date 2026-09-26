@@ -925,6 +925,25 @@ test("Discover's card picks the newest pre-release by publish date, not array or
   }
 });
 
+test("A newer pre-release of an installed pre-release counts as an update", async ({ page }) => {
+  // Regression: only the numeric part used to be compared, so rc.1 → rc.2 was "Up To Date".
+  const pluginDir = new URL("../.dev-data/plugins/e2e-mako-rc/", import.meta.url);
+  mkdirSync(pluginDir, { recursive: true });
+  writeFileSync(new URL("plugin.json", pluginDir), JSON.stringify({ name: "MAKO - Frame Generation", version: "1.4.0-rc.1" }));
+  await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases?per_page=20", (route) =>
+    route.fulfill({ json: [{ tag_name: "plugin-v1.4.0-rc.2", prerelease: true, draft: false, published_at: "2026-01-02T00:00:00Z", html_url: "https://github.com/eugeniosegala/MAKO/releases/tag/plugin-v1.4.0-rc.2", assets: [] }] })
+  );
+  await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "prerelease", assetFilter: [] });
+  try {
+    await page.goto("/?preview=/deckyhub/updates&bridge=http://127.0.0.1:8643");
+    const makoCard = mock(page).getByRole("heading", { name: "MAKO Decky" }).locator("..");
+    await expect(makoCard.getByText("Update Available", { exact: true })).toBeVisible();
+  } finally {
+    await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "stable", assetFilter: [] });
+    rmSync(pluginDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  }
+});
+
 test("Saving a GitHub token in Settings adds it to GitHub API requests", async ({ page }) => {
   let authHeader: string | undefined;
   await page.route("https://api.github.com/**", (route) => {

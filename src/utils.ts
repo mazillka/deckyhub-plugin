@@ -154,11 +154,6 @@ function writeCache(key: string, data: unknown): void {
   }
 }
 
-function versionNumbers(value: string) {
-  const match = value.match(/v?(\d+(?:\.\d+)+)/i);
-  return match ? match[1].split(".").map(Number) : null;
-}
-
 export const normalizeVersion = (value: string) => value.trim().replace(/^v/i, "");
 
 // One display format for every version: "v" + the version number, keeping a
@@ -197,14 +192,12 @@ export function buildVersionOptions<T extends { tag: string; version: string }>(
 // kind of operation this is.
 export const PLUGIN_INSTALL_TYPE = { INSTALL: 0, REINSTALL: 1, UPDATE: 2, DOWNGRADE: 3 } as const;
 
-// DeckyHub's own versions can carry a pre-release suffix ("1.0.3-rc.2"),
-// which versionNumbers() above deliberately ignores (it only wants the
-// release-number part for third-party apps). That made every "1.0.3-rc.N"
-// compare as an identical "1.0.3" here, so switching between rc.1/rc.2/rc.3
-// in the version picker always resolved to Reinstall. Parse the suffix too.
-function parseDeckyHubVersion(value: string) {
-  const [release, prerelease] = normalizeVersion(value).split(/-(.+)/, 2);
-  return { release: release.split(".").map((part) => Number(part) || 0), prerelease: prerelease ?? null };
+// The version number and pre-release suffix inside a tag or version string —
+// the same part displayVersion() shows: "plugin-v3.3.0" → 3.3.0,
+// "1.0.3-rc.2" → 1.0.3 + "rc.2". Null when there's no dotted version number.
+function parseVersion(value: string) {
+  const match = value.match(/(\d+(?:\.\d+)+)(?:-([0-9A-Za-z.-]+))?/);
+  return match ? { release: match[1].split(".").map(Number), prerelease: match[2] ?? null } : null;
 }
 
 // A version with no pre-release suffix outranks the same release number with
@@ -221,17 +214,22 @@ function comparePrerelease(target: string | null, current: string | null): numbe
   return target > current ? 1 : target < current ? -1 : 0;
 }
 
-export function resolveDeckyHubInstallType(latestVersion: string, installedVersion: string): 1 | 2 | 3 {
-  if (installedVersion === "unknown") return PLUGIN_INSTALL_TYPE.UPDATE;
-  const target = parseDeckyHubVersion(latestVersion);
-  const current = parseDeckyHubVersion(installedVersion);
-  for (let i = 0; i < Math.max(target.release.length, current.release.length); i++) {
-    const t = target.release[i] || 0, c = current.release[i] || 0;
-    if (t !== c) return t > c ? PLUGIN_INSTALL_TYPE.UPDATE : PLUGIN_INSTALL_TYPE.DOWNGRADE;
+// 1 / -1 / 0 as target is newer / older / the same as current, or null when
+// either has no version number. Used for DeckyHub itself and every tracked
+// app, so pre-release suffixes count everywhere (rc.1 → rc.2 → final).
+function compareVersions(target: string, current: string): number | null {
+  const a = parseVersion(target), b = parseVersion(current);
+  if (!a || !b) return null;
+  for (let i = 0; i < Math.max(a.release.length, b.release.length); i++) {
+    const diff = (a.release[i] || 0) - (b.release[i] || 0);
+    if (diff) return Math.sign(diff);
   }
-  const prereleaseCmp = comparePrerelease(target.prerelease, current.prerelease);
-  if (prereleaseCmp !== 0) return prereleaseCmp > 0 ? PLUGIN_INSTALL_TYPE.UPDATE : PLUGIN_INSTALL_TYPE.DOWNGRADE;
-  return PLUGIN_INSTALL_TYPE.REINSTALL;
+  return comparePrerelease(a.prerelease, b.prerelease);
+}
+
+export function resolveDeckyHubInstallType(latestVersion: string, installedVersion: string): 1 | 2 | 3 {
+  const cmp = installedVersion === "unknown" ? 1 : compareVersions(latestVersion, installedVersion) ?? 1;
+  return cmp > 0 ? PLUGIN_INSTALL_TYPE.UPDATE : cmp < 0 ? PLUGIN_INSTALL_TYPE.DOWNGRADE : PLUGIN_INSTALL_TYPE.REINSTALL;
 }
 
 // window.DeckyBackend is Decky Loader's own internal WS bridge, separate from
@@ -304,13 +302,8 @@ export function selfUpdateStageKey(key: string | undefined): MessageKey {
 
 function isUpdate(app: App, latest: string | null) {
   if (!app.installedVersion || !latest) return null;
-  const installed = versionNumbers(app.installedVersion);
-  const target = versionNumbers(latest);
-  if (!installed || !target) return null;
-  for (let i = 0; i < Math.max(installed.length, target.length); i++) {
-    if ((installed[i] || 0) !== (target[i] || 0)) return (installed[i] || 0) < (target[i] || 0);
-  }
-  return false;
+  const cmp = compareVersions(latest, app.installedVersion);
+  return cmp === null ? null : cmp > 0;
 }
 
 function matchingAssets(app: App, assets: Asset[], extraInclude: string[] = []): Asset[] {
