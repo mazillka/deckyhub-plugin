@@ -130,4 +130,18 @@ export const uk: Record<MessageKey, string> = {
   "repos.removeRepositoryTitle": "Видалити репозиторій",
   "repos.removeRepositoryDesc": "Припинити відстеження {repo}? Ви завжди зможете додати його знову з Огляду.",
   "repos.removeConfirm": "Видалити",
+
+  "github.error": "GitHub API повернув {status}",
+  "release.noMatch": "Відповідний реліз не знайдено.",
+  "release.noChecksum": "Не знайдено ZIP-релізу DeckyHub з контрольною сумою SHA-256.",
+  "error.loaderUnavailable": "Decky Loader зараз недоступний.",
+  "toast.updatesAvailable": "Доступні оновлення: {count}",
+  "dl.failedTitle": "Не вдалося завантажити в DeckyHub",
+  "dl.failedNoReason": "Завантаження не вдалося без зазначеної причини.",
+  "dl.progress": "{percent}% · {received} з {total}",
+  "repos.addedToast": "{repo} додано до Огляду.",
+  "repos.alreadyAdded": "{repo} вже є в DeckyHub.",
+  "repos.exportedTo": "Експортовано в {path}",
+  "repos.imported": "Імпортовано: {repos}",
+  "repos.nothingToImport": "Немає нових репозиторіїв для імпорту.",
 };

@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { getSettings } from "../api";
-import { applyDensity, setGithubToken } from "../utils";
+import { applyDensity, setGithubToken, setTranslator, substitute } from "../utils";
 import { en, type MessageKey, type TFunc } from "./en";
 import { uk } from "./uk";
 import { es } from "./es";
@@ -37,10 +37,6 @@ function detectLocale(): Locale {
   return "en";
 }
 
-export function substitute(template: string, vars?: Record<string, string | number>) {
-  return template.replace(/\{(\w+)\}/g, (match, name) => String(vars?.[name] ?? match));
-}
-
 function translate(locale: Locale, key: MessageKey, vars?: Record<string, string | number>) {
   const template = MESSAGES[locale][key] ?? MESSAGES.en[key] ?? key;
   return substitute(template, vars);
@@ -70,6 +66,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const locale = preference === "auto" ? detectLocale() : isLocale(preference) ? preference : "en";
   const t: TFunc = (key, vars) => translate(locale, key, vars);
+
+  useEffect(() => setTranslator(t), [locale]);
 
   return <I18nContext.Provider value={{ locale, t }}>{children}</I18nContext.Provider>;
 }

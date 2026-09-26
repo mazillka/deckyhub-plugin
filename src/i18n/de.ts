@@ -130,4 +130,18 @@ export const de: Record<MessageKey, string> = {
   "repos.removeRepositoryTitle": "Repository entfernen",
   "repos.removeRepositoryDesc": "{repo} nicht mehr verfolgen? Du kannst es später über Entdecken wieder hinzufügen.",
   "repos.removeConfirm": "Entfernen",
+
+  "github.error": "GitHub-API hat {status} zurückgegeben",
+  "release.noMatch": "Keine passende Version gefunden.",
+  "release.noChecksum": "Kein DeckyHub-Release-ZIP mit SHA-256-Prüfsumme gefunden.",
+  "error.loaderUnavailable": "Decky Loader ist gerade nicht verfügbar.",
+  "toast.updatesAvailable": "Updates verfügbar: {count}",
+  "dl.failedTitle": "DeckyHub-Download fehlgeschlagen",
+  "dl.failedNoReason": "Der Download ist ohne Angabe eines Grundes fehlgeschlagen.",
+  "dl.progress": "{percent}% · {received} von {total}",
+  "repos.addedToast": "{repo} wurde zu Entdecken hinzugefügt.",
+  "repos.alreadyAdded": "{repo} ist bereits in DeckyHub.",
+  "repos.exportedTo": "Exportiert nach {path}",
+  "repos.imported": "Importiert: {repos}",
+  "repos.nothingToImport": "Keine neuen Repositories zum Importieren.",
 };

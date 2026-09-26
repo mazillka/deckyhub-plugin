@@ -1,6 +1,6 @@
 import { fetchNoCors, toaster } from "@decky/api";
 import { getSettings } from "./api";
-import type { MessageKey, TFunc } from "./i18n/en";
+import { en, type MessageKey, type TFunc } from "./i18n/en";
 import type { App, AppReleaseOption, Asset, DeckyHubRelease, DeckyHubReleaseOption, RepoPreference, UpdateChannel } from "./types";
 
 // GitHub's unauthenticated core API allows 60 requests/hour per IP, easy to
@@ -56,7 +56,19 @@ export const cardDescriptionStyle = {
   lineHeight: "1.3em",
 };
 
-export function fetchWithTimeout(input: string, init?: RequestInit) {
+export function substitute(template: string, vars?: Record<string, string | number>) {
+  return template.replace(/\{(\w+)\}/g, (match, name) => String(vars?.[name] ?? match));
+}
+
+// Messages built outside any component tree (GitHub errors, the updates
+// toast) use the locale I18nProvider last resolved — English until then.
+let tr: TFunc = (key, vars) => substitute(en[key], vars);
+
+export function setTranslator(t: TFunc) {
+  tr = t;
+}
+
+function fetchWithTimeout(input: string, init?: RequestInit) {
   return fetchNoCors(input, { ...init, signal: AbortSignal.timeout(15_000) });
 }
 
@@ -109,7 +121,7 @@ export async function githubFetch(url: string, headers: Record<string, string> =
 // entirely — that's fine, the message just degrades to a generic one)
 // instead of guessing, and nudge toward adding a token when none is set.
 export async function githubResponseError(response: Response): Promise<Error> {
-  if (response.status !== 403 && response.status !== 429) return new Error(`GitHub API returned ${response.status}`);
+  if (response.status !== 403 && response.status !== 429) return new Error(tr("github.error", { status: response.status }));
   const minutesUntil = (epochSeconds: number) => Math.max(1, Math.ceil((epochSeconds * 1000 - Date.now()) / 60_000));
   const retryAfter = Number(response.headers.get("retry-after"));
   const resetAt = Number(response.headers.get("x-ratelimit-reset"));
@@ -120,10 +132,9 @@ export async function githubResponseError(response: Response): Promise<Error> {
     ? minutesUntil(resetAt)
     : null;
   if (!githubToken) reportRateLimit(minutes);
-  const hint = githubToken ? "" : " Add a GitHub token in Settings to raise this limit.";
-  return new Error(
-    minutes ? `GitHub API rate limit reached — try again in about ${minutes} minute${minutes === 1 ? "" : "s"}.${hint}` : `GitHub API rate limit reached — try again later.${hint}`,
-  );
+  const parts = [`${tr("rateLimit.title")}.`, minutes ? tr("rateLimit.retryIn", { minutes }) : tr("rateLimit.retryLater")];
+  if (!githubToken) parts.push(tr("rateLimit.howToAvoid"));
+  return new Error(parts.join(" "));
 }
 
 // GitHub's own quota report for this device (or token). Querying it doesn't
@@ -274,7 +285,7 @@ export function uninstallDeckyPlugin(pluginName: string) {
 
 function callDeckyLoader(route: string, ...args: unknown[]) {
   const backend = getDeckyBackend();
-  if (!backend) return Promise.reject(new Error("Decky Loader is unavailable right now"));
+  if (!backend) return Promise.reject(new Error(tr("error.loaderUnavailable")));
   return backend.call(route, ...args);
 }
 
@@ -330,7 +341,7 @@ export function notifyUpdates(apps: App[]) {
   const notice = updates.map((app) => `${app.repo}:${app.latestVersion}`).sort().join("|");
   if (!notice || localStorage.getItem(UPDATE_NOTICE_KEY) === notice) return;
   localStorage.setItem(UPDATE_NOTICE_KEY, notice);
-  toaster.toast({ title: `${updates.length} update${updates.length === 1 ? "" : "s"} available`, body: updates.map((app) => `${app.name} (${app.latestVersion})`).join(", ") });
+  toaster.toast({ title: tr("toast.updatesAvailable", { count: updates.length }), body: updates.map((app) => `${app.name} (${app.latestVersion})`).join(", ") });
 }
 
 // A repo's recent non-draft releases with every asset, newest first — the one
@@ -394,7 +405,7 @@ export async function listDeckyHubReleases(force = false): Promise<{ items: Deck
 export async function latestDeckyHubRelease(channel: UpdateChannel, force = false): Promise<DeckyHubRelease> {
   const { items, error } = await listDeckyHubReleases(force);
   const release = items.find((item) => item.prerelease === (channel === "prerelease"));
-  return release?.asset ? { version: release.version, asset: release.asset } : { error: error ?? "DeckyHub release ZIP with SHA-256 checksum not found" };
+  return release?.asset ? { version: release.version, asset: release.asset } : { error: error ?? tr("release.noChecksum") };
 }
 
 // A tracked app's recent releases (tag-filtered, assets matched to its
@@ -417,7 +428,7 @@ export async function hydrate(app: App, force: boolean, preference?: RepoPrefere
   const channel: UpdateChannel = preference?.channel ?? "stable";
   const { items, error } = await listAppReleases(app, preference, force);
   const release = items.find((item) => item.prerelease === (channel === "prerelease"));
-  if (!release) return { ...app, channel, error: error ?? "No matching release found" };
+  if (!release) return { ...app, channel, error: error ?? tr("release.noMatch") };
   return {
     ...app,
     channel,

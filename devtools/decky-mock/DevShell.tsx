@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { showDownloadModal } from "../../src/components/DownloadProgress";
 import { en, type MessageKey } from "../../src/i18n/en";
-import { substitute } from "../../src/i18n";
 import pluginFactory from "../../src/index";
-import { reportRateLimit } from "../../src/utils";
+import { reportRateLimit, substitute } from "../../src/utils";
 import { routerHook } from "./api";
 
 const previewText = (key: MessageKey, vars?: Record<string, string | number>) => substitute(en[key], vars);

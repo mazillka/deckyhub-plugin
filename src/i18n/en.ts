@@ -129,6 +129,20 @@ export const en = {
   "repos.removeRepositoryTitle": "Remove Repository",
   "repos.removeRepositoryDesc": "Stop tracking {repo}? You can add it again later from Discover.",
   "repos.removeConfirm": "Remove",
+
+  "github.error": "GitHub API returned {status}",
+  "release.noMatch": "No matching release found.",
+  "release.noChecksum": "No DeckyHub release ZIP with a SHA-256 checksum was found.",
+  "error.loaderUnavailable": "Decky Loader is unavailable right now.",
+  "toast.updatesAvailable": "Updates available: {count}",
+  "dl.failedTitle": "DeckyHub download failed",
+  "dl.failedNoReason": "The download failed without a reported reason.",
+  "dl.progress": "{percent}% · {received} of {total}",
+  "repos.addedToast": "{repo} added to Discover.",
+  "repos.alreadyAdded": "{repo} is already in DeckyHub.",
+  "repos.exportedTo": "Exported to {path}",
+  "repos.imported": "Imported: {repos}",
+  "repos.nothingToImport": "No new repositories to import.",
 };
 
 export type MessageKey = keyof typeof en;

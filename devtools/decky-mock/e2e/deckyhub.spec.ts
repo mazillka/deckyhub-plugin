@@ -498,7 +498,7 @@ test("A GitHub rate limit surfaces a friendly message instead of a raw status co
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
 
   const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
-  await expect(makoCard.getByText(/GitHub API rate limit reached/)).toBeVisible();
+  await expect(makoCard.getByText(/GitHub rate limit reached./)).toBeVisible();
   await expect(makoCard.getByText("GitHub API returned 403", { exact: true })).toBeHidden();
 
   // Without a token, the limit also raises one header banner (even though
@@ -544,7 +544,7 @@ test("The rate-limit message suggests adding a GitHub token only when none is co
     await app.getByRole("button", { name: "/deckyhub/settings" }).click();
     await app.getByRole("button", { name: "/deckyhub/discover" }).click();
 
-    await expect(makoCard.getByText(/GitHub API rate limit reached/)).toBeVisible();
+    await expect(makoCard.getByText(/GitHub rate limit reached./)).toBeVisible();
     await expect(makoCard.getByText(/Add a GitHub token in Settings/)).toBeHidden();
     await expect(app.locator(".deckyhub-rate-limit")).toHaveCount(0);
   } finally {

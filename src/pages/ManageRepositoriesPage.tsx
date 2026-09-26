@@ -52,7 +52,7 @@ export function ManageRepositoriesPage() {
       refreshRepos();
       window.dispatchEvent(new Event(REGISTRY_UPDATED));
     }
-    toaster.toast({ title: "DeckyHub", body: result.added ? `${repo} added to Discover.` : `${repo} is already in DeckyHub.` });
+    toaster.toast({ title: "DeckyHub", body: t(result.added ? "repos.addedToast" : "repos.alreadyAdded", { repo }) });
   };
 
   const remove = async (repo: string) => {
@@ -74,7 +74,7 @@ export function ManageRepositoriesPage() {
 
   const exportList = async () => {
     const result = await exportCustomRepos();
-    toaster.toast({ title: "DeckyHub", body: `Exported to ${result.path}` });
+    toaster.toast({ title: "DeckyHub", body: t("repos.exportedTo", { path: result.path }) });
   };
 
   const importList = async () => {
@@ -82,7 +82,7 @@ export function ManageRepositoriesPage() {
     const result = await importCustomRepos(file.realpath);
     refreshRepos();
     if (result.added.length) window.dispatchEvent(new Event(REGISTRY_UPDATED));
-    toaster.toast({ title: "DeckyHub", body: result.added.length ? `Imported: ${result.added.join(", ")}` : "No new repositories to import." });
+    toaster.toast({ title: "DeckyHub", body: result.added.length ? t("repos.imported", { repos: result.added.join(", ") }) : t("repos.nothingToImport") });
   };
 
   return (

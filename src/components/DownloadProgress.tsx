@@ -46,7 +46,7 @@ function DownloadModal({
             <div style={{ display: "grid", gap: 16 }}>
               <strong style={{ overflowWrap: "anywhere" }}>{t("dl.downloading", { filename: state.filename ?? "" })}</strong>
               <ProgressBar indeterminate={!state.total} nProgress={progress} />
-              <small style={{ color: "#8fcef4" }}>{state.total ? `${Math.round(progress)}% · ${readableBytes(state.received)} of ${readableBytes(state.total)}` : t("dl.preparing")}</small>
+              <small style={{ color: "#8fcef4" }}>{state.total ? t("dl.progress", { percent: Math.round(progress), received: readableBytes(state.received), total: readableBytes(state.total) }) : t("dl.preparing")}</small>
             </div>
           )}
           {state.state === "error" && <div>{state.error}</div>}

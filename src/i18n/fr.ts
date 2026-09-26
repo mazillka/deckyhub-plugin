@@ -130,4 +130,18 @@ export const fr: Record<MessageKey, string> = {
   "repos.removeRepositoryTitle": "Retirer le dépôt",
   "repos.removeRepositoryDesc": "Arrêter de suivre {repo} ? Vous pourrez le rajouter plus tard depuis Découvrir.",
   "repos.removeConfirm": "Retirer",
+
+  "github.error": "L’API GitHub a renvoyé {status}",
+  "release.noMatch": "Aucune version correspondante trouvée.",
+  "release.noChecksum": "Aucun ZIP de version DeckyHub avec somme de contrôle SHA-256 trouvé.",
+  "error.loaderUnavailable": "Decky Loader est indisponible pour le moment.",
+  "toast.updatesAvailable": "Mises à jour disponibles : {count}",
+  "dl.failedTitle": "Échec du téléchargement DeckyHub",
+  "dl.failedNoReason": "Le téléchargement a échoué sans raison indiquée.",
+  "dl.progress": "{percent} % · {received} sur {total}",
+  "repos.addedToast": "{repo} ajouté à Découvrir.",
+  "repos.alreadyAdded": "{repo} est déjà dans DeckyHub.",
+  "repos.exportedTo": "Exporté vers {path}",
+  "repos.imported": "Importés : {repos}",
+  "repos.nothingToImport": "Aucun nouveau dépôt à importer.",
 };

@@ -130,4 +130,18 @@ export const zh: Record<MessageKey, string> = {
   "repos.removeRepositoryTitle": "移除仓库",
   "repos.removeRepositoryDesc": "停止跟踪 {repo}？之后仍可从“发现”重新添加。",
   "repos.removeConfirm": "移除",
+
+  "github.error": "GitHub API 返回了 {status}",
+  "release.noMatch": "未找到匹配的版本。",
+  "release.noChecksum": "未找到带 SHA-256 校验和的 DeckyHub 发布 ZIP。",
+  "error.loaderUnavailable": "Decky Loader 当前不可用。",
+  "toast.updatesAvailable": "可用更新：{count}",
+  "dl.failedTitle": "DeckyHub 下载失败",
+  "dl.failedNoReason": "下载失败，未报告原因。",
+  "dl.progress": "{percent}% · {received} / {total}",
+  "repos.addedToast": "已将 {repo} 添加到发现。",
+  "repos.alreadyAdded": "{repo} 已在 DeckyHub 中。",
+  "repos.exportedTo": "已导出到 {path}",
+  "repos.imported": "已导入：{repos}",
+  "repos.nothingToImport": "没有可导入的新仓库。",
 };

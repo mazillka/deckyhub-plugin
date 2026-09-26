@@ -130,4 +130,18 @@ export const ja: Record<MessageKey, string> = {
   "repos.removeRepositoryTitle": "リポジトリを削除",
   "repos.removeRepositoryDesc": "{repo} の追跡を停止しますか？後で「見つける」から再度追加できます。",
   "repos.removeConfirm": "削除",
+
+  "github.error": "GitHub API がエラー {status} を返しました",
+  "release.noMatch": "該当するリリースが見つかりません。",
+  "release.noChecksum": "SHA-256 チェックサム付きの DeckyHub リリース ZIP が見つかりません。",
+  "error.loaderUnavailable": "現在 Decky Loader を利用できません。",
+  "toast.updatesAvailable": "利用可能なアップデート: {count}",
+  "dl.failedTitle": "DeckyHub のダウンロードに失敗しました",
+  "dl.failedNoReason": "理由不明のままダウンロードに失敗しました。",
+  "dl.progress": "{percent}% · {received} / {total}",
+  "repos.addedToast": "{repo} を「見つける」に追加しました。",
+  "repos.alreadyAdded": "{repo} はすでに DeckyHub にあります。",
+  "repos.exportedTo": "{path} にエクスポートしました",
+  "repos.imported": "インポートしました: {repos}",
+  "repos.nothingToImport": "インポートする新しいリポジトリはありません。",
 };
