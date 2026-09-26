@@ -1,4 +1,5 @@
 import { fetchNoCors, toaster } from "@decky/api";
+import { getSettings } from "./api";
 import type { MessageKey, TFunc } from "./i18n/en";
 import type { App, AppReleaseOption, Asset, DeckyHubRelease, DeckyHubReleaseOption, RepoPreference, UpdateChannel } from "./types";
 
@@ -84,8 +85,19 @@ export function reportRateLimit(minutes: number | null, until = Date.now() + (mi
   window.dispatchEvent(new Event(RATE_LIMIT_CHANGED));
 }
 
-export function githubHeaders(): Record<string, string> {
+function githubHeaders(): Record<string, string> {
   return githubToken ? { Accept: "application/vnd.github+json", Authorization: `Bearer ${githubToken}` } : { Accept: "application/vnd.github+json" };
+}
+
+// React runs a child's effects before its parent's, so the first GitHub call
+// on a route fires before I18nProvider has loaded the saved token. Wait for
+// it once here instead of spending that call unauthenticated.
+let tokenLoaded: Promise<void> | null = null;
+
+export async function githubFetch(url: string, headers: Record<string, string> = {}) {
+  tokenLoaded ??= getSettings().then((settings) => setGithubToken(settings.githubToken || ""), () => undefined);
+  await tokenLoaded;
+  return fetchWithTimeout(url, { headers: { ...githubHeaders(), ...headers } });
 }
 
 // GitHub's REST API is what every fetch in this file hits — unauthenticated
@@ -118,7 +130,7 @@ export async function githubResponseError(response: Response): Promise<Error> {
 // count against the limit. Only the hourly "core" bucket is returned — that's
 // the one release checks drain; search has its own tiny per-minute bucket.
 export async function githubCoreQuota(): Promise<{ limit: number; remaining: number; reset: number } | null> {
-  const response = await fetchWithTimeout("https://api.github.com/rate_limit", { headers: githubHeaders() });
+  const response = await githubFetch("https://api.github.com/rate_limit");
   if (!response.ok) throw await githubResponseError(response);
   return (await response.json()).resources?.core ?? null;
 }
@@ -130,24 +142,22 @@ export const statusKey = (app: App): MessageKey =>
 
 export const statusColor = (app: App) => (!app.installedVersion || app.error ? "#ff6b6b" : app.updateAvailable ? "#f0c33c" : app.updateAvailable === false ? "#6bcb6b" : undefined);
 
-// Shared by every GitHub-fetching function below — a plain localStorage
-// {at, data} envelope read back only when still under CACHE_TTL and not
-// explicitly bypassed. Only successful results are ever written (see each
-// call site's try/catch), so a transient failure never "poisons" the cache
-// for the next attempt.
-function readCache<T>(key: string, force: boolean): T | null {
-  if (force) return null;
+// fetchReleases' localStorage envelope: when it was fetched (for CACHE_TTL),
+// the data, and GitHub's ETag for a free conditional re-check. Only
+// successful results are ever written, so a failure never "poisons" it.
+type CacheEntry<T> = { at: number; data: T; etag?: string };
+
+function readCache<T>(key: string): CacheEntry<T> | null {
   try {
-    const value = JSON.parse(localStorage.getItem(key) || "null");
-    return value && Date.now() - value.at < CACHE_TTL ? (value.data as T) : null;
+    return JSON.parse(localStorage.getItem(key) || "null");
   } catch {
     return null;
   }
 }
 
-function writeCache(key: string, data: unknown): void {
+function writeCache(key: string, data: unknown, etag?: string | null): void {
   try {
-    localStorage.setItem(key, JSON.stringify({ at: Date.now(), data }));
+    localStorage.setItem(key, JSON.stringify({ at: Date.now(), data, etag: etag || undefined }));
   } catch {
     // Quota exceeded or storage disabled (private browsing) — caching is a
     // nice-to-have, never worth failing the fetch that already succeeded.
@@ -333,10 +343,22 @@ type Release = { tag: string; prerelease: boolean; publishedAt: string | null; u
 
 async function fetchReleases(repo: string, force: boolean): Promise<Release[]> {
   const cacheKey = `deckyhub-releases:${repo}`;
-  const cached = readCache<Release[]>(cacheKey, force);
-  if (cached) return cached;
-  const response = await fetchWithTimeout(`https://api.github.com/repos/${repo}/releases?per_page=20`, { headers: githubHeaders() });
-  if (!response.ok) throw await githubResponseError(response);
+  const cached = readCache<Release[]>(cacheKey);
+  if (cached && !force && Date.now() - cached.at < CACHE_TTL) return cached.data;
+  let response: Response;
+  try {
+    // A 304 answer to If-None-Match doesn't count against GitHub's rate limit.
+    response = await githubFetch(`https://api.github.com/repos/${repo}/releases?per_page=20`, cached?.etag ? { "If-None-Match": cached.etag } : {});
+    if (response.status === 304 && cached) {
+      writeCache(cacheKey, cached.data, cached.etag);
+      return cached.data;
+    }
+    if (!response.ok) throw await githubResponseError(response);
+  } catch (error) {
+    // Older releases beat an error card; a rate limit still raises the banner.
+    if (cached) return cached.data;
+    throw error;
+  }
   const body = await response.json();
   const releases: Release[] = (Array.isArray(body) ? body : [])
     .filter((item: any) => !item.draft)
@@ -348,7 +370,7 @@ async function fetchReleases(repo: string, force: boolean): Promise<Release[]> {
       assets: (item.assets || []).map((asset: any) => ({ name: String(asset.name || ""), url: asset.browser_download_url, size: asset.size || 0, sha256: String(asset.digest || "").replace(/^sha256:/, "") || undefined })),
     }))
     .sort((a: Release, b: Release) => (Date.parse(b.publishedAt || "") || 0) - (Date.parse(a.publishedAt || "") || 0));
-  writeCache(cacheKey, releases);
+  writeCache(cacheKey, releases, response.headers.get("etag"));
   return releases;
 }
 

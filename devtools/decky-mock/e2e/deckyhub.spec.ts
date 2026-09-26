@@ -944,6 +944,21 @@ test("A newer pre-release of an installed pre-release counts as an update", asyn
   }
 });
 
+test("A failed release check falls back to the cached releases", async ({ page }) => {
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+  await expect(makoCard.getByText("Latest: v1.2.3", { exact: true })).toBeVisible();
+
+  await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases?per_page=20", (route) =>
+    route.fulfill({ status: 403, headers: { "x-ratelimit-remaining": "0" }, json: { message: "API rate limit exceeded" } })
+  );
+  await app.getByRole("button", { name: "Refresh", exact: true }).click();
+  await expect(app.locator(".deckyhub-rate-limit")).toHaveCount(1);
+  await expect(makoCard.getByText("Latest: v1.2.3", { exact: true })).toBeVisible();
+  await expect(makoCard.getByText(/GitHub rate limit reached/)).toBeHidden();
+});
+
 test("Saving a GitHub token in Settings adds it to GitHub API requests", async ({ page }) => {
   let authHeader: string | undefined;
   await page.route("https://api.github.com/**", (route) => {
