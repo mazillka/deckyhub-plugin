@@ -1,5 +1,5 @@
 import { fetchNoCors, toaster } from "@decky/api";
-import { getSettings } from "./api";
+import { getSettings, logFrontend } from "./api";
 import { en, type MessageKey, type TFunc } from "./i18n/en";
 import type { App, AppReleaseOption, Asset, DeckyHubRelease, DeckyHubReleaseOption, RepoPreference, UpdateChannel } from "./types";
 
@@ -120,6 +120,9 @@ export async function githubFetch(url: string, headers: Record<string, string> =
 // hint the response actually offers (some responses omit these headers
 // entirely — that's fine, the message just degrades to a generic one)
 // instead of guessing, and nudge toward adding a token when none is set.
+// Writes to DeckyHub's backend log (see Export Logs); never throws.
+export const log = (message: string) => void logFrontend(message).catch(() => undefined);
+
 export async function githubResponseError(response: Response): Promise<Error> {
   if (response.status !== 403 && response.status !== 429) return new Error(tr("github.error", { status: response.status }));
   const minutesUntil = (epochSeconds: number) => Math.max(1, Math.ceil((epochSeconds * 1000 - Date.now()) / 60_000));
@@ -285,8 +288,12 @@ export function uninstallDeckyPlugin(pluginName: string) {
 
 function callDeckyLoader(route: string, ...args: unknown[]) {
   const backend = getDeckyBackend();
+  log(`Decky Loader ${route} ${JSON.stringify(args)}${backend ? "" : " (loader unavailable)"}`);
   if (!backend) return Promise.reject(new Error(tr("error.loaderUnavailable")));
-  return backend.call(route, ...args);
+  return backend.call(route, ...args).catch((error: unknown) => {
+    log(`Decky Loader ${route} failed: ${error}`);
+    throw error;
+  });
 }
 
 // What the Manage window can hand to Decky Loader's installer for the selected
@@ -397,6 +404,7 @@ export async function listDeckyHubReleases(force = false): Promise<{ items: Deck
     }));
     return { items };
   } catch (error) {
+    log(`Release lookup failed: ${error}`);
     return { items: [], error: String(error) };
   }
 }
@@ -418,6 +426,7 @@ export async function listAppReleases(app: App, preference?: RepoPreference, for
       .map((release) => ({ ...release, version: release.tag, assets: matchingAssets(app, release.assets, preference?.assetFilter) }));
     return { items };
   } catch (error) {
+    log(`Release lookup failed: ${error}`);
     return { items: [], error: String(error) };
   }
 }

@@ -7,6 +7,7 @@ import subprocess
 import sys
 import time
 import re
+import zipfile
 from pathlib import Path
 from urllib.error import URLError
 from urllib.request import Request, urlopen
@@ -66,6 +67,7 @@ class Plugin:
         self.cancelled: set[str] = set()
         self.download_queue: asyncio.Queue = asyncio.Queue()
         self.queue_worker = asyncio.create_task(self._run_download_queue())
+        decky.logger.info("DeckyHub %s started", (await self.get_deckyhub_info())["version"])
 
     def _load_settings(self) -> dict:
         try:
@@ -76,7 +78,9 @@ class Plugin:
                 "customRepos": [repo for repo in repos if isinstance(repo, str) and REPOSITORY_NAME.fullmatch(repo)],
                 "repoSettings": settings.get("repoSettings", {}) if isinstance(settings.get("repoSettings"), dict) else {},
             }
-        except (AttributeError, OSError, json.JSONDecodeError):
+        except (AttributeError, OSError, json.JSONDecodeError) as error:
+            if self.settings_path.exists():
+                decky.logger.error("Can't read %s, using defaults: %s", self.settings_path, error)
             return {**_coerce_settings({}), "customRepos": [], "repoSettings": {}}
 
     def _save_settings(self):
@@ -103,7 +107,8 @@ class Plugin:
             result = subprocess.run([command, *rule.get("args", ["--version"])], capture_output=True, text=True, timeout=4, check=False)
             output = (result.stdout + result.stderr).strip()
             return output[:200] or "installed"
-        except (OSError, subprocess.SubprocessError):
+        except (OSError, subprocess.SubprocessError) as error:
+            decky.logger.warning("Version check %s failed: %s", command, error)
             return "installed"
 
     def _match_decky_plugin(self, rule: dict, installed_plugins: list[tuple[Path, dict, str | None]]) -> tuple[Path, dict] | None:
@@ -158,10 +163,12 @@ class Plugin:
         command_versions = await asyncio.gather(*(asyncio.to_thread(self._installed_version, app) for _, app in command_checks))
         for (index, _), version in zip(command_checks, command_versions):
             installed[index] = version
+        decky.logger.info("Listed %d apps, %d installed", len(apps), sum(version is not None for version in installed))
         return {"apps": [{**app, "installedVersion": version, "pluginName": name, "latestVersion": None, "publishedAt": None, "releaseUrl": None, "assets": [], "updateAvailable": None, "error": None} for app, version, name in zip(apps, installed, plugin_names)]}
 
     async def save_repo_settings(self, repo: str, values: dict):
         if not REPOSITORY_NAME.fullmatch(repo):
+            decky.logger.error("Refused settings for invalid repository %r", repo)
             raise ValueError("Repository must be owner/name")
         item = {
             "channel": "prerelease" if values.get("channel") == "prerelease" else "stable",
@@ -169,6 +176,7 @@ class Plugin:
         }
         self.settings["repoSettings"][repo] = item
         self._save_settings()
+        decky.logger.info("Saved settings for %s: %s", repo, item)
         return item
 
     def _custom_apps(self) -> list[dict]:
@@ -194,6 +202,7 @@ class Plugin:
             "repoSettings": getattr(self, "settings", {}).get("repoSettings", {}),
         }
         self._save_settings()
+        decky.logger.info("Saved settings: %s", {**self.settings, "githubToken": bool(self.settings["githubToken"])})
         return self.settings
 
     async def clear_downloads(self):
@@ -211,7 +220,9 @@ class Plugin:
                 removed += 1
             return removed
 
-        return {"removed": await asyncio.to_thread(clear)}
+        removed = await asyncio.to_thread(clear)
+        decky.logger.info("Emptied %s: removed %d items", directory, removed)
+        return {"removed": removed}
 
     async def list_downloads(self):
         directory = Path(PLUGIN_DOWNLOAD_DIR)
@@ -226,12 +237,14 @@ class Plugin:
     async def add_custom_repo(self, repo: str):
         repo = repo.strip()
         if not REPOSITORY_NAME.fullmatch(repo):
+            decky.logger.error("Refused to add invalid repository %r", repo)
             raise ValueError("Repository must be owner/name")
         existing = {app["repo"].casefold() for app in self.apps} | {item.casefold() for item in self.settings["customRepos"]}
         if repo.casefold() in existing:
             return {"added": False, "repo": repo}
         self.settings["customRepos"].append(repo)
         self._save_settings()
+        decky.logger.info("Added repository %s", repo)
         return {"added": True, "repo": repo}
 
     async def get_custom_repos(self):
@@ -246,6 +259,7 @@ class Plugin:
         self.settings["customRepos"].remove(stored)
         self.settings.get("repoSettings", {}).pop(stored, None)
         self._save_settings()
+        decky.logger.info("Removed repository %s", stored)
         return {"removed": True, "repo": repo}
 
     async def export_custom_repos(self):
@@ -255,19 +269,39 @@ class Plugin:
         if target.exists():
             target = self._next_name(target)
         target.write_text(json.dumps({"schemaVersion": 1, "repos": self.settings["customRepos"]}, indent=2), encoding="utf-8")
+        decky.logger.info("Exported %d repositories to %s", len(self.settings["customRepos"]), target)
+        return {"path": str(target)}
+
+    # Frontend errors (GitHub lookups, installs) only reach the CEF console
+    # otherwise, so they're forwarded here to land in the exported log.
+    async def log_frontend(self, message: str):
+        decky.logger.warning("[frontend] %s", str(message)[:2000])
+
+    async def export_logs(self):
+        target_dir = Path(DEFAULT_DOWNLOAD_DIR)
+        target_dir.mkdir(parents=True, exist_ok=True)
+        target = target_dir / "DeckyHub-logs.zip"
+        if target.exists():
+            target = self._next_name(target)
+        with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as archive:
+            for log in sorted(Path(decky.DECKY_PLUGIN_LOG_DIR).glob("*.log")):
+                archive.write(log, log.name)
         return {"path": str(target)}
 
     async def import_custom_repos(self, path: str):
         source = Path(path).resolve()
         deck_home = Path(DEFAULT_DOWNLOAD_DIR).parent.resolve()
         if source.suffix.lower() != ".json" or not source.is_relative_to(deck_home):
+            decky.logger.error("Refused to import %s: not a JSON file inside /home/deck", source)
             raise ValueError("Choose a JSON file inside /home/deck")
         try:
             payload = json.loads(source.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as error:
+            decky.logger.error("Can't import %s: %s", source, error)
             raise ValueError("Invalid repository export") from error
         repos = payload.get("repos", []) if isinstance(payload, dict) else payload
         if not isinstance(repos, list):
+            decky.logger.error("Can't import %s: no repository list", source)
             raise ValueError("Invalid repository export")
         existing = {app["repo"].casefold() for app in self.apps} | {repo.casefold() for repo in self.settings["customRepos"]}
         added = []
@@ -278,6 +312,7 @@ class Plugin:
         if added:
             self.settings["customRepos"].extend(added)
             self._save_settings()
+        decky.logger.info("Imported %s from %s", added or "nothing new", source)
         return {"added": added}
 
     async def download_asset(self, asset: dict, repo: str | None = None):
@@ -297,9 +332,11 @@ class Plugin:
             job_id = f"{name}-{time.monotonic_ns()}"
             self.downloads[job_id] = {"state": "queued", "filename": target.name, "received": 0, "total": asset.get("size") or 0, "path": str(target), "error": None, "repo": repo, "url": asset["url"]}
             self.download_queue.put_nowait((job_id, asset, target))
+            decky.logger.info("Queued download of %s to %s", asset["url"], target)
             return {"jobId": job_id}
         except (OSError, ValueError) as error:
             name = asset.get("name", "download") if isinstance(asset, dict) else "download"
+            decky.logger.error("Can't start %s from %s: %s", name, repo, error)
             return {"error": f"Can't start {name}: {error}"}
 
     @staticmethod
@@ -333,17 +370,21 @@ class Plugin:
             job["state"] = "downloading"
             try:
                 self._download_with_urllib(job_id, asset, temp)
-            except URLError:
+            except URLError as error:
+                decky.logger.warning("urllib failed for %s (%s), retrying with curl", asset["url"], error)
                 self._download_with_curl(job_id, asset, temp)
             if asset.get("sha256") and self._sha256(temp) != asset["sha256"].lower():
                 raise RuntimeError("SHA256 verification failed")
             os.replace(temp, target)
             job["state"] = "complete"
+            decky.logger.info("Downloaded %s to %s", asset["url"], target)
         except InterruptedError:
             job["state"] = "cancelled"
             temp.unlink(missing_ok=True)
+            decky.logger.info("Cancelled download of %s", asset["url"])
         except Exception as error:
             job.update({"state": "error", "error": str(error)})
+            decky.logger.error("Download of %s failed: %s", asset["url"], error)
             temp.unlink(missing_ok=True)
         finally:
             self.cancelled.discard(job_id)

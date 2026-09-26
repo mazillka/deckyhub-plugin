@@ -1,14 +1,16 @@
 import asyncio
 import hashlib
 import json
+import logging
 import sys
 import tempfile
 import types
 import unittest
+import zipfile
 from pathlib import Path
 from unittest.mock import patch
 
-sys.modules.setdefault("decky", types.SimpleNamespace())
+sys.modules.setdefault("decky", types.SimpleNamespace(logger=logging.getLogger("decky-test")))
 import main
 from main import Plugin
 
@@ -345,6 +347,19 @@ class PluginStatusTests(unittest.TestCase):
 
             with self.assertRaises(ValueError):
                 asyncio.run(plugin.import_custom_repos(str(source)))
+
+    def test_export_logs_zips_plugin_logs_into_downloads(self):
+        with tempfile.TemporaryDirectory() as home, patch.object(sys.modules["decky"], "DECKY_PLUGIN_LOG_DIR", str(Path(home) / "logs"), create=True), patch.object(main, "DEFAULT_DOWNLOAD_DIR", str(Path(home) / "Downloads")):
+            (Path(home) / "logs").mkdir()
+            (Path(home) / "logs" / "2026-09-26.log").write_text("hello", encoding="utf-8")
+
+            first = asyncio.run(Plugin().export_logs())["path"]
+            second = asyncio.run(Plugin().export_logs())["path"]
+
+            self.assertEqual(Path(first).name, "DeckyHub-logs.zip")
+            self.assertEqual(Path(second).name, "DeckyHub-logs (1).zip")
+            with zipfile.ZipFile(first) as archive:
+                self.assertEqual(archive.read("2026-09-26.log"), b"hello")
 
     def test_import_rejects_non_json_file(self):
         with tempfile.TemporaryDirectory() as home:

@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { addCustomRepo, exportCustomRepos, getApps, getCustomRepos, importCustomRepos, REGISTRY_UPDATED, removeCustomRepo } from "../api";
 import { useT } from "../i18n";
 import type { ManagedRepo, SearchRepo } from "../types";
-import { compactButtonStyle, githubFetch, githubResponseError, sectionDividerStyle } from "../utils";
+import { compactButtonStyle, githubFetch, githubResponseError, log, sectionDividerStyle } from "../utils";
 
 const RESULTS_PER_PAGE = 5;
 
@@ -39,6 +39,7 @@ export function ManageRepositoriesPage() {
       setResults((await response.json()).items || []);
       setPage(0);
     } catch (error) {
+      log(`Repository search failed: ${error}`);
       setSearchError(String(error));
     } finally {
       setSearching(false);

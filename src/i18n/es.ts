@@ -110,6 +110,9 @@ export const es: Record<MessageKey, string> = {
   "settings.densityCompact": "Compacta",
   "settings.itemsPerRow": "Elementos por fila",
   "settings.hideButton": "Ocultar «{button}»",
+  "settings.troubleshooting": "Solución de problemas",
+  "settings.exportLogs": "Exportar registros",
+  "settings.exportLogsNote": "Guarda los registros de DeckyHub como ZIP en /home/deck/Downloads; adjúntalo a un informe de error. Tu token de GitHub nunca se registra.",
 
   "repos.addManage": "Añadir y gestionar",
   "repos.addGithubRepository": "Añadir repositorio de GitHub",

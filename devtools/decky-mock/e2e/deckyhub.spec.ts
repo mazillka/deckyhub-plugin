@@ -205,6 +205,21 @@ test("Cleanup shows only when the downloads folder has files, and clearing requi
   await expect(app.getByText("Cleanup", { exact: true })).toHaveCount(0);
 });
 
+test("Export Logs zips the backend log into Downloads", async ({ page }) => {
+  // dev-server.py logs to .dev-data/logs/ and points Downloads at .dev-data/home/Downloads.
+  const downloads = new URL("../.dev-data/home/Downloads/", import.meta.url);
+  rmSync(downloads, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  const app = mock(page);
+  const toast = page.waitForEvent("console", (message) => message.text().includes("Exported to"));
+  await app.locator(".qam-content").getByRole("button", { name: "Export Logs", exact: true }).click();
+
+  expect((await toast).text()).toContain("DeckyHub-logs.zip");
+  expect(readFileSync(new URL("DeckyHub-logs.zip", downloads)).subarray(0, 2).toString()).toBe("PK");
+  // Backend actions land in the log the zip is built from.
+  expect(readFileSync(new URL("../.dev-data/logs/deckyhub.log", import.meta.url), "utf8")).toContain("Listed");
+  rmSync(downloads, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+});
+
 test("DeckyHub offers to reinstall the matching version and keeps its release page", async ({ page }) => {
   const deckyHubRelease = {
     tag_name: deckyHubTag,

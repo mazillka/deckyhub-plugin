@@ -1,6 +1,7 @@
 """Local dev bridge for DeckyHub's UI mock: exposes main.py's Plugin over HTTP.
 
-Fakes just enough of the `decky` module (paths, a no-op logger) so main.py's
+Fakes just enough of the `decky` module (paths, a logger writing to
+.dev-data/logs/ like Decky's per-plugin log) so main.py's
 Plugin class can run outside the real Decky Loader, then serves POST /
 {"route": "get_apps", "args": []} -> {"ok": true, "result": ...}, calling the
 real Plugin method on a persistent background event loop. Stdlib only, no
@@ -11,6 +12,7 @@ Run from the repo root: python devtools/decky-mock/dev-server.py
 
 import asyncio
 import json
+import logging
 import sys
 import threading
 import types
@@ -22,12 +24,19 @@ REPO_ROOT = MOCK_DIR.parent.parent
 DEV_DATA = MOCK_DIR / ".dev-data"
 (DEV_DATA / "settings").mkdir(parents=True, exist_ok=True)
 (DEV_DATA / "plugins").mkdir(parents=True, exist_ok=True)
+(DEV_DATA / "logs").mkdir(parents=True, exist_ok=True)
 
 fake_decky = types.ModuleType("decky")
 fake_decky.DECKY_PLUGIN_SETTINGS_DIR = str(DEV_DATA / "settings")
 fake_decky.DECKY_PLUGIN_DIR = str(REPO_ROOT)
 fake_decky.DECKY_HOME = str(DEV_DATA)
-fake_decky.logger = types.SimpleNamespace(info=print, warning=print, error=print, debug=lambda *a, **k: None)
+fake_decky.DECKY_PLUGIN_LOG_DIR = str(DEV_DATA / "logs")
+# A real logger so Export Logs (Quick Access panel) has a file to zip; also echoed to the console.
+fake_decky.logger = logging.getLogger("DeckyHub")
+fake_decky.logger.setLevel(logging.INFO)
+for handler in (logging.FileHandler(DEV_DATA / "logs" / "deckyhub.log", encoding="utf-8"), logging.StreamHandler()):
+    handler.setFormatter(logging.Formatter("[%(asctime)s][%(levelname)s]: %(message)s"))
+    fake_decky.logger.addHandler(handler)
 sys.modules["decky"] = fake_decky
 
 sys.path.insert(0, str(REPO_ROOT))
@@ -37,6 +46,7 @@ import main  # noqa: E402
 
 # Keep the mock's downloads inside .dev-data instead of a real /home/deck path
 # (which on Windows resolves to <drive>:\home\deck, outside the repo).
+main.DEFAULT_DOWNLOAD_DIR = str(DEV_DATA / "home" / "Downloads")
 main.PLUGIN_DOWNLOAD_DIR = str(DEV_DATA / "downloads")
 
 loop = asyncio.new_event_loop()

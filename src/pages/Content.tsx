@@ -2,10 +2,10 @@ import { toaster } from "@decky/api";
 import { DialogButtonPrimary as Button, Dropdown, Focusable, Navigation, PanelSection, PanelSectionRow, Spinner, TextField } from "@decky/ui";
 import { useEffect, useRef, useState } from "react";
 import { FaSync } from "react-icons/fa";
-import { downloadAsset, getApps, getSettings, REGISTRY_UPDATED } from "../api";
+import { downloadAsset, exportLogs, getApps, getSettings, REGISTRY_UPDATED } from "../api";
 import { useT } from "../i18n";
 import type { App, Asset, HideableButton, RepoPreference, UpdateChannel, View } from "../types";
-import { compactButtonStyle, DEFAULT_COLUMNS_PER_ROW, getDeckyBackend, hydrate, notifyUpdates, sectionDividerStyle } from "../utils";
+import { compactButtonStyle, DEFAULT_COLUMNS_PER_ROW, getDeckyBackend, hydrate, log, notifyUpdates, sectionDividerStyle } from "../utils";
 import { AppCard } from "../components/AppCard";
 import { CleanupSection } from "../components/CleanupSection";
 import { showDownloadModal } from "../components/DownloadProgress";
@@ -74,6 +74,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
       setLoading(false);
       notifyUpdates(hydrated);
     } catch (error) {
+      log(`Loading apps failed: ${error}`);
       setLoadError(String(error));
       setLoading(false);
     }
@@ -285,6 +286,17 @@ export function Content({ fullPage }: { fullPage?: View }) {
       <div aria-hidden style={sectionDividerStyle} />
       <DeckyHubUpdate />
       <CleanupSection />
+      <div aria-hidden style={sectionDividerStyle} />
+      <PanelSection title={t("settings.troubleshooting")}>
+        <PanelSectionRow>
+          <Button style={compactButtonStyle} onClick={() => void exportLogs().then(({ path }) => toaster.toast({ title: "DeckyHub", body: t("repos.exportedTo", { path }) }))}>
+            {t("settings.exportLogs")}
+          </Button>
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <div style={{ color: "#8fcef4", fontSize: "0.85em" }}>{t("settings.exportLogsNote")}</div>
+        </PanelSectionRow>
+      </PanelSection>
     </>
   );
 

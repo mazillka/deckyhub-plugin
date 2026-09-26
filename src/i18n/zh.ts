@@ -110,6 +110,9 @@ export const zh: Record<MessageKey, string> = {
   "settings.densityCompact": "紧凑",
   "settings.itemsPerRow": "每行显示数量",
   "settings.hideButton": "隐藏「{button}」",
+  "settings.troubleshooting": "故障排除",
+  "settings.exportLogs": "导出日志",
+  "settings.exportLogsNote": "将 DeckyHub 的日志以 ZIP 格式保存到 /home/deck/Downloads，可附加到错误报告中。你的 GitHub 令牌永远不会被记录。",
 
   "repos.addManage": "添加与管理",
   "repos.addGithubRepository": "添加 GitHub 仓库",

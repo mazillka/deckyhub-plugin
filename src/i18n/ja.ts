@@ -110,6 +110,9 @@ export const ja: Record<MessageKey, string> = {
   "settings.densityCompact": "コンパクト",
   "settings.itemsPerRow": "1行あたりの項目数",
   "settings.hideButton": "「{button}」を非表示",
+  "settings.troubleshooting": "トラブルシューティング",
+  "settings.exportLogs": "ログをエクスポート",
+  "settings.exportLogsNote": "DeckyHub のログを ZIP として /home/deck/Downloads に保存します。バグ報告に添付してください。GitHub トークンはログに記録されません。",
 
   "repos.addManage": "追加と管理",
   "repos.addGithubRepository": "GitHubリポジトリを追加",

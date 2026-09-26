@@ -109,6 +109,9 @@ export const en = {
   "settings.densityCompact": "Compact",
   "settings.itemsPerRow": "Items Per Row",
   "settings.hideButton": "Hide “{button}”",
+  "settings.troubleshooting": "Troubleshooting",
+  "settings.exportLogs": "Export Logs",
+  "settings.exportLogsNote": "Saves DeckyHub's logs as a ZIP in /home/deck/Downloads — attach it to a bug report. Your GitHub token is never logged.",
 
   "repos.addManage": "Add & Manage",
   "repos.addGithubRepository": "Add GitHub Repository",

@@ -110,6 +110,9 @@ export const uk: Record<MessageKey, string> = {
   "settings.densityCompact": "Компактний",
   "settings.itemsPerRow": "Елементів у рядку",
   "settings.hideButton": "Приховати «{button}»",
+  "settings.troubleshooting": "Усунення несправностей",
+  "settings.exportLogs": "Експортувати журнали",
+  "settings.exportLogsNote": "Зберігає журнали DeckyHub як ZIP у /home/deck/Downloads — додайте його до звіту про помилку. Ваш токен GitHub ніколи не потрапляє в журнали.",
 
   "repos.addManage": "Додати й керувати",
   "repos.addGithubRepository": "Додати репозиторій GitHub",

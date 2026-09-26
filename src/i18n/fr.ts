@@ -110,6 +110,9 @@ export const fr: Record<MessageKey, string> = {
   "settings.densityCompact": "Compacte",
   "settings.itemsPerRow": "Éléments par ligne",
   "settings.hideButton": "Masquer « {button} »",
+  "settings.troubleshooting": "Dépannage",
+  "settings.exportLogs": "Exporter les journaux",
+  "settings.exportLogsNote": "Enregistre les journaux de DeckyHub dans un ZIP dans /home/deck/Downloads — joignez-le à un rapport de bug. Votre jeton GitHub n'est jamais journalisé.",
 
   "repos.addManage": "Ajouter et gérer",
   "repos.addGithubRepository": "Ajouter un dépôt GitHub",

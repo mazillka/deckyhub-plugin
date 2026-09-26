@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { getDeckyHubInfo, getSettings } from "../api";
 import { useT } from "../i18n";
 import type { DeckyHubInfo, DeckyHubRelease, UpdateChannel } from "../types";
-import { compactButtonStyle, latestDeckyHubRelease, normalizeVersion, PLUGIN_INSTALL_TYPE, resolveDeckyHubInstallType } from "../utils";
+import { compactButtonStyle, latestDeckyHubRelease, log, normalizeVersion, PLUGIN_INSTALL_TYPE, resolveDeckyHubInstallType } from "../utils";
 import { DeckyHubUpdateModal } from "./DeckyHubUpdateModal";
 
 // Deliberately thin: a header naming the installed version and a single
@@ -33,7 +33,10 @@ export function DeckyHubUpdate() {
     void Promise.all([getSettings(), getDeckyHubInfo()]).then(([settings, nextInfo]) => {
       setChannel(settings.updateChannel);
       setInfo(nextInfo);
-    }).catch((error) => setRelease({ error: String(error) }));
+    }).catch((error) => {
+      log(`Loading DeckyHub info failed: ${error}`);
+      setRelease({ error: String(error) });
+    });
   }, []);
 
   useEffect(() => {
