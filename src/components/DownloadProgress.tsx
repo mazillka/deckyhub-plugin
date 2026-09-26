@@ -1,5 +1,5 @@
 import { DialogButtonPrimary as Button, ModalRoot, ProgressBar, showModal } from "@decky/ui";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cancelDownload, getDownload } from "../api";
 import { useT } from "../i18n";
 import type { TFunc } from "../i18n/en";
@@ -33,9 +33,22 @@ function DownloadModal({
     return () => window.clearInterval(timer);
   }, [jobId, active]);
 
+  // Report once: when the job settles, or when the window closes first (Cancel,
+  // or B mid-download) — otherwise the caller's buttons would stay disabled.
+  const settled = useRef(false);
+  const latest = useRef(state);
+  latest.current = state;
+  const settle = () => {
+    if (settled.current) return;
+    settled.current = true;
+    onSettled?.(latest.current);
+  };
+
   useEffect(() => {
-    if (!active) onSettled?.(state);
+    if (!active) settle();
   }, [active]);
+
+  useEffect(() => settle, []);
 
   const progress = state.total ? Math.min(100, (100 * (state.received ?? 0)) / state.total) : 0;
 

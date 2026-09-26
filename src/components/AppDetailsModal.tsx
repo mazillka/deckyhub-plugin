@@ -26,7 +26,7 @@ export function AppDetailsModal({
   preference: RepoPreference;
   downloadDisabled?: boolean;
   hiddenButtons: HideableButton[];
-  onDownload: (asset: Asset) => void;
+  onDownload: (asset: Asset) => Promise<void>;
   onChannelChange: (channel: UpdateChannel) => void;
   onUninstalled: () => void;
   closeModal?: () => void;
@@ -36,6 +36,13 @@ export function AppDetailsModal({
   const [selectedTag, setSelectedTag] = useState("");
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  // This modal was rendered once by showModal(), so the downloadDisabled prop
+  // never updates — track downloads started from here locally.
+  const [downloading, setDownloading] = useState(Boolean(downloadDisabled));
+  const download = (asset: Asset) => {
+    setDownloading(true);
+    void onDownload(asset).finally(() => setDownloading(false));
+  };
 
   const loadReleases = async (forChannel: UpdateChannel, { pinLatest = false } = {}) => {
     setLoading(true);
@@ -126,14 +133,14 @@ export function AppDetailsModal({
               </Button>
             )}
             {hiddenButtons.includes("downloadZip") ? null : selectedRelease.assets[0] ? (
-              <Button style={modalButtonStyle} disabled={downloadDisabled} onClick={() => onDownload(selectedRelease.assets[0])}>
+              <Button style={modalButtonStyle} disabled={downloading} onClick={() => download(selectedRelease.assets[0])}>
                 {t("settings.downloadUpdate")}
               </Button>
             ) : (
               <small style={{ color: "#ff6b6b" }}>{t("appcard.noMatchingAsset")}</small>
             )}
             {!hiddenButtons.includes("downloadZip") && selectedRelease.assets.slice(1).map((asset) => (
-              <Button key={asset.name} style={modalButtonStyle} disabled={downloadDisabled} onClick={() => onDownload(asset)}>
+              <Button key={asset.name} style={modalButtonStyle} disabled={downloading} onClick={() => download(asset)}>
                 {`${asset.name} (${readableBytes(asset.size)})`}
               </Button>
             ))}

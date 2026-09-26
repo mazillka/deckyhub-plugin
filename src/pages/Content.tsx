@@ -106,17 +106,21 @@ export function Content({ fullPage }: { fullPage?: View }) {
     if (!fullPage) requestAnimationFrame(() => quickAccessRef.current?.scrollIntoView({ block: "start" }));
   }, [fullPage]);
 
+  // Resolves once the download settles (or its window closes), so the Manage
+  // window, which can't see this component's state, can re-enable its buttons.
   const startDownload = async (asset: Asset, repo?: string) => {
     try {
       const result = await downloadAsset(asset, repo);
       if (result.error) throw new Error(result.error);
-      if (result.jobId) {
-        setDownloading(true);
-        showDownloadModal(t, result.jobId, { state: "queued", filename: asset.name, total: asset.size }, (state) => {
+      if (!result.jobId) return;
+      setDownloading(true);
+      await new Promise<void>((resolve) =>
+        showDownloadModal(t, result.jobId!, { state: "queued", filename: asset.name, total: asset.size }, (state) => {
           setDownloading(false);
-          if (state.state === "error") toaster.toast({ title: "DeckyHub download failed", body: state.error || "The download failed without a reported reason." });
-        });
-      }
+          if (state.state === "error") toaster.toast({ title: t("dl.failedTitle"), body: state.error || t("dl.failedNoReason") });
+          resolve();
+        }),
+      );
     } catch (error) {
       toaster.toast({ title: "DeckyHub", body: String(error) });
     }
@@ -218,7 +222,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
                 preference={repoPreferences[app.repo] ?? { channel: "stable", assetFilter: [] }}
                 downloadDisabled={downloading}
                 hiddenButtons={hiddenButtons}
-                onDownload={(asset) => void startDownload(asset, app.repo)}
+                onDownload={(asset) => startDownload(asset, app.repo)}
                 onChannelChange={changeAppChannel}
                 onUninstalled={() => void load()}
               />

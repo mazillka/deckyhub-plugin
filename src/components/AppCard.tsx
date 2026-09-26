@@ -17,7 +17,7 @@ export function AppCard({
   preference: RepoPreference;
   downloadDisabled?: boolean;
   hiddenButtons: HideableButton[];
-  onDownload: (asset: Asset) => void;
+  onDownload: (asset: Asset) => Promise<void>;
   onChannelChange: (repo: string, channel: UpdateChannel) => void;
   onUninstalled: () => void;
 }) {
