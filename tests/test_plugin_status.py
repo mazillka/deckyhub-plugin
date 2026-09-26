@@ -253,6 +253,27 @@ class PluginStatusTests(unittest.TestCase):
             self.assertTrue(result["removed"])
             self.assertEqual(plugin.settings["customRepos"], [])
 
+    def test_removing_a_custom_repository_ignores_case_and_drops_its_settings(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.settings_path = Path(home) / "settings.json"
+            plugin.settings = {"customRepos": ["Owner/Repo"], "repoSettings": {"Owner/Repo": {"channel": "prerelease", "assetFilter": []}}}
+
+            self.assertTrue(asyncio.run(plugin.remove_custom_repo("owner/repo"))["removed"])
+            self.assertEqual(plugin.settings, {"customRepos": [], "repoSettings": {}})
+
+    def test_download_asset_drops_finished_jobs(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.settings = {"overwriteExisting": True}
+            plugin.downloads = {"old": {"state": "complete"}, "running": {"state": "downloading", "repo": "owner/other", "url": "x"}}
+            plugin.download_queue = asyncio.Queue()
+
+            with patch("main.PLUGIN_DOWNLOAD_DIR", home):
+                result = asyncio.run(plugin.download_asset({"name": "a.zip", "url": "https://github.com/owner/repo/releases/download/v1/a.zip"}, "owner/repo"))
+
+            self.assertEqual(set(plugin.downloads), {"running", result["jobId"]})
+
     def test_custom_repository_export_and_import(self):
         with tempfile.TemporaryDirectory() as home:
             original_download_dir = main.DEFAULT_DOWNLOAD_DIR

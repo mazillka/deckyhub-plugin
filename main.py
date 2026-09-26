@@ -239,9 +239,12 @@ class Plugin:
 
     async def remove_custom_repo(self, repo: str):
         repo = repo.strip()
-        if repo not in self.settings["customRepos"]:
+        # Case-insensitive, like add/import; also drops the repo's saved channel/filter.
+        stored = next((item for item in self.settings["customRepos"] if item.casefold() == repo.casefold()), None)
+        if stored is None:
             return {"removed": False, "repo": repo}
-        self.settings["customRepos"].remove(repo)
+        self.settings["customRepos"].remove(stored)
+        self.settings.get("repoSettings", {}).pop(stored, None)
         self._save_settings()
         return {"removed": True, "repo": repo}
 
@@ -288,7 +291,10 @@ class Plugin:
             target = target_dir / name
             if target.exists() and not self.settings.get("overwriteExisting"):
                 target = self._next_name(target)
-            job_id = f"{name}-{len(self.downloads) + 1}"
+            # Finished jobs are only read by their own progress window, which stops
+            # polling once it has seen the final state, so drop them here.
+            self.downloads = {key: job for key, job in self.downloads.items() if job["state"] in ("queued", "downloading")}
+            job_id = f"{name}-{time.monotonic_ns()}"
             self.downloads[job_id] = {"state": "queued", "filename": target.name, "received": 0, "total": asset.get("size") or 0, "path": str(target), "error": None, "repo": repo, "url": asset["url"]}
             self.download_queue.put_nowait((job_id, asset, target))
             return {"jobId": job_id}
