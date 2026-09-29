@@ -4,16 +4,14 @@ import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 const deckyHubVersion = JSON.parse(readFileSync(new URL("../../../package.json", import.meta.url), "utf8")).version;
 const deckyHubTag = `v${deckyHubVersion}`;
 
-// Adjacent rc tags sharing the installed version's release number (e.g.
-// "1.0.3-rc.2" and "1.0.3-rc.4" around an installed "1.0.3-rc.3") — derived
-// from whatever the real installed version happens to be, so the regression
-// test below stays valid across future version bumps instead of hardcoding
-// a specific rc number that will eventually go stale.
+// Tags just above and below the installed version, derived from whatever the
+// real installed version happens to be so they stay valid across version
+// bumps. An installed "1.0.3-rc.3" gets its rc siblings ("-rc.2"/"-rc.4");
+// a stable version (rc siblings of it would all be older) gets a far-future
+// and a far-past rc pair instead.
 const rcMatch = deckyHubVersion.match(/^(.*-rc\.)(\d+)$/);
-const rcPrefix = rcMatch ? rcMatch[1] : `${deckyHubVersion}-rc.`;
-const rcNumber = rcMatch ? Number(rcMatch[2]) : 1;
-const olderRcTag = `v${rcPrefix}${Math.max(rcNumber - 1, 1)}`;
-const newerRcTag = `v${rcPrefix}${rcNumber + 1}`;
+const olderRcTag = rcMatch ? `v${rcMatch[1]}${Math.max(Number(rcMatch[2]) - 1, 1)}` : "v0.0.1-rc.1";
+const newerRcTag = rcMatch ? `v${rcMatch[1]}${Number(rcMatch[2]) + 1}` : "v999.0.0-rc.2";
 
 const release = {
   tag_name: "plugin-v1.2.3",
@@ -433,10 +431,10 @@ test("DeckyHub version picker re-filters by channel and leaves the channel as it
     assets: [{ name: `DeckyHub-${deckyHubTag}.zip`, browser_download_url: `https://github.com/mazillka/deckyhub-plugin/releases/download/${deckyHubTag}/DeckyHub-${deckyHubTag}.zip`, digest: `sha256:${"a".repeat(64)}` }],
   };
   const prereleaseRelease = {
-    tag_name: "v2.0.0-beta",
+    tag_name: "v999.0.0-beta",
     prerelease: true,
-    html_url: "https://github.com/mazillka/deckyhub-plugin/releases/tag/v2.0.0-beta",
-    assets: [{ name: "DeckyHub-v2.0.0-beta.zip", browser_download_url: "https://github.com/mazillka/deckyhub-plugin/releases/download/v2.0.0-beta/DeckyHub-v2.0.0-beta.zip", digest: `sha256:${"d".repeat(64)}` }],
+    html_url: "https://github.com/mazillka/deckyhub-plugin/releases/tag/v999.0.0-beta",
+    assets: [{ name: "DeckyHub-v999.0.0-beta.zip", browser_download_url: "https://github.com/mazillka/deckyhub-plugin/releases/download/v999.0.0-beta/DeckyHub-v999.0.0-beta.zip", digest: `sha256:${"d".repeat(64)}` }],
   };
   await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) => route.fulfill({ json: [stableRelease, prereleaseRelease] }));
   await page.goto("/?bridge=http://127.0.0.1:8643");
@@ -446,8 +444,8 @@ test("DeckyHub version picker re-filters by channel and leaves the channel as it
 
   await app.getByLabel("Update Channel").selectOption({ label: "Pre-releases" });
 
-  await expect(app.getByLabel("Version")).toHaveValue("v2.0.0-beta");
-  await expect(app.getByRole("button", { name: "Update to v2.0.0-beta", exact: true })).toBeVisible();
+  await expect(app.getByLabel("Version")).toHaveValue("v999.0.0-beta");
+  await expect(app.getByRole("button", { name: "Update to v999.0.0-beta", exact: true })).toBeVisible();
 
   // changeChannel() persists to the real (shared) settings.json via the dev
   // bridge, fire-and-forget from the UI's perspective — clicking the dropdown
