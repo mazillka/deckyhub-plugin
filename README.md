@@ -5,7 +5,7 @@
 [![Release](https://img.shields.io/github/v/release/mazillka/deckyhub-plugin)](https://github.com/mazillka/deckyhub-plugin/releases/latest)
 [![Tests](https://img.shields.io/github/actions/workflow/status/mazillka/deckyhub-plugin/ci.yml?branch=main&label=tests)](https://github.com/mazillka/deckyhub-plugin/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE.md)
-[![Platform](https://img.shields.io/badge/platform-SteamOS%20%7C%20Linux-green)](https://store.steampowered.com/steamos)
+[![Platform](https://img.shields.io/badge/platform-SteamOS-green)](https://store.steampowered.com/steamos)
 
 ### Menu
 <img src="screenshots/menu.jpg" width="600" alt="DeckyHub Menu screen">
