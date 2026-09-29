@@ -103,16 +103,21 @@ export function DropdownItem({
   rgOptions,
   selectedOption,
   onChange,
+  layout,
 }: {
   label?: string;
   rgOptions: { label: ReactNode; data: unknown }[];
   selectedOption: unknown;
   onChange: (option: { data: unknown }) => void;
+  layout?: "below" | "inline";
 }) {
+  // Like Steam's Field: "inline" puts the label beside the control instead of above it.
+  const inline = layout === "inline";
   return (
-    <label className="steam-field-label">
+    <label className="steam-field-label" style={inline ? { display: "flex", alignItems: "center", gap: 12 } : undefined}>
       {label}
       <select
+        style={inline ? { flex: 1, marginTop: 0, width: "auto" } : undefined}
         value={String(selectedOption)}
         onChange={(event) => {
           const option = rgOptions.find((item) => String(item.data) === event.target.value);
@@ -130,15 +135,33 @@ export function DropdownItem({
   );
 }
 
-export function TextField({ label, value, onChange }: { label?: string; value?: string; onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void }) {
+export function TextField({
+  label,
+  value,
+  onChange,
+  bIsPassword,
+  bShowClearAction,
+}: {
+  label?: string;
+  value?: string;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  bIsPassword?: boolean;
+  bShowClearAction?: boolean;
+}) {
   return (
     <label className="steam-field-label">
       {label}
-      <input
-        value={value}
-        onChange={onChange}
-        className="steam-input"
-      />
+      <input type={bIsPassword ? "password" : "text"} value={value} onChange={onChange} className="steam-input" />
+      {bShowClearAction && value && (
+        <button
+          type="button"
+          aria-label="Clear"
+          className="steam-button"
+          onClick={() => onChange?.({ currentTarget: { value: "" } } as React.ChangeEvent<HTMLInputElement>)}
+        >
+          Clear
+        </button>
+      )}
     </label>
   );
 }
@@ -153,10 +176,11 @@ export function ToggleField({ label, checked, onChange }: { label?: string; chec
 }
 
 export function Focusable({ style, children, ...rest }: { style?: CSSProperties; children?: ReactNode; [key: string]: unknown }) {
-  const { "flow-children": flowChildren, noFocusRing: _noFocusRing, onActivate: _onActivate, onCancel: _onCancel, ...divProps } = rest;
+  const { "flow-children": flowChildren, noFocusRing: _noFocusRing, onActivate, onCancel: _onCancel, ...divProps } = rest;
   const flowStyle = flowChildren === "right" ? { display: "flex", flexDirection: "row" as const } : flowChildren === "down" ? { display: "flex", flexDirection: "column" as const } : {};
   return (
-    <div style={{ ...flowStyle, ...style }} {...(divProps as React.HTMLAttributes<HTMLDivElement>)}>
+    // Like Steam, onActivate makes the block itself a focus stop.
+    <div style={{ ...flowStyle, ...style }} tabIndex={onActivate ? 0 : undefined} {...(divProps as React.HTMLAttributes<HTMLDivElement>)}>
       {children}
     </div>
   );
@@ -210,6 +234,7 @@ export function ConfirmModal({
   onOK,
   onCancel,
   closeModal,
+  children,
 }: {
   strTitle?: ReactNode;
   strDescription?: ReactNode;
@@ -220,12 +245,14 @@ export function ConfirmModal({
   onOK?: () => void;
   onCancel?: () => void;
   closeModal?: () => void;
+  children?: ReactNode;
 }) {
   return (
     <div className="steam-modal-backdrop">
       <div className="steam-modal">
         <h3 style={{ margin: "0 0 10px" }}>{strTitle}</h3>
-        <div style={{ fontSize: 13, marginBottom: 16 }}>{strDescription}</div>
+        {strDescription && <div style={{ fontSize: 13, marginBottom: 16 }}>{strDescription}</div>}
+        {children && <div style={{ marginBottom: 16 }}>{children}</div>}
         <div className="steam-modal-actions">
           {!bAlertDialog && (
             <button

@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { getSettings } from "../api";
-import { en, type MessageKey } from "./en";
+import { applyDensity, setGithubToken, setTranslator, substitute } from "../utils";
+import { en, type MessageKey, type TFunc } from "./en";
 import { uk } from "./uk";
 import { es } from "./es";
 import { de } from "./de";
@@ -29,17 +30,11 @@ function isLocale(value: unknown): value is Locale {
 }
 
 function detectLocale(): Locale {
-  const candidates = typeof navigator !== "undefined" && navigator.languages?.length ? navigator.languages : [typeof navigator !== "undefined" ? navigator.language : "en"];
-  for (const raw of candidates) {
+  for (const raw of navigator.languages ?? [navigator.language]) {
     const code = raw.toLowerCase().split("-")[0];
     if (isLocale(code)) return code;
   }
   return "en";
-}
-
-export function substitute(template: string, vars?: Record<string, string | number>) {
-  if (!vars) return template;
-  return Object.entries(vars).reduce((text, [name, value]) => text.split(`{${name}}`).join(String(value)), template);
 }
 
 function translate(locale: Locale, key: MessageKey, vars?: Record<string, string | number>) {
@@ -47,34 +42,38 @@ function translate(locale: Locale, key: MessageKey, vars?: Record<string, string
   return substitute(template, vars);
 }
 
-type TranslateFn = (key: MessageKey, vars?: Record<string, string | number>) => string;
-
-const I18nContext = createContext<{ locale: Locale; t: TranslateFn } | null>(null);
+const I18nContext = createContext<{ locale: Locale; t: TFunc } | null>(null);
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [preference, setPreference] = useState<string>("auto");
 
   useEffect(() => {
-    const refresh = () => void getSettings().then((settings) => setPreference((settings as { language?: string }).language || "auto"));
+    // Every route mounts its own I18nProvider instance (see index.tsx), so
+    // this doubles as the one place that primes the GitHub token for every
+    // api.github.com call in this tree — see setGithubToken() in utils.ts.
+    // SettingsPage re-dispatches LOCALE_CHANGED whenever the token changes
+    // too, not just the language, so this re-syncs both on save.
+    const refresh = () =>
+      void getSettings().then((settings) => {
+        setPreference(settings.language || "auto");
+        setGithubToken(settings.githubToken || "");
+        applyDensity(settings.density);
+      });
     refresh();
     window.addEventListener(LOCALE_CHANGED, refresh);
     return () => window.removeEventListener(LOCALE_CHANGED, refresh);
   }, []);
 
   const locale = preference === "auto" ? detectLocale() : isLocale(preference) ? preference : "en";
-  const t: TranslateFn = (key, vars) => translate(locale, key, vars);
+  const t: TFunc = (key, vars) => translate(locale, key, vars);
+
+  useEffect(() => setTranslator(t), [locale]);
 
   return <I18nContext.Provider value={{ locale, t }}>{children}</I18nContext.Provider>;
 }
 
-export function useT(): TranslateFn {
+export function useT(): TFunc {
   const ctx = useContext(I18nContext);
   if (!ctx) throw new Error("useT must be used within I18nProvider");
   return ctx.t;
-}
-
-export function useLocale(): Locale {
-  const ctx = useContext(I18nContext);
-  if (!ctx) throw new Error("useLocale must be used within I18nProvider");
-  return ctx.locale;
 }

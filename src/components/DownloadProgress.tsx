@@ -1,12 +1,11 @@
 import { DialogButtonPrimary as Button, ModalRoot, ProgressBar, showModal } from "@decky/ui";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { FaCheck, FaTimes } from "react-icons/fa";
 import { cancelDownload, getDownload } from "../api";
 import { useT } from "../i18n";
-import type { MessageKey } from "../i18n/en";
+import type { TFunc } from "../i18n/en";
 import type { Download } from "../types";
-import { readableBytes } from "../utils";
-
-type T = (key: MessageKey, vars?: Record<string, string | number>) => string;
+import { iconRow, readableBytes } from "../utils";
 
 const ACTIVE_STATES = ["queued", "downloading"];
 
@@ -17,7 +16,7 @@ function DownloadModal({
   onSettled,
   closeModal,
 }: {
-  t: T;
+  t: TFunc;
   jobId: string;
   initial: Download;
   onSettled?: (state: Download) => void;
@@ -35,9 +34,22 @@ function DownloadModal({
     return () => window.clearInterval(timer);
   }, [jobId, active]);
 
+  // Report once: when the job settles, or when the window closes first (Cancel,
+  // or B mid-download) — otherwise the caller's buttons would stay disabled.
+  const settled = useRef(false);
+  const latest = useRef(state);
+  latest.current = state;
+  const settle = () => {
+    if (settled.current) return;
+    settled.current = true;
+    onSettled?.(latest.current);
+  };
+
   useEffect(() => {
-    if (!active) onSettled?.(state);
+    if (!active) settle();
   }, [active]);
+
+  useEffect(() => settle, []);
 
   const progress = state.total ? Math.min(100, (100 * (state.received ?? 0)) / state.total) : 0;
 
@@ -48,7 +60,7 @@ function DownloadModal({
             <div style={{ display: "grid", gap: 16 }}>
               <strong style={{ overflowWrap: "anywhere" }}>{t("dl.downloading", { filename: state.filename ?? "" })}</strong>
               <ProgressBar indeterminate={!state.total} nProgress={progress} />
-              <small style={{ color: "#8fcef4" }}>{state.total ? `${Math.round(progress)}% · ${readableBytes(state.received)} of ${readableBytes(state.total)}` : t("dl.preparing")}</small>
+              <small style={{ color: "#8fcef4" }}>{state.total ? t("dl.progress", { percent: Math.round(progress), received: readableBytes(state.received), total: readableBytes(state.total) }) : t("dl.preparing")}</small>
             </div>
           )}
           {state.state === "error" && <div>{state.error}</div>}
@@ -68,17 +80,17 @@ function DownloadModal({
               </div>
             </>
           )}
-        <Button style={{ margin: 0, width: "100%" }} onClick={() => {
+        <Button style={{ ...iconRow, margin: 0, width: "100%" }} onClick={() => {
           if (active) void cancelDownload(jobId);
           closeModal?.();
         }}>
-          {active ? t("content.cancel") : t("dl.ok")}
+          {active ? <FaTimes /> : <FaCheck />} {active ? t("content.cancel") : t("dl.ok")}
         </Button>
       </div>
     </ModalRoot>
   );
 }
 
-export function showDownloadModal(t: T, jobId: string, initial: Download, onSettled?: (state: Download) => void) {
+export function showDownloadModal(t: TFunc, jobId: string, initial: Download, onSettled?: (state: Download) => void) {
   showModal(<DownloadModal t={t} jobId={jobId} initial={initial} onSettled={onSettled} />);
 }

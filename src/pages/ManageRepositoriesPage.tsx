@@ -1,11 +1,13 @@
 import { FileSelectionType, openFilePicker, toaster } from "@decky/api";
-import { DialogButtonPrimary as Button, ConfirmModal, DropdownItem, Focusable, PanelSection, PanelSectionRow, showModal, Tabs, TextField } from "@decky/ui";
+import { DialogButtonPrimary as Button, ConfirmModal, Focusable, PanelSection, PanelSectionRow, showModal, TextField } from "@decky/ui";
 import { FocusableGrid } from "../components/FocusableGrid";
+import { RateLimitBanner } from "../components/RateLimitBanner";
 import { useEffect, useState } from "react";
-import { addCustomRepo, exportCustomRepos, getApps, getCustomRepos, getSettings, importCustomRepos, REGISTRY_UPDATED, removeCustomRepo, saveRepoSettings } from "../api";
+import { FaArrowLeft, FaArrowRight, FaCheck, FaFileExport, FaFileImport, FaPlus, FaSearch, FaTimes, FaTrash } from "react-icons/fa";
+import { addCustomRepo, exportCustomRepos, getApps, getCustomRepos, importCustomRepos, REGISTRY_UPDATED, removeCustomRepo } from "../api";
 import { useT } from "../i18n";
-import type { App, ManagedRepo, RepoPreference, SearchRepo, Settings } from "../types";
-import { compactButtonStyle, fetchWithTimeout, sectionDividerStyle } from "../utils";
+import type { ManagedRepo, SearchRepo } from "../types";
+import { compactButtonStyle, githubFetch, githubResponseError, log, sectionDividerStyle } from "../utils";
 
 const RESULTS_PER_PAGE = 5;
 
@@ -18,38 +20,27 @@ export function ManageRepositoriesPage() {
   const [searchError, setSearchError] = useState<string | null>(null);
   const [customRepos, setCustomRepos] = useState<ManagedRepo[]>([]);
   const [existingRepos, setExistingRepos] = useState<Set<string>>(new Set());
-  const [apps, setApps] = useState<App[]>([]);
-  const [prefs, setPrefs] = useState<Record<string, RepoPreference>>({});
-  const [activeTab, setActiveTab] = useState("manage");
-  const [settingsQuery, setSettingsQuery] = useState("");
 
   const refreshRepos = () => {
     void getCustomRepos().then((result) => setCustomRepos(result.repos));
-    void getApps().then((result) => {
-      setApps(result.apps);
-      setExistingRepos(new Set(result.apps.map((app) => app.repo.toLowerCase())));
-    });
-    void getSettings().then((settings) => setPrefs((settings as Settings & { repoSettings?: Record<string, RepoPreference> }).repoSettings || {}));
+    void getApps().then((result) => setExistingRepos(new Set(result.apps.map((app) => app.repo.toLowerCase()))));
   };
 
   useEffect(() => {
     refreshRepos();
   }, []);
 
-  const preference = (repo: string) => prefs[repo] || { channel: "stable", assetFilter: [] };
-
   const search = async () => {
     if (!query.trim() || searching) return;
     setSearching(true);
     try {
       setSearchError(null);
-      const response = await fetchWithTimeout(`https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&sort=stars&order=desc&per_page=25`, {
-        headers: { Accept: "application/vnd.github+json" },
-      });
-      if (!response.ok) throw new Error(`GitHub API returned ${response.status}`);
+      const response = await githubFetch(`https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&sort=stars&order=desc&per_page=25`);
+      if (!response.ok) throw await githubResponseError(response);
       setResults((await response.json()).items || []);
       setPage(0);
     } catch (error) {
+      log(`Repository search failed: ${error}`);
       setSearchError(String(error));
     } finally {
       setSearching(false);
@@ -63,7 +54,7 @@ export function ManageRepositoriesPage() {
       refreshRepos();
       window.dispatchEvent(new Event(REGISTRY_UPDATED));
     }
-    toaster.toast({ title: "DeckyHub", body: result.added ? `${repo} added to Discover.` : `${repo} is already in DeckyHub.` });
+    toaster.toast({ title: "DeckyHub", body: t(result.added ? "repos.addedToast" : "repos.alreadyAdded", { repo }) });
   };
 
   const remove = async (repo: string) => {
@@ -85,7 +76,7 @@ export function ManageRepositoriesPage() {
 
   const exportList = async () => {
     const result = await exportCustomRepos();
-    toaster.toast({ title: "DeckyHub", body: `Exported to ${result.path}` });
+    toaster.toast({ title: "DeckyHub", body: t("repos.exportedTo", { path: result.path }) });
   };
 
   const importList = async () => {
@@ -93,11 +84,12 @@ export function ManageRepositoriesPage() {
     const result = await importCustomRepos(file.realpath);
     refreshRepos();
     if (result.added.length) window.dispatchEvent(new Event(REGISTRY_UPDATED));
-    toaster.toast({ title: "DeckyHub", body: result.added.length ? `Imported: ${result.added.join(", ")}` : "No new repositories to import." });
+    toaster.toast({ title: "DeckyHub", body: result.added.length ? t("repos.imported", { repos: result.added.join(", ") }) : t("repos.nothingToImport") });
   };
 
-  const manageTab = (
+  return (
     <>
+      <RateLimitBanner />
       <PanelSection title={t("repos.addGithubRepository")}>
         <PanelSectionRow>
           <Focusable flow-children="right" style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
@@ -106,7 +98,7 @@ export function ManageRepositoriesPage() {
             </div>
             <div style={{ flex: "0 0 160px", paddingTop: 24 }}>
               <Button style={compactButtonStyle} onClick={() => void search()} disabled={searching}>
-                {searching ? t("repos.searching") : t("filter.search")}
+                <FaSearch /> {searching ? t("repos.searching") : t("filter.search")}
               </Button>
             </div>
             <div style={{ flex: "0 0 120px", paddingTop: 24 }}>
@@ -119,7 +111,7 @@ export function ManageRepositoriesPage() {
                   setPage(0);
                 }}
               >
-                {t("repos.clear")}
+                <FaTimes /> {t("repos.clear")}
               </Button>
             </div>
           </Focusable>
@@ -130,13 +122,13 @@ export function ManageRepositoriesPage() {
             <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{ flex: 1 }}>
               <Button style={compactButtonStyle} disabled={page === 0} onClick={() => setPage((current) => current - 1)}>
-                {t("repos.previous")}
+                <FaArrowLeft /> {t("repos.previous")}
               </Button>
               </div>
               <span style={{ whiteSpace: "nowrap" }}>{t("repos.pageOf", { page: page + 1, total: Math.ceil(results.length / RESULTS_PER_PAGE) })}</span>
               <div style={{ flex: 1 }}>
               <Button style={compactButtonStyle} disabled={(page + 1) * RESULTS_PER_PAGE >= results.length} onClick={() => setPage((current) => current + 1)}>
-                {t("repos.next")}
+                {t("repos.next")} <FaArrowRight />
               </Button>
               </div>
             </Focusable>
@@ -158,7 +150,7 @@ export function ManageRepositoriesPage() {
                   </PanelSectionRow>
                   <PanelSectionRow>
                     <Button style={compactButtonStyle} disabled={added} onClick={() => void add(repo.full_name)}>
-                      {added ? t("repos.added") : t("repos.add")}
+                      {added ? <FaCheck /> : <FaPlus />} {added ? t("repos.added") : t("repos.add")}
                     </Button>
                   </PanelSectionRow>
                 </PanelSection>
@@ -175,12 +167,12 @@ export function ManageRepositoriesPage() {
           <Focusable flow-children="right" style={{ display: "flex", gap: 12 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <Button style={compactButtonStyle} onClick={() => void exportList()}>
-                {t("repos.export")}
+                <FaFileExport /> {t("repos.export")}
               </Button>
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <Button style={compactButtonStyle} onClick={() => void importList()}>
-                {t("repos.import")}
+                <FaFileImport /> {t("repos.import")}
               </Button>
             </div>
           </Focusable>
@@ -188,68 +180,12 @@ export function ManageRepositoriesPage() {
         {customRepos.map((item) => (
           <PanelSectionRow key={item.repo}>
             <Button style={compactButtonStyle} onClick={() => confirmRemove(item.repo)}>
-              {t("repos.remove", { repo: item.repo })}
+              <FaTrash /> {t("repos.remove", { repo: item.repo })}
             </Button>
           </PanelSectionRow>
         ))}
         {!customRepos.length && <PanelSectionRow>{t("repos.noCustomRepos")}</PanelSectionRow>}
       </PanelSection>
     </>
-  );
-
-  const settingsTab = (
-    <>
-      <PanelSection title={t("repos.repositorySettings")}>
-        <PanelSectionRow>{t("repos.perRepoOverrides")}</PanelSectionRow>
-        <PanelSectionRow>
-          <TextField label={t("filter.search")} value={settingsQuery} onChange={(event) => setSettingsQuery(event.currentTarget.value)} />
-        </PanelSectionRow>
-      </PanelSection>
-      {apps.length > 0 && <div aria-hidden style={sectionDividerStyle} />}
-      <FocusableGrid items={apps.filter((app) => `${app.name} ${app.repo}`.toLowerCase().includes(settingsQuery.trim().toLowerCase()))} columns={2} keyFor={(app) => app.repo}>
-        {(app) => {
-          const value = preference(app.repo);
-          const update = (next: Partial<RepoPreference>) => {
-            const saved = { ...value, ...next };
-            setPrefs({ ...prefs, [app.repo]: saved });
-            void saveRepoSettings(app.repo, saved);
-          };
-          return (
-            <PanelSection title={app.name}>
-              <PanelSectionRow>
-                <DropdownItem
-                  label={t("repos.releaseChannel")}
-                  rgOptions={[
-                    { label: t("repos.stable"), data: "stable" },
-                    { label: t("repos.prerelease"), data: "prerelease" },
-                  ]}
-                  selectedOption={value.channel}
-                  onChange={({ data }) => update({ channel: data })}
-                />
-              </PanelSectionRow>
-              <PanelSectionRow>
-                <TextField
-                  label={t("repos.assetFilter")}
-                  value={value.assetFilter.join(", ")}
-                  onChange={(event) => update({ assetFilter: event.currentTarget.value.split(",").map((item) => item.trim()).filter(Boolean) })}
-                />
-              </PanelSectionRow>
-            </PanelSection>
-          );
-        }}
-      </FocusableGrid>
-    </>
-  );
-
-  return (
-    <Tabs
-      activeTab={activeTab}
-      autoFocusContents
-      onShowTab={(tab: string) => setActiveTab(tab)}
-      tabs={[
-        { id: "manage", title: t("repos.addManage"), content: manageTab },
-        { id: "settings", title: t("repos.repositorySettings"), content: settingsTab },
-      ]}
-    />
   );
 }

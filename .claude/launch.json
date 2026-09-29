@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "--prefix", "devtools/decky-mock"],
       "port": 5183
+    },
+    {
+      "name": "decky-mock-bridge",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["devtools/decky-mock/dev-server.py"],
+      "port": 8642
     }
   ]
 }
