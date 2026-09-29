@@ -11,6 +11,9 @@
 ### Updates
 <img src="screenshots/updates.jpg" width="600">
 
+### Manage
+<img src="screenshots/manage.jpg" width="600">
+
 </div>
 
 **Your Steam Deck's plugin store — right inside Gaming Mode.**
