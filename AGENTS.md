@@ -39,7 +39,7 @@ The Playwright suite in `devtools/decky-mock/` covers the browser UI; `pnpm run 
 
 ## Release
 
-For a release, bump `version` in `package.json` (the backend reads it at runtime), then push a `v*` tag. This triggers `.github/workflows/release.yml`: installs, typechecks, builds, runs backend tests, runs the browser E2E suite in `devtools/decky-mock/`, zips `plugin.json` + `main.py` + `backend/` + `dist/` + `registry/` + `LICENSE`, and attaches `DeckyHub-vX.Y.Z.zip` to a GitHub release.
+For a release, bump `version` in `package.json` (the backend reads it at runtime), then push a `v*` tag. This triggers `.github/workflows/release.yml`: installs, typechecks, builds, runs backend tests, runs the browser E2E suite in `devtools/decky-mock/`, zips `plugin.json` + `main.py` + `backend/` + `dist/` + `registry/` + `package.json` + `LICENSE.md`, and attaches `DeckyHub-vX.Y.Z.zip` to a GitHub release.
 
 **Every release (pre-releases too) gets human-friendly release notes.** The workflow's `--generate-notes` only lists raw commit/PR titles, so once the release exists, replace its body with `gh release edit vX.Y.Z --notes-file <file>`:
 
