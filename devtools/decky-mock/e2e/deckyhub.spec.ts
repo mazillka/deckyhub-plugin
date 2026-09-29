@@ -654,6 +654,63 @@ test("The Manage window offers Install for a Decky plugin that isn't installed y
   ]);
 });
 
+test("Discover's card installs the latest release of a Decky plugin that isn't installed yet", async ({ page }) => {
+  const sha256 = "a".repeat(64);
+  const url = "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v1.2.3/mako-decky.zip";
+  await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases**", (route) =>
+    route.fulfill({ json: [{ tag_name: "plugin-v1.2.3", prerelease: false, draft: false, published_at: "2026-01-01T00:00:00Z", html_url: "https://github.com/eugeniosegala/MAKO/releases/tag/plugin-v1.2.3", assets: [{ name: "mako-decky.zip", browser_download_url: url, size: 1024, digest: `sha256:${sha256}` }] }] })
+  );
+  await page.addInitScript(() => {
+    const calls: unknown[][] = [];
+    Object.assign(window, { __installCalls: calls, DeckyBackend: { call: async (...args: unknown[]) => void calls.push(args), addEventListener() {}, removeEventListener() {} } });
+  });
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  const makoCard = mock(page).getByRole("heading", { name: "MAKO Decky" }).locator("..");
+  await makoCard.getByRole("button", { name: "Install", exact: true }).click();
+
+  const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
+  await expect.poll(() => frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([
+    ["utilities/install_plugin", url, "MAKO - Frame Generation", "plugin-v1.2.3", sha256, 0],
+  ]);
+});
+
+test("The Manage window reinstalls or downgrades an installed Decky plugin to the selected version", async ({ page }) => {
+  const pluginDir = new URL("../.dev-data/plugins/e2e-mako/", import.meta.url);
+  mkdirSync(pluginDir, { recursive: true });
+  writeFileSync(new URL("plugin.json", pluginDir), JSON.stringify({ name: "MAKO - Frame Generation", version: "1.2.3" }));
+  const release = (tag: string, day: string) => ({
+    tag_name: tag, prerelease: false, draft: false, published_at: `2026-01-${day}T00:00:00Z`, html_url: `https://github.com/eugeniosegala/MAKO/releases/tag/${tag}`,
+    assets: [{ name: "mako-decky.zip", browser_download_url: `https://github.com/eugeniosegala/MAKO/releases/download/${tag}/mako-decky.zip`, size: 1024, digest: `sha256:${"b".repeat(64)}` }],
+  });
+  await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases**", (route) =>
+    route.fulfill({ json: [release("plugin-v1.2.3", "02"), release("plugin-v1.0.0", "01")] })
+  );
+  await page.addInitScript(() => {
+    const calls: unknown[][] = [];
+    Object.assign(window, { __installCalls: calls, DeckyBackend: { call: async (...args: unknown[]) => void calls.push(args), addEventListener() {}, removeEventListener() {} } });
+  });
+
+  try {
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+    await expect(makoCard.getByRole("button", { name: "Install", exact: true })).toHaveCount(0);
+    await makoCard.getByRole("button", { name: "Manage", exact: true }).click();
+    const modal = app.locator(".steam-modal");
+    await expect(modal.getByRole("button", { name: "Reinstall v1.2.3", exact: true })).toBeVisible();
+
+    await modal.getByLabel("Version").selectOption({ label: "v1.0.0" });
+    await modal.getByRole("button", { name: "Downgrade to v1.0.0", exact: true }).click();
+
+    const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
+    await expect.poll(() => frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([
+      ["utilities/install_plugin", "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v1.0.0/mako-decky.zip", "MAKO - Frame Generation", "plugin-v1.0.0", "b".repeat(64), 3],
+    ]);
+  } finally {
+    rmSync(pluginDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  }
+});
+
 test("Display Settings can hide the Manage window's buttons", async ({ page }) => {
   await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases**", (route) =>
     route.fulfill({ json: [{ tag_name: "plugin-v1.2.3", prerelease: false, draft: false, published_at: "2026-01-01T00:00:00Z", html_url: "https://github.com/eugeniosegala/MAKO/releases/tag/plugin-v1.2.3", assets: [{ name: "mako-decky.zip", browser_download_url: "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v1.2.3/mako-decky.zip", size: 1024, digest: `sha256:${"e".repeat(64)}` }] }] })

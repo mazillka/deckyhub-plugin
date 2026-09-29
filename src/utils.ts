@@ -302,9 +302,9 @@ function callDeckyLoader(route: string, ...args: unknown[]) {
 // installed yet — either way only when its ZIP carries a checksum the loader
 // can verify. A fresh install has no installed manifest to name it, so it
 // uses the detection rule's first name (the plugin's manifest name).
-export function installAction(app: App, release: { tag: string; assets: Asset[] }): { type: 0 | 2; name: string } | null {
+export function installAction(app: App, release: { tag: string; assets: Asset[] }): { type: 0 | 1 | 2 | 3; name: string } | null {
   if (!release.assets[0]?.sha256) return null;
-  if (app.pluginName) return isUpdate(app, release.tag) ? { type: PLUGIN_INSTALL_TYPE.UPDATE, name: app.pluginName } : null;
+  if (app.pluginName) return { type: resolveDeckyHubInstallType(release.tag, app.installedVersion ?? "unknown"), name: app.pluginName };
   if (!app.installedVersion && app.detect?.type === "decky-plugin") return { type: PLUGIN_INSTALL_TYPE.INSTALL, name: app.detect.names?.[0] ?? app.name };
   return null;
 }

@@ -73,6 +73,15 @@ export function AppDetailsModal({
   // Hands the selected release to Decky Loader's installer, which shows its own
   // confirm/progress dialog; Content reloads the list once the loader finishes.
   const install = selectedRelease && installAction(app, selectedRelease);
+  const installVersion = displayVersion(selectedRelease?.tag ?? "").replace(/^v/, "");
+  const installLabel = (type: number) =>
+    type === PLUGIN_INSTALL_TYPE.INSTALL
+      ? t("appcard.install")
+      : type === PLUGIN_INSTALL_TYPE.REINSTALL
+      ? t("settings.reinstallTo", { version: installVersion })
+      : type === PLUGIN_INSTALL_TYPE.DOWNGRADE
+      ? t("settings.downgradeTo", { version: installVersion })
+      : t("appcard.update");
   const runInstall = (release: AppReleaseOption, action: NonNullable<typeof install>) => {
     if (!getDeckyBackend()) {
       toaster.toast({ title: "DeckyHub", body: t("settings.selfUpdateUnavailable") });
@@ -129,7 +138,7 @@ export function AppDetailsModal({
           <>
             {install && !hiddenButtons.includes(install.type === PLUGIN_INSTALL_TYPE.INSTALL ? "install" : "update") && (
               <Button style={modalButtonStyle} onClick={() => runInstall(selectedRelease, install)}>
-                {t(install.type === PLUGIN_INSTALL_TYPE.INSTALL ? "appcard.install" : "appcard.update")}
+                {installLabel(install.type)}
               </Button>
             )}
             {hiddenButtons.includes("downloadZip") ? null : selectedRelease.assets[0] ? (
