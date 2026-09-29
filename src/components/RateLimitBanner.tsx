@@ -2,7 +2,9 @@ import { DialogButtonPrimary as Button, Focusable, Navigation } from "@decky/ui"
 import { useEffect, useState } from "react";
 import { FaCog, FaTimes } from "react-icons/fa";
 import { useT } from "../i18n";
-import { RATE_LIMIT_CHANGED, rateLimit } from "../utils";
+import { iconRow, RATE_LIMIT_CHANGED, rateLimit } from "../utils";
+
+const bannerButton = { ...iconRow, flex: 1, minHeight: 32, padding: "4px 10px" };
 
 // Header notice for an unauthenticated GitHub rate limit, rendered at the top
 // of every screen that talks to GitHub. Hides itself once dismissed, once the
@@ -32,10 +34,10 @@ export function RateLimitBanner() {
         {limit.minutesKnown ? t("rateLimit.retryIn", { minutes }) : t("rateLimit.retryLater")} {t("rateLimit.howToAvoid")}
       </small>
       <Focusable flow-children="right" style={{ display: "flex", gap: 8 }}>
-        <Button style={{ flex: 1, minHeight: 32, padding: "4px 10px", textAlign: "center" }} onClick={() => Navigation.Navigate("/deckyhub/settings")}>
+        <Button style={bannerButton} onClick={() => Navigation.Navigate("/deckyhub/settings")}>
           <FaCog /> {t("rateLimit.openSettings")}
         </Button>
-        <Button style={{ flex: 1, minHeight: 32, padding: "4px 10px", textAlign: "center" }} onClick={() => setDismissed(true)}>
+        <Button style={bannerButton} onClick={() => setDismissed(true)}>
           <FaTimes /> {t("rateLimit.dismiss")}
         </Button>
       </Focusable>

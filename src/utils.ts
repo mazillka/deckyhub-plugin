@@ -14,8 +14,10 @@ export const DEFAULT_COLUMNS_PER_ROW = 3;
 export const pageStyle = { boxSizing: "border-box" as const, height: "100%", overflowY: "auto" as const, padding: "64px 12px 96px", scrollPaddingBottom: 96, scrollPaddingTop: 64, width: "100%" };
 // Sizes read CSS variables that fall back to the Default density; the Compact
 // setting overrides them on the page root (see applyDensity).
-export const compactButtonStyle = { width: "100%", minHeight: "var(--dh-button-height, 36px)", marginBottom: "var(--dh-button-gap, 8px)", padding: "var(--dh-button-padding, 6px 10px)", textAlign: "center" as const };
-export const modalButtonStyle = { width: "100%", minHeight: "var(--dh-button-height, 36px)", padding: "var(--dh-button-padding, 6px 10px)", textAlign: "center" as const };
+// Centers an icon and its label on one line, whatever the button's width.
+export const iconRow = { display: "flex", alignItems: "center", justifyContent: "center", gap: 8 } as const;
+export const compactButtonStyle = { ...iconRow, width: "100%", minHeight: "var(--dh-button-height, 36px)", marginBottom: "var(--dh-button-gap, 8px)", padding: "var(--dh-button-padding, 6px 10px)" };
+export const modalButtonStyle = { ...iconRow, width: "100%", minHeight: "var(--dh-button-height, 36px)", padding: "var(--dh-button-padding, 6px 10px)" };
 export const sectionDividerStyle = { borderTop: "1px solid rgba(255, 255, 255, 0.14)", margin: "var(--dh-divider-margin, 16px) 0" };
 export const windowGap = "var(--dh-window-gap, 10px)";
 export const gridGap = "var(--dh-grid-gap, 12px)";

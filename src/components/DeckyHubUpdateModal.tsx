@@ -182,7 +182,7 @@ export function DeckyHubUpdateModal({
             {/* Display Settings' "Hide Update" covers Update/Reinstall/Downgrade. */}
             {!hiddenButtons.includes("update") && (
               <Button
-                style={{ ...modalButtonStyle, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+                style={modalButtonStyle}
                 disabled={busy || !selectedRelease.asset}
                 onClick={() => void selfUpdate(selectedRelease)}
               >

@@ -5,7 +5,7 @@ import { cancelDownload, getDownload } from "../api";
 import { useT } from "../i18n";
 import type { TFunc } from "../i18n/en";
 import type { Download } from "../types";
-import { readableBytes } from "../utils";
+import { iconRow, readableBytes } from "../utils";
 
 const ACTIVE_STATES = ["queued", "downloading"];
 
@@ -80,7 +80,7 @@ function DownloadModal({
               </div>
             </>
           )}
-        <Button style={{ margin: 0, width: "100%", textAlign: "center" }} onClick={() => {
+        <Button style={{ ...iconRow, margin: 0, width: "100%" }} onClick={() => {
           if (active) void cancelDownload(jobId);
           closeModal?.();
         }}>
