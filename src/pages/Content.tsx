@@ -1,7 +1,7 @@
 import { toaster } from "@decky/api";
 import { DialogButtonPrimary as Button, Dropdown, Focusable, Navigation, PanelSection, PanelSectionRow, Spinner, TextField } from "@decky/ui";
 import { useEffect, useRef, useState } from "react";
-import { FaSync } from "react-icons/fa";
+import { FaArrowCircleUp, FaArrowLeft, FaArrowRight, FaCog, FaFileExport, FaListUl, FaSearch, FaSync } from "react-icons/fa";
 import { downloadAsset, exportLogs, getApps, getSettings, REGISTRY_UPDATED } from "../api";
 import { useT } from "../i18n";
 import type { App, Asset, HideableButton, RepoPreference, UpdateChannel, View } from "../types";
@@ -192,7 +192,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
           <PanelSectionRow>{loadError}</PanelSectionRow>
           <PanelSectionRow>
             <Button style={compactButtonStyle} onClick={() => void load(true)}>
-              {t("content.tryAgain")}
+              <FaSync /> {t("content.tryAgain")}
             </Button>
           </PanelSectionRow>
         </PanelSection>
@@ -235,13 +235,13 @@ export function Content({ fullPage }: { fullPage?: View }) {
                 <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <div style={{ flex: 1 }}>
                     <Button style={compactButtonStyle} disabled={currentPage === 0} onClick={() => setCardPage((current) => current - 1)}>
-                      {t("repos.previous")}
+                      <FaArrowLeft /> {t("repos.previous")}
                     </Button>
                   </div>
                   <span style={{ whiteSpace: "nowrap" }}>{t("repos.pageOf", { page: currentPage + 1, total: pageCount })}</span>
                   <div style={{ flex: 1 }}>
                     <Button style={compactButtonStyle} disabled={currentPage + 1 === pageCount} onClick={() => setCardPage((current) => current + 1)}>
-                      {t("repos.next")}
+                      {t("repos.next")} <FaArrowRight />
                     </Button>
                   </div>
                 </Focusable>
@@ -264,22 +264,22 @@ export function Content({ fullPage }: { fullPage?: View }) {
       <PanelSection title={t("nav.browse")}>
         <PanelSectionRow>
           <Button style={compactButtonStyle} onClick={() => Navigation.Navigate("/deckyhub/updates")}>
-            {t("nav.updates")}
+            <FaArrowCircleUp /> {t("nav.updates")}
           </Button>
         </PanelSectionRow>
         <PanelSectionRow>
           <Button style={compactButtonStyle} onClick={() => Navigation.Navigate("/deckyhub/discover")}>
-            {t("nav.discover")}
+            <FaSearch /> {t("nav.discover")}
           </Button>
         </PanelSectionRow>
         <PanelSectionRow>
           <Button style={compactButtonStyle} onClick={() => Navigation.Navigate("/deckyhub/repositories")}>
-            {t("nav.repositories")}
+            <FaListUl /> {t("nav.repositories")}
           </Button>
         </PanelSectionRow>
         <PanelSectionRow>
           <Button style={compactButtonStyle} onClick={() => Navigation.Navigate("/deckyhub/settings")}>
-            {t("nav.settings")}
+            <FaCog /> {t("nav.settings")}
           </Button>
         </PanelSectionRow>
       </PanelSection>
@@ -290,7 +290,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
       <PanelSection title={t("settings.troubleshooting")}>
         <PanelSectionRow>
           <Button style={compactButtonStyle} onClick={() => void exportLogs().then(({ path }) => toaster.toast({ title: "DeckyHub", body: t("repos.exportedTo", { path }) }))}>
-            {t("settings.exportLogs")}
+            <FaFileExport /> {t("settings.exportLogs")}
           </Button>
         </PanelSectionRow>
         <PanelSectionRow>

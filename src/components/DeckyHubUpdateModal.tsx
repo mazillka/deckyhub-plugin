@@ -1,6 +1,6 @@
 import { DialogButtonPrimary as Button, Focusable, ModalRoot, Navigation, ProgressBar } from "@decky/ui";
 import { useEffect, useRef, useState } from "react";
-import { FaDownload } from "react-icons/fa";
+import { FaDownload, FaExternalLinkAlt, FaFileArchive, FaSync, FaTimes } from "react-icons/fa";
 import { downloadAsset, getSettings, saveSettings } from "../api";
 import type { TFunc } from "../i18n/en";
 import type { Asset, DeckyHubInfo, DeckyHubReleaseOption, UpdateChannel, HideableButton } from "../types";
@@ -191,7 +191,7 @@ export function DeckyHubUpdateModal({
             )}
             {!hiddenButtons.includes("downloadZip") && (
               <Button style={modalButtonStyle} disabled={busy || !selectedRelease.asset} onClick={() => void downloadZip(selectedRelease.asset!)}>
-                {t("settings.downloadUpdate")}
+                <FaFileArchive /> {t("settings.downloadUpdate")}
               </Button>
             )}
           </>
@@ -205,16 +205,16 @@ export function DeckyHubUpdateModal({
                 Navigation.NavigateToExternalWeb(selectedRelease.url);
               }}
             >
-              {t("appcard.releasePage")}
+              <FaExternalLinkAlt /> {t("appcard.releasePage")}
             </Button>
           )}
           <Button style={{ ...modalButtonStyle, flex: 1 }} disabled={busy} onClick={() => void refresh()}>
-            {checking ? t("settings.checkingUpdate") : t("settings.checkUpdate")}
+            <FaSync /> {checking ? t("settings.checkingUpdate") : t("settings.checkUpdate")}
           </Button>
         </Focusable>
 
         <Button style={modalButtonStyle} onClick={closeModal}>
-          {t("settings.close")}
+          <FaTimes /> {t("settings.close")}
         </Button>
       </div>
     </ModalRoot>

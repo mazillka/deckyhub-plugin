@@ -1,5 +1,6 @@
 import { DialogButtonPrimary as Button, ModalRoot, ProgressBar, showModal } from "@decky/ui";
 import { useEffect, useRef, useState } from "react";
+import { FaCheck, FaTimes } from "react-icons/fa";
 import { cancelDownload, getDownload } from "../api";
 import { useT } from "../i18n";
 import type { TFunc } from "../i18n/en";
@@ -83,7 +84,7 @@ function DownloadModal({
           if (active) void cancelDownload(jobId);
           closeModal?.();
         }}>
-          {active ? t("content.cancel") : t("dl.ok")}
+          {active ? <FaTimes /> : <FaCheck />} {active ? t("content.cancel") : t("dl.ok")}
         </Button>
       </div>
     </ModalRoot>

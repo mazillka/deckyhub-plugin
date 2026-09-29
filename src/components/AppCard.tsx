@@ -1,5 +1,6 @@
 import { toaster } from "@decky/api";
 import { DialogButtonPrimary as Button, PanelSection, PanelSectionRow, showModal } from "@decky/ui";
+import { FaCog, FaPlus } from "react-icons/fa";
 import { useT } from "../i18n";
 import type { App, Asset, HideableButton, RepoPreference, UpdateChannel } from "../types";
 import { compactButtonStyle, cardDescriptionStyle, displayVersion, installAction, installDeckyPlugin, PLUGIN_INSTALL_TYPE, statusKey, statusColor } from "../utils";
@@ -59,7 +60,7 @@ export function AppCard({
               )
             }
           >
-            {t("appcard.install")}
+            <FaPlus /> {t("appcard.install")}
           </Button>
         </PanelSectionRow>
       )}
@@ -81,7 +82,7 @@ export function AppCard({
             )
           }
         >
-          {t("appcard.manage")}
+          <FaCog /> {t("appcard.manage")}
         </Button>
       </PanelSectionRow>
     </PanelSection>

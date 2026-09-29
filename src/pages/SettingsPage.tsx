@@ -1,6 +1,6 @@
 import { DialogButtonPrimary as Button, DropdownItem, Focusable, Navigation, PanelSection, PanelSectionRow, TextField, ToggleField } from "@decky/ui";
 import { useEffect, useState, type ReactNode } from "react";
-import { FaExternalLinkAlt, FaFolderOpen, FaInfoCircle, FaLock } from "react-icons/fa";
+import { FaExternalLinkAlt, FaSave, FaFolderOpen, FaInfoCircle, FaLock } from "react-icons/fa";
 import { getSettings, saveSettings } from "../api";
 import { LOCALE_CHANGED, LOCALES, useT } from "../i18n";
 import type { MessageKey } from "../i18n/en";
@@ -103,7 +103,7 @@ export function SettingsPage() {
         </PanelSectionRow>
         <PanelSectionRow>
           <Button style={compactButtonStyle} disabled={tokenDraft.trim() === settings.githubToken} onClick={() => update({ githubToken: tokenDraft.trim() })}>
-            {t("settings.saveSettings")}
+            <FaSave /> {t("settings.saveSettings")}
           </Button>
         </PanelSectionRow>
       </PanelSection>

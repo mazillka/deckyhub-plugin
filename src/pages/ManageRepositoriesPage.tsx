@@ -3,6 +3,7 @@ import { DialogButtonPrimary as Button, ConfirmModal, Focusable, PanelSection, P
 import { FocusableGrid } from "../components/FocusableGrid";
 import { RateLimitBanner } from "../components/RateLimitBanner";
 import { useEffect, useState } from "react";
+import { FaArrowLeft, FaArrowRight, FaCheck, FaFileExport, FaFileImport, FaPlus, FaSearch, FaTimes, FaTrash } from "react-icons/fa";
 import { addCustomRepo, exportCustomRepos, getApps, getCustomRepos, importCustomRepos, REGISTRY_UPDATED, removeCustomRepo } from "../api";
 import { useT } from "../i18n";
 import type { ManagedRepo, SearchRepo } from "../types";
@@ -97,7 +98,7 @@ export function ManageRepositoriesPage() {
             </div>
             <div style={{ flex: "0 0 160px", paddingTop: 24 }}>
               <Button style={compactButtonStyle} onClick={() => void search()} disabled={searching}>
-                {searching ? t("repos.searching") : t("filter.search")}
+                <FaSearch /> {searching ? t("repos.searching") : t("filter.search")}
               </Button>
             </div>
             <div style={{ flex: "0 0 120px", paddingTop: 24 }}>
@@ -110,7 +111,7 @@ export function ManageRepositoriesPage() {
                   setPage(0);
                 }}
               >
-                {t("repos.clear")}
+                <FaTimes /> {t("repos.clear")}
               </Button>
             </div>
           </Focusable>
@@ -121,13 +122,13 @@ export function ManageRepositoriesPage() {
             <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{ flex: 1 }}>
               <Button style={compactButtonStyle} disabled={page === 0} onClick={() => setPage((current) => current - 1)}>
-                {t("repos.previous")}
+                <FaArrowLeft /> {t("repos.previous")}
               </Button>
               </div>
               <span style={{ whiteSpace: "nowrap" }}>{t("repos.pageOf", { page: page + 1, total: Math.ceil(results.length / RESULTS_PER_PAGE) })}</span>
               <div style={{ flex: 1 }}>
               <Button style={compactButtonStyle} disabled={(page + 1) * RESULTS_PER_PAGE >= results.length} onClick={() => setPage((current) => current + 1)}>
-                {t("repos.next")}
+                {t("repos.next")} <FaArrowRight />
               </Button>
               </div>
             </Focusable>
@@ -149,7 +150,7 @@ export function ManageRepositoriesPage() {
                   </PanelSectionRow>
                   <PanelSectionRow>
                     <Button style={compactButtonStyle} disabled={added} onClick={() => void add(repo.full_name)}>
-                      {added ? t("repos.added") : t("repos.add")}
+                      {added ? <FaCheck /> : <FaPlus />} {added ? t("repos.added") : t("repos.add")}
                     </Button>
                   </PanelSectionRow>
                 </PanelSection>
@@ -166,12 +167,12 @@ export function ManageRepositoriesPage() {
           <Focusable flow-children="right" style={{ display: "flex", gap: 12 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <Button style={compactButtonStyle} onClick={() => void exportList()}>
-                {t("repos.export")}
+                <FaFileExport /> {t("repos.export")}
               </Button>
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <Button style={compactButtonStyle} onClick={() => void importList()}>
-                {t("repos.import")}
+                <FaFileImport /> {t("repos.import")}
               </Button>
             </div>
           </Focusable>
@@ -179,7 +180,7 @@ export function ManageRepositoriesPage() {
         {customRepos.map((item) => (
           <PanelSectionRow key={item.repo}>
             <Button style={compactButtonStyle} onClick={() => confirmRemove(item.repo)}>
-              {t("repos.remove", { repo: item.repo })}
+              <FaTrash /> {t("repos.remove", { repo: item.repo })}
             </Button>
           </PanelSectionRow>
         ))}

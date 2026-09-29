@@ -1,7 +1,7 @@
 import { toaster } from "@decky/api";
 import { DialogButtonPrimary as Button, ModalRoot, PanelSection, PanelSectionRow, showModal } from "@decky/ui";
 import { useEffect, useState } from "react";
-import { FaExclamationTriangle } from "react-icons/fa";
+import { FaExclamationTriangle, FaTimes, FaTrash } from "react-icons/fa";
 import { clearDownloads, listDownloads } from "../api";
 import { useT } from "../i18n";
 import type { TFunc } from "../i18n/en";
@@ -39,10 +39,10 @@ function ClearDownloadsModal({ t, downloads, onConfirm, closeModal }: { t: TFunc
             onConfirm();
           }}
         >
-          {t("settings.emptyFolder")}
+          <FaTrash /> {t("settings.emptyFolder")}
         </Button>
         <Button style={modalButtonStyle} onClick={closeModal}>
-          {t("content.cancel")}
+          <FaTimes /> {t("content.cancel")}
         </Button>
       </div>
     </ModalRoot>
@@ -72,7 +72,7 @@ export function CleanupSection() {
       <PanelSection title={t("settings.cleanup")}>
         <PanelSectionRow>
           <Button style={compactButtonStyle} onClick={() => showModal(<ClearDownloadsModal t={t} downloads={downloads} onConfirm={clear} />)}>
-            {t("settings.emptyFolder")}
+            <FaTrash /> {t("settings.emptyFolder")}
           </Button>
         </PanelSectionRow>
       </PanelSection>

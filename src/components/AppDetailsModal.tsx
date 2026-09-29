@@ -1,6 +1,7 @@
 import { toaster } from "@decky/api";
 import { DialogButtonPrimary as Button, ConfirmModal, Focusable, ModalRoot, Navigation, showModal } from "@decky/ui";
 import { useEffect, useState } from "react";
+import { FaArrowDown, FaArrowUp, FaExternalLinkAlt, FaFileArchive, FaPlus, FaRedo, FaSync, FaTimes, FaTrash } from "react-icons/fa";
 import { saveRepoSettings } from "../api";
 import type { TFunc } from "../i18n/en";
 import type { App, AppReleaseOption, Asset, HideableButton, RepoPreference, UpdateChannel } from "../types";
@@ -73,6 +74,7 @@ export function AppDetailsModal({
   // Hands the selected release to Decky Loader's installer, which shows its own
   // confirm/progress dialog; Content reloads the list once the loader finishes.
   const install = selectedRelease && installAction(app, selectedRelease);
+  const installIcons = { [PLUGIN_INSTALL_TYPE.INSTALL]: <FaPlus />, [PLUGIN_INSTALL_TYPE.REINSTALL]: <FaRedo />, [PLUGIN_INSTALL_TYPE.UPDATE]: <FaArrowUp />, [PLUGIN_INSTALL_TYPE.DOWNGRADE]: <FaArrowDown /> };
   const runInstall = (release: AppReleaseOption, action: NonNullable<typeof install>) => {
     if (!getDeckyBackend()) {
       toaster.toast({ title: "DeckyHub", body: t("settings.selfUpdateUnavailable") });
@@ -129,19 +131,19 @@ export function AppDetailsModal({
           <>
             {install && !hiddenButtons.includes(install.type === PLUGIN_INSTALL_TYPE.INSTALL ? "install" : "update") && (
               <Button style={modalButtonStyle} onClick={() => runInstall(selectedRelease, install)}>
-                {installTypeLabel(t, install.type, displayVersion(selectedRelease.tag).replace(/^v/, ""), t("appcard.update"))}
+                {installIcons[install.type]} {installTypeLabel(t, install.type, displayVersion(selectedRelease.tag).replace(/^v/, ""), t("appcard.update"))}
               </Button>
             )}
             {hiddenButtons.includes("downloadZip") ? null : selectedRelease.assets[0] ? (
               <Button style={modalButtonStyle} disabled={downloading} onClick={() => download(selectedRelease.assets[0])}>
-                {t("settings.downloadUpdate")}
+                <FaFileArchive /> {t("settings.downloadUpdate")}
               </Button>
             ) : (
               <small style={{ color: "#ff6b6b" }}>{t("appcard.noMatchingAsset")}</small>
             )}
             {!hiddenButtons.includes("downloadZip") && selectedRelease.assets.slice(1).map((asset) => (
               <Button key={asset.name} style={modalButtonStyle} disabled={downloading} onClick={() => download(asset)}>
-                {`${asset.name} (${readableBytes(asset.size)})`}
+                <FaFileArchive /> {`${asset.name} (${readableBytes(asset.size)})`}
               </Button>
             ))}
           </>
@@ -155,22 +157,22 @@ export function AppDetailsModal({
                 Navigation.NavigateToExternalWeb(selectedRelease.url);
               }}
             >
-              {t("appcard.releasePage")}
+              <FaExternalLinkAlt /> {t("appcard.releasePage")}
             </Button>
           )}
           <Button style={{ ...modalButtonStyle, flex: 1 }} disabled={loading} onClick={() => void loadReleases(channel, { pinLatest: true })}>
-            {loading ? t("settings.checkingUpdate") : t("settings.checkUpdate")}
+            <FaSync /> {loading ? t("settings.checkingUpdate") : t("settings.checkUpdate")}
           </Button>
         </Focusable>
 
         {canUninstall && (
           <Button style={{ ...modalButtonStyle, color: "#ff6b6b" }} onClick={confirmUninstall}>
-            {t("appcard.uninstall")}
+            <FaTrash /> {t("appcard.uninstall")}
           </Button>
         )}
 
         <Button style={modalButtonStyle} onClick={closeModal}>
-          {t("settings.close")}
+          <FaTimes /> {t("settings.close")}
         </Button>
       </div>
     </ModalRoot>

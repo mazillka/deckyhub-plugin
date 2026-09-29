@@ -1,5 +1,6 @@
 import { DialogButtonPrimary as Button, Focusable, Navigation } from "@decky/ui";
 import { useEffect, useState } from "react";
+import { FaCog, FaTimes } from "react-icons/fa";
 import { useT } from "../i18n";
 import { RATE_LIMIT_CHANGED, rateLimit } from "../utils";
 
@@ -32,10 +33,10 @@ export function RateLimitBanner() {
       </small>
       <Focusable flow-children="right" style={{ display: "flex", gap: 8 }}>
         <Button style={{ flex: 1, minHeight: 32, padding: "4px 10px", textAlign: "center" }} onClick={() => Navigation.Navigate("/deckyhub/settings")}>
-          {t("rateLimit.openSettings")}
+          <FaCog /> {t("rateLimit.openSettings")}
         </Button>
         <Button style={{ flex: 1, minHeight: 32, padding: "4px 10px", textAlign: "center" }} onClick={() => setDismissed(true)}>
-          {t("rateLimit.dismiss")}
+          <FaTimes /> {t("rateLimit.dismiss")}
         </Button>
       </Focusable>
     </div>

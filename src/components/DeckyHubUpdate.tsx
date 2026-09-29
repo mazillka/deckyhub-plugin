@@ -1,6 +1,7 @@
 import { toaster } from "@decky/api";
 import { DialogButtonPrimary as Button, PanelSection, PanelSectionRow, showModal } from "@decky/ui";
 import { useEffect, useState } from "react";
+import { FaArrowCircleUp } from "react-icons/fa";
 import { getDeckyHubInfo, getSettings } from "../api";
 import { useT } from "../i18n";
 import type { DeckyHubInfo, DeckyHubRelease, UpdateChannel } from "../types";
@@ -58,7 +59,7 @@ export function DeckyHubUpdate() {
           // Read settings on open so Display Settings' hidden buttons are current.
           onClick={() => void getSettings().then((settings) => showModal(<DeckyHubUpdateModal t={t} info={info} channel={channel} onCheckUpdate={() => checkForUpdate(true)} onChannelChange={setChannel} hiddenButtons={settings.hiddenButtons} />))}
         >
-          {buttonLabel}
+          <FaArrowCircleUp /> {buttonLabel}
         </Button>
       </PanelSectionRow>
     </PanelSection>
