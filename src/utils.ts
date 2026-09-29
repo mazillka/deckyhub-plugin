@@ -334,6 +334,16 @@ function isUpdate(app: App, latest: string | null) {
   return cmp === null ? null : cmp > 0;
 }
 
+export function installTypeLabel(t: TFunc, type: number, version: string, updateLabel = t("settings.updateTo", { version })) {
+  return type === PLUGIN_INSTALL_TYPE.INSTALL
+    ? t("appcard.install")
+    : type === PLUGIN_INSTALL_TYPE.REINSTALL
+    ? t("settings.reinstallTo", { version })
+    : type === PLUGIN_INSTALL_TYPE.DOWNGRADE
+    ? t("settings.downgradeTo", { version })
+    : updateLabel;
+}
+
 function matchingAssets(app: App, assets: Asset[], extraInclude: string[] = []): Asset[] {
   const include = [...app.asset.include, ...extraInclude].map((word) => word.toLowerCase());
   const exclude = app.asset.exclude.map((word) => word.toLowerCase());

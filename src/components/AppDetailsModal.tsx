@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { saveRepoSettings } from "../api";
 import type { TFunc } from "../i18n/en";
 import type { App, AppReleaseOption, Asset, HideableButton, RepoPreference, UpdateChannel } from "../types";
-import { buildVersionOptions, displayVersion, getDeckyBackend, installAction, installDeckyPlugin, listAppReleases, modalButtonStyle, PLUGIN_INSTALL_TYPE, readableBytes, sectionDividerStyle, selectDefaultTag, uninstallDeckyPlugin, windowGap } from "../utils";
+import { buildVersionOptions, displayVersion, getDeckyBackend, installAction, installDeckyPlugin, installTypeLabel, listAppReleases, modalButtonStyle, PLUGIN_INSTALL_TYPE, readableBytes, sectionDividerStyle, selectDefaultTag, uninstallDeckyPlugin, windowGap } from "../utils";
 import { VersionPickerPanel } from "./VersionPickerPanel";
 
 // showModal() mounts onto a separate root from the caller's tree (see the
@@ -73,15 +73,6 @@ export function AppDetailsModal({
   // Hands the selected release to Decky Loader's installer, which shows its own
   // confirm/progress dialog; Content reloads the list once the loader finishes.
   const install = selectedRelease && installAction(app, selectedRelease);
-  const installVersion = displayVersion(selectedRelease?.tag ?? "").replace(/^v/, "");
-  const installLabel = (type: number) =>
-    type === PLUGIN_INSTALL_TYPE.INSTALL
-      ? t("appcard.install")
-      : type === PLUGIN_INSTALL_TYPE.REINSTALL
-      ? t("settings.reinstallTo", { version: installVersion })
-      : type === PLUGIN_INSTALL_TYPE.DOWNGRADE
-      ? t("settings.downgradeTo", { version: installVersion })
-      : t("appcard.update");
   const runInstall = (release: AppReleaseOption, action: NonNullable<typeof install>) => {
     if (!getDeckyBackend()) {
       toaster.toast({ title: "DeckyHub", body: t("settings.selfUpdateUnavailable") });
@@ -138,7 +129,7 @@ export function AppDetailsModal({
           <>
             {install && !hiddenButtons.includes(install.type === PLUGIN_INSTALL_TYPE.INSTALL ? "install" : "update") && (
               <Button style={modalButtonStyle} onClick={() => runInstall(selectedRelease, install)}>
-                {installLabel(install.type)}
+                {installTypeLabel(t, install.type, displayVersion(selectedRelease.tag).replace(/^v/, ""), t("appcard.update"))}
               </Button>
             )}
             {hiddenButtons.includes("downloadZip") ? null : selectedRelease.assets[0] ? (

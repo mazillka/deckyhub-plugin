@@ -4,7 +4,7 @@ import { FaDownload } from "react-icons/fa";
 import { downloadAsset, getSettings, saveSettings } from "../api";
 import type { TFunc } from "../i18n/en";
 import type { Asset, DeckyHubInfo, DeckyHubReleaseOption, UpdateChannel, HideableButton } from "../types";
-import { PLUGIN_INSTALL_TYPE, buildVersionOptions, getDeckyBackend, installDeckyPlugin, listDeckyHubReleases, modalButtonStyle, normalizeVersion, resolveDeckyHubInstallType, sectionDividerStyle, selectDefaultTag, selfUpdateStageKey, windowGap } from "../utils";
+import { PLUGIN_INSTALL_TYPE, buildVersionOptions, getDeckyBackend, installDeckyPlugin, installTypeLabel, listDeckyHubReleases, modalButtonStyle, normalizeVersion, resolveDeckyHubInstallType, sectionDividerStyle, selectDefaultTag, selfUpdateStageKey, windowGap } from "../utils";
 import { showDownloadModal } from "./DownloadProgress";
 import { VersionPickerPanel } from "./VersionPickerPanel";
 
@@ -149,13 +149,7 @@ export function DeckyHubUpdateModal({
 
   const displayVersion = selectedRelease ? normalizeVersion(selectedRelease.version) : "";
   const installType = selectedRelease ? resolveDeckyHubInstallType(selectedRelease.version, info.version) : PLUGIN_INSTALL_TYPE.UPDATE;
-  const primaryLabel = selfUpdating
-    ? t("settings.selfUpdating")
-    : installType === PLUGIN_INSTALL_TYPE.REINSTALL
-    ? t("settings.reinstallTo", { version: displayVersion })
-    : installType === PLUGIN_INSTALL_TYPE.DOWNGRADE
-    ? t("settings.downgradeTo", { version: displayVersion })
-    : t("settings.updateTo", { version: displayVersion });
+  const primaryLabel = selfUpdating ? t("settings.selfUpdating") : installTypeLabel(t, installType, displayVersion);
 
   return (
     <ModalRoot closeModal={closeModal}>
