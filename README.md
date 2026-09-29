@@ -3,16 +3,16 @@
 <div align="center">
 
 ### Menu
-<img src="screenshots/menu.jpg" width="600">
+<img src="screenshots/menu.jpg" width="600" alt="DeckyHub Menu screen">
 
 ### Discover
-<img src="screenshots/discover.jpg" width="600">
+<img src="screenshots/discover.jpg" width="600" alt="DeckyHub Discover screen">
 
 ### Updates
-<img src="screenshots/updates.jpg" width="600">
+<img src="screenshots/updates.jpg" width="600" alt="DeckyHub Updates screen">
 
 ### Manage
-<img src="screenshots/manage.jpg" width="600">
+<img src="screenshots/manage.jpg" width="600" alt="DeckyHub Manage screen">
 
 </div>
 
@@ -29,16 +29,16 @@ It ships with a small curated list of popular Steam Deck tools, and you can add 
 - **Never miss an update** — DeckyHub checks your installed plugins against their latest GitHub releases and pings you with a toast the moment something new is available.
 - **No more zip-hunting** — search, download, and see exactly which release asset you need without opening a browser.
 - **Built for the couch** — full gamepad navigation, color-coded status at a glance, and one-tap downloads designed for Gaming Mode, not a desktop browser squeezed onto a small screen.
-- **You stay in control** — DeckyHub never installs or runs anything automatically. Nothing touches your system until you say so. Decky plugins get an optional **Install** (not yet installed) or **Update** (newer release) button in their **Manage** window, and DeckyHub itself offers a one-tap update — both go through Decky Loader's own installer and its confirmation dialog, alongside the classic download-and-install-yourself option.
+- **You stay in control** — DeckyHub never installs or runs anything on its own. Nothing touches your system until you say so, and installs go through Decky Loader's own installer and confirmation dialog (see [Manage](#manage)).
 
 ## What it does
 
 - **Discover** — browse a curated list of Steam Deck plugins/tools, filter by search or installed status, and see release info at a glance, color-coded by status.
 - **Updates** — see which of your tracked, installed tools have a newer release available, and download updates in one tap. You'll also get a toast notification when new updates show up.
 - **Repositories** — search GitHub, add or remove tracked repositories, and export/import your list. Per-repository release-channel overrides live behind each app's **Manage** button on Discover/Updates instead.
-- **Settings** — shows the fixed DeckyHub download folder, toggles overwriting existing files, lets you add an optional GitHub personal access token to raise the API rate limit, checks for DeckyHub's own updates, and lets you pick how many items show per row (1–3) in the app grid. A separate **Cleanup** section clears the download folder's contents with confirmation.
+- **Settings** — shows the fixed DeckyHub download folder, toggles overwriting existing files, lets you add an optional GitHub personal access token to raise the API rate limit, checks for DeckyHub's own updates (**Check Update**), and lets you pick how many items show per row (1–3) in the app grid. A separate **Cleanup** section clears the download folder's contents with confirmation.
 
-DeckyHub never installs or runs anything automatically. **Download ZIP** saves a release, which you install yourself via Decky → Developer → Install Plugin from ZIP. For a Decky plugin, its **Manage** window also offers **Install** when it isn't installed yet, or **Update** when the selected version is newer than what's installed, which hands that release ZIP to Decky Loader's own installer (the one the Decky Store uses); Decky asks you to confirm, verifies its SHA-256 checksum and installs it. An installed Decky plugin's **Manage** window also has **Uninstall**, which asks you to confirm and then removes the plugin and its settings through Decky Loader. It's only offered when GitHub publishes a checksum for the ZIP. DeckyHub's own updates work the same way (see [Keeping DeckyHub itself updated](#keeping-deckyhub-itself-updated)).
+DeckyHub never installs or runs anything automatically. **Download ZIP** saves a release, which you install yourself via Decky → Developer → Install Plugin from ZIP. For one-tap install, update and uninstall, see [Manage](#manage).
 
 ## Bundled repositories
 
@@ -73,6 +73,15 @@ To track a repository that isn't in the curated list, go to **Repositories**, se
 
 Shows every tracked tool that's installed and has a newer release available, along with its installed and latest version. Download updates one at a time.
 
+### Manage
+
+Tap **Manage** on any card in Discover or Updates to:
+
+- pick the release **channel** (stable or pre-release) and a specific **version**;
+- **Download ZIP**, open the **Release Page**, or **Check for Updates** for that app;
+- for a Decky plugin, **Install** (not installed yet) or **Update** (the selected version is newer than the installed one). This hands the release ZIP to Decky Loader's own installer, the same one the Decky Store uses. Decky asks you to confirm, verifies the SHA-256 checksum and installs it. Install and Update are only offered when GitHub publishes a checksum for the ZIP;
+- for an installed Decky plugin, **Uninstall**, which asks you to confirm and then removes the plugin and its settings through Decky Loader.
+
 ### Downloads
 
 All downloads are saved to `/home/deck/Downloads/deckyhub`. Settings can clear that folder after confirmation. Starting a download opens a progress dialog with a **Cancel** button; once it finishes, the same dialog shows where the ZIP was saved and how to install it. If a download is interrupted, no partial file is left behind.
@@ -83,11 +92,11 @@ When GitHub provides a checksum for a release asset, DeckyHub always verifies it
 
 Search GitHub for a repository and tap **Add** (repositories you already track show **Already Added** instead, so you can tell at a glance). Results page five at a time. Export your custom repositories to `DeckyHub-repositories.json` in `/home/deck/Downloads` to back them up or share them, or import that file back in. Any repository you've added can be removed again here; the curated repositories that ship with DeckyHub stay available and can't be removed. Prefer a bigger screen? The [Registry Editor](https://mazillka.github.io/deckyhub-plugin/) is a browser-based tool for building or editing a repository list file before importing it.
 
-To switch a tracked app between stable and pre-release releases, tap **Manage** on its card on Discover or Updates — that's also where you pick a specific version and download it.
+To switch a tracked app between stable and pre-release releases, use its [Manage](#manage) window.
 
 ### Keeping DeckyHub itself updated
 
-Settings includes a **Check Update** option that looks for new stable releases (or pre-releases, if you opt in) of DeckyHub itself. A newer release triggers a notification; an installed matching package reports that no update is available. When an update is available, you get two ways to install it:
+Settings includes a **Check Update** option that looks for new stable releases (or pre-releases, if you opt in) of DeckyHub itself. A newer release triggers a notification; if you're already on the latest, it says no update is available. When an update is available, you get two ways to install it:
 
 - **Update Automatically** — hands the release off to Decky Loader's own installer (the same one the Decky Store uses), which downloads, verifies, and installs it in place. No manual ZIP step needed.
 - **Download ZIP** — the classic path: saves the update ZIP to `/home/deck/Downloads/deckyhub`, which you then install yourself via Decky → Developer → Install Plugin from ZIP.
@@ -103,6 +112,10 @@ If automatic update isn't available for some reason (e.g. running inside an olde
 ## Disclaimer
 
 DeckyHub is only a discovery and download tool. All rights to the plugins and tools listed in its registry belong to their respective authors; DeckyHub does not own, endorse, or take responsibility for any third-party repository or its content.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
 
 ## Getting help
 
