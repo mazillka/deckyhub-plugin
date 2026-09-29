@@ -35,7 +35,7 @@ jobs:
         run: |
           mkdir -p release/DeckyHub
           cp -r backend dist registry release/DeckyHub/
-          cp LICENSE main.py package.json plugin.json release/DeckyHub/
+          cp LICENSE.md main.py package.json plugin.json release/DeckyHub/
           (cd release && zip -r "../DeckyHub-${GITHUB_REF_NAME}.zip" DeckyHub)
       - name: Verify release package
         run: |

@@ -4,17 +4,13 @@ Use these project skills when working in this repository.
 
 ## Steam Deck UI
 
-- Keep controller focus explicit for custom layouts with `Focusable` and valid `flow-children` values.
-- Add matching `@decky/ui` stand-ins in `devtools/decky-mock/ui.tsx` for every new UI import.
-- Verify UI behavior in the mock and on real Steam Deck hardware before release.
+- Verify UI behavior in the mock and on real Steam Deck hardware before release. Controller-focus and modal rules are in [AGENTS.md](AGENTS.md#development-rules).
 - Steam only scrolls to follow focus: text above a page's first focusable control is unreachable by controller. Wrap it in `<Focusable onActivate={() => {}}>` so D-pad up can land on it.
 - Clickable non-button elements need both `onActivate` (A button) and `onClick` (touchscreen).
-- Anything opened with `showModal()` renders outside `I18nProvider`: pass `t` in as a prop; `useT()` there throws.
 - Every new user-facing string needs its key in all 7 `src/i18n/*.ts` files (`en.ts` is the type source `tsc` enforces). Reuse an existing translation when the text already exists.
 
 ## Decky Loader
 
-- Loader-global routes are reachable only through `getDeckyBackend()` (`window.DeckyBackend`), not `@decky/api`'s plugin-scoped `call`.
 - `utilities/install_plugin` shows Decky's own confirm dialog; `utilities/uninstall_plugin` deletes the plugin and its settings immediately — always confirm first.
 - Check route names and behavior in decky-loader's `backend/decky_loader/utilities.py` and `browser.py` before relying on them.
 
@@ -25,12 +21,7 @@ Use these project skills when working in this repository.
 
 ## Verification
 
-```bash
-pnpm run typecheck
-pnpm run build
-pnpm run test:backend
-cd devtools/decky-mock && npm run test:e2e
-```
+Commands are in [AGENTS.md](AGENTS.md#commands).
 
 ## Browser tests and the mock
 
@@ -44,17 +35,14 @@ cd devtools/decky-mock && npm run test:e2e
 
 ## Security
 
-- Keep the Python backend dependency-free.
 - Download only GitHub release assets that belong to the selected repository.
 - Treat repository names and imported files as untrusted input; validate them at the backend boundary.
 - Preserve SHA-256 verification for DeckyHub self-updates.
 
 ## Release
 
-- Create work branches as `<short-kebab-case-topic>`; add an ISO date suffix only when needed for uniqueness. Do not work directly on `main`.
-- Bump `version` in `package.json` (the backend reads it at runtime; there is no second copy).
 - Split commits by topic; each commit must typecheck on its own.
 - Push a `v*` tag only after all checks pass.
 - If the release workflow fails after the tag is pushed, fix it and bump to the next rc; never move a published tag.
 - Changes to install/download/uninstall behavior also update README, `CONTRIBUTING.md` and `AGENTS.md`, which describe that policy.
-- After every release (pre-releases too), replace the auto-generated notes with a human-friendly description via `gh release edit vX.Y.Z --notes-file <file>` — see the Release section of `AGENTS.md`.
+- Release steps: [CONTRIBUTING.md](CONTRIBUTING.md#releases). Release notes (every release, pre-releases too): the Release section of [AGENTS.md](AGENTS.md#release).
