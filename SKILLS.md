@@ -41,7 +41,7 @@ Commands are in [AGENTS.md](AGENTS.md#commands).
 
 ## Release
 
-- Split commits by topic; each commit must typecheck on its own.
+- One topic per PR (PRs are squash-merged, see CONTRIBUTING.md); the PR must typecheck.
 - Push a `v*` tag only after all checks pass.
 - If the release workflow fails after the tag is pushed, fix it and bump to the next rc; never move a published tag.
 - Changes to install/download/uninstall behavior also update README, `CONTRIBUTING.md` and `AGENTS.md`, which describe that policy.

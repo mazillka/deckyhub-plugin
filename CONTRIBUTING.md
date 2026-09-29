@@ -47,6 +47,8 @@ New curated repositories go in `registry/apps.json`. Each entry needs `id`, `nam
 
 Create work branches as `<short-kebab-case-topic>`; add an ISO date suffix only when needed for uniqueness. Do not work directly on `main`.
 
+Merge pull requests with **Squash and merge** so `main` keeps one commit per PR; keep each PR to a single topic and use its title as the commit message.
+
 The repository's `.githooks/pre-commit` hook blocks commits on `main`. Activate it once per checkout with `git config core.hooksPath .githooks`; protected branches on GitHub should enforce the same rule remotely.
 
 To release, bump `version` in `package.json` (the backend reads it at runtime; there is no second copy), then push a `v*` Git tag. The tag starts the GitHub Actions release workflow. It installs the locked packages, typechecks, builds, runs the backend test, runs the browser E2E suite in `devtools/decky-mock/`, packages the Decky plugin, and attaches `DeckyHub-v*.zip` to the GitHub release. Release-notes conventions are in the Release section of [AGENTS.md](AGENTS.md).
