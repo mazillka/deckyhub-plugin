@@ -2,6 +2,8 @@
 
 <div align="center">
 
+[![Release](https://img.shields.io/github/v/release/mazillka/deckyhub-plugin)](https://github.com/mazillka/deckyhub-plugin/releases/latest)
+
 ### Menu
 <img src="screenshots/menu.jpg" width="600" alt="DeckyHub Menu screen">
 
