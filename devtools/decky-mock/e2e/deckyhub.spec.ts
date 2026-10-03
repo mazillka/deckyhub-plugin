@@ -627,7 +627,7 @@ test("The Download window offers Update for an outdated Decky plugin and hands i
 
     const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
     await expect.poll(() => frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([
-      ["utilities/install_plugin", url, "MAKO - Frame Generation", "plugin-v1.2.3", sha256, 2],
+      ["utilities/install_plugin", url, "MAKO - Frame Generation", "1.2.3", sha256, 2],
     ]);
   } finally {
     // Retries: on Windows the bridge's plugin scan can briefly lock the folder.
@@ -654,7 +654,7 @@ test("The Manage window offers Install for a Decky plugin that isn't installed y
   // plugin's own manifest name, with Decky's INSTALL (0) type.
   const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
   await expect.poll(() => frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([
-    ["utilities/install_plugin", url, "MAKO - Frame Generation", "plugin-v1.2.3", sha256, 0],
+    ["utilities/install_plugin", url, "MAKO - Frame Generation", "1.2.3", sha256, 0],
   ]);
 });
 
@@ -669,7 +669,7 @@ test("Discover's card installs the latest release of a Decky plugin that isn't i
 
   const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
   await expect.poll(() => frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([
-    ["utilities/install_plugin", url, "MAKO - Frame Generation", "plugin-v1.2.3", sha256, 0],
+    ["utilities/install_plugin", url, "MAKO - Frame Generation", "1.2.3", sha256, 0],
   ]);
 });
 
@@ -695,7 +695,7 @@ test("The Manage window reinstalls or downgrades an installed Decky plugin to th
 
     const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
     await expect.poll(() => frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([
-      ["utilities/install_plugin", "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v1.0.0/mako-decky.zip", "MAKO - Frame Generation", "plugin-v1.0.0", sha, 3],
+      ["utilities/install_plugin", "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v1.0.0/mako-decky.zip", "MAKO - Frame Generation", "1.0.0", sha, 3],
     ]);
   } finally {
     rmSync(pluginDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
