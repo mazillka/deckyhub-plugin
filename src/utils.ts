@@ -279,7 +279,7 @@ export const getDeckyBackend = () => window.DeckyBackend ?? window.opener?.Decky
 // Decky Store uses. The loader shows its native confirm/progress dialog and
 // does the download, SHA-256 check and install itself.
 export function installDeckyPlugin(asset: Asset, pluginName: string, version: string, installType: 0 | 1 | 2 | 3) {
-  return callDeckyLoader("utilities/install_plugin", asset.url, pluginName, normalizeVersion(version), asset.sha256 ?? "", installType);
+  return callDeckyLoader("utilities/install_plugin", asset.url, pluginName, normalizeVersion(displayVersion(version)), asset.sha256 ?? "", installType);
 }
 
 // Decky Loader's uninstall deletes the plugin's folder and its settings right
