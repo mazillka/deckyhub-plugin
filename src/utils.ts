@@ -279,7 +279,41 @@ export const getDeckyBackend = () => window.DeckyBackend ?? window.opener?.Decky
 // Decky Store uses. The loader shows its native confirm/progress dialog and
 // does the download, SHA-256 check and install itself.
 export function installDeckyPlugin(asset: Asset, pluginName: string, version: string, installType: 0 | 1 | 2 | 3) {
-  return callDeckyLoader("utilities/install_plugin", asset.url, pluginName, normalizeVersion(displayVersion(version)), asset.sha256 ?? "", installType);
+  traceDeckyInstall(pluginName);
+  return callDeckyLoader("utilities/install_plugin", asset.url, pluginName, normalizeVersion(displayVersion(version)), asset.sha256 ?? "", installType).then((result: unknown) => {
+    log(`Decky Loader install_plugin ${pluginName} accepted, waiting for confirm/progress`);
+    return result;
+  });
+}
+
+// Logs every stage Decky Loader reports for this install, with elapsed time,
+// so deckyhub.log shows where a stuck install stopped. Decky's progress events
+// carry no plugin name, so all of them are logged while this one is watched.
+function traceDeckyInstall(pluginName: string) {
+  const backend = getDeckyBackend();
+  if (!backend) return;
+  const started = Date.now();
+  const elapsed = () => `${((Date.now() - started) / 1000).toFixed(1)}s`;
+  const onStart = (name: string) => log(`Decky install start ${name} at ${elapsed()}`);
+  const onInfo = (progress: number, stage: string) => log(`Decky install ${pluginName} ${progress}% ${stage} at ${elapsed()}`);
+  const stop = () => {
+    window.clearTimeout(timer);
+    backend.removeEventListener("loader/plugin_download_start", onStart);
+    backend.removeEventListener("loader/plugin_download_info", onInfo);
+    backend.removeEventListener("loader/plugin_download_finish", onFinish);
+  };
+  const onFinish = (name: string) => {
+    log(`Decky install finish ${name} at ${elapsed()}`);
+    if (name === pluginName) stop();
+  };
+  // ponytail: fixed 10 min cap; Decky never sends finish after a silent failure.
+  const timer = window.setTimeout(() => {
+    log(`Decky install ${pluginName}: no finish after ${elapsed()} — check journalctl -u plugin_loader`);
+    stop();
+  }, 10 * 60 * 1000);
+  backend.addEventListener("loader/plugin_download_start", onStart);
+  backend.addEventListener("loader/plugin_download_info", onInfo);
+  backend.addEventListener("loader/plugin_download_finish", onFinish);
 }
 
 // Decky Loader's uninstall deletes the plugin's folder and its settings right

@@ -83,6 +83,8 @@ export function AppDetailsModal({
     installDeckyPlugin(release.assets[0], action.name, release.tag, action.type).catch((error: unknown) =>
       toaster.toast({ title: "DeckyHub", body: String(error) }),
     );
+    // Decky's own confirm/progress dialog would otherwise open behind this window.
+    closeModal?.();
   };
 
   // Installed Decky plugins can be removed through Decky Loader — never
