@@ -33,6 +33,17 @@ Commands are in [AGENTS.md](AGENTS.md#commands).
 - Restart `dev-server.py` after backend changes — it doesn't reload `main.py`, and a stale bridge shows blank pages.
 - When timing in the in-app browser pane, use a `MutationObserver`, not `setTimeout` polling: background timers are throttled to ~1 s.
 
+## Docs and website
+
+Every change that alters what a user sees or does updates the docs in the same PR. `tests/test_docs.py` (run by `pnpm run test:backend`) enforces the mechanical parts.
+
+- User-visible behavior (screens, buttons, settings, install/download flow): update README's matching section, and the promo page's features/FAQ in `docs/index.html` if it describes it.
+- Registry apps added, removed or renamed in `registry/apps.json`: regenerate README's **Bundled repositories** table in the same order. The promo page's catalog reads the file itself.
+- New screenshot in `screenshots/`: regenerate `docs/img/<name>.webp` (1280×800) and `docs/img/<name>-640.webp` (640×400) with Pillow, WebP quality 78.
+- New page in `docs/`: add it to `docs/sitemap.xml` and give it a `<title>`, meta description and canonical URL.
+- Architecture, commands or dev rules change: update `AGENTS.md`; release or contribution steps: `CONTRIBUTING.md`.
+- Before finishing, grep the docs for names you renamed or removed.
+
 ## Security
 
 - Download only GitHub release assets that belong to the selected repository.
