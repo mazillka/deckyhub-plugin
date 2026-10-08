@@ -2,43 +2,143 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>DeckyHub registry editor</title>
+<title>DeckyHub — the plugin store for your Steam Deck</title>
+<meta name="description" content="Discover, download and update Decky Loader plugins straight from Gaming Mode. Gamepad-first, open source, and never installs anything without your tap.">
+<link rel="canonical" href="https://mazillka.github.io/deckyhub-plugin/">
+<meta name="theme-color" content="#10151f">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://mazillka.github.io/deckyhub-plugin/">
+<meta property="og:title" content="DeckyHub — the plugin store for your Steam Deck">
+<meta property="og:description" content="Discover, download and update Decky Loader plugins straight from Gaming Mode.">
+<meta property="og:image" content="https://mazillka.github.io/deckyhub-plugin/img/discover.webp">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"DeckyHub","applicationCategory":"UtilitiesApplication","operatingSystem":"SteamOS","description":"Decky Loader plugin that discovers, downloads and updates other Steam Deck plugins from Gaming Mode.","url":"https://mazillka.github.io/deckyhub-plugin/","downloadUrl":"https://github.com/mazillka/deckyhub-plugin/releases/latest","image":"https://mazillka.github.io/deckyhub-plugin/img/discover.webp","license":"https://www.gnu.org/licenses/gpl-3.0.html","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
 <style>
-:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#10151f;color:#eef4ff}body{max-width:1040px;margin:auto;padding:24px}p{color:#b6c3d4}button,input,select,textarea{font:inherit;border:1px solid #40516a;border-radius:6px}button{background:#1d75cc;color:#fff;padding:9px 12px;cursor:pointer}button.secondary{background:#26364c}button.danger{background:#a93a45}button:disabled{opacity:.5}.toolbar,.tabs,.actions{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}.tabs .active{background:#4b9cf0}.panel{background:#182131;border:1px solid #2e405a;border-radius:10px;padding:18px}.hidden{display:none}.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}label{display:grid;gap:6px;color:#cbd8e9;font-size:.9rem}input,select,textarea{padding:9px;background:#0f1724;color:#eef4ff}textarea{box-sizing:border-box;width:100%;min-height:390px;resize:vertical;font-family:ui-monospace,monospace;font-size:.85rem}.hint{font-size:.82rem;color:#9eb0c6}.status{min-height:1.4em;margin:12px 0;color:#9ed3aa}.error{color:#ff9ba4;white-space:pre-wrap}.repo-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-top:18px}.repo{text-align:left;background:#202c40;border:1px solid #3a4b66;padding:12px}.repo.selected{border-color:#64b0f5;background:#263b58}.repo strong,.repo small{display:block}.repo small{color:#adc0d7;margin-top:4px}
+:root{color-scheme:dark;--bg:#10151f;--panel:#182131;--line:#2e405a;--text:#eef4ff;--muted:#b6c3d4;--dim:#8a9bb2;--accent:#1d75cc;--accent2:#4b9cf0;--ok:#59bf6f;--warn:#e8b54a}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.55}
+a{color:var(--accent2)}img{max-width:100%;height:auto;display:block}
+.wrap{max-width:1100px;margin:auto;padding:0 20px}
+nav{position:sticky;top:0;z-index:5;background:rgba(16,21,31,.88);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:20px;height:56px}
+nav .brand{font-weight:700;color:var(--text);text-decoration:none;margin-right:auto}
+nav a{color:var(--muted);text-decoration:none;font-size:.95rem}nav a:hover{color:var(--text)}
+@media(max-width:640px){nav .links a:not(.keep){display:none}}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:8px;background:var(--accent);color:#fff;text-decoration:none;font-weight:600;border:1px solid transparent}
+.btn:hover{background:var(--accent2)}.btn.ghost{background:transparent;border-color:var(--line);color:var(--text)}.btn.ghost:hover{border-color:var(--accent2)}
+header{padding:72px 0 40px;text-align:center;background:radial-gradient(ellipse at top,#1b3254 0%,var(--bg) 65%)}
+header h1{font-size:clamp(2.2rem,6vw,3.6rem);line-height:1.1;margin:0 0 16px;letter-spacing:-.02em}
+header p.lead{font-size:1.2rem;color:var(--muted);max-width:640px;margin:0 auto 28px}
+.cta{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+.hero-shot{margin:48px auto 0;max-width:900px;border-radius:14px;overflow:hidden;border:1px solid var(--line);box-shadow:0 30px 80px rgba(0,0,0,.55)}
+section{padding:72px 0;border-top:1px solid #1c2738}
+h2{font-size:clamp(1.6rem,4vw,2.2rem);margin:0 0 10px;letter-spacing:-.01em}
+.sub{color:var(--muted);max-width:680px;margin:0 0 36px}
+.grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px}
+.card h3{margin:0 0 8px;font-size:1.1rem}.card p{margin:0;color:var(--muted)}
+.card .ico{font-size:1.6rem;margin-bottom:10px}
+figure{margin:0}figcaption{color:var(--muted);margin-top:10px;font-size:.92rem}
+.shot{border-radius:12px;overflow:hidden;border:1px solid var(--line);aspect-ratio:16/10;background:#0b0f16}
+ol.steps{counter-reset:s;list-style:none;padding:0;display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+ol.steps li{counter-increment:s;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;color:var(--muted)}
+ol.steps li::before{content:counter(s);display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;margin-bottom:10px}
+ol.steps strong{color:var(--text)}
+code{background:#0f1724;border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.88em}
+.catalog{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.app{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;text-decoration:none;color:var(--text);display:block}
+.app:hover{border-color:var(--accent2)}.app small{display:block;color:var(--accent2);font-size:.78rem;text-transform:uppercase;letter-spacing:.05em}
+.app p{margin:6px 0 0;color:var(--muted);font-size:.92rem}.app code{font-size:.78rem;color:var(--dim);border:0;background:none;padding:0}
+.editor-head{display:flex;flex-wrap:wrap;gap:12px;align-items:end;justify-content:space-between}
+details{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin-bottom:10px}
+summary{cursor:pointer;font-weight:600}details p{color:var(--muted);margin:10px 0 0}
+footer{padding:40px 0;border-top:1px solid var(--line);color:var(--dim);font-size:.88rem}
+footer .wrap{display:grid;gap:10px}
+@media(max-width:640px){header{padding:40px 0 24px}header p.lead{font-size:1.05rem}header h1 br{display:none}.hero-shot{margin-top:28px;border-radius:10px}section{padding:44px 0}.sub{margin-bottom:24px}.wrap{padding:0 16px}nav .wrap{gap:14px}.cta .btn{flex:1;justify-content:center}.editor-head .btn{width:100%;justify-content:center}}
 </style>
 </head>
 <body>
-<h1>DeckyHub registry editor</h1>
-<p>Maintain a portable list of GitHub projects for DeckyHub. Changes remain in this browser until you export the JSON.</p>
-<div class="toolbar"><button id="reload" class="secondary">Load default repos</button><button id="export">Export JSON</button><label class="secondary" style="display:inline-flex;align-items:center;padding:9px 12px;cursor:pointer">Import JSON<input id="import" type="file" accept="application/json,.json" hidden></label></div>
-<div class="tabs"><button class="active" data-tab="form">Repository editor</button><button class="secondary" data-tab="raw">Raw JSON</button></div>
-<div id="status" class="status" role="status"></div>
-<section id="form-panel" class="panel">
-<div class="actions"><button id="new-repo">Add new repository</button><button id="cancel-new" class="secondary" disabled>Cancel</button><button id="save-repo" class="secondary">Save repository</button><button id="remove-repo" class="danger">Remove repository</button></div>
-<div class="form-grid">
-<label>Repository ID<input id="id" placeholder="my-tool"><span class="hint">Lowercase letters, numbers, and hyphens.</span></label>
-<label>Display name<input id="name" placeholder="My Tool"></label>
-<label>GitHub repository<input id="repo" placeholder="owner/repository"><span class="hint">Do not paste the full GitHub URL.</span></label>
-<label>Category<input id="category" placeholder="Utilities"></label>
-<label>Include assets<input id="include" placeholder="decky, linux, x86_64"><span class="hint">Comma-separated; blank allows all.</span></label>
-<label>Exclude assets<input id="exclude" placeholder="source, arm"><span class="hint">Comma-separated words to skip.</span></label>
+<nav><div class="wrap">
+<a class="brand" href="#">DeckyHub</a>
+<span class="links" style="display:flex;gap:20px"><a href="#features">Features</a><a href="#tour">Tour</a><a href="#install">Install</a><a href="#catalog">Catalog</a><a class="keep" href="editor.html">Registry editor</a><a class="keep" href="https://github.com/mazillka/deckyhub-plugin">GitHub</a></span>
+</div></nav>
+
+<header><div class="wrap">
+<h1>Your Steam Deck's plugin store, <br>right inside Gaming Mode.</h1>
+<p class="lead">Discover, download and update Decky Loader plugins with your controller. No Desktop Mode, no hunting through GitHub releases, no zip juggling.</p>
+<div class="cta">
+<a class="btn" href="https://github.com/mazillka/deckyhub-plugin/releases/latest">Download DeckyHub</a>
+<a class="btn ghost" href="#install">How to install</a>
 </div>
-<h2>Repositories</h2><div id="repo-list" class="repo-list"></div>
-</section>
-<section id="raw-panel" class="panel hidden"><p class="hint">Use this for advanced fields. Apply validates the complete JSON before replacing the current list.</p><textarea id="editor" spellcheck="false" aria-label="Raw registry JSON"></textarea><div class="actions"><button id="apply-raw">Validate and apply JSON</button></div></section>
+<div class="hero-shot"><img src="img/discover.webp" srcset="img/discover-640.webp 640w, img/discover.webp 1280w" sizes="(max-width:940px) 100vw, 900px" width="1280" height="800" alt="DeckyHub's Discover screen listing Steam Deck plugins with color-coded status" fetchpriority="high"></div>
+</div></header>
+
+<section id="features"><div class="wrap">
+<h2>Why you'll like it</h2>
+<p class="sub">Built for the couch: every screen works with the gamepad, and nothing touches your system until you say so.</p>
+<div class="grid">
+<div class="card"><div class="ico">🔔</div><h3>Never miss an update</h3><p>DeckyHub checks your installed plugins against their latest GitHub releases and pings you with a toast the moment something new drops.</p></div>
+<div class="card"><div class="ico">🧭</div><h3>Discover new tools</h3><p>A curated catalog of Steam Deck plugins, filterable by status and color-coded so you spot what needs attention at a glance.</p></div>
+<div class="card"><div class="ico">🎮</div><h3>Controller first</h3><p>Full gamepad navigation and one-tap actions designed for Gaming Mode, not a desktop page squeezed onto a small screen.</p></div>
+<div class="card"><div class="ico">🛡️</div><h3>You stay in control</h3><p>Installs go through Decky Loader's own installer and confirmation dialog, with SHA-256 checksums verified. Nothing runs on its own.</p></div>
+<div class="card"><div class="ico">📦</div><h3>Track any repo</h3><p>Search GitHub, add any repository, pick stable or pre-release channels per app, and export your list to share or back up.</p></div>
+<div class="card"><div class="ico">🔄</div><h3>Updates itself</h3><p>Check for new DeckyHub releases from Settings and update in place, or reinstall and downgrade to any recent version.</p></div>
+</div>
+</div></section>
+
+<section id="tour"><div class="wrap">
+<h2>Take the tour</h2>
+<p class="sub">Four screens, all reachable from the Quick Access Menu.</p>
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(420px,100%),1fr))">
+<figure><div class="shot"><img src="img/menu.webp" srcset="img/menu-640.webp 640w, img/menu.webp 1280w" sizes="(max-width:900px) 100vw, 540px" width="1280" height="800" alt="DeckyHub Menu screen" loading="lazy" decoding="async"></div><figcaption><strong>Menu</strong> — jump to Discover, Updates, Repositories or Settings from the Quick Access Menu.</figcaption></figure>
+<figure><div class="shot"><img src="img/discover.webp" srcset="img/discover-640.webp 640w, img/discover.webp 1280w" sizes="(max-width:900px) 100vw, 540px" width="1280" height="800" alt="DeckyHub Discover screen" loading="lazy" decoding="async"></div><figcaption><strong>Discover</strong> — browse the catalog, filter by install status, open Manage to pick a channel and version.</figcaption></figure>
+<figure><div class="shot"><img src="img/updates.webp" srcset="img/updates-640.webp 640w, img/updates.webp 1280w" sizes="(max-width:900px) 100vw, 540px" width="1280" height="800" alt="DeckyHub Updates screen" loading="lazy" decoding="async"></div><figcaption><strong>Updates</strong> — every installed tool with a newer release, next to the version you have.</figcaption></figure>
+<figure><div class="shot"><img src="img/manage.webp" srcset="img/manage-640.webp 640w, img/manage.webp 1280w" sizes="(max-width:900px) 100vw, 540px" width="1280" height="800" alt="DeckyHub Manage screen" loading="lazy" decoding="async"></div><figcaption><strong>Manage</strong> — download the ZIP, or install and update through Decky Loader.</figcaption></figure>
+</div>
+</div></section>
+
+<section id="install"><div class="wrap">
+<h2>Install in a minute</h2>
+<p class="sub">You need <a href="https://decky.xyz/">Decky Loader</a> on your Steam Deck first.</p>
+<ol class="steps">
+<li><strong>Download</strong> the latest <code>DeckyHub-v*.zip</code> from the <a href="https://github.com/mazillka/deckyhub-plugin/releases/latest">Releases page</a>.</li>
+<li>In Gaming Mode, open <strong>Quick Access → Decky → Developer</strong>.</li>
+<li>Choose <strong>Install Plugin from ZIP</strong> and pick the downloaded file.</li>
+<li>Open <strong>Quick Access → Decky → DeckyHub</strong> and start browsing.</li>
+</ol>
+</div></section>
+
+<section id="catalog"><div class="wrap">
+<h2>Ready out of the box</h2>
+<p class="sub">These plugins show up in Discover the moment you install DeckyHub. Add anything else from <strong>Repositories</strong>.</p>
+<div class="catalog" id="catalog-list"><p class="sub">Loading catalog…</p></div>
+</div></section>
+
+<section id="editor"><div class="wrap">
+<div class="editor-head">
+<div><h2>Registry editor</h2>
+<p class="sub" style="margin:0">Prefer a bigger screen? Build or edit a repository list in your browser, export the JSON, then import it from DeckyHub's <strong>Repositories</strong> screen. Nothing is uploaded.</p></div>
+<a class="btn" href="editor.html">Open registry editor</a>
+</div>
+</div></section>
+
+<section id="faq"><div class="wrap">
+<h2>Good to know</h2>
+<details><summary>Does DeckyHub install things automatically?</summary><p>Never. Download ZIP just saves a file to <code>/home/deck/Downloads/deckyhub</code>. One-tap Install, Update and Uninstall go through Decky Loader's own installer, which asks you to confirm first.</p></details>
+<details><summary>I hit a GitHub rate limit. What now?</summary><p>Without a login GitHub allows 60 requests per hour. Add a personal access token (no scopes needed) in Settings → GitHub Access to raise that to 5,000. The token stays on your Deck and is only sent to api.github.com.</p></details>
+<details><summary>Why doesn't a new release show up right away?</summary><p>Release info is cached for 30 minutes. Any "Check for Updates" or "Refresh" button skips the cache and asks GitHub directly.</p></details>
+<details><summary>How is DeckyHub made?</summary><p>Most of the code was written with the help of AI tools (Claude and Codex). Every release is still tested on real Steam Deck hardware before it ships.</p></details>
+</div></section>
+
+<footer><div class="wrap">
+<div>DeckyHub is open source under GPL-3.0-or-later · <a href="https://github.com/mazillka/deckyhub-plugin">Source</a> · <a href="https://github.com/mazillka/deckyhub-plugin/issues">Report an issue</a></div>
+<div>DeckyHub is a discovery and download tool. All listed plugins belong to their respective authors; DeckyHub does not own or endorse them. Not affiliated with Valve or Decky Loader.</div>
+</div></footer>
+
 <script>
-const $=id=>document.getElementById(id),editor=$("editor"),strategies=new Set(["semver"]),sources=new Set(["releases"]);let registry={schemaVersion:1,apps:[]},selectedId=null,previousId=null,adding=false;
-function status(message,error){const n=$("status");n.textContent=message;n.className="status"+(error?" error":"")}
-function terms(value){return value.split(",").map(v=>v.trim()).filter(Boolean)}
-function validate(value){const e=[];if(!value||typeof value!=="object"||Array.isArray(value))e.push("Registry must be an object.");if(value&&value.schemaVersion!==1)e.push("schemaVersion must be 1.");if(!value||!Array.isArray(value.apps))e.push("apps must be an array.");if(e.length)return e;const ids=new Set(),repos=new Set();value.apps.forEach((a,i)=>{const p="App "+(i+1);if(!a||typeof a!=="object"||Array.isArray(a)){e.push(p+" must be an object.");return}["id","name","repo","category","versionStrategy","source","asset"].forEach(k=>{if(!(k in a))e.push(p+": missing "+k+".")});if(typeof a.id!=="string"||!/^[a-z0-9][a-z0-9-]*$/.test(a.id))e.push(p+": id must use lowercase letters, numbers, and hyphens.");if(typeof a.name!=="string"||!a.name.trim())e.push(p+": name is required.");if(typeof a.repo!=="string"||!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(a.repo))e.push(p+": repo must be owner/repository.");if(typeof a.category!=="string"||!a.category.trim())e.push(p+": category is required.");if(!strategies.has(a.versionStrategy))e.push(p+": invalid versionStrategy.");if(!sources.has(a.source))e.push(p+": invalid source.");if(!a.asset||typeof a.asset!=="object"||Array.isArray(a.asset))e.push(p+": asset must be an object.");else ["include","exclude"].forEach(k=>{if(!Array.isArray(a.asset[k])||a.asset[k].some(x=>typeof x!=="string"||!x.trim()))e.push(p+": asset."+k+" must be an array of non-empty strings.")});if(ids.has(a.id))e.push(p+": duplicate id '"+a.id+"'.");ids.add(a.id);if(repos.has(a.repo))e.push(p+": duplicate repo '"+a.repo+"'.");repos.add(a.repo)});return e}
-function current(){return registry.apps.find(a=>a.id===selectedId)}function sync(){editor.value=JSON.stringify(registry,null,2)}
-function populate(a){selectedId=a?a.id:null;["id","name","repo","category"].forEach(k=>$(k).value=a&&a[k]?a[k]:"");$("include").value=a&&a.asset?a.asset.include.join(", "):"";$("exclude").value=a&&a.asset?a.asset.exclude.join(", "):"";$("remove-repo").disabled=!a}
-function render(){const list=$("repo-list");list.replaceChildren();registry.apps.forEach(a=>{const b=document.createElement("button");b.className="repo"+(a.id===selectedId?" selected":"");const strong=document.createElement("strong"),small=document.createElement("small");strong.textContent=a.name;small.textContent=a.repo+" · "+a.category;b.append(strong,small);b.onclick=()=>{populate(a);render()};list.append(b)})}
-function setRegistry(next,message){const errors=validate(next);if(errors.length){status(errors.join("\\n"),true);return false}registry=next;selectedId=registry.apps.some(a=>a.id===selectedId)?selectedId:(registry.apps[0]?registry.apps[0].id:null);sync();populate(current());render();status(message||"Registry is valid.");return true}
-function formValue(){const old=current()||{};return Object.assign({},old,{id:$("id").value.trim(),name:$("name").value.trim(),repo:$("repo").value.trim(),category:$("category").value.trim(),versionStrategy:"semver",source:"releases",asset:{include:terms($("include").value),exclude:terms($("exclude").value),}})}
-function save(){const app=formValue(),apps=registry.apps.slice(),i=apps.findIndex(a=>a.id===selectedId);if(i<0)apps.push(app);else apps[i]=app;if(setRegistry(Object.assign({},registry,{apps}),"Saved "+(app.name||"repository")+".")){adding=false;$("cancel-new").disabled=true;selectedId=app.id;populate(current());render()}}
-function tab(name){$("form-panel").classList.toggle("hidden",name!=="form");$("raw-panel").classList.toggle("hidden",name!=="raw");document.querySelectorAll("[data-tab]").forEach(b=>{b.classList.toggle("active",b.dataset.tab===name);b.classList.toggle("secondary",b.dataset.tab!==name)})}
-async function load(){try{const r=await fetch("./registry/apps.json",{cache:"no-store"});if(!r.ok)throw Error("HTTP "+r.status);setRegistry(await r.json(),"Loaded default repositories.")}catch(err){status("Could not load the default registry: "+err.message,true)}}
-$("new-repo").onclick=()=>{previousId=selectedId;adding=true;$("cancel-new").disabled=false;selectedId=null;populate();render();$("name").focus()};$("cancel-new").onclick=()=>{if(!adding)return;adding=false;$("cancel-new").disabled=true;selectedId=previousId;populate(current());render();status("New repository discarded.")};$("save-repo").onclick=save;$("remove-repo").onclick=()=>{const a=current();if(!a)return;registry=Object.assign({},registry,{apps:registry.apps.filter(x=>x.id!==a.id)});selectedId=registry.apps[0]?registry.apps[0].id:null;sync();populate(current());render();status("Removed "+a.name+".")};$("apply-raw").onclick=()=>{try{setRegistry(JSON.parse(editor.value),"Raw JSON is valid and has been applied.")}catch(err){status("Invalid JSON: "+err.message,true)}};$("reload").onclick=load;$("export").onclick=()=>{const errors=validate(registry);if(errors.length)return status(errors.join("\\n"),true);const blob=new Blob([JSON.stringify(registry,null,2)+"\n"],{type:"application/json"}),link=document.createElement("a"),url=URL.createObjectURL(blob);link.href=url;link.download="deckyhub-apps.json";document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),0);status("Registry exported.")};$("import").onchange=async event=>{const file=event.target.files[0];if(!file)return;try{setRegistry(JSON.parse(await file.text()),"Imported "+file.name+".")}catch(err){status("Import failed: "+err.message,true)}event.target.value=""};document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>tab(b.dataset.tab));load();
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+fetch("registry/apps.json").then(r=>r.json()).then(d=>{document.getElementById("catalog-list").innerHTML=d.apps.map(a=>'<a class="app" href="https://github.com/'+esc(a.repo)+'"><small>'+esc(a.category)+'</small><strong>'+esc(a.name)+'</strong><p>'+esc(a.description||"")+'</p><code>'+esc(a.repo)+'</code></a>').join("")}).catch(()=>{document.getElementById("catalog-list").innerHTML='<p class="sub">See the <a href="https://github.com/mazillka/deckyhub-plugin#bundled-repositories">bundled list on GitHub</a>.</p>'});
+
 </script>
-</body></html>
+</body>
+</html>
