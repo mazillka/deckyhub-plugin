@@ -36,6 +36,7 @@ export const es: Record<MessageKey, string> = {
   "appcard.channelPrerelease": "Preliminar",
   "appcard.manage": "Gestionar",
   "appcard.install": "Instalar",
+  "appcard.unverified": "{label} (sin verificar)",
   "appcard.update": "Actualizar",
   "appcard.uninstall": "Desinstalar",
   "appcard.uninstallTitle": "¿Desinstalar {name}?",

@@ -338,12 +338,18 @@ function callDeckyLoader(route: string, ...args: unknown[]) {
 // installed yet — either way only when its ZIP carries a checksum the loader
 // can verify. A fresh install has no installed manifest to name it, so it
 // uses the detection rule's first name (the plugin's manifest name).
-export function installAction(app: App, release: { tag: string; assets: Asset[] }): { type: 0 | 1 | 2 | 3; name: string } | null {
-  if (!release.assets[0]?.sha256) return null;
-  if (app.pluginName) return { type: resolveDeckyHubInstallType(release.tag, app.installedVersion ?? "unknown"), name: app.pluginName };
-  if (!app.installedVersion && app.detect?.type === "decky-plugin") return { type: PLUGIN_INSTALL_TYPE.INSTALL, name: app.detect.names?.[0] ?? app.name };
+// Releases without a GitHub checksum (assets uploaded before mid-2025) can
+// still be installed; Decky Loader skips verification for an empty hash, so
+// the button says "unverified".
+export function installAction(app: App, release: { tag: string; assets: Asset[] }): { type: 0 | 1 | 2 | 3; name: string; verified: boolean } | null {
+  if (!release.assets[0]) return null;
+  const verified = Boolean(release.assets[0].sha256);
+  if (app.pluginName) return { type: resolveDeckyHubInstallType(release.tag, app.installedVersion ?? "unknown"), name: app.pluginName, verified };
+  if (!app.installedVersion && app.detect?.type === "decky-plugin") return { type: PLUGIN_INSTALL_TYPE.INSTALL, name: app.detect.names?.[0] ?? app.name, verified };
   return null;
 }
+
+export const unverifiedLabel = (t: TFunc, label: string, verified: boolean) => (verified ? label : t("appcard.unverified", { label }));
 
 export function selfUpdateStageKey(key: string | undefined): MessageKey {
   switch ((key ?? "").split(".").pop()) {

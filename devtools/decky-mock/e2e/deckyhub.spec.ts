@@ -673,6 +673,22 @@ test("Discover's card installs the latest release of a Decky plugin that isn't i
   ]);
 });
 
+test("A release without a GitHub checksum installs as unverified, with an empty hash", async ({ page }) => {
+  const url = "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v1.2.3/mako-decky.zip";
+  const { digest: _, ...asset } = makoRelease("plugin-v1.2.3", "").assets[0];
+  await mockMakoReleases(page, [{ ...makoRelease("plugin-v1.2.3", ""), assets: [asset] }]);
+  await recordInstalls(page);
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  const makoCard = mock(page).getByRole("heading", { name: "MAKO Decky" }).locator("..");
+  await makoCard.getByRole("button", { name: "Install (unverified)", exact: true }).click();
+
+  // Decky Loader skips its SHA-256 check when the hash is empty.
+  const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
+  await expect.poll(() => frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([
+    ["utilities/install_plugin", url, "MAKO - Frame Generation", "1.2.3", "", 0],
+  ]);
+});
+
 test("The Manage window reinstalls or downgrades an installed Decky plugin to the selected version", async ({ page }) => {
   const pluginDir = new URL("../.dev-data/plugins/e2e-mako/", import.meta.url);
   mkdirSync(pluginDir, { recursive: true });

@@ -36,6 +36,7 @@ export const ja: Record<MessageKey, string> = {
   "appcard.channelPrerelease": "プレリリース",
   "appcard.manage": "管理",
   "appcard.install": "インストール",
+  "appcard.unverified": "{label}（未検証）",
   "appcard.update": "アップデート",
   "appcard.uninstall": "アンインストール",
   "appcard.uninstallTitle": "{name}をアンインストールしますか？",

@@ -35,6 +35,7 @@ export const en = {
   "appcard.channelPrerelease": "Pre-release",
   "appcard.manage": "Manage",
   "appcard.install": "Install",
+  "appcard.unverified": "{label} (unverified)",
   "appcard.update": "Update",
   "appcard.uninstall": "Uninstall",
   "appcard.uninstallTitle": "Uninstall {name}?",
