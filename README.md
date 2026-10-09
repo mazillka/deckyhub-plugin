@@ -82,7 +82,7 @@ To track a repository that isn't in the curated list, go to **Repositories**, se
 
 ### Updates
 
-Shows every tracked tool that's installed and has a newer release available, along with its installed and latest version. Download updates one at a time.
+Shows every tracked tool that's installed and has a newer release available, along with its installed and latest version. Download updates one at a time. The **Updates** button in the Quick Access Menu shows how many updates are waiting.
 
 ### Manage
 

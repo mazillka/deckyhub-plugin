@@ -18,6 +18,8 @@ import { DeckyHubUpdate } from "../components/DeckyHubUpdate";
 const RELEASE_CONCURRENCY = 8;
 const CARDS_PER_PAGE = 20;
 
+const countBadgeStyle = { minWidth: "1.5em", padding: "0 6px", borderRadius: 999, background: "#f0c33c", color: "#1a1a1a", fontSize: "0.8em", fontWeight: 700, lineHeight: "1.5em", textAlign: "center" as const };
+
 export function Content({ fullPage }: { fullPage?: View }) {
   const t = useT();
   const [apps, setApps] = useState<App[]>([]);
@@ -259,12 +261,15 @@ export function Content({ fullPage }: { fullPage?: View }) {
     );
   };
 
+  // The Quick Access view loads installed apps the same way the Updates page does.
+  const updateCount = apps.filter((app) => app.updateAvailable).length;
   const navigation = (
     <>
       <PanelSection title={t("nav.browse")}>
         <PanelSectionRow>
           <Button style={compactButtonStyle} onClick={() => Navigation.Navigate("/deckyhub/updates")}>
             <FaArrowCircleUp /> {t("nav.updates")}
+            {updateCount > 0 && <span style={countBadgeStyle}>{updateCount}</span>}
           </Button>
         </PanelSectionRow>
         <PanelSectionRow>
