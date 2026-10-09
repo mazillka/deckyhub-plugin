@@ -10,7 +10,7 @@ const deckyHubTag = `v${deckyHubVersion}`;
 // a stable version (rc siblings of it would all be older) gets a far-future
 // and a far-past rc pair instead.
 const rcMatch = deckyHubVersion.match(/^(.*-rc\.)(\d+)$/);
-const olderRcTag = rcMatch ? `v${rcMatch[1]}${Math.max(Number(rcMatch[2]) - 1, 1)}` : "v0.0.1-rc.1";
+const olderRcTag = rcMatch ? `v${rcMatch[1]}${Number(rcMatch[2]) - 1}` : "v0.0.1-rc.1";
 const newerRcTag = rcMatch ? `v${rcMatch[1]}${Number(rcMatch[2]) + 1}` : "v999.0.0-rc.2";
 
 const release = {
