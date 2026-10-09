@@ -3,17 +3,19 @@ import { getSettings } from "../api";
 import { applyDensity, setGithubToken, setTranslator, substitute } from "../utils";
 import { en, type MessageKey, type TFunc } from "./en";
 import { uk } from "./uk";
+import { ru } from "./ru";
 import { es } from "./es";
 import { de } from "./de";
 import { fr } from "./fr";
 import { ja } from "./ja";
 import { zh } from "./zh";
 
-export type Locale = "en" | "uk" | "es" | "de" | "fr" | "ja" | "zh";
+export type Locale = "en" | "uk" | "ru" | "es" | "de" | "fr" | "ja" | "zh";
 
 export const LOCALES: { code: Locale; label: string }[] = [
   { code: "en", label: "English" },
   { code: "uk", label: "Українська" },
+  { code: "ru", label: "Русский" },
   { code: "es", label: "Español" },
   { code: "de", label: "Deutsch" },
   { code: "fr", label: "Français" },
@@ -21,7 +23,7 @@ export const LOCALES: { code: Locale; label: string }[] = [
   { code: "zh", label: "中文" },
 ];
 
-const MESSAGES: Record<Locale, Record<MessageKey, string>> = { en, uk, es, de, fr, ja, zh };
+const MESSAGES: Record<Locale, Record<MessageKey, string>> = { en, uk, ru, es, de, fr, ja, zh };
 
 export const LOCALE_CHANGED = "deckyhub-locale-changed";
 
@@ -38,8 +40,7 @@ function detectLocale(): Locale {
 }
 
 function translate(locale: Locale, key: MessageKey, vars?: Record<string, string | number>) {
-  const template = MESSAGES[locale][key] ?? MESSAGES.en[key] ?? key;
-  return substitute(template, vars);
+  return substitute(MESSAGES[locale][key], vars);
 }
 
 const I18nContext = createContext<{ locale: Locale; t: TFunc } | null>(null);

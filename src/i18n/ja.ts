@@ -140,6 +140,8 @@ export const ja: Record<MessageKey, string> = {
   "release.noChecksum": "SHA-256 チェックサム付きの DeckyHub リリース ZIP が見つかりません。",
   "error.loaderUnavailable": "現在 Decky Loader を利用できません。",
   "toast.updatesAvailable": "利用可能なアップデート: {count}",
+  "toast.installStalledTitle": "Decky は {name} のインストールを完了できませんでした",
+  "toast.installStalledBody": "Decky を再読み込みしてもう一度お試しください。",
   "dl.failedTitle": "DeckyHub のダウンロードに失敗しました",
   "dl.failedNoReason": "理由不明のままダウンロードに失敗しました。",
   "dl.progress": "{percent}% · {received} / {total}",

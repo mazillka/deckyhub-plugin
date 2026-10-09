@@ -4,7 +4,6 @@ import json
 import os
 import shutil
 import subprocess
-import sys
 import time
 import re
 import zipfile
@@ -14,18 +13,12 @@ from urllib.request import Request, urlopen
 
 import decky
 
-# Decky loads main.py with importlib; its plugin directory is not guaranteed to be on sys.path.
 PLUGIN_DIR = str(Path(__file__).resolve().parent)
-if PLUGIN_DIR not in sys.path:
-    sys.path.insert(0, PLUGIN_DIR)
-
-from backend.registry import load_registry
-
 DEFAULT_DOWNLOAD_DIR = "/home/deck/Downloads"
 PLUGIN_DOWNLOAD_DIR = f"{DEFAULT_DOWNLOAD_DIR}/deckyhub"
 REPOSITORY_NAME = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 HIDEABLE_BUTTONS = ("downloadZip", "install", "update", "releasePage")
-SUPPORTED_LANGUAGES = {"auto", "en", "uk", "es", "de", "fr", "ja", "zh"}
+SUPPORTED_LANGUAGES = {"auto", "en", "uk", "ru", "es", "de", "fr", "ja", "zh"}
 DEFAULT_COLUMNS_PER_ROW = 3
 
 
@@ -58,11 +51,19 @@ def _coerce_settings(settings: dict) -> dict:
     }
 
 
+def parse_registry(payload: object) -> list[dict]:
+    """Validate the portable registry format and ignore malformed records."""
+    if not isinstance(payload, dict) or payload.get("schemaVersion") != 1 or not isinstance(payload.get("apps"), list):
+        raise ValueError("Unsupported registry format")
+    required = {"id", "name", "repo", "category", "versionStrategy", "source", "asset"}
+    return [app for app in payload["apps"] if required <= app.keys() and "/" in app["repo"]]
+
+
 class Plugin:
     async def _main(self):
         self.settings_path = Path(decky.DECKY_PLUGIN_SETTINGS_DIR) / "settings.json"
         self.settings = self._load_settings()
-        self.apps = load_registry(decky.DECKY_PLUGIN_DIR)
+        self.apps = parse_registry(json.loads((Path(decky.DECKY_PLUGIN_DIR) / "registry" / "apps.json").read_text(encoding="utf-8")))
         self.downloads: dict[str, dict] = {}
         self.cancelled: set[str] = set()
         self.download_queue: asyncio.Queue = asyncio.Queue()
@@ -187,13 +188,10 @@ class Plugin:
         return self.settings
 
     async def get_deckyhub_info(self):
-        for directory in (Path(getattr(decky, "DECKY_PLUGIN_DIR", PLUGIN_DIR)), Path(PLUGIN_DIR)):
-            try:
-                package = json.loads((directory / "package.json").read_text(encoding="utf-8"))
-                return {"version": str(package["version"])}
-            except (KeyError, OSError, json.JSONDecodeError):
-                pass
-        return {"version": "unknown"}
+        try:
+            return {"version": str(json.loads((Path(PLUGIN_DIR) / "package.json").read_text(encoding="utf-8"))["version"])}
+        except (KeyError, OSError, json.JSONDecodeError):
+            return {"version": "unknown"}
 
     async def save_settings(self, settings: dict):
         self.settings = {
@@ -262,12 +260,13 @@ class Plugin:
         decky.logger.info("Removed repository %s", stored)
         return {"removed": True, "repo": repo}
 
+    def _export_target(self, name: str) -> Path:
+        target = Path(DEFAULT_DOWNLOAD_DIR) / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        return self._next_name(target) if target.exists() else target
+
     async def export_custom_repos(self):
-        target_dir = Path(DEFAULT_DOWNLOAD_DIR)
-        target_dir.mkdir(parents=True, exist_ok=True)
-        target = target_dir / "DeckyHub-repositories.json"
-        if target.exists():
-            target = self._next_name(target)
+        target = self._export_target("DeckyHub-repositories.json")
         target.write_text(json.dumps({"schemaVersion": 1, "repos": self.settings["customRepos"]}, indent=2), encoding="utf-8")
         decky.logger.info("Exported %d repositories to %s", len(self.settings["customRepos"]), target)
         return {"path": str(target)}
@@ -278,11 +277,7 @@ class Plugin:
         decky.logger.warning("[frontend] %s", str(message)[:2000])
 
     async def export_logs(self):
-        target_dir = Path(DEFAULT_DOWNLOAD_DIR)
-        target_dir.mkdir(parents=True, exist_ok=True)
-        target = target_dir / "DeckyHub-logs.zip"
-        if target.exists():
-            target = self._next_name(target)
+        target = self._export_target(f"DeckyHub-logs-{time.strftime('%Y%m%d-%H%M%S')}.zip")
         with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as archive:
             for log in sorted(Path(decky.DECKY_PLUGIN_LOG_DIR).glob("*.log")):
                 archive.write(log, log.name)
@@ -420,11 +415,8 @@ class Plugin:
         job["received"] = temp.stat().st_size
 
     def _sha256(self, path: Path) -> str:
-        digest = hashlib.sha256()
         with open(path, "rb") as file:
-            for chunk in iter(lambda: file.read(1024 * 1024), b""):
-                digest.update(chunk)
-        return digest.hexdigest()
+            return hashlib.file_digest(file, "sha256").hexdigest()
 
     async def get_download(self, job_id: str):
         return self.downloads.get(job_id, {"state": "missing"})

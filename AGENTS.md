@@ -40,7 +40,7 @@ The Playwright suite in `devtools/decky-mock/` covers the browser UI; `pnpm run 
 
 ## Release
 
-Release steps (version bump, `v*` tag) are in [CONTRIBUTING.md](CONTRIBUTING.md#releases). The tag triggers `.github/workflows/release.yml`, which installs, typechecks, builds, runs backend tests and the browser E2E suite, zips `plugin.json` + `main.py` + `backend/` + `dist/` + `registry/` + `package.json` + `LICENSE.md`, and attaches `DeckyHub-vX.Y.Z.zip` to a GitHub release.
+Release steps (version bump, `v*` tag) are in [CONTRIBUTING.md](CONTRIBUTING.md#releases). The tag triggers `.github/workflows/release.yml`, which installs, typechecks, builds, runs backend tests and the browser E2E suite, zips `plugin.json` + `main.py` + `dist/` + `registry/` + `package.json` + `LICENSE.md`, and attaches `DeckyHub-vX.Y.Z.zip` to a GitHub release.
 
 **Every release (pre-releases too) gets human-friendly release notes.** The workflow's `--generate-notes` only lists raw commit/PR titles, so once the release exists, replace its body with `gh release edit vX.Y.Z --notes-file <file>`:
 
@@ -51,10 +51,10 @@ Release steps (version bump, `v*` tag) are in [CONTRIBUTING.md](CONTRIBUTING.md#
 
 ## Architecture
 
-**Backend (`main.py`, `backend/registry.py`) is one `Plugin` class** exposing async methods Decky calls directly from the frontend via `callable()` (see `src/api.ts` for the full RPC surface — `get_apps`, `download_asset`, `save_settings`, etc.). There's no HTTP API of its own.
+**Backend (`main.py`) is one `Plugin` class** exposing async methods Decky calls directly from the frontend via `callable()` (see `src/api.ts` for the full RPC surface — `get_apps`, `download_asset`, `save_settings`, etc.). There's no HTTP API of its own.
 
 - **App identity vs. live state**: an "app" entry (registry or custom) is static metadata — `repo`, `category`, `versionStrategy`, `detect` rule, `asset` include/exclude filters. `get_apps` merges that with `installedVersion` (computed by scanning `$DECKY_HOME/plugins/*/plugin.json`, or running a CLI command's `--version`) but leaves `latestVersion`/`assets`/`updateAvailable` null — the frontend fetches those itself.
-- **Registry** is the bundled `registry/apps.json`, loaded once at startup via `backend/registry.py`. Custom (user-added) repos are synthesized on the fly in `_custom_apps()` and merged in per-call — they're never written into the registry file.
+- **Registry** is the bundled `registry/apps.json`, loaded once at startup by `parse_registry()` in `main.py`. Custom (user-added) repos are synthesized on the fly in `_custom_apps()` and merged in per-call — they're never written into the registry file.
 - **Downloads are queued, not fire-and-forget**: `download_asset` pushes onto `self.download_queue`, drained one at a time by `_run_download_queue()` → `_download()`. Progress/state lives in `self.downloads[job_id]`, polled by the frontend via `get_download`. Cancellation is cooperative: `cancel_download` just adds the job_id to `self.cancelled`, and the running download loop checks that set. `_download` tries `urllib` first, falls back to system `curl` on `URLError` (some CDNs 403 Python's default UA/TLS stack). SHA-256 verification is opt-out for normal downloads, mandatory for DeckyHub self-updates.
 - **Version comparison** happens entirely client-side in `src/utils.ts` (`compareVersions`, used by both `isUpdate` and `resolveDeckyHubInstallType`) — the backend never decides "update available"; it just supplies `installedVersion`, and the frontend fetches `latestVersion`/`publishedAt` directly from the GitHub API and compares the dotted version number plus any pre-release suffix (`1.0.3-rc.1` < `1.0.3-rc.2` < `1.0.3`) (`semver` is the only `versionStrategy`, `releases` the only `source`).
 

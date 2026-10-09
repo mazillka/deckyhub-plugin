@@ -5,7 +5,7 @@ This covers building, testing, and releasing DeckyHub. For what the plugin does 
 ## Repository layout
 
 - `main.py` and `plugin.json` stay at the repository root because Decky Loader reads them from the plugin package.
-- `backend/` contains the backend support modules; `src/` contains the Decky React UI.
+- `main.py` is the backend; `src/` contains the Decky React UI.
 - `registry/apps.json` contains the bundled default repositories; `tests/` covers the Python backend.
 - `docs/` is the static GitHub Pages site: the promo page (`index.html`), the registry editor (`editor.html`) and a `404.html`. It remains separate from the runtime UI. `devtools/build-site.py` assembles it at deploy time: it writes the bundled catalog from `registry/apps.json` into `index.html` and generates WebP screenshots and the link-preview JPEG from `screenshots/` (needs Pillow; CI-only). Preview locally with `python devtools/build-site.py _site` and serve `_site/`. Keep `docs/sitemap.xml` in sync when adding a page.
 
@@ -24,12 +24,12 @@ pnpm run test:backend
 
 On Windows, `pnpm run test:backend` uses the `python` launcher. On Steam Deck and Linux it uses the same Python command, so no separate test command is needed.
 
-The build produces `dist/index.js`. Decky Loader requires `plugin.json`, `main.py`, `backend/`, `registry/`, and `dist/` together in the plugin folder.
+The build produces `dist/index.js`. Decky Loader requires `plugin.json`, `main.py`, `registry/`, and `dist/` together in the plugin folder.
 
 ## Local Steam Deck test
 
 1. Install Decky Loader, switch to Desktop Mode, and build the plugin as above.
-2. Copy the built plugin files (`backend/`, `dist/`, `registry/`, `main.py`, `package.json`, and `plugin.json`) to `~/homebrew/plugins/DeckyHub`, or extract a release ZIP there.
+2. Copy the built plugin files (`dist/`, `registry/`, `main.py`, `package.json`, and `plugin.json`) to `~/homebrew/plugins/DeckyHub`, or extract a release ZIP there.
 3. Restart/reload Decky Loader, then open the Quick Access Menu → Decky → DeckyHub.
 4. Run **Check Update**, confirm a newer DeckyHub release shows a notification (and a matching release does not offer a download), then select an asset and confirm the resulting file is in `/home/deck/Downloads/deckyhub`. Test cancel with a larger asset and ensure no `.part` file remains.
 

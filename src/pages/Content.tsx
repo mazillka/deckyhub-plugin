@@ -18,6 +18,8 @@ import { DeckyHubUpdate } from "../components/DeckyHubUpdate";
 const RELEASE_CONCURRENCY = 8;
 const CARDS_PER_PAGE = 20;
 
+const NAV_LINKS = [["updates", FaArrowCircleUp], ["discover", FaSearch], ["repositories", FaListUl], ["settings", FaCog]] as const;
+
 const countBadgeStyle = { minWidth: "1.5em", padding: "0 6px", borderRadius: 999, background: "#f0c33c", color: "#1a1a1a", fontSize: "0.8em", fontWeight: 700, lineHeight: "1.5em", textAlign: "center" as const };
 
 export function Content({ fullPage }: { fullPage?: View }) {
@@ -35,10 +37,9 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const [hiddenButtons, setHiddenButtons] = useState<HideableButton[]>([]);
   const quickAccessRef = useRef<HTMLDivElement>(null);
 
-  const viewInfo: Record<View, { title: string; description: string; empty: string }> = {
-    updates: { title: t("nav.updates"), description: t("view.updatesDescription"), empty: t("view.updatesEmpty") },
-    discover: { title: t("nav.discover"), description: t("view.discoverDescription"), empty: t("view.discoverEmpty") },
-  };
+  const info = view === "updates"
+    ? { title: t("nav.updates"), description: t("view.updatesDescription"), empty: t("view.updatesEmpty") }
+    : { title: t("nav.discover"), description: t("view.discoverDescription"), empty: t("view.discoverEmpty") };
 
   // Bumped per load() so a slower, older load can't overwrite a newer one.
   const loadRun = useRef(0);
@@ -165,18 +166,16 @@ export function Content({ fullPage }: { fullPage?: View }) {
     </PanelSection>
   );
 
-  const list = (filter: (app: App) => boolean, info: (typeof viewInfo)[View]) => {
-    const visibleApps = apps.filter(
-      (app) =>
-        filter(app) &&
-        (view !== "discover" ||
-          ((!query || `${app.name} ${app.repo}`.toLowerCase().includes(query.toLowerCase())) &&
-            (installedFilter === "All" || (installedFilter === "Installed") === Boolean(app.installedVersion))))
-    );
-    const pageCount = Math.max(1, Math.ceil(visibleApps.length / CARDS_PER_PAGE));
-    const currentPage = Math.min(cardPage, pageCount - 1);
-    const displayedApps = visibleApps.slice(currentPage * CARDS_PER_PAGE, (currentPage + 1) * CARDS_PER_PAGE);
-    return (
+  const visibleApps = apps.filter((app) =>
+    view === "updates"
+      ? app.updateAvailable === true
+      : (!query || `${app.name} ${app.repo}`.toLowerCase().includes(query.toLowerCase())) &&
+        (installedFilter === "All" || (installedFilter === "Installed") === Boolean(app.installedVersion)),
+  );
+  const pageCount = Math.max(1, Math.ceil(visibleApps.length / CARDS_PER_PAGE));
+  const currentPage = Math.min(cardPage, pageCount - 1);
+  const displayedApps = visibleApps.slice(currentPage * CARDS_PER_PAGE, (currentPage + 1) * CARDS_PER_PAGE);
+  const page = (
       <>
       {discoverFilters}
       {discoverFilters && <div aria-hidden style={sectionDividerStyle} />}
@@ -258,35 +257,21 @@ export function Content({ fullPage }: { fullPage?: View }) {
         </>
       )}
       </>
-    );
-  };
+  );
 
   // The Quick Access view loads installed apps the same way the Updates page does.
   const updateCount = apps.filter((app) => app.updateAvailable).length;
   const navigation = (
     <>
       <PanelSection title={t("nav.browse")}>
-        <PanelSectionRow>
-          <Button style={compactButtonStyle} onClick={() => Navigation.Navigate("/deckyhub/updates")}>
-            <FaArrowCircleUp /> {t("nav.updates")}
-            {updateCount > 0 && <span style={countBadgeStyle}>{updateCount}</span>}
-          </Button>
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <Button style={compactButtonStyle} onClick={() => Navigation.Navigate("/deckyhub/discover")}>
-            <FaSearch /> {t("nav.discover")}
-          </Button>
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <Button style={compactButtonStyle} onClick={() => Navigation.Navigate("/deckyhub/repositories")}>
-            <FaListUl /> {t("nav.repositories")}
-          </Button>
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <Button style={compactButtonStyle} onClick={() => Navigation.Navigate("/deckyhub/settings")}>
-            <FaCog /> {t("nav.settings")}
-          </Button>
-        </PanelSectionRow>
+        {NAV_LINKS.map(([page, Icon]) => (
+          <PanelSectionRow key={page}>
+            <Button style={compactButtonStyle} onClick={() => Navigation.Navigate(`/deckyhub/${page}`)}>
+              <Icon /> {t(`nav.${page}`)}
+              {page === "updates" && updateCount > 0 && <span style={countBadgeStyle}>{updateCount}</span>}
+            </Button>
+          </PanelSectionRow>
+        ))}
       </PanelSection>
       <div aria-hidden style={sectionDividerStyle} />
       <DeckyHubUpdate />
@@ -305,7 +290,6 @@ export function Content({ fullPage }: { fullPage?: View }) {
     </>
   );
 
-  const page = view === "updates" ? list((app) => app.updateAvailable === true, viewInfo.updates) : list(() => true, viewInfo.discover);
   return fullPage ? (
     <>
       <RateLimitBanner />

@@ -70,10 +70,6 @@ export function setTranslator(t: TFunc) {
   tr = t;
 }
 
-function fetchWithTimeout(input: string, init?: RequestInit) {
-  return fetchNoCors(input, { ...init, signal: AbortSignal.timeout(15_000) });
-}
-
 // GitHub's unauthenticated REST API allows only 60 requests/hour (10/min for
 // search) per device, versus 5,000/hour once a personal access token is set
 // in Settings — see setGithubToken(). Held in module scope (not React state)
@@ -111,7 +107,7 @@ let tokenLoaded: Promise<void> | null = null;
 export async function githubFetch(url: string, headers: Record<string, string> = {}) {
   tokenLoaded ??= getSettings().then((settings) => setGithubToken(settings.githubToken || ""), () => undefined);
   await tokenLoaded;
-  return fetchWithTimeout(url, { headers: { ...githubHeaders(), ...headers } });
+  return fetchNoCors(url, { headers: { ...githubHeaders(), ...headers }, signal: AbortSignal.timeout(15_000) });
 }
 
 // GitHub's REST API is what every fetch in this file hits — unauthenticated
@@ -190,26 +186,16 @@ export function displayVersion(value: string) {
   return match ? `v${match[1]}${match[2] ?? ""}` : value;
 }
 
-// Shared by DeckyHubUpdateModal and AppDetailsModal's version pickers: keep
-// the current selection if it's still present in the (channel-filtered)
-// list and this isn't a forced refresh, otherwise fall back to the newest
-// item. "Check for Updates"/"Refresh" (pinLatest) overrides a still-valid
-// manual selection on purpose, since that's the point of explicitly checking.
-export function selectDefaultTag<T extends { tag: string }>(filtered: T[], current: string, pinLatest: boolean): string {
-  if (!pinLatest && current && filtered.some((item) => item.tag === current)) return current;
-  return filtered[0]?.tag ?? "";
-}
-
-// Shared by the same two version pickers: label each release with "v" plus
+// Shared by both version pickers: label each release with "v" plus
 // an "(installed)"/"(latest)" suffix — items[0] is the newest since every
 // release-list fetch above sorts by publish date before returning.
-export function buildVersionOptions<T extends { tag: string; version: string }>(items: T[], installedVersion: string | null | undefined, t: TFunc): { data: string; label: string }[] {
+export function buildVersionOptions<T extends { tag: string }>(items: T[], installedVersion: string | null | undefined, t: TFunc): { data: string; label: string }[] {
   return items.map((item) => {
-    const version = normalizeVersion(item.version);
+    const version = normalizeVersion(item.tag);
     const isInstalled = Boolean(installedVersion) && version === normalizeVersion(installedVersion!);
     const isLatest = items[0]?.tag === item.tag;
     const suffix = isInstalled ? ` (${t("settings.installedLabel")})` : isLatest ? ` (${t("settings.latestLabel")})` : "";
-    return { data: item.tag, label: `${displayVersion(item.version)}${suffix}` };
+    return { data: item.tag, label: `${displayVersion(item.tag)}${suffix}` };
   });
 }
 
@@ -294,10 +280,29 @@ function traceDeckyInstall(pluginName: string) {
   if (!backend) return;
   const started = Date.now();
   const elapsed = () => `${((Date.now() - started) / 1000).toFixed(1)}s`;
-  const onStart = (name: string) => log(`Decky install start ${name} at ${elapsed()}`);
-  const onInfo = (progress: number, stage: string) => log(`Decky install ${pluginName} ${progress}% ${stage} at ${elapsed()}`);
+  // Decky can fail an install without ever sending finish (e.g. a remote_binary
+  // download error leaves it at 95%), so warn once its events go quiet.
+  // Remote binaries download with no progress events, so that stage gets longer.
+  let idleTimer = 0;
+  const armIdle = (stage?: string) => {
+    window.clearTimeout(idleTimer);
+    idleTimer = window.setTimeout(() => {
+      log(`Decky install ${pluginName}: no progress after ${elapsed()} — check journalctl -u plugin_loader`);
+      toaster.toast({ title: tr("toast.installStalledTitle", { name: pluginName }), body: tr("toast.installStalledBody") });
+      stop();
+    }, stage?.endsWith("download_remote") ? 120_000 : 45_000);
+  };
+  const onStart = (name: string) => {
+    log(`Decky install start ${name} at ${elapsed()}`);
+    if (name === pluginName) armIdle();
+  };
+  const onInfo = (progress: number, stage: string) => {
+    log(`Decky install ${pluginName} ${progress}% ${stage} at ${elapsed()}`);
+    armIdle(stage);
+  };
   const stop = () => {
     window.clearTimeout(timer);
+    window.clearTimeout(idleTimer);
     backend.removeEventListener("loader/plugin_download_start", onStart);
     backend.removeEventListener("loader/plugin_download_info", onInfo);
     backend.removeEventListener("loader/plugin_download_finish", onFinish);
@@ -451,7 +456,6 @@ export async function listDeckyHubReleases(force = false): Promise<{ items: Deck
   try {
     const items = (await fetchReleases("mazillka/deckyhub-plugin", force)).map(({ assets, ...release }) => ({
       ...release,
-      version: release.tag,
       asset: assets.find((asset) => /^DeckyHub-.*\.zip$/i.test(asset.name) && /^[0-9a-f]{64}$/i.test(asset.sha256 ?? "")),
     }));
     return { items };
@@ -465,7 +469,7 @@ export async function listDeckyHubReleases(force = false): Promise<{ items: Deck
 export async function latestDeckyHubRelease(channel: UpdateChannel, force = false): Promise<DeckyHubRelease> {
   const { items, error } = await listDeckyHubReleases(force);
   const release = items.find((item) => item.prerelease === (channel === "prerelease"));
-  return release?.asset ? { version: release.version, asset: release.asset } : { error: error ?? tr("release.noChecksum") };
+  return release?.asset ? { version: release.tag, asset: release.asset } : { error: error ?? tr("release.noChecksum") };
 }
 
 // A tracked app's recent releases (tag-filtered, assets matched to its
@@ -475,7 +479,7 @@ export async function listAppReleases(app: App, preference?: RepoPreference, for
     const tagInclude = app.releaseTagInclude?.toLowerCase();
     const items = (await fetchReleases(app.repo, force))
       .filter((release) => !tagInclude || release.tag.toLowerCase().includes(tagInclude))
-      .map((release) => ({ ...release, version: release.tag, assets: matchingAssets(app, release.assets, preference?.assetFilter) }));
+      .map((release) => ({ ...release, assets: matchingAssets(app, release.assets, preference?.assetFilter) }));
     return { items };
   } catch (error) {
     log(`Release lookup failed: ${error}`);

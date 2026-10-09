@@ -1,12 +1,12 @@
-import { DialogButtonPrimary as Button, Focusable, ModalRoot, Navigation, ProgressBar } from "@decky/ui";
+import { DialogButtonPrimary as Button, ModalRoot, ProgressBar } from "@decky/ui";
 import { useEffect, useRef, useState } from "react";
-import { FaDownload, FaExternalLinkAlt, FaFileArchive, FaSync, FaTimes } from "react-icons/fa";
+import { FaDownload, FaFileArchive, FaTimes } from "react-icons/fa";
 import { downloadAsset, getSettings, saveSettings } from "../api";
 import type { TFunc } from "../i18n/en";
 import type { Asset, DeckyHubInfo, DeckyHubReleaseOption, UpdateChannel, HideableButton } from "../types";
-import { PLUGIN_INSTALL_TYPE, buildVersionOptions, getDeckyBackend, installDeckyPlugin, installTypeLabel, listDeckyHubReleases, modalButtonStyle, normalizeVersion, resolveDeckyHubInstallType, sectionDividerStyle, selectDefaultTag, selfUpdateStageKey, windowGap } from "../utils";
+import { PLUGIN_INSTALL_TYPE, buildVersionOptions, getDeckyBackend, installDeckyPlugin, installTypeLabel, listDeckyHubReleases, modalButtonStyle, normalizeVersion, resolveDeckyHubInstallType, sectionDividerStyle, selfUpdateStageKey, windowGap } from "../utils";
 import { showDownloadModal } from "./DownloadProgress";
-import { VersionPickerPanel } from "./VersionPickerPanel";
+import { ReleaseActions, useReleasePicker, VersionPickerPanel } from "./VersionPickerPanel";
 
 const PLUGIN_NAME = "DeckyHub";
 
@@ -32,10 +32,7 @@ export function DeckyHubUpdateModal({
   closeModal?: () => void;
 }) {
   const [channel, setChannel] = useState(initialChannel);
-  const [versions, setVersions] = useState<DeckyHubReleaseOption[]>([]);
-  const [selectedTag, setSelectedTag] = useState("");
-  const [loadingVersions, setLoadingVersions] = useState(true);
-  const [fetchError, setFetchError] = useState<string | null>(null);
+  const { items: versions, selectedTag, setSelectedTag, loading: loadingVersions, error: fetchError, setError: setFetchError, load, selected: selectedRelease } = useReleasePicker(listDeckyHubReleases, channel);
   const [checking, setChecking] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [selfUpdating, setSelfUpdating] = useState(false);
@@ -43,21 +40,6 @@ export function DeckyHubUpdateModal({
   const [selfUpdateStatus, setSelfUpdateStatus] = useState("");
   const [selfUpdateError, setSelfUpdateError] = useState<string | null>(null);
   const selfUpdatingRef = useRef(false);
-
-  const loadVersions = async (forChannel: UpdateChannel, { pinLatest = false } = {}) => {
-    setLoadingVersions(true);
-    const { items, error } = await listDeckyHubReleases(pinLatest);
-    const filtered = items.filter((item) => item.prerelease === (forChannel === "prerelease"));
-    setVersions(filtered);
-    setFetchError(error ?? null);
-    setSelectedTag((current) => selectDefaultTag(filtered, current, pinLatest));
-    setLoadingVersions(false);
-  };
-
-  useEffect(() => {
-    void loadVersions(channel);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [channel]);
 
   // Mirrors Decky Loader's own install progress for a self-update — the
   // loader pops its own native confirm/progress dialog on top of this one,
@@ -93,14 +75,13 @@ export function DeckyHubUpdateModal({
     };
   }, [t]);
 
-  const selectedRelease = versions.find((item) => item.tag === selectedTag) ?? null;
   const busy = checking || downloading || selfUpdating || loadingVersions;
 
   const refresh = async () => {
     setChecking(true);
     onCheckUpdate();
     try {
-      await loadVersions(channel, { pinLatest: true });
+      await load(true);
     } finally {
       setChecking(false);
     }
@@ -122,9 +103,9 @@ export function DeckyHubUpdateModal({
       return;
     }
     setSelfUpdateError(null);
-    const installType = resolveDeckyHubInstallType(release.version, info.version);
+    const installType = resolveDeckyHubInstallType(release.tag, info.version);
     try {
-      await installDeckyPlugin(asset, PLUGIN_NAME, release.version, installType);
+      await installDeckyPlugin(asset, PLUGIN_NAME, release.tag, installType);
     } catch (error) {
       selfUpdatingRef.current = false;
       setSelfUpdating(false);
@@ -147,8 +128,8 @@ export function DeckyHubUpdateModal({
 
   const versionOptions = buildVersionOptions(versions, info.version, t);
 
-  const displayVersion = selectedRelease ? normalizeVersion(selectedRelease.version) : "";
-  const installType = selectedRelease ? resolveDeckyHubInstallType(selectedRelease.version, info.version) : PLUGIN_INSTALL_TYPE.UPDATE;
+  const displayVersion = selectedRelease ? normalizeVersion(selectedRelease.tag) : "";
+  const installType = selectedRelease ? resolveDeckyHubInstallType(selectedRelease.tag, info.version) : PLUGIN_INSTALL_TYPE.UPDATE;
   const primaryLabel = selfUpdating ? t("settings.selfUpdating") : installTypeLabel(t, installType, displayVersion);
 
   return (
@@ -197,21 +178,7 @@ export function DeckyHubUpdateModal({
           </>
         )}
 
-        <Focusable style={{ display: "flex", gap: 8 }}>
-          {selectedRelease?.url && !hiddenButtons.includes("releasePage") && (
-            <Button style={{ ...modalButtonStyle, flex: 1 }} onClick={() => {
-                // Close first: Steam's browser otherwise opens underneath this modal.
-                closeModal?.();
-                Navigation.NavigateToExternalWeb(selectedRelease.url);
-              }}
-            >
-              <FaExternalLinkAlt /> {t("appcard.releasePage")}
-            </Button>
-          )}
-          <Button style={{ ...modalButtonStyle, flex: 1 }} disabled={busy} onClick={() => void refresh()}>
-            <FaSync /> {checking ? t("settings.checkingUpdate") : t("settings.checkUpdate")}
-          </Button>
-        </Focusable>
+        <ReleaseActions t={t} url={selectedRelease?.url} hideReleasePage={hiddenButtons.includes("releasePage")} checking={checking} disabled={busy} onCheck={() => void refresh()} closeModal={closeModal} />
 
         <Button style={modalButtonStyle} onClick={closeModal}>
           <FaTimes /> {t("settings.close")}

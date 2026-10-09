@@ -1,12 +1,12 @@
 import { toaster } from "@decky/api";
-import { DialogButtonPrimary as Button, ConfirmModal, Focusable, ModalRoot, Navigation, showModal } from "@decky/ui";
-import { useEffect, useState } from "react";
-import { FaArrowDown, FaArrowUp, FaExternalLinkAlt, FaFileArchive, FaPlus, FaRedo, FaSync, FaTimes, FaTrash } from "react-icons/fa";
+import { DialogButtonPrimary as Button, ConfirmModal, ModalRoot, showModal } from "@decky/ui";
+import { useState } from "react";
+import { FaArrowDown, FaArrowUp, FaFileArchive, FaPlus, FaRedo, FaTimes, FaTrash } from "react-icons/fa";
 import { saveRepoSettings } from "../api";
 import type { TFunc } from "../i18n/en";
 import type { App, AppReleaseOption, Asset, HideableButton, RepoPreference, UpdateChannel } from "../types";
-import { buildVersionOptions, displayVersion, getDeckyBackend, installAction, installDeckyPlugin, installTypeLabel, listAppReleases, modalButtonStyle, PLUGIN_INSTALL_TYPE, readableBytes, sectionDividerStyle, selectDefaultTag, uninstallDeckyPlugin, unverifiedLabel, windowGap } from "../utils";
-import { VersionPickerPanel } from "./VersionPickerPanel";
+import { buildVersionOptions, displayVersion, getDeckyBackend, installAction, installDeckyPlugin, installTypeLabel, listAppReleases, modalButtonStyle, PLUGIN_INSTALL_TYPE, readableBytes, sectionDividerStyle, uninstallDeckyPlugin, unverifiedLabel, windowGap } from "../utils";
+import { ReleaseActions, useReleasePicker, VersionPickerPanel } from "./VersionPickerPanel";
 
 // showModal() mounts onto a separate root from the caller's tree (see the
 // same note on DeckyHubUpdateModal), so `t` must be a resolved function
@@ -33,10 +33,7 @@ export function AppDetailsModal({
   closeModal?: () => void;
 }) {
   const [channel, setChannel] = useState<UpdateChannel>(initialPreference.channel);
-  const [releases, setReleases] = useState<AppReleaseOption[]>([]);
-  const [selectedTag, setSelectedTag] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [fetchError, setFetchError] = useState<string | null>(null);
+  const { items: releases, selectedTag, setSelectedTag, loading, error: fetchError, load, selected: selectedRelease } = useReleasePicker((force) => listAppReleases(app, initialPreference, force), channel);
   // This modal was rendered once by showModal(), so the downloadDisabled prop
   // never updates — track downloads started from here locally.
   const [downloading, setDownloading] = useState(Boolean(downloadDisabled));
@@ -45,29 +42,12 @@ export function AppDetailsModal({
     void onDownload(asset).finally(() => setDownloading(false));
   };
 
-  const loadReleases = async (forChannel: UpdateChannel, { pinLatest = false } = {}) => {
-    setLoading(true);
-    const { items, error } = await listAppReleases(app, initialPreference, pinLatest);
-    const filtered = items.filter((item) => item.prerelease === (forChannel === "prerelease"));
-    setReleases(filtered);
-    setFetchError(error ?? null);
-    setSelectedTag((current) => selectDefaultTag(filtered, current, pinLatest));
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    void loadReleases(channel);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [channel]);
-
   const changeChannel = (next: UpdateChannel) => {
     setChannel(next);
     onChannelChange(next);
     setSelectedTag("");
     void saveRepoSettings(app.repo, { ...initialPreference, channel: next });
   };
-
-  const selectedRelease = releases.find((item) => item.tag === selectedTag) ?? null;
 
   const versionOptions = buildVersionOptions(releases, app.installedVersion, t);
 
@@ -151,21 +131,7 @@ export function AppDetailsModal({
           </>
         )}
 
-        <Focusable style={{ display: "flex", gap: 8 }}>
-          {selectedRelease?.url && !hiddenButtons.includes("releasePage") && (
-            <Button style={{ ...modalButtonStyle, flex: 1 }} onClick={() => {
-                // Close first: Steam's browser otherwise opens underneath this modal.
-                closeModal?.();
-                Navigation.NavigateToExternalWeb(selectedRelease.url);
-              }}
-            >
-              <FaExternalLinkAlt /> {t("appcard.releasePage")}
-            </Button>
-          )}
-          <Button style={{ ...modalButtonStyle, flex: 1 }} disabled={loading} onClick={() => void loadReleases(channel, { pinLatest: true })}>
-            <FaSync /> {loading ? t("settings.checkingUpdate") : t("settings.checkUpdate")}
-          </Button>
-        </Focusable>
+        <ReleaseActions t={t} url={selectedRelease?.url} hideReleasePage={hiddenButtons.includes("releasePage")} checking={loading} disabled={loading} onCheck={() => void load(true)} closeModal={closeModal} />
 
         {canUninstall && (
           <Button style={{ ...modalButtonStyle, color: "#ff6b6b" }} onClick={confirmUninstall}>

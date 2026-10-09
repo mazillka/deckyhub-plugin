@@ -356,8 +356,8 @@ class PluginStatusTests(unittest.TestCase):
             first = asyncio.run(Plugin().export_logs())["path"]
             second = asyncio.run(Plugin().export_logs())["path"]
 
-            self.assertEqual(Path(first).name, "DeckyHub-logs.zip")
-            self.assertEqual(Path(second).name, "DeckyHub-logs (1).zip")
+            self.assertRegex(Path(first).name, r"^DeckyHub-logs-\d{8}-\d{6}\.zip$")
+            self.assertNotEqual(first, second)
             with zipfile.ZipFile(first) as archive:
                 self.assertEqual(archive.read("2026-09-26.log"), b"hello")
 

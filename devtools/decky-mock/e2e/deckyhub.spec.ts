@@ -227,8 +227,9 @@ test("Export Logs zips the backend log into Downloads", async ({ page }) => {
   const toast = page.waitForEvent("console", (message) => message.text().includes("Exported to"));
   await app.locator(".qam-content").getByRole("button", { name: "Export Logs", exact: true }).click();
 
-  expect((await toast).text()).toContain("DeckyHub-logs.zip");
-  expect(readFileSync(new URL("DeckyHub-logs.zip", downloads)).subarray(0, 2).toString()).toBe("PK");
+  const name = (await toast).text().match(/DeckyHub-logs-\d{8}-\d{6}\.zip/)?.[0];
+  expect(name).toBeTruthy();
+  expect(readFileSync(new URL(name!, downloads)).subarray(0, 2).toString()).toBe("PK");
   // Backend actions land in the log the zip is built from.
   expect(readFileSync(new URL("../.dev-data/logs/deckyhub.log", import.meta.url), "utf8")).toContain("Listed");
   rmSync(downloads, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
