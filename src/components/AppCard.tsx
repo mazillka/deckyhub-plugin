@@ -3,7 +3,7 @@ import { DialogButtonPrimary as Button, PanelSection, PanelSectionRow, showModal
 import { FaCog, FaPlus } from "react-icons/fa";
 import { useT } from "../i18n";
 import type { App, Asset, HideableButton, RepoPreference, UpdateChannel } from "../types";
-import { compactButtonStyle, cardDescriptionStyle, displayVersion, installAction, installDeckyPlugin, PLUGIN_INSTALL_TYPE, statusKey, statusColor } from "../utils";
+import { compactButtonStyle, cardDescriptionStyle, displayVersion, installAction, installDeckyPlugin, PLUGIN_INSTALL_TYPE, statusKey, statusColor, unverifiedLabel } from "../utils";
 import { AppDetailsModal } from "./AppDetailsModal";
 
 export function AppCard({
@@ -60,7 +60,7 @@ export function AppCard({
               )
             }
           >
-            <FaPlus /> {t("appcard.install")}
+            <FaPlus /> {unverifiedLabel(t, t("appcard.install"), install.verified)}
           </Button>
         </PanelSectionRow>
       )}

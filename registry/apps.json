@@ -122,6 +122,28 @@
       "source": "releases",
       "detect": { "type": "decky-plugin", "names": ["CSS Loader"] },
       "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "deck-as-controller",
+      "name": "Deck as Controller",
+      "description": "Use your Steam Deck as a wireless Bluetooth controller for your Mac or iPad.",
+      "repo": "jmedina21/deck-as-controller",
+      "category": "Controllers",
+      "versionStrategy": "semver",
+      "source": "releases",
+      "detect": { "type": "decky-plugin", "names": ["Deck as Controller"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "decky-bgfx",
+      "name": "BGFX",
+      "description": "Controls Borderless Gaming BGFX effects and frame generation from Quick Access.",
+      "repo": "andrewmd5/decky-bgfx",
+      "category": "Frame Generation",
+      "versionStrategy": "semver",
+      "source": "releases",
+      "detect": { "type": "decky-plugin", "names": ["BGFX"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
     }
   ]
 }

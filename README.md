@@ -60,6 +60,8 @@ No setup, no configuration — these show up in Discover the moment you install 
 | Decky-Undervolt | Performance | [totallynotbakadestroyer/Decky-Undervolt](https://github.com/totallynotbakadestroyer/Decky-Undervolt) |
 | ProtonDB Badges | Game Libraries | [bschelst/protondb-decky](https://github.com/bschelst/protondb-decky) |
 | CSS Loader | Customization | [DeckThemes/SDH-CssLoader](https://github.com/DeckThemes/SDH-CssLoader) |
+| Deck as Controller | Controllers | [jmedina21/deck-as-controller](https://github.com/jmedina21/deck-as-controller) |
+| BGFX | Frame Generation | [andrewmd5/decky-bgfx](https://github.com/andrewmd5/decky-bgfx) |
 
 Want more? Add any other GitHub repository from **Repositories** in seconds.
 
@@ -80,7 +82,7 @@ To track a repository that isn't in the curated list, go to **Repositories**, se
 
 ### Updates
 
-Shows every tracked tool that's installed and has a newer release available, along with its installed and latest version. Download updates one at a time.
+Shows every tracked tool that's installed and has a newer release available, along with its installed and latest version. Download updates one at a time. The **Updates** button in the Quick Access Menu shows how many updates are waiting.
 
 ### Manage
 
@@ -88,7 +90,7 @@ Tap **Manage** on any card in Discover or Updates to:
 
 - pick the release **channel** (stable or pre-release) and a specific **version**;
 - **Download ZIP**, open the **Release Page**, or **Check for Updates** for that app;
-- for a Decky plugin, **Install** (not installed yet) or **Update** (the selected version is newer than the installed one). This hands the release ZIP to Decky Loader's own installer, the same one the Decky Store uses. Decky asks you to confirm, verifies the SHA-256 checksum and installs it. Install and Update are only offered when GitHub publishes a checksum for the ZIP;
+- for a Decky plugin, **Install** (not installed yet) or **Update** (the selected version is newer than the installed one). This hands the release ZIP to Decky Loader's own installer, the same one the Decky Store uses. Decky asks you to confirm and installs it, verifying the SHA-256 checksum GitHub publishes for the ZIP. Older releases (files uploaded before mid-2025) have no checksum; for those the button reads **Install (unverified)** / **Update (unverified)** and Decky installs without that check;
 - for an installed Decky plugin, **Uninstall**, which asks you to confirm and then removes the plugin and its settings through Decky Loader.
 
 ### Downloads

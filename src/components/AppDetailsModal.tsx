@@ -5,7 +5,7 @@ import { FaArrowDown, FaArrowUp, FaExternalLinkAlt, FaFileArchive, FaPlus, FaRed
 import { saveRepoSettings } from "../api";
 import type { TFunc } from "../i18n/en";
 import type { App, AppReleaseOption, Asset, HideableButton, RepoPreference, UpdateChannel } from "../types";
-import { buildVersionOptions, displayVersion, getDeckyBackend, installAction, installDeckyPlugin, installTypeLabel, listAppReleases, modalButtonStyle, PLUGIN_INSTALL_TYPE, readableBytes, sectionDividerStyle, selectDefaultTag, uninstallDeckyPlugin, windowGap } from "../utils";
+import { buildVersionOptions, displayVersion, getDeckyBackend, installAction, installDeckyPlugin, installTypeLabel, listAppReleases, modalButtonStyle, PLUGIN_INSTALL_TYPE, readableBytes, sectionDividerStyle, selectDefaultTag, uninstallDeckyPlugin, unverifiedLabel, windowGap } from "../utils";
 import { VersionPickerPanel } from "./VersionPickerPanel";
 
 // showModal() mounts onto a separate root from the caller's tree (see the
@@ -83,6 +83,8 @@ export function AppDetailsModal({
     installDeckyPlugin(release.assets[0], action.name, release.tag, action.type).catch((error: unknown) =>
       toaster.toast({ title: "DeckyHub", body: String(error) }),
     );
+    // Decky's own confirm/progress dialog would otherwise open behind this window.
+    closeModal?.();
   };
 
   // Installed Decky plugins can be removed through Decky Loader — never
@@ -131,7 +133,7 @@ export function AppDetailsModal({
           <>
             {install && !hiddenButtons.includes(install.type === PLUGIN_INSTALL_TYPE.INSTALL ? "install" : "update") && (
               <Button style={modalButtonStyle} onClick={() => runInstall(selectedRelease, install)}>
-                {installIcons[install.type]} {installTypeLabel(t, install.type, displayVersion(selectedRelease.tag).replace(/^v/, ""), t("appcard.update"))}
+                {installIcons[install.type]} {unverifiedLabel(t, installTypeLabel(t, install.type, displayVersion(selectedRelease.tag).replace(/^v/, ""), t("appcard.update")), install.verified)}
               </Button>
             )}
             {hiddenButtons.includes("downloadZip") ? null : selectedRelease.assets[0] ? (
