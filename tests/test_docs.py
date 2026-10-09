@@ -15,13 +15,10 @@ class DocsTests(unittest.TestCase):
     def test_sitemap_lists_every_page(self):
         sitemap = (ROOT / "docs" / "sitemap.xml").read_text(encoding="utf-8")
         for page in (ROOT / "docs").glob("*.html"):
+            if page.name == "404.html":
+                continue
             url = "https://mazillka.github.io/deckyhub-plugin/" + ("" if page.name == "index.html" else page.name)
             self.assertIn(f"<loc>{url}</loc>", sitemap)
-
-    def test_site_screenshots_exist(self):
-        for shot in (ROOT / "screenshots").glob("*.jpg"):
-            for suffix in ("", "-640"):
-                self.assertTrue((ROOT / "docs" / "img" / f"{shot.stem}{suffix}.webp").exists(), f"{shot.stem}{suffix}.webp missing")
 
 
 if __name__ == "__main__":

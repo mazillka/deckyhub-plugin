@@ -7,7 +7,7 @@ This covers building, testing, and releasing DeckyHub. For what the plugin does 
 - `main.py` and `plugin.json` stay at the repository root because Decky Loader reads them from the plugin package.
 - `backend/` contains the backend support modules; `src/` contains the Decky React UI.
 - `registry/apps.json` contains the bundled default repositories; `tests/` covers the Python backend.
-- `docs/` is the static GitHub Pages site: the promo page (`index.html`) and the registry editor (`editor.html`, its own page). It remains separate from the runtime UI and needs no build dependencies. Its screenshots are WebP copies in `docs/img/` (full size plus a `-640` variant); regenerate them when `screenshots/*.jpg` change. Keep `docs/sitemap.xml` in sync when adding a page.
+- `docs/` is the static GitHub Pages site: the promo page (`index.html`), the registry editor (`editor.html`) and a `404.html`. It remains separate from the runtime UI. `devtools/build-site.py` assembles it at deploy time: it writes the bundled catalog from `registry/apps.json` into `index.html` and generates WebP screenshots and the link-preview JPEG from `screenshots/` (needs Pillow; CI-only). Preview locally with `python devtools/build-site.py _site` and serve `_site/`. Keep `docs/sitemap.xml` in sync when adding a page.
 
 ## Build
 

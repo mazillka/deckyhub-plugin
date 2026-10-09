@@ -38,8 +38,8 @@ Commands are in [AGENTS.md](AGENTS.md#commands).
 Every change that alters what a user sees or does updates the docs in the same PR. `tests/test_docs.py` (run by `pnpm run test:backend`) enforces the mechanical parts.
 
 - User-visible behavior (screens, buttons, settings, install/download flow): update README's matching section, and the promo page's features/FAQ in `docs/index.html` if it describes it.
-- Registry apps added, removed or renamed in `registry/apps.json`: regenerate README's **Bundled repositories** table in the same order. The promo page's catalog reads the file itself.
-- New screenshot in `screenshots/`: regenerate `docs/img/<name>.webp` (1280×800) and `docs/img/<name>-640.webp` (640×400) with Pillow, WebP quality 78.
+- Registry apps added, removed or renamed in `registry/apps.json`: regenerate README's **Bundled repositories** table in the same order. The promo page's catalog is built from the file at deploy time.
+- Screenshots: replace the JPEG in `screenshots/`; the site build makes its WebP copies. A new screenshot also needs an `<img>` in `docs/index.html`.
 - New page in `docs/`: add it to `docs/sitemap.xml` and give it a `<title>`, meta description and canonical URL.
 - Architecture, commands or dev rules change: update `AGENTS.md`; release or contribution steps: `CONTRIBUTING.md`.
 - Before finishing, grep the docs for names you renamed or removed.
@@ -54,6 +54,7 @@ Every change that alters what a user sees or does updates the docs in the same P
 
 - One topic per PR (PRs are squash-merged, see CONTRIBUTING.md); the PR must typecheck.
 - Push a `v*` tag only after all checks pass.
+- Cut a release only when the plugin ZIP changes (`plugin.json`, `main.py`, `backend/`, `src/`, `registry/`, `package.json`). Docs- or website-only changes ship by merging to `main`; a release with no plugin change still pings every user with an update toast.
 - If the release workflow fails after the tag is pushed, fix it and bump to the next rc; never move a published tag.
 - Changes to install/download/uninstall behavior also update README, `CONTRIBUTING.md` and `AGENTS.md`, which describe that policy.
 - Release steps: [CONTRIBUTING.md](CONTRIBUTING.md#releases). Release notes (every release, pre-releases too): the Release section of [AGENTS.md](AGENTS.md#release).
