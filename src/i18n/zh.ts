@@ -42,6 +42,7 @@ export const zh: Record<MessageKey, string> = {
   "appcard.uninstallTitle": "卸载 {name}？",
   "appcard.uninstallDescription": "将从此设备移除该插件及其设置。之后可以重新安装。",
   "appcard.uninstalled": "已卸载 {name}。",
+  "appcard.freshInstallDescription": "DeckyHub 会先移除已安装的版本，然后由 Decky 全新安装所选版本。由于 Decky Loader 的一个错误，直接覆盖更新可能导致 Deck 卡死。如果取消 Decky 的安装对话框，{name} 将保持未安装状态，直到你重新安装。",
   "appcard.noMatchingAsset": "此版本没有匹配的下载项。",
 
   "dl.downloading": "正在下载 {filename}",

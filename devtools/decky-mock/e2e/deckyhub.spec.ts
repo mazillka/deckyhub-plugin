@@ -719,6 +719,42 @@ test("The Manage window reinstalls or downgrades an installed Decky plugin to th
   }
 });
 
+test("Unifideck updates by uninstalling first and installing fresh, after a warning", async ({ page }) => {
+  // Decky's in-place update starts Unifideck mid-install and then stops it,
+  // which froze the Deck, so DeckyHub removes it first and installs fresh (0).
+  const pluginDir = new URL("../.dev-data/plugins/e2e-unifideck/", import.meta.url);
+  mkdirSync(pluginDir, { recursive: true });
+  writeFileSync(new URL("plugin.json", pluginDir), JSON.stringify({ name: "Unifideck", version: "0.7.0" }));
+  const sha = "f".repeat(64);
+  const url = "https://github.com/mubaraknumann/unifideck/releases/download/Release-0.7.6/unifideck.prod.v0.7.6.zip";
+  await page.route("https://api.github.com/repos/mubaraknumann/unifideck/releases**", (route) =>
+    route.fulfill({ json: [{ tag_name: "Release-0.7.6", prerelease: false, draft: false, published_at: "2026-10-04T00:00:00Z", html_url: "https://github.com/mubaraknumann/unifideck/releases/tag/Release-0.7.6", assets: [{ name: "unifideck.prod.v0.7.6.zip", browser_download_url: url, size: 1024, digest: `sha256:${sha}` }] }] }),
+  );
+  await recordInstalls(page);
+
+  try {
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    await app.getByRole("heading", { name: "Unifideck" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
+    await app.locator(".steam-modal").getByRole("button", { name: "Update", exact: true }).click();
+
+    const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
+    const calls = () => frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls);
+    // Nothing reaches Decky until the uninstall-first warning is confirmed.
+    const confirm = app.locator(".steam-modal", { hasText: "Update?" });
+    await expect(confirm.getByText("removes the installed version first", { exact: false })).toBeVisible();
+    expect(await calls()).toEqual([]);
+    await confirm.getByRole("button", { name: "Update", exact: true }).click();
+
+    await expect.poll(calls).toEqual([
+      ["utilities/uninstall_plugin", "Unifideck"],
+      ["utilities/install_plugin", url, "Unifideck", "0.7.6", sha, 0],
+    ]);
+  } finally {
+    rmSync(pluginDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  }
+});
+
 test("Display Settings can hide the Manage window's buttons", async ({ page }) => {
   await mockMakoReleases(page, [makoRelease("plugin-v1.2.3", "e".repeat(64))]);
   const app = mock(page);

@@ -42,6 +42,7 @@ export const ru: Record<MessageKey, string> = {
   "appcard.uninstallTitle": "Удалить {name}?",
   "appcard.uninstallDescription": "Плагин и его настройки будут удалены с этого устройства. Позже его можно установить снова.",
   "appcard.uninstalled": "{name} удалён.",
+  "appcard.freshInstallDescription": "DeckyHub сначала удалит установленную версию, а затем Decky установит выбранную начисто. Обновление поверх может заморозить Deck из-за ошибки в Decky Loader. Если отменить окно установки Decky, {name} останется удалённым, пока вы не установите его снова.",
   "appcard.noMatchingAsset": "Нет подходящей загрузки для этой версии.",
 
   "dl.downloading": "Загрузка {filename}",

@@ -264,7 +264,23 @@ export const getDeckyBackend = () => window.DeckyBackend ?? window.opener?.Decky
 // Hands a verified release ZIP to Decky Loader's own installer — the route the
 // Decky Store uses. The loader shows its native confirm/progress dialog and
 // does the download, SHA-256 check and install itself.
-export function installDeckyPlugin(asset: Asset, pluginName: string, version: string, installType: 0 | 1 | 2 | 3) {
+//
+// Plugins that are uninstalled first and then installed fresh instead of
+// updated in place. Decky Loader's in-place update uninstalls the old version
+// mid-install, which turns its file watcher back on: the watcher starts the new
+// version while it's still being installed, and the installer then stops that
+// copy seconds into its startup. Unifideck hangs there, and Decky grew to 9.6 GB
+// and froze the Deck. A fresh install keeps the watcher off throughout.
+const FRESH_INSTALL_PLUGINS = ["Unifideck"];
+
+export const needsFreshInstall = (pluginName: string, installType: number) => installType !== PLUGIN_INSTALL_TYPE.INSTALL && FRESH_INSTALL_PLUGINS.includes(pluginName);
+
+export async function installDeckyPlugin(asset: Asset, pluginName: string, version: string, installType: 0 | 1 | 2 | 3) {
+  if (needsFreshInstall(pluginName, installType)) {
+    await uninstallDeckyPlugin(pluginName);
+    log(`Decky Loader uninstalled ${pluginName} before a fresh install`);
+    installType = PLUGIN_INSTALL_TYPE.INSTALL;
+  }
   traceDeckyInstall(pluginName);
   return callDeckyLoader("utilities/install_plugin", asset.url, pluginName, normalizeVersion(displayVersion(version)), asset.sha256 ?? "", installType).then((result: unknown) => {
     log(`Decky Loader install_plugin ${pluginName} accepted, waiting for confirm/progress`);

@@ -42,6 +42,7 @@ export const fr: Record<MessageKey, string> = {
   "appcard.uninstallTitle": "Désinstaller {name} ?",
   "appcard.uninstallDescription": "Le plugin et ses paramètres seront supprimés de cet appareil. Vous pourrez le réinstaller plus tard.",
   "appcard.uninstalled": "{name} a été désinstallé.",
+  "appcard.freshInstallDescription": "DeckyHub supprime d'abord la version installée, puis Decky installe la version choisie à neuf. Une mise à jour sur place peut figer le Deck à cause d'un bug de Decky Loader. Si vous annulez la fenêtre d'installation de Decky, {name} restera désinstallé jusqu'à ce que vous le réinstalliez.",
   "appcard.noMatchingAsset": "Aucun téléchargement disponible pour cette version.",
 
   "dl.downloading": "Téléchargement de {filename}",

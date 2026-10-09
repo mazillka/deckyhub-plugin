@@ -5,7 +5,7 @@ import { FaArrowDown, FaArrowUp, FaFileArchive, FaPlus, FaRedo, FaTimes, FaTrash
 import { saveRepoSettings } from "../api";
 import type { TFunc } from "../i18n/en";
 import type { App, AppReleaseOption, Asset, HideableButton, RepoPreference, UpdateChannel } from "../types";
-import { buildVersionOptions, displayVersion, getDeckyBackend, installAction, installDeckyPlugin, installTypeLabel, listAppReleases, modalButtonStyle, PLUGIN_INSTALL_TYPE, readableBytes, sectionDividerStyle, uninstallDeckyPlugin, unverifiedLabel, windowGap } from "../utils";
+import { buildVersionOptions, displayVersion, getDeckyBackend, installAction, installDeckyPlugin, installTypeLabel, listAppReleases, modalButtonStyle, needsFreshInstall, PLUGIN_INSTALL_TYPE, readableBytes, sectionDividerStyle, uninstallDeckyPlugin, unverifiedLabel, windowGap } from "../utils";
 import { ReleaseActions, useReleasePicker, VersionPickerPanel } from "./VersionPickerPanel";
 
 // showModal() mounts onto a separate root from the caller's tree (see the
@@ -55,16 +55,30 @@ export function AppDetailsModal({
   // confirm/progress dialog; Content reloads the list once the loader finishes.
   const install = selectedRelease && installAction(app, selectedRelease);
   const installIcons = { [PLUGIN_INSTALL_TYPE.INSTALL]: <FaPlus />, [PLUGIN_INSTALL_TYPE.REINSTALL]: <FaRedo />, [PLUGIN_INSTALL_TYPE.UPDATE]: <FaArrowUp />, [PLUGIN_INSTALL_TYPE.DOWNGRADE]: <FaArrowDown /> };
+  const installLabel = install && selectedRelease ? installTypeLabel(t, install.type, displayVersion(selectedRelease.tag).replace(/^v/, ""), t("appcard.update")) : "";
   const runInstall = (release: AppReleaseOption, action: NonNullable<typeof install>) => {
     if (!getDeckyBackend()) {
       toaster.toast({ title: "DeckyHub", body: t("settings.selfUpdateUnavailable") });
       return;
     }
-    installDeckyPlugin(release.assets[0], action.name, release.tag, action.type).catch((error: unknown) =>
-      toaster.toast({ title: "DeckyHub", body: String(error) }),
+    const start = () => {
+      installDeckyPlugin(release.assets[0], action.name, release.tag, action.type).catch((error: unknown) =>
+        toaster.toast({ title: "DeckyHub", body: String(error) }),
+      );
+      // Decky's own confirm/progress dialog would otherwise open behind this window.
+      closeModal?.();
+    };
+    if (!needsFreshInstall(action.name, action.type)) return start();
+    // installDeckyPlugin() uninstalls first, before Decky's own dialog appears,
+    // so cancelling that dialog would leave the plugin uninstalled — say so now.
+    showModal(
+      <ConfirmModal
+        strTitle={`${installLabel}?`}
+        strDescription={t("appcard.freshInstallDescription", { name: app.name })}
+        strOKButtonText={installLabel}
+        onOK={start}
+      />,
     );
-    // Decky's own confirm/progress dialog would otherwise open behind this window.
-    closeModal?.();
   };
 
   // Installed Decky plugins can be removed through Decky Loader — never
@@ -113,7 +127,7 @@ export function AppDetailsModal({
           <>
             {install && !hiddenButtons.includes(install.type === PLUGIN_INSTALL_TYPE.INSTALL ? "install" : "update") && (
               <Button style={modalButtonStyle} onClick={() => runInstall(selectedRelease, install)}>
-                {installIcons[install.type]} {unverifiedLabel(t, installTypeLabel(t, install.type, displayVersion(selectedRelease.tag).replace(/^v/, ""), t("appcard.update")), install.verified)}
+                {installIcons[install.type]} {unverifiedLabel(t, installLabel, install.verified)}
               </Button>
             )}
             {hiddenButtons.includes("downloadZip") ? null : selectedRelease.assets[0] ? (
