@@ -4,15 +4,16 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>DeckyHub — the plugin store for your Steam Deck</title>
 <meta name="description" content="Discover, download and update Decky Loader plugins straight from Gaming Mode. Gamepad-first, open source, and never installs anything without your tap.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="canonical" href="https://mazillka.github.io/deckyhub-plugin/">
 <meta name="theme-color" content="#10151f">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://mazillka.github.io/deckyhub-plugin/">
 <meta property="og:title" content="DeckyHub — the plugin store for your Steam Deck">
 <meta property="og:description" content="Discover, download and update Decky Loader plugins straight from Gaming Mode.">
-<meta property="og:image" content="https://mazillka.github.io/deckyhub-plugin/img/discover.webp">
+<meta property="og:image" content="https://mazillka.github.io/deckyhub-plugin/img/og.jpg">
 <meta name="twitter:card" content="summary_large_image">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"DeckyHub","applicationCategory":"UtilitiesApplication","operatingSystem":"SteamOS","description":"Decky Loader plugin that discovers, downloads and updates other Steam Deck plugins from Gaming Mode.","url":"https://mazillka.github.io/deckyhub-plugin/","downloadUrl":"https://github.com/mazillka/deckyhub-plugin/releases/latest","image":"https://mazillka.github.io/deckyhub-plugin/img/discover.webp","license":"https://www.gnu.org/licenses/gpl-3.0.html","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"DeckyHub","applicationCategory":"UtilitiesApplication","operatingSystem":"SteamOS","description":"Decky Loader plugin that discovers, downloads and updates other Steam Deck plugins from Gaming Mode.","url":"https://mazillka.github.io/deckyhub-plugin/","downloadUrl":"https://github.com/mazillka/deckyhub-plugin/releases/latest","image":"https://mazillka.github.io/deckyhub-plugin/img/og.jpg","license":"https://www.gnu.org/licenses/gpl-3.0.html","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
 <style>
 :root{color-scheme:dark;--bg:#10151f;--panel:#182131;--line:#2e405a;--text:#eef4ff;--muted:#b6c3d4;--dim:#8a9bb2;--accent:#1d75cc;--accent2:#4b9cf0;--ok:#59bf6f;--warn:#e8b54a}
 *{box-sizing:border-box}html{scroll-behavior:smooth}
@@ -77,12 +78,12 @@ footer .wrap{display:grid;gap:10px}
 <h2>Why you'll like it</h2>
 <p class="sub">Built for the couch: every screen works with the gamepad, and nothing touches your system until you say so.</p>
 <div class="grid">
-<div class="card"><div class="ico">🔔</div><h3>Never miss an update</h3><p>DeckyHub checks your installed plugins against their latest GitHub releases and pings you with a toast the moment something new drops.</p></div>
-<div class="card"><div class="ico">🧭</div><h3>Discover new tools</h3><p>A curated catalog of Steam Deck plugins, filterable by status and color-coded so you spot what needs attention at a glance.</p></div>
-<div class="card"><div class="ico">🎮</div><h3>Controller first</h3><p>Full gamepad navigation and one-tap actions designed for Gaming Mode, not a desktop page squeezed onto a small screen.</p></div>
-<div class="card"><div class="ico">🛡️</div><h3>You stay in control</h3><p>Installs go through Decky Loader's own installer and confirmation dialog, with SHA-256 checksums verified whenever GitHub publishes one. Nothing runs on its own.</p></div>
-<div class="card"><div class="ico">📦</div><h3>Track any repo</h3><p>Search GitHub, add any repository, pick stable or pre-release channels per app, and export your list to share or back up.</p></div>
-<div class="card"><div class="ico">🔄</div><h3>Updates itself</h3><p>Check for new DeckyHub releases from Settings and update in place, or reinstall and downgrade to any recent version.</p></div>
+<div class="card"><div class="ico" aria-hidden="true">🔔</div><h3>Never miss an update</h3><p>DeckyHub checks your installed plugins against their latest GitHub releases and pings you with a toast the moment something new drops.</p></div>
+<div class="card"><div class="ico" aria-hidden="true">🧭</div><h3>Discover new tools</h3><p>A curated catalog of Steam Deck plugins, filterable by status and color-coded so you spot what needs attention at a glance.</p></div>
+<div class="card"><div class="ico" aria-hidden="true">🎮</div><h3>Controller first</h3><p>Full gamepad navigation and one-tap actions designed for Gaming Mode, not a desktop page squeezed onto a small screen.</p></div>
+<div class="card"><div class="ico" aria-hidden="true">🛡️</div><h3>You stay in control</h3><p>Installs go through Decky Loader's own installer and confirmation dialog, with SHA-256 checksums verified whenever GitHub publishes one. Nothing runs on its own.</p></div>
+<div class="card"><div class="ico" aria-hidden="true">📦</div><h3>Track any repo</h3><p>Search GitHub, add any repository, pick stable or pre-release channels per app, and export your list to share or back up.</p></div>
+<div class="card"><div class="ico" aria-hidden="true">🔄</div><h3>Updates itself</h3><p>Check for new DeckyHub releases from Settings and update in place, or reinstall and downgrade to any recent version.</p></div>
 </div>
 </div></section>
 
@@ -111,7 +112,7 @@ footer .wrap{display:grid;gap:10px}
 <section id="catalog"><div class="wrap">
 <h2>Ready out of the box</h2>
 <p class="sub">These plugins show up in Discover the moment you install DeckyHub. Add anything else from <strong>Repositories</strong>.</p>
-<div class="catalog" id="catalog-list"><p class="sub">Loading catalog…</p></div>
+<div class="catalog"><!-- catalog --></div>
 </div></section>
 
 <section id="editor"><div class="wrap">
@@ -135,10 +136,5 @@ footer .wrap{display:grid;gap:10px}
 <div>DeckyHub is a discovery and download tool. All listed plugins belong to their respective authors; DeckyHub does not own or endorse them. Not affiliated with Valve or Decky Loader.</div>
 </div></footer>
 
-<script>
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-fetch("registry/apps.json").then(r=>r.json()).then(d=>{document.getElementById("catalog-list").innerHTML=d.apps.map(a=>'<a class="app" href="https://github.com/'+esc(a.repo)+'"><small>'+esc(a.category)+'</small><strong>'+esc(a.name)+'</strong><p>'+esc(a.description||"")+'</p><code>'+esc(a.repo)+'</code></a>').join("")}).catch(()=>{document.getElementById("catalog-list").innerHTML='<p class="sub">See the <a href="https://github.com/mazillka/deckyhub-plugin#bundled-repositories">bundled list on GitHub</a>.</p>'});
-
-</script>
 </body>
 </html>
