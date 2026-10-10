@@ -250,7 +250,9 @@ export function Content({ fullPage }: { fullPage?: View }) {
             </PanelSection>
           )}
           {!visibleApps.length && (
-            <div style={{ textAlign: "center" }}>
+            <div className="deckyhub-empty" style={{ textAlign: "center" }}>
+              {/* Decky's section title is a left-aligned flex row; center it too. */}
+              <style>{".deckyhub-empty div { text-align: center; justify-content: center; }"}</style>
               <PanelSection title={info.empty}>
                 <PanelSectionRow>{t("content.useDiscover")}</PanelSectionRow>
               </PanelSection>
