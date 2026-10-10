@@ -250,9 +250,11 @@ export function Content({ fullPage }: { fullPage?: View }) {
             </PanelSection>
           )}
           {!visibleApps.length && (
-            <PanelSection title={info.empty}>
-              <PanelSectionRow>{t("content.useDiscover")}</PanelSectionRow>
-            </PanelSection>
+            <div style={{ textAlign: "center" }}>
+              <PanelSection title={info.empty}>
+                <PanelSectionRow>{t("content.useDiscover")}</PanelSectionRow>
+              </PanelSection>
+            </div>
           )}
         </>
       )}
