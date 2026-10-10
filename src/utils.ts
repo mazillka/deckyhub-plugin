@@ -95,8 +95,13 @@ export function reportRateLimit(minutes: number | null, until = Date.now() + (mi
   window.dispatchEvent(new Event(RATE_LIMIT_CHANGED));
 }
 
+// No headers unless a token is set: any header makes fetchNoCors a CORS
+// preflight to Decky Loader, and on a real Deck those preflights have been
+// seen to stall forever (loader never reads them; Chrome's 6-socket pool for
+// them fills up), hanging every GitHub call until its timeout. GitHub's
+// default response is the same JSON the vnd.github+json Accept asked for.
 function githubHeaders(): Record<string, string> {
-  return githubToken ? { Accept: "application/vnd.github+json", Authorization: `Bearer ${githubToken}` } : { Accept: "application/vnd.github+json" };
+  return githubToken ? { Authorization: `Bearer ${githubToken}` } : {};
 }
 
 // React runs a child's effects before its parent's, so the first GitHub call
@@ -104,10 +109,10 @@ function githubHeaders(): Record<string, string> {
 // it once here instead of spending that call unauthenticated.
 let tokenLoaded: Promise<void> | null = null;
 
-export async function githubFetch(url: string, headers: Record<string, string> = {}) {
+export async function githubFetch(url: string) {
   tokenLoaded ??= getSettings().then((settings) => setGithubToken(settings.githubToken || ""), () => undefined);
   await tokenLoaded;
-  return fetchNoCors(url, { headers: { ...githubHeaders(), ...headers }, signal: AbortSignal.timeout(15_000) });
+  return fetchNoCors(url, { headers: githubHeaders(), signal: AbortSignal.timeout(15_000) });
 }
 
 // GitHub's REST API is what every fetch in this file hits — unauthenticated
@@ -154,10 +159,10 @@ export const statusKey = (app: App): MessageKey =>
 
 export const statusColor = (app: App) => (!app.installedVersion || app.error ? "#ff6b6b" : app.updateAvailable ? "#f0c33c" : app.updateAvailable === false ? "#6bcb6b" : undefined);
 
-// fetchReleases' localStorage envelope: when it was fetched (for CACHE_TTL),
-// the data, and GitHub's ETag for a free conditional re-check. Only
-// successful results are ever written, so a failure never "poisons" it.
-type CacheEntry<T> = { at: number; data: T; etag?: string };
+// fetchReleases' localStorage envelope: when it was fetched (for CACHE_TTL)
+// and the data. Only successful results are ever written, so a failure never
+// "poisons" it. No ETag re-check: If-None-Match is a header, see githubHeaders().
+type CacheEntry<T> = { at: number; data: T };
 
 function readCache<T>(key: string): CacheEntry<T> | null {
   try {
@@ -167,9 +172,9 @@ function readCache<T>(key: string): CacheEntry<T> | null {
   }
 }
 
-function writeCache(key: string, data: unknown, etag?: string | null): void {
+function writeCache(key: string, data: unknown): void {
   try {
-    localStorage.setItem(key, JSON.stringify({ at: Date.now(), data, etag: etag || undefined }));
+    localStorage.setItem(key, JSON.stringify({ at: Date.now(), data }));
   } catch {
     // Quota exceeded or storage disabled (private browsing) — caching is a
     // nice-to-have, never worth failing the fetch that already succeeded.
@@ -438,12 +443,7 @@ async function fetchReleases(repo: string, force: boolean): Promise<Release[]> {
   if (cached && !force && Date.now() - cached.at < CACHE_TTL) return cached.data;
   let response: Response;
   try {
-    // A 304 answer to If-None-Match doesn't count against GitHub's rate limit.
-    response = await githubFetch(`https://api.github.com/repos/${repo}/releases?per_page=20`, cached?.etag ? { "If-None-Match": cached.etag } : {});
-    if (response.status === 304 && cached) {
-      writeCache(cacheKey, cached.data, cached.etag);
-      return cached.data;
-    }
+    response = await githubFetch(`https://api.github.com/repos/${repo}/releases?per_page=20`);
     if (!response.ok) throw await githubResponseError(response);
   } catch (error) {
     // Older releases beat an error card; a rate limit still raises the banner.
@@ -461,7 +461,7 @@ async function fetchReleases(repo: string, force: boolean): Promise<Release[]> {
       assets: (item.assets || []).map((asset: any) => ({ name: String(asset.name || ""), url: asset.browser_download_url, size: asset.size || 0, sha256: String(asset.digest || "").replace(/^sha256:/, "") || undefined })),
     }))
     .sort((a: Release, b: Release) => (Date.parse(b.publishedAt || "") || 0) - (Date.parse(a.publishedAt || "") || 0));
-  writeCache(cacheKey, releases, response.headers.get("etag"));
+  writeCache(cacheKey, releases);
   return releases;
 }
 
