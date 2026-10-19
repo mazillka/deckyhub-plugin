@@ -49,15 +49,19 @@ export function AppCard({
             </>
           )}
           <br />
-          <small>{t("settings.latestVersion", { version: app.latestVersion ? displayVersion(app.latestVersion) : "—" })}</small>
-          <br />
-          <small style={{ color: app.channel === "prerelease" ? "#ffa94d" : undefined }}>
-            {t("appcard.channel", { channel: t(app.channel === "prerelease" ? "appcard.channelPrerelease" : "appcard.channelStable") })}
-          </small>
+          {/* No release and no error yet: its GitHub check is still running. */}
+          <small>{t("settings.latestVersion", { version: app.latestVersion ? displayVersion(app.latestVersion) : app.error ? "—" : t("settings.checkingUpdate") })}</small>
+          {/* Stable is the default, so only a pre-release override earns a line. */}
+          {app.channel === "prerelease" && (
+            <>
+              <br />
+              <small style={{ color: "#ffa94d" }}>{t("appcard.channel", { channel: t("appcard.channelPrerelease") })}</small>
+            </>
+          )}
           {app.error && (
             <>
               <br />
-              <small>{app.error}</small>
+              <small style={{ color: "#ff6b6b" }}>{app.error}</small>
             </>
           )}
         </div>

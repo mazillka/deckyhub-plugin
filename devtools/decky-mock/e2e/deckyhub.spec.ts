@@ -488,6 +488,15 @@ test("Repository pagination stays on one row", async ({ page }) => {
   expect(nextBox!.x).toBeGreaterThan(pageOfBox!.x);
 });
 
+test("Discover's search also matches app descriptions", async ({ page }) => {
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  await app.getByLabel("Search").fill("lossless scaling");
+
+  await expect(app.getByRole("heading", { name: "MAKO Decky" })).toBeVisible();
+  await expect(app.getByRole("heading", { name: "Unifideck" })).toHaveCount(0);
+});
+
 test("Discover reports an empty filtered result", async ({ page }) => {
   const app = mock(page);
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
@@ -495,7 +504,7 @@ test("Discover reports an empty filtered result", async ({ page }) => {
 
   await expect(app.getByRole("heading", { name: "No repositories are available." })).toBeVisible();
   // Clear resets the filters straight from the empty state.
-  await app.getByRole("button", { name: "Clear", exact: true }).click();
+  await app.locator(".deckyhub-empty").getByRole("button", { name: "Clear", exact: true }).click();
   await expect(app.getByLabel("Search")).toHaveValue("");
   await expect(app.getByRole("heading", { name: "MAKO Decky" })).toBeVisible();
 });
@@ -1023,7 +1032,9 @@ test("Discover's Details modal channel picker updates the card's Channel label",
   const app = mock(page);
   const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
 
-  await expect(makoCard.getByText("Channel: Stable", { exact: true })).toBeVisible();
+  // Stable is the default, so the card only names the channel once it's overridden.
+  await expect(makoCard.getByText(/^Latest: v/)).toBeVisible();
+  await expect(makoCard.getByText(/^Channel: /)).toHaveCount(0);
 
   try {
     await makoCard.getByRole("button", { name: "Manage", exact: true }).click();

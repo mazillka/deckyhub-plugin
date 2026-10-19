@@ -38,6 +38,8 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const [repoPreferences, setRepoPreferences] = useState<Record<string, RepoPreference>>({});
   const [hiddenButtons, setHiddenButtons] = useState<HideableButton[]>([]);
   const [updatingAll, setUpdatingAll] = useState(false);
+  // Release checks finished out of the current load, shown while Updates waits on them.
+  const [checked, setChecked] = useState(0);
   const quickAccessRef = useRef<HTMLDivElement>(null);
 
   const info = view === "updates"
@@ -66,13 +68,16 @@ export function Content({ fullPage }: { fullPage?: View }) {
       if (view === "discover") setLoading(false);
       const hydrated = [...tracked];
       let next = 0;
+      setChecked(0);
       // A rolling pool: each finished request starts the next, rather than
       // waiting for the slowest one in a fixed batch.
       const worker = async () => {
         while (next < tracked.length) {
           const index = next++;
           hydrated[index] = await hydrate(tracked[index], force, preferences[tracked[index].repo]);
-          if (run === loadRun.current) setApps((current) => current.map((app) => (app.id === hydrated[index].id ? hydrated[index] : app)));
+          if (run !== loadRun.current) continue;
+          setApps((current) => current.map((app) => (app.id === hydrated[index].id ? hydrated[index] : app)));
+          setChecked((count) => count + 1);
         }
       };
       await Promise.all(Array.from({ length: Math.min(RELEASE_CONCURRENCY, tracked.length) }, worker));
@@ -153,7 +158,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
       <PanelSectionRow>
         <Focusable flow-children="right" style={{ display: "flex", gap: 12 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <TextField label={t("filter.search")} value={query} onChange={(event) => { setQuery(event.currentTarget.value); setCardPage(0); }} />
+            <TextField label={t("filter.search")} value={query} bShowClearAction onChange={(event) => { setQuery(event.currentTarget.value); setCardPage(0); }} />
           </div>
           <div style={{ flex: "0 0 220px" }}>
             <div style={{ fontSize: "0.85em" }}>
@@ -179,7 +184,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const visibleApps = apps.filter((app) =>
     view === "updates"
       ? app.updateAvailable === true
-      : (!query || `${app.name} ${app.repo}`.toLowerCase().includes(query.toLowerCase())) &&
+      : (!query || `${app.name} ${app.repo} ${app.category} ${app.description ?? ""}`.toLowerCase().includes(query.toLowerCase())) &&
         (installedFilter === "All" || (installedFilter === "Installed") === Boolean(app.installedVersion)),
   );
   // Decky plugins the Updates page can update in one batch (see updateDeckyPlugins).
@@ -207,6 +212,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
           <PanelSectionRow>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, minHeight: "50vh" }}>
               <Spinner style={{ width: "1.1em" }} /> {t("content.loading")}
+              {apps.length > 0 && ` ${checked}/${apps.length}`}
             </div>
           </PanelSectionRow>
         </PanelSection>
