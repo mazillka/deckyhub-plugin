@@ -13,7 +13,7 @@ VALID = {
     "schemaVersion": 1,
     "apps": [{
         "id": "demo", "name": "Demo", "repo": "owner/demo", "category": "Test",
-        "versionStrategy": "semver", "source": "releases", "asset": {"include": [".zip"], "exclude": []},
+        "asset": {"include": [".zip"], "exclude": []},
     }],
 }
 

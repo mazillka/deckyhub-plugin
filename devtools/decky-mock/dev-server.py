@@ -60,7 +60,7 @@ main.PLUGIN_DOWNLOAD_DIR = str(DEV_DATA / "downloads")
 # network, and the official list served from the bundled file so a refresh is
 # offline and deterministic too; every other URL still goes to the real fetch.
 FIXTURE_REGISTRY_HOST = "https://registry.test/"
-FIXTURE_APP = {"id": "fixture-app", "name": "Fixture App", "repo": "example/fixture-app", "category": "Test", "versionStrategy": "semver", "source": "releases", "detect": {"type": "decky-plugin", "names": ["Fixture App"]}, "asset": {"include": [".zip"], "exclude": []}}
+FIXTURE_APP = {"id": "fixture-app", "name": "Fixture App", "repo": "example/fixture-app", "category": "Test", "detect": {"type": "decky-plugin", "names": ["Fixture App"]}, "asset": {"include": [".zip"], "exclude": []}}
 FIXTURE_REGISTRIES = {"good.json": [FIXTURE_APP], "empty.json": []}
 _real_fetch_registry = main.fetch_remote_registry
 

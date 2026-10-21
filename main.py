@@ -155,7 +155,7 @@ def _coerce_repo_settings(values) -> dict:
 
 REQUIRED_FIELDS = {"id", "name", "repo", "category", "asset"}
 STRING_FIELDS = ("id", "name", "repo", "category")
-OPTIONAL_STRING_FIELDS = ("description", "releaseTagInclude", "versionStrategy", "source")
+OPTIONAL_STRING_FIELDS = ("description", "releaseTagInclude")
 
 
 def _string_list(value: object) -> bool:
@@ -558,7 +558,7 @@ class Plugin:
         return {"added": added}
 
     async def get_custom_registries(self):
-        return {"registries": [{"url": url} for url in self.settings.get("customRegistries", [])]}
+        return {"registries": list(self.settings.get("customRegistries", []))}
 
     async def add_custom_registry(self, url: str):
         """Never raises for user input: returns added=False plus a reason code for the UI."""
@@ -567,10 +567,14 @@ class Plugin:
         except ValueError as error:
             decky.logger.error("Refused to add invalid registry URL %r", url)
             return {"added": False, "url": url, "reason": "invalid-url", "detail": str(error)}
-        if url in self.settings.get("customRegistries", []):
-            return {"added": False, "url": url, "reason": "already-added", "detail": ""}
-        if len(self.settings.get("customRegistries", [])) >= MAX_CUSTOM_REGISTRIES:
-            return {"added": False, "url": url, "reason": "too-many", "detail": str(MAX_CUSTOM_REGISTRIES)}
+        def refused():
+            if url in self.settings.get("customRegistries", []):
+                return {"added": False, "url": url, "reason": "already-added", "detail": ""}
+            if len(self.settings.get("customRegistries", [])) >= MAX_CUSTOM_REGISTRIES:
+                return {"added": False, "url": url, "reason": "too-many", "detail": str(MAX_CUSTOM_REGISTRIES)}
+            return None
+        if refusal := refused():
+            return refusal
         # Load it once before saving, so a dead or non-registry URL is reported here,
         # while the user is watching, instead of being skipped on every later start.
         try:
@@ -580,10 +584,8 @@ class Plugin:
             decky.logger.error("Can't load registry %s: %s", url, error)
             return {"added": False, "url": url, "reason": reason, "detail": detail}
         # Checked again: another add may have finished while this one was downloading.
-        if url in self.settings.get("customRegistries", []):
-            return {"added": False, "url": url, "reason": "already-added", "detail": ""}
-        if len(self.settings.get("customRegistries", [])) >= MAX_CUSTOM_REGISTRIES:
-            return {"added": False, "url": url, "reason": "too-many", "detail": str(MAX_CUSTOM_REGISTRIES)}
+        if refusal := refused():
+            return refusal
         # A list whose every entry is already shown (the official one pinned to a
         # commit, say) would be saved and fetched on every refresh for nothing.
         repos = {app["repo"].casefold() for app in self.apps}
@@ -604,10 +606,9 @@ class Plugin:
         return {"added": True, "url": url, "apps": added}
 
     async def remove_custom_registry(self, url: str):
-        wanted = url.strip() if isinstance(url, str) else ""
-        stored = next((item for item in self.settings.get("customRegistries", []) if item == wanted), None)
-        if stored is None:
-            return {"removed": False, "url": wanted}
+        stored = url.strip() if isinstance(url, str) else ""
+        if stored not in self.settings.get("customRegistries", []):
+            return {"removed": False, "url": stored}
         self.settings["customRegistries"].remove(stored)
         self._save_settings()
         try:

@@ -9,7 +9,7 @@ import { FaCheck, FaFileExport, FaFileImport, FaPlus, FaRedo, FaSearch, FaTimes,
 import { addCustomRegistry, addCustomRepo, exportCustomRepos, getApps, getCustomRegistries, getCustomRepos, importCustomRepos, REGISTRY_UPDATED, refreshRegistry, removeCustomRegistry, removeCustomRepo } from "../api";
 import { useT } from "../i18n";
 import type { MessageKey } from "../i18n/en";
-import type { ManagedRegistry, SearchRepo } from "../types";
+import type { SearchRepo } from "../types";
 import { compactButtonStyle, githubFetch, githubResponseError, isRepositoryName, log, registryLabel, registryUrlForRepo, sectionDividerStyle } from "../utils";
 
 const RESULTS_PER_PAGE = 5;
@@ -37,7 +37,7 @@ export function ManageRepositoriesPage() {
   const [searchError, setSearchError] = useState<string | null>(null);
   const [customRepos, setCustomRepos] = useState<string[]>([]);
   const [existingRepos, setExistingRepos] = useState<Set<string>>(new Set());
-  const [registries, setRegistries] = useState<ManagedRegistry[]>([]);
+  const [registries, setRegistries] = useState<string[]>([]);
   const [registryValue, setRegistryValue] = useState("");
   const [registryBusy, setRegistryBusy] = useState(false);
 
@@ -305,16 +305,16 @@ export function ManageRepositoriesPage() {
               </Button>
             </PanelSectionRow>
           )}
-          {registries.map((item) => (
-            <PanelSectionRow key={item.url}>
+          {registries.map((url) => (
+            <PanelSectionRow key={url}>
               <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <div style={{ flex: 1, minWidth: 0, overflowWrap: "anywhere" }}>
-                  {registryLabel(item.url)}
+                  {registryLabel(url)}
                   <br />
-                  <small>{item.url}</small>
+                  <small>{url}</small>
                 </div>
                 <div style={{ flex: "0 0 120px" }}>
-                  <Button style={compactButtonStyle} onClick={() => confirmRemoveRegistry(item.url)}>
+                  <Button style={compactButtonStyle} onClick={() => confirmRemoveRegistry(url)}>
                     <FaTrash /> {t("repos.removeRegistry")}
                   </Button>
                 </div>

@@ -28,8 +28,6 @@ def payload(*repos: str) -> dict:
                 "name": repo,
                 "repo": repo,
                 "category": "Test",
-                "versionStrategy": "semver",
-                "source": "releases",
                 "asset": {"include": [".zip"], "exclude": []},
             }
             for repo in repos
@@ -254,7 +252,7 @@ class CustomRegistryTests(unittest.TestCase):
 
     def test_get_lists_the_added_registries(self):
         with tempfile.TemporaryDirectory() as home:
-            self.assertEqual(asyncio.run(self.plugin(home, [CUSTOM_URL]).get_custom_registries()), {"registries": [{"url": CUSTOM_URL}]})
+            self.assertEqual(asyncio.run(self.plugin(home, [CUSTOM_URL]).get_custom_registries()), {"registries": [CUSTOM_URL]})
 
     # merging and fallbacks
 
