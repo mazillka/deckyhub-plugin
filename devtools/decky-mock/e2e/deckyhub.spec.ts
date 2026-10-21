@@ -1598,3 +1598,58 @@ test("Switching DeckyHub's channel in its update window doesn't toast, and the p
     await bridgeCall(page, "save_settings", defaultSettings);
   }
 });
+
+test("Custom registries: add, reject, refresh and remove", async ({ page }) => {
+  // dev-server.py serves https://registry.test/<name> from fixtures, no network.
+  const toasts: string[] = [];
+  page.on("console", (message) => message.text().startsWith("[decky-mock toast]") && toasts.push(message.text()));
+  const lastToast = () => expect.poll(() => toasts.at(-1) ?? "");
+  await page.goto("/?preview=/deckyhub/repositories&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  const add = app.getByRole("button", { name: "Add registry", exact: true });
+  try {
+    // One field: "owner/repo" expands to a GitHub URL, anything else is sent as a URL.
+    const url = app.getByLabel("GitHub owner/repo or registry URL (https://….json)");
+    for (const [value, message] of [
+      ["../..", "https:// URL ending in .json"],
+      ["http://registry.test/good.json", "https:// URL ending in .json"],
+      ["https://registry.test/missing.json", "Nothing at that URL"],
+      ["https://registry.test/empty.json", "already listed"],
+    ]) {
+      await url.fill(value);
+      await add.click();
+      await lastToast().toContain(message);
+    }
+    await expect(app.getByText("No custom registries yet.", { exact: false })).toBeVisible();
+
+    await url.fill("https://registry.test/good.json");
+    await add.click();
+    await lastToast().toContain("Registry added with 1 repositories");
+    await expect(app.getByText("https://registry.test/good.json", { exact: true })).toBeVisible();
+    const { result } = await bridgeCall(page, "get_apps");
+    expect(result.apps.map((item: { repo: string }) => item.repo)).toContain("example/fixture-app");
+
+    await url.fill("https://registry.test/good.json");
+    await add.click();
+    await lastToast().toContain("already in use");
+
+    // Refresh re-downloads every source (the official one served from the bundled
+    // file by dev-server.py) and must keep the added registry's app.
+    const bundled = JSON.parse(readFileSync(new URL("../../../registry/apps.json", import.meta.url), "utf8")).apps.length;
+    const refreshButton = app.getByRole("button", { name: "Refresh registries", exact: true });
+    const refreshed = page.waitForResponse((response) => response.request().postData()?.includes('"refresh_registry"') ?? false);
+    await refreshButton.click();
+    expect((await (await refreshed).json()).result).toEqual({ apps: bundled + 1 });
+    await expect(refreshButton).toBeEnabled();
+    await lastToast().toContain("already in use");
+
+    await app.getByRole("button", { name: "Remove", exact: true }).click();
+    await app.locator(".steam-modal").getByRole("button", { name: "Remove", exact: true }).click();
+    await expect(app.getByText("No custom registries yet.", { exact: false })).toBeVisible();
+    const after = await bridgeCall(page, "get_apps");
+    expect(after.result.apps.map((item: { repo: string }) => item.repo)).not.toContain("example/fixture-app");
+  } finally {
+    // settings.json is shared across runs; never leave the fixture registry behind.
+    await bridgeCall(page, "remove_custom_registry", "https://registry.test/good.json");
+  }
+});
