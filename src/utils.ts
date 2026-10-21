@@ -328,7 +328,7 @@ function traceDeckyInstall(pluginName: string) {
     log(`Decky install finish ${name} at ${elapsed()}`);
     if (name === pluginName) stop();
   };
-  // ponytail: fixed 10 min cap; Decky never sends finish after a silent failure.
+  // Backstop: Decky never sends finish after a silent failure.
   const timer = window.setTimeout(() => {
     log(`Decky install ${pluginName}: no finish after ${elapsed()} — check journalctl -u plugin_loader`);
     stop();
