@@ -65,6 +65,7 @@ No setup, no configuration — these show up in Discover the moment you install 
 | ThemeHub | Customization | [Kaal31/benderthemes](https://github.com/Kaal31/benderthemes) |
 | Spindeck | Customization | [justinca92/spindeck](https://github.com/justinca92/spindeck) |
 | Game Glance | Customization | [michpalm/game-glance](https://github.com/michpalm/game-glance) |
+| Decky MultiFrameGen | Frame Generation | [MWGIH/DeckyMultiFrameGen](https://github.com/MWGIH/DeckyMultiFrameGen) |
 
 Want more? Add any other GitHub repository from **Repositories** in seconds.
 
