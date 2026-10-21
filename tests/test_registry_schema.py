@@ -16,7 +16,7 @@ REGISTRY = Path(__file__).resolve().parent.parent / "registry" / "apps.json"
 # - anything else (renaming, retyping, removing, new required meaning) -> bump
 #   schemaVersion instead, so older versions reject it and keep their own list.
 REQUIRED = {"id": str, "name": str, "repo": str, "category": str, "detect": dict, "asset": dict}
-OPTIONAL = {"description": str, "releaseTagInclude": str, "versionStrategy": str, "source": str}
+OPTIONAL = {"description": str, "releaseTagInclude": str}
 
 
 def _string_list(value) -> bool:
@@ -44,8 +44,6 @@ class RegistrySchemaV1Tests(unittest.TestCase):
                     if key in app:
                         self.assertIsInstance(app[key], kind, key)
                 self.assertEqual(app["repo"].count("/"), 1)
-                # The only values the v1 frontend understands, when given.
-                self.assertEqual((app.get("versionStrategy", "semver"), app.get("source", "releases")), ("semver", "releases"))
                 self.assertEqual(set(app["detect"]), {"type", "names"})
                 self.assertEqual(app["detect"]["type"], "decky-plugin")
                 self.assertTrue(app["detect"]["names"] and _string_list(app["detect"]["names"]))

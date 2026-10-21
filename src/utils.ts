@@ -9,7 +9,7 @@ import { compareVersions, displayVersion, inChannel, normalizeVersion } from "./
 // are cached for 30 minutes (one shared entry per repo, see fetchReleases);
 // every cache read is bypassed by force=true wherever the user explicitly asks
 // to check (Refresh, Check for Updates).
-export const CACHE_TTL = 30 * 60 * 1000;
+const CACHE_TTL = 30 * 60 * 1000;
 const UPDATE_NOTICE_KEY = "deckyhub-update-notice";
 export const DEFAULT_COLUMNS_PER_ROW = 3;
 export const pageStyle = { boxSizing: "border-box" as const, height: "100%", overflowY: "auto" as const, padding: "64px 12px 96px", scrollPaddingBottom: 96, scrollPaddingTop: 64, width: "100%" };
