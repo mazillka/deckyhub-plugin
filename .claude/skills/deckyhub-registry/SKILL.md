@@ -29,7 +29,14 @@ Local checkouts sit side by side: `../deckyhub-registry` next to this repo. Clon
    DECKYHUB_REGISTRY=../deckyhub-registry/registry/apps.json python -m unittest tests.test_registry_schema
    ```
 
-3. Commit, push and open the registry PR. Its CI runs the same test. Merge it.
+   Then check the entry against GitHub the way DeckyHub will see it (repository, one matching ZIP per channel, the ZIP's `plugin.json` name in `detect.names`, no clashing ids, repos or detect names), from the registry checkout:
+
+   ```bash
+   GITHUB_TOKEN=$(gh auth token) python scripts/validate.py
+   ```
+
+   Fix every error. Warnings (no stable release, no SHA-256 digest, renamed or archived repo) are worth a look but don't fail CI.
+3. Commit, push and open the registry PR; `main` only accepts squash-merged PRs whose `validate` check passed. Its CI runs both checks. Merge it.
 4. **Plugin repo**, on a branch from `main`: sync both files from the merged registry:
 
    ```bash
@@ -44,6 +51,10 @@ Order matters: a plugin PR opened before the registry PR merges fails the CI syn
 ## The "Bundled registry matches" CI step failed
 
 The plugin's copy differs from the registry repo's `main`. Usually a registry PR merged without its sync. Run `python devtools/sync-registry.py` on the failing branch (or a new sync branch), commit, push. Don't "fix" it by editing the registry repo to match a stale plugin copy.
+
+## The registry's weekly CI run failed
+
+The registry repo's CI runs `scripts/validate.py` weekly, because a plugin's new release can break its entry (renamed ZIP, a second ZIP, a changed `plugin.json` name) with no change in the registry. Fix the entry in a registry PR, then sync the plugin repo as usual.
 
 ## Schema changes
 
