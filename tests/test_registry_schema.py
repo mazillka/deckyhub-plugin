@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import sys
 import types
 import unittest
@@ -8,9 +9,11 @@ from pathlib import Path
 sys.modules.setdefault("decky", types.SimpleNamespace(logger=logging.getLogger("decky-test")))
 from main import parse_registry  # noqa: E402
 
-REGISTRY = Path(__file__).resolve().parent.parent / "registry" / "apps.json"
+# DECKYHUB_REGISTRY points this at another copy: mazillka/deckyhub-registry's CI runs it there.
+REGISTRY = Path(os.environ.get("DECKYHUB_REGISTRY") or Path(__file__).resolve().parent.parent / "registry" / "apps.json")
 
-# Every released DeckyHub reads registry/apps.json from main, so this pins what
+# Every released DeckyHub reads registry/apps.json from main (here or in
+# mazillka/deckyhub-registry), so this pins what
 # schemaVersion 1 means. If this test fails on your change:
 # - adding an optional key older versions can safely ignore -> add it to OPTIONAL;
 # - anything else (renaming, retyping, removing, new required meaning) -> bump

@@ -48,7 +48,7 @@ Every test must be able to fail when the behavior it names breaks. Delete fake a
 Every change that alters what a user sees or does updates the docs in the same PR. `tests/test_docs.py` (run by `pnpm run test:backend`) enforces the mechanical parts.
 
 - User-visible behavior (screens, buttons, settings, install/download flow): update README's matching section, and the promo page's features/FAQ in `docs/index.html` if it describes it.
-- Registry apps added, removed or renamed in `registry/apps.json`: regenerate README's **Bundled repositories** table in the same order. The promo page's catalog is built from the file at deploy time.
+- Registry apps added, removed or renamed in [mazillka/deckyhub-registry](https://github.com/mazillka/deckyhub-registry): copy its `registry/apps.json` here and regenerate README's **Bundled repositories** table in the same order. The promo page's catalog is built from the file at deploy time.
 - Screenshots: replace the JPEG in `screenshots/`; the site build makes its WebP copies. A new screenshot also needs an `<img>` in `docs/index.html`.
 - New page in `docs/`: add it to `docs/sitemap.xml` and give it a `<title>`, meta description and canonical URL.
 - Architecture, commands or dev rules change: update `AGENTS.md`; release or contribution steps: `CONTRIBUTING.md`.
