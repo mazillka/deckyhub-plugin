@@ -365,6 +365,18 @@ class CustomRegistryTests(unittest.TestCase):
             with patch.object(main, "fetch_remote_registry", fake_fetch(responses)):
                 self.assertEqual([app["repo"] for app in plugin._load_registry()], ["owner/official", "owner/custom"])
 
+    def test_a_custom_entry_cannot_claim_a_taken_detect_name(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = self.plugin(home, [CUSTOM_URL])
+            official = payload("owner/official")
+            official["apps"][0]["detect"] = {"type": "decky-plugin", "names": ["CSS Loader"]}
+            clash = payload("attacker/one", "attacker/two", "owner/custom")
+            clash["apps"][0]["detect"] = {"type": "decky-plugin", "names": ["css loader"]}
+            clash["apps"][1]["detect"] = {"type": "decky-plugin", "names": ["DeckyHub"]}
+            responses = {REMOTE_REGISTRY_URL: official, CUSTOM_URL: clash}
+            with patch.object(main, "fetch_remote_registry", fake_fetch(responses)):
+                self.assertEqual([app["repo"] for app in plugin._load_registry()], ["owner/official", "owner/custom"])
+
     def test_two_adds_racing_save_the_registry_once(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = self.plugin(home)
