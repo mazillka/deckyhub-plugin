@@ -665,6 +665,7 @@ test("An outdated Decky plugin's card offers Update and hands it to Decky's inst
     const app = mock(page);
     const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
     await makoCard.getByRole("button", { name: "Update to v1.2.3", exact: true }).click();
+    await acceptDisclaimer(page, "Update to v1.2.3");
     // Decky's own dialog takes over, so the page is left.
     await expect(mock(page).locator(".qam-content")).toBeVisible();
 
@@ -676,6 +677,26 @@ test("An outdated Decky plugin's card offers Update and hands it to Decky's inst
     // Retries: on Windows the bridge's plugin scan can briefly lock the folder.
     rmSync(pluginDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
   }
+});
+
+// Every install first shows DeckyHub's no-responsibility disclaimer.
+async function acceptDisclaimer(page: Page, label: string) {
+  const confirm = mock(page).locator(".steam-modal", { hasText: "Install at your own risk." });
+  await confirm.getByRole("button", { name: label, exact: true }).click();
+}
+
+test("Nothing is installed until the disclaimer is accepted", async ({ page }) => {
+  await mockMakoReleases(page, [makoRelease("plugin-v1.2.3", "e".repeat(64))]);
+  await recordInstalls(page);
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Install v1.2.3", exact: true }).click();
+  const confirm = app.locator(".steam-modal", { hasText: "isn't responsible for anything" });
+  await confirm.getByRole("button", { name: "Cancel", exact: true }).click();
+
+  const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
+  expect(await frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([]);
+  await expect(app.getByRole("heading", { name: "MAKO Decky" })).toBeVisible();
 });
 
 test("The Manage window offers Install for a Decky plugin that isn't installed yet", async ({ page }) => {
@@ -692,6 +713,7 @@ test("The Manage window offers Install for a Decky plugin that isn't installed y
   await expect(modal.getByLabel("Version").locator("option")).toHaveText(["v1.2.3 (latest)"]);
   await expect(modal.getByRole("button", { name: "Update", exact: true })).toHaveCount(0);
   await modal.getByRole("button", { name: "Install v1.2.3", exact: true }).click();
+  await acceptDisclaimer(page, "Install v1.2.3");
   // Decky's own dialog takes over, so the page is left.
   await expect(mock(page).locator(".qam-content")).toBeVisible();
 
@@ -711,6 +733,7 @@ test("Discover's card installs the latest release of a Decky plugin that isn't i
   await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
   const makoCard = mock(page).getByRole("heading", { name: "MAKO Decky" }).locator("..");
   await makoCard.getByRole("button", { name: "Install v1.2.3", exact: true }).click();
+  await acceptDisclaimer(page, "Install v1.2.3");
   // Decky's own dialog takes over, so the page is left.
   await expect(mock(page).locator(".qam-content")).toBeVisible();
 
@@ -728,6 +751,7 @@ test("A release without a GitHub checksum installs with an empty hash", async ({
   await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
   const makoCard = mock(page).getByRole("heading", { name: "MAKO Decky" }).locator("..");
   await makoCard.getByRole("button", { name: "Install v1.2.3", exact: true }).click();
+  await acceptDisclaimer(page, "Install v1.2.3");
 
   // Decky Loader skips its SHA-256 check when the hash is empty.
   const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
@@ -759,6 +783,7 @@ test("The Manage window reinstalls or downgrades an installed Decky plugin to th
 
     await modal.getByLabel("Version").selectOption({ label: "v1.0.0" });
     await modal.getByRole("button", { name: "Downgrade to v1.0.0", exact: true }).click();
+    await acceptDisclaimer(page, "Downgrade to v1.0.0");
 
     const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
     await expect.poll(() => frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([
@@ -828,6 +853,7 @@ test("Update All sends every outdated Decky plugin to Decky's installer in one r
     const app = mock(page);
     await expect(app.getByRole("heading", { name: "Unifideck" })).toBeVisible();
     await app.getByRole("button", { name: "Update All (2)", exact: true }).click();
+    await acceptDisclaimer(page, "Update All (2)");
     // Decky's own dialog takes over, so the page is left.
     await expect(mock(page).locator(".qam-content")).toBeVisible();
 
@@ -1525,6 +1551,7 @@ test("A stalled Decky install warns once its progress goes quiet, a finished one
   const install = async () => {
     await app.getByRole("button", { name: "/deckyhub/discover" }).click();
     await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Install v1.2.3", exact: true }).click();
+    await acceptDisclaimer(page, "Install v1.2.3");
     await expect(app.locator(".qam-content")).toBeVisible();
   };
 

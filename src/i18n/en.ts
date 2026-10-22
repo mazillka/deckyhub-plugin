@@ -42,6 +42,7 @@ export const en = {
   "appcard.uninstallDescription": "This removes the plugin and its settings from this device. You can install it again later.",
   "appcard.uninstalled": "{name} was uninstalled.",
   "appcard.freshInstallDescription": "DeckyHub removes the installed version first, then Decky installs the selected one fresh. Updating in place can freeze the Deck because of a Decky Loader bug. If you cancel Decky's install dialog, {name} stays uninstalled until you install it again.",
+  "install.disclaimer": "DeckyHub only fetches releases from their authors' GitHub repositories. It doesn't make, review or vouch for these plugins and isn't responsible for anything they do to your device or data. Install at your own risk.",
   "appcard.noMatchingAsset": "No matching download for this version.",
 
   "dl.downloading": "Downloading {filename}",

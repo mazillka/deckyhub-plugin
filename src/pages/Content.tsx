@@ -7,6 +7,7 @@ import { useT } from "../i18n";
 import type { App, Asset, HideableButton, RepoPreference, UpdateChannel, View } from "../types";
 import { compactButtonStyle, DEFAULT_COLUMNS_PER_ROW, getDeckyBackend, hydrate, installAction, log, needsFreshInstall, notifyUpdates, PLUGIN_INSTALL_TYPE, sectionDividerStyle, updateDeckyPlugins } from "../utils";
 import { AppCard } from "../components/AppCard";
+import { confirmPluginInstall } from "../components/AppDetailsModal";
 import { CleanupSection } from "../components/CleanupSection";
 import { showDownloadModal } from "../components/DownloadProgress";
 import { FocusableGrid } from "../components/FocusableGrid";
@@ -214,7 +215,9 @@ export function Content({ fullPage }: { fullPage?: View }) {
       })
     : [];
   // Decky's own dialog takes over, so leave the page once the request is sent.
-  const updateAll = () => {
+  const updateAll = async () => {
+    const label = t("content.updateAll", { count: batchUpdates.length });
+    if (!(await confirmPluginInstall(t, `${label}?`, label))) return;
     setUpdatingAll(true);
     void updateDeckyPlugins(batchUpdates)
       .catch((error: unknown) => toaster.toast({ title: "DeckyHub", body: String(error) }))
@@ -262,7 +265,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
                   </div>
                   {batchUpdates.length > 1 && (
                     <div style={{ flex: 1 }}>
-                      <Button style={compactButtonStyle} disabled={updatingAll} onClick={updateAll}>
+                      <Button style={compactButtonStyle} disabled={updatingAll} onClick={() => void updateAll()}>
                         <FaArrowUp /> {t("content.updateAll", { count: batchUpdates.length })}
                       </Button>
                     </div>

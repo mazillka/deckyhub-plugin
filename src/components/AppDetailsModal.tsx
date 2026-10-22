@@ -9,6 +9,22 @@ import { buildVersionOptions, getDeckyBackend, installAction, installDeckyPlugin
 import { displayVersion } from "../version";
 import { ReleaseActions, useReleasePicker, VersionPickerPanel } from "./VersionPickerPanel";
 
+// Every install, update or reinstall of a third-party plugin first says
+// DeckyHub doesn't vouch for it; resolves true once the user accepts.
+export function confirmPluginInstall(t: TFunc, title: string, okLabel: string, note?: string): Promise<boolean> {
+  return new Promise((resolve) =>
+    showModal(
+      <ConfirmModal
+        strTitle={title}
+        strDescription={<>{t("install.disclaimer")}{note && <p>{note}</p>}</>}
+        strOKButtonText={okLabel}
+        onOK={() => resolve(true)}
+        onCancel={() => resolve(false)}
+      />,
+    ),
+  );
+}
+
 // Hands one release to Decky Loader's installer, shared by this window and the
 // card's quick Install/Update. installDeckyPlugin() uninstalls fresh-install
 // plugins first, before Decky's own dialog appears, so cancelling that dialog
@@ -27,10 +43,8 @@ export function startPluginInstall(t: TFunc, appName: string, asset: Asset, tag:
     onStarted?.();
     return request;
   };
-  if (!needsFreshInstall(action.name, action.type)) return start();
-  return new Promise((resolve) =>
-    showModal(<ConfirmModal strTitle={`${label}?`} strDescription={t("appcard.freshInstallDescription", { name: appName })} strOKButtonText={label} onOK={() => void start().then(resolve)} onCancel={() => resolve()} />),
-  );
+  const note = needsFreshInstall(action.name, action.type) ? t("appcard.freshInstallDescription", { name: appName }) : undefined;
+  return confirmPluginInstall(t, `${label}?`, label, note).then((accepted) => (accepted ? start() : undefined));
 }
 
 // showModal() mounts onto a separate root from the caller's tree (see the
