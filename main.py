@@ -182,6 +182,13 @@ def _valid_app(app: object) -> bool:
     return _string_list(detect.get("names", []))
 
 
+# Installed plugins are matched by these names, and the match decides which plugin
+# an Install/Update replaces - so a later source may not claim one an earlier source
+# already did, nor DeckyHub's own (see _load_registry).
+def _detect_names(app: dict) -> set[str]:
+    return {name.casefold() for name in app.get("detect", {}).get("names", [])}
+
+
 def parse_registry(payload: object) -> list[dict]:
     """Validate the portable registry format and ignore malformed records."""
     if not isinstance(payload, dict) or payload.get("schemaVersion") != 1 or not isinstance(payload.get("apps"), list):
@@ -286,15 +293,19 @@ class Plugin:
         apps = self._fetch_registry(REMOTE_REGISTRY_URL, bundled=True, prefetched=given(REMOTE_REGISTRY_URL), network=network)
         # First source wins: a user-added registry can add apps but never override
         # the detect rules or asset filters of an entry from the official registry,
-        # nor reuse its id (the frontend matches cards by id).
+        # nor reuse its id (the frontend matches cards by id), nor claim its detect
+        # names (an Update would install this repo's release over that plugin).
         seen = {app["repo"].casefold() for app in apps}
         seen_ids = {app["id"] for app in apps}
+        seen_names = {"deckyhub"}.union(*map(_detect_names, apps))
         # A copy: add/remove can change the list while this runs in a worker thread.
         for url in list(self.settings.get("customRegistries", [])):
             for app in self._fetch_registry(url, prefetched=given(url), network=network):
-                if app["repo"].casefold() not in seen and app["id"] not in seen_ids:
+                names = _detect_names(app)
+                if app["repo"].casefold() not in seen and app["id"] not in seen_ids and not names & seen_names:
                     seen.add(app["repo"].casefold())
                     seen_ids.add(app["id"])
+                    seen_names |= names
                     apps.append(app)
         return apps
 
@@ -590,7 +601,8 @@ class Plugin:
         # commit, say) would be saved and fetched on every refresh for nothing.
         repos = {app["repo"].casefold() for app in self.apps}
         ids = {app["id"] for app in self.apps}
-        if not any(app["repo"].casefold() not in repos and app["id"] not in ids for app in apps):
+        names = {"deckyhub"}.union(*map(_detect_names, self.apps))
+        if not any(app["repo"].casefold() not in repos and app["id"] not in ids and not _detect_names(app) & names for app in apps):
             return {"added": False, "url": url, "reason": "nothing-new", "detail": str(len(apps))}
         self.settings.setdefault("customRegistries", []).append(url)
         self._save_settings()
