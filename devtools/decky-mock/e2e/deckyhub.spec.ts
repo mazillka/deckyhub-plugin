@@ -578,6 +578,42 @@ test("The rate-limit message suggests adding a GitHub token only when none is co
   }
 });
 
+test("With a token set, an empty release list is asked again without the token", async ({ page }) => {
+  // GitHub sometimes answers [] to authenticated requests for repos that have releases.
+  const asked: string[] = [];
+  await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases**", (route) => {
+    const authorized = Boolean(route.request().headers().authorization);
+    asked.push(authorized ? "token" : "anonymous");
+    return route.fulfill({ json: authorized ? [] : [makoRelease("plugin-v1.5.0", "a".repeat(64))] });
+  });
+
+  try {
+    await bridgeCall(page, "save_settings", { overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: 3, githubToken: "ghp_already_set" });
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    const makoCard = mock(page).getByRole("heading", { name: "MAKO Decky" }).locator("..");
+    await expect(makoCard.getByText("Latest: v1.5.0", { exact: true })).toBeVisible();
+    expect(asked).toEqual(["token", "anonymous"]);
+  } finally {
+    await bridgeCall(page, "save_settings", { overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: 3, githubToken: "" });
+  }
+});
+
+test("An empty release list never replaces releases already seen", async ({ page }) => {
+  let releases: unknown[] = [makoRelease("plugin-v1.5.0", "a".repeat(64))];
+  await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases**", (route) => route.fulfill({ json: releases }));
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+  await expect(makoCard.getByText("Latest: v1.5.0", { exact: true })).toBeVisible();
+
+  releases = [];
+  const refetched = page.waitForRequest("https://api.github.com/repos/eugeniosegala/MAKO/releases**");
+  await app.getByRole("button", { name: "Refresh", exact: true }).click();
+  await refetched;
+  await expect(makoCard.getByText("Latest: v1.5.0", { exact: true })).toBeVisible();
+  await expect(makoCard.getByText("No matching release found.")).toHaveCount(0);
+});
+
 test("Settings' GitHub Access intro is a controller focus stop above the token field", async ({ page }) => {
   await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
   const app = mock(page);
