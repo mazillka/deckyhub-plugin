@@ -226,7 +226,7 @@ class CustomRegistryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as home:
             plugin = self.plugin(home)
             plugin.apps = parse_registry(payload("owner/official"))
-            url = "https://raw.githubusercontent.com/mazillka/deckyhub-plugin/HEAD/registry/apps.json"
+            url = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/HEAD/registry/apps.json"
             with patch.object(main, "fetch_remote_registry", fake_fetch({url: payload("owner/official")})):
                 self.assertEqual(asyncio.run(plugin.add_custom_registry(url))["reason"], "nothing-new")
 

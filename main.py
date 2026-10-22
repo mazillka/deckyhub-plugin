@@ -196,7 +196,9 @@ def parse_registry(payload: object) -> list[dict]:
     return [app for app in payload["apps"] if _valid_app(app)]
 
 
-REMOTE_REGISTRY_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-plugin/refs/heads/main/registry/apps.json"
+# The curated list lives in its own repository. Versions released before it moved read
+# this repository's registry/apps.json instead, which CI keeps identical to it.
+REMOTE_REGISTRY_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/refs/heads/main/registry/apps.json"
 MAX_REMOTE_REGISTRY_BYTES = 512 * 1024
 # How many user-added registries one install will track, so a bad list can't
 # turn startup into an unbounded sequence of network fetches.
