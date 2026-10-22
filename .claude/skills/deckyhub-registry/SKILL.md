@@ -37,20 +37,22 @@ Local checkouts sit side by side: `../deckyhub-registry` next to this repo. Clon
 
    Fix every error. Warnings (no stable release, no SHA-256 digest, renamed or archived repo) are worth a look but don't fail CI.
 3. Commit, push and open the registry PR; `main` only accepts squash-merged PRs whose `validate` check passed. Its CI runs both checks. Merge it.
-4. **Plugin repo**, on a branch from `main`: sync both files from the merged registry:
+4. **Plugin repo**, from a clean working tree: open the sync PR in one command:
 
    ```bash
-   python devtools/sync-registry.py
+   python devtools/sync-registry.py --pr
    ```
 
-   It writes `registry/apps.json` and regenerates README's **Bundled repositories** table. To sync from an unmerged registry branch, pass a path instead: `python devtools/sync-registry.py ../deckyhub-registry/registry/apps.json`.
-5. Bump `package.json` to the next pre-release (`2.1.1-rc.N`, as other registry PRs do), run `pnpm run test:backend`, and open the plugin PR titled like `feat: add <App> to the registry (<version>)`.
+   It branches from `origin/main`, copies the merged registry into `registry/apps.json`, regenerates README's **Bundled repositories** table, bumps `package.json` to the next pre-release (`2.1.1-rc.N` -> `rc.N+1`; a stable `X.Y.Z` -> `X.Y.(Z+1)-rc.1`), runs the backend tests, commits, pushes and runs `gh pr create`, titled like `feat: add <App> to the registry (<version>)`. If nothing changed it says so and leaves no branch.
+
+   Without `--pr` it only rewrites the two files, for doing the rest by hand; pass a path to sync from an unmerged registry branch: `python devtools/sync-registry.py ../deckyhub-registry/registry/apps.json`.
+5. Check the PR's CI and merge it.
 
 Order matters: a plugin PR opened before the registry PR merges fails the CI sync step, because that step compares against the registry repo's `main`.
 
 ## The "Bundled registry matches" CI step failed
 
-The plugin's copy differs from the registry repo's `main`. Usually a registry PR merged without its sync. Run `python devtools/sync-registry.py` on the failing branch (or a new sync branch), commit, push. Don't "fix" it by editing the registry repo to match a stale plugin copy.
+The plugin's copy differs from the registry repo's `main`. Usually a registry PR merged without its sync. Run `python devtools/sync-registry.py --pr` for a sync PR of its own, or plain `python devtools/sync-registry.py` on the failing branch, then commit and push. Don't "fix" it by editing the registry repo to match a stale plugin copy.
 
 ## The registry's weekly CI run failed
 
