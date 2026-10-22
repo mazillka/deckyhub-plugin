@@ -509,6 +509,16 @@ test("Discover reports an empty filtered result", async ({ page }) => {
   await expect(app.getByRole("heading", { name: "MAKO Decky" })).toBeVisible();
 });
 
+test("Discover filters by category", async ({ page }) => {
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await app.getByLabel("Category").selectOption("Mod Managers");
+
+  await expect(app.getByRole("heading", { name: "MAKO Decky" })).toHaveCount(0);
+  await app.getByLabel("Category").selectOption("");
+  await expect(app.getByRole("heading", { name: "MAKO Decky" })).toBeVisible();
+});
+
 test("A GitHub rate limit surfaces a friendly message instead of a raw status code", async ({ page }) => {
   const resetInTwoMinutes = Math.floor(Date.now() / 1000) + 120;
   await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases?per_page=20", (route) =>
