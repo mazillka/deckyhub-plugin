@@ -27,6 +27,9 @@ jobs:
           pnpm run build
           pnpm run test:frontend
           python3 -m unittest discover -s tests
+      # Older releases still read this copy, so it must track the registry repository.
+      - name: Bundled registry matches mazillka/deckyhub-registry
+        run: curl -fsSL https://raw.githubusercontent.com/mazillka/deckyhub-registry/refs/heads/main/registry/apps.json | diff - registry/apps.json
       - run: |
           npm ci --prefix devtools/decky-mock
           cd devtools/decky-mock
