@@ -23,7 +23,7 @@ const CARDS_PER_PAGE = 20;
 
 const NAV_LINKS = [["updates", FaArrowCircleUp], ["discover", FaSearch], ["repositories", FaListUl], ["settings", FaCog]] as const;
 
-// Same no-responsibility note the install confirm shows, kept in view on every DeckyHub screen.
+// Same no-responsibility note the install confirm shows, kept in view on the Updates and Discover pages.
 const disclaimerStyle = { color: "#ff6b6b", fontSize: "0.85em" };
 
 const countBadgeStyle = { minWidth: "1.5em", padding: "0 6px", borderRadius: 999, background: "#f0c33c", color: "#1a1a1a", fontSize: "0.8em", fontWeight: 700, lineHeight: "1.5em", textAlign: "center" as const };
@@ -338,9 +338,6 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const navigation = (
     <>
       <PanelSection>
-        <PanelSectionRow>
-          <div className="deckyhub-disclaimer" style={disclaimerStyle}>{t("install.disclaimer")}</div>
-        </PanelSectionRow>
         {NAV_LINKS.map(([page, Icon]) => (
           <PanelSectionRow key={page}>
             <Button style={compactButtonStyle} onClick={() => Navigation.Navigate(`/deckyhub/${page}`)}>
