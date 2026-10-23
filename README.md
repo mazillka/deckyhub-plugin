@@ -117,7 +117,7 @@ Under **Custom Registries**, add someone else's app list by its GitHub `owner/re
 
 ### Keeping DeckyHub itself updated
 
-The Quick Access Menu shows the installed version (**Current - vX.Y.Z**) and checks for a newer DeckyHub release in the background, with a notification the first time one appears; the button there then reads **Update to vX.Y.Z** instead of **Check for Updates**. Either button opens DeckyHub's update window, where you pick a channel (**Stable releases**, or **Pre-releases** for every release) and a version, then:
+The Quick Access Menu shows the installed version (**Current - vX.Y.Z**) and checks for a newer DeckyHub release in the background, with a notification the first time one appears; an **Update to vX.Y.Z** button then installs it straight away, like an app card's. **Manage** opens DeckyHub's update window, where you pick a channel (**Stable releases**, or **Pre-releases** for every release) and a version, then:
 
 - **Update to / Reinstall / Downgrade to vX.Y.Z** — hands that release to Decky Loader's own installer (the same one the Decky Store uses), which downloads it, verifies its SHA-256 checksum, and installs it in place. Only releases with a published checksum are offered.
 - **Download ZIP** — the classic path: saves the release ZIP to `/home/deck/Downloads/deckyhub`, which you then install yourself via Decky's settings → Developer → Install Plugin from ZIP.

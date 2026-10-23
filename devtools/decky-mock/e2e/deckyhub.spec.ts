@@ -245,9 +245,29 @@ test("DeckyHub automatically notifies about an available update", async ({ page 
   await page.reload();
   await expect(app.locator(".qam-content").getByRole("button", { name: "Update to v9.9.9", exact: true })).toBeVisible();
   await expect(app.getByText("DeckyHub: DeckyHub update v9.9.9 is available.")).toHaveCount(0);
-  await app.locator(".qam-content").getByRole("button", { name: "Update to v9.9.9", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
   await expect(app.locator(".steam-modal").getByRole("button", { name: "Update to v9.9.9", exact: true })).toBeVisible();
   await expect(app.getByRole("button", { name: "Release Page", exact: true })).toBeVisible();
+});
+
+test("DeckyHub's panel Update hands the newer release straight to Decky's installer", async ({ page }) => {
+  const sha256 = "b".repeat(64);
+  const url = "https://github.com/mazillka/deckyhub-plugin/releases/download/v9.9.9/DeckyHub-v9.9.9.zip";
+  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) => route.fulfill({ json: [{
+    tag_name: "v9.9.9", prerelease: false, html_url: "https://github.com/mazillka/deckyhub-plugin/releases/tag/v9.9.9",
+    assets: [{ name: "DeckyHub-v9.9.9.zip", browser_download_url: url, digest: `sha256:${sha256}` }],
+  }] }));
+  await recordInstalls(page);
+  await page.goto("/?bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  await app.locator(".qam-content").getByRole("button", { name: "Update to v9.9.9", exact: true }).click();
+
+  // No update window in between: Decky's own dialog takes over.
+  await expect(app.locator(".steam-modal")).toHaveCount(0);
+  const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
+  await expect.poll(() => frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([
+    ["utilities/install_plugin", url, "DeckyHub", "9.9.9", sha256, 2],
+  ]);
 });
 
 test("DeckyHub doesn't advertise an older release as an available update", async ({ page }) => {
@@ -263,9 +283,10 @@ test("DeckyHub doesn't advertise an older release as an available update", async
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
 
-  await expect(app.locator(".qam-content").getByRole("button", { name: "Check for Updates", exact: true })).toBeVisible();
+  await expect(app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true })).toBeVisible();
+  await expect(app.locator(".qam-content").getByRole("button", { name: /^Update to v/ })).toHaveCount(0);
   await expect(app.getByText(/DeckyHub update v0\.9\.0 is available/)).toHaveCount(0);
-  await app.locator(".qam-content").getByRole("button", { name: "Check for Updates", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
   await expect(app.getByRole("button", { name: "Downgrade to v0.9.0", exact: true })).toBeVisible();
 });
 
@@ -285,7 +306,7 @@ test("DeckyHub's Check for Updates snaps the version picker back to the channel'
   await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) => route.fulfill({ json: [installedRelease, olderRelease] }));
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await app.locator(".qam-content").getByRole("button", { name: "Check for Updates", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
 
   // Pick the older release to inspect a downgrade...
   await app.getByLabel("Version").selectOption({ label: "v0.9.0" });
@@ -319,7 +340,7 @@ test("DeckyHub distinguishes rc versions sharing the same release number", async
   );
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await app.locator(".qam-content").getByRole("button", { name: /^Update to v/ }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
 
   // The modal defaults to the channel's newest release (newerRcRelease is
   // versions[0] in the mocked list), not the installed one, so it shows
@@ -356,7 +377,7 @@ test("DeckyHub picks the newest release by publish date even when GitHub returns
   );
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await app.locator(".qam-content").getByRole("button", { name: /^Update to v/ }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
 
   await expect(app.locator(".steam-modal").getByRole("button", { name: `Update to ${newerRcTag}`, exact: true })).toBeVisible();
   await expect(app.locator(".steam-modal").getByLabel("Version")).toHaveValue(newerRcRelease.tag_name);
@@ -374,7 +395,7 @@ test("DeckyHub falls back to a clear message when automatic update can't reach D
   await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) => route.fulfill({ json: [deckyHubRelease] }));
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await app.locator(".qam-content").getByRole("button", { name: "Check for Updates", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
 
   // The dev mock never defines window.DeckyBackend, mirroring a Decky Loader
   // build old enough not to expose it — the same fallback path real users hit.
@@ -392,7 +413,7 @@ test("DeckyHub's Reinstall closes its window and hands the release to Decky's in
   await recordInstalls(page);
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await app.locator(".qam-content").getByRole("button", { name: "Check for Updates", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
   await app.getByRole("button", { name: `Reinstall v${deckyHubVersion}`, exact: true }).click();
 
   // Decky's own confirm/progress dialog takes over, so this window gets out of the way.
@@ -421,7 +442,7 @@ test("DeckyHub version picker re-filters by channel and leaves the channel as it
   await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) => route.fulfill({ json: [stableRelease, prereleaseRelease] }));
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await app.locator(".qam-content").getByRole("button", { name: "Check for Updates", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
   await expect(app.getByLabel("Version")).toHaveValue(deckyHubTag);
 
   await app.getByLabel("Update Channel").selectOption({ label: "Pre-releases" });
@@ -444,7 +465,7 @@ test("DeckyHub version picker re-filters by channel and leaves the channel as it
 test("DeckyHub update modal's Close button is full width and dismisses the modal", async ({ page }) => {
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await app.locator(".qam-content").getByRole("button", { name: "Check for Updates", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
 
   const [closeBox, modalBox] = await Promise.all([
     app.getByRole("button", { name: "Close", exact: true }).boundingBox(),
@@ -919,7 +940,8 @@ test("Display Settings can hide the Manage window's buttons", async ({ page }) =
     await app.getByText("Hide “Update”", { exact: true }).click();
     await expect(app.getByLabel("Hide “Update”")).toBeChecked();
     await app.getByRole("button", { name: "Quick Access widget" }).click();
-    await app.locator(".qam-content").getByRole("button", { name: /^(Update to v.*|Check for Updates)$/ }).click();
+    await expect(app.locator(".qam-content").getByRole("button", { name: /^Update to v/ })).toHaveCount(0);
+    await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
     modal = app.locator(".steam-modal");
     await expect(modal.getByLabel("Version").locator("option").first()).toBeAttached();
     await expect(modal.getByRole("button", { name: /^(Update to|Reinstall|Downgrade to|Download ZIP|Release Page)/ })).toHaveCount(0);
@@ -1471,7 +1493,7 @@ test("Every row of side-by-side controls lets the D-pad move left and right", as
 
   // DeckyHub's own update window.
   await app.getByRole("button", { name: "Quick Access widget", exact: true }).click();
-  await app.locator(".qam-content").getByRole("button", { name: "Check for Updates", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
   await expect(app.locator(".steam-modal").getByRole("button", { name: "Close", exact: true })).toBeVisible();
   expect(await sideBySideWithoutRightFlow(page)).toEqual([]);
 });
@@ -1674,7 +1696,7 @@ test("Switching DeckyHub's channel in its update window doesn't toast, and the p
     await page.goto("/?bridge=http://127.0.0.1:8643");
     const app = mock(page);
     const panel = app.locator(".qam-content");
-    await panel.getByRole("button", { name: "Check for Updates", exact: true }).click();
+    await panel.getByRole("button", { name: "Manage", exact: true }).click();
     const modal = app.locator(".steam-modal");
     await modal.getByLabel("Update Channel").selectOption("prerelease");
     await expect(modal.getByRole("button", { name: "Update to v9.9.9-rc.1", exact: true })).toBeVisible();
