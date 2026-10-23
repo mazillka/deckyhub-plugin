@@ -163,6 +163,15 @@
       "category": "Customization",
       "detect": { "type": "decky-plugin", "names": ["Finally Achievement Plugin"] },
       "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "glance-library",
+      "name": "Glance Library",
+      "description": "Replaces Steam's Library view with a customizable poster grid, with TabMaster tab sync.",
+      "repo": "shak18/game-glance",
+      "category": "Customization",
+      "detect": { "type": "decky-plugin", "names": ["Glance Library"] },
+      "asset": { "include": ["glance-library"], "exclude": ["source"] }
     }
   ]
 }

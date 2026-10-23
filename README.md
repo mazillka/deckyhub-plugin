@@ -71,6 +71,7 @@ No setup, no configuration — these show up in Discover the moment you install 
 | Game Glance | Customization | [michpalm/game-glance](https://github.com/michpalm/game-glance) |
 | Decky MultiFrameGen | Frame Generation | [MWGIH/DeckyMultiFrameGen](https://github.com/MWGIH/DeckyMultiFrameGen) |
 | Finally Achievement Plugin | Customization | [otisabiburada/finally-achievement-plugin](https://github.com/otisabiburada/finally-achievement-plugin) |
+| Glance Library | Customization | [shak18/game-glance](https://github.com/shak18/game-glance) |
 
 The list lives in [mazillka/deckyhub-registry](https://github.com/mazillka/deckyhub-registry) and refreshes when DeckyHub starts, so new apps show up without a DeckyHub update. Know a plugin that belongs here? Open an issue or pull request there.
 
