@@ -18,7 +18,7 @@ export const pageStyle = { boxSizing: "border-box" as const, height: "100%", ove
 // Centers an icon and its label on one line, whatever the button's width.
 export const iconRow = { display: "flex", alignItems: "center", justifyContent: "center", gap: 8 } as const;
 export const compactButtonStyle = { ...iconRow, width: "100%", minHeight: "var(--dh-button-height, 36px)", marginBottom: "var(--dh-button-gap, 8px)", padding: "var(--dh-button-padding, 6px 10px)" };
-export const modalButtonStyle = { ...iconRow, width: "100%", minHeight: "var(--dh-button-height, 36px)", padding: "var(--dh-button-padding, 6px 10px)" };
+export const modalButtonStyle = { ...compactButtonStyle, marginBottom: 0 };
 export const sectionDividerStyle = { borderTop: "1px solid rgba(255, 255, 255, 0.14)", margin: "var(--dh-divider-margin, 16px) 0" };
 export const windowGap = "var(--dh-window-gap, 10px)";
 export const gridGap = "var(--dh-grid-gap, 12px)";
@@ -415,11 +415,22 @@ function matchingAssets(app: App, assets: Asset[], extraInclude: string[] = []):
   });
 }
 
+// True the first time `value` is seen under `key`, so a toast shows once per
+// update. Without storage it's always true: the toast just repeats next time.
+export function seenOnce(key: string, value: string) {
+  try {
+    if (localStorage.getItem(key) === value) return false;
+    localStorage.setItem(key, value);
+  } catch {
+    // Storage unavailable.
+  }
+  return true;
+}
+
 export function notifyUpdates(apps: App[]) {
   const updates = apps.filter((app) => app.updateAvailable && app.latestVersion);
   const notice = updates.map((app) => `${app.repo}:${app.latestVersion}`).sort().join("|");
-  if (!notice || localStorage.getItem(UPDATE_NOTICE_KEY) === notice) return;
-  localStorage.setItem(UPDATE_NOTICE_KEY, notice);
+  if (!notice || !seenOnce(UPDATE_NOTICE_KEY, notice)) return;
   toaster.toast({ title: tr("toast.updatesAvailable", { count: updates.length }), body: updates.map((app) => `${app.name} (${app.latestVersion})`).join(", ") });
 }
 

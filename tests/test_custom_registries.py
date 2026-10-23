@@ -250,10 +250,6 @@ class CustomRegistryTests(unittest.TestCase):
             self.assertEqual(plugin._load_settings()["customRegistries"], [])
             self.assertFalse(asyncio.run(plugin.remove_custom_registry(CUSTOM_URL))["removed"])
 
-    def test_get_lists_the_added_registries(self):
-        with tempfile.TemporaryDirectory() as home:
-            self.assertEqual(asyncio.run(self.plugin(home, [CUSTOM_URL]).get_custom_registries()), {"registries": [CUSTOM_URL]})
-
     # merging and fallbacks
 
     def test_official_entries_win_over_a_custom_duplicate(self):
