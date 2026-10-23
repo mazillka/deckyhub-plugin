@@ -60,6 +60,10 @@ Every change that alters what a user sees or does updates the docs in the same P
 - Treat repository names and imported files as untrusted input; validate them at the backend boundary.
 - Preserve SHA-256 verification for DeckyHub self-updates. Other plugins may install without a checksum (Decky receives an empty hash).
 
+## Dependencies
+
+- Keep every package and pinned Action current: the [update-dependencies skill](.claude/skills/update-dependencies/SKILL.md) updates the root, the decky-mock and the workflows together in one PR.
+
 ## Release
 
 - One topic per PR (PRs are squash-merged, see CONTRIBUTING.md); the PR must typecheck.
