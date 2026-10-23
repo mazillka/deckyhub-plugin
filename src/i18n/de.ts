@@ -43,6 +43,8 @@ export const de: Record<MessageKey, string> = {
   "appcard.uninstallDescription": "Das Plugin und seine Einstellungen werden von diesem Gerät entfernt. Du kannst es später erneut installieren.",
   "appcard.uninstalled": "{name} wurde deinstalliert.",
   "appcard.freshInstallDescription": "DeckyHub entfernt zuerst die installierte Version, dann installiert Decky die ausgewählte neu. Ein Update an Ort und Stelle kann das Deck wegen eines Fehlers in Decky Loader einfrieren. Wenn du Deckys Installationsdialog abbrichst, bleibt {name} deinstalliert, bis du es erneut installierst.",
+  "appcard.releaseInfo": "Release-Infos",
+  "appcard.noReleaseNotes": "Dieses Release hat keine Hinweise.",
   "install.disclaimer": "DeckyHub lädt Releases nur aus den GitHub-Repositorys ihrer Autoren. Es erstellt, prüft oder garantiert diese Plugins nicht und ist nicht verantwortlich für das, was sie mit deinem Gerät oder deinen Daten tun. Installation auf eigene Gefahr.",
   "appcard.noMatchingAsset": "Kein passender Download für diese Version.",
 

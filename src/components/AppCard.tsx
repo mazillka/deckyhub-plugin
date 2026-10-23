@@ -1,4 +1,4 @@
-import { DialogButtonPrimary as Button, Navigation, PanelSection, PanelSectionRow, showModal } from "@decky/ui";
+import { DialogButtonPrimary as Button, ConfirmModal, Navigation, PanelSection, PanelSectionRow, showModal } from "@decky/ui";
 import { useState } from "react";
 import { FaArrowUp, FaCog, FaPlus } from "react-icons/fa";
 import { useT } from "../i18n";
@@ -37,6 +37,21 @@ export function AppCard({
   const [installing, setInstalling] = useState(false);
   const latest = app.latestVersion ? displayVersion(app.latestVersion).replace(/^v/, "") : "";
   const quickLabel = t(isUpdate ? "settings.updateTo" : "appcard.installVersion", { version: latest });
+  // Y on the Install/Update button shows what that release changes before installing it.
+  const showReleaseInfo = () =>
+    showModal(
+      <ConfirmModal
+        bAlertDialog
+        strTitle={`${app.name} v${latest}`}
+        strDescription={
+          <div style={{ whiteSpace: "pre-wrap" }}>
+            {app.publishedAt && <p><small>{new Date(app.publishedAt).toLocaleDateString()}</small></p>}
+            {/* ponytail: raw markdown minus images and HTML tags; render markdown if plain text reads badly. */}
+            {app.releaseNotes?.replace(/!\[[^\]]*\]\([^)]*\)|<[^>]*>/g, "").replace(/\n{3,}/g, "\n\n").trim() || t("appcard.noReleaseNotes")}
+          </div>
+        }
+      />,
+    );
   return (
     <PanelSection title={app.name}>
       <PanelSectionRow>
@@ -72,6 +87,8 @@ export function AppCard({
           <Button
             style={compactButtonStyle}
             disabled={installing}
+            onSecondaryButton={showReleaseInfo}
+            onSecondaryActionDescription={t("appcard.releaseInfo")}
             onClick={() => {
               setInstalling(true);
               void startPluginInstall(t, app.name, app.assets[0], app.latestVersion!, install, quickLabel, leavePage).finally(() => setInstalling(false));

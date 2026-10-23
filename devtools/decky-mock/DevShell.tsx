@@ -11,6 +11,8 @@ export default function DevShell() {
   const [, forceUpdate] = useState(0);
   const [descriptor, setDescriptor] = useState<{ name: string; content?: React.ReactElement; onDismount?: () => void } | null>(null);
   const [activePath, setActivePath] = useState<string | null>(() => new URLSearchParams(window.location.search).get("preview"));
+  // Y-button description of the focused control, as Steam's footer legend shows it.
+  const [secondaryHint, setSecondaryHint] = useState("");
 
   useEffect(() => {
     const onRoutesChanged = () => forceUpdate((value) => value + 1);
@@ -79,10 +81,15 @@ export default function DevShell() {
       lastDirection = direction;
       pollTimer = window.setTimeout(pollController, 100);
     };
+    const onFocus = () => setSecondaryHint((document.activeElement as HTMLElement | null)?.dataset.secondaryHint ?? "");
     document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("focusin", onFocus);
+    document.addEventListener("focusout", onFocus);
     pollController();
     return () => {
       document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("focusin", onFocus);
+      document.removeEventListener("focusout", onFocus);
       window.clearTimeout(pollTimer);
     };
   }, []);
@@ -124,7 +131,7 @@ export default function DevShell() {
             <div className="steam-page-content">
               <ActivePage />
             </div>
-            <footer className="steam-bottombar"><span className="steam-menu">STEAM &nbsp; MENU</span><span>Ⓐ Select &nbsp;&nbsp; Ⓑ Back</span></footer>
+            <footer className="steam-bottombar"><span className="steam-menu">STEAM &nbsp; MENU</span><span className="steam-legend">Ⓐ Select &nbsp;&nbsp; Ⓑ Back{secondaryHint && <> &nbsp;&nbsp; Ⓨ {secondaryHint}</>}</span></footer>
           </div>
         ) : (
           <div className="game-backdrop">
@@ -132,7 +139,7 @@ export default function DevShell() {
               <header className="qam-header"><span className="qam-title">⋯ <span>Quick Access</span></span><span>⚙</span></header>
               <p className="qam-app-name">{descriptor.name}</p>
               <div className="qam-content">{descriptor.content}</div>
-              <footer className="steam-bottombar"><span className="steam-menu">STEAM &nbsp; MENU</span><span>Ⓐ Select &nbsp;&nbsp; Ⓑ Back</span></footer>
+              <footer className="steam-bottombar"><span className="steam-menu">STEAM &nbsp; MENU</span><span className="steam-legend">Ⓐ Select &nbsp;&nbsp; Ⓑ Back{secondaryHint && <> &nbsp;&nbsp; Ⓨ {secondaryHint}</>}</span></footer>
             </aside>
           </div>
         )}
