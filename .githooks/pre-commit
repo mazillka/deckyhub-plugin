@@ -2,7 +2,7 @@
 
 branch=$(git branch --show-current)
 case "$branch" in
-  main|staging)
+  main|develop|staging)
     echo "Direct commits to $branch are blocked. Create a <topic> branch first." >&2
     exit 1
     ;;

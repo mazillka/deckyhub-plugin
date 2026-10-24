@@ -14,7 +14,7 @@ The curated list lives in two places that must stay byte-identical:
 
 Edit the registry repo first, then sync the plugin repo. Never edit the plugin's copy by hand.
 
-Local checkouts sit side by side: `../deckyhub-registry` next to this repo. Clone it with `gh repo clone mazillka/deckyhub-registry` if it's missing. Both repos follow [CONTRIBUTING.md](../../../CONTRIBUTING.md#releases): work on a short kebab-case branch, never commit to `main`, one topic per PR, squash-merge.
+Local checkouts sit side by side: `../deckyhub-registry` next to this repo. Clone it with `gh repo clone mazillka/deckyhub-registry` if it's missing. Both repos follow [CONTRIBUTING.md](../../../CONTRIBUTING.md#releases): work on a short kebab-case branch, never commit to `main` (in this repo, branch from and target `develop`), one topic per PR, squash-merge.
 
 ## Adding, removing or editing an app
 
@@ -43,7 +43,7 @@ Local checkouts sit side by side: `../deckyhub-registry` next to this repo. Clon
    python devtools/sync-registry.py --pr
    ```
 
-   It branches from `origin/main`, copies the merged registry into `registry/apps.json`, regenerates README's **Bundled repositories** table, bumps `package.json` to the next pre-release (`2.1.1-rc.N` -> `rc.N+1`; a stable `X.Y.Z` -> `X.Y.(Z+1)-rc.1`), runs the backend tests, commits, pushes and runs `gh pr create`, titled like `feat: add <App> to the registry (<version>)`. If nothing changed it says so and leaves no branch.
+   It branches from `origin/develop`, copies the merged registry into `registry/apps.json`, regenerates README's **Bundled repositories** table, bumps `package.json` to the next pre-release (`2.1.1-rc.N` -> `rc.N+1`; a stable `X.Y.Z` -> `X.Y.(Z+1)-rc.1`), runs the backend tests, commits, pushes and runs `gh pr create`, titled like `feat: add <App> to the registry (<version>)`. If nothing changed it says so and leaves no branch.
 
    Without `--pr` it only rewrites the two files, for doing the rest by hand; pass a path to sync from an unmerged registry branch: `python devtools/sync-registry.py ../deckyhub-registry/registry/apps.json`.
 5. Check the PR's CI and merge it.

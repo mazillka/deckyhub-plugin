@@ -48,11 +48,11 @@ Users can point DeckyHub at their own registries too (**Repositories** → **Cus
 
 ## Releases
 
-Create work branches as `<short-kebab-case-topic>`; add an ISO date suffix only when needed for uniqueness. Do not work directly on `main`.
+`develop` is where all new work lands; `main` holds stable releases only. Create work branches from `origin/develop` as `<short-kebab-case-topic>` (add an ISO date suffix only when needed for uniqueness) and open their PRs against `develop`. Do not work directly on `develop` or `main`. A stable release is a PR from `develop` into `main`; pre-releases (`vX.Y.Z-rc.N`) are tagged on `develop`, stable releases (`vX.Y.Z`) on `main`.
 
-Merge pull requests with **Squash and merge** so `main` keeps one commit per PR; keep each PR to a single topic and use its title as the commit message.
+Merge feature pull requests into `develop` with **Squash and merge** so it keeps one commit per PR; keep each PR to a single topic and use its title as the commit message.
 
-The repository's `.githooks/pre-commit` hook blocks commits on `main`. Activate it once per checkout with `git config core.hooksPath .githooks`; protected branches on GitHub should enforce the same rule remotely.
+The repository's `.githooks/pre-commit` hook blocks commits on `develop` and `main`. Activate it once per checkout with `git config core.hooksPath .githooks`; protected branches on GitHub should enforce the same rule remotely.
 
 To release, bump `version` in `package.json` (the backend reads it at runtime; there is no second copy), then push a `v*` Git tag. The tag starts the GitHub Actions release workflow. It fails unless the tag is `v` plus the `package.json` version. It installs the locked packages, typechecks, builds, runs the frontend and backend tests and the browser E2E suite in `devtools/decky-mock/`, and packages the Decky plugin with a read-only token; a separate publish job then attaches `DeckyHub-v*.zip` to the GitHub release. Release-notes conventions are in the Release section of [AGENTS.md](AGENTS.md).
 

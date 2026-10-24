@@ -3,9 +3,11 @@ updates:
   - package-ecosystem: npm
     directory: /
     schedule: { interval: weekly }
+    target-branch: develop
   - package-ecosystem: npm
     directory: /devtools/decky-mock
     schedule: { interval: weekly }
+    target-branch: develop
     groups:
       # react and react-dom must stay on the exact same version.
       react:
@@ -13,3 +15,4 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly }
+    target-branch: develop

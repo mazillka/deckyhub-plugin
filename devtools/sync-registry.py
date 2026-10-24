@@ -5,7 +5,7 @@
     python devtools/sync-registry.py --pr           # all of it as a pull request
 
 --pr does the whole routine after a registry PR merges: a fresh branch from
-origin/main, the sync, the next pre-release version in package.json, the backend
+origin/develop, the sync, the next pre-release version in package.json, the backend
 tests, a commit, a push and `gh pr create`. It needs a clean working tree and
 stops without a branch when there's nothing to sync.
 
@@ -73,11 +73,11 @@ def git(*args: str) -> str:
 
 def pull_request() -> None:
     if git("status", "--porcelain", "--untracked-files=no"):
-        sys.exit("Commit or stash your changes first: --pr starts a new branch from origin/main")
-    start = git("branch", "--show-current") or "main"
-    git("fetch", "origin", "main")
+        sys.exit("Commit or stash your changes first: --pr starts a new branch from origin/develop")
+    start = git("branch", "--show-current") or "develop"
+    git("fetch", "origin", "develop")
     branch = f"sync-registry-{time.strftime('%Y-%m-%d-%H%M%S')}"
-    git("switch", "-c", branch, "origin/main")
+    git("switch", "-c", branch, "origin/develop")
     # Compared as text, not via git status: with core.autocrlf a rewritten file shows
     # as modified even when only its line endings differ.
     old_registry, old_readme = REGISTRY.read_text(encoding="utf-8"), README.read_text(encoding="utf-8")
@@ -108,7 +108,7 @@ def pull_request() -> None:
     git("add", str(REGISTRY), str(README), str(PACKAGE))
     git("commit", "-m", title)
     git("push", "-u", "origin", branch)
-    subprocess.run(["gh", "pr", "create", "--base", "main", "--head", branch, "--title", title, "--body", body], cwd=ROOT, check=True)
+    subprocess.run(["gh", "pr", "create", "--base", "develop", "--head", branch, "--title", title, "--body", body], cwd=ROOT, check=True)
 
 
 def main() -> None:

@@ -2,6 +2,12 @@
 
 Use these project skills when working in this repository.
 
+## Branches
+
+- `develop` is the integration branch: branch every feature, fix and pre-release from `origin/develop` and open its PR against `develop`.
+- `main` holds stable releases only. It changes only through a PR from `develop` when cutting a stable `vX.Y.Z`; never branch from it or target it with feature work.
+- Pre-release tags (`vX.Y.Z-rc.N`) are cut from `develop`; stable tags from `main`. Details in [CONTRIBUTING.md](CONTRIBUTING.md#releases).
+
 ## Steam Deck UI
 
 - Verify UI behavior in the mock and on real Steam Deck hardware before release. Controller-focus and modal rules are in [AGENTS.md](AGENTS.md#development-rules).
