@@ -8,6 +8,16 @@ import { displayVersion } from "../version";
 import type { TFunc } from "../i18n/en";
 import { AppDetailsModal, startPluginInstall } from "./AppDetailsModal";
 
+// ponytail: raw markdown minus images and HTML tags; render markdown if plain text reads badly.
+// Repeats until nothing changes, so a nested tag like <scr<b>ipt> can't reassemble one.
+function plainNotes(notes = "") {
+  for (let previous = ""; previous !== notes; ) {
+    previous = notes;
+    notes = notes.replace(/!\[[^\]]*\]\([^)]*\)|<[^>]*>/g, "");
+  }
+  return notes.replace(/\n{3,}/g, "\n\n").trim();
+}
+
 // Y on an Install/Update button shows what that release changes before installing it.
 export const showReleaseInfo = (t: TFunc, title: string, publishedAt?: string | null, notes?: string) =>
   showModal(
@@ -17,8 +27,7 @@ export const showReleaseInfo = (t: TFunc, title: string, publishedAt?: string | 
       strDescription={
         <div style={{ whiteSpace: "pre-wrap" }}>
           {publishedAt && <p><small>{new Date(publishedAt).toLocaleDateString()}</small></p>}
-          {/* ponytail: raw markdown minus images and HTML tags; render markdown if plain text reads badly. */}
-          {notes?.replace(/!\[[^\]]*\]\([^)]*\)|<[^>]*>/g, "").replace(/\n{3,}/g, "\n\n").trim() || t("appcard.noReleaseNotes")}
+          {plainNotes(notes) || t("appcard.noReleaseNotes")}
         </div>
       }
     />,
