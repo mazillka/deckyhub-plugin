@@ -13,6 +13,7 @@ export const zh: Record<MessageKey, string> = {
 
   "filter.search": "搜索",
   "filter.status": "状态",
+  "filter.category": "分类",
   "filter.all": "全部",
   "filter.installed": "已安装",
   "filter.notInstalled": "未安装",

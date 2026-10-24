@@ -33,6 +33,8 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const [downloading, setDownloading] = useState(false);
   const [query, setQuery] = useState("");
   const [installedFilter, setInstalledFilter] = useState("All");
+  // "" means every category.
+  const [categoryFilter, setCategoryFilter] = useState("");
   const [cardPage, setCardPage] = useState(0);
   const [columnsPerRow, setColumnsPerRow] = useState(DEFAULT_COLUMNS_PER_ROW);
   const [repoPreferences, setRepoPreferences] = useState<Record<string, RepoPreference>>({});
@@ -153,6 +155,10 @@ export function Content({ fullPage }: { fullPage?: View }) {
     setApps((current) => current.map((app) => (app.repo === repo ? { ...app, channel } : app)));
   };
 
+  const categories = [...new Set(apps.map((app) => app.category))].sort((a, b) => a.localeCompare(b));
+  // A category that vanished on reload (registry change) stops filtering rather than hiding everything.
+  const activeCategory = categories.includes(categoryFilter) ? categoryFilter : "";
+
   const discoverFilters = view === "discover" && (
     <PanelSection>
       <PanelSectionRow>
@@ -176,6 +182,18 @@ export function Content({ fullPage }: { fullPage?: View }) {
               />
             </div>
           </div>
+          <div style={{ flex: "0 0 220px" }}>
+            <div style={{ fontSize: "0.85em" }}>
+              <div style={{ marginBottom: 4 }}>{t("filter.category")}</div>
+              <Dropdown
+                {...({ "aria-label": t("filter.category"), style: { width: "100%" } } as any)}
+                menuLabel={t("filter.category")}
+                rgOptions={[{ label: t("filter.all"), data: "" }, ...categories.map((category) => ({ label: category, data: category }))]}
+                selectedOption={activeCategory}
+                onChange={({ data }) => { setCategoryFilter(data); setCardPage(0); }}
+              />
+            </div>
+          </div>
         </Focusable>
       </PanelSectionRow>
     </PanelSection>
@@ -185,7 +203,8 @@ export function Content({ fullPage }: { fullPage?: View }) {
     view === "updates"
       ? app.updateAvailable === true
       : (!query || `${app.name} ${app.repo} ${app.category} ${app.description ?? ""}`.toLowerCase().includes(query.toLowerCase())) &&
-        (installedFilter === "All" || (installedFilter === "Installed") === Boolean(app.installedVersion)),
+        (installedFilter === "All" || (installedFilter === "Installed") === Boolean(app.installedVersion)) &&
+        (!activeCategory || app.category === activeCategory),
   );
   // Decky plugins the Updates page can update in one batch (see updateDeckyPlugins).
   const batchUpdates = view === "updates" && !hiddenButtons.includes("update")
@@ -290,9 +309,9 @@ export function Content({ fullPage }: { fullPage?: View }) {
                       <FaSearch /> {t("nav.discover")}
                     </Button>
                   </PanelSectionRow>
-                ) : (query || installedFilter !== "All") && (
+                ) : (query || installedFilter !== "All" || activeCategory) && (
                   <PanelSectionRow>
-                    <Button style={compactButtonStyle} onClick={() => { setQuery(""); setInstalledFilter("All"); }}>
+                    <Button style={compactButtonStyle} onClick={() => { setQuery(""); setInstalledFilter("All"); setCategoryFilter(""); }}>
                       <FaTimes /> {t("repos.clear")}
                     </Button>
                   </PanelSectionRow>

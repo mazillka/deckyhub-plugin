@@ -13,6 +13,7 @@ export const ru: Record<MessageKey, string> = {
 
   "filter.search": "Поиск",
   "filter.status": "Статус",
+  "filter.category": "Категория",
   "filter.all": "Все",
   "filter.installed": "Установлено",
   "filter.notInstalled": "Не установлено",

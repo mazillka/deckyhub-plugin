@@ -12,6 +12,7 @@ export const en = {
 
   "filter.search": "Search",
   "filter.status": "Status",
+  "filter.category": "Category",
   "filter.all": "All",
   "filter.installed": "Installed",
   "filter.notInstalled": "Not Installed",

@@ -13,6 +13,7 @@ export const es: Record<MessageKey, string> = {
 
   "filter.search": "Buscar",
   "filter.status": "Estado",
+  "filter.category": "Categoría",
   "filter.all": "Todos",
   "filter.installed": "Instalado",
   "filter.notInstalled": "No instalado",

@@ -13,6 +13,7 @@ export const ja: Record<MessageKey, string> = {
 
   "filter.search": "検索",
   "filter.status": "状態",
+  "filter.category": "カテゴリ",
   "filter.all": "すべて",
   "filter.installed": "インストール済み",
   "filter.notInstalled": "未インストール",

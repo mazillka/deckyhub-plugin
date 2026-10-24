@@ -13,6 +13,7 @@ export const uk: Record<MessageKey, string> = {
 
   "filter.search": "Пошук",
   "filter.status": "Статус",
+  "filter.category": "Категорія",
   "filter.all": "Усі",
   "filter.installed": "Встановлено",
   "filter.notInstalled": "Не встановлено",
