@@ -96,7 +96,7 @@ print(f"[decky-mock] Plugin ready. Fake DECKY_HOME: {fake_decky.DECKY_HOME}")
 # Installs first download their ZIP (Plugin.stage_install), but E2E release
 # assets are made up, so check them the same way and hand back a path without
 # the network; tests/test_plugin_status.py covers the real download.
-async def _stage_install(asset, repo=None):
+async def _stage_install(asset, repo=None, job_id=None):
     try:
         return {"path": f"/deckyhub-installs/{Plugin._validate_download_asset(asset, repo)}"}
     except ValueError as error:

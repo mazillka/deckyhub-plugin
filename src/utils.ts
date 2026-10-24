@@ -1,5 +1,6 @@
 import { fetchNoCors, toaster } from "@decky/api";
 import { getSettings, logFrontend, stageInstall } from "./api";
+import { showInstallDownloadModal } from "./components/DownloadProgress";
 import { en, type MessageKey, type TFunc } from "./i18n/en";
 import type { App, AppReleaseOption, Asset, DeckyHubRelease, DeckyHubReleaseOption, RepoPreference, UpdateChannel } from "./types";
 import { compareVersions, displayVersion, inChannel, normalizeVersion } from "./version";
@@ -289,7 +290,9 @@ const FRESH_INSTALL_PLUGINS = ["Unifideck"];
 export const needsFreshInstall = (pluginName: string, installType: number) => installType !== PLUGIN_INSTALL_TYPE.INSTALL && FRESH_INSTALL_PLUGINS.includes(pluginName);
 
 async function localZip(asset: Asset, repo: string) {
-  const { path, error } = await stageInstall(asset, repo);
+  const jobId = `install-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  showInstallDownloadModal(tr, jobId, asset.name, asset.size);
+  const { path, error } = await stageInstall(asset, repo, jobId);
   if (!path) throw new Error(error);
   return `file://${path}`;
 }
@@ -313,7 +316,9 @@ export async function installDeckyPlugin(asset: Asset, repo: string, pluginName:
 // all and installs them in order. Fresh-install plugins need their uninstall
 // first, so callers leave them out.
 export async function updateDeckyPlugins(updates: { asset: Asset; repo: string; name: string; version: string }[]) {
-  const artifacts = await Promise.all(updates.map(({ asset, repo }) => localZip(asset, repo)));
+  // One at a time, so a single progress window shows at once.
+  const artifacts: string[] = [];
+  for (const { asset, repo } of updates) artifacts.push(await localZip(asset, repo));
   return callDeckyLoader(
     "utilities/install_plugins",
     updates.map(({ asset, name, version }, index) => ({ artifact: artifacts[index], name, version: normalizeVersion(displayVersion(version)), hash: asset.sha256 ?? "", install_type: PLUGIN_INSTALL_TYPE.UPDATE })),

@@ -464,10 +464,18 @@ class PluginStatusTests(unittest.TestCase):
             os.utime(stale, (0, 0))
             asset = {"name": "../a.zip", "url": "https://github.com/owner/repo/releases/download/v1/a.zip", "sha256": hashlib.sha256(b"data").hexdigest()}
 
-            with patch.object(plugin, "_download_with_urllib", side_effect=lambda job_id, asset, temp: temp.write_bytes(b"data")):
-                result = asyncio.run(plugin.stage_install(asset, "owner/repo"))
+            seen = []
 
+            def fake_download(job_id, asset, temp):
+                seen.append(asyncio.run(plugin.get_download("poll-me"))["state"])
+                temp.write_bytes(b"data")
+
+            with patch.object(plugin, "_download_with_urllib", side_effect=fake_download):
+                result = asyncio.run(plugin.stage_install(asset, "owner/repo", "poll-me"))
+
+            self.assertEqual(seen, ["downloading"])
             path = Path(result["path"])
+            self.assertNotIn("poll-me", path.name)
             self.assertEqual(path.parent, Path(home) / "installs")
             self.assertTrue(path.name.endswith("-a.zip"))
             self.assertEqual(path.read_bytes(), b"data")
