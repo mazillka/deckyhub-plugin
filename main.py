@@ -79,11 +79,7 @@ _OPENER = build_opener(_HttpsOnlyRedirects, HTTPSHandler(context=verifying_ssl_c
 
 
 def _coerce_columns_per_row(value) -> int:
-    try:
-        columns = int(value)
-    except (TypeError, ValueError):
-        return DEFAULT_COLUMNS_PER_ROW
-    return columns if columns in (1, 2, 3) else DEFAULT_COLUMNS_PER_ROW
+    return value if type(value) is int and value in (1, 2, 3) else DEFAULT_COLUMNS_PER_ROW
 
 
 # The frontend sends this straight to api.github.com's Authorization header
@@ -505,9 +501,6 @@ class Plugin:
         decky.logger.info("Added repository %s", repo)
         return {"added": True, "repo": repo}
 
-    async def get_custom_repos(self):
-        return {"repos": self.settings["customRepos"]}
-
     async def remove_custom_repo(self, repo: str):
         repo = repo.strip()
         # Case-insensitive, like add/import; also drops the repo's saved channel/filter.
@@ -569,9 +562,6 @@ class Plugin:
             self._save_settings()
         decky.logger.info("Imported %s from %s", added or "nothing new", source)
         return {"added": added}
-
-    async def get_custom_registries(self):
-        return {"registries": list(self.settings.get("customRegistries", []))}
 
     async def add_custom_registry(self, url: str):
         """Never raises for user input: returns added=False plus a reason code for the UI."""

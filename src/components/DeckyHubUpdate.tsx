@@ -5,28 +5,12 @@ import { FaArrowUp, FaCog } from "react-icons/fa";
 import { getDeckyHubInfo, getSettings } from "../api";
 import { useT } from "../i18n";
 import type { DeckyHubInfo, DeckyHubRelease, HideableButton, UpdateChannel } from "../types";
-import { compactButtonStyle, getDeckyBackend, installDeckyPlugin, latestDeckyHubRelease, log, PLUGIN_INSTALL_TYPE, resolveDeckyHubInstallType } from "../utils";
+import { compactButtonStyle, getDeckyBackend, installDeckyPlugin, latestDeckyHubRelease, log, seenOnce, PLUGIN_INSTALL_TYPE, resolveDeckyHubInstallType } from "../utils";
 import { normalizeVersion } from "../version";
 import { DeckyHubUpdateModal } from "./DeckyHubUpdateModal";
 import { KeepInView } from "./KeepInView";
 
 const SELF_UPDATE_NOTICE_KEY = "deckyhub-self-update-notice";
-
-const readNotice = () => {
-  try {
-    return localStorage.getItem(SELF_UPDATE_NOTICE_KEY);
-  } catch {
-    return null;
-  }
-};
-
-const writeNotice = (version: string) => {
-  try {
-    localStorage.setItem(SELF_UPDATE_NOTICE_KEY, version);
-  } catch {
-    // Storage unavailable: the toast just repeats next time.
-  }
-};
 
 // Deliberately thin, like an app card: a header naming the installed version,
 // "Update to vX" while a newer release is known, and Manage. Everything else
@@ -49,8 +33,7 @@ export function DeckyHubUpdate() {
   const checkForUpdate = (notify: boolean, checkedChannel = channel) =>
     void latestDeckyHubRelease(checkedChannel).then((next) => {
       setRelease(next);
-      if (!notify || !next.version || next.error || !isNewer(next.version) || readNotice() === next.version) return;
-      writeNotice(next.version);
+      if (!notify || !next.version || next.error || !isNewer(next.version) || !seenOnce(SELF_UPDATE_NOTICE_KEY, next.version)) return;
       toaster.toast({ title: "DeckyHub", body: t("settings.updateAvailable", { version: next.version }) });
     });
 

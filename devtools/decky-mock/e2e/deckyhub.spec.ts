@@ -33,13 +33,39 @@ const makoRelease = (tag: string, sha256: string, day = "01") => ({
 const mockMakoReleases = (page: Page, releases: unknown[]) =>
   page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases**", (route) => route.fulfill({ json: releases }));
 
-// Stand-in for Decky Loader's own WS bridge: records install requests in the
-// plugin frame's window.__installCalls.
+// GET /repos/mazillka/deckyhub-plugin/releases with one checksummed DeckyHub ZIP per release.
+const DECKYHUB_RELEASES = "https://github.com/mazillka/deckyhub-plugin/releases";
+const deckyHubZipUrl = (tag: string) => `${DECKYHUB_RELEASES}/download/${tag}/DeckyHub-${tag}.zip`;
+const deckyHubRelease = (tag: string, { sha = "a", prerelease = false, publishedAt }: { sha?: string; prerelease?: boolean; publishedAt?: string } = {}) => ({
+  tag_name: tag, prerelease, draft: false, ...(publishedAt && { published_at: publishedAt }), html_url: `${DECKYHUB_RELEASES}/tag/${tag}`,
+  assets: [{ name: `DeckyHub-${tag}.zip`, browser_download_url: deckyHubZipUrl(tag), digest: `sha256:${sha.repeat(64)}` }],
+});
+const mockDeckyHubReleases = (page: Page, releases: unknown[]) =>
+  page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) => route.fulfill({ json: releases }));
+
+// Stand-in for Decky Loader in the plugin frame: window.DeckyBackend records
+// calls in __installCalls and relays events sent with emit(); DeckyPluginLoader
+// records the plugins it's asked to import in __imports.
 const recordInstalls = (page: Page) =>
   page.addInitScript(() => {
     const calls: unknown[][] = [];
-    Object.assign(window, { __installCalls: calls, DeckyBackend: { call: async (...args: unknown[]) => void calls.push(args), addEventListener() {}, removeEventListener() {} } });
+    const imports: string[] = [];
+    const listeners: Record<string, ((...args: unknown[]) => void)[]> = {};
+    Object.assign(window, {
+      __installCalls: calls,
+      __imports: imports,
+      __emit: (event: string, ...args: unknown[]) => [...(listeners[event] ?? [])].forEach((listener) => listener(...args)),
+      DeckyPluginLoader: { importPlugin: async (name: string) => void imports.push(name) },
+      DeckyBackend: {
+        call: async (...args: unknown[]) => void calls.push(args),
+        addEventListener: (event: string, listener: (...args: unknown[]) => void) => void (listeners[event] ??= []).push(listener),
+        removeEventListener: (event: string, listener: (...args: unknown[]) => void) => void (listeners[event] = (listeners[event] ?? []).filter((item) => item !== listener)),
+      },
+    });
   });
+const pluginFrame = (page: Page) => page.frames().find((candidate) => candidate !== page.mainFrame())!;
+const emit = (page: Page, event: string, name: string) =>
+  pluginFrame(page).evaluate(([event, name]) => (window as unknown as { __emit: (event: string, name: string) => void }).__emit(event, name), [event, name] as const);
 
 const BRIDGE_URL = "http://127.0.0.1:8643";
 
@@ -230,13 +256,8 @@ test("Export Logs zips the backend log into Downloads", async ({ page }) => {
 });
 
 test("DeckyHub automatically notifies about an available update", async ({ page }) => {
-  const newerRelease = {
-    tag_name: "v9.9.9",
-    prerelease: false,
-    html_url: "https://github.com/mazillka/deckyhub-plugin/releases/tag/v9.9.9",
-    assets: [{ name: "DeckyHub-v9.9.9.zip", browser_download_url: "https://github.com/mazillka/deckyhub-plugin/releases/download/v9.9.9/DeckyHub-v9.9.9.zip", digest: `sha256:${"b".repeat(64)}` }],
-  };
-  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) => route.fulfill({ json: [newerRelease] }));
+  const newerRelease = deckyHubRelease("v9.9.9", { sha: "b" });
+  await mockDeckyHubReleases(page, [newerRelease]);
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
   await expect(app.getByText("DeckyHub: DeckyHub update v9.9.9 is available.")).toBeVisible();
@@ -251,12 +272,7 @@ test("DeckyHub automatically notifies about an available update", async ({ page 
 });
 
 test("DeckyHub's panel Update hands the newer release straight to Decky's installer", async ({ page }) => {
-  const sha256 = "b".repeat(64);
-  const url = "https://github.com/mazillka/deckyhub-plugin/releases/download/v9.9.9/DeckyHub-v9.9.9.zip";
-  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) => route.fulfill({ json: [{
-    tag_name: "v9.9.9", prerelease: false, html_url: "https://github.com/mazillka/deckyhub-plugin/releases/tag/v9.9.9",
-    assets: [{ name: "DeckyHub-v9.9.9.zip", browser_download_url: url, digest: `sha256:${sha256}` }],
-  }] }));
+  await mockDeckyHubReleases(page, [deckyHubRelease("v9.9.9", { sha: "b" })]);
   await recordInstalls(page);
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
@@ -266,20 +282,15 @@ test("DeckyHub's panel Update hands the newer release straight to Decky's instal
   await expect(app.locator(".steam-modal")).toHaveCount(0);
   const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
   await expect.poll(() => frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([
-    ["utilities/install_plugin", url, "DeckyHub", "9.9.9", sha256, 2],
+    ["utilities/install_plugin", deckyHubZipUrl("v9.9.9"), "DeckyHub", "9.9.9", "b".repeat(64), 2],
   ]);
 });
 
 test("DeckyHub doesn't advertise an older release as an available update", async ({ page }) => {
   // The installed version is a pre-release (package.json); the stable
   // channel's newest release is older, so it must not show as "available".
-  const olderStable = {
-    tag_name: "v0.9.0",
-    prerelease: false,
-    html_url: "https://github.com/mazillka/deckyhub-plugin/releases/tag/v0.9.0",
-    assets: [{ name: "DeckyHub-v0.9.0.zip", browser_download_url: "https://github.com/mazillka/deckyhub-plugin/releases/download/v0.9.0/DeckyHub-v0.9.0.zip", digest: `sha256:${"c".repeat(64)}` }],
-  };
-  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) => route.fulfill({ json: [olderStable] }));
+  const olderStable = deckyHubRelease("v0.9.0", { sha: "c" });
+  await mockDeckyHubReleases(page, [olderStable]);
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
 
@@ -291,19 +302,9 @@ test("DeckyHub doesn't advertise an older release as an available update", async
 });
 
 test("DeckyHub's Check for Updates snaps the version picker back to the channel's latest", async ({ page }) => {
-  const installedRelease = {
-    tag_name: deckyHubTag,
-    prerelease: false,
-    html_url: `https://github.com/mazillka/deckyhub-plugin/releases/tag/${deckyHubTag}`,
-    assets: [{ name: `DeckyHub-${deckyHubTag}.zip`, browser_download_url: `https://github.com/mazillka/deckyhub-plugin/releases/download/${deckyHubTag}/DeckyHub-${deckyHubTag}.zip`, digest: `sha256:${"a".repeat(64)}` }],
-  };
-  const olderRelease = {
-    tag_name: "v0.9.0",
-    prerelease: false,
-    html_url: "https://github.com/mazillka/deckyhub-plugin/releases/tag/v0.9.0",
-    assets: [{ name: "DeckyHub-v0.9.0.zip", browser_download_url: "https://github.com/mazillka/deckyhub-plugin/releases/download/v0.9.0/DeckyHub-v0.9.0.zip", digest: `sha256:${"c".repeat(64)}` }],
-  };
-  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) => route.fulfill({ json: [installedRelease, olderRelease] }));
+  const installedRelease = deckyHubRelease(deckyHubTag);
+  const olderRelease = deckyHubRelease("v0.9.0", { sha: "c" });
+  await mockDeckyHubReleases(page, [installedRelease, olderRelease]);
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
   await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
@@ -326,18 +327,10 @@ test("DeckyHub distinguishes rc versions sharing the same release number", async
   // suffix entirely, so "1.0.3-rc.1"/"-rc.2"/"-rc.3" all parsed as the same
   // "1.0.3" and switching between them in the version picker always showed
   // "Reinstall" — never "Update" or "Downgrade" — no matter which was picked.
-  const makeRelease = (tag: string) => ({
-    tag_name: tag,
-    prerelease: false,
-    html_url: `https://github.com/mazillka/deckyhub-plugin/releases/tag/${tag}`,
-    assets: [{ name: `DeckyHub-${tag}.zip`, browser_download_url: `https://github.com/mazillka/deckyhub-plugin/releases/download/${tag}/DeckyHub-${tag}.zip`, digest: `sha256:${"a".repeat(64)}` }],
-  });
-  const installedRelease = makeRelease(deckyHubTag);
-  const olderRcRelease = makeRelease(olderRcTag);
-  const newerRcRelease = makeRelease(newerRcTag);
-  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) =>
-    route.fulfill({ json: [newerRcRelease, installedRelease, olderRcRelease] })
-  );
+    const installedRelease = deckyHubRelease(deckyHubTag);
+  const olderRcRelease = deckyHubRelease(olderRcTag);
+  const newerRcRelease = deckyHubRelease(newerRcTag);
+  await mockDeckyHubReleases(page, [newerRcRelease, installedRelease, olderRcRelease]);
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
   await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
@@ -361,20 +354,11 @@ test("DeckyHub picks the newest release by publish date even when GitHub returns
   // pointed the version picker (and its "(latest)" tag) at a stale release.
   // The mock below deliberately places the truly-newest release (by
   // published_at) in the middle of the response to reproduce that.
-  const makeRelease = (tag: string, publishedAt: string) => ({
-    tag_name: tag,
-    prerelease: false,
-    published_at: publishedAt,
-    html_url: `https://github.com/mazillka/deckyhub-plugin/releases/tag/${tag}`,
-    assets: [{ name: `DeckyHub-${tag}.zip`, browser_download_url: `https://github.com/mazillka/deckyhub-plugin/releases/download/${tag}/DeckyHub-${tag}.zip`, digest: `sha256:${"a".repeat(64)}` }],
-  });
-  const installedRelease = makeRelease(deckyHubTag, "2026-01-01T00:00:00Z");
-  const olderRcRelease = makeRelease(olderRcTag, "2026-01-02T00:00:00Z");
-  const newerRcRelease = makeRelease(newerRcTag, "2026-01-03T00:00:00Z");
-  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) =>
-    // Out-of-order on purpose: the newest release (by published_at) isn't array[0].
-    route.fulfill({ json: [installedRelease, newerRcRelease, olderRcRelease] })
-  );
+  const installedRelease = deckyHubRelease(deckyHubTag, { publishedAt: "2026-01-01T00:00:00Z" });
+  const olderRcRelease = deckyHubRelease(olderRcTag, { publishedAt: "2026-01-02T00:00:00Z" });
+  const newerRcRelease = deckyHubRelease(newerRcTag, { publishedAt: "2026-01-03T00:00:00Z" });
+  // Out-of-order on purpose: the newest release (by published_at) isn't array[0].
+  await mockDeckyHubReleases(page, [installedRelease, newerRcRelease, olderRcRelease]);
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
   await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
@@ -386,13 +370,7 @@ test("DeckyHub picks the newest release by publish date even when GitHub returns
 });
 
 test("DeckyHub falls back to a clear message when automatic update can't reach Decky Loader", async ({ page }) => {
-  const deckyHubRelease = {
-    tag_name: deckyHubTag,
-    prerelease: false,
-    html_url: `https://github.com/mazillka/deckyhub-plugin/releases/tag/${deckyHubTag}`,
-    assets: [{ name: `DeckyHub-${deckyHubTag}.zip`, browser_download_url: `https://github.com/mazillka/deckyhub-plugin/releases/download/${deckyHubTag}/DeckyHub-${deckyHubTag}.zip`, digest: `sha256:${"a".repeat(64)}` }],
-  };
-  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) => route.fulfill({ json: [deckyHubRelease] }));
+  await mockDeckyHubReleases(page, [deckyHubRelease(deckyHubTag)]);
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
   await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
@@ -406,10 +384,7 @@ test("DeckyHub falls back to a clear message when automatic update can't reach D
 });
 
 test("DeckyHub's Reinstall closes its window and hands the release to Decky's installer", async ({ page }) => {
-  const asset = { name: `DeckyHub-${deckyHubTag}.zip`, browser_download_url: `https://github.com/mazillka/deckyhub-plugin/releases/download/${deckyHubTag}/DeckyHub-${deckyHubTag}.zip`, digest: `sha256:${"a".repeat(64)}` };
-  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) =>
-    route.fulfill({ json: [{ tag_name: deckyHubTag, prerelease: false, html_url: `https://github.com/mazillka/deckyhub-plugin/releases/tag/${deckyHubTag}`, assets: [asset] }] }),
-  );
+  await mockDeckyHubReleases(page, [deckyHubRelease(deckyHubTag)]);
   await recordInstalls(page);
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
@@ -420,26 +395,14 @@ test("DeckyHub's Reinstall closes its window and hands the release to Decky's in
   await expect(app.locator(".steam-modal")).toHaveCount(0);
   const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
   await expect.poll(() => frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([
-    ["utilities/install_plugin", asset.browser_download_url, "DeckyHub", deckyHubVersion, "a".repeat(64), 1],
+    ["utilities/install_plugin", deckyHubZipUrl(deckyHubTag), "DeckyHub", deckyHubVersion, "a".repeat(64), 1],
   ]);
 });
 
 test("DeckyHub version picker re-filters by channel and leaves the channel as it found it", async ({ page }) => {
-  const stableRelease = {
-    tag_name: deckyHubTag,
-    prerelease: false,
-    published_at: "2026-01-01T00:00:00Z",
-    html_url: `https://github.com/mazillka/deckyhub-plugin/releases/tag/${deckyHubTag}`,
-    assets: [{ name: `DeckyHub-${deckyHubTag}.zip`, browser_download_url: `https://github.com/mazillka/deckyhub-plugin/releases/download/${deckyHubTag}/DeckyHub-${deckyHubTag}.zip`, digest: `sha256:${"a".repeat(64)}` }],
-  };
-  const prereleaseRelease = {
-    tag_name: "v999.0.0-beta",
-    prerelease: true,
-    published_at: "2026-01-02T00:00:00Z",
-    html_url: "https://github.com/mazillka/deckyhub-plugin/releases/tag/v999.0.0-beta",
-    assets: [{ name: "DeckyHub-v999.0.0-beta.zip", browser_download_url: "https://github.com/mazillka/deckyhub-plugin/releases/download/v999.0.0-beta/DeckyHub-v999.0.0-beta.zip", digest: `sha256:${"d".repeat(64)}` }],
-  };
-  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) => route.fulfill({ json: [stableRelease, prereleaseRelease] }));
+  const stableRelease = deckyHubRelease(deckyHubTag, { publishedAt: "2026-01-01T00:00:00Z" });
+  const prereleaseRelease = deckyHubRelease("v999.0.0-beta", { sha: "d", prerelease: true, publishedAt: "2026-01-02T00:00:00Z" });
+  await mockDeckyHubReleases(page, [stableRelease, prereleaseRelease]);
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
   await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
@@ -1568,24 +1531,11 @@ test("The Updates page offers Discover when everything is up to date", async ({ 
 });
 
 test("A stalled Decky install warns once its progress goes quiet, a finished one doesn't", async ({ page }) => {
-  // Stand-in for Decky Loader's WS bridge that tests can send progress events through.
-  await page.addInitScript(() => {
-    const listeners: Record<string, ((...args: unknown[]) => void)[]> = {};
-    Object.assign(window, {
-      __emit: (event: string, ...args: unknown[]) => [...(listeners[event] ?? [])].forEach((listener) => listener(...args)),
-      DeckyBackend: {
-        call: async () => undefined,
-        addEventListener: (event: string, listener: (...args: unknown[]) => void) => void (listeners[event] ??= []).push(listener),
-        removeEventListener: (event: string, listener: (...args: unknown[]) => void) => void (listeners[event] = (listeners[event] ?? []).filter((item) => item !== listener)),
-      },
-    });
-  });
+  await recordInstalls(page);
   await page.clock.install();
   await mockMakoReleases(page, [makoRelease("plugin-v1.2.3", "a".repeat(64))]);
   await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
-  const emit = (event: string, name: string) => frame.evaluate(([event, name]) => (window as unknown as { __emit: (event: string, name: string) => void }).__emit(event, name), [event, name] as const);
   const stalled = app.getByText("Decky couldn't finish installing MAKO - Frame Generation: Reload Decky and try again.");
   const install = async () => {
     await app.getByRole("button", { name: "/deckyhub/discover" }).click();
@@ -1595,45 +1545,27 @@ test("A stalled Decky install warns once its progress goes quiet, a finished one
   };
 
   await install();
-  await emit("loader/plugin_download_start", "MAKO - Frame Generation");
-  await emit("loader/plugin_download_finish", "MAKO - Frame Generation");
+  await emit(page, "loader/plugin_download_start", "MAKO - Frame Generation");
+  await emit(page, "loader/plugin_download_finish", "MAKO - Frame Generation");
   await page.clock.fastForward(60_000);
   await expect(stalled).toHaveCount(0);
 
   await install();
-  await emit("loader/plugin_download_start", "MAKO - Frame Generation");
+  await emit(page, "loader/plugin_download_start", "MAKO - Frame Generation");
   await page.clock.fastForward(46_000);
   await expect(stalled).toBeVisible();
 });
 
 test("DeckyHub asks Decky to load its new version when Decky doesn't reload it after an update", async ({ page }) => {
-  // Decky's WS bridge, plus its plugin loader recording what it's asked to import.
-  await page.addInitScript(() => {
-    const listeners: Record<string, ((...args: unknown[]) => void)[]> = {};
-    const imports: string[] = [];
-    Object.assign(window, {
-      __imports: imports,
-      __emit: (event: string, ...args: unknown[]) => [...(listeners[event] ?? [])].forEach((listener) => listener(...args)),
-      DeckyPluginLoader: { importPlugin: async (name: string) => void imports.push(name) },
-      DeckyBackend: {
-        call: async () => undefined,
-        addEventListener: (event: string, listener: (...args: unknown[]) => void) => void (listeners[event] ??= []).push(listener),
-        removeEventListener: (event: string, listener: (...args: unknown[]) => void) => void (listeners[event] = (listeners[event] ?? []).filter((item) => item !== listener)),
-      },
-    });
-  });
+  await recordInstalls(page);
   await page.clock.install();
-  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) => route.fulfill({ json: [{
-    tag_name: "v9.9.9", prerelease: false, html_url: "https://github.com/mazillka/deckyhub-plugin/releases/tag/v9.9.9",
-    assets: [{ name: "DeckyHub-v9.9.9.zip", browser_download_url: "https://github.com/mazillka/deckyhub-plugin/releases/download/v9.9.9/DeckyHub-v9.9.9.zip", digest: `sha256:${"b".repeat(64)}` }],
-  }] }));
+  await mockDeckyHubReleases(page, [deckyHubRelease("v9.9.9", { sha: "b" })]);
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
   await app.locator(".qam-content").getByRole("button", { name: "Update to v9.9.9", exact: true }).click();
 
-  const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
-  const imports = () => frame.evaluate(() => (window as unknown as { __imports: string[] }).__imports);
-  await frame.evaluate(() => (window as unknown as { __emit: (event: string, name: string) => void }).__emit("loader/plugin_download_finish", "DeckyHub"));
+  const imports = () => pluginFrame(page).evaluate(() => (window as unknown as { __imports: string[] }).__imports);
+  await emit(page, "loader/plugin_download_finish", "DeckyHub");
   // Decky gets its own 15 s to reload DeckyHub first.
   await page.clock.fastForward(10_000);
   expect(await imports()).toEqual([]);
@@ -1719,13 +1651,10 @@ test("Switching the language updates Settings and the Quick Access panel", async
 });
 
 test("Switching DeckyHub's channel in its update window doesn't toast, and the panel button follows it", async ({ page }) => {
-  const deckyHubRelease = (tag: string, prerelease: boolean, day: string) => ({
-    tag_name: tag, prerelease, draft: false, published_at: `2026-01-${day}T00:00:00Z`, html_url: `https://github.com/mazillka/deckyhub-plugin/releases/tag/${tag}`,
-    assets: [{ name: `DeckyHub-${tag}.zip`, browser_download_url: `https://github.com/mazillka/deckyhub-plugin/releases/download/${tag}/DeckyHub-${tag}.zip`, digest: `sha256:${"e".repeat(64)}` }],
-  });
-  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) =>
-    route.fulfill({ json: [deckyHubRelease("v9.9.9-rc.1", true, "02"), deckyHubRelease("v0.9.0", false, "01")] }),
-  );
+  await mockDeckyHubReleases(page, [
+    deckyHubRelease("v9.9.9-rc.1", { sha: "e", prerelease: true, publishedAt: "2026-01-02T00:00:00Z" }),
+    deckyHubRelease("v0.9.0", { sha: "e", publishedAt: "2026-01-01T00:00:00Z" }),
+  ]);
   await bridgeCall(page, "save_settings", defaultSettings);
   try {
     await page.goto("/?bridge=http://127.0.0.1:8643");

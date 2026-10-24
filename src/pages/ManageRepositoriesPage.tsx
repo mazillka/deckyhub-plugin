@@ -6,7 +6,7 @@ import { Pager } from "../components/Pager";
 import { RateLimitBanner } from "../components/RateLimitBanner";
 import { useEffect, useState } from "react";
 import { FaCheck, FaFileExport, FaFileImport, FaPlus, FaRedo, FaSearch, FaTimes, FaTrash } from "react-icons/fa";
-import { addCustomRegistry, addCustomRepo, exportCustomRepos, getApps, getCustomRegistries, getCustomRepos, importCustomRepos, REGISTRY_UPDATED, refreshRegistry, removeCustomRegistry, removeCustomRepo } from "../api";
+import { addCustomRegistry, addCustomRepo, exportCustomRepos, getApps, getSettings, importCustomRepos, REGISTRY_UPDATED, refreshRegistry, removeCustomRegistry, removeCustomRepo } from "../api";
 import { useT } from "../i18n";
 import type { MessageKey } from "../i18n/en";
 import type { SearchRepo } from "../types";
@@ -43,8 +43,10 @@ export function ManageRepositoriesPage() {
 
 
   const refreshRepos = () => {
-    void getCustomRepos().then((result) => setCustomRepos(result.repos));
-    void getCustomRegistries().then((result) => setRegistries(result.registries));
+    void getSettings().then((settings) => {
+      setCustomRepos(settings.customRepos ?? []);
+      setRegistries(settings.customRegistries ?? []);
+    });
     void getApps().then((result) => setExistingRepos(new Set(result.apps.map((app) => app.repo.toLowerCase()))));
   };
 
