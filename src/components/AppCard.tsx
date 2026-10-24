@@ -5,7 +5,33 @@ import { useT } from "../i18n";
 import type { App, Asset, HideableButton, RepoPreference, UpdateChannel } from "../types";
 import { compactButtonStyle, cardDescriptionStyle, installAction, PLUGIN_INSTALL_TYPE, statusKey, statusColor } from "../utils";
 import { displayVersion } from "../version";
+import type { TFunc } from "../i18n/en";
 import { AppDetailsModal, startPluginInstall } from "./AppDetailsModal";
+
+// ponytail: raw markdown minus images and HTML tags; render markdown if plain text reads badly.
+// Repeats until nothing changes, so a nested tag like <scr<b>ipt> can't reassemble one.
+function plainNotes(notes = "") {
+  for (let previous = ""; previous !== notes; ) {
+    previous = notes;
+    notes = notes.replace(/!\[[^\]]*\]\([^)]*\)|<[^>]*>/g, "");
+  }
+  return notes.replace(/\n{3,}/g, "\n\n").trim();
+}
+
+// Y on an Install/Update button shows what that release changes before installing it.
+export const showReleaseInfo = (t: TFunc, title: string, publishedAt?: string | null, notes?: string) =>
+  showModal(
+    <ConfirmModal
+      bAlertDialog
+      strTitle={title}
+      strDescription={
+        <div style={{ whiteSpace: "pre-wrap" }}>
+          {publishedAt && <p><small>{new Date(publishedAt).toLocaleDateString()}</small></p>}
+          {plainNotes(notes) || t("appcard.noReleaseNotes")}
+        </div>
+      }
+    />,
+  );
 
 export function AppCard({
   app,
@@ -37,21 +63,6 @@ export function AppCard({
   const [installing, setInstalling] = useState(false);
   const latest = app.latestVersion ? displayVersion(app.latestVersion).replace(/^v/, "") : "";
   const quickLabel = t(isUpdate ? "settings.updateTo" : "appcard.installVersion", { version: latest });
-  // Y on the Install/Update button shows what that release changes before installing it.
-  const showReleaseInfo = () =>
-    showModal(
-      <ConfirmModal
-        bAlertDialog
-        strTitle={`${app.name} v${latest}`}
-        strDescription={
-          <div style={{ whiteSpace: "pre-wrap" }}>
-            {app.publishedAt && <p><small>{new Date(app.publishedAt).toLocaleDateString()}</small></p>}
-            {/* ponytail: raw markdown minus images and HTML tags; render markdown if plain text reads badly. */}
-            {app.releaseNotes?.replace(/!\[[^\]]*\]\([^)]*\)|<[^>]*>/g, "").replace(/\n{3,}/g, "\n\n").trim() || t("appcard.noReleaseNotes")}
-          </div>
-        }
-      />,
-    );
   return (
     <PanelSection title={app.name}>
       <PanelSectionRow>
@@ -87,8 +98,11 @@ export function AppCard({
           <Button
             style={compactButtonStyle}
             disabled={installing}
-            onSecondaryButton={showReleaseInfo}
+            onSecondaryButton={() => showReleaseInfo(t, `${app.name} v${latest}`, app.publishedAt, app.releaseNotes)}
             onSecondaryActionDescription={t("appcard.releaseInfo")}
+            // X downloads the same release's ZIP instead of installing it.
+            onOptionsButton={hiddenButtons.includes("downloadZip") || downloadDisabled || !app.assets[0] ? undefined : () => void onDownload(app.assets[0])}
+            onOptionsActionDescription={t("settings.downloadUpdate")}
             onClick={() => {
               setInstalling(true);
               void startPluginInstall(t, app.name, app.assets[0], app.latestVersion!, install, quickLabel, leavePage).finally(() => setInstalling(false));

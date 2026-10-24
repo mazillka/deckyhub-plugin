@@ -518,7 +518,7 @@ export function listDeckyHubReleases(force = false): Promise<{ items: DeckyHubRe
 export async function latestDeckyHubRelease(channel: UpdateChannel): Promise<DeckyHubRelease> {
   const { items, error } = await listDeckyHubReleases();
   const release = items.find((item) => inChannel(item, channel));
-  return release?.asset ? { version: release.tag, asset: release.asset } : { error: error ?? tr("release.noChecksum") };
+  return release?.asset ? { version: release.tag, asset: release.asset, publishedAt: release.publishedAt, notes: release.notes } : { error: error ?? tr("release.noChecksum") };
 }
 
 // A tracked app's recent releases (tag-filtered, assets matched to its

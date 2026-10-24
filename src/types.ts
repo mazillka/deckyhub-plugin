@@ -33,9 +33,9 @@ export type Download = { state: string; filename?: string; repo?: string; receiv
 
 export type DeckyHubInfo = { version: string };
 
-export type DeckyHubRelease = { version?: string; asset?: Asset; error?: string };
+export type DeckyHubRelease = { version?: string; asset?: Asset; publishedAt?: string | null; notes?: string; error?: string };
 
-export type DeckyHubReleaseOption = { tag: string; prerelease: boolean; publishedAt: string | null; asset?: Asset; url: string };
+export type DeckyHubReleaseOption = { tag: string; prerelease: boolean; publishedAt: string | null; asset?: Asset; url: string; notes?: string };
 
 export type AppReleaseOption = { tag: string; prerelease: boolean; publishedAt: string | null; url: string; notes?: string; assets: Asset[] };
 

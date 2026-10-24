@@ -286,6 +286,26 @@ test("DeckyHub's panel Update hands the newer release straight to Decky's instal
   ]);
 });
 
+test("Y and X on DeckyHub's panel Update show the release notes and download the ZIP", async ({ page }) => {
+  await mockDeckyHubReleases(page, [{ ...deckyHubRelease("v9.9.9", { sha: "b" }), body: "Snappier menus." }]);
+  await recordInstalls(page);
+  await page.goto("/?bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  const update = app.locator(".qam-content").getByRole("button", { name: "Update to v9.9.9", exact: true });
+  await update.focus();
+  await expect(app.locator(".steam-legend")).toContainText("Ⓨ Release Info");
+  await expect(app.locator(".steam-legend")).toContainText("Ⓧ Download ZIP");
+
+  await update.press("y");
+  await expect(app.locator(".steam-modal", { hasText: "DeckyHub v9.9.9" }).getByText("Snappier menus.")).toBeVisible();
+  await page.reload();
+  await app.locator(".qam-content").getByRole("button", { name: "Update to v9.9.9", exact: true }).press("x");
+  await expect(app.locator(".steam-modal", { hasText: "DeckyHub-v9.9.9.zip" })).toBeVisible();
+  // Neither key installs anything.
+  const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
+  expect(await frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([]);
+});
+
 test("DeckyHub doesn't advertise an older release as an available update", async ({ page }) => {
   // The installed version is a pre-release (package.json); the stable
   // channel's newest release is older, so it must not show as "available".
