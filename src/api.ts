@@ -5,6 +5,7 @@ export const getApps = callable<[], { apps: App[] }>("get_apps");
 export const getSettings = callable<[], Settings>("get_settings");
 export const saveSettings = callable<[settings: Settings], Settings>("save_settings");
 export const downloadAsset = callable<[asset: Asset, repo?: string], { jobId?: string; error?: string }>("download_asset");
+export const stageInstall = callable<[asset: Asset, repo: string], { path?: string; error?: string }>("stage_install");
 export const getDownload = callable<[jobId: string], Download>("get_download");
 export const cancelDownload = callable<[jobId: string], { ok: boolean }>("cancel_download");
 export const getDeckyHubInfo = callable<[], DeckyHubInfo>("get_deckyhub_info");

@@ -40,6 +40,8 @@ const deckyHubRelease = (tag: string, { sha = "a", prerelease = false, published
   tag_name: tag, prerelease, draft: false, ...(publishedAt && { published_at: publishedAt }), html_url: `${DECKYHUB_RELEASES}/tag/${tag}`,
   assets: [{ name: `DeckyHub-${tag}.zip`, browser_download_url: deckyHubZipUrl(tag), digest: `sha256:${sha.repeat(64)}` }],
 });
+// What Decky receives once DeckyHub has staged a release ZIP (see dev-server.py's stage_install).
+const localZip = (url: string) => `file:///deckyhub-installs/${url.split("/").pop()}`;
 const mockDeckyHubReleases = (page: Page, releases: unknown[]) =>
   page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) => route.fulfill({ json: releases }));
 
@@ -282,7 +284,7 @@ test("DeckyHub's panel Update hands the newer release straight to Decky's instal
   await expect(app.locator(".steam-modal")).toHaveCount(0);
   const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
   await expect.poll(() => frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([
-    ["utilities/install_plugin", deckyHubZipUrl("v9.9.9"), "DeckyHub", "9.9.9", "b".repeat(64), 2],
+    ["utilities/install_plugin", localZip(deckyHubZipUrl("v9.9.9")), "DeckyHub", "9.9.9", "b".repeat(64), 2],
   ]);
 });
 
@@ -415,7 +417,7 @@ test("DeckyHub's Reinstall closes its window and hands the release to Decky's in
   await expect(app.locator(".steam-modal")).toHaveCount(0);
   const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
   await expect.poll(() => frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([
-    ["utilities/install_plugin", deckyHubZipUrl(deckyHubTag), "DeckyHub", deckyHubVersion, "a".repeat(64), 1],
+    ["utilities/install_plugin", localZip(deckyHubZipUrl(deckyHubTag)), "DeckyHub", deckyHubVersion, "a".repeat(64), 1],
   ]);
 });
 
@@ -675,7 +677,7 @@ test("An outdated Decky plugin's card offers Update and hands it to Decky's inst
 
     const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
     await expect.poll(() => frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([
-      ["utilities/install_plugin", url, "MAKO - Frame Generation", "1.2.3", sha256, 2],
+      ["utilities/install_plugin", localZip(url), "MAKO - Frame Generation", "1.2.3", sha256, 2],
     ]);
   } finally {
     // Retries: on Windows the bridge's plugin scan can briefly lock the folder.
@@ -742,7 +744,7 @@ test("The Manage window offers Install for a Decky plugin that isn't installed y
   // plugin's own manifest name, with Decky's INSTALL (0) type.
   const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
   await expect.poll(() => frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([
-    ["utilities/install_plugin", url, "MAKO - Frame Generation", "1.2.3", sha256, 0],
+    ["utilities/install_plugin", localZip(url), "MAKO - Frame Generation", "1.2.3", sha256, 0],
   ]);
 });
 
@@ -760,7 +762,7 @@ test("Discover's card installs the latest release of a Decky plugin that isn't i
 
   const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
   await expect.poll(() => frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([
-    ["utilities/install_plugin", url, "MAKO - Frame Generation", "1.2.3", sha256, 0],
+    ["utilities/install_plugin", localZip(url), "MAKO - Frame Generation", "1.2.3", sha256, 0],
   ]);
 });
 
@@ -777,7 +779,7 @@ test("A release without a GitHub checksum installs with an empty hash", async ({
   // Decky Loader skips its SHA-256 check when the hash is empty.
   const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
   await expect.poll(() => frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([
-    ["utilities/install_plugin", url, "MAKO - Frame Generation", "1.2.3", "", 0],
+    ["utilities/install_plugin", localZip(url), "MAKO - Frame Generation", "1.2.3", "", 0],
   ]);
 });
 
@@ -808,7 +810,7 @@ test("The Manage window reinstalls or downgrades an installed Decky plugin to th
 
     const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
     await expect.poll(() => frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([
-      ["utilities/install_plugin", "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v1.0.0/mako-decky.zip", "MAKO - Frame Generation", "1.0.0", sha, 3],
+      ["utilities/install_plugin", localZip("https://github.com/eugeniosegala/MAKO/releases/download/plugin-v1.0.0/mako-decky.zip"), "MAKO - Frame Generation", "1.0.0", sha, 3],
     ]);
   } finally {
     rmSync(pluginDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
@@ -844,7 +846,7 @@ test("Unifideck updates by uninstalling first and installing fresh, after a warn
 
     await expect.poll(calls).toEqual([
       ["utilities/uninstall_plugin", "Unifideck"],
-      ["utilities/install_plugin", url, "Unifideck", "0.7.6", sha, 0],
+      ["utilities/install_plugin", localZip(url), "Unifideck", "0.7.6", sha, 0],
     ]);
   } finally {
     rmSync(pluginDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
@@ -881,11 +883,11 @@ test("Update All sends every outdated Decky plugin to Decky's installer in one r
     const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
     const calls = () => frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls);
     await expect.poll(calls).toHaveLength(1);
-    const [[route, requests]] = (await calls()) as [string, { name: string; version: string; install_type: number }[]][];
+    const [[route, requests]] = (await calls()) as [string, { artifact: string; name: string; version: string; install_type: number }[]][];
     expect(route).toBe("utilities/install_plugins");
-    expect(requests.map(({ name, version, install_type }) => [name, version, install_type]).sort()).toEqual([
-      ["Decky LSFG-VK", "0.2.0", 2],
-      ["MAKO - Frame Generation", "1.2.3", 2],
+    expect(requests.map(({ artifact, name, version, install_type }) => [name, version, install_type, artifact]).sort()).toEqual([
+      ["Decky LSFG-VK", "0.2.0", 2, localZip("decky-lsfg-vk.zip")],
+      ["MAKO - Frame Generation", "1.2.3", 2, localZip("mako-decky.zip")],
     ]);
   } finally {
     for (const pluginDir of dirs) rmSync(pluginDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
@@ -1585,6 +1587,8 @@ test("DeckyHub asks Decky to load its new version when Decky doesn't reload it a
   await app.locator(".qam-content").getByRole("button", { name: "Update to v9.9.9", exact: true }).click();
 
   const imports = () => pluginFrame(page).evaluate(() => (window as unknown as { __imports: string[] }).__imports);
+  // Decky can only finish an install it has been handed, after the ZIP is staged.
+  await expect.poll(() => pluginFrame(page).evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls.length)).toBe(1);
   await emit(page, "loader/plugin_download_finish", "DeckyHub");
   // Decky gets its own 15 s to reload DeckyHub first.
   await page.clock.fastForward(10_000);

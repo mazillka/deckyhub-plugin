@@ -2,6 +2,7 @@ import asyncio
 import hashlib
 import json
 import logging
+import os
 import sys
 import tempfile
 import types
@@ -451,6 +452,42 @@ class PluginStatusTests(unittest.TestCase):
 
             self.assertEqual(second["jobId"], first["jobId"])
             self.assertEqual(len(plugin.downloads), 1)
+
+    def test_stage_install_downloads_a_verified_zip_for_decky_to_read(self):
+        with tempfile.TemporaryDirectory() as home, patch.object(sys.modules["decky"], "DECKY_PLUGIN_RUNTIME_DIR", home, create=True):
+            plugin = Plugin()
+            plugin.downloads = {}
+            plugin.cancelled = set()
+            stale = Path(home) / "installs" / "old.zip"
+            stale.parent.mkdir()
+            stale.write_bytes(b"old")
+            os.utime(stale, (0, 0))
+            asset = {"name": "../a.zip", "url": "https://github.com/owner/repo/releases/download/v1/a.zip", "sha256": hashlib.sha256(b"data").hexdigest()}
+
+            with patch.object(plugin, "_download_with_urllib", side_effect=lambda job_id, asset, temp: temp.write_bytes(b"data")):
+                result = asyncio.run(plugin.stage_install(asset, "owner/repo"))
+
+            path = Path(result["path"])
+            self.assertEqual(path.parent, Path(home) / "installs")
+            self.assertTrue(path.name.endswith("-a.zip"))
+            self.assertEqual(path.read_bytes(), b"data")
+            self.assertFalse(stale.exists())
+            self.assertEqual(plugin.downloads, {})
+
+    def test_stage_install_refuses_other_repos_and_bad_checksums(self):
+        with tempfile.TemporaryDirectory() as home, patch.object(sys.modules["decky"], "DECKY_PLUGIN_RUNTIME_DIR", home, create=True):
+            plugin = Plugin()
+            plugin.downloads = {}
+            plugin.cancelled = set()
+            asset = {"name": "a.zip", "url": "https://github.com/owner/repo/releases/download/v1/a.zip", "sha256": "0" * 64}
+
+            with patch.object(plugin, "_download_with_urllib", side_effect=lambda job_id, asset, temp: temp.write_bytes(b"data")) as download:
+                self.assertEqual(asyncio.run(plugin.stage_install(asset, "other/repo")), {"error": "Only GitHub release assets for the selected repository can be downloaded"})
+                download.assert_not_called()
+                self.assertIn("SHA256", asyncio.run(plugin.stage_install(asset, "owner/repo"))["error"])
+
+            self.assertEqual(list((Path(home) / "installs").iterdir()), [])
+            self.assertEqual(plugin.downloads, {})
 
     def test_download_marks_error_on_checksum_mismatch(self):
         with tempfile.TemporaryDirectory() as home:
