@@ -50,6 +50,7 @@ export const de: Record<MessageKey, string> = {
 
   "dl.downloading": "{filename} wird heruntergeladen",
   "dl.preparing": "Download wird vorbereitet…",
+  "dl.preparingInstall": "Installation wird vorbereitet…",
   "dl.savedTo": "Die ZIP-Datei wurde gespeichert unter:",
   "dl.selectedFolder": "dem ausgewählten Download-Ordner",
   "dl.installInDecky": "In Decky installieren:",

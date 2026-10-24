@@ -101,7 +101,7 @@ Tap **Manage** on any card in Discover or Updates to:
 
 - pick the release **channel** and a specific **version**. **Stable** shows only stable releases; **Pre-release** shows every release, newest first, so a stable release that comes out after the last pre-release is still offered;
 - **Download ZIP**, open the **Release Page**, or **Check for Updates** for that app;
-- for a Decky plugin, **Install** (not installed yet) or **Update** (the selected version is newer than the installed one). This hands the release ZIP to Decky Loader's own installer, the same one the Decky Store uses. Decky asks you to confirm and installs it, verifying the SHA-256 checksum GitHub publishes for the ZIP. Older releases (files uploaded before mid-2025) have no checksum and Decky installs them without that check;
+- for a Decky plugin, **Install** (not installed yet) or **Update** (the selected version is newer than the installed one). DeckyHub downloads the release ZIP (with a progress window, then a spinner until Decky is ready) and hands it to Decky Loader's own installer, the same one the Decky Store uses. Decky asks you to confirm and installs it, verifying the SHA-256 checksum GitHub publishes for the ZIP. Older releases (files uploaded before mid-2025) have no checksum and Decky installs them without that check;
 - for an installed Decky plugin, **Uninstall**, which asks you to confirm and then removes the plugin and its settings through Decky Loader.
 
 ### Downloads
@@ -122,7 +122,7 @@ Under **Custom Registries**, add someone else's app list by its GitHub `owner/re
 
 The Quick Access Menu shows the installed version (**Current - vX.Y.Z**) and checks for a newer DeckyHub release in the background, with a notification the first time one appears; an **Update to vX.Y.Z** button then installs it straight away, like an app card's. **Manage** opens DeckyHub's update window, where you pick a channel (**Stable releases**, or **Pre-releases** for every release) and a version, then:
 
-- **Update to / Reinstall / Downgrade to vX.Y.Z** — hands that release to Decky Loader's own installer (the same one the Decky Store uses), which downloads it, verifies its SHA-256 checksum, and installs it in place. Only releases with a published checksum are offered.
+- **Update to / Reinstall / Downgrade to vX.Y.Z** — downloads that release (with a progress window) and hands it to Decky Loader's own installer (the same one the Decky Store uses), which verifies its SHA-256 checksum and installs it in place. Only releases with a published checksum are offered.
 - **Download ZIP** — the classic path: saves the release ZIP to `/home/deck/Downloads/deckyhub`, which you then install yourself via Decky's settings → Developer → Install Plugin from ZIP.
 
 If automatic update isn't available for some reason (e.g. running inside an older Decky Loader build), fall back to Download ZIP.

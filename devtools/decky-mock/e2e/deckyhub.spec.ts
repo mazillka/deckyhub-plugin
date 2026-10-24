@@ -59,7 +59,11 @@ const recordInstalls = (page: Page) =>
       __emit: (event: string, ...args: unknown[]) => [...(listeners[event] ?? [])].forEach((listener) => listener(...args)),
       DeckyPluginLoader: { importPlugin: async (name: string) => void imports.push(name) },
       DeckyBackend: {
-        call: async (...args: unknown[]) => void calls.push(args),
+        // Settles once __holdInstall does, if a test set one (Decky's dialog still coming).
+        call: async (...args: unknown[]) => {
+          calls.push(args);
+          await (window as unknown as { __holdInstall?: Promise<void> }).__holdInstall;
+        },
         addEventListener: (event: string, listener: (...args: unknown[]) => void) => void (listeners[event] ??= []).push(listener),
         removeEventListener: (event: string, listener: (...args: unknown[]) => void) => void (listeners[event] = (listeners[event] ?? []).filter((item) => item !== listener)),
       },
@@ -746,6 +750,24 @@ test("The Manage window offers Install for a Decky plugin that isn't installed y
   await expect.poll(() => frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([
     ["utilities/install_plugin", localZip(url), "MAKO - Frame Generation", "1.2.3", sha256, 0],
   ]);
+});
+
+test("The download window spins until Decky's own install dialog is up", async ({ page }) => {
+  await mockMakoReleases(page, [makoRelease("plugin-v1.2.3", "a".repeat(64))]);
+  await recordInstalls(page);
+  await page.addInitScript(() => {
+    const target = window as unknown as { __holdInstall: Promise<void>; __releaseInstall: () => void };
+    target.__holdInstall = new Promise((resolve) => (target.__releaseInstall = resolve));
+  });
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  const makoCard = mock(page).getByRole("heading", { name: "MAKO Decky" }).locator("..");
+  await makoCard.getByRole("button", { name: "Install v1.2.3", exact: true }).click();
+  await acceptDisclaimer(page, "Install v1.2.3");
+
+  const preparing = mock(page).getByText("Preparing install…");
+  await expect(preparing).toBeVisible();
+  await pluginFrame(page).evaluate(() => (window as unknown as { __releaseInstall: () => void }).__releaseInstall());
+  await expect(preparing).toHaveCount(0);
 });
 
 test("Discover's card installs the latest release of a Decky plugin that isn't installed yet", async ({ page }) => {

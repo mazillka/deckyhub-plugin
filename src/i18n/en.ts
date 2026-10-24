@@ -49,6 +49,7 @@ export const en = {
 
   "dl.downloading": "Downloading {filename}",
   "dl.preparing": "Preparing download…",
+  "dl.preparingInstall": "Preparing install…",
   "dl.savedTo": "The ZIP was saved to:",
   "dl.selectedFolder": "the selected download folder",
   "dl.installInDecky": "Install it in Decky:",

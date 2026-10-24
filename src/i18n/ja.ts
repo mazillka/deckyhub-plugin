@@ -50,6 +50,7 @@ export const ja: Record<MessageKey, string> = {
 
   "dl.downloading": "{filename} をダウンロード中",
   "dl.preparing": "ダウンロードを準備中…",
+  "dl.preparingInstall": "インストールを準備中…",
   "dl.savedTo": "ZIPの保存先:",
   "dl.selectedFolder": "選択したダウンロードフォルダ",
   "dl.installInDecky": "Deckyでインストール:",
