@@ -17,7 +17,7 @@ Dependabot (`.github/dependabot.yml`) opens weekly PRs for the same three. When 
 
 ## Steps
 
-1. Branch from `main` (`chore-deps-<yyyy-mm-dd>`); never update on `main` or on a feature branch.
+1. Branch from `origin/develop` (`chore-deps-<yyyy-mm-dd>`) and open the PR against `develop`; never update on `develop`, `main` or a feature branch.
 2. Run the three checks above. If nothing is outdated, stop and say so - don't open an empty PR.
 3. Update. Rules:
    - `react` and `react-dom` in the mock must stay on the exact same version (Dependabot groups them for this reason).
