@@ -16,7 +16,7 @@ export function confirmPluginInstall(t: TFunc, title: string, okLabel: string, n
     showModal(
       <ConfirmModal
         strTitle={title}
-        strDescription={<>{t("install.disclaimer")}{note && <p>{note}</p>}</>}
+        strDescription={<><span style={{ color: "#ff6b6b" }}>{t("install.disclaimer")}</span>{note && <p>{note}</p>}</>}
         strOKButtonText={okLabel}
         onOK={() => resolve(true)}
         onCancel={() => resolve(false)}
