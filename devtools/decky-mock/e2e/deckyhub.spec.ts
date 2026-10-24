@@ -1606,6 +1606,41 @@ test("A stalled Decky install warns once its progress goes quiet, a finished one
   await expect(stalled).toBeVisible();
 });
 
+test("DeckyHub asks Decky to load its new version when Decky doesn't reload it after an update", async ({ page }) => {
+  // Decky's WS bridge, plus its plugin loader recording what it's asked to import.
+  await page.addInitScript(() => {
+    const listeners: Record<string, ((...args: unknown[]) => void)[]> = {};
+    const imports: string[] = [];
+    Object.assign(window, {
+      __imports: imports,
+      __emit: (event: string, ...args: unknown[]) => [...(listeners[event] ?? [])].forEach((listener) => listener(...args)),
+      DeckyPluginLoader: { importPlugin: async (name: string) => void imports.push(name) },
+      DeckyBackend: {
+        call: async () => undefined,
+        addEventListener: (event: string, listener: (...args: unknown[]) => void) => void (listeners[event] ??= []).push(listener),
+        removeEventListener: (event: string, listener: (...args: unknown[]) => void) => void (listeners[event] = (listeners[event] ?? []).filter((item) => item !== listener)),
+      },
+    });
+  });
+  await page.clock.install();
+  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) => route.fulfill({ json: [{
+    tag_name: "v9.9.9", prerelease: false, html_url: "https://github.com/mazillka/deckyhub-plugin/releases/tag/v9.9.9",
+    assets: [{ name: "DeckyHub-v9.9.9.zip", browser_download_url: "https://github.com/mazillka/deckyhub-plugin/releases/download/v9.9.9/DeckyHub-v9.9.9.zip", digest: `sha256:${"b".repeat(64)}` }],
+  }] }));
+  await page.goto("/?bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  await app.locator(".qam-content").getByRole("button", { name: "Update to v9.9.9", exact: true }).click();
+
+  const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
+  const imports = () => frame.evaluate(() => (window as unknown as { __imports: string[] }).__imports);
+  await frame.evaluate(() => (window as unknown as { __emit: (event: string, name: string) => void }).__emit("loader/plugin_download_finish", "DeckyHub"));
+  // Decky gets its own 15 s to reload DeckyHub first.
+  await page.clock.fastForward(10_000);
+  expect(await imports()).toEqual([]);
+  await page.clock.fastForward(6_000);
+  await expect.poll(imports).toEqual(["DeckyHub"]);
+});
+
 test("A failed download shows its reason in the download window", async ({ page }) => {
   const app = mock(page);
   await app.getByRole("button", { name: "Download failed modal", exact: true }).click();

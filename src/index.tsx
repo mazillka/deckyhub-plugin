@@ -7,7 +7,7 @@ import { I18nProvider } from "./i18n";
 import { Content } from "./pages/Content";
 import { ManageRepositoriesPage } from "./pages/ManageRepositoriesPage";
 import { SettingsPage } from "./pages/SettingsPage";
-import { pageStyle } from "./utils";
+import { markUnloaded, pageStyle } from "./utils";
 
 const MOTION_CSS = `
   @media (prefers-reduced-motion: no-preference) {
@@ -56,6 +56,7 @@ export default definePlugin(() => {
     ),
     icon: <FaGithub />,
     onDismount() {
+      markUnloaded();
       Object.keys(ROUTES).forEach((path) => routerHook.removeRoute(path));
       removeEventListener("registry_updated", onRegistryUpdated);
     },
