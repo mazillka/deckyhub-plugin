@@ -214,7 +214,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const batchUpdates = view === "updates" && !hiddenButtons.includes("update")
     ? visibleApps.flatMap((app) => {
         const action = app.latestVersion ? installAction(app, { tag: app.latestVersion, assets: app.assets }) : null;
-        return app.updateAvailable === true && action?.type === PLUGIN_INSTALL_TYPE.UPDATE && !needsFreshInstall(action.name, action.type) ? [{ asset: app.assets[0], name: action.name, version: app.latestVersion! }] : [];
+        return app.updateAvailable === true && action?.type === PLUGIN_INSTALL_TYPE.UPDATE && !needsFreshInstall(action.name, action.type) ? [{ asset: app.assets[0], repo: app.repo, name: action.name, version: app.latestVersion! }] : [];
       })
     : [];
   // Decky's own dialog takes over, so leave the page once the request is sent.

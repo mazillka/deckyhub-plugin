@@ -1,5 +1,6 @@
 import { fetchNoCors, toaster } from "@decky/api";
-import { getSettings, logFrontend } from "./api";
+import { getSettings, logFrontend, stageInstall } from "./api";
+import { showInstallDownloadModal } from "./components/DownloadProgress";
 import { en, type MessageKey, type TFunc } from "./i18n/en";
 import type { App, AppReleaseOption, Asset, DeckyHubRelease, DeckyHubReleaseOption, RepoPreference, UpdateChannel } from "./types";
 import { compareVersions, displayVersion, inChannel, normalizeVersion } from "./version";
@@ -272,9 +273,11 @@ function reloadIfStillOld() {
   }, 15_000);
 }
 
-// Hands a verified release ZIP to Decky Loader's own installer — the route the
-// Decky Store uses. The loader shows its native confirm/progress dialog and
-// does the download, SHA-256 check and install itself.
+// Hands a release ZIP to Decky Loader's own installer — the route the Decky
+// Store uses. The loader shows its native confirm/progress dialog and does the
+// SHA-256 check and install itself. DeckyHub's backend downloads the ZIP first
+// (stage_install in main.py: Decky's own download of a GitHub URL can hang) and
+// Decky reads it as file://.
 //
 // Plugins that are uninstalled first and then installed fresh instead of
 // updated in place. Decky Loader's in-place update uninstalls the old version
@@ -286,14 +289,24 @@ const FRESH_INSTALL_PLUGINS = ["Unifideck"];
 
 export const needsFreshInstall = (pluginName: string, installType: number) => installType !== PLUGIN_INSTALL_TYPE.INSTALL && FRESH_INSTALL_PLUGINS.includes(pluginName);
 
-export async function installDeckyPlugin(asset: Asset, pluginName: string, version: string, installType: 0 | 1 | 2 | 3) {
+async function localZip(asset: Asset, repo: string) {
+  const jobId = `install-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  showInstallDownloadModal(tr, jobId, asset.name, asset.size);
+  const { path, error } = await stageInstall(asset, repo, jobId);
+  if (!path) throw new Error(error);
+  return `file://${path}`;
+}
+
+export async function installDeckyPlugin(asset: Asset, repo: string, pluginName: string, version: string, installType: 0 | 1 | 2 | 3) {
+  // Before any uninstall, so a failed download leaves the plugin as it was.
+  const artifact = await localZip(asset, repo);
   if (needsFreshInstall(pluginName, installType)) {
     await uninstallDeckyPlugin(pluginName);
     log(`Decky Loader uninstalled ${pluginName} before a fresh install`);
     installType = PLUGIN_INSTALL_TYPE.INSTALL;
   }
   traceDeckyInstall(pluginName);
-  return callDeckyLoader("utilities/install_plugin", asset.url, pluginName, normalizeVersion(displayVersion(version)), asset.sha256 ?? "", installType).then((result: unknown) => {
+  return callDeckyLoader("utilities/install_plugin", artifact, pluginName, normalizeVersion(displayVersion(version)), asset.sha256 ?? "", installType).then((result: unknown) => {
     log(`Decky Loader install_plugin ${pluginName} accepted, waiting for confirm/progress`);
     return result;
   });
@@ -302,10 +315,13 @@ export async function installDeckyPlugin(asset: Asset, pluginName: string, versi
 // Several updates in one go: Decky Loader shows one confirm dialog listing them
 // all and installs them in order. Fresh-install plugins need their uninstall
 // first, so callers leave them out.
-export function updateDeckyPlugins(updates: { asset: Asset; name: string; version: string }[]) {
+export async function updateDeckyPlugins(updates: { asset: Asset; repo: string; name: string; version: string }[]) {
+  // One at a time, so a single progress window shows at once.
+  const artifacts: string[] = [];
+  for (const { asset, repo } of updates) artifacts.push(await localZip(asset, repo));
   return callDeckyLoader(
     "utilities/install_plugins",
-    updates.map(({ asset, name, version }) => ({ artifact: asset.url, name, version: normalizeVersion(displayVersion(version)), hash: asset.sha256 ?? "", install_type: PLUGIN_INSTALL_TYPE.UPDATE })),
+    updates.map(({ asset, name, version }, index) => ({ artifact: artifacts[index], name, version: normalizeVersion(displayVersion(version)), hash: asset.sha256 ?? "", install_type: PLUGIN_INSTALL_TYPE.UPDATE })),
   );
 }
 

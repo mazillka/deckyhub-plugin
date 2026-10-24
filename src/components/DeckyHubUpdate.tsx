@@ -68,7 +68,7 @@ export function DeckyHubUpdate() {
       toaster.toast({ title: "DeckyHub", body: t("settings.selfUpdateUnavailable") });
       return;
     }
-    installDeckyPlugin(release.asset!, "DeckyHub", release.version!, PLUGIN_INSTALL_TYPE.UPDATE).catch((error: unknown) =>
+    installDeckyPlugin(release.asset!, "mazillka/deckyhub-plugin", "DeckyHub", release.version!, PLUGIN_INSTALL_TYPE.UPDATE).catch((error: unknown) =>
       toaster.toast({ title: "DeckyHub", body: String(error) }),
     );
   };

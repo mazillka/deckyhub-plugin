@@ -659,6 +659,42 @@ class Plugin:
             decky.logger.error("Can't start %s from %s: %s", name, repo, error)
             return {"error": f"Can't start {name}: {error}"}
 
+    async def stage_install(self, asset: dict, repo: str | None = None, job_id: str | None = None):
+        """Downloads a release ZIP for Decky Loader's installer to read as file://.
+
+        Decky Loader 3.3.0's own download of a GitHub release URL was seen to hang
+        for good on a real Deck (its request never opened a socket, no timeout
+        fired) while this downloader fetched the same file in seconds. Decky reads
+        a file:// ZIP straight from disk and still checks the SHA-256 it's given.
+        The frontend may pass job_id to poll progress (get_download) and cancel
+        it (cancel_download) while this runs; it never names the file.
+        """
+        target_id, registered = f"install-{time.monotonic_ns()}", None
+        try:
+            name = self._validate_download_asset(asset, repo)
+            registered = job_id if isinstance(job_id, str) and job_id and job_id not in self.downloads else target_id
+            job_id = registered
+            # Registered before any disk work so the first poll finds it.
+            self.downloads[job_id] = {"state": "queued", "filename": name, "received": 0, "total": asset.get("size") or 0, "path": None, "error": None}
+            directory = Path(decky.DECKY_PLUGIN_RUNTIME_DIR) / "installs"
+            directory.mkdir(parents=True, exist_ok=True)
+            # Decky reads the file only once its confirm dialog is accepted, which
+            # may be after DeckyHub reloads, so old ones are swept here instead.
+            for old in directory.iterdir():
+                if old.is_file() and old.stat().st_mtime < time.time() - 24 * 3600:
+                    old.unlink(missing_ok=True)
+            target = directory / f"{target_id}-{name}"
+            await asyncio.to_thread(self._download, job_id, asset, target)
+            job = self.downloads.pop(job_id)
+            if job["state"] != "complete":
+                return {"error": job["error"] or f"Download {job['state']}"}
+            return {"path": str(target)}
+        except (OSError, ValueError) as error:
+            if registered:
+                self.downloads.pop(registered, None)
+            decky.logger.error("Can't stage %s for install: %s", asset.get("url") if isinstance(asset, dict) else asset, error)
+            return {"error": str(error)}
+
     @staticmethod
     def _validate_download_asset(asset: dict, repo: str | None) -> str:
         prefix = f"https://github.com/{repo}/releases/download/" if isinstance(repo, str) and REPOSITORY_NAME.fullmatch(repo) else ""

@@ -105,7 +105,7 @@ export function AppCard({
             onOptionsActionDescription={t("settings.downloadUpdate")}
             onClick={() => {
               setInstalling(true);
-              void startPluginInstall(t, app.name, app.assets[0], app.latestVersion!, install, quickLabel, leavePage).finally(() => setInstalling(false));
+              void startPluginInstall(t, app.name, app.repo, app.assets[0], app.latestVersion!, install, quickLabel, leavePage).finally(() => setInstalling(false));
             }}
           >
             {isUpdate ? <FaArrowUp /> : <FaPlus />} {quickLabel}

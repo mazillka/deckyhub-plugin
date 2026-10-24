@@ -14,12 +14,14 @@ function DownloadModal({
   jobId,
   initial,
   onSettled,
+  closeWhenDone,
   closeModal,
 }: {
   t: TFunc;
   jobId: string;
   initial: Download;
   onSettled?: (state: Download) => void;
+  closeWhenDone?: boolean;
   closeModal?: () => void;
 }) {
   const [state, setState] = useState(initial);
@@ -46,7 +48,9 @@ function DownloadModal({
   };
 
   useEffect(() => {
-    if (!active) settle();
+    if (active) return;
+    settle();
+    if (closeWhenDone) closeModal?.();
   }, [active]);
 
   useEffect(() => settle, []);
@@ -99,4 +103,10 @@ function DownloadModal({
 
 export function showDownloadModal(t: TFunc, jobId: string, initial: Download, onSettled?: (state: Download) => void) {
   showModal(<DownloadModal t={t} jobId={jobId} initial={initial} onSettled={onSettled} />);
+}
+
+// Progress for an install's ZIP (stage_install), closed as soon as the job
+// settles: Decky's own dialog follows, and a failure is toasted by the caller.
+export function showInstallDownloadModal(t: TFunc, jobId: string, filename: string, total?: number) {
+  showModal(<DownloadModal t={t} jobId={jobId} initial={{ state: "queued", filename, received: 0, total: total ?? 0 }} closeWhenDone />);
 }
