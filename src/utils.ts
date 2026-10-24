@@ -407,7 +407,7 @@ export function notifyUpdates(apps: App[]) {
 // tag/asset filters on top, so a changed filter never serves stale results.
 // GitHub's list endpoint isn't reliably sorted newest-first (a just-published
 // release has been seen mid-array), so sort by published date here.
-type Release = { tag: string; prerelease: boolean; publishedAt: string | null; url: string; assets: Asset[] };
+type Release = { tag: string; prerelease: boolean; publishedAt: string | null; url: string; notes?: string; assets: Asset[] };
 
 // Lookups for the same repo that overlap share one request.
 const inFlight = new Map<string, Promise<Release[]>>();
@@ -452,6 +452,7 @@ async function requestReleases(repo: string, force: boolean): Promise<Release[]>
       prerelease: Boolean(item.prerelease),
       publishedAt: item.published_at || null,
       url: item.html_url || `https://github.com/${repo}/releases`,
+      notes: typeof item.body === "string" ? item.body : undefined,
       assets: (item.assets || []).map((asset: any) => ({ name: String(asset.name || ""), url: asset.browser_download_url, size: asset.size || 0, sha256: String(asset.digest || "").replace(/^sha256:/, "") || undefined })),
     }))
     .sort((a: Release, b: Release) => (Date.parse(b.publishedAt || "") || 0) - (Date.parse(a.publishedAt || "") || 0));
@@ -509,6 +510,7 @@ export async function hydrate(app: App, force: boolean, preference?: RepoPrefere
     latestVersion: release.tag,
     publishedAt: release.publishedAt,
     releaseUrl: release.url,
+    releaseNotes: release.notes,
     assets: release.assets,
     updateAvailable: isUpdate(app, release.tag),
   };

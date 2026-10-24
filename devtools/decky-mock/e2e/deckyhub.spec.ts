@@ -685,6 +685,23 @@ async function acceptDisclaimer(page: Page, label: string) {
   await confirm.getByRole("button", { name: label, exact: true }).click();
 }
 
+test("Y on a card's Install button shows the release notes and the bottom bar names it", async ({ page }) => {
+  await mockMakoReleases(page, [{ ...makoRelease("plugin-v1.2.3", "e".repeat(64)), body: "Faster frame pacing." }]);
+  await recordInstalls(page);
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  const install = app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Install v1.2.3", exact: true });
+  await install.focus();
+  await expect(app.locator(".steam-legend")).toContainText("Ⓨ Release Info");
+  await install.press("y");
+
+  const info = app.locator(".steam-modal", { hasText: "MAKO Decky v1.2.3" });
+  await expect(info.getByText("Faster frame pacing.")).toBeVisible();
+  // Y only shows the notes; nothing is installed.
+  const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
+  expect(await frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([]);
+});
+
 test("Nothing is installed until the disclaimer is accepted", async ({ page }) => {
   await mockMakoReleases(page, [makoRelease("plugin-v1.2.3", "e".repeat(64))]);
   await recordInstalls(page);

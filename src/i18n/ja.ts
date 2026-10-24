@@ -43,6 +43,8 @@ export const ja: Record<MessageKey, string> = {
   "appcard.uninstallDescription": "このプラグインと設定がこのデバイスから削除されます。後で再インストールできます。",
   "appcard.uninstalled": "{name}をアンインストールしました。",
   "appcard.freshInstallDescription": "DeckyHub はまずインストール済みのバージョンを削除し、その後 Decky が選択したバージョンを新規インストールします。Decky Loader の不具合により、上書き更新では Deck がフリーズすることがあります。Decky のインストール画面をキャンセルすると、{name} は再インストールするまで削除されたままになります。",
+  "appcard.releaseInfo": "リリース情報",
+  "appcard.noReleaseNotes": "このリリースにはノートがありません。",
   "install.disclaimer": "DeckyHub は作者の GitHub リポジトリからリリースを取得するだけです。これらのプラグインの作成・審査・保証は行わず、デバイスやデータに対するプラグインの動作について一切責任を負いません。自己責任でインストールしてください。",
   "appcard.noMatchingAsset": "このバージョンに一致するダウンロードはありません。",
 

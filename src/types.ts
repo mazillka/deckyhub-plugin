@@ -17,6 +17,7 @@ export type App = {
   latestVersion?: string | null;
   publishedAt?: string | null;
   releaseUrl?: string | null;
+  releaseNotes?: string;
   assets: Asset[];
   updateAvailable?: boolean | null;
   error?: string | null;
@@ -36,7 +37,7 @@ export type DeckyHubRelease = { version?: string; asset?: Asset; error?: string 
 
 export type DeckyHubReleaseOption = { tag: string; prerelease: boolean; publishedAt: string | null; asset?: Asset; url: string };
 
-export type AppReleaseOption = { tag: string; prerelease: boolean; publishedAt: string | null; url: string; assets: Asset[] };
+export type AppReleaseOption = { tag: string; prerelease: boolean; publishedAt: string | null; url: string; notes?: string; assets: Asset[] };
 
 export type View = "updates" | "discover";
 

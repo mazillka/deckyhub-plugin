@@ -45,14 +45,27 @@ export function Button({
   disabled,
   children,
   style,
+  onSecondaryButton,
+  onSecondaryActionDescription,
 }: {
   onClick?: () => void;
   disabled?: boolean;
   children?: ReactNode;
   style?: CSSProperties;
+  onSecondaryButton?: () => void;
+  onSecondaryActionDescription?: string;
 }) {
+  // Stands in for Steam's footer legend: "y" acts as the Y button, and
+  // DevShell's bottom bar shows data-secondary-hint while this is focused.
   return (
-    <button onClick={onClick} disabled={disabled} className="steam-button" style={style}>
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="steam-button"
+      style={style}
+      data-secondary-hint={onSecondaryButton ? onSecondaryActionDescription : undefined}
+      onKeyDown={onSecondaryButton && ((event) => { if (event.key.toLowerCase() === "y") { event.preventDefault(); onSecondaryButton(); } })}
+    >
       {children}
     </button>
   );
