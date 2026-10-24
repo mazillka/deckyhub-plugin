@@ -695,8 +695,10 @@ class Plugin:
             except URLError as error:
                 decky.logger.warning("urllib failed for %s (%s), retrying with curl", asset["url"], error)
                 self._download_with_curl(job_id, asset, temp)
-            if asset.get("sha256") and self._sha256(temp) != asset["sha256"].lower():
-                raise RuntimeError("SHA256 verification failed")
+            if asset.get("sha256"):
+                with open(temp, "rb") as file:
+                    if hashlib.file_digest(file, "sha256").hexdigest() != asset["sha256"].lower():
+                        raise RuntimeError("SHA256 verification failed")
             os.replace(temp, target)
             job["state"] = "complete"
             decky.logger.info("Downloaded %s to %s", asset["url"], target)
@@ -745,10 +747,6 @@ class Plugin:
         if process.returncode:
             raise RuntimeError((process.stderr.read() or "curl download failed").strip())
         job["received"] = temp.stat().st_size
-
-    def _sha256(self, path: Path) -> str:
-        with open(path, "rb") as file:
-            return hashlib.file_digest(file, "sha256").hexdigest()
 
     async def get_download(self, job_id: str):
         return self.downloads.get(job_id, {"state": "missing"})

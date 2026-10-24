@@ -18,28 +18,6 @@ export function PanelSectionRow({ children }: { children?: ReactNode }) {
   return <div className="steam-row">{children}</div>;
 }
 
-export function ButtonItem({
-  layout,
-  onClick,
-  disabled,
-  children,
-}: {
-  layout?: string;
-  onClick?: () => void;
-  disabled?: boolean;
-  children?: ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className="steam-button"
-    >
-      {children}
-    </button>
-  );
-}
-
 export function Button({
   onClick,
   disabled,
@@ -321,31 +299,3 @@ export const Navigation = {
 };
 
 export const staticClasses = { Title: "decky-mock-title" };
-
-export function Tabs({
-  tabs,
-  activeTab,
-  onShowTab,
-}: {
-  tabs: { id: string; title: string; content: ReactNode }[];
-  activeTab: string;
-  onShowTab: (tab: string) => void;
-}) {
-  const active = tabs.find((tab) => tab.id === activeTab) ?? tabs[0];
-  return (
-    <div>
-      <div className="steam-tabs">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => onShowTab(tab.id)}
-            className={`steam-tab ${tab.id === active?.id ? "steam-tab-active" : ""}`}
-          >
-            {tab.title}
-          </button>
-        ))}
-      </div>
-      {active?.content}
-    </div>
-  );
-}
