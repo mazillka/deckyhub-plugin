@@ -31,7 +31,8 @@ jobs:
       # Read through the contents API: raw.githubusercontent.com is a CDN whose copy can
       # be ~5 minutes old, which failed the sync PR opened right after a registry merge.
       - name: Bundled registry matches mazillka/deckyhub-registry
-        run: gh api -H "Accept: application/vnd.github.raw" "repos/mazillka/deckyhub-registry/contents/registry/apps.json?ref=main" | diff - registry/apps.json
+        run: |
+          gh api -H "Accept: application/vnd.github.raw" "repos/mazillka/deckyhub-registry/contents/registry/apps.json?ref=main" | diff - registry/apps.json
         env:
           GH_TOKEN: ${{ github.token }}
       - run: |
