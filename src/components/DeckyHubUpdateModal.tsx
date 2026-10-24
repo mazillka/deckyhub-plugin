@@ -77,7 +77,7 @@ export function DeckyHubUpdateModal({
       return;
     }
     closeModal?.();
-    installDeckyPlugin(release.asset, PLUGIN_NAME, release.tag, resolveDeckyHubInstallType(release.tag, info.version)).catch((error: unknown) =>
+    installDeckyPlugin(release.asset, "mazillka/deckyhub-plugin", PLUGIN_NAME, release.tag, resolveDeckyHubInstallType(release.tag, info.version)).catch((error: unknown) =>
       toaster.toast({ title: "DeckyHub", body: String(error) }),
     );
   };
