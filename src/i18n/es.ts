@@ -43,6 +43,7 @@ export const es: Record<MessageKey, string> = {
   "appcard.uninstallDescription": "Se eliminarán el plugin y su configuración de este dispositivo. Podrás instalarlo de nuevo más tarde.",
   "appcard.uninstalled": "{name} se desinstaló.",
   "appcard.freshInstallDescription": "DeckyHub primero quita la versión instalada y después Decky instala la seleccionada desde cero. Actualizar encima puede congelar la Deck por un error de Decky Loader. Si cancelas el diálogo de instalación de Decky, {name} quedará desinstalado hasta que lo vuelvas a instalar.",
+  "install.disclaimer": "DeckyHub solo descarga versiones de los repositorios de GitHub de sus autores. No crea, revisa ni avala estos plugins y no se hace responsable de lo que hagan en tu dispositivo o con tus datos. Instálalos bajo tu propio riesgo.",
   "appcard.noMatchingAsset": "No hay descarga disponible para esta versión.",
 
   "dl.downloading": "Descargando {filename}",
