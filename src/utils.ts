@@ -426,11 +426,20 @@ async function requestReleases(repo: string, force: boolean): Promise<Release[]>
   const cacheKey = `deckyhub-releases:${repo}`;
   const cached = readCache<Release[]>(cacheKey);
   if (cached && !force && Date.now() - cached.at < CACHE_TTL) return cached.data;
+  const url = `https://api.github.com/repos/${repo}/releases?per_page=20`;
   let body: unknown;
   try {
-    const response = await githubFetch(`https://api.github.com/repos/${repo}/releases?per_page=20`);
+    const response = await githubFetch(url);
     if (!response.ok) throw await githubResponseError(response);
     body = await response.json();
+    // GitHub sometimes answers [] to an authenticated request for a repo that has
+    // releases (about 1 in 4 in October 2026; unauthenticated ones got the list every
+    // time), so ask once more without the token before believing it. No headers also
+    // means no CORS preflight (see githubHeaders()).
+    if (githubToken && Array.isArray(body) && !body.length) {
+      const retry = await fetchNoCors(url, { signal: AbortSignal.timeout(15_000) });
+      if (retry.ok) body = await retry.json();
+    }
   } catch (error) {
     // Older releases beat an error card; a rate limit still raises the banner.
     if (cached) return cached.data;
@@ -446,6 +455,9 @@ async function requestReleases(repo: string, force: boolean): Promise<Release[]>
       assets: (item.assets || []).map((asset: any) => ({ name: String(asset.name || ""), url: asset.browser_download_url, size: asset.size || 0, sha256: String(asset.digest || "").replace(/^sha256:/, "") || undefined })),
     }))
     .sort((a: Release, b: Release) => (Date.parse(b.publishedAt || "") || 0) - (Date.parse(a.publishedAt || "") || 0));
+  // An empty answer never replaces releases we've already seen: that's far more likely
+  // the glitch above than a repo deleting every release.
+  if (!releases.length && cached?.data.length) return cached.data;
   writeCache(cacheKey, releases);
   return releases;
 }
