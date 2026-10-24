@@ -28,8 +28,13 @@ jobs:
           pnpm run test:frontend
           python3 -m unittest discover -s tests
       # Older releases still read this copy, so it must track the registry repository.
+      # Read through the contents API: raw.githubusercontent.com is a CDN whose copy can
+      # be ~5 minutes old, which failed the sync PR opened right after a registry merge.
       - name: Bundled registry matches mazillka/deckyhub-registry
-        run: curl -fsSL https://raw.githubusercontent.com/mazillka/deckyhub-registry/refs/heads/main/registry/apps.json | diff - registry/apps.json
+        run: |
+          gh api -H "Accept: application/vnd.github.raw" "repos/mazillka/deckyhub-registry/contents/registry/apps.json?ref=main" | diff - registry/apps.json
+        env:
+          GH_TOKEN: ${{ github.token }}
       - run: |
           npm ci --prefix devtools/decky-mock
           cd devtools/decky-mock

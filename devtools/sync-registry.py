@@ -21,12 +21,20 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/refs/heads/main/registry/apps.json"
+# The contents API, not raw.githubusercontent.com: raw is a CDN that serves a copy up
+# to ~5 minutes old, so a sync right after a registry merge could miss it.
+URL = "https://api.github.com/repos/mazillka/deckyhub-registry/contents/registry/apps.json?ref=main"
 REGISTRY = ROOT / "registry" / "apps.json"
 README = ROOT / "README.md"
 PACKAGE = ROOT / "package.json"
 # The table is the run of "| ..." lines right after its header and separator.
 TABLE = re.compile(r"(\| Tool \| Category \| Repository \|\n\| --- \| --- \| --- \|\n)(?:\|.*\n)*")
+
+
+def fetch_registry() -> bytes:
+    request = urllib.request.Request(URL, headers={"Accept": "application/vnd.github.raw", "User-Agent": "deckyhub-sync-registry"})
+    with urllib.request.urlopen(request, timeout=30) as response:
+        return response.read()
 
 
 def sync(raw: bytes) -> None:
@@ -74,7 +82,7 @@ def pull_request() -> None:
     # as modified even when only its line endings differ.
     old_registry, old_readme = REGISTRY.read_text(encoding="utf-8"), README.read_text(encoding="utf-8")
     before = json.loads(old_registry)["apps"]
-    raw = urllib.request.urlopen(URL, timeout=30).read()
+    raw = fetch_registry()
     sync(raw)
     if (old_registry, old_readme) == (REGISTRY.read_text(encoding="utf-8"), README.read_text(encoding="utf-8")):
         git("checkout", "--", str(REGISTRY), str(README))
@@ -107,7 +115,7 @@ def main() -> None:
     if "--pr" in sys.argv:
         pull_request()
     else:
-        sync(Path(sys.argv[1]).read_bytes() if len(sys.argv) > 1 else urllib.request.urlopen(URL, timeout=30).read())
+        sync(Path(sys.argv[1]).read_bytes() if len(sys.argv) > 1 else fetch_registry())
 
 
 if __name__ == "__main__":
