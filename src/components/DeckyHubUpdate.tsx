@@ -7,7 +7,8 @@ import { useT } from "../i18n";
 import type { DeckyHubInfo, DeckyHubRelease, HideableButton, UpdateChannel } from "../types";
 import { compactButtonStyle, getDeckyBackend, installDeckyPlugin, latestDeckyHubRelease, log, seenOnce, PLUGIN_INSTALL_TYPE, resolveDeckyHubInstallType } from "../utils";
 import { normalizeVersion } from "../version";
-import { DeckyHubUpdateModal } from "./DeckyHubUpdateModal";
+import { showReleaseInfo } from "./AppCard";
+import { DeckyHubUpdateModal, downloadDeckyHubZip } from "./DeckyHubUpdateModal";
 import { KeepInView } from "./KeepInView";
 
 const SELF_UPDATE_NOTICE_KEY = "deckyhub-self-update-notice";
@@ -77,7 +78,15 @@ export function DeckyHubUpdate() {
       <PanelSection title={title}>
         {hasUpdate && (
           <PanelSectionRow>
-            <Button style={compactButtonStyle} onClick={update}>
+            <Button
+              style={compactButtonStyle}
+              onClick={update}
+              onSecondaryButton={() => showReleaseInfo(t, `DeckyHub v${normalizeVersion(release.version!)}`, release.publishedAt, release.notes)}
+              onSecondaryActionDescription={t("appcard.releaseInfo")}
+              // X downloads this release's ZIP instead of installing it.
+              onOptionsButton={hiddenButtons.includes("downloadZip") ? undefined : () => void downloadDeckyHubZip(t, release.asset!).catch((error: unknown) => toaster.toast({ title: "DeckyHub", body: String(error) }))}
+              onOptionsActionDescription={t("settings.downloadUpdate")}
+            >
               <FaArrowUp /> {t("settings.updateTo", { version: normalizeVersion(release.version!) })}
             </Button>
           </PanelSectionRow>

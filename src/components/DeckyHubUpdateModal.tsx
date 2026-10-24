@@ -7,10 +7,19 @@ import type { TFunc } from "../i18n/en";
 import type { Asset, DeckyHubInfo, DeckyHubReleaseOption, UpdateChannel, HideableButton } from "../types";
 import { PLUGIN_INSTALL_TYPE, buildVersionOptions, getDeckyBackend, installDeckyPlugin, installTypeLabel, listDeckyHubReleases, modalButtonStyle, resolveDeckyHubInstallType, sectionDividerStyle, windowGap } from "../utils";
 import { normalizeVersion } from "../version";
+import { showReleaseInfo } from "./AppCard";
 import { showDownloadModal } from "./DownloadProgress";
 import { ReleaseActions, useReleasePicker, VersionPickerPanel } from "./VersionPickerPanel";
 
 const PLUGIN_NAME = "DeckyHub";
+
+// Queues a DeckyHub release ZIP into the shared download window; shared by
+// this window's Download ZIP and X on either Update button.
+export async function downloadDeckyHubZip(t: TFunc, asset: Asset, onSettled?: () => void): Promise<void> {
+  const result = await downloadAsset(asset, "mazillka/deckyhub-plugin");
+  if (result.error) throw new Error(result.error);
+  if (result.jobId) showDownloadModal(t, result.jobId, { state: "queued", filename: asset.name, total: asset.size }, onSettled);
+}
 
 // showModal() mounts onto a separate root from the QAM panel (Decky's own
 // MAIN-window modal manager in production; a fresh React root in the local
@@ -75,13 +84,10 @@ export function DeckyHubUpdateModal({
 
   const downloadZip = async (asset: Asset) => {
     try {
-      const result = await downloadAsset(asset, "mazillka/deckyhub-plugin");
-      if (result.error) throw new Error(result.error);
-      if (result.jobId) {
-        setDownloading(true);
-        showDownloadModal(t, result.jobId, { state: "queued", filename: asset.name, total: asset.size }, () => setDownloading(false));
-      }
+      setDownloading(true);
+      await downloadDeckyHubZip(t, asset, () => setDownloading(false));
     } catch (error) {
+      setDownloading(false);
       setSelfUpdateError(String(error));
     }
   };
@@ -119,6 +125,10 @@ export function DeckyHubUpdateModal({
                 style={modalButtonStyle}
                 disabled={busy || !selectedRelease.asset}
                 onClick={() => void selfUpdate(selectedRelease)}
+                onSecondaryButton={() => showReleaseInfo(t, `DeckyHub v${displayVersion}`, selectedRelease.publishedAt, selectedRelease.notes)}
+                onSecondaryActionDescription={t("appcard.releaseInfo")}
+                onOptionsButton={hiddenButtons.includes("downloadZip") || busy || !selectedRelease.asset ? undefined : () => void downloadZip(selectedRelease.asset!)}
+                onOptionsActionDescription={t("settings.downloadUpdate")}
               >
                 <FaDownload /> {primaryLabel}
               </Button>

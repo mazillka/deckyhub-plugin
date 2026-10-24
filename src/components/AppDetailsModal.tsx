@@ -7,6 +7,7 @@ import type { TFunc } from "../i18n/en";
 import type { App, AppReleaseOption, Asset, HideableButton, RepoPreference, UpdateChannel } from "../types";
 import { buildVersionOptions, getDeckyBackend, installAction, installDeckyPlugin, installTypeLabel, listAppReleases, modalButtonStyle, needsFreshInstall, PLUGIN_INSTALL_TYPE, readableBytes, sectionDividerStyle, uninstallDeckyPlugin, windowGap } from "../utils";
 import { displayVersion } from "../version";
+import { showReleaseInfo } from "./AppCard";
 import { ReleaseActions, useReleasePicker, VersionPickerPanel } from "./VersionPickerPanel";
 
 // Every install, update or reinstall of a third-party plugin first says
@@ -149,7 +150,15 @@ export function AppDetailsModal({
         {selectedRelease && (
           <>
             {install && !hiddenButtons.includes(install.type === PLUGIN_INSTALL_TYPE.INSTALL ? "install" : "update") && (
-              <Button style={modalButtonStyle} onClick={() => runInstall(selectedRelease, install)}>
+              <Button
+                style={modalButtonStyle}
+                onClick={() => runInstall(selectedRelease, install)}
+                onSecondaryButton={() => showReleaseInfo(t, `${app.name} ${displayVersion(selectedRelease.tag)}`, selectedRelease.publishedAt, selectedRelease.notes)}
+                onSecondaryActionDescription={t("appcard.releaseInfo")}
+                // X downloads the selected release's ZIP instead of installing it.
+                onOptionsButton={hiddenButtons.includes("downloadZip") || downloading || !selectedRelease.assets[0] ? undefined : () => download(selectedRelease.assets[0])}
+                onOptionsActionDescription={t("settings.downloadUpdate")}
+              >
                 {installIcons[install.type]} {installLabel}
               </Button>
             )}
