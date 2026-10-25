@@ -406,12 +406,6 @@ export function installAction(app: App, release: { tag: string; assets: Asset[] 
   return null;
 }
 
-function isUpdate(app: App, latest: string | null) {
-  if (!app.installedVersion || !latest) return null;
-  const cmp = compareVersions(latest, app.installedVersion);
-  return cmp === null ? null : cmp > 0;
-}
-
 export function installTypeLabel(t: TFunc, type: number, version: string, updateLabel = t("settings.updateTo", { version })) {
   return type === PLUGIN_INSTALL_TYPE.INSTALL
     ? t("appcard.installVersion", { version })
@@ -553,6 +547,7 @@ export async function hydrate(app: App, force: boolean, preference?: RepoPrefere
   const { items, error } = await listAppReleases(app, preference, force);
   const release = items.find((item) => inChannel(item, channel));
   if (!release) return { ...app, channel, error: error ?? tr("release.noMatch") };
+  const cmp = app.installedVersion ? compareVersions(release.tag, app.installedVersion) : null;
   return {
     ...app,
     channel,
@@ -561,6 +556,6 @@ export async function hydrate(app: App, force: boolean, preference?: RepoPrefere
     releaseUrl: release.url,
     releaseNotes: release.notes,
     assets: release.assets,
-    updateAvailable: isUpdate(app, release.tag),
+    updateAvailable: cmp === null ? null : cmp > 0,
   };
 }

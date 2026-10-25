@@ -10,7 +10,7 @@ import { fr } from "./fr";
 import { ja } from "./ja";
 import { zh } from "./zh";
 
-export type Locale = "en" | "uk" | "ru" | "es" | "de" | "fr" | "ja" | "zh";
+type Locale = "en" | "uk" | "ru" | "es" | "de" | "fr" | "ja" | "zh";
 
 export const LOCALES: { code: Locale; label: string }[] = [
   { code: "en", label: "English" },
@@ -39,7 +39,7 @@ function detectLocale(): Locale {
   return "en";
 }
 
-const I18nContext = createContext<{ locale: Locale; t: TFunc } | null>(null);
+const I18nContext = createContext<TFunc | null>(null);
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [preference, setPreference] = useState<string>("auto");
@@ -66,11 +66,11 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => setTranslator(t), [locale]);
 
-  return <I18nContext.Provider value={{ locale, t }}>{children}</I18nContext.Provider>;
+  return <I18nContext.Provider value={t}>{children}</I18nContext.Provider>;
 }
 
 export function useT(): TFunc {
-  const ctx = useContext(I18nContext);
-  if (!ctx) throw new Error("useT must be used within I18nProvider");
-  return ctx.t;
+  const t = useContext(I18nContext);
+  if (!t) throw new Error("useT must be used within I18nProvider");
+  return t;
 }

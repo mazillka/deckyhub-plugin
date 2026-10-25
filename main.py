@@ -78,18 +78,6 @@ def verifying_ssl_context() -> ssl.SSLContext:
 _OPENER = build_opener(_HttpsOnlyRedirects, HTTPSHandler(context=verifying_ssl_context()))
 
 
-def _coerce_columns_per_row(value) -> int:
-    return value if type(value) is int and value in (1, 2, 3) else DEFAULT_COLUMNS_PER_ROW
-
-
-# The frontend sends this straight to api.github.com's Authorization header
-# (see githubHeaders() in src/utils.ts) — it never touches the backend's own
-# network calls, which only hit raw.githubusercontent.com/release-asset CDN
-# URLs and aren't subject to the api.github.com rate limit this is for.
-def _coerce_github_token(value) -> str:
-    return value.strip()[:255] if isinstance(value, str) else ""
-
-
 # User-added registry URLs, normalized, de-duplicated and capped. Invalid entries
 # are dropped rather than raised on: a settings file edited by hand shouldn't stop
 # the plugin from starting, and add_custom_registry() is where typos get reported.
@@ -132,8 +120,9 @@ def _coerce_settings(settings: dict) -> dict:
         "overwriteExisting": bool(settings.get("overwriteExisting", True)),
         "updateChannel": "prerelease" if settings.get("updateChannel") == "prerelease" else "stable",
         "language": settings.get("language") if settings.get("language") in SUPPORTED_LANGUAGES else "auto",
-        "columnsPerRow": _coerce_columns_per_row(settings.get("columnsPerRow")),
-        "githubToken": _coerce_github_token(settings.get("githubToken")),
+        "columnsPerRow": settings.get("columnsPerRow") if type(settings.get("columnsPerRow")) is int and settings["columnsPerRow"] in (1, 2, 3) else DEFAULT_COLUMNS_PER_ROW,
+        # Only the frontend's api.github.com calls send it (githubHeaders() in src/utils.ts).
+        "githubToken": settings["githubToken"].strip()[:255] if isinstance(settings.get("githubToken"), str) else "",
         "density": "compact" if settings.get("density") == "compact" else "default",
         # Manage-window buttons the user chose to hide (Display Settings).
         "hiddenButtons": [name for name in HIDEABLE_BUTTONS if isinstance(settings.get("hiddenButtons"), list) and name in settings["hiddenButtons"]],

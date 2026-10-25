@@ -63,7 +63,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
       const local = appData.apps;
       const preferences = settings.repoSettings || {};
       setRepoPreferences(preferences);
-      setColumnsPerRow(settings.columnsPerRow || DEFAULT_COLUMNS_PER_ROW);
+      setColumnsPerRow(settings.columnsPerRow);
       setHiddenButtons(settings.hiddenButtons ?? []);
       const tracked = view === "updates" ? local.filter((app) => app.installedVersion) : local;
       setCardPage(0);
