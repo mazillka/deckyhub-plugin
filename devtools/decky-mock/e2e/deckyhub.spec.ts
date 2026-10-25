@@ -1662,7 +1662,9 @@ test("A repository added from search shows on Discover until it's removed", asyn
     await expect(app.getByRole("heading", { name: repo }).locator("..").getByRole("button", { name: "Added", exact: true })).toBeDisabled();
     await expect(app.getByRole("button", { name: `Remove ${repo}`, exact: true })).toBeVisible();
 
+    // Searched for, since a full first page of registry apps pushes it to page 2.
     await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+    await app.getByLabel("Search").fill(repo);
     await expect(app.getByRole("heading", { name: repo })).toBeVisible();
 
     await app.getByRole("button", { name: "/deckyhub/repositories" }).click();
@@ -1672,6 +1674,7 @@ test("A repository added from search shows on Discover until it's removed", asyn
 
     await app.getByRole("button", { name: "/deckyhub/discover" }).click();
     await expect(app.getByRole("heading", { name: "MAKO Decky" })).toBeVisible();
+    await app.getByLabel("Search").fill(repo);
     await expect(app.getByRole("heading", { name: repo })).toHaveCount(0);
   } finally {
     await bridgeCall(page, "remove_custom_repo", repo);
