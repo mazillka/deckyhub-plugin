@@ -125,9 +125,11 @@ ALLOWED_ORIGINS = {"http://127.0.0.1:5183", "http://localhost:5183"}
 class Handler(BaseHTTPRequestHandler):
     def _cors(self):
         origin = self.headers.get("Origin")
-        if origin in ALLOWED_ORIGINS:
-            self.send_header("Access-Control-Allow-Origin", origin)
-            self.send_header("Vary", "Origin")
+        # Echo our own constant, never the request's value (CodeQL py/http-response-splitting).
+        for allowed in ALLOWED_ORIGINS:
+            if origin == allowed:
+                self.send_header("Access-Control-Allow-Origin", allowed)
+                self.send_header("Vary", "Origin")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
 
