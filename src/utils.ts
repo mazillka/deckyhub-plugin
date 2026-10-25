@@ -18,7 +18,9 @@ export const pageStyle = { boxSizing: "border-box" as const, height: "100%", ove
 // setting overrides them on the page root (see applyDensity).
 // Centers an icon and its label on one line, whatever the button's width.
 export const iconRow = { display: "flex", alignItems: "center", justifyContent: "center", gap: 8 } as const;
-export const compactButtonStyle = { ...iconRow, width: "100%", minHeight: "var(--dh-button-height, 36px)", marginBottom: "var(--dh-button-gap, 8px)", padding: "var(--dh-button-padding, 6px 10px)" };
+// minWidth 0: Steam's DialogButton has a minimum width of its own, which pushed a
+// narrow button (the Manage gear) over its neighbour in side-by-side rows on a Deck.
+export const compactButtonStyle = { ...iconRow, width: "100%", minWidth: 0, minHeight: "var(--dh-button-height, 36px)", marginBottom: "var(--dh-button-gap, 8px)", padding: "var(--dh-button-padding, 6px 10px)" };
 export const modalButtonStyle = { ...compactButtonStyle, marginBottom: 0 };
 export const sectionDividerStyle = { borderTop: "1px solid rgba(255, 255, 255, 0.14)", margin: "var(--dh-divider-margin, 16px) 0" };
 // Text screen readers (and tests) still read, e.g. an icon-only button's label.
