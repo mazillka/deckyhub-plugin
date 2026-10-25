@@ -163,6 +163,24 @@
       "category": "Customization",
       "detect": { "type": "decky-plugin", "names": ["Finally Achievement Plugin"] },
       "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "decky-ps5-dashboard",
+      "name": "PS5 Dashboard",
+      "description": "Makes Game Mode look and feel like the PlayStation 5 home screen, with HowLongToBeat times and achievement cards.",
+      "repo": "kromossomom-debug/decky-ps5-dashboard",
+      "category": "Customization",
+      "detect": { "type": "decky-plugin", "names": ["PS5 Dashboard"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "decky-xbox-dashboard",
+      "name": "Xbox Dashboard",
+      "description": "Gives Game Mode the Xbox Series X|S dashboard look: a game-art home screen, LB/RB tabs and Guide-style menus.",
+      "repo": "kromossomom-debug/decky-xbox-dashboard",
+      "category": "Customization",
+      "detect": { "type": "decky-plugin", "names": ["Xbox Dashboard"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
     }
   ]
 }
