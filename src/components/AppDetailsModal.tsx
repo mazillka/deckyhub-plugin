@@ -7,7 +7,7 @@ import type { TFunc } from "../i18n/en";
 import type { App, AppReleaseOption, Asset, HideableButton, RepoPreference, UpdateChannel } from "../types";
 import { buildVersionOptions, getDeckyBackend, installAction, installDeckyPlugin, installTypeLabel, listAppReleases, modalButtonStyle, needsFreshInstall, PLUGIN_INSTALL_TYPE, readableBytes, sectionDividerStyle, uninstallDeckyPlugin, windowGap } from "../utils";
 import { displayVersion } from "../version";
-import { showReleaseInfo } from "./AppCard";
+import { AppMonogram, showReleaseInfo } from "./AppCard";
 import { ReleaseActions, useReleasePicker, VersionPickerPanel } from "./VersionPickerPanel";
 
 // Every install, update or reinstall of a third-party plugin first says
@@ -133,6 +133,7 @@ export function AppDetailsModal({
       <div style={{ display: "grid", gap: windowGap }}>
         <VersionPickerPanel
           t={t}
+          icon={<AppMonogram app={app} />}
           title={app.name}
           subtitle={t("settings.installedVersion", { version: app.installedVersion ? displayVersion(app.installedVersion) : "—" })}
           channel={channel}

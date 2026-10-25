@@ -1,8 +1,8 @@
 import { DialogButtonPrimary as Button, DropdownItem, Focusable, Navigation, PanelSection, PanelSectionRow, TextField, ToggleField } from "@decky/ui";
 import { useEffect, useState, type ReactNode } from "react";
-import { FaExternalLinkAlt, FaSave, FaFolderOpen, FaInfoCircle, FaLock } from "react-icons/fa";
+import { FaCog, FaExternalLinkAlt, FaSave, FaFolderOpen, FaInfoCircle, FaLock } from "react-icons/fa";
 import { getSettings, saveSettings } from "../api";
-import { KeepInView } from "../components/KeepInView";
+import { Card, PageHeader } from "../components/Card";
 import { LOCALE_CHANGED, LOCALES, useT } from "../i18n";
 import type { MessageKey } from "../i18n/en";
 import type { HideableButton, Settings } from "../types";
@@ -70,7 +70,8 @@ export function SettingsPage() {
 
   return (
     <>
-      <KeepInView>
+      <PageHeader icon={<FaCog />} title={t("nav.settings")} />
+      <Card>
         <PanelSection title={t("settings.githubAccess")}>
           <PanelSectionRow>
             <div style={{ display: "grid", gap: 8 }}>
@@ -109,11 +110,10 @@ export function SettingsPage() {
             </Button>
           </PanelSectionRow>
         </PanelSection>
-      </KeepInView>
+      </Card>
 
-      <div aria-hidden style={sectionDividerStyle} />
 
-      <KeepInView>
+      <Card>
         <PanelSection title={t("settings.downloadSettings")}>
           <PanelSectionRow>
             <div style={{ display: "grid", gap: 8 }}>
@@ -129,11 +129,10 @@ export function SettingsPage() {
             <ToggleField label={t("settings.overwriteExisting")} checked={settings.overwriteExisting} onChange={(checked) => update({ overwriteExisting: checked })} />
           </PanelSectionRow>
         </PanelSection>
-      </KeepInView>
+      </Card>
 
-      <div aria-hidden style={sectionDividerStyle} />
 
-      <KeepInView>
+      <Card>
         <PanelSection title={t("settings.language")}>
           <PanelSectionRow>
             <DropdownItem
@@ -144,11 +143,10 @@ export function SettingsPage() {
             />
           </PanelSectionRow>
         </PanelSection>
-      </KeepInView>
+      </Card>
 
-      <div aria-hidden style={sectionDividerStyle} />
 
-      <KeepInView>
+      <Card>
         <PanelSection title={t("settings.displaySettings")}>
           <PanelSectionRow>
             <DropdownItem
@@ -179,7 +177,7 @@ export function SettingsPage() {
             </PanelSectionRow>
           ))}
         </PanelSection>
-      </KeepInView>
+      </Card>
     </>
   );
 }

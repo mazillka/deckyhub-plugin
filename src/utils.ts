@@ -23,6 +23,13 @@ export const modalButtonStyle = { ...compactButtonStyle, marginBottom: 0 };
 export const sectionDividerStyle = { borderTop: "1px solid rgba(255, 255, 255, 0.14)", margin: "var(--dh-divider-margin, 16px) 0" };
 export const windowGap = "var(--dh-window-gap, 10px)";
 export const gridGap = "var(--dh-grid-gap, 12px)";
+// The tile every card and section is drawn on (see Card and AppCard).
+export const surfaceStyle = {
+  background: "linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02))",
+  border: "1px solid rgba(255, 255, 255, 0.09)",
+  borderRadius: 8,
+  boxSizing: "border-box" as const,
+};
 
 const COMPACT_SIZES: Record<string, string> = {
   "--dh-button-height": "28px",
@@ -31,6 +38,8 @@ const COMPACT_SIZES: Record<string, string> = {
   "--dh-divider-margin": "8px",
   "--dh-window-gap": "6px",
   "--dh-grid-gap": "8px",
+  "--dh-card-gap": "8px",
+  "--dh-card-padding": "0 10px",
 };
 
 // Applies Display Settings' density to this window and, in Gaming Mode, to the

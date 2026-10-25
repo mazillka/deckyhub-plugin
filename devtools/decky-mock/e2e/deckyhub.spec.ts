@@ -162,12 +162,16 @@ test("Discover keeps search and status on one row", async ({ page }) => {
 test("Discover keeps its refresh action beside the description", async ({ page }) => {
   await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
   const app = mock(page);
+  const title = app.getByRole("heading", { name: "Discover", exact: true });
   const description = app.getByText("Browse supported GitHub projects and their ZIP releases.");
   const refresh = app.getByRole("button", { name: "Refresh", exact: true });
 
-  const [descriptionBox, refreshBox] = await Promise.all([description.boundingBox(), refresh.boundingBox()]);
-  expect(Math.abs(descriptionBox!.y - refreshBox!.y)).toBeLessThan(20);
-  expect(refreshBox!.x).toBeGreaterThan(descriptionBox!.x);
+  // On the header's row: its middle falls between the title's top and the description's bottom.
+  const [titleBox, descriptionBox, refreshBox] = await Promise.all([title.boundingBox(), description.boundingBox(), refresh.boundingBox()]);
+  const refreshMiddle = refreshBox!.y + refreshBox!.height / 2;
+  expect(refreshMiddle).toBeGreaterThan(titleBox!.y);
+  expect(refreshMiddle).toBeLessThan(descriptionBox!.y + descriptionBox!.height);
+  expect(refreshBox!.x).toBeGreaterThan(descriptionBox!.x + descriptionBox!.width);
 });
 
 test("Repository search and action share one row", async ({ page }) => {
@@ -1629,22 +1633,15 @@ test("A failed download shows its reason in the download window", async ({ page 
   await expect(app.locator(".steam-modal")).toHaveCount(0);
 });
 
-test("Discover pages through more than 20 cards", async ({ page }) => {
+test("Discover shows every card on one page", async ({ page }) => {
   const repos = Array.from({ length: 10 }, (_, index) => `e2e-paging/repo-${index}`);
   for (const repo of repos) await bridgeCall(page, "add_custom_repo", repo);
   try {
     await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
     const app = mock(page);
-    const previous = app.getByRole("button", { name: "Previous", exact: true });
-    const next = app.getByRole("button", { name: "Next", exact: true });
-    await expect(app.getByText(/^Page 1 of 2$/)).toBeVisible();
-    await expect(previous).toBeDisabled();
-    await next.click();
-    await expect(app.getByText(/^Page 2 of 2$/)).toBeVisible();
-    await expect(next).toBeDisabled();
+    await expect(app.getByRole("heading", { name: "MAKO Decky" })).toBeVisible();
     await expect(app.getByRole("heading", { name: "e2e-paging/repo-9" })).toBeVisible();
-    await previous.click();
-    await expect(app.getByText(/^Page 1 of 2$/)).toBeVisible();
+    await expect(app.getByRole("button", { name: "Next", exact: true })).toHaveCount(0);
   } finally {
     for (const repo of repos) await bridgeCall(page, "remove_custom_repo", repo);
   }
@@ -1662,9 +1659,7 @@ test("A repository added from search shows on Discover until it's removed", asyn
     await expect(app.getByRole("heading", { name: repo }).locator("..").getByRole("button", { name: "Added", exact: true })).toBeDisabled();
     await expect(app.getByRole("button", { name: `Remove ${repo}`, exact: true })).toBeVisible();
 
-    // Searched for, since a full first page of registry apps pushes it to page 2.
     await app.getByRole("button", { name: "/deckyhub/discover" }).click();
-    await app.getByLabel("Search").fill(repo);
     await expect(app.getByRole("heading", { name: repo })).toBeVisible();
 
     await app.getByRole("button", { name: "/deckyhub/repositories" }).click();
@@ -1674,7 +1669,6 @@ test("A repository added from search shows on Discover until it's removed", asyn
 
     await app.getByRole("button", { name: "/deckyhub/discover" }).click();
     await expect(app.getByRole("heading", { name: "MAKO Decky" })).toBeVisible();
-    await app.getByLabel("Search").fill(repo);
     await expect(app.getByRole("heading", { name: repo })).toHaveCount(0);
   } finally {
     await bridgeCall(page, "remove_custom_repo", repo);

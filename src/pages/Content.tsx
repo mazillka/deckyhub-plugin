@@ -5,26 +5,25 @@ import { FaArrowCircleUp, FaCog, FaFileExport, FaListUl, FaSearch, FaSync, FaTim
 import { downloadAsset, exportLogs, getApps, getSettings, REGISTRY_UPDATED } from "../api";
 import { useT } from "../i18n";
 import type { App, Asset, HideableButton, RepoPreference, UpdateChannel, View } from "../types";
-import { compactButtonStyle, DEFAULT_COLUMNS_PER_ROW, getDeckyBackend, hydrate, installAction, log, needsFreshInstall, notifyUpdates, PLUGIN_INSTALL_TYPE, sectionDividerStyle, updateDeckyPlugins } from "../utils";
+import { compactButtonStyle, DEFAULT_COLUMNS_PER_ROW, getDeckyBackend, hydrate, installAction, log, needsFreshInstall, notifyUpdates, PLUGIN_INSTALL_TYPE, surfaceStyle, updateDeckyPlugins } from "../utils";
 import { AppCard } from "../components/AppCard";
 import { confirmPluginInstall } from "../components/AppDetailsModal";
 import { CleanupSection } from "../components/CleanupSection";
 import { showDownloadModal } from "../components/DownloadProgress";
 import { FocusableGrid } from "../components/FocusableGrid";
+import { Card, PageHeader } from "../components/Card";
 import { KeepInView, keepInView } from "../components/KeepInView";
-import { Pager } from "../components/Pager";
 import { RateLimitBanner } from "../components/RateLimitBanner";
 import { DeckyHubUpdate } from "../components/DeckyHubUpdate";
 
 // ponytail: fixed pool of 8 GitHub requests in flight; lower it if the registry grows
 // big enough to trip GitHub's secondary (burst) rate limit.
 const RELEASE_CONCURRENCY = 8;
-const CARDS_PER_PAGE = 20;
 
 const NAV_LINKS = [["updates", FaArrowCircleUp], ["discover", FaSearch], ["repositories", FaListUl], ["settings", FaCog]] as const;
 
 // Same no-responsibility note the install confirm shows, kept in view on the Updates and Discover pages.
-const disclaimerStyle = { color: "#ff6b6b", fontSize: "0.85em" };
+const disclaimerStyle = { marginBottom: "var(--dh-card-gap, 14px)", padding: "8px 12px", color: "#ffb3b3", fontSize: "0.85em", background: "rgba(255, 107, 107, 0.08)", borderLeft: "3px solid #ff6b6b", borderRadius: 6 };
 
 const countBadgeStyle = { minWidth: "1.5em", padding: "0 6px", borderRadius: 999, background: "#f0c33c", color: "#1a1a1a", fontSize: "0.8em", fontWeight: 700, lineHeight: "1.5em", textAlign: "center" as const };
 
@@ -39,7 +38,6 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const [installedFilter, setInstalledFilter] = useState("All");
   // "" means every category.
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [cardPage, setCardPage] = useState(0);
   const [columnsPerRow, setColumnsPerRow] = useState(DEFAULT_COLUMNS_PER_ROW);
   const [repoPreferences, setRepoPreferences] = useState<Record<string, RepoPreference>>({});
   const [hiddenButtons, setHiddenButtons] = useState<HideableButton[]>([]);
@@ -66,7 +64,6 @@ export function Content({ fullPage }: { fullPage?: View }) {
       setColumnsPerRow(settings.columnsPerRow);
       setHiddenButtons(settings.hiddenButtons ?? []);
       const tracked = view === "updates" ? local.filter((app) => app.installedVersion) : local;
-      setCardPage(0);
       setApps(tracked);
       setLoadError(null);
       // Discover shows every card straight away and fills each in as its
@@ -164,11 +161,12 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const activeCategory = categories.includes(categoryFilter) ? categoryFilter : "";
 
   const discoverFilters = view === "discover" && (
+    <Card>
     <PanelSection>
       <PanelSectionRow>
         <Focusable flow-children="right" style={{ display: "flex", gap: 12 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <TextField label={t("filter.search")} value={query} bShowClearAction onChange={(event) => { setQuery(event.currentTarget.value); setCardPage(0); }} />
+            <TextField label={t("filter.search")} value={query} bShowClearAction onChange={(event) => setQuery(event.currentTarget.value)} />
           </div>
           <div style={{ flex: "0 0 220px" }}>
             <div style={{ fontSize: "0.85em" }}>
@@ -182,7 +180,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
                 { label: t("filter.notInstalled"), data: "Not Installed" },
               ]}
               selectedOption={installedFilter}
-              onChange={({ data }) => { setInstalledFilter(data); setCardPage(0); }}
+              onChange={({ data }) => setInstalledFilter(data)}
               />
             </div>
           </div>
@@ -194,13 +192,14 @@ export function Content({ fullPage }: { fullPage?: View }) {
                 menuLabel={t("filter.category")}
                 rgOptions={[{ label: t("filter.all"), data: "" }, ...categories.map((category) => ({ label: category, data: category }))]}
                 selectedOption={activeCategory}
-                onChange={({ data }) => { setCategoryFilter(data); setCardPage(0); }}
+                onChange={({ data }) => setCategoryFilter(data)}
               />
             </div>
           </div>
         </Focusable>
       </PanelSectionRow>
     </PanelSection>
+    </Card>
   );
 
   const visibleApps = apps.filter((app) =>
@@ -227,9 +226,6 @@ export function Content({ fullPage }: { fullPage?: View }) {
       .finally(() => setUpdatingAll(false));
     Navigation.NavigateBack();
   };
-  const pageCount = Math.max(1, Math.ceil(visibleApps.length / CARDS_PER_PAGE));
-  const currentPage = Math.min(cardPage, pageCount - 1);
-  const displayedApps = visibleApps.slice(currentPage * CARDS_PER_PAGE, (currentPage + 1) * CARDS_PER_PAGE);
   const page = (
       <>
       {loading && (
@@ -243,7 +239,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
         </PanelSection>
       )}
       {loadError && (
-        <KeepInView>
+        <Card accent="#ff6b6b">
           <PanelSection title={t("content.loadErrorTitle")}>
             <PanelSectionRow>{loadError}</PanelSectionRow>
             <PanelSectionRow>
@@ -252,39 +248,37 @@ export function Content({ fullPage }: { fullPage?: View }) {
               </Button>
             </PanelSectionRow>
           </PanelSection>
-        </KeepInView>
+        </Card>
       )}
       {!loading && !loadError && (
         <>
           <KeepInView>
-            <PanelSection title={info.title}>
-              <PanelSectionRow>
-                <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>{info.description}</div>
+            <PageHeader
+              icon={view === "updates" ? <FaArrowCircleUp /> : <FaSearch />}
+              title={info.title}
+              description={info.description}
+              actions={
+                <>
                   <div style={{ flex: "0 0 180px" }}>
-                    <Button style={compactButtonStyle} onClick={() => void load(true)}>
+                    <Button style={{ ...compactButtonStyle, marginBottom: 0 }} onClick={() => void load(true)}>
                       <FaSync /> {t("content.refresh")}
                     </Button>
                   </div>
                   {batchUpdates.length > 1 && (
-                    <div style={{ flex: 1 }}>
-                      <Button style={compactButtonStyle} disabled={updatingAll} onClick={() => void updateAll()}>
+                    <div style={{ flex: "0 0 220px" }}>
+                      <Button style={{ ...compactButtonStyle, marginBottom: 0 }} disabled={updatingAll} onClick={() => void updateAll()}>
                         <FaArrowUp /> {t("content.updateAll", { count: batchUpdates.length })}
                       </Button>
                     </div>
                   )}
-                </Focusable>
-              </PanelSectionRow>
-              <PanelSectionRow>
-                <div className="deckyhub-disclaimer" style={disclaimerStyle}>{t("install.disclaimer")}</div>
-              </PanelSectionRow>
-            </PanelSection>
+                </>
+              }
+            />
+            <div className="deckyhub-disclaimer" style={disclaimerStyle}>{t("install.disclaimer")}</div>
           </KeepInView>
-          <div aria-hidden style={sectionDividerStyle} />
           {discoverFilters}
-          {discoverFilters && <div aria-hidden style={sectionDividerStyle} />}
           <FocusableGrid
-            items={displayedApps}
+            items={visibleApps}
             columns={fullPage ? columnsPerRow : 1}
             keyFor={(app) => app.id}
           >
@@ -300,15 +294,8 @@ export function Content({ fullPage }: { fullPage?: View }) {
               />
             )}
           </FocusableGrid>
-          {visibleApps.length > CARDS_PER_PAGE && (
-            <PanelSection>
-              <PanelSectionRow>
-                <Pager page={currentPage} total={pageCount} onChange={setCardPage} />
-              </PanelSectionRow>
-            </PanelSection>
-          )}
           {!visibleApps.length && (
-            <div className="deckyhub-empty" onFocus={keepInView} style={{ textAlign: "center" }}>
+            <div className="deckyhub-empty" onFocus={keepInView} style={{ ...surfaceStyle, padding: "16px 14px", textAlign: "center" }}>
               {/* Decky's section title is a left-aligned flex row; center it too. */}
               <style>{".deckyhub-empty div { text-align: center; justify-content: center; }"}</style>
               <PanelSection title={info.empty}>
@@ -337,6 +324,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const updateCount = apps.filter((app) => app.updateAvailable).length;
   const navigation = (
     <>
+      <Card>
       <PanelSection>
         {NAV_LINKS.map(([page, Icon]) => (
           <PanelSectionRow key={page}>
@@ -347,11 +335,10 @@ export function Content({ fullPage }: { fullPage?: View }) {
           </PanelSectionRow>
         ))}
       </PanelSection>
-      <div aria-hidden style={sectionDividerStyle} />
+      </Card>
       <DeckyHubUpdate />
       <CleanupSection />
-      <div aria-hidden style={sectionDividerStyle} />
-      <KeepInView>
+      <Card>
         <PanelSection title={t("settings.troubleshooting")}>
           <PanelSectionRow>
             <Button style={compactButtonStyle} onClick={() => void exportLogs().then(({ path }) => toaster.toast({ title: "DeckyHub", body: t("repos.exportedTo", { path }) }), (error) => toaster.toast({ title: "DeckyHub", body: String(error) }))}>
@@ -362,7 +349,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
             <div style={{ color: "#8fcef4", fontSize: "0.85em" }}>{t("settings.exportLogsNote")}</div>
           </PanelSectionRow>
         </PanelSection>
-      </KeepInView>
+      </Card>
     </>
   );
 

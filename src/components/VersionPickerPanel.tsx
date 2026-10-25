@@ -1,5 +1,5 @@
 import { DialogButtonPrimary as Button, DropdownItem, Focusable, Navigation } from "@decky/ui";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { FaExternalLinkAlt, FaSync } from "react-icons/fa";
 import type { TFunc } from "../i18n/en";
 import type { UpdateChannel } from "../types";
@@ -66,6 +66,7 @@ export function ReleaseActions({ t, url, hideReleasePage, checking, disabled, on
 // (the primary action buttons) actually differs between them.
 export function VersionPickerPanel({
   t,
+  icon,
   title,
   subtitle,
   channel,
@@ -78,6 +79,7 @@ export function VersionPickerPanel({
   isEmpty,
 }: {
   t: TFunc;
+  icon: ReactNode;
   title: string;
   subtitle: string;
   channel: UpdateChannel;
@@ -92,8 +94,13 @@ export function VersionPickerPanel({
   return (
     <>
       <div onFocus={keepInView} style={{ display: "grid", gap: windowGap }}>
-        <strong style={{ fontSize: 16 }}>{title}</strong>
-        <div style={{ fontSize: 13, opacity: 0.75 }}>{subtitle}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          {icon}
+          <div style={{ minWidth: 0 }}>
+            <strong style={{ display: "block", color: "#fff", fontSize: 18 }}>{title}</strong>
+            <div style={{ color: "#b8c7d3", fontSize: 13 }}>{subtitle}</div>
+          </div>
+        </div>
 
         <div style={{ display: "grid", gap: 8, padding: 12, background: "rgba(0, 0, 0, 0.2)", borderRadius: 8 }}>
           {/* Inline label + no separator: Steam's dropdown height is fixed, so

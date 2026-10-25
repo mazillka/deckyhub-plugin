@@ -1,9 +1,9 @@
-import { DialogButtonPrimary as Button, ConfirmModal, Navigation, PanelSection, PanelSectionRow, showModal } from "@decky/ui";
-import { useState } from "react";
+import { DialogButtonPrimary as Button, ConfirmModal, Navigation, showModal } from "@decky/ui";
+import { useState, type CSSProperties } from "react";
 import { FaArrowUp, FaCog, FaPlus } from "react-icons/fa";
 import { useT } from "../i18n";
 import type { App, Asset, HideableButton, RepoPreference, UpdateChannel } from "../types";
-import { compactButtonStyle, cardDescriptionStyle, installAction, PLUGIN_INSTALL_TYPE, statusKey, statusColor } from "../utils";
+import { compactButtonStyle, cardDescriptionStyle, installAction, PLUGIN_INSTALL_TYPE, statusKey, statusColor, surfaceStyle } from "../utils";
 import { displayVersion } from "../version";
 import type { TFunc } from "../i18n/en";
 import { AppDetailsModal, startPluginInstall } from "./AppDetailsModal";
@@ -32,6 +32,35 @@ export const showReleaseInfo = (t: TFunc, title: string, publishedAt?: string | 
       }
     />,
   );
+
+// Card chrome. The top border takes the status color (see statusColor()).
+const cardStyle = {
+  display: "grid",
+  gridTemplateColumns: "40px minmax(0, 1fr)",
+  gridTemplateRows: "auto auto",
+  alignContent: "start",
+  columnGap: 10,
+  rowGap: 8,
+  ...surfaceStyle,
+  height: "100%",
+  padding: 12,
+  borderTop: "3px solid",
+};
+const fullRow = { gridColumn: "1 / -1" };
+const monogramStyle = { display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: 8, color: "#fff", fontWeight: 700, letterSpacing: "0.02em" };
+const cardTitleStyle = { margin: 0, overflow: "hidden", color: "#fff", fontSize: "1.05em", fontWeight: 700, lineHeight: 1.2, textOverflow: "ellipsis", whiteSpace: "nowrap" as const };
+const categoryStyle = { color: "#8fcef4", fontSize: "0.78em", letterSpacing: "0.04em", textTransform: "uppercase" as const };
+const pillStyle = { display: "inline-block", marginRight: 6, padding: "1px 8px", border: "1px solid", borderRadius: 999, fontSize: "0.78em", fontWeight: 600 };
+
+// Up to two initials, e.g. "Decky LSFG-VK" -> "DL".
+const monogram = (name: string) => name.split(/[\s-]+/).filter(Boolean).slice(0, 2).map((word) => word[0].toUpperCase()).join("");
+// A stable hue per category, so every card in a category shares its color.
+const categoryHue = (category: string) => [...category].reduce((hash, char) => (hash * 31 + char.charCodeAt(0)) % 360, 7);
+
+// The app's initials on its category's color, on its card and in its Manage window.
+export function AppMonogram({ app, style }: { app: App; style?: CSSProperties }) {
+  return <div aria-hidden style={{ ...monogramStyle, flexShrink: 0, background: `hsl(${categoryHue(app.category)} 45% 32%)`, ...style }}>{monogram(app.name)}</div>;
+}
 
 export function AppCard({
   app,
@@ -63,38 +92,30 @@ export function AppCard({
   const [installing, setInstalling] = useState(false);
   const latest = app.latestVersion ? displayVersion(app.latestVersion).replace(/^v/, "") : "";
   const quickLabel = t(isUpdate ? "settings.updateTo" : "appcard.installVersion", { version: latest });
+  const accent = statusColor(app) ?? "#8fcef4";
   return (
-    <PanelSection title={app.name}>
-      <PanelSectionRow>
-        <div>
-          <small style={cardDescriptionStyle}>{app.description || " "}</small>
-          <span style={{ color: statusColor(app) }}>{t(statusKey(app))}</span>
-          {app.installedVersion && (
-            <>
-              <br />
-              <small>{t("settings.installedVersion", { version: displayVersion(app.installedVersion) })}</small>
-            </>
-          )}
-          <br />
-          {/* No release and no error yet: its GitHub check is still running. */}
-          <small>{t("settings.latestVersion", { version: app.latestVersion ? displayVersion(app.latestVersion) : app.error ? "—" : t("settings.checkingUpdate") })}</small>
-          {/* Stable is the default, so only a pre-release override earns a line. */}
-          {app.channel === "prerelease" && (
-            <>
-              <br />
-              <small style={{ color: "#ffa94d" }}>{t("appcard.channel", { channel: t("appcard.channelPrerelease") })}</small>
-            </>
-          )}
-          {app.error && (
-            <>
-              <br />
-              <small style={{ color: "#ff6b6b" }}>{app.error}</small>
-            </>
-          )}
-        </div>
-      </PanelSectionRow>
+    // The name stays a direct child of the card: tests (and screen readers)
+    // find a card's buttons from its heading.
+    <div style={{ ...cardStyle, borderTopColor: accent }}>
+      <AppMonogram app={app} style={{ gridRow: "1 / 3", alignSelf: "center" }} />
+      <h3 style={cardTitleStyle}>{app.name}</h3>
+      <small style={categoryStyle}>{app.category}</small>
+      <div style={fullRow}>
+        <span style={{ ...pillStyle, color: accent, background: `${accent}22`, borderColor: `${accent}66` }}>{t(statusKey(app))}</span>
+        {/* Stable is the default, so only a pre-release override earns a pill. */}
+        {app.channel === "prerelease" && (
+          <span style={{ ...pillStyle, color: "#ffa94d", background: "#ffa94d22", borderColor: "#ffa94d66" }}>{t("appcard.channel", { channel: t("appcard.channelPrerelease") })}</span>
+        )}
+      </div>
+      <small style={{ ...cardDescriptionStyle, ...fullRow, display: "-webkit-box", color: "#b8c7d3" }}>{app.description || " "}</small>
+      <div style={{ ...fullRow, display: "flex", flexWrap: "wrap", gap: "2px 14px", color: "#8b9aa7", fontSize: "0.8em" }}>
+        {app.installedVersion && <span>{t("settings.installedVersion", { version: displayVersion(app.installedVersion) })}</span>}
+        {/* No release and no error yet: its GitHub check is still running. */}
+        <span>{t("settings.latestVersion", { version: app.latestVersion ? displayVersion(app.latestVersion) : app.error ? "—" : t("settings.checkingUpdate") })}</span>
+      </div>
+      {app.error && <small style={{ ...fullRow, color: "#ff6b6b", overflowWrap: "anywhere" }}>{app.error}</small>}
+      <div style={{ ...fullRow, marginTop: "auto" }}>
       {install && quickAction && (
-        <PanelSectionRow>
           <Button
             style={compactButtonStyle}
             disabled={installing}
@@ -110,11 +131,9 @@ export function AppCard({
           >
             {isUpdate ? <FaArrowUp /> : <FaPlus />} {quickLabel}
           </Button>
-        </PanelSectionRow>
       )}
-      <PanelSectionRow>
         <Button
-          style={compactButtonStyle}
+          style={{ ...compactButtonStyle, marginBottom: 0 }}
           onClick={() =>
             showModal(
               <AppDetailsModal
@@ -132,7 +151,7 @@ export function AppCard({
         >
           <FaCog /> {t("appcard.manage")}
         </Button>
-      </PanelSectionRow>
-    </PanelSection>
+      </div>
+    </div>
   );
 }

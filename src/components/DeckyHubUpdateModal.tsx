@@ -1,13 +1,14 @@
 import { toaster } from "@decky/api";
 import { DialogButtonPrimary as Button, ModalRoot } from "@decky/ui";
 import { useState } from "react";
-import { FaDownload, FaFileArchive, FaTimes } from "react-icons/fa";
+import { FaDownload, FaFileArchive, FaGithub, FaTimes } from "react-icons/fa";
 import { downloadAsset, getSettings, saveSettings } from "../api";
 import type { TFunc } from "../i18n/en";
 import type { Asset, DeckyHubInfo, DeckyHubReleaseOption, UpdateChannel, HideableButton } from "../types";
 import { PLUGIN_INSTALL_TYPE, buildVersionOptions, getDeckyBackend, installDeckyPlugin, installTypeLabel, listDeckyHubReleases, modalButtonStyle, resolveDeckyHubInstallType, sectionDividerStyle, windowGap } from "../utils";
 import { normalizeVersion } from "../version";
 import { showReleaseInfo } from "./AppCard";
+import { iconTileStyle } from "./Card";
 import { showDownloadModal } from "./DownloadProgress";
 import { ReleaseActions, useReleasePicker, VersionPickerPanel } from "./VersionPickerPanel";
 
@@ -103,6 +104,7 @@ export function DeckyHubUpdateModal({
       <div style={{ display: "grid", gap: windowGap }}>
         <VersionPickerPanel
           t={t}
+          icon={<div aria-hidden style={{ ...iconTileStyle, width: 40, height: 40 }}><FaGithub /></div>}
           title={t("settings.deckyhubUpdate")}
           subtitle={`${t("settings.current")} - v${info.version}`}
           channel={channel}
