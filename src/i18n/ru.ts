@@ -50,6 +50,7 @@ export const ru: Record<MessageKey, string> = {
 
   "dl.downloading": "Загрузка {filename}",
   "dl.preparing": "Подготовка загрузки…",
+  "dl.preparingInstall": "Подготовка к установке…",
   "dl.savedTo": "ZIP-файл сохранён в:",
   "dl.selectedFolder": "выбранную папку загрузок",
   "dl.installInDecky": "Установите в Decky:",

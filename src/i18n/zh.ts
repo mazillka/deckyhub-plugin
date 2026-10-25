@@ -50,6 +50,7 @@ export const zh: Record<MessageKey, string> = {
 
   "dl.downloading": "正在下载 {filename}",
   "dl.preparing": "正在准备下载…",
+  "dl.preparingInstall": "正在准备安装…",
   "dl.savedTo": "ZIP 文件已保存至：",
   "dl.selectedFolder": "所选下载文件夹",
   "dl.installInDecky": "在 Decky 中安装：",

@@ -289,40 +289,60 @@ const FRESH_INSTALL_PLUGINS = ["Unifideck"];
 
 export const needsFreshInstall = (pluginName: string, installType: number) => installType !== PLUGIN_INSTALL_TYPE.INSTALL && FRESH_INSTALL_PLUGINS.includes(pluginName);
 
-async function localZip(asset: Asset, repo: string) {
+// Its progress window stays open, spinning once the ZIP is in, until `handedOver`
+// settles (Decky's dialog is up, or it failed); without one, until it's staged.
+async function localZip(asset: Asset, repo: string, handedOver?: Promise<void>) {
   const jobId = `install-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  showInstallDownloadModal(tr, jobId, asset.name, asset.size);
-  const { path, error } = await stageInstall(asset, repo, jobId);
+  const staged = stageInstall(asset, repo, jobId);
+  showInstallDownloadModal(tr, jobId, asset.name, asset.size, handedOver ?? staged);
+  const { path, error } = await staged;
   if (!path) throw new Error(error);
   return `file://${path}`;
 }
 
+// A promise and the function that settles it, for localZip's handedOver.
+function handOff() {
+  let done = () => {};
+  const handedOver = new Promise<void>((resolve) => (done = resolve));
+  return { handedOver, done };
+}
+
 export async function installDeckyPlugin(asset: Asset, repo: string, pluginName: string, version: string, installType: 0 | 1 | 2 | 3) {
-  // Before any uninstall, so a failed download leaves the plugin as it was.
-  const artifact = await localZip(asset, repo);
-  if (needsFreshInstall(pluginName, installType)) {
-    await uninstallDeckyPlugin(pluginName);
-    log(`Decky Loader uninstalled ${pluginName} before a fresh install`);
-    installType = PLUGIN_INSTALL_TYPE.INSTALL;
-  }
-  traceDeckyInstall(pluginName);
-  return callDeckyLoader("utilities/install_plugin", artifact, pluginName, normalizeVersion(displayVersion(version)), asset.sha256 ?? "", installType).then((result: unknown) => {
+  const { handedOver, done } = handOff();
+  try {
+    // Before any uninstall, so a failed download leaves the plugin as it was.
+    const artifact = await localZip(asset, repo, handedOver);
+    if (needsFreshInstall(pluginName, installType)) {
+      await uninstallDeckyPlugin(pluginName);
+      log(`Decky Loader uninstalled ${pluginName} before a fresh install`);
+      installType = PLUGIN_INSTALL_TYPE.INSTALL;
+    }
+    traceDeckyInstall(pluginName);
+    const result = await callDeckyLoader("utilities/install_plugin", artifact, pluginName, normalizeVersion(displayVersion(version)), asset.sha256 ?? "", installType);
     log(`Decky Loader install_plugin ${pluginName} accepted, waiting for confirm/progress`);
     return result;
-  });
+  } finally {
+    done();
+  }
 }
 
 // Several updates in one go: Decky Loader shows one confirm dialog listing them
 // all and installs them in order. Fresh-install plugins need their uninstall
 // first, so callers leave them out.
 export async function updateDeckyPlugins(updates: { asset: Asset; repo: string; name: string; version: string }[]) {
-  // One at a time, so a single progress window shows at once.
-  const artifacts: string[] = [];
-  for (const { asset, repo } of updates) artifacts.push(await localZip(asset, repo));
-  return callDeckyLoader(
-    "utilities/install_plugins",
-    updates.map(({ asset, name, version }, index) => ({ artifact: artifacts[index], name, version: normalizeVersion(displayVersion(version)), hash: asset.sha256 ?? "", install_type: PLUGIN_INSTALL_TYPE.UPDATE })),
-  );
+  // One at a time, so a single progress window shows at once; the last one
+  // stays up until Decky's dialog is.
+  const { handedOver, done } = handOff();
+  try {
+    const artifacts: string[] = [];
+    for (const [index, { asset, repo }] of updates.entries()) artifacts.push(await localZip(asset, repo, index === updates.length - 1 ? handedOver : undefined));
+    return await callDeckyLoader(
+      "utilities/install_plugins",
+      updates.map(({ asset, name, version }, index) => ({ artifact: artifacts[index], name, version: normalizeVersion(displayVersion(version)), hash: asset.sha256 ?? "", install_type: PLUGIN_INSTALL_TYPE.UPDATE })),
+    );
+  } finally {
+    done();
+  }
 }
 
 // Logs every stage Decky Loader reports for this install, with elapsed time,
