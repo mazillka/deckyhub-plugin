@@ -1,7 +1,7 @@
 import { toaster } from "@decky/api";
 import { DialogButtonPrimary as Button, Dropdown, Focusable, Navigation, PanelSection, PanelSectionRow, Spinner, TextField } from "@decky/ui";
 import { useEffect, useRef, useState } from "react";
-import { FaArrowCircleUp, FaCog, FaFileExport, FaListUl, FaSearch, FaSync, FaTimes, FaArrowUp } from "react-icons/fa";
+import { FaArrowCircleUp, FaCog, FaFileExport, FaSearch, FaSync, FaTimes, FaArrowUp } from "react-icons/fa";
 import { downloadAsset, exportLogs, getApps, getSettings, REGISTRY_UPDATED } from "../api";
 import { useT } from "../i18n";
 import type { App, Asset, HideableButton, RepoPreference, UpdateChannel, View } from "../types";
@@ -20,7 +20,7 @@ import { DeckyHubUpdate } from "../components/DeckyHubUpdate";
 // big enough to trip GitHub's secondary (burst) rate limit.
 const RELEASE_CONCURRENCY = 8;
 
-const NAV_LINKS = [["updates", FaArrowCircleUp], ["discover", FaSearch], ["repositories", FaListUl], ["settings", FaCog]] as const;
+const NAV_LINKS = [["updates", FaArrowCircleUp], ["discover", FaSearch], ["settings", FaCog]] as const;
 
 // Same no-responsibility note the install confirm shows, kept in view on the Updates and Discover pages.
 const disclaimerStyle = { marginBottom: "var(--dh-card-gap, 14px)", padding: "8px 12px", color: "#ffb3b3", fontSize: "0.85em", background: "rgba(255, 107, 107, 0.08)", borderLeft: "3px solid #ff6b6b", borderRadius: 6 };
@@ -202,13 +202,17 @@ export function Content({ fullPage }: { fullPage?: View }) {
     </Card>
   );
 
-  const visibleApps = apps.filter((app) =>
-    view === "updates"
-      ? app.updateAvailable === true
-      : (!query || `${app.name} ${app.repo} ${app.category} ${app.description ?? ""}`.toLowerCase().includes(query.toLowerCase())) &&
-        (installedFilter === "All" || (installedFilter === "Installed") === Boolean(app.installedVersion)) &&
-        (!activeCategory || app.category === activeCategory),
-  );
+  const visibleApps = apps
+    .filter((app) =>
+      view === "updates"
+        ? app.updateAvailable === true
+        : (!query || `${app.name} ${app.repo} ${app.category} ${app.description ?? ""}`.toLowerCase().includes(query.toLowerCase())) &&
+          (installedFilter === "All" || (installedFilter === "Installed") === Boolean(app.installedVersion)) &&
+          (!activeCategory || app.category === activeCategory),
+    )
+    // Apps with an update first; sort is stable, so registry order holds otherwise.
+    .sort((a, b) => Number(b.updateAvailable === true) - Number(a.updateAvailable === true));
+  const updateCount = apps.filter((app) => app.updateAvailable).length;
   // Decky plugins the Updates page can update in one batch (see updateDeckyPlugins).
   const batchUpdates = view === "updates" && !hiddenButtons.includes("update")
     ? visibleApps.flatMap((app) => {
@@ -256,6 +260,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
             <PageHeader
               icon={view === "updates" ? <FaArrowCircleUp /> : <FaSearch />}
               title={info.title}
+              badge={view === "updates" && updateCount > 0 && <span className="deckyhub-update-count" title={t("toast.updatesAvailable", { count: updateCount })} style={countBadgeStyle}>{updateCount}</span>}
               description={info.description}
               actions={
                 <>
@@ -320,13 +325,13 @@ export function Content({ fullPage }: { fullPage?: View }) {
       </>
   );
 
-  // The Quick Access view loads installed apps the same way the Updates page does.
-  const updateCount = apps.filter((app) => app.updateAvailable).length;
+  // The Quick Access view loads installed apps the same way the Updates page does,
+  // and lists Updates only while there is one.
   const navigation = (
     <>
       <Card>
       <PanelSection>
-        {NAV_LINKS.map(([page, Icon]) => (
+        {NAV_LINKS.filter(([page]) => page !== "updates" || updateCount > 0).map(([page, Icon]) => (
           <PanelSectionRow key={page}>
             <Button style={compactButtonStyle} onClick={() => Navigation.Navigate(`/deckyhub/${page}`)}>
               <Icon /> {t(`nav.${page}`)}

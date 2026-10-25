@@ -104,11 +104,11 @@ test.beforeEach(async ({ page }) => {
 
 test("Quick Access navigation opens Discover", async ({ page }) => {
   const app = mock(page);
-  const [updates, discover] = await Promise.all([
-    app.getByRole("button", { name: "Updates", exact: true }).boundingBox(),
+  const [discover, settings] = await Promise.all([
     app.getByRole("button", { name: "Discover", exact: true }).boundingBox(),
+    app.getByRole("button", { name: "Settings", exact: true }).boundingBox(),
   ]);
-  expect(discover!.y - (updates!.y + updates!.height)).toBeGreaterThanOrEqual(6);
+  expect(settings!.y - (discover!.y + discover!.height)).toBeGreaterThanOrEqual(6);
   await app.getByRole("button", { name: "Discover", exact: true }).click();
 
   await expect(app.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
@@ -224,7 +224,7 @@ test("Cleanup shows only when the downloads folder has files, and clearing requi
   rmSync(downloads, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
   const app = mock(page);
   await page.goto("/?bridge=http://127.0.0.1:8643");
-  await expect(app.getByRole("button", { name: "Updates", exact: true })).toBeVisible();
+  await expect(app.getByRole("button", { name: "Discover", exact: true })).toBeVisible();
   await expect(app.getByText("Cleanup", { exact: true })).toHaveCount(0);
 
   mkdirSync(downloads, { recursive: true });
@@ -1477,7 +1477,7 @@ test("Every row of side-by-side controls lets the D-pad move left and right", as
   const app = mock(page);
 
   // Quick Access panel, with the rate-limit banner's two buttons.
-  await expect(app.getByRole("button", { name: "Updates", exact: true })).toBeVisible();
+  await expect(app.getByRole("button", { name: "Discover", exact: true })).toBeVisible();
   await app.getByRole("button", { name: "Rate limit banner", exact: true }).click();
   expect(await sideBySideWithoutRightFlow(page)).toEqual([]);
 
@@ -1509,7 +1509,7 @@ test("Every row of side-by-side controls lets the D-pad move left and right", as
   expect(await sideBySideWithoutRightFlow(page)).toEqual([]);
 });
 
-test("Quick Access lists its pages in order and badges the number of updates", async ({ page }) => {
+test("Quick Access lists its pages in order, showing Updates only while there are some", async ({ page }) => {
   const removePlugin = seedPlugin("e2e-mako", "MAKO - Frame Generation", "1.0.0");
   await mockMakoReleases(page, [makoRelease("plugin-v1.2.3", "c".repeat(64))]);
   try {
@@ -1519,17 +1519,22 @@ test("Quick Access lists its pages in order and badges the number of updates", a
     await expect(nav.nth(0).locator("span")).toHaveText("1");
     await expect(nav.nth(0)).toContainText("Updates");
     await expect(nav.nth(1)).toHaveText("Discover");
-    await expect(nav.nth(2)).toHaveText("Repositories");
-    await expect(nav.nth(3)).toHaveText("Settings");
+    await expect(nav.nth(2)).toHaveText("Settings");
     await expect(app.getByText("Browse", { exact: true })).toHaveCount(0);
   } finally {
     removePlugin();
   }
 
   await page.reload();
-  const updates = mock(page).locator(".qam-content").getByRole("button").first();
-  await expect(updates).toHaveText("Updates");
-  await expect(updates.locator("span")).toHaveCount(0);
+  await expect(mock(page).locator(".qam-content").getByRole("button").first()).toHaveText("Discover");
+  await expect(mock(page).getByRole("button", { name: "Updates", exact: true })).toHaveCount(0);
+});
+
+test("Settings opens Repositories", async ({ page }) => {
+  await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  await app.getByRole("button", { name: "Repositories", exact: true }).click();
+  await expect(app.getByRole("heading", { name: "Repositories", exact: true })).toBeVisible();
 });
 
 test("An up-to-date Decky plugin's card offers only Manage", async ({ page }) => {
@@ -1568,6 +1573,19 @@ test("Check for Updates and Download ZIP keep the Manage window open", async ({ 
   await modal.getByRole("button", { name: "Download ZIP", exact: true }).click();
   await expect(modal.getByRole("button", { name: "Close", exact: true })).toBeVisible();
   await expect(app.locator(".steam-modal")).toHaveCount(1);
+});
+
+test("Updates counts its plugins and Discover lists them first", async ({ page }) => {
+  const removePlugin = seedPlugin("e2e-nexus", "Nexus Mods", "1.0.0");
+  try {
+    await page.goto("/?preview=/deckyhub/updates&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    await expect(app.locator(".deckyhub-update-count")).toHaveText("1");
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    await expect(mock(page).getByRole("heading", { level: 3 }).first()).toHaveText("Nexus Mods");
+  } finally {
+    removePlugin();
+  }
 });
 
 test("The Updates page offers Discover when everything is up to date", async ({ page }) => {

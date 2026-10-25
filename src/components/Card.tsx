@@ -29,12 +29,15 @@ export const iconTileStyle = {
 
 // A page's title row: icon tile, title and description, then any actions.
 // Without actions it's a focus stop of its own, so the D-pad can reach it.
-export function PageHeader({ icon, title, description, actions }: { icon: ReactNode; title: string; description?: string; actions?: ReactNode }) {
+export function PageHeader({ icon, title, badge, description, actions }: { icon: ReactNode; title: string; badge?: ReactNode; description?: string; actions?: ReactNode }) {
   return (
     <Focusable flow-children="right" onActivate={actions ? undefined : () => {}} onFocus={keepInView} style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: "var(--dh-card-gap, 14px)" }}>
       <div aria-hidden style={iconTileStyle}>{icon}</div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <h2 style={{ margin: 0, color: "#fff", fontSize: "1.6em", fontWeight: 700, lineHeight: 1.15 }}>{title}</h2>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <h2 style={{ margin: 0, color: "#fff", fontSize: "1.6em", fontWeight: 700, lineHeight: 1.15 }}>{title}</h2>
+          {badge}
+        </div>
         {description && <div style={{ marginTop: 3, color: "#b8c7d3", fontSize: "0.9em" }}>{description}</div>}
       </div>
       {actions}

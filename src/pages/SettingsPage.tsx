@@ -1,6 +1,6 @@
 import { DialogButtonPrimary as Button, DropdownItem, Focusable, Navigation, PanelSection, PanelSectionRow, TextField, ToggleField } from "@decky/ui";
 import { useEffect, useState, type ReactNode } from "react";
-import { FaCog, FaExternalLinkAlt, FaSave, FaFolderOpen, FaInfoCircle, FaLock } from "react-icons/fa";
+import { FaCog, FaExternalLinkAlt, FaListUl, FaSave, FaFolderOpen, FaInfoCircle, FaLock } from "react-icons/fa";
 import { getSettings, saveSettings } from "../api";
 import { Card, PageHeader } from "../components/Card";
 import { LOCALE_CHANGED, LOCALES, useT } from "../i18n";
@@ -111,8 +111,15 @@ export function SettingsPage() {
           </PanelSectionRow>
         </PanelSection>
       </Card>
-
-
+      <Card>
+        <PanelSection title={t("nav.repositories")}>
+          <PanelSectionRow>
+            <Button style={compactButtonStyle} onClick={() => Navigation.Navigate("/deckyhub/repositories")}>
+              <FaListUl /> {t("nav.repositories")}
+            </Button>
+          </PanelSectionRow>
+        </PanelSection>
+      </Card>
       <Card>
         <PanelSection title={t("settings.downloadSettings")}>
           <PanelSectionRow>
