@@ -5,8 +5,8 @@ import { FaExclamationTriangle, FaTimes, FaTrash } from "react-icons/fa";
 import { clearDownloads, listDownloads } from "../api";
 import { useT } from "../i18n";
 import type { TFunc } from "../i18n/en";
-import { compactButtonStyle, modalButtonStyle, sectionDividerStyle, windowGap } from "../utils";
-import { KeepInView } from "./KeepInView";
+import { compactButtonStyle, modalButtonStyle, windowGap } from "../utils";
+import { Card } from "./Card";
 
 const CLEAR_LIST_LIMIT = 50;
 
@@ -78,9 +78,7 @@ export function CleanupSection() {
   if (!downloads.length) return null;
 
   return (
-    <>
-      <div aria-hidden style={sectionDividerStyle} />
-      <KeepInView>
+    <Card>
         <PanelSection title={t("settings.cleanup")}>
           <PanelSectionRow>
             <Button style={compactButtonStyle} onClick={() => showModal(<ClearDownloadsModal t={t} downloads={downloads} onConfirm={clear} />)}>
@@ -88,7 +86,6 @@ export function CleanupSection() {
             </Button>
           </PanelSectionRow>
         </PanelSection>
-      </KeepInView>
-    </>
+    </Card>
   );
 }

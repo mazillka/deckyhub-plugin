@@ -1,16 +1,16 @@
 import { FileSelectionType, openFilePicker, toaster } from "@decky/api";
 import { DialogButtonPrimary as Button, ConfirmModal, Focusable, PanelSection, PanelSectionRow, showModal, TextField } from "@decky/ui";
 import { FocusableGrid } from "../components/FocusableGrid";
-import { KeepInView } from "../components/KeepInView";
+import { Card, PageHeader } from "../components/Card";
 import { Pager } from "../components/Pager";
 import { RateLimitBanner } from "../components/RateLimitBanner";
 import { useEffect, useState } from "react";
-import { FaCheck, FaFileExport, FaFileImport, FaPlus, FaRedo, FaSearch, FaTimes, FaTrash } from "react-icons/fa";
+import { FaCheck, FaFileExport, FaFileImport, FaListUl, FaPlus, FaRedo, FaSearch, FaTimes, FaTrash } from "react-icons/fa";
 import { addCustomRegistry, addCustomRepo, exportCustomRepos, getApps, getSettings, importCustomRepos, REGISTRY_UPDATED, refreshRegistry, removeCustomRegistry, removeCustomRepo } from "../api";
 import { useT } from "../i18n";
 import type { MessageKey } from "../i18n/en";
 import type { SearchRepo } from "../types";
-import { compactButtonStyle, githubFetch, githubResponseError, isRepositoryName, log, registryLabel, registryUrlForRepo, sectionDividerStyle } from "../utils";
+import { compactButtonStyle, githubFetch, githubResponseError, isRepositoryName, log, registryLabel, registryUrlForRepo, surfaceStyle } from "../utils";
 
 const RESULTS_PER_PAGE = 5;
 
@@ -191,7 +191,8 @@ export function ManageRepositoriesPage() {
   return (
     <>
       <RateLimitBanner />
-      <KeepInView>
+      <PageHeader icon={<FaListUl />} title={t("nav.repositories")} />
+      <Card>
         <PanelSection title={t("repos.addGithubRepository")}>
           <PanelSectionRow>
             <Focusable flow-children="right" style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
@@ -225,14 +226,14 @@ export function ManageRepositoriesPage() {
             </PanelSectionRow>
           )}
         </PanelSection>
-      </KeepInView>
+      </Card>
       {results.length > 0 && (
         <>
-          <div aria-hidden style={sectionDividerStyle} />
           <FocusableGrid items={results.slice(page * RESULTS_PER_PAGE, page * RESULTS_PER_PAGE + RESULTS_PER_PAGE)} columns={2} keyFor={(repo) => repo.full_name}>
             {(repo) => {
               const added = existingRepos.has(repo.full_name.toLowerCase());
               return (
+                <div style={{ ...surfaceStyle, height: "100%", padding: "var(--dh-card-padding, 4px 14px)" }}>
                 <PanelSection title={repo.full_name}>
                   <PanelSectionRow>
                     <small>
@@ -245,15 +246,15 @@ export function ManageRepositoriesPage() {
                     </Button>
                   </PanelSectionRow>
                 </PanelSection>
+                </div>
               );
             }}
           </FocusableGrid>
         </>
       )}
 
-      <div aria-hidden style={sectionDividerStyle} />
 
-      <KeepInView>
+      <Card>
         <PanelSection title={t("repos.managedRepositories")}>
           <PanelSectionRow>
             <Focusable flow-children="right" style={{ display: "flex", gap: 12 }}>
@@ -278,11 +279,10 @@ export function ManageRepositoriesPage() {
           ))}
           {!customRepos.length && <PanelSectionRow>{t("repos.noCustomRepos")}</PanelSectionRow>}
         </PanelSection>
-      </KeepInView>
+      </Card>
 
-      <div aria-hidden style={sectionDividerStyle} />
 
-      <KeepInView>
+      <Card>
         <PanelSection title={t("repos.customRegistries")}>
           <PanelSectionRow>
             <Focusable flow-children="right" style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
@@ -325,7 +325,7 @@ export function ManageRepositoriesPage() {
           ))}
           {!registries.length && <PanelSectionRow>{t("repos.noCustomRegistries")}</PanelSectionRow>}
         </PanelSection>
-      </KeepInView>
+      </Card>
     </>
   );
 }

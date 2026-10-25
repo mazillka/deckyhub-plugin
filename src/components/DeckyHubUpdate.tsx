@@ -9,7 +9,7 @@ import { compactButtonStyle, getDeckyBackend, installDeckyPlugin, latestDeckyHub
 import { normalizeVersion } from "../version";
 import { showReleaseInfo } from "./AppCard";
 import { DeckyHubUpdateModal, downloadDeckyHubZip } from "./DeckyHubUpdateModal";
-import { KeepInView } from "./KeepInView";
+import { Card } from "./Card";
 
 const SELF_UPDATE_NOTICE_KEY = "deckyhub-self-update-notice";
 
@@ -74,7 +74,7 @@ export function DeckyHubUpdate() {
   };
 
   return (
-    <KeepInView>
+    <Card accent={hasUpdate ? "#f0c33c" : undefined}>
       <PanelSection title={title}>
         {hasUpdate && (
           <PanelSectionRow>
@@ -104,6 +104,6 @@ export function DeckyHubUpdate() {
           </Button>
         </PanelSectionRow>
       </PanelSection>
-    </KeepInView>
+    </Card>
   );
 }

@@ -29,7 +29,7 @@ export function RateLimitBanner() {
   const minutes = Math.max(1, Math.ceil(remaining / 60_000));
 
   return (
-    <div className="deckyhub-rate-limit" role="status" onFocus={keepInView} style={{ background: "rgba(240, 195, 60, 0.12)", borderLeft: "3px solid #f0c33c", borderRadius: 4, display: "grid", gap: 6, marginBottom: 12, padding: "8px 10px" }}>
+    <div className="deckyhub-rate-limit" role="status" onFocus={keepInView} style={{ background: "rgba(240, 195, 60, 0.12)", borderLeft: "3px solid #f0c33c", borderRadius: 6, display: "grid", gap: 6, marginBottom: "var(--dh-card-gap, 14px)", padding: "8px 12px" }}>
       <strong style={{ color: "#f0c33c" }}>{t("rateLimit.title")}</strong>
       <small>
         {limit.minutesKnown ? t("rateLimit.retryIn", { minutes }) : t("rateLimit.retryLater")} {t("rateLimit.howToAvoid")}
