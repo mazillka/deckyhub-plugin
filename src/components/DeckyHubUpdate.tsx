@@ -1,11 +1,11 @@
 import { toaster } from "@decky/api";
-import { DialogButtonPrimary as Button, PanelSection, PanelSectionRow, showModal } from "@decky/ui";
+import { DialogButtonPrimary as Button, Focusable, PanelSection, PanelSectionRow, showModal } from "@decky/ui";
 import { useEffect, useRef, useState } from "react";
 import { FaArrowUp, FaCog } from "react-icons/fa";
 import { getDeckyHubInfo, getSettings } from "../api";
 import { useT } from "../i18n";
 import type { DeckyHubInfo, DeckyHubRelease, HideableButton, UpdateChannel } from "../types";
-import { compactButtonStyle, getDeckyBackend, installDeckyPlugin, latestDeckyHubRelease, log, seenOnce, PLUGIN_INSTALL_TYPE, resolveDeckyHubInstallType } from "../utils";
+import { compactButtonStyle, getDeckyBackend, installDeckyPlugin, latestDeckyHubRelease, log, seenOnce, PLUGIN_INSTALL_TYPE, resolveDeckyHubInstallType, visuallyHidden } from "../utils";
 import { normalizeVersion } from "../version";
 import { showReleaseInfo } from "./AppCard";
 import { DeckyHubUpdateModal, downloadDeckyHubZip } from "./DeckyHubUpdateModal";
@@ -58,7 +58,7 @@ export function DeckyHubUpdate() {
   }, [channel, info.version]);
 
   const loading = info.version === "unknown";
-  const title = loading ? `${t("settings.checkingVersion")}…` : `${t("settings.current")} - v${info.version}`;
+  const title = loading ? `${t("settings.checkingVersion")}…` : `DeckyHub v${info.version}`;
   const hasUpdate = Boolean(release.asset && release.version && isNewer(release.version)) && !hiddenButtons.includes("update");
 
   // Same hand-off as the update window's own Update button: Decky's
@@ -76,10 +76,13 @@ export function DeckyHubUpdate() {
   return (
     <Card accent={hasUpdate ? "#f0c33c" : undefined}>
       <PanelSection title={title}>
+        {/* Update, with Manage as a gear beside it; Manage alone takes the full row. */}
+        <PanelSectionRow>
+          <Focusable flow-children="right" style={{ display: "flex", gap: 8 }}>
         {hasUpdate && (
-          <PanelSectionRow>
+            <div style={{ flex: 1, minWidth: 0 }}>
             <Button
-              style={compactButtonStyle}
+              style={{ ...compactButtonStyle, marginBottom: 0 }}
               onClick={update}
               onSecondaryButton={() => showReleaseInfo(t, `DeckyHub v${normalizeVersion(release.version!)}`, release.publishedAt, release.notes)}
               onSecondaryActionDescription={t("appcard.releaseInfo")}
@@ -89,19 +92,21 @@ export function DeckyHubUpdate() {
             >
               <FaArrowUp /> {t("settings.updateTo", { version: normalizeVersion(release.version!) })}
             </Button>
-          </PanelSectionRow>
+            </div>
         )}
-        <PanelSectionRow>
+          <div style={hasUpdate ? { flex: "0 0 44px" } : { flex: 1 }}>
           <Button
-            style={compactButtonStyle}
+            style={{ ...compactButtonStyle, marginBottom: 0, ...(hasUpdate && { padding: 0 }) }}
             // Read settings on open so Display Settings' hidden buttons are current.
             onClick={() => void getSettings().then((settings) => {
               setHiddenButtons(settings.hiddenButtons ?? []);
               showModal(<DeckyHubUpdateModal t={t} info={info} channel={channel} onCheckUpdate={(checkedChannel) => checkForUpdate(false, checkedChannel)} onChannelChange={setChannel} hiddenButtons={settings.hiddenButtons} />);
             })}
           >
-            <FaCog /> {t("appcard.manage")}
+            <FaCog /> <span style={hasUpdate ? visuallyHidden : undefined}>{t("appcard.manage")}</span>
           </Button>
+          </div>
+          </Focusable>
         </PanelSectionRow>
       </PanelSection>
     </Card>

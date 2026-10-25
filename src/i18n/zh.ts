@@ -58,7 +58,6 @@ export const zh: Record<MessageKey, string> = {
   "dl.ok": "确定",
 
   "settings.deckyhubUpdate": "DeckyHub 更新",
-  "settings.current": "当前",
   "settings.checkingVersion": "正在检查版本",
   "settings.installedVersion": "已安装：{version}",
   "settings.latestVersion": "最新：{version}",
