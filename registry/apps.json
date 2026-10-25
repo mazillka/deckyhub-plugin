@@ -159,7 +159,7 @@
       "id": "finally-achievement-plugin",
       "name": "Finally Achievement Plugin",
       "description": "Xbox/PlayStation-style achievement pop-ups, plus an achievement browser and an on-screen tracker.",
-      "repo": "otisabiburada/finally-achievement-plugin",
+      "repo": "otisabiburada/finally-decky-achievements",
       "category": "Customization",
       "detect": { "type": "decky-plugin", "names": ["Finally Achievement Plugin"] },
       "asset": { "include": [".zip"], "exclude": ["source"] }

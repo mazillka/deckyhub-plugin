@@ -70,7 +70,7 @@ No setup, no configuration — these show up in Discover the moment you install 
 | Spindeck | Customization | [justinca92/spindeck](https://github.com/justinca92/spindeck) |
 | Game Glance | Customization | [michpalm/game-glance](https://github.com/michpalm/game-glance) |
 | Decky MultiFrameGen | Frame Generation | [MWGIH/DeckyMultiFrameGen](https://github.com/MWGIH/DeckyMultiFrameGen) |
-| Finally Achievement Plugin | Customization | [otisabiburada/finally-achievement-plugin](https://github.com/otisabiburada/finally-achievement-plugin) |
+| Finally Achievement Plugin | Customization | [otisabiburada/finally-decky-achievements](https://github.com/otisabiburada/finally-decky-achievements) |
 | PS5 Dashboard | Customization | [kromossomom-debug/decky-ps5-dashboard](https://github.com/kromossomom-debug/decky-ps5-dashboard) |
 | Xbox Dashboard | Customization | [kromossomom-debug/decky-xbox-dashboard](https://github.com/kromossomom-debug/decky-xbox-dashboard) |
 | Loadout | Performance | [cyruzin/loadout](https://github.com/cyruzin/loadout) |
