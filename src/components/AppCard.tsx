@@ -1,9 +1,9 @@
-import { DialogButtonPrimary as Button, ConfirmModal, Navigation, showModal } from "@decky/ui";
+import { DialogButtonPrimary as Button, ConfirmModal, Focusable, Navigation, showModal } from "@decky/ui";
 import { useState, type CSSProperties } from "react";
 import { FaArrowUp, FaCog, FaPlus } from "react-icons/fa";
 import { useT } from "../i18n";
 import type { App, Asset, HideableButton, RepoPreference, UpdateChannel } from "../types";
-import { compactButtonStyle, cardDescriptionStyle, installAction, PLUGIN_INSTALL_TYPE, statusKey, statusColor, surfaceStyle } from "../utils";
+import { compactButtonStyle, cardDescriptionStyle, installAction, PLUGIN_INSTALL_TYPE, statusKey, statusColor, surfaceStyle, visuallyHidden } from "../utils";
 import { displayVersion } from "../version";
 import type { TFunc } from "../i18n/en";
 import { AppDetailsModal, startPluginInstall } from "./AppDetailsModal";
@@ -114,10 +114,12 @@ export function AppCard({
         <span>{t("settings.latestVersion", { version: app.latestVersion ? displayVersion(app.latestVersion) : app.error ? "—" : t("settings.checkingUpdate") })}</span>
       </div>
       {app.error && <small style={{ ...fullRow, color: "#ff6b6b", overflowWrap: "anywhere" }}>{app.error}</small>}
-      <div style={{ ...fullRow, marginTop: "auto" }}>
+      {/* Install/Update, with Manage as a gear beside it; Manage alone takes the full row. */}
+      <Focusable flow-children="right" style={{ ...fullRow, display: "flex", gap: 8, marginTop: "auto" }}>
       {install && quickAction && (
+          <div style={{ flex: 1, minWidth: 0 }}>
           <Button
-            style={compactButtonStyle}
+            style={{ ...compactButtonStyle, marginBottom: 0 }}
             disabled={installing}
             onSecondaryButton={() => showReleaseInfo(t, `${app.name} v${latest}`, app.publishedAt, app.releaseNotes)}
             onSecondaryActionDescription={t("appcard.releaseInfo")}
@@ -131,9 +133,11 @@ export function AppCard({
           >
             {isUpdate ? <FaArrowUp /> : <FaPlus />} {quickLabel}
           </Button>
+          </div>
       )}
+        <div style={install && quickAction ? { flex: "0 0 44px" } : { flex: 1 }}>
         <Button
-          style={{ ...compactButtonStyle, marginBottom: 0 }}
+          style={{ ...compactButtonStyle, marginBottom: 0, ...(install && quickAction && { padding: 0 }) }}
           onClick={() =>
             showModal(
               <AppDetailsModal
@@ -149,9 +153,11 @@ export function AppCard({
             )
           }
         >
-          <FaCog /> {t("appcard.manage")}
+          {/* The label stays as hidden text, so the gear keeps its name for screen readers and tests. */}
+          <FaCog /> <span style={install && quickAction ? visuallyHidden : undefined}>{t("appcard.manage")}</span>
         </Button>
-      </div>
+        </div>
+      </Focusable>
     </div>
   );
 }

@@ -21,6 +21,8 @@ export const iconRow = { display: "flex", alignItems: "center", justifyContent: 
 export const compactButtonStyle = { ...iconRow, width: "100%", minHeight: "var(--dh-button-height, 36px)", marginBottom: "var(--dh-button-gap, 8px)", padding: "var(--dh-button-padding, 6px 10px)" };
 export const modalButtonStyle = { ...compactButtonStyle, marginBottom: 0 };
 export const sectionDividerStyle = { borderTop: "1px solid rgba(255, 255, 255, 0.14)", margin: "var(--dh-divider-margin, 16px) 0" };
+// Text screen readers (and tests) still read, e.g. an icon-only button's label.
+export const visuallyHidden = { position: "absolute" as const, width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" as const };
 export const windowGap = "var(--dh-window-gap, 10px)";
 export const gridGap = "var(--dh-grid-gap, 12px)";
 // The tile every card and section is drawn on (see Card and AppCard).

@@ -106,7 +106,7 @@ export function DeckyHubUpdateModal({
           t={t}
           icon={<div aria-hidden style={{ ...iconTileStyle, width: 40, height: 40 }}><FaGithub /></div>}
           title={t("settings.deckyhubUpdate")}
-          subtitle={`${t("settings.current")} - v${info.version}`}
+          subtitle={t("settings.installedVersion", { version: `v${info.version}` })}
           channel={channel}
           onChannelChange={(next) => void changeChannel(next)}
           versionOptions={versionOptions}

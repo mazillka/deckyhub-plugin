@@ -58,7 +58,6 @@ export const es: Record<MessageKey, string> = {
   "dl.ok": "Aceptar",
 
   "settings.deckyhubUpdate": "Actualización de DeckyHub",
-  "settings.current": "Actual",
   "settings.checkingVersion": "Comprobando versión",
   "settings.installedVersion": "Instalado: {version}",
   "settings.latestVersion": "Última: {version}",

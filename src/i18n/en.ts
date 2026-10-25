@@ -57,7 +57,6 @@ export const en = {
   "dl.ok": "OK",
 
   "settings.deckyhubUpdate": "DeckyHub Update",
-  "settings.current": "Current",
   "settings.checkingVersion": "Checking version",
   "settings.installedVersion": "Installed: {version}",
   "settings.latestVersion": "Latest: {version}",
