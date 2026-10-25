@@ -181,6 +181,24 @@
       "category": "Customization",
       "detect": { "type": "decky-plugin", "names": ["Xbox Dashboard"] },
       "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "loadout",
+      "name": "Loadout",
+      "description": "One-tap per-game Performance, Balanced, Quality and Battery profiles from community configs, with a safe return to Default.",
+      "repo": "cyruzin/loadout",
+      "category": "Performance",
+      "detect": { "type": "decky-plugin", "names": ["Loadout"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "achievement-customizer",
+      "name": "Achievement Customizer",
+      "description": "Console-style looks and animations for achievement pop-ups: Xbox and PlayStation entrances, rarity glow, themes and colors.",
+      "repo": "Hector2242/decky-plugin",
+      "category": "Customization",
+      "detect": { "type": "decky-plugin", "names": ["Achievement Customizer"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
     }
   ]
 }

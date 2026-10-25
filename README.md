@@ -73,6 +73,8 @@ No setup, no configuration — these show up in Discover the moment you install 
 | Finally Achievement Plugin | Customization | [otisabiburada/finally-achievement-plugin](https://github.com/otisabiburada/finally-achievement-plugin) |
 | PS5 Dashboard | Customization | [kromossomom-debug/decky-ps5-dashboard](https://github.com/kromossomom-debug/decky-ps5-dashboard) |
 | Xbox Dashboard | Customization | [kromossomom-debug/decky-xbox-dashboard](https://github.com/kromossomom-debug/decky-xbox-dashboard) |
+| Loadout | Performance | [cyruzin/loadout](https://github.com/cyruzin/loadout) |
+| Achievement Customizer | Customization | [Hector2242/decky-plugin](https://github.com/Hector2242/decky-plugin) |
 
 The list lives in [mazillka/deckyhub-registry](https://github.com/mazillka/deckyhub-registry) and refreshes when DeckyHub starts, so new apps show up without a DeckyHub update. Know a plugin that belongs here? Open an issue or pull request there.
 
