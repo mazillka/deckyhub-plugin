@@ -1733,6 +1733,8 @@ test("Switching DeckyHub's channel in its update window doesn't toast, and the p
     deckyHubRelease("v0.9.0", { sha: "e", publishedAt: "2026-01-01T00:00:00Z" }),
   ]);
   await bridgeCall(page, "save_settings", defaultSettings);
+  const toasts: string[] = [];
+  page.on("console", (message) => message.text().startsWith("[decky-mock toast]") && toasts.push(message.text()));
   try {
     await page.goto("/?bridge=http://127.0.0.1:8643");
     const app = mock(page);
@@ -1746,7 +1748,8 @@ test("Switching DeckyHub's channel in its update window doesn't toast, and the p
     await modal.getByRole("button", { name: "Close", exact: true }).click();
 
     await expect(panel.getByRole("button", { name: "Update to v9.9.9-rc.1", exact: true })).toBeVisible();
-    await expect(app.getByText(/DeckyHub update .* is available/)).toHaveCount(0);
+    await expect(panel.getByText("DeckyHub update v9.9.9-rc.1 is available.")).toBeVisible();
+    expect(toasts.filter((text) => /DeckyHub update .* is available/.test(text))).toEqual([]);
   } finally {
     await bridgeCall(page, "save_settings", defaultSettings);
   }

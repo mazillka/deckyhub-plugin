@@ -14,7 +14,7 @@ import { Card } from "./Card";
 const SELF_UPDATE_NOTICE_KEY = "deckyhub-self-update-notice";
 
 // Deliberately thin, like an app card: a header naming the installed version,
-// "Update to vX" while a newer release is known, and Manage. Everything else
+// a note naming the newer release and Update while one is known, and Manage. Everything else
 // (channel, other versions, download-zip fallback, release page, re-check)
 // lives in DeckyHubUpdateModal.
 export function DeckyHubUpdate() {
@@ -76,6 +76,11 @@ export function DeckyHubUpdate() {
   return (
     <Card accent={hasUpdate ? "#f0c33c" : undefined}>
       <PanelSection title={title}>
+        {hasUpdate && (
+          <PanelSectionRow>
+            <div style={{ color: "#f0c33c", fontSize: "0.85em" }}>{t("settings.updateAvailable", { version: `v${normalizeVersion(release.version!)}` })}</div>
+          </PanelSectionRow>
+        )}
         {/* Update, with Manage as a gear beside it; Manage alone takes the full row. */}
         <PanelSectionRow>
           <Focusable flow-children="right" style={{ display: "flex", gap: 8 }}>
@@ -90,7 +95,9 @@ export function DeckyHubUpdate() {
               onOptionsButton={hiddenButtons.includes("downloadZip") ? undefined : () => void downloadDeckyHubZip(t, release.asset!).catch((error: unknown) => toaster.toast({ title: "DeckyHub", body: String(error) }))}
               onOptionsActionDescription={t("settings.downloadUpdate")}
             >
-              <FaArrowUp /> {t("settings.updateTo", { version: normalizeVersion(release.version!) })}
+              {/* "Update to vX" doesn't fit beside the gear in Quick Access; the note above names the version. */}
+              <FaArrowUp /> <span aria-hidden="true">{t("appcard.update")}</span>
+              <span style={visuallyHidden}>{t("settings.updateTo", { version: normalizeVersion(release.version!) })}</span>
             </Button>
             </div>
         )}
