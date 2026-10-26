@@ -17,6 +17,10 @@ export const fr: Record<MessageKey, string> = {
   "filter.all": "Tous",
   "filter.installed": "Installé",
   "filter.notInstalled": "Non installé",
+  "filter.sort": "Trier",
+  "sort.az": "A à Z",
+  "sort.za": "Z à A",
+  "sort.added": "Ajoutés récemment",
 
   "content.loading": "Chargement…",
   "content.loadErrorTitle": "Impossible de charger DeckyHub",

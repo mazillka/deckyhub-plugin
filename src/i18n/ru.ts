@@ -17,6 +17,10 @@ export const ru: Record<MessageKey, string> = {
   "filter.all": "Все",
   "filter.installed": "Установлено",
   "filter.notInstalled": "Не установлено",
+  "filter.sort": "Сортировка",
+  "sort.az": "А–Я",
+  "sort.za": "Я–А",
+  "sort.added": "Недавно добавленные",
 
   "content.loading": "Загрузка…",
   "content.loadErrorTitle": "Не удалось загрузить DeckyHub",

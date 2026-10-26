@@ -17,6 +17,10 @@ export const ja: Record<MessageKey, string> = {
   "filter.all": "すべて",
   "filter.installed": "インストール済み",
   "filter.notInstalled": "未インストール",
+  "filter.sort": "並べ替え",
+  "sort.az": "A→Z",
+  "sort.za": "Z→A",
+  "sort.added": "最近追加",
 
   "content.loading": "読み込み中…",
   "content.loadErrorTitle": "DeckyHubを読み込めませんでした",

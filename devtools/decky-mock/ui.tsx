@@ -140,7 +140,9 @@ export function TextField({
   onChange,
   bIsPassword,
   bShowClearAction,
+  "aria-label": ariaLabel,
 }: {
+  "aria-label"?: string;
   label?: string;
   value?: string;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -150,7 +152,7 @@ export function TextField({
   return (
     <label className="steam-field-label">
       {label}
-      <input type={bIsPassword ? "password" : "text"} value={value} onChange={onChange} className="steam-input" />
+      <input type={bIsPassword ? "password" : "text"} value={value} onChange={onChange} aria-label={ariaLabel} className="steam-input" />
       {bShowClearAction && value && (
         <button
           type="button"

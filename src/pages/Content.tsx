@@ -38,6 +38,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const [installedFilter, setInstalledFilter] = useState("All");
   // "" means every category.
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [sortOrder, setSortOrder] = useState<"az" | "za" | "added">("az");
   const [columnsPerRow, setColumnsPerRow] = useState(DEFAULT_COLUMNS_PER_ROW);
   const [repoPreferences, setRepoPreferences] = useState<Record<string, RepoPreference>>({});
   const [hiddenButtons, setHiddenButtons] = useState<HideableButton[]>([]);
@@ -166,9 +167,18 @@ export function Content({ fullPage }: { fullPage?: View }) {
       <PanelSectionRow>
         <Focusable flow-children="right" style={{ display: "flex", gap: 12 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <TextField label={t("filter.search")} value={query} bShowClearAction onChange={(event) => setQuery(event.currentTarget.value)} />
+            {/* Own label instead of TextField's, which Steam renders uppercase and padded, out of line with the dropdowns. */}
+            <div style={{ fontSize: "0.85em" }}>
+              <div style={{ marginBottom: 4 }}>{t("filter.search")}</div>
+              <TextField
+                {...({ "aria-label": t("filter.search") } as any)}
+                value={query}
+                bShowClearAction
+                onChange={(event) => setQuery(event.currentTarget.value)}
+              />
+            </div>
           </div>
-          <div style={{ flex: "0 0 220px" }}>
+          <div style={{ flex: "0 0 180px" }}>
             <div style={{ fontSize: "0.85em" }}>
               <div style={{ marginBottom: 4 }}>{t("filter.status")}</div>
               <Dropdown
@@ -184,7 +194,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
               />
             </div>
           </div>
-          <div style={{ flex: "0 0 220px" }}>
+          <div style={{ flex: "0 0 180px" }}>
             <div style={{ fontSize: "0.85em" }}>
               <div style={{ marginBottom: 4 }}>{t("filter.category")}</div>
               <Dropdown
@@ -193,6 +203,22 @@ export function Content({ fullPage }: { fullPage?: View }) {
                 rgOptions={[{ label: t("filter.all"), data: "" }, ...categories.map((category) => ({ label: category, data: category }))]}
                 selectedOption={activeCategory}
                 onChange={({ data }) => setCategoryFilter(data)}
+              />
+            </div>
+          </div>
+          <div style={{ flex: "0 0 180px" }}>
+            <div style={{ fontSize: "0.85em" }}>
+              <div style={{ marginBottom: 4 }}>{t("filter.sort")}</div>
+              <Dropdown
+                {...({ "aria-label": t("filter.sort"), style: { width: "100%" } } as any)}
+                menuLabel={t("filter.sort")}
+                rgOptions={[
+                  { label: t("sort.az"), data: "az" },
+                  { label: t("sort.za"), data: "za" },
+                  { label: t("sort.added"), data: "added" },
+                ]}
+                selectedOption={sortOrder}
+                onChange={({ data }) => setSortOrder(data)}
               />
             </div>
           </div>
@@ -210,8 +236,14 @@ export function Content({ fullPage }: { fullPage?: View }) {
           (installedFilter === "All" || (installedFilter === "Installed") === Boolean(app.installedVersion)) &&
           (!activeCategory || app.category === activeCategory),
     )
-    // Apps with an update first; sort is stable, so registry order holds otherwise.
-    .sort((a, b) => Number(b.updateAvailable === true) - Number(a.updateAvailable === true));
+    // Apps with an update first; Updates keeps registry order otherwise, Discover follows the Sort
+    // dropdown. The registry only ever appends (custom repos come after it), so "Recently added" is
+    // that order reversed.
+    .sort((a, b) =>
+      Number(b.updateAvailable === true) - Number(a.updateAvailable === true) || (view === "updates" ? 0
+        : sortOrder === "added" ? apps.indexOf(b) - apps.indexOf(a)
+        : sortOrder === "za" ? b.name.localeCompare(a.name)
+        : a.name.localeCompare(b.name)));
   const updateCount = apps.filter((app) => app.updateAvailable).length;
   // Decky plugins the Updates page can update in one batch (see updateDeckyPlugins).
   const batchUpdates = view === "updates" && !hiddenButtons.includes("update")
