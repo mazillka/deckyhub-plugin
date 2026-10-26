@@ -17,6 +17,10 @@ export const zh: Record<MessageKey, string> = {
   "filter.all": "全部",
   "filter.installed": "已安装",
   "filter.notInstalled": "未安装",
+  "filter.sort": "排序",
+  "sort.az": "A 到 Z",
+  "sort.za": "Z 到 A",
+  "sort.new": "最新",
 
   "content.loading": "加载中…",
   "content.loadErrorTitle": "无法加载 DeckyHub",

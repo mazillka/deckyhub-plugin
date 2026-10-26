@@ -533,6 +533,23 @@ test("Discover filters by category", async ({ page }) => {
   await expect(app.getByRole("heading", { name: "MAKO Decky" })).toBeVisible();
 });
 
+test("Discover sorts A to Z, Z to A and by newest release", async ({ page }) => {
+  // Only MAKO's release carries a date, so "New" puts it first.
+  await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases**", (route) => route.fulfill({ json: [makoRelease("v9.0.0", "a".repeat(64))] }));
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  const order = async () => {
+    const names = await app.getByRole("heading").allTextContents();
+    return names.indexOf("MAKO Decky") - names.indexOf("Unifideck");
+  };
+
+  await expect.poll(order).toBeLessThan(0);
+  await app.getByLabel("Sort").selectOption("za");
+  await expect.poll(order).toBeGreaterThan(0);
+  await app.getByLabel("Sort").selectOption("new");
+  await expect.poll(async () => (await app.getByRole("heading").allTextContents()).find((name) => name === "MAKO Decky" || name === "Unifideck")).toBe("MAKO Decky");
+});
+
 test("A GitHub rate limit surfaces a friendly message instead of a raw status code", async ({ page }) => {
   const resetInTwoMinutes = Math.floor(Date.now() / 1000) + 120;
   await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases?per_page=20", (route) =>

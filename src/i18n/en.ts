@@ -16,6 +16,10 @@ export const en = {
   "filter.all": "All",
   "filter.installed": "Installed",
   "filter.notInstalled": "Not Installed",
+  "filter.sort": "Sort",
+  "sort.az": "A to Z",
+  "sort.za": "Z to A",
+  "sort.new": "New",
 
   "content.loading": "Loading…",
   "content.loadErrorTitle": "Could Not Load DeckyHub",

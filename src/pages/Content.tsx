@@ -38,6 +38,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const [installedFilter, setInstalledFilter] = useState("All");
   // "" means every category.
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [sortOrder, setSortOrder] = useState<"az" | "za" | "new">("az");
   const [columnsPerRow, setColumnsPerRow] = useState(DEFAULT_COLUMNS_PER_ROW);
   const [repoPreferences, setRepoPreferences] = useState<Record<string, RepoPreference>>({});
   const [hiddenButtons, setHiddenButtons] = useState<HideableButton[]>([]);
@@ -177,7 +178,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
               />
             </div>
           </div>
-          <div style={{ flex: "0 0 220px" }}>
+          <div style={{ flex: "0 0 180px" }}>
             <div style={{ fontSize: "0.85em" }}>
               <div style={{ marginBottom: 4 }}>{t("filter.status")}</div>
               <Dropdown
@@ -193,7 +194,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
               />
             </div>
           </div>
-          <div style={{ flex: "0 0 220px" }}>
+          <div style={{ flex: "0 0 180px" }}>
             <div style={{ fontSize: "0.85em" }}>
               <div style={{ marginBottom: 4 }}>{t("filter.category")}</div>
               <Dropdown
@@ -202,6 +203,22 @@ export function Content({ fullPage }: { fullPage?: View }) {
                 rgOptions={[{ label: t("filter.all"), data: "" }, ...categories.map((category) => ({ label: category, data: category }))]}
                 selectedOption={activeCategory}
                 onChange={({ data }) => setCategoryFilter(data)}
+              />
+            </div>
+          </div>
+          <div style={{ flex: "0 0 180px" }}>
+            <div style={{ fontSize: "0.85em" }}>
+              <div style={{ marginBottom: 4 }}>{t("filter.sort")}</div>
+              <Dropdown
+                {...({ "aria-label": t("filter.sort"), style: { width: "100%" } } as any)}
+                menuLabel={t("filter.sort")}
+                rgOptions={[
+                  { label: t("sort.az"), data: "az" },
+                  { label: t("sort.za"), data: "za" },
+                  { label: t("sort.new"), data: "new" },
+                ]}
+                selectedOption={sortOrder}
+                onChange={({ data }) => setSortOrder(data)}
               />
             </div>
           </div>
@@ -219,8 +236,12 @@ export function Content({ fullPage }: { fullPage?: View }) {
           (installedFilter === "All" || (installedFilter === "Installed") === Boolean(app.installedVersion)) &&
           (!activeCategory || app.category === activeCategory),
     )
-    // Apps with an update first; sort is stable, so registry order holds otherwise.
-    .sort((a, b) => Number(b.updateAvailable === true) - Number(a.updateAvailable === true));
+    // Apps with an update first; Updates keeps registry order otherwise, Discover follows the Sort
+    // dropdown, "New" by latest release date (apps whose release hasn't loaded go last), name breaking ties.
+    .sort((a, b) =>
+      Number(b.updateAvailable === true) - Number(a.updateAvailable === true) || (view === "updates" ? 0
+        : sortOrder === "za" ? b.name.localeCompare(a.name)
+        : (sortOrder === "new" ? (Date.parse(b.publishedAt ?? "") || 0) - (Date.parse(a.publishedAt ?? "") || 0) : 0) || a.name.localeCompare(b.name)));
   const updateCount = apps.filter((app) => app.updateAvailable).length;
   // Decky plugins the Updates page can update in one batch (see updateDeckyPlugins).
   const batchUpdates = view === "updates" && !hiddenButtons.includes("update")
