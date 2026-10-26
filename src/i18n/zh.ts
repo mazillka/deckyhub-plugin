@@ -20,7 +20,7 @@ export const zh: Record<MessageKey, string> = {
   "filter.sort": "排序",
   "sort.az": "A 到 Z",
   "sort.za": "Z 到 A",
-  "sort.new": "最新",
+  "sort.added": "最近添加",
 
   "content.loading": "加载中…",
   "content.loadErrorTitle": "无法加载 DeckyHub",

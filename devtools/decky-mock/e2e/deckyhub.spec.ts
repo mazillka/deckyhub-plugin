@@ -533,21 +533,20 @@ test("Discover filters by category", async ({ page }) => {
   await expect(app.getByRole("heading", { name: "MAKO Decky" })).toBeVisible();
 });
 
-test("Discover sorts A to Z, Z to A and by newest release", async ({ page }) => {
-  // Only MAKO's release carries a date, so "New" puts it first.
-  await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases**", (route) => route.fulfill({ json: [makoRelease("v9.0.0", "a".repeat(64))] }));
+test("Discover sorts A to Z, Z to A and by most recently added", async ({ page }) => {
   const app = mock(page);
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  // MAKO Decky is the registry's first entry, Unifideck its third.
   const order = async () => {
     const names = await app.getByRole("heading").allTextContents();
     return names.indexOf("MAKO Decky") - names.indexOf("Unifideck");
   };
 
   await expect.poll(order).toBeLessThan(0);
+  await app.getByLabel("Sort").selectOption("added");
+  await expect.poll(order).toBeGreaterThan(0);
   await app.getByLabel("Sort").selectOption("za");
   await expect.poll(order).toBeGreaterThan(0);
-  await app.getByLabel("Sort").selectOption("new");
-  await expect.poll(async () => (await app.getByRole("heading").allTextContents()).find((name) => name === "MAKO Decky" || name === "Unifideck")).toBe("MAKO Decky");
 });
 
 test("A GitHub rate limit surfaces a friendly message instead of a raw status code", async ({ page }) => {

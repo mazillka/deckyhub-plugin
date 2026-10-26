@@ -38,7 +38,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const [installedFilter, setInstalledFilter] = useState("All");
   // "" means every category.
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [sortOrder, setSortOrder] = useState<"az" | "za" | "new">("az");
+  const [sortOrder, setSortOrder] = useState<"az" | "za" | "added">("az");
   const [columnsPerRow, setColumnsPerRow] = useState(DEFAULT_COLUMNS_PER_ROW);
   const [repoPreferences, setRepoPreferences] = useState<Record<string, RepoPreference>>({});
   const [hiddenButtons, setHiddenButtons] = useState<HideableButton[]>([]);
@@ -215,7 +215,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
                 rgOptions={[
                   { label: t("sort.az"), data: "az" },
                   { label: t("sort.za"), data: "za" },
-                  { label: t("sort.new"), data: "new" },
+                  { label: t("sort.added"), data: "added" },
                 ]}
                 selectedOption={sortOrder}
                 onChange={({ data }) => setSortOrder(data)}
@@ -237,11 +237,13 @@ export function Content({ fullPage }: { fullPage?: View }) {
           (!activeCategory || app.category === activeCategory),
     )
     // Apps with an update first; Updates keeps registry order otherwise, Discover follows the Sort
-    // dropdown, "New" by latest release date (apps whose release hasn't loaded go last), name breaking ties.
+    // dropdown. The registry only ever appends (custom repos come after it), so "Recently added" is
+    // that order reversed.
     .sort((a, b) =>
       Number(b.updateAvailable === true) - Number(a.updateAvailable === true) || (view === "updates" ? 0
+        : sortOrder === "added" ? apps.indexOf(b) - apps.indexOf(a)
         : sortOrder === "za" ? b.name.localeCompare(a.name)
-        : (sortOrder === "new" ? (Date.parse(b.publishedAt ?? "") || 0) - (Date.parse(a.publishedAt ?? "") || 0) : 0) || a.name.localeCompare(b.name)));
+        : a.name.localeCompare(b.name)));
   const updateCount = apps.filter((app) => app.updateAvailable).length;
   // Decky plugins the Updates page can update in one batch (see updateDeckyPlugins).
   const batchUpdates = view === "updates" && !hiddenButtons.includes("update")

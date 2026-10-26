@@ -20,7 +20,7 @@ export const uk: Record<MessageKey, string> = {
   "filter.sort": "Сортування",
   "sort.az": "А–Я",
   "sort.za": "Я–А",
-  "sort.new": "Нові",
+  "sort.added": "Нещодавно додані",
 
   "content.loading": "Завантаження…",
   "content.loadErrorTitle": "Не вдалося завантажити DeckyHub",

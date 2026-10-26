@@ -19,7 +19,7 @@ export const en = {
   "filter.sort": "Sort",
   "sort.az": "A to Z",
   "sort.za": "Z to A",
-  "sort.new": "New",
+  "sort.added": "Recently added",
 
   "content.loading": "Loading…",
   "content.loadErrorTitle": "Could Not Load DeckyHub",

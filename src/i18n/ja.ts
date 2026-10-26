@@ -20,7 +20,7 @@ export const ja: Record<MessageKey, string> = {
   "filter.sort": "並べ替え",
   "sort.az": "A→Z",
   "sort.za": "Z→A",
-  "sort.new": "新しい順",
+  "sort.added": "最近追加",
 
   "content.loading": "読み込み中…",
   "content.loadErrorTitle": "DeckyHubを読み込めませんでした",

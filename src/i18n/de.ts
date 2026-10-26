@@ -20,7 +20,7 @@ export const de: Record<MessageKey, string> = {
   "filter.sort": "Sortieren",
   "sort.az": "A bis Z",
   "sort.za": "Z bis A",
-  "sort.new": "Neu",
+  "sort.added": "Zuletzt hinzugefügt",
 
   "content.loading": "Wird geladen…",
   "content.loadErrorTitle": "DeckyHub konnte nicht geladen werden",
