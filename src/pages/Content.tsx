@@ -166,7 +166,16 @@ export function Content({ fullPage }: { fullPage?: View }) {
       <PanelSectionRow>
         <Focusable flow-children="right" style={{ display: "flex", gap: 12 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <TextField label={t("filter.search")} value={query} bShowClearAction onChange={(event) => setQuery(event.currentTarget.value)} />
+            {/* Own label instead of TextField's, which Steam renders uppercase and padded, out of line with the dropdowns. */}
+            <div style={{ fontSize: "0.85em" }}>
+              <div style={{ marginBottom: 4 }}>{t("filter.search")}</div>
+              <TextField
+                {...({ "aria-label": t("filter.search") } as any)}
+                value={query}
+                bShowClearAction
+                onChange={(event) => setQuery(event.currentTarget.value)}
+              />
+            </div>
           </div>
           <div style={{ flex: "0 0 220px" }}>
             <div style={{ fontSize: "0.85em" }}>
