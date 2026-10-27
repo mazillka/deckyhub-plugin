@@ -41,7 +41,7 @@ Run a single backend test: `python -m unittest tests.test_plugin_status.PluginSt
 
 ## Release
 
-Release steps (version bump, `v*` tag) are in [CONTRIBUTING.md](CONTRIBUTING.md#releases). The tag triggers `.github/workflows/release.yml`. Its `build` job (read-only token) checks the tag matches `package.json`'s version, installs, typechecks, builds, runs the frontend, backend and browser E2E tests, and zips `plugin.json` + `main.py` + `dist/` + `package.json` + `LICENSE.md`, and hands `DeckyHub-vX.Y.Z.zip` to the `publish` job, the only one with `contents: write`, which attaches it to a GitHub release.
+Release steps (version bump, `v*` tag) are in [CONTRIBUTING.md](CONTRIBUTING.md#releases). The tag triggers `.github/workflows/release.yml`. Its `build` job (read-only token) checks the tag matches `package.json`'s version, installs, typechecks, builds, runs the frontend, backend and browser E2E tests, and zips `plugin.json` + `main.py` + `dist/index.js` (no source map) + `package.json` + `LICENSE.md`, and hands `DeckyHub-vX.Y.Z.zip` to the `publish` job, the only one with `contents: write`, which attaches it to a GitHub release.
 
 **Every release (pre-releases too) gets human-friendly release notes.** The workflow's `--generate-notes` only lists raw commit/PR titles, so once the release exists, replace its body with `gh release edit vX.Y.Z --notes-file <file>`:
 

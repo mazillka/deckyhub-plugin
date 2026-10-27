@@ -40,8 +40,9 @@ jobs:
           npm run test:e2e
       - name: Package Decky plugin
         run: |
-          mkdir -p release/DeckyHub
-          cp -r dist release/DeckyHub/
+          # Decky loads only dist/index.js; the source map would be ~85% of the ZIP.
+          mkdir -p release/DeckyHub/dist
+          cp dist/index.js release/DeckyHub/dist/
           cp LICENSE.md main.py package.json plugin.json release/DeckyHub/
           (cd release && zip -r "../DeckyHub-${GITHUB_REF_NAME}.zip" DeckyHub)
       - name: Verify release package
@@ -49,6 +50,7 @@ jobs:
           unzip -Z1 "DeckyHub-${GITHUB_REF_NAME}.zip" | grep -Fx "DeckyHub/main.py"
           unzip -Z1 "DeckyHub-${GITHUB_REF_NAME}.zip" | grep -Fx "DeckyHub/plugin.json"
           unzip -Z1 "DeckyHub-${GITHUB_REF_NAME}.zip" | grep -Fx "DeckyHub/dist/index.js"
+          if unzip -Z1 "DeckyHub-${GITHUB_REF_NAME}.zip" | grep -F ".map"; then echo "source map in the ZIP"; exit 1; fi
           sha256sum "DeckyHub-${GITHUB_REF_NAME}.zip"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
