@@ -190,6 +190,15 @@
       "category": "Performance",
       "detect": { "type": "decky-plugin", "names": ["Loadout"] },
       "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "decksmb",
+      "name": "DeckSMB",
+      "description": "Manages a Samba (SMB) file-sharing server on the Steam Deck.",
+      "repo": "chillibeaver/DeckSMB",
+      "category": "Utilities",
+      "detect": { "type": "decky-plugin", "names": ["DeckSMB"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
     }
   ]
 }

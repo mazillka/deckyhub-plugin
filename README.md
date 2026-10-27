@@ -74,6 +74,7 @@ No setup, no configuration — these show up in Discover the moment you install 
 | PS5 Dashboard | Customization | [kromossomom-debug/decky-ps5-dashboard](https://github.com/kromossomom-debug/decky-ps5-dashboard) |
 | Xbox Dashboard | Customization | [kromossomom-debug/decky-xbox-dashboard](https://github.com/kromossomom-debug/decky-xbox-dashboard) |
 | Loadout | Performance | [cyruzin/loadout](https://github.com/cyruzin/loadout) |
+| DeckSMB | Utilities | [chillibeaver/DeckSMB](https://github.com/chillibeaver/DeckSMB) |
 
 The list lives in [mazillka/deckyhub-registry](https://github.com/mazillka/deckyhub-registry) and refreshes when DeckyHub starts, so new apps show up without a DeckyHub update. Know a plugin that belongs here? Open an issue or pull request there.
 
