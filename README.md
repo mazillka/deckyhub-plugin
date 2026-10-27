@@ -49,7 +49,7 @@ Tired of tabbing out to Desktop Mode, hunting through GitHub releases, and manua
 - **Updates** — see which of your tracked, installed tools have a newer release available, and update the Decky plugins among them in one go with **Update All**. You'll also get a toast notification when new updates show up.
 - **Repositories** — search GitHub, add or remove tracked repositories, and export/import your list. **Custom Registries** adds other people's app lists. Per-repository release-channel overrides live behind each app's **Manage** button on Discover/Updates instead.
 - **Settings** — shows the DeckyHub download folder and the **Overwrite Existing** toggle, lets you add an optional GitHub personal access token to raise the API rate limit, picks the language, and adjusts the display: **Default** or **Compact** density, items per row (1–3) in the app grid, and which Manage-window buttons to hide.
-- **Quick Access Menu** — links to the pages above (with a count of waiting updates), plus DeckyHub's own update check, a **Cleanup** section that empties the download folder after confirmation, and **Export Logs** for bug reports.
+- **Quick Access Menu** — **Discover** and **Settings** (**Repositories** opens from Settings), plus **Updates** with a count whenever updates are waiting. Below them: DeckyHub's own version and update check, a **Cleanup** section (shown when the download folder has files) that empties it after confirmation, and **Export Logs** for bug reports.
 
 DeckyHub never installs or runs anything automatically. **Download ZIP** saves a release, which you install yourself via Decky's settings → Developer → Install Plugin from ZIP. For one-tap install, update and uninstall, see [Manage](#manage).
 
@@ -74,7 +74,7 @@ No setup, no configuration — the curated list shows up in Discover the moment 
 
 Browse the curated list or search it by name, repository, category or description, and filter by **Status** (All, Installed, or Not Installed) and **Category**, and **Sort** A to Z, Z to A, or Recently added (newest additions to the list first; plugins with an update always come first). Each card is color-coded (green once it's up to date, yellow when an update is available, red on an error) so you can spot what needs attention at a glance, and says **Checking…** while its latest release is still being looked up. A card set to the pre-release **Channel** says so; stable is the default and isn't labelled. Tap **Manage** on any card to pick a channel and version, then download the release asset you want.
 
-To track a repository that isn't in the curated list, go to **Repositories**, search for it, and add it — it'll show up in Discover from then on.
+To track a repository that isn't in the curated list, go to **Settings** → **Repositories**, search for it, and add it — it'll show up in Discover from then on.
 
 ### Updates
 

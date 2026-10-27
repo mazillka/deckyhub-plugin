@@ -378,7 +378,10 @@ export function Content({ fullPage }: { fullPage?: View }) {
   // and lists Updates only while there is one.
   const navigation = (
     <>
+      {/* The only untitled card here: Steam pads a PanelSection's bottom but leaves
+          its top to the title, so add the same space above the buttons (seen on a Deck). */}
       <Card>
+      <div style={{ paddingTop: 26 }}>
       <PanelSection>
         {NAV_LINKS.filter(([page]) => page !== "updates" || updateCount > 0).map(([page, Icon]) => (
           <PanelSectionRow key={page}>
@@ -389,6 +392,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
           </PanelSectionRow>
         ))}
       </PanelSection>
+      </div>
       </Card>
       <DeckyHubUpdate />
       <CleanupSection />
