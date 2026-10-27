@@ -1,27 +1,33 @@
-# DeckyHub
-
 <div align="center">
 
-[![Release](https://img.shields.io/github/v/release/mazillka/deckyhub-plugin)](https://github.com/mazillka/deckyhub-plugin/releases/latest)
+<img src="docs/favicon.svg" width="80" height="80" alt="">
+
+# DeckyHub
+
+**Your Steam Deck's plugin store — right inside Gaming Mode.**
+
+Discover, download and update Decky Loader plugins with your controller.
+
+[![Release](https://img.shields.io/github/v/release/mazillka/deckyhub-plugin?color=1d75cc)](https://github.com/mazillka/deckyhub-plugin/releases/latest)
+[![Pre-release](https://img.shields.io/github/v/release/mazillka/deckyhub-plugin?include_prereleases&label=pre-release&color=8a9bb2)](https://github.com/mazillka/deckyhub-plugin/releases)
 [![Tests](https://img.shields.io/github/actions/workflow/status/mazillka/deckyhub-plugin/ci.yml?branch=main&label=tests)](https://github.com/mazillka/deckyhub-plugin/actions/workflows/ci.yml)
+[![Downloads](https://img.shields.io/github/downloads/mazillka/deckyhub-plugin/total?color=1d75cc)](https://github.com/mazillka/deckyhub-plugin/releases)
 [![License](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE.md)
 [![Platform](https://img.shields.io/badge/platform-SteamOS-green)](https://store.steampowered.com/steamos)
 
-### Menu
-<img src="screenshots/menu.jpg" width="600" alt="DeckyHub Menu screen">
+[**Download**](https://github.com/mazillka/deckyhub-plugin/releases/latest) · [Website](https://mazillka.github.io/deckyhub-plugin/) · [Plugin catalog](https://mazillka.github.io/deckyhub-registry/) · [Install guide](#installing-deckyhub) · [Report an issue](https://github.com/mazillka/deckyhub-plugin/issues)
 
-### Discover
-<img src="screenshots/discover.jpg" width="600" alt="DeckyHub Discover screen">
+<img src="screenshots/discover.jpg" width="800" alt="DeckyHub's Discover screen listing Steam Deck plugins with color-coded status">
 
-### Updates
-<img src="screenshots/updates.jpg" width="600" alt="DeckyHub Updates screen">
-
-### Manage
-<img src="screenshots/manage.jpg" width="600" alt="DeckyHub Manage screen">
+<table>
+<tr>
+<td align="center"><img src="screenshots/menu.jpg" width="260" alt="DeckyHub Menu screen"><br><sub><b>Menu</b></sub></td>
+<td align="center"><img src="screenshots/updates.jpg" width="260" alt="DeckyHub Updates screen"><br><sub><b>Updates</b></sub></td>
+<td align="center"><img src="screenshots/manage.jpg" width="260" alt="DeckyHub Manage screen"><br><sub><b>Manage</b></sub></td>
+</tr>
+</table>
 
 </div>
-
-**Your Steam Deck's plugin store — right inside Gaming Mode.** · [Website](https://mazillka.github.io/deckyhub-plugin/)
 
 > [!CAUTION]
 > **DeckyHub only fetches releases from their authors' GitHub repositories. It doesn't make, review or vouch for these plugins and isn't responsible for anything they do to your device or data. Install at your own risk.**
@@ -49,9 +55,11 @@ DeckyHub never installs or runs anything automatically. **Download ZIP** saves a
 
 ## Curated repositories
 
-No setup, no configuration — the curated list shows up in Discover the moment you install DeckyHub.  [mazillka/deckyhub-registry](https://github.com/mazillka/deckyhub-registry) and refreshes when DeckyHub starts, so new apps show up without a DeckyHub update. Know a plugin that belongs here? Open an issue or pull request there.
+No setup, no configuration — the curated list shows up in Discover the moment you install DeckyHub. It lives in [mazillka/deckyhub-registry](https://github.com/mazillka/deckyhub-registry) and refreshes every time DeckyHub starts, so new apps show up without a DeckyHub update. DeckyHub keeps the last list it downloaded for offline use; a fresh install needs to reach GitHub once.
 
-Want more? Add any other GitHub repository from **Repositories** in seconds.
+- **Browse it:** the [plugin catalog](https://mazillka.github.io/deckyhub-registry/) lists every curated plugin, searchable and by category.
+- **Suggest a plugin:** open an [issue](https://github.com/mazillka/deckyhub-registry/issues/new) or a pull request in the registry repository.
+- **Want more?** Add any other GitHub repository from **Repositories** in seconds.
 
 ## Installing DeckyHub
 
@@ -89,7 +97,7 @@ When GitHub provides a checksum for a release asset, DeckyHub always verifies it
 
 ### Repositories
 
-Search GitHub for a repository and tap **Add** (repositories you already track show **Already Added** instead, so you can tell at a glance). Results page five at a time. Export your custom repositories to `DeckyHub-repositories.json` in `/home/deck/Downloads` to back them up or share them, or import that file back in. Any repository you've added can be removed again here; the curated repositories that ship with DeckyHub stay available and can't be removed. Prefer a bigger screen? The [Registry Editor](https://mazillka.github.io/deckyhub-plugin/editor.html) is a browser-based tool for building or editing a repository list file before importing it.
+Search GitHub for a repository and tap **Add** (repositories you already track show **Already Added** instead, so you can tell at a glance). Results page five at a time. Export your custom repositories to `DeckyHub-repositories.json` in `/home/deck/Downloads` to back them up or share them, or import that file back in. Any repository you've added can be removed again here; the curated repositories stay available and can't be removed. Prefer a bigger screen? The [Registry Editor](https://mazillka.github.io/deckyhub-plugin/editor.html) is a browser-based tool for building or editing a repository list file before importing it.
 
 To switch a tracked app between stable and pre-release releases, use its [Manage](#manage) window.
 
@@ -120,6 +128,6 @@ GPL-3.0-or-later — see [LICENSE.md](LICENSE.md).
 
 ## Getting help
 
-Found a bug or have an idea? Open an issue on the [GitHub repository](https://github.com/mazillka/deckyhub-plugin/issues) with a description of what happened; attaching the ZIP from **Export Logs** (Quick Access Menu → Troubleshooting) helps, and it never contains your GitHub token. Feedback and suggestions are always welcome.
+Found a bug or have an idea? Open an issue on the [GitHub repository](https://github.com/mazillka/deckyhub-plugin/issues) with a description of what happened; attaching the ZIP from **Export Logs** (Quick Access Menu → **Troubleshooting**) helps, and it never contains your GitHub token. Feedback and suggestions are always welcome.
 
 Want to build DeckyHub from source or contribute a change? See [CONTRIBUTING.md](CONTRIBUTING.md).
