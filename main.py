@@ -181,8 +181,7 @@ def parse_registry(payload: object) -> list[dict]:
     return [app for app in payload["apps"] if _valid_app(app)]
 
 
-# The curated list lives in its own repository. Versions released before it moved read
-# this repository's registry/apps.json instead, which CI keeps identical to it.
+# The curated list lives in its own repository.
 REMOTE_REGISTRY_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/refs/heads/main/registry/apps.json"
 MAX_REMOTE_REGISTRY_BYTES = 512 * 1024
 # How many user-added registries one install will track, so a bad list can't
@@ -230,7 +229,7 @@ class Plugin:
     async def _main(self):
         self.settings_path = Path(decky.DECKY_PLUGIN_SETTINGS_DIR) / "settings.json"
         self.settings = self._load_settings()
-        # Start from the cached/bundled lists so startup never waits on the network,
+        # Start from the cached lists so startup never waits on the network,
         # then refresh from GitHub in the background (see _refresh_registry_in_background).
         self.apps = await asyncio.to_thread(self._load_registry, None, False)
         self.downloads: dict[str, dict] = {}
@@ -268,16 +267,16 @@ class Plugin:
             decky.logger.error("Background registry refresh failed: %s", error)
 
     def _load_registry(self, prefetched: tuple[str, tuple[list[dict], str]] | None = None, network: bool = True) -> list[dict]:
-        """Official registry first (GitHub -> cached copy -> bundled file), then any user-added ones.
+        """Official registry first (GitHub -> cached copy), then any user-added ones.
 
         `prefetched` is a (url, payload) already downloaded this call, so adding a
         registry reuses the fetch that validated it instead of asking for it twice.
-        `network=False` skips the downloads and reads only the caches and bundled file.
+        `network=False` skips the downloads and reads only the caches.
         """
         def given(url):
             return prefetched[1] if prefetched and prefetched[0] == url else None
 
-        apps = self._fetch_registry(REMOTE_REGISTRY_URL, bundled=True, prefetched=given(REMOTE_REGISTRY_URL), network=network)
+        apps = self._fetch_registry(REMOTE_REGISTRY_URL, official=True, prefetched=given(REMOTE_REGISTRY_URL), network=network)
         # First source wins: a user-added registry can add apps but never override
         # the detect rules or asset filters of an entry from the official registry,
         # nor reuse its id (the frontend matches cards by id), nor claim its detect
@@ -296,8 +295,8 @@ class Plugin:
                     apps.append(app)
         return apps
 
-    def _fetch_registry(self, url: str, bundled: bool = False, prefetched: tuple[list[dict], str] | None = None, network: bool = True) -> list[dict]:
-        """One registry source: fetch it, cache it, else fall back to the cache and then the bundled file."""
+    def _fetch_registry(self, url: str, official: bool = False, prefetched: tuple[list[dict], str] | None = None, network: bool = True) -> list[dict]:
+        """One registry source: fetch it, cache it, else fall back to the cache (none: no apps)."""
         cache_path = self._registry_cache_path(url)
         if prefetched is not None:
             apps, text = prefetched
@@ -307,14 +306,14 @@ class Plugin:
             try:
                 apps, text = fetch_remote_registry(url)
                 # An empty official list is a broken publish, not "no apps": keep the
-                # last good cache (or the bundled file) rather than overwrite it.
-                if bundled and not apps:
+                # last good cache rather than overwrite it.
+                if official and not apps:
                     raise ValueError("Registry has no usable apps")
             except (OSError, ValueError) as error:
                 decky.logger.warning("Registry %s unavailable (%s); trying cached copy", url, error)
             else:
                 # Removed while this download was in flight: don't recreate its cache.
-                if bundled or url in self.settings.get("customRegistries", []):
+                if official or url in self.settings.get("customRegistries", []):
                     self._cache_registry(cache_path, text, url)
                 decky.logger.info("Loaded %d repositories from %s", len(apps), url)
                 return apps
@@ -322,10 +321,7 @@ class Plugin:
             return parse_registry(json.loads(cache_path.read_text(encoding="utf-8")))
         except (OSError, ValueError):
             decky.logger.warning("No cached copy of %s", url)
-        if not bundled:
-            return []
-        decky.logger.warning("Using bundled registry")
-        return parse_registry(json.loads((Path(decky.DECKY_PLUGIN_DIR) / "registry" / "apps.json").read_text(encoding="utf-8")))
+        return []
 
     def _cache_registry(self, cache_path: Path, text: str, url: str) -> None:
         """Best-effort: a registry that won't cache still works this session."""
@@ -426,8 +422,8 @@ class Plugin:
         return item
 
     def _custom_apps(self) -> list[dict]:
-        bundled = {app["repo"].casefold() for app in self.apps}
-        return [{"id": f"custom-{repo.replace('/', '-')}", "name": repo, "repo": repo, "category": "Custom", "detect": {"type": "decky-plugin", "repo": repo}, "asset": {"include": [], "exclude": ["source"]}} for repo in self.settings["customRepos"] if repo.casefold() not in bundled]
+        curated = {app["repo"].casefold() for app in self.apps}
+        return [{"id": f"custom-{repo.replace('/', '-')}", "name": repo, "repo": repo, "category": "Custom", "detect": {"type": "decky-plugin", "repo": repo}, "asset": {"include": [], "exclude": ["source"]}} for repo in self.settings["customRepos"] if repo.casefold() not in curated]
 
     async def get_settings(self):
         return self.settings

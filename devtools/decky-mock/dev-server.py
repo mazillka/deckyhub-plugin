@@ -57,8 +57,7 @@ main.DEFAULT_DOWNLOAD_DIR = str(DEV_DATA / "home" / "Downloads")
 main.PLUGIN_DOWNLOAD_DIR = str(DEV_DATA / "downloads")
 
 # Fixture registries on the reserved .test TLD, so E2E can add one without the
-# network, and the official list served from the bundled file so a refresh is
-# offline and deterministic too; every other URL still goes to the real fetch.
+# network; every other URL, the official list included, goes to the real fetch.
 FIXTURE_REGISTRY_HOST = "https://registry.test/"
 FIXTURE_APP = {"id": "fixture-app", "name": "Fixture App", "repo": "example/fixture-app", "category": "Test", "detect": {"type": "decky-plugin", "names": ["Fixture App"]}, "asset": {"include": [".zip"], "exclude": []}}
 FIXTURE_REGISTRIES = {"good.json": [FIXTURE_APP], "empty.json": []}
@@ -66,9 +65,6 @@ _real_fetch_registry = main.fetch_remote_registry
 
 
 def _fetch_registry(url, *args, **kwargs):
-    if url == main.REMOTE_REGISTRY_URL:
-        text = (REPO_ROOT / "registry" / "apps.json").read_text(encoding="utf-8")
-        return main.parse_registry(json.loads(text)), text
     if not url.startswith(FIXTURE_REGISTRY_HOST):
         return _real_fetch_registry(url, *args, **kwargs)
     name = url.removeprefix(FIXTURE_REGISTRY_HOST)
