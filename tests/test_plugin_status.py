@@ -48,6 +48,21 @@ class PluginStatusTests(unittest.TestCase):
             apps = asyncio.run(plugin.get_apps())["apps"]
             self.assertEqual([(app["installedVersion"], app["pluginName"]) for app in apps], [("3.2.1", "MAKO - Frame Generation"), (None, None)])
 
+    def test_malformed_manifests_of_other_plugins_are_skipped(self):
+        with tempfile.TemporaryDirectory() as home:
+            for name, manifest, package in (("list", [], {}), ("number", {"name": 1}, {}), ("bad-package", {"name": "Good", "version": "1.0"}, [])):
+                plugin_dir = Path(home) / "plugins" / name
+                plugin_dir.mkdir(parents=True)
+                (plugin_dir / "plugin.json").write_text(json.dumps(manifest), encoding="utf-8")
+                (plugin_dir / "package.json").write_text(json.dumps(package), encoding="utf-8")
+            sys.modules["decky"].DECKY_HOME = home
+            plugin = Plugin()
+            plugin.settings = {"customRepos": []}
+            plugin.apps = [{"repo": "owner/good", "detect": {"type": "decky-plugin", "names": ["Good"]}}]
+
+            apps = asyncio.run(plugin.get_apps())["apps"]
+            self.assertEqual([(app["installedVersion"], app["pluginName"]) for app in apps], [("1.0", "Good")])
+
     def test_bundled_decky_framegen_rule_matches_its_manifest_name(self):
         with tempfile.TemporaryDirectory() as home:
             plugin_dir = Path(home) / "plugins" / "decky-framegen"
@@ -145,6 +160,21 @@ class PluginStatusTests(unittest.TestCase):
             self.assertEqual(asyncio.run(plugin.clear_downloads())["removed"], 1)
             self.assertEqual([entry.name for entry in Path(home).iterdir()], ["active.zip.part"])
 
+    def test_clear_downloads_skips_a_file_it_cannot_remove(self):
+        with tempfile.TemporaryDirectory() as home, patch.object(main, "PLUGIN_DOWNLOAD_DIR", home):
+            (Path(home) / "a.zip").write_bytes(b"zip")
+            (Path(home) / "b.zip").write_bytes(b"zip")
+            unlink = Path.unlink
+
+            def flaky_unlink(path, *args, **kwargs):
+                if path.name == "a.zip":
+                    raise PermissionError("busy")
+                return unlink(path, *args, **kwargs)
+
+            with patch.object(Path, "unlink", flaky_unlink):
+                self.assertEqual(asyncio.run(Plugin().clear_downloads())["removed"], 1)
+            self.assertEqual([entry.name for entry in Path(home).iterdir()], ["a.zip"])
+
     def test_list_downloads_only_lists_deckyhub_contents(self):
         with tempfile.TemporaryDirectory() as home:
             original_download_dir = main.PLUGIN_DOWNLOAD_DIR
@@ -219,7 +249,9 @@ class PluginStatusTests(unittest.TestCase):
             environment = popen.call_args.kwargs["env"]
             self.assertEqual(command[0], "/usr/bin/curl")
             self.assertIn("--connect-timeout", command)
-            self.assertIn("--max-time", command)
+            # Aborts only a stalled transfer, so a big file on slow Wi-Fi still finishes.
+            self.assertNotIn("--max-time", command)
+            self.assertIn("--speed-time", command)
             self.assertEqual(command[command.index("--proto-redir") + 1], "=https")
             self.assertNotIn("LD_LIBRARY_PATH", environment)
 
@@ -481,6 +513,24 @@ class PluginStatusTests(unittest.TestCase):
             self.assertEqual(path.read_bytes(), b"data")
             self.assertFalse(stale.exists())
             self.assertEqual(plugin.downloads, {})
+
+    def test_stage_install_survives_finished_jobs_being_pruned_mid_download(self):
+        with tempfile.TemporaryDirectory() as home, patch.object(sys.modules["decky"], "DECKY_PLUGIN_RUNTIME_DIR", home, create=True):
+            plugin = Plugin()
+            plugin.downloads = {}
+            plugin.cancelled = set()
+            asset = {"name": "a.zip", "url": "https://github.com/owner/repo/releases/download/v1/a.zip"}
+
+            def fake_download(job_id, asset, target):
+                plugin.downloads[job_id]["state"] = "complete"
+                target.write_bytes(b"data")
+                # What download_asset does to finished jobs before stage_install resumes.
+                plugin.downloads = {}
+
+            with patch.object(plugin, "_download", side_effect=fake_download):
+                result = asyncio.run(plugin.stage_install(asset, "owner/repo"))
+
+            self.assertEqual(Path(result["path"]).read_bytes(), b"data")
 
     def test_stage_install_refuses_other_repos_and_bad_checksums(self):
         with tempfile.TemporaryDirectory() as home, patch.object(sys.modules["decky"], "DECKY_PLUGIN_RUNTIME_DIR", home, create=True):
