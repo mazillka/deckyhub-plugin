@@ -1,6 +1,6 @@
 """Build the GitHub Pages site into OUT (default _site).
 
-Copies docs/ and mazillka/deckyhub-registry's apps.json, writes the catalog into index.html
+Copies docs/, writes mazillka/deckyhub-registry's catalog into index.html
 so crawlers see it without JavaScript, and makes WebP screenshots plus a JPEG
 link-preview image from screenshots/. Needs Pillow (CI-only, not a plugin dependency).
 """
@@ -19,11 +19,7 @@ out = Path(sys.argv[1] if len(sys.argv) > 1 else "_site")
 
 shutil.copytree(ROOT / "docs", out, dirs_exist_ok=True)
 with urllib.request.urlopen(REGISTRY_URL) as response:
-    registry = response.read()
-(out / "registry").mkdir(exist_ok=True)
-(out / "registry" / "apps.json").write_bytes(registry)
-
-apps = json.loads(registry)["apps"]
+    apps = json.load(response)["apps"]
 cards = "\n".join(
     f'<a class="app" href="https://github.com/{escape(a["repo"])}"><small>{escape(a["category"])}</small>'
     f'<strong>{escape(a["name"])}</strong><p>{escape(a.get("description", ""))}</p><code>{escape(a["repo"])}</code></a>'

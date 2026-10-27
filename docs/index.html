@@ -61,7 +61,7 @@ footer .wrap{display:grid;gap:10px}
 <body>
 <nav><div class="wrap">
 <a class="brand" href="#">DeckyHub</a>
-<span class="links" style="display:flex;gap:20px"><a href="#features">Features</a><a href="#tour">Tour</a><a href="#install">Install</a><a href="#catalog">Catalog</a><a class="keep" href="editor.html">Registry editor</a><a class="keep" href="https://github.com/mazillka/deckyhub-plugin">GitHub</a></span>
+<span class="links" style="display:flex;gap:20px"><a href="#features">Features</a><a href="#tour">Tour</a><a href="#install">Install</a><a href="#catalog">Catalog</a><a class="keep" href="https://mazillka.github.io/deckyhub-registry/editor.html">Registry editor</a><a class="keep" href="https://github.com/mazillka/deckyhub-plugin">GitHub</a></span>
 </div></nav>
 
 <header><div class="wrap">
@@ -83,7 +83,7 @@ footer .wrap{display:grid;gap:10px}
 <div class="card"><div class="ico" aria-hidden="true">🎮</div><h3>Controller first</h3><p>Full gamepad navigation and one-tap actions designed for Gaming Mode, not a desktop page squeezed onto a small screen.</p></div>
 <div class="card"><div class="ico" aria-hidden="true">🛡️</div><h3>You stay in control</h3><p>Installs go through Decky Loader's own installer and confirmation dialog, with SHA-256 checksums verified whenever GitHub publishes one. Nothing runs on its own.</p></div>
 <div class="card"><div class="ico" aria-hidden="true">📦</div><h3>Track any repo</h3><p>Search GitHub, add any repository, pick stable or pre-release channels per app, and export your list to share or back up.</p></div>
-<div class="card"><div class="ico" aria-hidden="true">🔄</div><h3>Updates itself</h3><p>Check for new DeckyHub releases from Settings and update in place, or reinstall and downgrade to any recent version.</p></div>
+<div class="card"><div class="ico" aria-hidden="true">🔄</div><h3>Updates itself</h3><p>The Quick Access Menu tells you when a new DeckyHub release is out and updates it in place. You can also reinstall or downgrade to any recent version.</p></div>
 </div>
 </div></section>
 
@@ -103,7 +103,7 @@ footer .wrap{display:grid;gap:10px}
 <p class="sub">You need <a href="https://decky.xyz/">Decky Loader</a> on your Steam Deck first.</p>
 <ol class="steps">
 <li><strong>Download</strong> the latest <code>DeckyHub-v*.zip</code> from the <a href="https://github.com/mazillka/deckyhub-plugin/releases/latest">Releases page</a>.</li>
-<li>In Gaming Mode, open <strong>Quick Access → Decky → Developer</strong>.</li>
+<li>In Gaming Mode, open <strong>Quick Access → Decky →</strong> settings (gear). Turn on <strong>Developer mode</strong> under General, then open <strong>Developer</strong>.</li>
 <li>Choose <strong>Install Plugin from ZIP</strong> and pick the downloaded file.</li>
 <li>Open <strong>Quick Access → Decky → DeckyHub</strong> and start browsing.</li>
 </ol>
@@ -111,15 +111,16 @@ footer .wrap{display:grid;gap:10px}
 
 <section id="catalog"><div class="wrap">
 <h2>Ready out of the box</h2>
-<p class="sub">These plugins show up in Discover the moment you install DeckyHub. Add anything else from <strong>Repositories</strong>.</p>
+<p class="sub">These plugins show up in Discover the moment you install DeckyHub, and new ones arrive without a DeckyHub update. Add anything else from <strong>Repositories</strong>.</p>
 <div class="catalog"><!-- catalog --></div>
+<div class="cta" style="margin-top:24px"><a class="btn ghost" href="https://mazillka.github.io/deckyhub-registry/">Search the full catalog</a><a class="btn ghost" href="https://github.com/mazillka/deckyhub-registry/issues/new">Suggest a plugin</a></div>
 </div></section>
 
 <section id="editor"><div class="wrap">
 <div class="editor-head">
 <div><h2>Registry editor</h2>
 <p class="sub" style="margin:0">Prefer a bigger screen? Build or edit a repository list in your browser, export the JSON, then import it from DeckyHub's <strong>Repositories</strong> screen. Nothing is uploaded.</p></div>
-<a class="btn" href="editor.html">Open registry editor</a>
+<a class="btn" href="https://mazillka.github.io/deckyhub-registry/editor.html">Open registry editor</a>
 </div>
 </div></section>
 
@@ -128,6 +129,7 @@ footer .wrap{display:grid;gap:10px}
 <details><summary>Does DeckyHub install things automatically?</summary><p>Never. Download ZIP just saves a file to <code>/home/deck/Downloads/deckyhub</code>. One-tap Install, Update and Uninstall go through Decky Loader's own installer, which asks you to confirm first.</p></details>
 <details><summary>I hit a GitHub rate limit. What now?</summary><p>Without a login GitHub allows 60 requests per hour. Add a personal access token (no scopes needed) in Settings → GitHub Access to raise that to 5,000. The token stays on your Deck and is only sent to api.github.com.</p></details>
 <details><summary>Why doesn't a new release show up right away?</summary><p>Release info is cached for 30 minutes. Any "Check for Updates" or "Refresh" button skips the cache and asks GitHub directly.</p></details>
+<details><summary>Where does the plugin list come from?</summary><p>From <a href="https://github.com/mazillka/deckyhub-registry">mazillka/deckyhub-registry</a>. DeckyHub downloads it at startup and keeps the last copy for offline use, so a fresh install needs to reach GitHub once. You can also add other people's lists under Repositories → Custom Registries.</p></details>
 <details><summary>How is DeckyHub made?</summary><p>Most of the code was written with the help of AI tools (Claude and Codex). Every release is still tested on real Steam Deck hardware before it ships.</p></details>
 </div></section>
 
