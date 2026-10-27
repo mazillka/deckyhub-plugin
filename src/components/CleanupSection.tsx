@@ -69,10 +69,14 @@ export function CleanupSection() {
   }, []);
 
   const clear = () =>
-    void clearDownloads().then(({ removed }) => {
-      setDownloads([]);
-      toaster.toast({ title: "DeckyHub", body: t("settings.downloadsCleared", { count: removed }) });
-    });
+    void clearDownloads().then(
+      ({ removed }) => {
+        // Re-read: anything the backend couldn't remove stays listed.
+        void listDownloads().then(({ items }) => setDownloads(items), () => setDownloads([]));
+        toaster.toast({ title: "DeckyHub", body: t("settings.downloadsCleared", { count: removed }) });
+      },
+      (error: unknown) => toaster.toast({ title: "DeckyHub", body: String(error) }),
+    );
 
   // Nothing to clean up: hide the whole section (and its divider).
   if (!downloads.length) return null;
