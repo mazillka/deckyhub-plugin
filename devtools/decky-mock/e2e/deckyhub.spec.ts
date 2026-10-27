@@ -1764,6 +1764,7 @@ test("Custom registries: add, reject, refresh and remove", async ({ page }) => {
   const app = mock(page);
   const add = app.getByRole("button", { name: "Add registry", exact: true });
   try {
+    const { apps: official } = (await bridgeCall(page, "refresh_registry")).result;
     // One field: "owner/repo" expands to a GitHub URL, anything else is sent as a URL.
     const url = app.getByLabel("GitHub owner/repo or registry URL (https://….json)");
     for (const [value, message] of [
@@ -1789,13 +1790,11 @@ test("Custom registries: add, reject, refresh and remove", async ({ page }) => {
     await add.click();
     await lastToast().toContain("already in use");
 
-    // Refresh re-downloads every source (the official one served from the bundled
-    // file by dev-server.py) and must keep the added registry's app.
-    const bundled = JSON.parse(readFileSync(new URL("../../../registry/apps.json", import.meta.url), "utf8")).apps.length;
+    // Refresh re-downloads every source and must keep the added registry's app.
     const refreshButton = app.getByRole("button", { name: "Refresh registries", exact: true });
     const refreshed = page.waitForResponse((response) => response.request().postData()?.includes('"refresh_registry"') ?? false);
     await refreshButton.click();
-    expect((await (await refreshed).json()).result).toEqual({ apps: bundled + 1 });
+    expect((await (await refreshed).json()).result).toEqual({ apps: official + 1 });
     await expect(refreshButton).toBeEnabled();
     await lastToast().toContain("already in use");
 

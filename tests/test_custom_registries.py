@@ -279,12 +279,11 @@ class CustomRegistryTests(unittest.TestCase):
             cache = plugin._registry_cache_path(CUSTOM_URL)
             cache.parent.mkdir(parents=True, exist_ok=True)
             cache.write_text(json.dumps(payload("owner/cached")), encoding="utf-8")
-            # The official registry has no cache here, so it lands on the bundled
-            # file; the point is that the custom registry still contributes its own.
+            # The official registry has no cache here, so it contributes nothing;
+            # the point is that the custom registry still contributes its own.
             with patch.object(main, "fetch_remote_registry", fake_fetch({REMOTE_REGISTRY_URL: URLError("offline"), CUSTOM_URL: URLError("offline")})):
                 apps = plugin._load_registry()
-            self.assertEqual(apps[-1]["repo"], "owner/cached")
-            self.assertEqual(len(apps), len(parse_registry(json.loads((ROOT / "registry" / "apps.json").read_text(encoding="utf-8")))) + 1)
+            self.assertEqual([app["repo"] for app in apps], ["owner/cached"])
 
     def test_a_broken_custom_registry_is_skipped_not_fatal(self):
         with tempfile.TemporaryDirectory() as home:
@@ -435,16 +434,13 @@ class CustomRegistryTests(unittest.TestCase):
             self.assertEqual(list(Path(home).rglob("*.tmp")), [])
             self.assertEqual(json.loads(plugin._registry_cache_path(CUSTOM_URL).read_text(encoding="utf-8")), payload("owner/custom"))
 
-    def test_bundled_registry_is_the_last_resort(self):
+    def test_offline_without_a_cache_lists_nothing(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = self.plugin(home)
             offline = {REMOTE_REGISTRY_URL: URLError("offline")}
             with patch.object(main, "fetch_remote_registry", fake_fetch(offline)):
-                bundled = plugin._load_registry()
-                self.assertTrue(bundled)
-                with self.assertRaises(ValueError):
-                    validate_registry_url("http://nope")
-                self.assertEqual(asyncio.run(plugin.refresh_registry())["apps"], len(bundled))
+                self.assertEqual(plugin._load_registry(), [])
+                self.assertEqual(asyncio.run(plugin.refresh_registry())["apps"], 0)
 
 
 if __name__ == "__main__":

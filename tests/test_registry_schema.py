@@ -9,11 +9,12 @@ from pathlib import Path
 sys.modules.setdefault("decky", types.SimpleNamespace(logger=logging.getLogger("decky-test")))
 from main import parse_registry  # noqa: E402
 
-# DECKYHUB_REGISTRY points this at another copy: mazillka/deckyhub-registry's CI runs it there.
-REGISTRY = Path(os.environ.get("DECKYHUB_REGISTRY") or Path(__file__).resolve().parent.parent / "registry" / "apps.json")
+# The registry lives in mazillka/deckyhub-registry, whose CI points DECKYHUB_REGISTRY
+# at its apps.json; without it (this repo's own CI) the test is skipped.
+REGISTRY = os.environ.get("DECKYHUB_REGISTRY")
 
-# Every released DeckyHub reads registry/apps.json from main (here or in
-# mazillka/deckyhub-registry), so this pins what
+# Every released DeckyHub reads registry/apps.json from main (in mazillka/deckyhub-registry,
+# or this repo for releases from before the move), so this pins what
 # schemaVersion 1 means. If this test fails on your change:
 # - adding an optional key older versions can safely ignore -> add it to OPTIONAL;
 # - anything else (renaming, retyping, removing, new required meaning) -> bump
@@ -26,9 +27,10 @@ def _string_list(value) -> bool:
     return isinstance(value, list) and all(isinstance(item, str) for item in value)
 
 
+@unittest.skipUnless(REGISTRY, "set DECKYHUB_REGISTRY to a registry/apps.json")
 class RegistrySchemaV1Tests(unittest.TestCase):
     def setUp(self):
-        self.payload = json.loads(REGISTRY.read_text(encoding="utf-8"))
+        self.payload = json.loads(Path(REGISTRY).read_text(encoding="utf-8"))
         self.apps = self.payload["apps"]
 
     def test_is_schema_version_1(self):
