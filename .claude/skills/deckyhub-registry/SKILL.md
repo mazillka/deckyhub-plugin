@@ -5,7 +5,7 @@ description: Maintain DeckyHub's curated registry, which lives only in mazillka/
 
 # Maintaining the DeckyHub registry
 
-The curated list lives only in [mazillka/deckyhub-registry](https://github.com/mazillka/deckyhub-registry), `registry/apps.json` on `main`. DeckyHub downloads it at startup (`REMOTE_REGISTRY_URL` in `main.py`) and caches the last good copy; no copy ships in the plugin ZIP. The Pages catalog and editor download it at deploy time (`devtools/build-site.py`, run daily by `pages.yml`). Releases from before the move read this repo's old `registry/apps.json` from `main`, which no longer exists, so they keep their cached or bundled list.
+The curated list lives only in [mazillka/deckyhub-registry](https://github.com/mazillka/deckyhub-registry), `registry/apps.json` on `main`. DeckyHub downloads it at startup (`REMOTE_REGISTRY_URL` in `main.py`) and caches the last good copy; no copy ships in the plugin ZIP. The registry repo's Pages site (`docs/`: catalog `index.html` and `editor.html`, served from `main` `/docs`) loads it live; this repo's promo page renders it at deploy time (`devtools/build-site.py`, run daily by `pages.yml`). Releases from before the move read this repo's old `registry/apps.json` from `main`, which no longer exists, so they keep their cached or bundled list.
 
 The local checkout sits next to this repo: `../deckyhub-registry`. Clone it with `gh repo clone mazillka/deckyhub-registry` if it's missing. Follow [CONTRIBUTING.md](../../../CONTRIBUTING.md#releases): work on a short kebab-case branch, never commit to `main`, one topic per PR, squash-merge.
 

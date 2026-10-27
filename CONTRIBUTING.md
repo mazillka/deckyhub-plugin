@@ -7,7 +7,7 @@ This covers building, testing, and releasing DeckyHub. For what the plugin does 
 - `main.py` and `plugin.json` stay at the repository root because Decky Loader reads them from the plugin package.
 - `main.py` is the backend; `src/` contains the Decky React UI.
 - The curated list lives in [mazillka/deckyhub-registry](https://github.com/mazillka/deckyhub-registry), not here; `tests/` covers the Python backend.
-- `docs/` is the static GitHub Pages site: the promo page (`index.html`), the registry editor (`editor.html`) and a `404.html`. It remains separate from the runtime UI. `devtools/build-site.py` assembles it at deploy time: it downloads the registry's `apps.json` (served for the editor too) and writes the catalog into `index.html` and generates WebP screenshots and the link-preview JPEG from `screenshots/` (needs Pillow; CI-only). Preview locally with `python devtools/build-site.py _site` and serve `_site/`. Keep `docs/sitemap.xml` in sync when adding a page.
+- `docs/` is the static GitHub Pages site: the promo page (`index.html`) and a `404.html`. The registry editor lives in [mazillka/deckyhub-registry](https://github.com/mazillka/deckyhub-registry)'s `docs/`. It remains separate from the runtime UI. `devtools/build-site.py` assembles it at deploy time: it downloads the registry's `apps.json` and writes the catalog into `index.html` and generates WebP screenshots and the link-preview JPEG from `screenshots/` (needs Pillow; CI-only). Preview locally with `python devtools/build-site.py _site` and serve `_site/`. Keep `docs/sitemap.xml` in sync when adding a page.
 
 ## Build
 
