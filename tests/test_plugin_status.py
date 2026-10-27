@@ -16,8 +16,6 @@ sys.modules.setdefault("decky", types.SimpleNamespace(logger=logging.getLogger("
 import main
 from main import Plugin
 
-ROOT = Path(__file__).resolve().parent.parent
-
 
 class PluginStatusTests(unittest.TestCase):
     def test_decky_plugin_detection_reads_manifest_and_package_version(self):
@@ -62,20 +60,6 @@ class PluginStatusTests(unittest.TestCase):
 
             apps = asyncio.run(plugin.get_apps())["apps"]
             self.assertEqual([(app["installedVersion"], app["pluginName"]) for app in apps], [("1.0", "Good")])
-
-    def test_bundled_decky_framegen_rule_matches_its_manifest_name(self):
-        with tempfile.TemporaryDirectory() as home:
-            plugin_dir = Path(home) / "plugins" / "decky-framegen"
-            plugin_dir.mkdir(parents=True)
-            (plugin_dir / "plugin.json").write_text(json.dumps({"name": "Decky-Framegen"}), encoding="utf-8")
-            (plugin_dir / "package.json").write_text(json.dumps({"version": "1.2.3"}), encoding="utf-8")
-            sys.modules["decky"].DECKY_HOME = home
-            plugin = Plugin()
-
-            registry = main.parse_registry(json.loads((ROOT / "registry" / "apps.json").read_text(encoding="utf-8")))
-            rule = next(app["detect"] for app in registry if app["id"] == "decky-framegen")
-
-            self.assertEqual(plugin._decky_plugin_version(plugin._match_decky_plugin(rule, plugin._scan_installed_plugins())), "1.2.3")
 
     def test_overwrite_defaults_to_true_and_unknown_settings_are_dropped(self):
         with tempfile.TemporaryDirectory() as home:

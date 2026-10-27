@@ -47,36 +47,9 @@ Tired of tabbing out to Desktop Mode, hunting through GitHub releases, and manua
 
 DeckyHub never installs or runs anything automatically. **Download ZIP** saves a release, which you install yourself via Decky's settings → Developer → Install Plugin from ZIP. For one-tap install, update and uninstall, see [Manage](#manage).
 
-## Bundled repositories
+## Curated repositories
 
-No setup, no configuration — these show up in Discover the moment you install DeckyHub:
-
-| Tool | Category | Repository |
-| --- | --- | --- |
-| MAKO Decky | Frame Generation | [eugeniosegala/MAKO](https://github.com/eugeniosegala/MAKO) |
-| Decky LSFG-VK | Frame Generation | [xXJSONDeruloXx/decky-lsfg-vk](https://github.com/xXJSONDeruloXx/decky-lsfg-vk) |
-| Unifideck | Game Libraries | [mubaraknumann/unifideck](https://github.com/mubaraknumann/unifideck) |
-| Decky Framegen | Frame Generation | [xXJSONDeruloXx/Decky-Framegen](https://github.com/xXJSONDeruloXx/Decky-Framegen) |
-| Nexus Mods | Mod Managers | [RedRanger14/decky-nexus](https://github.com/RedRanger14/decky-nexus) |
-| Decky Proton Launch | Launch Options | [moi952/decky-proton-launch](https://github.com/moi952/decky-proton-launch) |
-| Launch Options | Launch Options | [Wurielle/decky-launch-options](https://github.com/Wurielle/decky-launch-options) |
-| Non-Steam Badges | Game Libraries | [sebet/decky-nonsteam-badges](https://github.com/sebet/decky-nonsteam-badges) |
-| Decky-Undervolt | Performance | [totallynotbakadestroyer/Decky-Undervolt](https://github.com/totallynotbakadestroyer/Decky-Undervolt) |
-| ProtonDB Badges | Game Libraries | [bschelst/protondb-decky](https://github.com/bschelst/protondb-decky) |
-| CSS Loader | Customization | [DeckThemes/SDH-CssLoader](https://github.com/DeckThemes/SDH-CssLoader) |
-| Deck as Controller | Controllers | [jmedina21/deck-as-controller](https://github.com/jmedina21/deck-as-controller) |
-| BGFX | Frame Generation | [andrewmd5/decky-bgfx](https://github.com/andrewmd5/decky-bgfx) |
-| ThemeHub | Customization | [Kaal31/benderthemes](https://github.com/Kaal31/benderthemes) |
-| Spindeck | Customization | [justinca92/spindeck](https://github.com/justinca92/spindeck) |
-| Game Glance | Customization | [michpalm/game-glance](https://github.com/michpalm/game-glance) |
-| Decky MultiFrameGen | Frame Generation | [MWGIH/DeckyMultiFrameGen](https://github.com/MWGIH/DeckyMultiFrameGen) |
-| Finally Achievement Plugin | Customization | [otisabiburada/finally-decky-achievements](https://github.com/otisabiburada/finally-decky-achievements) |
-| PS5 Dashboard | Customization | [kromossomom-debug/decky-ps5-dashboard](https://github.com/kromossomom-debug/decky-ps5-dashboard) |
-| Xbox Dashboard | Customization | [kromossomom-debug/decky-xbox-dashboard](https://github.com/kromossomom-debug/decky-xbox-dashboard) |
-| Loadout | Performance | [cyruzin/loadout](https://github.com/cyruzin/loadout) |
-| DeckSMB | Utilities | [chillibeaver/DeckSMB](https://github.com/chillibeaver/DeckSMB) |
-
-The list lives in [mazillka/deckyhub-registry](https://github.com/mazillka/deckyhub-registry) and refreshes when DeckyHub starts, so new apps show up without a DeckyHub update. Know a plugin that belongs here? Open an issue or pull request there.
+No setup, no configuration — the curated list shows up in Discover the moment you install DeckyHub.  [mazillka/deckyhub-registry](https://github.com/mazillka/deckyhub-registry) and refreshes when DeckyHub starts, so new apps show up without a DeckyHub update. Know a plugin that belongs here? Open an issue or pull request there.
 
 Want more? Add any other GitHub repository from **Repositories** in seconds.
 
@@ -91,7 +64,7 @@ Want more? Add any other GitHub repository from **Repositories** in seconds.
 
 ### Discover
 
-Browse the bundled list or search it by name, repository, category or description, and filter by **Status** (All, Installed, or Not Installed) and **Category**, and **Sort** A to Z, Z to A, or Recently added (newest additions to the list first; plugins with an update always come first). Each card is color-coded (green once it's up to date, yellow when an update is available, red on an error) so you can spot what needs attention at a glance, and says **Checking…** while its latest release is still being looked up. A card set to the pre-release **Channel** says so; stable is the default and isn't labelled. Tap **Manage** on any card to pick a channel and version, then download the release asset you want.
+Browse the curated list or search it by name, repository, category or description, and filter by **Status** (All, Installed, or Not Installed) and **Category**, and **Sort** A to Z, Z to A, or Recently added (newest additions to the list first; plugins with an update always come first). Each card is color-coded (green once it's up to date, yellow when an update is available, red on an error) so you can spot what needs attention at a glance, and says **Checking…** while its latest release is still being looked up. A card set to the pre-release **Channel** says so; stable is the default and isn't labelled. Tap **Manage** on any card to pick a channel and version, then download the release asset you want.
 
 To track a repository that isn't in the curated list, go to **Repositories**, search for it, and add it — it'll show up in Discover from then on.
 
@@ -120,7 +93,7 @@ Search GitHub for a repository and tap **Add** (repositories you already track s
 
 To switch a tracked app between stable and pre-release releases, use its [Manage](#manage) window.
 
-Under **Custom Registries**, add someone else's app list by its GitHub `owner/repo` (DeckyHub reads its `registry/apps.json`) or any HTTPS `.json` URL. Its apps join Discover alongside the bundled ones; up to 10 registries are allowed, and **Refresh registries** downloads them all again. An added registry can only add apps: it can't change or replace one DeckyHub already lists, including the plugins you have installed.
+Under **Custom Registries**, add someone else's app list by its GitHub `owner/repo` (DeckyHub reads its `registry/apps.json`) or any HTTPS `.json` URL. Its apps join Discover alongside the curated ones; up to 10 registries are allowed, and **Refresh registries** downloads them all again. An added registry can only add apps: it can't change or replace one DeckyHub already lists, including the plugins you have installed.
 
 ### Keeping DeckyHub itself updated
 
