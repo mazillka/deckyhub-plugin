@@ -364,9 +364,14 @@ class Plugin:
                 manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             except (OSError, json.JSONDecodeError):
                 continue
+            # Another plugin's broken manifest must not take the whole list down with it.
+            if not isinstance(manifest, dict) or not isinstance(manifest.get("name", ""), str):
+                continue
             try:
                 package = json.loads((manifest_path.parent / "package.json").read_text(encoding="utf-8"))
             except (OSError, json.JSONDecodeError):
+                package = {}
+            if not isinstance(package, dict):
                 package = {}
             scanned.append((manifest, package, self._plugin_repository(manifest, package)))
         return scanned
@@ -456,10 +461,15 @@ class Plugin:
             for entry in directory.iterdir():
                 if entry in active:
                     continue
-                if entry.is_dir() and not entry.is_symlink():
-                    shutil.rmtree(entry)
-                else:
-                    entry.unlink()
+                # One file that won't go (permissions, busy) doesn't stop the rest.
+                try:
+                    if entry.is_dir() and not entry.is_symlink():
+                        shutil.rmtree(entry)
+                    else:
+                        entry.unlink()
+                except OSError as error:
+                    decky.logger.warning("Could not remove %s: %s", entry, error)
+                    continue
                 removed += 1
             return removed
 
@@ -508,8 +518,8 @@ class Plugin:
         return self._next_name(target) if target.exists() else target
 
     async def export_custom_repos(self):
-        target = self._export_target("DeckyHub-repositories.json")
-        target.write_text(json.dumps({"schemaVersion": 1, "repos": self.settings["customRepos"]}, indent=2), encoding="utf-8")
+        target = await asyncio.to_thread(self._export_target, "DeckyHub-repositories.json")
+        await asyncio.to_thread(target.write_text, json.dumps({"schemaVersion": 1, "repos": self.settings["customRepos"]}, indent=2), encoding="utf-8")
         decky.logger.info("Exported %d repositories to %s", len(self.settings["customRepos"]), target)
         return {"path": str(target)}
 
@@ -519,11 +529,15 @@ class Plugin:
         decky.logger.warning("[frontend] %s", str(message)[:2000])
 
     async def export_logs(self):
-        target = self._export_target(f"DeckyHub-logs-{time.strftime('%Y%m%d-%H%M%S')}.zip")
-        with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as archive:
-            for log in sorted(Path(decky.DECKY_PLUGIN_LOG_DIR).glob("*.log")):
-                archive.write(log, log.name)
-        return {"path": str(target)}
+        def export():
+            target = self._export_target(f"DeckyHub-logs-{time.strftime('%Y%m%d-%H%M%S')}.zip")
+            with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as archive:
+                for log in sorted(Path(decky.DECKY_PLUGIN_LOG_DIR).glob("*.log")):
+                    archive.write(log, log.name)
+            return target
+
+        # Compressing the logs can take a while; keep Decky's event loop free meanwhile.
+        return {"path": str(await asyncio.to_thread(export))}
 
     async def import_custom_repos(self, path: str):
         source = Path(path).resolve()
@@ -663,8 +677,10 @@ class Plugin:
             name = self._validate_download_asset(asset, repo)
             registered = job_id if isinstance(job_id, str) and job_id and job_id not in self.downloads else target_id
             job_id = registered
-            # Registered before any disk work so the first poll finds it.
-            self.downloads[job_id] = {"state": "queued", "filename": name, "received": 0, "total": asset.get("size") or 0, "path": None, "error": None}
+            # Registered before any disk work so the first poll finds it. Kept by
+            # reference too: download_asset prunes finished jobs from self.downloads,
+            # which can happen before this resumes after the download.
+            job = self.downloads[job_id] = {"state": "queued", "filename": name, "received": 0, "total": asset.get("size") or 0, "path": None, "error": None}
             directory = Path(decky.DECKY_PLUGIN_RUNTIME_DIR) / "installs"
             directory.mkdir(parents=True, exist_ok=True)
             # Decky reads the file only once its confirm dialog is accepted, which
@@ -674,7 +690,7 @@ class Plugin:
                     old.unlink(missing_ok=True)
             target = directory / f"{target_id}-{name}"
             await asyncio.to_thread(self._download, job_id, asset, target)
-            job = self.downloads.pop(job_id)
+            self.downloads.pop(job_id, None)
             if job["state"] != "complete":
                 return {"error": job["error"] or f"Download {job['state']}"}
             return {"path": str(target)}
@@ -757,7 +773,7 @@ class Plugin:
         environment = os.environ.copy()
         environment.pop("LD_LIBRARY_PATH", None)
         environment.pop("LD_PRELOAD", None)
-        process = subprocess.Popen([curl, "--fail", "--location", "--proto", "=https", "--proto-redir", "=https", "--silent", "--show-error", "--connect-timeout", "15", "--max-time", "300", "--output", str(temp), asset["url"]], stderr=subprocess.PIPE, text=True, env=environment)
+        process = subprocess.Popen([curl, "--fail", "--location", "--proto", "=https", "--proto-redir", "=https", "--silent", "--show-error", "--connect-timeout", "15", "--speed-limit", "1024", "--speed-time", "60", "--output", str(temp), asset["url"]], stderr=subprocess.PIPE, text=True, env=environment)
         while process.poll() is None:
             if job_id in self.cancelled:
                 process.terminate()

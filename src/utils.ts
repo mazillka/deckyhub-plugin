@@ -217,9 +217,26 @@ function readCache<T>(key: string): CacheEntry<T> | null {
   }
 }
 
+const RELEASES_CACHE_PREFIX = "deckyhub-releases:";
+// A repo nobody has looked at for a week (or one since removed) loses its entry.
+const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
+let cachePruned = false;
+
+function pruneReleaseCache() {
+  for (const key of Object.keys(localStorage)) {
+    if (key.startsWith(RELEASES_CACHE_PREFIX) && !(Date.now() - (readCache(key)?.at ?? 0) < CACHE_MAX_AGE)) localStorage.removeItem(key);
+  }
+}
+
 function writeCache(key: string, data: unknown): void {
+  const value = JSON.stringify({ at: Date.now(), data });
   try {
-    localStorage.setItem(key, JSON.stringify({ at: Date.now(), data }));
+    // Once per session, so entries for repos no longer listed don't pile up.
+    if (!cachePruned) {
+      cachePruned = true;
+      pruneReleaseCache();
+    }
+    localStorage.setItem(key, value);
   } catch {
     // Quota exceeded or storage disabled (private browsing) — caching is a
     // nice-to-have, never worth failing the fetch that already succeeded.
@@ -499,7 +516,7 @@ function fetchReleases(repo: string, force: boolean): Promise<Release[]> {
 }
 
 async function requestReleases(repo: string, force: boolean): Promise<Release[]> {
-  const cacheKey = `deckyhub-releases:${repo}`;
+  const cacheKey = `${RELEASES_CACHE_PREFIX}${repo}`;
   const cached = readCache<Release[]>(cacheKey);
   if (cached && !force && Date.now() - cached.at < CACHE_TTL) return cached.data;
   const url = `https://api.github.com/repos/${repo}/releases?per_page=20`;

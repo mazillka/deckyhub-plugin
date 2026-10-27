@@ -53,10 +53,14 @@ export function Content({ fullPage }: { fullPage?: View }) {
 
   // Bumped per load() so a slower, older load can't overwrite a newer one.
   const loadRun = useRef(0);
+  // Only the first load shows the spinner; later ones (Refresh, the 15-minute
+  // timer, an install finishing) update the cards in place, so the grid keeps
+  // its controller focus and scroll position.
+  const loaded = useRef(false);
 
   const load = async (force = false) => {
     const run = ++loadRun.current;
-    setLoading(true);
+    if (!loaded.current) setLoading(true);
     try {
       const [appData, settings] = await Promise.all([getApps(), getSettings()]);
       const local = appData.apps;
@@ -65,11 +69,18 @@ export function Content({ fullPage }: { fullPage?: View }) {
       setColumnsPerRow(settings.columnsPerRow);
       setHiddenButtons(settings.hiddenButtons ?? []);
       const tracked = view === "updates" ? local.filter((app) => app.installedVersion) : local;
-      setApps(tracked);
+      // A card keeps its last release check until this load's replaces it.
+      setApps((current) => {
+        const previous = new Map(current.map((app) => [app.id, app]));
+        return tracked.map((app) => previous.get(app.id) ?? app);
+      });
       setLoadError(null);
       // Discover shows every card straight away and fills each in as its
       // release arrives; Updates waits, since it lists only apps with an update.
-      if (view === "discover") setLoading(false);
+      if (view === "discover") {
+        loaded.current = true;
+        setLoading(false);
+      }
       const hydrated = [...tracked];
       let next = 0;
       setChecked(0);
@@ -79,13 +90,15 @@ export function Content({ fullPage }: { fullPage?: View }) {
         while (next < tracked.length) {
           const index = next++;
           hydrated[index] = await hydrate(tracked[index], force, preferences[tracked[index].repo]);
-          if (run !== loadRun.current) continue;
+          // A newer load took over: stop, rather than check the rest for nothing.
+          if (run !== loadRun.current) return;
           setApps((current) => current.map((app) => (app.id === hydrated[index].id ? hydrated[index] : app)));
           setChecked((count) => count + 1);
         }
       };
       await Promise.all(Array.from({ length: Math.min(RELEASE_CONCURRENCY, tracked.length) }, worker));
       if (run !== loadRun.current) return;
+      loaded.current = true;
       setLoading(false);
       notifyUpdates(hydrated);
     } catch (error) {
@@ -149,12 +162,16 @@ export function Content({ fullPage }: { fullPage?: View }) {
     }
   };
 
-  // AppDetailsModal persists the change itself (saveRepoSettings); this just
-  // keeps the card's "Channel: …" label and the cached preference in sync
-  // without a full reload.
+  // AppDetailsModal persists the change itself (saveRepoSettings); this keeps
+  // the card's preference in sync and re-checks that one card's latest release
+  // for the new channel (from the release cache), so its status and quick
+  // Update button follow the channel without a full reload.
   const changeAppChannel = (repo: string, channel: UpdateChannel) => {
-    setRepoPreferences((current) => ({ ...current, [repo]: { channel, assetFilter: current[repo]?.assetFilter ?? [] } }));
+    const preference = { channel, assetFilter: repoPreferences[repo]?.assetFilter ?? [] };
+    setRepoPreferences((current) => ({ ...current, [repo]: preference }));
     setApps((current) => current.map((app) => (app.repo === repo ? { ...app, channel } : app)));
+    const app = apps.find((item) => item.repo === repo);
+    if (app) void hydrate(app, false, preference).then((next) => setApps((current) => current.map((item) => (item.id === next.id ? next : item))));
   };
 
   const categories = [...new Set(apps.map((app) => app.category))].sort((a, b) => a.localeCompare(b));
