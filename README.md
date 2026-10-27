@@ -70,6 +70,17 @@ No setup, no configuration — the curated list shows up in Discover the moment 
 
 ## Using DeckyHub
 
+### Controller buttons
+
+DeckyHub uses the standard Steam Deck controls, plus two extra shortcuts on every **Install** / **Update** button (on Discover and Updates cards, in the [Manage](#manage) window, and for DeckyHub's own update):
+
+| Button | What it does |
+| --- | --- |
+| **X** | Download that release's ZIP to `/home/deck/Downloads/deckyhub` instead of installing it. Not shown when **Download ZIP** is hidden in Settings. |
+| **Y** | Show the release notes (what that release changes) without installing anything. |
+
+Steam's footer shows the X and Y actions for whichever button is focused.
+
 ### Discover
 
 Browse the curated list or search it by name, repository, category or description, and filter by **Status** (All, Installed, or Not Installed) and **Category**, and **Sort** A to Z, Z to A, or Recently added (newest additions to the list first; plugins with an update always come first). Each card is color-coded (green once it's up to date, yellow when an update is available, red on an error) so you can spot what needs attention at a glance, and says **Checking…** while its latest release is still being looked up. A card set to the pre-release **Channel** says so; stable is the default and isn't labelled. Tap **Manage** on any card to pick a channel and version, then download the release asset you want.
