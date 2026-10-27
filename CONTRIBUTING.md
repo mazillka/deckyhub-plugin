@@ -52,6 +52,8 @@ Users can point DeckyHub at their own registries too (**Repositories** → **Cus
 
 Merge feature pull requests into `develop` with **Squash and merge** so it keeps one commit per PR; keep each PR to a single topic and use its title as the commit message.
 
+After each stable release lands on `main`, open a pull request from `main` into `develop` titled `chore: merge main back into develop (X.Y.Z)` and merge it with **Create a merge commit**, the one PR that isn't squashed. A squash into `main` makes a commit `develop` never has, so without this back-merge the next `develop` → `main` PR conflicts even when the files are identical.
+
 The repository's `.githooks/pre-commit` hook blocks commits on `develop` and `main`. Activate it once per checkout with `git config core.hooksPath .githooks`; protected branches on GitHub should enforce the same rule remotely.
 
 To release, bump `version` in `package.json` (the backend reads it at runtime; there is no second copy), then push a `v*` Git tag. The tag starts the GitHub Actions release workflow. It fails unless the tag is `v` plus the `package.json` version. It installs the locked packages, typechecks, builds, runs the frontend and backend tests and the browser E2E suite in `devtools/decky-mock/`, and packages the Decky plugin with a read-only token; a separate publish job then attaches `DeckyHub-v*.zip` to the GitHub release. Release-notes conventions are in the Release section of [AGENTS.md](AGENTS.md).
