@@ -1300,7 +1300,7 @@ test("Discover's Details modal channel picker updates the card's Channel label",
     // save_repo_settings persists to the real (shared) settings.json via the
     // dev bridge — round-trip it back to the default directly so this test
     // doesn't leave MAKO's channel overridden for later tests/runs.
-    await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "stable", assetFilter: [] });
+    await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "stable" });
   }
 });
 
@@ -1330,14 +1330,14 @@ test("Discover's card picks the newest pre-release by publish date, not array or
     // Out-of-order on purpose: the newest pre-release (by published_at) isn't array[0].
     route.fulfill({ json: [olderBeta, newerBeta] })
   );
-  await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "prerelease", assetFilter: [] });
+  await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "prerelease" });
   try {
     await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
     const app = mock(page);
     const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
     await expect(makoCard.getByText("Latest: v1.4.0-beta.2", { exact: true })).toBeVisible();
   } finally {
-    await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "stable", assetFilter: [] });
+    await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "stable" });
   }
 });
 
@@ -1346,13 +1346,13 @@ test("A card on the pre-release channel picks a stable release newer than its pr
   await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases?per_page=20", (route) =>
     route.fulfill({ json: [{ ...beta, prerelease: true }, makoRelease("plugin-v1.4.0", "b".repeat(64), "02")] }),
   );
-  await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "prerelease", assetFilter: [] });
+  await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "prerelease" });
   try {
     await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
     const makoCard = mock(page).getByRole("heading", { name: "MAKO Decky" }).locator("..");
     await expect(makoCard.getByText("Latest: v1.4.0", { exact: true })).toBeVisible();
   } finally {
-    await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "stable", assetFilter: [] });
+    await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "stable" });
   }
 });
 
@@ -1364,13 +1364,13 @@ test("A newer pre-release of an installed pre-release counts as an update", asyn
   await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases?per_page=20", (route) =>
     route.fulfill({ json: [{ tag_name: "plugin-v1.4.0-rc.2", prerelease: true, draft: false, published_at: "2026-01-02T00:00:00Z", html_url: "https://github.com/eugeniosegala/MAKO/releases/tag/plugin-v1.4.0-rc.2", assets: [] }] })
   );
-  await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "prerelease", assetFilter: [] });
+  await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "prerelease" });
   try {
     await page.goto("/?preview=/deckyhub/updates&bridge=http://127.0.0.1:8643");
     const makoCard = mock(page).getByRole("heading", { name: "MAKO Decky" }).locator("..");
     await expect(makoCard.getByText("Update Available", { exact: true })).toBeVisible();
   } finally {
-    await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "stable", assetFilter: [] });
+    await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "stable" });
     rmSync(pluginDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
   }
 });

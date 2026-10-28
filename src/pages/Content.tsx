@@ -165,7 +165,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
   // for the new channel (from the release cache), so its status and quick
   // Update button follow the channel without a full reload.
   const changeAppChannel = (repo: string, channel: UpdateChannel) => {
-    const preference = { channel, assetFilter: repoPreferences[repo]?.assetFilter ?? [] };
+    const preference = { channel };
     setRepoPreferences((current) => ({ ...current, [repo]: preference }));
     setApps((current) => current.map((app) => (app.repo === repo ? { ...app, channel } : app)));
     const app = apps.find((item) => item.repo === repo);
@@ -337,7 +337,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
             {(app) => (
               <AppCard
                 app={app}
-                preference={repoPreferences[app.repo] ?? { channel: "stable", assetFilter: [] }}
+                preference={repoPreferences[app.repo] ?? { channel: "stable" }}
                 downloadDisabled={downloading}
                 hiddenButtons={hiddenButtons}
                 onDownload={(asset) => startDownload(asset, app.repo)}
