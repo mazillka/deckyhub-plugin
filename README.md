@@ -72,7 +72,7 @@ No setup, no configuration — the curated list shows up in Discover the moment 
 
 ### Controller buttons
 
-DeckyHub uses the standard Steam Deck controls, plus two extra shortcuts on every **Install** / **Update** button (on Discover and Updates cards, in the [Manage](#manage) window, and for DeckyHub's own update):
+DeckyHub uses the standard Steam Deck controls, plus two extra shortcuts on every **Install** / **Update** button (on Discover and Updates cards, on **Search** results, in the [Manage](#manage) window, and for DeckyHub's own update):
 
 | Button | What it does |
 | --- | --- |
