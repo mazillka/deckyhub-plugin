@@ -3,6 +3,7 @@ import type { MessageKey } from "./en";
 export const fr: Record<MessageKey, string> = {
   "nav.updates": "Mises à jour",
   "nav.discover": "Découvrir",
+  "nav.search": "Recherche",
   "nav.repositories": "Dépôts",
   "nav.settings": "Paramètres",
 
@@ -10,6 +11,8 @@ export const fr: Record<MessageKey, string> = {
   "view.updatesEmpty": "Tout est à jour.",
   "view.discoverDescription": "Parcourez les projets GitHub pris en charge et leurs versions ZIP.",
   "view.discoverEmpty": "Aucun dépôt disponible.",
+  "view.searchDescription": "Cherchez des plugins Decky sur GitHub. Installez-les tout de suite ou ajoutez-les pour suivre leurs mises à jour.",
+  "search.warning": "Les résultats viennent directement de GitHub. Personne ne les a vérifiés : ni DeckyHub, ni la boutique Decky. Un plugin peut tout faire sur votre Deck, n'installez donc que des plugins d'auteurs de confiance.",
 
   "filter.search": "Rechercher",
   "filter.status": "Statut",
@@ -115,7 +118,6 @@ export const fr: Record<MessageKey, string> = {
   "settings.exportLogsNote": "Enregistre les journaux de DeckyHub dans un ZIP dans /home/deck/Downloads — joignez-le à un rapport de bug. Votre jeton GitHub n'est jamais journalisé.",
 
   "repos.addManage": "Ajouter et gérer",
-  "repos.addGithubRepository": "Ajouter un dépôt GitHub",
   "repos.searchGithub": "Rechercher sur GitHub",
   "repos.searching": "Recherche…",
   "repos.clear": "Effacer",
@@ -131,7 +133,7 @@ export const fr: Record<MessageKey, string> = {
   "repos.remove": "Retirer {repo}",
   "repos.noCustomRepos": "Aucun dépôt personnalisé pour le moment.",
   "repos.removeRepositoryTitle": "Retirer le dépôt",
-  "repos.removeRepositoryDesc": "Arrêter de suivre {repo} ? Vous pourrez le rajouter plus tard depuis Découvrir.",
+  "repos.removeRepositoryDesc": "Arrêter de suivre {repo} ? Vous pourrez le rajouter plus tard depuis Recherche.",
   "repos.removeConfirm": "Retirer",
 
   "repos.customRegistries": "Registres personnalisés",

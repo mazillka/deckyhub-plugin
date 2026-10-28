@@ -99,6 +99,8 @@ test.beforeAll(() => {
 test.beforeEach(async ({ page }) => {
   // Every release lookup hits GET /repos/{repo}/releases, which returns a list.
   await page.route("https://api.github.com/**", (route) => route.fulfill({ json: [release] }));
+  // Search keeps only repos with a Decky plugin.json; every stubbed result has one.
+  await page.route("https://raw.githubusercontent.com/**/plugin.json", (route) => route.fulfill({ json: { name: "Test plugin" } }));
   await page.goto("/?bridge=http://127.0.0.1:8643");
 });
 
@@ -175,7 +177,7 @@ test("Discover keeps its refresh action beside the description", async ({ page }
 });
 
 test("Repository search and action share one row", async ({ page }) => {
-  await page.goto("/?preview=/deckyhub/repositories&bridge=http://127.0.0.1:8643");
+  await page.goto("/?preview=/deckyhub/search&bridge=http://127.0.0.1:8643");
   const app = mock(page);
   const search = app.getByLabel("Search GitHub");
   const action = app.getByRole("button", { name: "Search", exact: true });
@@ -199,7 +201,7 @@ test("Repository search stays enabled but skips blank queries", async ({ page })
     requests++;
     return route.fulfill({ json: { items: [] } });
   });
-  await page.goto("/?preview=/deckyhub/repositories&bridge=http://127.0.0.1:8643");
+  await page.goto("/?preview=/deckyhub/search&bridge=http://127.0.0.1:8643");
   const search = mock(page).getByRole("button", { name: "Search", exact: true });
 
   await expect(search).toBeEnabled();
@@ -484,7 +486,7 @@ test("Repository pagination stays on one row", async ({ page }) => {
       },
     })
   );
-  await page.goto("/?preview=/deckyhub/repositories&bridge=http://127.0.0.1:8643");
+  await page.goto("/?preview=/deckyhub/search&bridge=http://127.0.0.1:8643");
   const app = mock(page);
   await app.getByLabel("Search GitHub").fill("example");
   await app.getByRole("button", { name: "Search", exact: true }).click();
@@ -768,6 +770,47 @@ test("The Manage window offers Install for a Decky plugin that isn't installed y
   // plugin's own manifest name, with Decky's INSTALL (0) type.
   const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
   await expect.poll(() => frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([
+    ["utilities/install_plugin", localZip(url), "MAKO - Frame Generation", "1.2.3", sha256, 0],
+  ]);
+});
+
+test("Search shows only Decky plugins, under a warning", async ({ page }) => {
+  let query = "";
+  await page.route("https://api.github.com/search/repositories**", (route) => {
+    query = new URL(route.request().url()).searchParams.get("q") ?? "";
+    return route.fulfill({ json: { items: [{ full_name: "example/plugin" }, { full_name: "example/awesome-list" }] } });
+  });
+  await page.route("https://raw.githubusercontent.com/example/awesome-list/HEAD/plugin.json", (route) => route.fulfill({ status: 404, body: "404: Not Found" }));
+  await page.goto("/?preview=/deckyhub/search&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  await expect(app.getByText(/Nobody has reviewed them/)).toBeVisible();
+  await app.getByLabel("Search GitHub").fill("frame");
+  await app.getByRole("button", { name: "Search", exact: true }).click();
+
+  await expect(app.getByRole("heading", { name: "example/plugin" })).toBeVisible();
+  await expect(app.getByRole("heading", { name: "example/awesome-list" })).toHaveCount(0);
+  expect(query).toBe("frame decky in:name,description,topics,readme");
+});
+
+test("Search installs a plugin straight from its GitHub release", async ({ page }) => {
+  const sha256 = "e".repeat(64);
+  const url = "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v1.2.3/mako-decky.zip";
+  await mockMakoReleases(page, [makoRelease("plugin-v1.2.3", sha256)]);
+  await page.route("https://api.github.com/search/repositories**", (route) =>
+    route.fulfill({ json: { items: [{ full_name: "eugeniosegala/MAKO", description: "Frame generation", stargazers_count: 1 }] } }),
+  );
+  await recordInstalls(page);
+  await page.goto("/?bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  await app.locator(".qam-content").getByRole("button", { name: "Search", exact: true }).click();
+  await app.getByLabel("Search GitHub").fill("mako");
+  await app.getByRole("button", { name: "Search", exact: true }).click();
+  // Already in the curated list, so Add shows as done; Install still works.
+  await expect(app.getByRole("button", { name: "Added", exact: true })).toBeDisabled();
+  await app.getByRole("button", { name: "Install", exact: true }).click();
+  await acceptDisclaimer(page, "Install v1.2.3");
+
+  await expect.poll(() => pluginFrame(page).evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([
     ["utilities/install_plugin", localZip(url), "MAKO - Frame Generation", "1.2.3", sha256, 0],
   ]);
 });
@@ -1378,7 +1421,7 @@ test("GitHub repository search also sends the saved token", async ({ page }) => 
     await bridgeCall(page, "save_settings", { overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: 3, githubToken: "ghp_search_token" });
 
     const app = mock(page);
-    await app.getByRole("button", { name: "/deckyhub/repositories" }).click();
+    await app.getByRole("button", { name: "/deckyhub/search" }).click();
     await app.getByLabel("Search GitHub").fill("some-repo");
     await app.getByRole("button", { name: "Search", exact: true }).click();
 
@@ -1479,7 +1522,7 @@ test("Moving focus up through Settings and Repositories brings each section titl
   await expect(app.getByLabel("Language")).toBeVisible();
   expect(await titlesHiddenAfterFocus(page)).toEqual([]);
 
-  await app.getByRole("button", { name: "/deckyhub/repositories" }).click();
+  await app.getByRole("button", { name: "/deckyhub/search" }).click();
   await app.getByLabel("Search GitHub").fill("example");
   await app.getByRole("button", { name: "Search", exact: true }).click();
   await expect(app.getByRole("heading", { name: "example/repo-4" })).toBeVisible();
@@ -1506,11 +1549,16 @@ test("Every row of side-by-side controls lets the D-pad move left and right", as
   expect(await sideBySideWithoutRightFlow(page)).toEqual([]);
   await app.locator(".steam-modal").getByRole("button", { name: "Close", exact: true }).click();
 
-  // Repositories: search row, two-column results, pager, import/export.
-  await app.getByRole("button", { name: "/deckyhub/repositories" }).click();
+  // Search: search row, two-column results with Install/Add, pager.
+  await app.getByRole("button", { name: "/deckyhub/search" }).click();
   await app.getByLabel("Search GitHub").fill("example");
   await app.getByRole("button", { name: "Search", exact: true }).click();
   await expect(app.getByText("Page 1 of 2", { exact: true })).toBeVisible();
+  expect(await sideBySideWithoutRightFlow(page)).toEqual([]);
+
+  // Repositories: import/export, registries.
+  await app.getByRole("button", { name: "/deckyhub/repositories" }).click();
+  await expect(app.getByRole("button", { name: "Export", exact: true })).toBeVisible();
   expect(await sideBySideWithoutRightFlow(page)).toEqual([]);
 
   // Settings.
@@ -1535,7 +1583,8 @@ test("Quick Access lists its pages in order, showing Updates only while there ar
     await expect(nav.nth(0).locator("span")).toHaveText("1");
     await expect(nav.nth(0)).toContainText("Updates");
     await expect(nav.nth(1)).toHaveText("Discover");
-    await expect(nav.nth(2)).toHaveText("Settings");
+    await expect(nav.nth(2)).toHaveText("Search");
+    await expect(nav.nth(3)).toHaveText("Settings");
     await expect(app.getByText("Browse", { exact: true })).toHaveCount(0);
   } finally {
     removePlugin();
@@ -1684,13 +1733,14 @@ test("Discover shows every card on one page", async ({ page }) => {
 test("A repository added from search shows on Discover until it's removed", async ({ page }) => {
   const repo = "e2e-add/plugin";
   await page.route("https://api.github.com/search/repositories**", (route) => route.fulfill({ json: { items: [{ full_name: repo, description: "Test repository", stargazers_count: 1 }] } }));
-  await page.goto("/?preview=/deckyhub/repositories&bridge=http://127.0.0.1:8643");
+  await page.goto("/?preview=/deckyhub/search&bridge=http://127.0.0.1:8643");
   const app = mock(page);
   try {
     await app.getByLabel("Search GitHub").fill("plugin");
     await app.getByRole("button", { name: "Search", exact: true }).click();
     await app.getByRole("heading", { name: repo }).locator("..").getByRole("button", { name: "Add", exact: true }).click();
     await expect(app.getByRole("heading", { name: repo }).locator("..").getByRole("button", { name: "Added", exact: true })).toBeDisabled();
+    await app.getByRole("button", { name: "/deckyhub/repositories" }).click();
     await expect(app.getByRole("button", { name: `Remove ${repo}`, exact: true })).toBeVisible();
 
     await app.getByRole("button", { name: "/deckyhub/discover" }).click();
