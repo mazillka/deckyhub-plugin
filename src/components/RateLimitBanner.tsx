@@ -5,12 +5,15 @@ import { useT } from "../i18n";
 import { keepInView } from "./KeepInView";
 import { iconRow, RATE_LIMIT_CHANGED, rateLimit } from "../utils";
 
-const bannerButton = { ...iconRow, flex: 1, minHeight: 32, padding: "4px 10px" };
+// minWidth 0: Steam's buttons won't otherwise shrink below their label.
+const bannerButton = { ...iconRow, flex: 1, minWidth: 0, minHeight: 32, padding: "4px 10px" };
 
 // Header notice for an unauthenticated GitHub rate limit, rendered at the top
 // of every screen that talks to GitHub. Hides itself once dismissed, once the
 // limit should have reset, or as soon as a token is saved (setGithubToken).
-export function RateLimitBanner() {
+// `stacked` puts the buttons one above the other for the narrow Quick Access panel,
+// where side by side they're wider than it and push all its content sideways.
+export function RateLimitBanner({ stacked = false }: { stacked?: boolean }) {
   const t = useT();
   const [limit, setLimit] = useState(rateLimit);
   const [dismissed, setDismissed] = useState(false);
@@ -34,7 +37,7 @@ export function RateLimitBanner() {
       <small>
         {limit.minutesKnown ? t("rateLimit.retryIn", { minutes }) : t("rateLimit.retryLater")} {t("rateLimit.howToAvoid")}
       </small>
-      <Focusable flow-children="right" style={{ display: "flex", gap: 8 }}>
+      <Focusable flow-children={stacked ? "down" : "right"} style={{ display: "flex", flexDirection: stacked ? "column" : "row", gap: 8 }}>
         <Button style={bannerButton} onClick={() => Navigation.Navigate("/deckyhub/settings")}>
           <FaCog /> {t("rateLimit.openSettings")}
         </Button>

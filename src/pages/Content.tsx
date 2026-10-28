@@ -416,7 +416,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
     </>
   ) : (
     <div ref={quickAccessRef}>
-      <RateLimitBanner />
+      <RateLimitBanner stacked />
       {navigation}
     </div>
   );
