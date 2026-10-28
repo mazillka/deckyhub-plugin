@@ -30,6 +30,7 @@ const makoRelease = (tag: string, sha256: string, day = "01") => ({
   tag_name: tag, prerelease: false, draft: false, published_at: `2026-01-${day}T00:00:00Z`, html_url: `https://github.com/eugeniosegala/MAKO/releases/tag/${tag}`,
   assets: [{ name: "mako-decky.zip", browser_download_url: `https://github.com/eugeniosegala/MAKO/releases/download/${tag}/mako-decky.zip`, size: 1024, digest: `sha256:${sha256}` }],
 });
+const RELEASE_INDEX_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/releases.json";
 const mockMakoReleases = (page: Page, releases: unknown[]) =>
   page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases**", (route) => route.fulfill({ json: releases }));
 
@@ -99,6 +100,8 @@ test.beforeAll(() => {
 test.beforeEach(async ({ page }) => {
   // Every release lookup hits GET /repos/{repo}/releases, which returns a list.
   await page.route("https://api.github.com/**", (route) => route.fulfill({ json: [release] }));
+  // No release index unless a test serves one, so release lookups use the API stubs.
+  await page.route(RELEASE_INDEX_URL, (route) => route.fulfill({ status: 404, body: "404: Not Found" }));
   // Search keeps only repos with a Decky plugin.json; every stubbed result has one.
   await page.route("https://raw.githubusercontent.com/**/plugin.json", (route) => route.fulfill({ json: { name: "Test plugin" } }));
   await page.goto("/?bridge=http://127.0.0.1:8643");
@@ -840,6 +843,31 @@ test("Y and X on a search result's Install show the release notes and download t
   await expect(app.locator(".steam-modal", { hasText: "mako-decky.zip" })).toBeVisible();
   // Neither key installs anything.
   expect(await pluginFrame(page).evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([]);
+});
+
+test("Release checks read the registry's release index instead of the GitHub API", async ({ page }) => {
+  let apiCalls = 0;
+  await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases**", (route) => {
+    apiCalls++;
+    return route.fulfill({ json: [makoRelease("plugin-v1.0.0", "a".repeat(64))] });
+  });
+  await page.route(RELEASE_INDEX_URL, (route) =>
+    route.fulfill({ json: { generatedAt: new Date().toISOString(), releases: { "eugeniosegala/mako": [makoRelease("plugin-v7.7.7", "f".repeat(64))] } } }),
+  );
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  const makoCard = mock(page).getByRole("heading", { name: "MAKO Decky" }).locator("..");
+  await expect(makoCard.getByRole("button", { name: "Install v7.7.7", exact: true })).toBeVisible();
+  expect(apiCalls).toBe(0);
+});
+
+test("A stale release index is ignored in favour of the GitHub API", async ({ page }) => {
+  await mockMakoReleases(page, [makoRelease("plugin-v1.0.0", "a".repeat(64))]);
+  await page.route(RELEASE_INDEX_URL, (route) =>
+    route.fulfill({ json: { generatedAt: "2026-01-01T00:00:00Z", releases: { "eugeniosegala/mako": [makoRelease("plugin-v7.7.7", "f".repeat(64))] } } }),
+  );
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  const makoCard = mock(page).getByRole("heading", { name: "MAKO Decky" }).locator("..");
+  await expect(makoCard.getByRole("button", { name: "Install v1.0.0", exact: true })).toBeVisible();
 });
 
 test("The download window spins until Decky's own install dialog is up", async ({ page }) => {
