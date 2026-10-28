@@ -12,6 +12,7 @@ export const zh: Record<MessageKey, string> = {
   "view.discoverDescription": "浏览受支持的 GitHub 项目及其 ZIP 发行版。",
   "view.discoverEmpty": "没有可用的仓库。",
   "view.searchDescription": "在 GitHub 上搜索 Decky 插件。可直接安装，或添加以跟踪更新。",
+  "view.searchTitle": "搜索与安装",
   "search.warning": "搜索结果直接来自 GitHub，未经任何审核：DeckyHub 和 Decky 商店都没有审核过。插件可以在你的 Deck 上做任何事，请只安装你信任的作者的插件。",
 
   "filter.search": "搜索",

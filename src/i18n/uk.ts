@@ -12,6 +12,7 @@ export const uk: Record<MessageKey, string> = {
   "view.discoverDescription": "Перегляд підтримуваних проєктів GitHub та їхніх ZIP-релізів.",
   "view.discoverEmpty": "Немає доступних репозиторіїв.",
   "view.searchDescription": "Шукайте плагіни Decky на GitHub. Встановіть одразу або додайте, щоб стежити за оновленнями.",
+  "view.searchTitle": "Пошук і встановлення",
   "search.warning": "Результати пошуку надходять просто з GitHub. Їх ніхто не перевіряв: ні DeckyHub, ні магазин Decky. Плагін може зробити на вашому Deck будь-що, тож встановлюйте лише плагіни авторів, яким довіряєте.",
 
   "filter.search": "Пошук",

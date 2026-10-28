@@ -5,11 +5,13 @@ import { Card, PageHeader } from "../components/Card";
 import { Pager } from "../components/Pager";
 import { RateLimitBanner } from "../components/RateLimitBanner";
 import { startPluginInstall } from "../components/AppDetailsModal";
+import { showReleaseInfo } from "../components/AppCard";
+import { showDownloadModal } from "../components/DownloadProgress";
 import { useEffect, useState } from "react";
 import { FaCheck, FaDownload, FaPlus, FaSearch, FaTimes } from "react-icons/fa";
-import { addCustomRepo, getApps, REGISTRY_UPDATED } from "../api";
+import { addCustomRepo, downloadAsset, getApps, getSettings, REGISTRY_UPDATED } from "../api";
 import { useT } from "../i18n";
-import type { SearchRepo } from "../types";
+import type { HideableButton, SearchRepo } from "../types";
 import { displayVersion } from "../version";
 import { compactButtonStyle, disclaimerStyle, githubFetch, githubResponseError, hydrate, installAction, installTypeLabel, log, surfaceStyle } from "../utils";
 
@@ -35,9 +37,12 @@ export function SearchPage() {
   // The repo whose install is being prepared, so a second tap can't start another.
   const [installing, setInstalling] = useState<string | null>(null);
 
-  const refreshRepos = () => void getApps().then((result) => setExistingRepos(new Set(result.apps.map((app) => app.repo.toLowerCase()))));
+  const [hiddenButtons, setHiddenButtons] = useState<HideableButton[]>([]);
 
-  useEffect(refreshRepos, []);
+  useEffect(() => {
+    void getApps().then((result) => setExistingRepos(new Set(result.apps.map((app) => app.repo.toLowerCase()))));
+    void getSettings().then((settings) => setHiddenButtons(settings.hiddenButtons ?? []));
+  }, []);
 
   const search = async () => {
     if (!query.trim() || searching) return;
@@ -80,16 +85,37 @@ export function SearchPage() {
     toaster.toast({ title: "DeckyHub", body: t(added ? "repos.addedToast" : "repos.alreadyAdded", { repo }) });
   };
 
+  // The repo's latest stable release, looked up the way a Discover card does. A repo
+  // that isn't listed gets the entry the backend makes for an added one (_custom_apps).
+  const latestRelease = async (repo: string) => {
+    const listed = (await getApps()).apps.find((app) => app.repo.toLowerCase() === repo.toLowerCase());
+    const app = await hydrate(listed ?? { id: `custom-${repo.replace("/", "-")}`, name: repo, repo, category: "Custom", detect: { type: "decky-plugin" }, asset: { include: [], exclude: ["source"] }, assets: [] }, false);
+    if (!app.latestVersion || !app.assets[0]) throw new Error(app.error ?? t("release.noMatch"));
+    return app as typeof app & { latestVersion: string };
+  };
+
+  // Y: that release's notes, without adding or installing anything.
+  const releaseInfo = async (repo: string) => {
+    const app = await latestRelease(repo);
+    showReleaseInfo(t, `${app.name} ${displayVersion(app.latestVersion)}`, app.publishedAt, app.releaseNotes);
+  };
+
+  // X: that release's ZIP to the download folder instead of installing it.
+  const downloadZip = async (repo: string) => {
+    const asset = (await latestRelease(repo)).assets[0];
+    const result = await downloadAsset(asset, repo);
+    if (result.error) throw new Error(result.error);
+    if (result.jobId) showDownloadModal(t, result.jobId, { state: "queued", filename: asset.name, total: asset.size }, () => {});
+  };
+
   // Adds the repo, then installs its latest stable release the way a Discover card does.
   const install = async (repo: string) => {
     setInstalling(repo);
     try {
       await track(repo);
-      const listed = (await getApps()).apps.find((app) => app.repo.toLowerCase() === repo.toLowerCase());
-      if (!listed) throw new Error(t("release.noMatch"));
-      const app = await hydrate(listed, false);
-      const action = app.latestVersion ? installAction(app, { tag: app.latestVersion, assets: app.assets }) : null;
-      if (!action || !app.latestVersion) throw new Error(app.error ?? t("release.noMatch"));
+      const app = await latestRelease(repo);
+      const action = installAction(app, { tag: app.latestVersion, assets: app.assets });
+      if (!action) throw new Error(t("release.noMatch"));
       const label = installTypeLabel(t, action.type, displayVersion(app.latestVersion).replace(/^v/, ""));
       // Decky's own dialog takes over, so leave the page like a card's Install does.
       await startPluginInstall(t, app.name, app.repo, app.assets[0], app.latestVersion, action, label, () => Navigation.NavigateBack());
@@ -101,7 +127,7 @@ export function SearchPage() {
   return (
     <>
       <RateLimitBanner />
-      <PageHeader icon={<FaSearch />} title={t("nav.search")} description={t("view.searchDescription")} />
+      <PageHeader icon={<FaSearch />} title={t("view.searchTitle")} description={t("view.searchDescription")} />
       <div className="deckyhub-search-warning" style={disclaimerStyle}>{t("search.warning")}</div>
       <Card>
         <PanelSection>
@@ -153,7 +179,15 @@ export function SearchPage() {
                   <PanelSectionRow>
                     <Focusable flow-children="right" style={{ display: "flex", gap: 12 }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <Button style={compactButtonStyle} disabled={installing !== null} onClick={() => void install(repo.full_name).catch(showError)}>
+                        <Button
+                          style={compactButtonStyle}
+                          disabled={installing !== null}
+                          onSecondaryButton={() => void releaseInfo(repo.full_name).catch(showError)}
+                          onSecondaryActionDescription={t("appcard.releaseInfo")}
+                          onOptionsButton={hiddenButtons.includes("downloadZip") ? undefined : () => void downloadZip(repo.full_name).catch(showError)}
+                          onOptionsActionDescription={t("settings.downloadUpdate")}
+                          onClick={() => void install(repo.full_name).catch(showError)}
+                        >
                           <FaDownload /> {t("appcard.install")}
                         </Button>
                       </div>

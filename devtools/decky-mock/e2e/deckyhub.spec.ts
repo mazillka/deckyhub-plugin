@@ -803,6 +803,7 @@ test("Search installs a plugin straight from its GitHub release", async ({ page 
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
   await app.locator(".qam-content").getByRole("button", { name: "Search", exact: true }).click();
+  await expect(app.getByRole("heading", { name: "Search & Install", exact: true })).toBeVisible();
   await app.getByLabel("Search GitHub").fill("mako");
   await app.getByRole("button", { name: "Search", exact: true }).click();
   // Already in the curated list, so Add shows as done; Install still works.
@@ -813,6 +814,32 @@ test("Search installs a plugin straight from its GitHub release", async ({ page 
   await expect.poll(() => pluginFrame(page).evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([
     ["utilities/install_plugin", localZip(url), "MAKO - Frame Generation", "1.2.3", sha256, 0],
   ]);
+});
+
+test("Y and X on a search result's Install show the release notes and download the ZIP", async ({ page }) => {
+  await mockMakoReleases(page, [{ ...makoRelease("plugin-v1.2.3", "e".repeat(64)), body: "Faster frame pacing." }]);
+  await page.route("https://api.github.com/search/repositories**", (route) =>
+    route.fulfill({ json: { items: [{ full_name: "eugeniosegala/MAKO", description: "Frame generation", stargazers_count: 1 }] } }),
+  );
+  await recordInstalls(page);
+  await page.goto("/?preview=/deckyhub/search&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  await app.getByLabel("Search GitHub").fill("mako");
+  await app.getByRole("button", { name: "Search", exact: true }).click();
+  const install = app.getByRole("button", { name: "Install", exact: true });
+  await install.focus();
+  await expect(app.locator(".steam-legend")).toContainText("Ⓨ Release Info");
+  await expect(app.locator(".steam-legend")).toContainText("Ⓧ Download ZIP");
+
+  await install.press("y");
+  await expect(app.locator(".steam-modal", { hasText: "MAKO Decky v1.2.3" }).getByText("Faster frame pacing.")).toBeVisible();
+  await page.reload();
+  await app.getByLabel("Search GitHub").fill("mako");
+  await app.getByRole("button", { name: "Search", exact: true }).click();
+  await install.press("x");
+  await expect(app.locator(".steam-modal", { hasText: "mako-decky.zip" })).toBeVisible();
+  // Neither key installs anything.
+  expect(await pluginFrame(page).evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([]);
 });
 
 test("The download window spins until Decky's own install dialog is up", async ({ page }) => {
