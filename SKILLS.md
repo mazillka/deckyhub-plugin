@@ -13,7 +13,7 @@ Use these project skills when working in this repository.
 - Verify UI behavior in the mock and on real Steam Deck hardware before release. Controller-focus and modal rules are in [AGENTS.md](AGENTS.md#development-rules).
 - Steam only scrolls to follow focus: text above a page's first focusable control is unreachable by controller. Wrap it in `<Focusable onActivate={() => {}}>` so D-pad up can land on it.
 - Clickable non-button elements need both `onActivate` (A button) and `onClick` (touchscreen).
-- Every new user-facing string needs its key in all 7 `src/i18n/*.ts` files (`en.ts` is the type source `tsc` enforces). Reuse an existing translation when the text already exists.
+- Every new user-facing string needs its key in all 8 `src/i18n/*.ts` files (`en.ts` is the type source `tsc` enforces). Reuse an existing translation when the text already exists.
 
 ## Decky Loader
 
@@ -23,7 +23,8 @@ Use these project skills when working in this repository.
 ## GitHub API
 
 - Every release lookup goes through `fetchReleases(repo)` in `src/utils.ts` (one shared per-repo cache); don't add separate GitHub fetches.
-- Unauthenticated use gets 60 requests/hour per IP: count the requests a change adds. `GET /rate_limit` is free.
+- Repos in the official registry are answered from its release index (one raw.githubusercontent.com file, no API calls); the API is only for repos the index lacks and for Search.
+- Unauthenticated use gets 60 requests/hour per IP (10/min for search): count the requests a change adds. `GET /rate_limit` is free.
 
 ## Verification
 
@@ -74,7 +75,7 @@ Every change that alters what a user sees or does updates the docs in the same P
 
 - One topic per PR (PRs are squash-merged, see CONTRIBUTING.md); the PR must typecheck.
 - Push a `v*` tag only after all checks pass.
-- Cut a release only when the plugin ZIP changes (`plugin.json`, `main.py`, `src/`, `registry/`, `package.json`). Docs- or website-only changes ship by merging to `main`; a release with no plugin change still pings every user with an update toast.
+- Cut a release only when the plugin ZIP changes (`plugin.json`, `main.py`, `src/`, `package.json`). Docs- or website-only changes ship by merging to `main`; a release with no plugin change still pings every user with an update toast.
 - If the release workflow fails after the tag is pushed, fix it and bump to the next rc; never move a published tag.
 - Changes to install/download/uninstall behavior also update README, `CONTRIBUTING.md` and `AGENTS.md`, which describe that policy.
 - Release steps: [CONTRIBUTING.md](CONTRIBUTING.md#releases). Release notes (every release, pre-releases too): the Release section of [AGENTS.md](AGENTS.md#release).
