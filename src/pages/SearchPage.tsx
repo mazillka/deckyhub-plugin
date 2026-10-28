@@ -16,6 +16,8 @@ import { displayVersion } from "../version";
 import { compactButtonStyle, disclaimerStyle, githubFetch, githubResponseError, hydrate, installAction, installTypeLabel, log, surfaceStyle } from "../utils";
 
 const RESULTS_PER_PAGE = 5;
+// No bottom margin, so the buttons line up with the search field beside them.
+const rowButtonStyle = { ...compactButtonStyle, marginBottom: 0 };
 
 // A Decky plugin has a plugin.json with a name at its root. Read from
 // raw.githubusercontent.com, which doesn't count against the GitHub API limit;
@@ -130,20 +132,23 @@ export function SearchPage() {
       <PageHeader icon={<FaSearch />} title={t("view.searchTitle")} description={t("view.searchDescription")} />
       <div className="deckyhub-search-warning" style={disclaimerStyle}>{t("search.warning")}</div>
       <Card>
-        <PanelSection>
+        {/* The label is the section title rather than TextField's own, so the field and
+            buttons share one centre line and the card is padded evenly top and bottom
+            (Steam pads an untitled section's bottom only). */}
+        <PanelSection title={t("repos.searchGithub")}>
           <PanelSectionRow>
-            <Focusable flow-children="right" style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+            <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <TextField label={t("repos.searchGithub")} value={query} onChange={(event) => setQuery(event.currentTarget.value)} />
+                <TextField {...({ "aria-label": t("repos.searchGithub") } as any)} value={query} onChange={(event) => setQuery(event.currentTarget.value)} />
               </div>
-              <div style={{ flex: "0 0 160px", paddingTop: 24 }}>
-                <Button style={compactButtonStyle} onClick={() => void search()} disabled={searching}>
+              <div style={{ flex: "0 0 160px" }}>
+                <Button style={rowButtonStyle} onClick={() => void search()} disabled={searching}>
                   <FaSearch /> {searching ? t("repos.searching") : t("filter.search")}
                 </Button>
               </div>
-              <div style={{ flex: "0 0 120px", paddingTop: 24 }}>
+              <div style={{ flex: "0 0 120px" }}>
                 <Button
-                  style={compactButtonStyle}
+                  style={rowButtonStyle}
                   onClick={() => {
                     setQuery("");
                     setResults([]);
