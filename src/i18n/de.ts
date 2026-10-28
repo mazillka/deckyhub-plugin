@@ -3,6 +3,7 @@ import type { MessageKey } from "./en";
 export const de: Record<MessageKey, string> = {
   "nav.updates": "Updates",
   "nav.discover": "Entdecken",
+  "nav.search": "Suche",
   "nav.repositories": "Repositories",
   "nav.settings": "Einstellungen",
 
@@ -10,6 +11,8 @@ export const de: Record<MessageKey, string> = {
   "view.updatesEmpty": "Alles Installierte ist aktuell.",
   "view.discoverDescription": "Unterstützte GitHub-Projekte und ihre ZIP-Releases durchsuchen.",
   "view.discoverEmpty": "Keine Repositories verfügbar.",
+  "view.searchDescription": "GitHub nach Decky-Plugins durchsuchen. Direkt installieren oder hinzufügen, um Updates zu verfolgen.",
+  "search.warning": "Suchergebnisse kommen direkt von GitHub. Niemand hat sie geprüft: weder DeckyHub noch der Decky-Store. Ein Plugin kann alles auf deinem Deck tun, installiere also nur Plugins von Autoren, denen du vertraust.",
 
   "filter.search": "Suche",
   "filter.status": "Status",
@@ -115,7 +118,6 @@ export const de: Record<MessageKey, string> = {
   "settings.exportLogsNote": "Speichert die Protokolle von DeckyHub als ZIP in /home/deck/Downloads – hänge sie an einen Fehlerbericht an. Dein GitHub-Token wird nie protokolliert.",
 
   "repos.addManage": "Hinzufügen & Verwalten",
-  "repos.addGithubRepository": "GitHub-Repository hinzufügen",
   "repos.searchGithub": "Auf GitHub suchen",
   "repos.searching": "Wird gesucht…",
   "repos.clear": "Leeren",
@@ -131,7 +133,7 @@ export const de: Record<MessageKey, string> = {
   "repos.remove": "{repo} entfernen",
   "repos.noCustomRepos": "Noch keine eigenen Repositories.",
   "repos.removeRepositoryTitle": "Repository entfernen",
-  "repos.removeRepositoryDesc": "{repo} nicht mehr verfolgen? Du kannst es später über Entdecken wieder hinzufügen.",
+  "repos.removeRepositoryDesc": "{repo} nicht mehr verfolgen? Du kannst es später über Suche wieder hinzufügen.",
   "repos.removeConfirm": "Entfernen",
 
   "repos.customRegistries": "Eigene Registries",

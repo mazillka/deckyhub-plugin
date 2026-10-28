@@ -28,6 +28,9 @@ export const visuallyHidden = { position: "absolute" as const, width: 1, height:
 export const windowGap = "var(--dh-window-gap, 10px)";
 export const gridGap = "var(--dh-grid-gap, 12px)";
 // The tile every card and section is drawn on (see Card and AppCard).
+// Same no-responsibility note the install confirm shows, kept in view on the Updates, Discover and Search pages.
+export const disclaimerStyle = { marginBottom: "var(--dh-card-gap, 14px)", padding: "8px 12px", color: "#ffb3b3", fontSize: "0.85em", background: "rgba(255, 107, 107, 0.08)", borderLeft: "3px solid #ff6b6b", borderRadius: 6 };
+
 export const surfaceStyle = {
   background: "linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02))",
   border: "1px solid rgba(255, 255, 255, 0.09)",

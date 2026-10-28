@@ -2,6 +2,7 @@
 export const en = {
   "nav.updates": "Updates",
   "nav.discover": "Discover",
+  "nav.search": "Search",
   "nav.repositories": "Repositories",
   "nav.settings": "Settings",
 
@@ -9,6 +10,8 @@ export const en = {
   "view.updatesEmpty": "Everything installed is up to date.",
   "view.discoverDescription": "Browse supported GitHub projects and their ZIP releases.",
   "view.discoverEmpty": "No repositories are available.",
+  "view.searchDescription": "Search GitHub for Decky plugins. Install one straight away, or add it to track its updates.",
+  "search.warning": "Search results come straight from GitHub. Nobody has reviewed them: not DeckyHub, not the Decky store. A plugin can do anything on your Deck, so only install plugins from authors you trust.",
 
   "filter.search": "Search",
   "filter.status": "Status",
@@ -114,7 +117,6 @@ export const en = {
   "settings.exportLogsNote": "Saves DeckyHub's logs as a ZIP in /home/deck/Downloads — attach it to a bug report. Your GitHub token is never logged.",
 
   "repos.addManage": "Add & Manage",
-  "repos.addGithubRepository": "Add GitHub Repository",
   "repos.searchGithub": "Search GitHub",
   "repos.searching": "Searching…",
   "repos.clear": "Clear",
@@ -130,7 +132,7 @@ export const en = {
   "repos.remove": "Remove {repo}",
   "repos.noCustomRepos": "No custom repositories yet.",
   "repos.removeRepositoryTitle": "Remove Repository",
-  "repos.removeRepositoryDesc": "Stop tracking {repo}? You can add it again later from Discover.",
+  "repos.removeRepositoryDesc": "Stop tracking {repo}? You can add it again later from Search.",
   "repos.removeConfirm": "Remove",
 
   "repos.customRegistries": "Custom Registries",

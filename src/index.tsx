@@ -6,6 +6,7 @@ import { REGISTRY_UPDATED } from "./api";
 import { I18nProvider } from "./i18n";
 import { Content } from "./pages/Content";
 import { ManageRepositoriesPage } from "./pages/ManageRepositoriesPage";
+import { SearchPage } from "./pages/SearchPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { markUnloaded, pageStyle } from "./utils";
 
@@ -25,6 +26,7 @@ function Motion({ children }: { children: ReactNode }) {
 const ROUTES: Record<string, () => ReactNode> = {
   "/deckyhub/updates": () => <Content fullPage="updates" />,
   "/deckyhub/discover": () => <Content fullPage="discover" />,
+  "/deckyhub/search": () => <SearchPage />,
   "/deckyhub/settings": () => <SettingsPage />,
   "/deckyhub/repositories": () => <ManageRepositoriesPage />,
 };

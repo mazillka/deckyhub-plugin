@@ -1,11 +1,11 @@
 import { toaster } from "@decky/api";
 import { DialogButtonPrimary as Button, Dropdown, Focusable, Navigation, PanelSection, PanelSectionRow, Spinner, TextField } from "@decky/ui";
 import { useEffect, useRef, useState } from "react";
-import { FaArrowCircleUp, FaCog, FaFileExport, FaSearch, FaSync, FaTimes, FaArrowUp } from "react-icons/fa";
+import { FaArrowCircleUp, FaCog, FaCompass, FaFileExport, FaSearch, FaSync, FaTimes, FaArrowUp } from "react-icons/fa";
 import { downloadAsset, exportLogs, getApps, getSettings, REGISTRY_UPDATED } from "../api";
 import { useT } from "../i18n";
 import type { App, Asset, HideableButton, RepoPreference, UpdateChannel, View } from "../types";
-import { compactButtonStyle, DEFAULT_COLUMNS_PER_ROW, getDeckyBackend, hydrate, installAction, log, needsFreshInstall, notifyUpdates, PLUGIN_INSTALL_TYPE, surfaceStyle, updateDeckyPlugins } from "../utils";
+import { compactButtonStyle, DEFAULT_COLUMNS_PER_ROW, disclaimerStyle, getDeckyBackend, hydrate, installAction, log, needsFreshInstall, notifyUpdates, PLUGIN_INSTALL_TYPE, surfaceStyle, updateDeckyPlugins } from "../utils";
 import { AppCard } from "../components/AppCard";
 import { confirmPluginInstall } from "../components/AppDetailsModal";
 import { CleanupSection } from "../components/CleanupSection";
@@ -20,10 +20,8 @@ import { DeckyHubUpdate } from "../components/DeckyHubUpdate";
 // big enough to trip GitHub's secondary (burst) rate limit.
 const RELEASE_CONCURRENCY = 8;
 
-const NAV_LINKS = [["updates", FaArrowCircleUp], ["discover", FaSearch], ["settings", FaCog]] as const;
+const NAV_LINKS = [["updates", FaArrowCircleUp], ["discover", FaCompass], ["search", FaSearch], ["settings", FaCog]] as const;
 
-// Same no-responsibility note the install confirm shows, kept in view on the Updates and Discover pages.
-const disclaimerStyle = { marginBottom: "var(--dh-card-gap, 14px)", padding: "8px 12px", color: "#ffb3b3", fontSize: "0.85em", background: "rgba(255, 107, 107, 0.08)", borderLeft: "3px solid #ff6b6b", borderRadius: 6 };
 
 const countBadgeStyle = { minWidth: "1.5em", padding: "0 6px", borderRadius: 999, background: "#f0c33c", color: "#1a1a1a", fontSize: "0.8em", fontWeight: 700, lineHeight: "1.5em", textAlign: "center" as const };
 
@@ -307,7 +305,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
         <>
           <KeepInView>
             <PageHeader
-              icon={view === "updates" ? <FaArrowCircleUp /> : <FaSearch />}
+              icon={view === "updates" ? <FaArrowCircleUp /> : <FaCompass />}
               title={info.title}
               badge={view === "updates" && updateCount > 0 && <span className="deckyhub-update-count" title={t("toast.updatesAvailable", { count: updateCount })} style={countBadgeStyle}>{updateCount}</span>}
               description={info.description}
@@ -356,7 +354,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
                 {view === "updates" ? (
                   <PanelSectionRow>
                     <Button style={compactButtonStyle} onClick={() => Navigation.Navigate("/deckyhub/discover")}>
-                      <FaSearch /> {t("nav.discover")}
+                      <FaCompass /> {t("nav.discover")}
                     </Button>
                   </PanelSectionRow>
                 ) : (query || installedFilter !== "All" || activeCategory) && (

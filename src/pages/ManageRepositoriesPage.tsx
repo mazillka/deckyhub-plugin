@@ -1,18 +1,13 @@
 import { FileSelectionType, openFilePicker, toaster } from "@decky/api";
 import { DialogButtonPrimary as Button, ConfirmModal, Focusable, PanelSection, PanelSectionRow, showModal, TextField } from "@decky/ui";
-import { FocusableGrid } from "../components/FocusableGrid";
 import { Card, PageHeader } from "../components/Card";
-import { Pager } from "../components/Pager";
 import { RateLimitBanner } from "../components/RateLimitBanner";
 import { useEffect, useState } from "react";
-import { FaCheck, FaFileExport, FaFileImport, FaListUl, FaPlus, FaRedo, FaSearch, FaTimes, FaTrash } from "react-icons/fa";
-import { addCustomRegistry, addCustomRepo, exportCustomRepos, getApps, getSettings, importCustomRepos, REGISTRY_UPDATED, refreshRegistry, removeCustomRegistry, removeCustomRepo } from "../api";
+import { FaFileExport, FaFileImport, FaListUl, FaPlus, FaRedo, FaTrash } from "react-icons/fa";
+import { addCustomRegistry, exportCustomRepos, getSettings, importCustomRepos, REGISTRY_UPDATED, refreshRegistry, removeCustomRegistry, removeCustomRepo } from "../api";
 import { useT } from "../i18n";
 import type { MessageKey } from "../i18n/en";
-import type { SearchRepo } from "../types";
-import { compactButtonStyle, githubFetch, githubResponseError, isRepositoryName, log, registryLabel, registryUrlForRepo, surfaceStyle } from "../utils";
-
-const RESULTS_PER_PAGE = 5;
+import { compactButtonStyle, isRepositoryName, log, registryLabel, registryUrlForRepo } from "../utils";
 
 // The backend reports why an add didn't work as a reason code rather than raising,
 // so a mistyped URL never surfaces a Python exception. Keys are literal so the
@@ -30,13 +25,7 @@ const REGISTRY_ERROR: Record<string, MessageKey> = {
 
 export function ManageRepositoriesPage() {
   const t = useT();
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SearchRepo[]>([]);
-  const [page, setPage] = useState(0);
-  const [searching, setSearching] = useState(false);
-  const [searchError, setSearchError] = useState<string | null>(null);
   const [customRepos, setCustomRepos] = useState<string[]>([]);
-  const [existingRepos, setExistingRepos] = useState<Set<string>>(new Set());
   const [registries, setRegistries] = useState<string[]>([]);
   const [registryValue, setRegistryValue] = useState("");
   const [registryBusy, setRegistryBusy] = useState(false);
@@ -47,45 +36,17 @@ export function ManageRepositoriesPage() {
       setCustomRepos(settings.customRepos ?? []);
       setRegistries(settings.customRegistries ?? []);
     });
-    void getApps().then((result) => setExistingRepos(new Set(result.apps.map((app) => app.repo.toLowerCase()))));
   };
 
   useEffect(() => {
     refreshRepos();
   }, []);
 
-  const search = async () => {
-    if (!query.trim() || searching) return;
-    setSearching(true);
-    try {
-      setSearchError(null);
-      const response = await githubFetch(`https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&sort=stars&order=desc&per_page=25`);
-      if (!response.ok) throw await githubResponseError(response);
-      setResults((await response.json()).items || []);
-      setPage(0);
-    } catch (error) {
-      log(`Repository search failed: ${error}`);
-      setSearchError(String(error));
-    } finally {
-      setSearching(false);
-    }
-  };
-
   // Backend refusals (e.g. a file outside /home/deck) come back as errors
   // carrying their reason; show it instead of failing silently.
   const showError = (error: unknown) => {
     log(`Repository action failed: ${error}`);
     toaster.toast({ title: "DeckyHub", body: String(error) });
-  };
-
-  const add = async (repo: string) => {
-    const result = await addCustomRepo(repo);
-    if (result.added) {
-      setExistingRepos((current) => new Set(current).add(repo.toLowerCase()));
-      refreshRepos();
-      window.dispatchEvent(new Event(REGISTRY_UPDATED));
-    }
-    toaster.toast({ title: "DeckyHub", body: t(result.added ? "repos.addedToast" : "repos.alreadyAdded", { repo }) });
   };
 
   const remove = async (repo: string) => {
@@ -192,68 +153,6 @@ export function ManageRepositoriesPage() {
     <>
       <RateLimitBanner />
       <PageHeader icon={<FaListUl />} title={t("nav.repositories")} />
-      <Card>
-        <PanelSection title={t("repos.addGithubRepository")}>
-          <PanelSectionRow>
-            <Focusable flow-children="right" style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <TextField label={t("repos.searchGithub")} value={query} onChange={(event) => setQuery(event.currentTarget.value)} />
-              </div>
-              <div style={{ flex: "0 0 160px", paddingTop: 24 }}>
-                <Button style={compactButtonStyle} onClick={() => void search()} disabled={searching}>
-                  <FaSearch /> {searching ? t("repos.searching") : t("filter.search")}
-                </Button>
-              </div>
-              <div style={{ flex: "0 0 120px", paddingTop: 24 }}>
-                <Button
-                  style={compactButtonStyle}
-                  onClick={() => {
-                    setQuery("");
-                    setResults([]);
-                    setSearchError(null);
-                    setPage(0);
-                  }}
-                >
-                  <FaTimes /> {t("repos.clear")}
-                </Button>
-              </div>
-            </Focusable>
-          </PanelSectionRow>
-          {searchError && <PanelSectionRow>{searchError}</PanelSectionRow>}
-          {results.length > RESULTS_PER_PAGE && (
-            <PanelSectionRow>
-              <Pager page={page} total={Math.ceil(results.length / RESULTS_PER_PAGE)} onChange={setPage} />
-            </PanelSectionRow>
-          )}
-        </PanelSection>
-      </Card>
-      {results.length > 0 && (
-        <>
-          <FocusableGrid items={results.slice(page * RESULTS_PER_PAGE, page * RESULTS_PER_PAGE + RESULTS_PER_PAGE)} columns={2} keyFor={(repo) => repo.full_name}>
-            {(repo) => {
-              const added = existingRepos.has(repo.full_name.toLowerCase());
-              return (
-                <div style={{ ...surfaceStyle, height: "100%", padding: "var(--dh-card-padding, 4px 14px)" }}>
-                <PanelSection title={repo.full_name}>
-                  <PanelSectionRow>
-                    <small>
-                      {repo.description || t("repos.noDescription")} · ★ {repo.stargazers_count ?? 0}
-                    </small>
-                  </PanelSectionRow>
-                  <PanelSectionRow>
-                    <Button style={compactButtonStyle} disabled={added} onClick={() => void add(repo.full_name).catch(showError)}>
-                      {added ? <FaCheck /> : <FaPlus />} {added ? t("repos.added") : t("repos.add")}
-                    </Button>
-                  </PanelSectionRow>
-                </PanelSection>
-                </div>
-              );
-            }}
-          </FocusableGrid>
-        </>
-      )}
-
-
       <Card>
         <PanelSection title={t("repos.managedRepositories")}>
           <PanelSectionRow>
