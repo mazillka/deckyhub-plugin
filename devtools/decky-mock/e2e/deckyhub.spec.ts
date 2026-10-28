@@ -192,9 +192,11 @@ test("Repository search and action share one row", async ({ page }) => {
   const [searchBox, actionBox, clearBox] = await Promise.all([search.boundingBox(), action.boundingBox(), clear.boundingBox()]);
   expect(searchBox).not.toBeNull();
   expect(actionBox).not.toBeNull();
-  expect(Math.abs(searchBox!.y - actionBox!.y)).toBeLessThan(20);
+  // One centre line for the field and both buttons (seen off by a few px on a Deck).
+  const middle = (box: { y: number; height: number }) => box.y + box.height / 2;
+  expect(Math.abs(middle(searchBox!) - middle(actionBox!))).toBeLessThan(2);
   expect(actionBox!.x).toBeGreaterThan(searchBox!.x);
-  expect(Math.abs(actionBox!.y - clearBox!.y)).toBeLessThan(20);
+  expect(Math.abs(middle(actionBox!) - middle(clearBox!))).toBeLessThan(2);
   expect(clearBox!.x).toBeGreaterThan(actionBox!.x);
 });
 
