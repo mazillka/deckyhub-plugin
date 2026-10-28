@@ -97,6 +97,22 @@ class PluginStatusTests(unittest.TestCase):
             self.assertEqual(loaded["customRepos"], [])
             self.assertEqual(loaded["repoSettings"], {"owner/repo": {"channel": "prerelease"}, "owner/other": {"channel": "stable"}})
 
+    @unittest.skipUnless(os.name == "posix", "file modes are POSIX")
+    def test_settings_file_is_owner_only_and_loading_fixes_an_old_one(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.settings_path = Path(home) / "settings.json"
+            plugin.settings_path.write_text("{}", encoding="utf-8")
+            plugin.settings_path.chmod(0o644)
+
+            plugin.settings = plugin._load_settings()
+            self.assertEqual(plugin.settings_path.stat().st_mode & 0o777, 0o600)
+
+            plugin.settings_path.unlink()
+            plugin.settings["githubToken"] = "ghp_secret"
+            plugin._save_settings()
+            self.assertEqual(plugin.settings_path.stat().st_mode & 0o777, 0o600)
+
     def test_density_defaults_to_default_and_accepts_compact(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = Plugin()

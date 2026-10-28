@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import hashlib
 import json
 import os
@@ -238,6 +239,9 @@ class Plugin:
     def _load_settings(self) -> dict:
         try:
             settings = json.loads(self.settings_path.read_text(encoding="utf-8"))
+            # Files saved before writes were owner-only (see _save_settings) get fixed here.
+            with contextlib.suppress(OSError):
+                os.chmod(self.settings_path, 0o600)
             repos = settings.get("customRepos")
             repo_settings = settings.get("repoSettings")
             return {
@@ -341,7 +345,10 @@ class Plugin:
         # Write-then-rename, so a Deck losing power mid-save keeps the old file.
         self.settings_path.parent.mkdir(parents=True, exist_ok=True)
         temp = self.settings_path.with_name(self.settings_path.name + ".tmp")
-        with open(temp, "w", encoding="utf-8") as file:
+        # Owner-only: it holds the GitHub token. The chmod covers a leftover temp file,
+        # whose mode os.open's 0o600 wouldn't change.
+        with open(temp, "w", encoding="utf-8", opener=lambda path, flags: os.open(path, flags, 0o600)) as file:
+            os.chmod(temp, 0o600)
             json.dump(self.settings, file)
             file.flush()
             os.fsync(file.fileno())
