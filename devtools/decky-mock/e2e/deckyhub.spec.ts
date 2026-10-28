@@ -588,6 +588,23 @@ test("A GitHub rate limit surfaces a friendly message instead of a raw status co
   await expect(app.getByText("GitHub Token")).toBeVisible();
 });
 
+test("The Quick Access rate-limit banner stacks its buttons and stays inside the panel", async ({ page }) => {
+  const app = mock(page);
+  await app.getByRole("button", { name: "Rate limit banner", exact: true }).click();
+  const banner = app.locator(".qam-content .deckyhub-rate-limit");
+  // Steam's buttons don't shrink below their label; side by side they overflowed the panel.
+  await app.locator("head").evaluate((head) => head.insertAdjacentHTML("beforeend", "<style>.steam-button { min-width: 160px; white-space: nowrap; }</style>"));
+  const [openSettings, dismiss, panel, box] = await Promise.all([
+    banner.getByRole("button", { name: "Open Settings" }).boundingBox(),
+    banner.getByRole("button", { name: "Dismiss" }).boundingBox(),
+    app.locator(".qam-content").boundingBox(),
+    banner.boundingBox(),
+  ]);
+  expect(dismiss!.y).toBeGreaterThanOrEqual(openSettings!.y + openSettings!.height);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(panel!.x + panel!.width);
+  expect(await app.locator(".qam-content").evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+});
+
 test("The rate-limit message suggests adding a GitHub token only when none is configured", async ({ page }) => {
   const resetInTwoMinutes = Math.floor(Date.now() / 1000) + 120;
   await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases?per_page=20", (route) =>
