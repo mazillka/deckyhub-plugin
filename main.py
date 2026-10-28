@@ -131,11 +131,7 @@ def _coerce_settings(settings: dict) -> dict:
 
 def _coerce_repo_settings(values) -> dict:
     values = values if isinstance(values, dict) else {}
-    asset_filter = values.get("assetFilter")
-    return {
-        "channel": "prerelease" if values.get("channel") == "prerelease" else "stable",
-        "assetFilter": [value for value in asset_filter if isinstance(value, str) and value.strip()][:10] if isinstance(asset_filter, list) else [],
-    }
+    return {"channel": "prerelease" if values.get("channel") == "prerelease" else "stable"}
 
 
 REQUIRED_FIELDS = {"id", "name", "repo", "category", "asset"}

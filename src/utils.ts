@@ -179,12 +179,10 @@ export const readableBytes = (bytes = 0) => (bytes > 1024 * 1024 ? `${(bytes / 1
 // (raw.githubusercontent.com resolves HEAD to it), via GitHub's raw-content host.
 // The Manage page takes "owner/repo" and expands it to this, so adding a registry
 // whose source is a GitHub repo is one short field.
-const GITHUB_REGISTRY_TEMPLATE = "https://raw.githubusercontent.com/{repo}/HEAD/registry/apps.json";
+export const registryUrlForRepo = (repo: string) => `https://raw.githubusercontent.com/${repo.trim()}/HEAD/registry/apps.json`;
 
 // Same rule as REPOSITORY_NAME in main.py: neither part may be only dots.
 const REPOSITORY_PATTERN = /^(?!\.+\/)[A-Za-z0-9_.-]+\/(?!\.+$)[A-Za-z0-9_.-]+$/;
-
-export const registryUrlForRepo = (repo: string) => GITHUB_REGISTRY_TEMPLATE.replace("{repo}", repo.trim());
 
 export const isRepositoryName = (value: string) => REPOSITORY_PATTERN.test(value.trim());
 
@@ -469,8 +467,8 @@ export function installTypeLabel(t: TFunc, type: number, version: string, update
     : updateLabel;
 }
 
-function matchingAssets(app: App, assets: Asset[], extraInclude: string[] = []): Asset[] {
-  const include = [...app.asset.include, ...extraInclude].map((word) => word.toLowerCase());
+function matchingAssets(app: App, assets: Asset[]): Asset[] {
+  const include = app.asset.include.map((word) => word.toLowerCase());
   const exclude = app.asset.exclude.map((word) => word.toLowerCase());
   return assets.filter((asset) => {
     const name = asset.name.toLowerCase();
@@ -617,18 +615,18 @@ export async function latestDeckyHubRelease(channel: UpdateChannel): Promise<Dec
 
 // A tracked app's recent releases (tag-filtered, assets matched to its
 // filters) for its version picker in AppDetailsModal.
-export function listAppReleases(app: App, preference?: RepoPreference, force = false): Promise<{ items: AppReleaseOption[]; error?: string }> {
+export function listAppReleases(app: App, force = false): Promise<{ items: AppReleaseOption[]; error?: string }> {
   const tagInclude = app.releaseTagInclude?.toLowerCase();
   return listOrError(fetchReleases(app.repo, force).then((releases) => releases
     .filter((release) => !tagInclude || release.tag.toLowerCase().includes(tagInclude))
-    .map((release) => ({ ...release, assets: matchingAssets(app, release.assets, preference?.assetFilter) }))));
+    .map((release) => ({ ...release, assets: matchingAssets(app, release.assets) }))));
 }
 
 // Fills in a card's latest release for its channel and whether it's newer
 // than what's installed.
 export async function hydrate(app: App, force: boolean, preference?: RepoPreference): Promise<App> {
   const channel: UpdateChannel = preference?.channel ?? "stable";
-  const { items, error } = await listAppReleases(app, preference, force);
+  const { items, error } = await listAppReleases(app, force);
   const release = items.find((item) => inChannel(item, channel));
   if (!release) return { ...app, channel, error: error ?? tr("release.noMatch") };
   const cmp = app.installedVersion ? compareVersions(release.tag, app.installedVersion) : null;

@@ -73,7 +73,7 @@ export function AppDetailsModal({
   closeModal?: () => void;
 }) {
   const [channel, setChannel] = useState<UpdateChannel>(initialPreference.channel);
-  const { items: releases, selectedTag, setSelectedTag, loading, error: fetchError, load, selected: selectedRelease } = useReleasePicker((force) => listAppReleases(app, initialPreference, force), channel);
+  const { items: releases, selectedTag, setSelectedTag, loading, error: fetchError, load, selected: selectedRelease } = useReleasePicker((force) => listAppReleases(app, force), channel);
   // Every action but Check for Updates and Download ZIP closes this window.
   // This modal was rendered once by showModal(), so the downloadDisabled prop
   // never updates — track downloads started from here locally.
