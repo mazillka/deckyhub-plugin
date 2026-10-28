@@ -518,28 +518,59 @@ function fetchReleases(repo: string, force: boolean): Promise<Release[]> {
   return request;
 }
 
+// mazillka/deckyhub-registry publishes every listed repo's recent releases (and
+// DeckyHub's own) as one file every hour (scripts/build_release_index.py there).
+// It's read from raw.githubusercontent.com, outside the API's 60-an-hour limit
+// that one call per listed repo would use up, so the API is asked only for repos
+// the file lacks (added repos and registries). Header-less, so no CORS preflight.
+const RELEASE_INDEX_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/releases.json";
+// An index this old means its job stopped publishing; ask GitHub instead.
+const RELEASE_INDEX_MAX_AGE = 6 * 60 * 60 * 1000;
+
+let releaseIndex: { at: number; request: Promise<Record<string, unknown[]> | null> } | null = null;
+
+// One download serves every repo's lookup. A forced refresh downloads it again,
+// unless one started in the last minute (every card of one Refresh shares it).
+function fetchReleaseIndex(force: boolean) {
+  if (!releaseIndex || Date.now() - releaseIndex.at > (force ? 60_000 : CACHE_TTL)) {
+    releaseIndex = {
+      at: Date.now(),
+      request: fetchNoCors(RELEASE_INDEX_URL, { signal: AbortSignal.timeout(15_000) })
+        .then((response) => (response.ok ? response.json() : null))
+        .then((index: any) => (index && Date.now() - Date.parse(index.generatedAt) < RELEASE_INDEX_MAX_AGE ? index.releases : null))
+        .catch((error: unknown) => {
+          log(`Release index unavailable, asking GitHub per repo: ${error}`);
+          return null;
+        }),
+    };
+  }
+  return releaseIndex.request;
+}
+
 async function requestReleases(repo: string, force: boolean): Promise<Release[]> {
   const cacheKey = `${RELEASES_CACHE_PREFIX}${repo}`;
   const cached = readCache<Release[]>(cacheKey);
   if (cached && !force && Date.now() - cached.at < CACHE_TTL) return cached.data;
   const url = `https://api.github.com/repos/${repo}/releases?per_page=20`;
-  let body: unknown;
-  try {
-    const response = await githubFetch(url);
-    if (!response.ok) throw await githubResponseError(response);
-    body = await response.json();
-    // GitHub sometimes answers [] to an authenticated request for a repo that has
-    // releases (about 1 in 4 in October 2026; unauthenticated ones got the list every
-    // time), so ask once more without the token before believing it. No headers also
-    // means no CORS preflight (see githubHeaders()).
-    if (githubToken && Array.isArray(body) && !body.length) {
-      const retry = await fetchNoCors(url, { signal: AbortSignal.timeout(15_000) });
-      if (retry.ok) body = await retry.json();
+  let body: unknown = (await fetchReleaseIndex(force))?.[repo.toLowerCase()];
+  if (!body) {
+    try {
+      const response = await githubFetch(url);
+      if (!response.ok) throw await githubResponseError(response);
+      body = await response.json();
+      // GitHub sometimes answers [] to an authenticated request for a repo that has
+      // releases (about 1 in 4 in October 2026; unauthenticated ones got the list every
+      // time), so ask once more without the token before believing it. No headers also
+      // means no CORS preflight (see githubHeaders()).
+      if (githubToken && Array.isArray(body) && !body.length) {
+        const retry = await fetchNoCors(url, { signal: AbortSignal.timeout(15_000) });
+        if (retry.ok) body = await retry.json();
+      }
+    } catch (error) {
+      // Older releases beat an error card; a rate limit still raises the banner.
+      if (cached) return cached.data;
+      throw error;
     }
-  } catch (error) {
-    // Older releases beat an error card; a rate limit still raises the banner.
-    if (cached) return cached.data;
-    throw error;
   }
   const releases: Release[] = (Array.isArray(body) ? body : [])
     .filter((item: any) => !item.draft)
