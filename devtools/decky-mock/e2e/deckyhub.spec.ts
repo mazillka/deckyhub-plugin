@@ -30,6 +30,7 @@ const makoRelease = (tag: string, sha256: string, day = "01") => ({
   tag_name: tag, prerelease: false, draft: false, published_at: `2026-01-${day}T00:00:00Z`, html_url: `https://github.com/eugeniosegala/MAKO/releases/tag/${tag}`,
   assets: [{ name: "mako-decky.zip", browser_download_url: `https://github.com/eugeniosegala/MAKO/releases/download/${tag}/mako-decky.zip`, size: 1024, digest: `sha256:${sha256}` }],
 });
+const RELEASE_INDEX_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/releases.json";
 const mockMakoReleases = (page: Page, releases: unknown[]) =>
   page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases**", (route) => route.fulfill({ json: releases }));
 
@@ -99,6 +100,10 @@ test.beforeAll(() => {
 test.beforeEach(async ({ page }) => {
   // Every release lookup hits GET /repos/{repo}/releases, which returns a list.
   await page.route("https://api.github.com/**", (route) => route.fulfill({ json: [release] }));
+  // No release index unless a test serves one, so release lookups use the API stubs.
+  await page.route(RELEASE_INDEX_URL, (route) => route.fulfill({ status: 404, body: "404: Not Found" }));
+  // Search keeps only repos with a Decky plugin.json; every stubbed result has one.
+  await page.route("https://raw.githubusercontent.com/**/plugin.json", (route) => route.fulfill({ json: { name: "Test plugin" } }));
   await page.goto("/?bridge=http://127.0.0.1:8643");
 });
 
@@ -175,7 +180,7 @@ test("Discover keeps its refresh action beside the description", async ({ page }
 });
 
 test("Repository search and action share one row", async ({ page }) => {
-  await page.goto("/?preview=/deckyhub/repositories&bridge=http://127.0.0.1:8643");
+  await page.goto("/?preview=/deckyhub/search&bridge=http://127.0.0.1:8643");
   const app = mock(page);
   const search = app.getByLabel("Search GitHub");
   const action = app.getByRole("button", { name: "Search", exact: true });
@@ -187,9 +192,11 @@ test("Repository search and action share one row", async ({ page }) => {
   const [searchBox, actionBox, clearBox] = await Promise.all([search.boundingBox(), action.boundingBox(), clear.boundingBox()]);
   expect(searchBox).not.toBeNull();
   expect(actionBox).not.toBeNull();
-  expect(Math.abs(searchBox!.y - actionBox!.y)).toBeLessThan(20);
+  // One centre line for the field and both buttons (seen off by a few px on a Deck).
+  const middle = (box: { y: number; height: number }) => box.y + box.height / 2;
+  expect(Math.abs(middle(searchBox!) - middle(actionBox!))).toBeLessThan(2);
   expect(actionBox!.x).toBeGreaterThan(searchBox!.x);
-  expect(Math.abs(actionBox!.y - clearBox!.y)).toBeLessThan(20);
+  expect(Math.abs(middle(actionBox!) - middle(clearBox!))).toBeLessThan(2);
   expect(clearBox!.x).toBeGreaterThan(actionBox!.x);
 });
 
@@ -199,7 +206,7 @@ test("Repository search stays enabled but skips blank queries", async ({ page })
     requests++;
     return route.fulfill({ json: { items: [] } });
   });
-  await page.goto("/?preview=/deckyhub/repositories&bridge=http://127.0.0.1:8643");
+  await page.goto("/?preview=/deckyhub/search&bridge=http://127.0.0.1:8643");
   const search = mock(page).getByRole("button", { name: "Search", exact: true });
 
   await expect(search).toBeEnabled();
@@ -484,7 +491,7 @@ test("Repository pagination stays on one row", async ({ page }) => {
       },
     })
   );
-  await page.goto("/?preview=/deckyhub/repositories&bridge=http://127.0.0.1:8643");
+  await page.goto("/?preview=/deckyhub/search&bridge=http://127.0.0.1:8643");
   const app = mock(page);
   await app.getByLabel("Search GitHub").fill("example");
   await app.getByRole("button", { name: "Search", exact: true }).click();
@@ -584,6 +591,23 @@ test("A GitHub rate limit surfaces a friendly message instead of a raw status co
   await expect(banner).toHaveCount(1);
   await banner.getByRole("button", { name: "Open Settings", exact: true }).click();
   await expect(app.getByText("GitHub Token")).toBeVisible();
+});
+
+test("The Quick Access rate-limit banner stacks its buttons and stays inside the panel", async ({ page }) => {
+  const app = mock(page);
+  await app.getByRole("button", { name: "Rate limit banner", exact: true }).click();
+  const banner = app.locator(".qam-content .deckyhub-rate-limit");
+  // Steam's buttons don't shrink below their label; side by side they overflowed the panel.
+  await app.locator("head").evaluate((head) => head.insertAdjacentHTML("beforeend", "<style>.steam-button { min-width: 160px; white-space: nowrap; }</style>"));
+  const [openSettings, dismiss, panel, box] = await Promise.all([
+    banner.getByRole("button", { name: "Open Settings" }).boundingBox(),
+    banner.getByRole("button", { name: "Dismiss" }).boundingBox(),
+    app.locator(".qam-content").boundingBox(),
+    banner.boundingBox(),
+  ]);
+  expect(dismiss!.y).toBeGreaterThanOrEqual(openSettings!.y + openSettings!.height);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(panel!.x + panel!.width);
+  expect(await app.locator(".qam-content").evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
 });
 
 test("The rate-limit message suggests adding a GitHub token only when none is configured", async ({ page }) => {
@@ -770,6 +794,99 @@ test("The Manage window offers Install for a Decky plugin that isn't installed y
   await expect.poll(() => frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([
     ["utilities/install_plugin", localZip(url), "MAKO - Frame Generation", "1.2.3", sha256, 0],
   ]);
+});
+
+test("Search shows only Decky plugins, under a warning", async ({ page }) => {
+  let query = "";
+  await page.route("https://api.github.com/search/repositories**", (route) => {
+    query = new URL(route.request().url()).searchParams.get("q") ?? "";
+    return route.fulfill({ json: { items: [{ full_name: "example/plugin" }, { full_name: "example/awesome-list" }] } });
+  });
+  await page.route("https://raw.githubusercontent.com/example/awesome-list/HEAD/plugin.json", (route) => route.fulfill({ status: 404, body: "404: Not Found" }));
+  await page.goto("/?preview=/deckyhub/search&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  await expect(app.getByText(/Nobody has reviewed them/)).toBeVisible();
+  await app.getByLabel("Search GitHub").fill("frame");
+  await app.getByRole("button", { name: "Search", exact: true }).click();
+
+  await expect(app.getByRole("heading", { name: "example/plugin" })).toBeVisible();
+  await expect(app.getByRole("heading", { name: "example/awesome-list" })).toHaveCount(0);
+  expect(query).toBe("frame decky in:name,description,topics,readme");
+});
+
+test("Search installs a plugin straight from its GitHub release", async ({ page }) => {
+  const sha256 = "e".repeat(64);
+  const url = "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v1.2.3/mako-decky.zip";
+  await mockMakoReleases(page, [makoRelease("plugin-v1.2.3", sha256)]);
+  await page.route("https://api.github.com/search/repositories**", (route) =>
+    route.fulfill({ json: { items: [{ full_name: "eugeniosegala/MAKO", description: "Frame generation", stargazers_count: 1 }] } }),
+  );
+  await recordInstalls(page);
+  await page.goto("/?bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  await app.locator(".qam-content").getByRole("button", { name: "Search", exact: true }).click();
+  await expect(app.getByRole("heading", { name: "Search & Install", exact: true })).toBeVisible();
+  await app.getByLabel("Search GitHub").fill("mako");
+  await app.getByRole("button", { name: "Search", exact: true }).click();
+  // Already in the curated list, so Add shows as done; Install still works.
+  await expect(app.getByRole("button", { name: "Added", exact: true })).toBeDisabled();
+  await app.getByRole("button", { name: "Install", exact: true }).click();
+  await acceptDisclaimer(page, "Install v1.2.3");
+
+  await expect.poll(() => pluginFrame(page).evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([
+    ["utilities/install_plugin", localZip(url), "MAKO - Frame Generation", "1.2.3", sha256, 0],
+  ]);
+});
+
+test("Y and X on a search result's Install show the release notes and download the ZIP", async ({ page }) => {
+  await mockMakoReleases(page, [{ ...makoRelease("plugin-v1.2.3", "e".repeat(64)), body: "Faster frame pacing." }]);
+  await page.route("https://api.github.com/search/repositories**", (route) =>
+    route.fulfill({ json: { items: [{ full_name: "eugeniosegala/MAKO", description: "Frame generation", stargazers_count: 1 }] } }),
+  );
+  await recordInstalls(page);
+  await page.goto("/?preview=/deckyhub/search&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  await app.getByLabel("Search GitHub").fill("mako");
+  await app.getByRole("button", { name: "Search", exact: true }).click();
+  const install = app.getByRole("button", { name: "Install", exact: true });
+  await install.focus();
+  await expect(app.locator(".steam-legend")).toContainText("Ⓨ Release Info");
+  await expect(app.locator(".steam-legend")).toContainText("Ⓧ Download ZIP");
+
+  await install.press("y");
+  await expect(app.locator(".steam-modal", { hasText: "MAKO Decky v1.2.3" }).getByText("Faster frame pacing.")).toBeVisible();
+  await page.reload();
+  await app.getByLabel("Search GitHub").fill("mako");
+  await app.getByRole("button", { name: "Search", exact: true }).click();
+  await install.press("x");
+  await expect(app.locator(".steam-modal", { hasText: "mako-decky.zip" })).toBeVisible();
+  // Neither key installs anything.
+  expect(await pluginFrame(page).evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([]);
+});
+
+test("Release checks read the registry's release index instead of the GitHub API", async ({ page }) => {
+  let apiCalls = 0;
+  await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases**", (route) => {
+    apiCalls++;
+    return route.fulfill({ json: [makoRelease("plugin-v1.0.0", "a".repeat(64))] });
+  });
+  await page.route(RELEASE_INDEX_URL, (route) =>
+    route.fulfill({ json: { generatedAt: new Date().toISOString(), releases: { "eugeniosegala/mako": [makoRelease("plugin-v7.7.7", "f".repeat(64))] } } }),
+  );
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  const makoCard = mock(page).getByRole("heading", { name: "MAKO Decky" }).locator("..");
+  await expect(makoCard.getByRole("button", { name: "Install v7.7.7", exact: true })).toBeVisible();
+  expect(apiCalls).toBe(0);
+});
+
+test("A stale release index is ignored in favour of the GitHub API", async ({ page }) => {
+  await mockMakoReleases(page, [makoRelease("plugin-v1.0.0", "a".repeat(64))]);
+  await page.route(RELEASE_INDEX_URL, (route) =>
+    route.fulfill({ json: { generatedAt: "2026-01-01T00:00:00Z", releases: { "eugeniosegala/mako": [makoRelease("plugin-v7.7.7", "f".repeat(64))] } } }),
+  );
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  const makoCard = mock(page).getByRole("heading", { name: "MAKO Decky" }).locator("..");
+  await expect(makoCard.getByRole("button", { name: "Install v1.0.0", exact: true })).toBeVisible();
 });
 
 test("The download window spins until Decky's own install dialog is up", async ({ page }) => {
@@ -1185,7 +1302,7 @@ test("Discover's Details modal channel picker updates the card's Channel label",
     // save_repo_settings persists to the real (shared) settings.json via the
     // dev bridge — round-trip it back to the default directly so this test
     // doesn't leave MAKO's channel overridden for later tests/runs.
-    await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "stable", assetFilter: [] });
+    await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "stable" });
   }
 });
 
@@ -1215,14 +1332,14 @@ test("Discover's card picks the newest pre-release by publish date, not array or
     // Out-of-order on purpose: the newest pre-release (by published_at) isn't array[0].
     route.fulfill({ json: [olderBeta, newerBeta] })
   );
-  await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "prerelease", assetFilter: [] });
+  await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "prerelease" });
   try {
     await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
     const app = mock(page);
     const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
     await expect(makoCard.getByText("Latest: v1.4.0-beta.2", { exact: true })).toBeVisible();
   } finally {
-    await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "stable", assetFilter: [] });
+    await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "stable" });
   }
 });
 
@@ -1231,13 +1348,13 @@ test("A card on the pre-release channel picks a stable release newer than its pr
   await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases?per_page=20", (route) =>
     route.fulfill({ json: [{ ...beta, prerelease: true }, makoRelease("plugin-v1.4.0", "b".repeat(64), "02")] }),
   );
-  await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "prerelease", assetFilter: [] });
+  await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "prerelease" });
   try {
     await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
     const makoCard = mock(page).getByRole("heading", { name: "MAKO Decky" }).locator("..");
     await expect(makoCard.getByText("Latest: v1.4.0", { exact: true })).toBeVisible();
   } finally {
-    await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "stable", assetFilter: [] });
+    await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "stable" });
   }
 });
 
@@ -1249,13 +1366,13 @@ test("A newer pre-release of an installed pre-release counts as an update", asyn
   await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases?per_page=20", (route) =>
     route.fulfill({ json: [{ tag_name: "plugin-v1.4.0-rc.2", prerelease: true, draft: false, published_at: "2026-01-02T00:00:00Z", html_url: "https://github.com/eugeniosegala/MAKO/releases/tag/plugin-v1.4.0-rc.2", assets: [] }] })
   );
-  await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "prerelease", assetFilter: [] });
+  await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "prerelease" });
   try {
     await page.goto("/?preview=/deckyhub/updates&bridge=http://127.0.0.1:8643");
     const makoCard = mock(page).getByRole("heading", { name: "MAKO Decky" }).locator("..");
     await expect(makoCard.getByText("Update Available", { exact: true })).toBeVisible();
   } finally {
-    await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "stable", assetFilter: [] });
+    await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "stable" });
     rmSync(pluginDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
   }
 });
@@ -1378,7 +1495,7 @@ test("GitHub repository search also sends the saved token", async ({ page }) => 
     await bridgeCall(page, "save_settings", { overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: 3, githubToken: "ghp_search_token" });
 
     const app = mock(page);
-    await app.getByRole("button", { name: "/deckyhub/repositories" }).click();
+    await app.getByRole("button", { name: "/deckyhub/search" }).click();
     await app.getByLabel("Search GitHub").fill("some-repo");
     await app.getByRole("button", { name: "Search", exact: true }).click();
 
@@ -1479,7 +1596,7 @@ test("Moving focus up through Settings and Repositories brings each section titl
   await expect(app.getByLabel("Language")).toBeVisible();
   expect(await titlesHiddenAfterFocus(page)).toEqual([]);
 
-  await app.getByRole("button", { name: "/deckyhub/repositories" }).click();
+  await app.getByRole("button", { name: "/deckyhub/search" }).click();
   await app.getByLabel("Search GitHub").fill("example");
   await app.getByRole("button", { name: "Search", exact: true }).click();
   await expect(app.getByRole("heading", { name: "example/repo-4" })).toBeVisible();
@@ -1506,11 +1623,16 @@ test("Every row of side-by-side controls lets the D-pad move left and right", as
   expect(await sideBySideWithoutRightFlow(page)).toEqual([]);
   await app.locator(".steam-modal").getByRole("button", { name: "Close", exact: true }).click();
 
-  // Repositories: search row, two-column results, pager, import/export.
-  await app.getByRole("button", { name: "/deckyhub/repositories" }).click();
+  // Search: search row, two-column results with Install/Add, pager.
+  await app.getByRole("button", { name: "/deckyhub/search" }).click();
   await app.getByLabel("Search GitHub").fill("example");
   await app.getByRole("button", { name: "Search", exact: true }).click();
   await expect(app.getByText("Page 1 of 2", { exact: true })).toBeVisible();
+  expect(await sideBySideWithoutRightFlow(page)).toEqual([]);
+
+  // Repositories: import/export, registries.
+  await app.getByRole("button", { name: "/deckyhub/repositories" }).click();
+  await expect(app.getByRole("button", { name: "Export", exact: true })).toBeVisible();
   expect(await sideBySideWithoutRightFlow(page)).toEqual([]);
 
   // Settings.
@@ -1535,7 +1657,8 @@ test("Quick Access lists its pages in order, showing Updates only while there ar
     await expect(nav.nth(0).locator("span")).toHaveText("1");
     await expect(nav.nth(0)).toContainText("Updates");
     await expect(nav.nth(1)).toHaveText("Discover");
-    await expect(nav.nth(2)).toHaveText("Settings");
+    await expect(nav.nth(2)).toHaveText("Search");
+    await expect(nav.nth(3)).toHaveText("Settings");
     await expect(app.getByText("Browse", { exact: true })).toHaveCount(0);
   } finally {
     removePlugin();
@@ -1684,13 +1807,14 @@ test("Discover shows every card on one page", async ({ page }) => {
 test("A repository added from search shows on Discover until it's removed", async ({ page }) => {
   const repo = "e2e-add/plugin";
   await page.route("https://api.github.com/search/repositories**", (route) => route.fulfill({ json: { items: [{ full_name: repo, description: "Test repository", stargazers_count: 1 }] } }));
-  await page.goto("/?preview=/deckyhub/repositories&bridge=http://127.0.0.1:8643");
+  await page.goto("/?preview=/deckyhub/search&bridge=http://127.0.0.1:8643");
   const app = mock(page);
   try {
     await app.getByLabel("Search GitHub").fill("plugin");
     await app.getByRole("button", { name: "Search", exact: true }).click();
     await app.getByRole("heading", { name: repo }).locator("..").getByRole("button", { name: "Add", exact: true }).click();
     await expect(app.getByRole("heading", { name: repo }).locator("..").getByRole("button", { name: "Added", exact: true })).toBeDisabled();
+    await app.getByRole("button", { name: "/deckyhub/repositories" }).click();
     await expect(app.getByRole("button", { name: `Remove ${repo}`, exact: true })).toBeVisible();
 
     await app.getByRole("button", { name: "/deckyhub/discover" }).click();

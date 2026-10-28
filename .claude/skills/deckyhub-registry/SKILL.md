@@ -29,7 +29,9 @@ The local checkout sits next to this repo: `../deckyhub-registry`. Clone it with
    GITHUB_TOKEN=$(gh auth token) python scripts/validate.py
    ```
 
-   Fix every error. Warnings (no stable release, no SHA-256 digest, renamed or archived repo) are worth a look but don't fail CI.
+   Fix every error. Warnings (no stable release, no SHA-256 digest) are worth a look but don't fail CI.
+
+   Always check that every repo link is still valid, not just the entries you touched: `validate.py` checks every entry's `repo` against GitHub. Treat a renamed repo as a fix: update `repo` and every README link to the new `owner/name` (`grep -rl old/name` across the checkout) in its own PR. Treat an archived or missing repo as a question for the user: keep the entry or remove it.
 3. Commit, push and open the registry PR; `main` only accepts squash-merged PRs whose `validate` check passed. Its CI runs both checks. Merge it. Nothing needs syncing into this repo.
 
 ## The registry's weekly CI run failed

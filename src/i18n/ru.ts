@@ -3,6 +3,7 @@ import type { MessageKey } from "./en";
 export const ru: Record<MessageKey, string> = {
   "nav.updates": "Обновления",
   "nav.discover": "Обзор",
+  "nav.search": "Поиск",
   "nav.repositories": "Репозитории",
   "nav.settings": "Настройки",
 
@@ -10,6 +11,9 @@ export const ru: Record<MessageKey, string> = {
   "view.updatesEmpty": "Всё установленное обновлено.",
   "view.discoverDescription": "Просмотр поддерживаемых проектов GitHub и их ZIP-релизов.",
   "view.discoverEmpty": "Нет доступных репозиториев.",
+  "view.searchDescription": "Ищите плагины Decky на GitHub. Установите сразу или добавьте, чтобы следить за обновлениями.",
+  "view.searchTitle": "Поиск и установка",
+  "search.warning": "Результаты поиска приходят прямо с GitHub. Их никто не проверял: ни DeckyHub, ни магазин Decky. Плагин может сделать на вашем Deck что угодно, поэтому устанавливайте только плагины авторов, которым доверяете.",
 
   "filter.search": "Поиск",
   "filter.status": "Статус",
@@ -115,7 +119,6 @@ export const ru: Record<MessageKey, string> = {
   "settings.exportLogsNote": "Сохраняет журналы DeckyHub в ZIP в /home/deck/Downloads — приложите его к отчёту об ошибке. Ваш токен GitHub никогда не попадает в журналы.",
 
   "repos.addManage": "Добавить и управлять",
-  "repos.addGithubRepository": "Добавить репозиторий GitHub",
   "repos.searchGithub": "Поиск на GitHub",
   "repos.searching": "Поиск…",
   "repos.clear": "Очистить",
@@ -131,7 +134,7 @@ export const ru: Record<MessageKey, string> = {
   "repos.remove": "Удалить {repo}",
   "repos.noCustomRepos": "Собственных репозиториев пока нет.",
   "repos.removeRepositoryTitle": "Удалить репозиторий",
-  "repos.removeRepositoryDesc": "Прекратить отслеживание {repo}? Его всегда можно снова добавить из Обзора.",
+  "repos.removeRepositoryDesc": "Прекратить отслеживание {repo}? Его всегда можно снова добавить из Поиска.",
   "repos.removeConfirm": "Удалить",
 
   "repos.customRegistries": "Свои реестры",

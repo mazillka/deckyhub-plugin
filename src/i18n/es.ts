@@ -3,6 +3,7 @@ import type { MessageKey } from "./en";
 export const es: Record<MessageKey, string> = {
   "nav.updates": "Actualizaciones",
   "nav.discover": "Descubrir",
+  "nav.search": "Buscar",
   "nav.repositories": "Repositorios",
   "nav.settings": "Ajustes",
 
@@ -10,6 +11,9 @@ export const es: Record<MessageKey, string> = {
   "view.updatesEmpty": "Todo lo instalado está actualizado.",
   "view.discoverDescription": "Explora proyectos de GitHub compatibles y sus versiones ZIP.",
   "view.discoverEmpty": "No hay repositorios disponibles.",
+  "view.searchDescription": "Busca plugins de Decky en GitHub. Instálalo al momento o añádelo para seguir sus actualizaciones.",
+  "view.searchTitle": "Buscar e instalar",
+  "search.warning": "Los resultados vienen directamente de GitHub. Nadie los ha revisado: ni DeckyHub ni la tienda de Decky. Un plugin puede hacer cualquier cosa en tu Deck, así que instala solo plugins de autores en los que confíes.",
 
   "filter.search": "Buscar",
   "filter.status": "Estado",
@@ -115,7 +119,6 @@ export const es: Record<MessageKey, string> = {
   "settings.exportLogsNote": "Guarda los registros de DeckyHub como ZIP en /home/deck/Downloads; adjúntalo a un informe de error. Tu token de GitHub nunca se registra.",
 
   "repos.addManage": "Añadir y gestionar",
-  "repos.addGithubRepository": "Añadir repositorio de GitHub",
   "repos.searchGithub": "Buscar en GitHub",
   "repos.searching": "Buscando…",
   "repos.clear": "Borrar",
@@ -131,7 +134,7 @@ export const es: Record<MessageKey, string> = {
   "repos.remove": "Quitar {repo}",
   "repos.noCustomRepos": "Aún no hay repositorios personalizados.",
   "repos.removeRepositoryTitle": "Quitar repositorio",
-  "repos.removeRepositoryDesc": "¿Dejar de seguir {repo}? Puedes volver a añadirlo desde Descubrir.",
+  "repos.removeRepositoryDesc": "¿Dejar de seguir {repo}? Puedes volver a añadirlo desde Buscar.",
   "repos.removeConfirm": "Quitar",
 
   "repos.customRegistries": "Registros personalizados",

@@ -6,7 +6,7 @@
 
 **Your Steam Deck's plugin store — right inside Gaming Mode.**
 
-Discover, download and update Decky Loader plugins with your controller.
+Find, install and update Decky Loader plugins with your controller — from a curated catalog, or any plugin on GitHub.
 
 [![Release](https://img.shields.io/github/v/release/mazillka/deckyhub-plugin?color=1d75cc)](https://github.com/mazillka/deckyhub-plugin/releases/latest)
 [![Pre-release](https://img.shields.io/github/v/release/mazillka/deckyhub-plugin?include_prereleases&label=pre-release&color=8a9bb2)](https://github.com/mazillka/deckyhub-plugin/releases)
@@ -32,24 +32,25 @@ Discover, download and update Decky Loader plugins with your controller.
 > [!CAUTION]
 > **DeckyHub only fetches releases from their authors' GitHub repositories. It doesn't make, review or vouch for these plugins and isn't responsible for anything they do to your device or data. Install at your own risk.**
 
-Tired of tabbing out to Desktop Mode, hunting through GitHub releases, and manually downloading ZIPs every time a plugin updates? DeckyHub brings plugin discovery and updates straight to your controller. Browse a curated catalog of the best Steam Deck tools, track any GitHub repo you want, and get notified the moment an update drops — all without leaving your couch.
+Tired of tabbing out to Desktop Mode, hunting through GitHub releases, and manually downloading ZIPs every time a plugin updates? DeckyHub brings plugin discovery and updates straight to your controller. Browse a curated catalog of the best Steam Deck tools, search GitHub for any other Decky plugin and install it on the spot, and get notified the moment an update drops — all without leaving your couch.
 
 > **A note on how this is made.** Most of DeckyHub's code was written with the help of AI tools (Claude and Codex). That doesn't mean it ships untested — every release is verified on real hardware before it goes out. I'm telling you this upfront so you know exactly what you're installing and how it got built.
 
 ## Why you'll like it
 
+- **Any plugin on GitHub, one search away** — **Search & Install** finds Decky plugins that aren't in any store and installs them right from Gaming Mode. No Desktop Mode, no browser, no Developer Mode URL pasting.
 - **Never miss an update** — DeckyHub checks your installed plugins against their latest GitHub releases and pings you with a toast the moment something new is available.
-- **No more zip-hunting** — search, download, and see exactly which release asset you need without opening a browser.
 - **Built for the couch** — full gamepad navigation, color-coded status at a glance, and one-tap downloads designed for Gaming Mode, not a desktop browser squeezed onto a small screen.
 - **You stay in control** — DeckyHub never installs or runs anything on its own. Nothing touches your system until you say so, and installs go through Decky Loader's own installer and confirmation dialog (see [Manage](#manage)).
 
 ## What it does
 
 - **Discover** — browse a curated list of Steam Deck plugins/tools, filter by search or installed status, and see release info at a glance, color-coded by status.
+- **[Search & Install](#search--install)** — search GitHub for Decky plugins and install one in a tap, or add it to track its updates.
 - **Updates** — see which of your tracked, installed tools have a newer release available, and update the Decky plugins among them in one go with **Update All**. You'll also get a toast notification when new updates show up.
-- **Repositories** — search GitHub, add or remove tracked repositories, and export/import your list. **Custom Registries** adds other people's app lists. Per-repository release-channel overrides live behind each app's **Manage** button on Discover/Updates instead.
+- **Repositories** — remove tracked repositories, and export/import your list. **Custom Registries** adds other people's app lists. Per-repository release-channel overrides live behind each app's **Manage** button on Discover/Updates instead.
 - **Settings** — shows the DeckyHub download folder and the **Overwrite Existing** toggle, lets you add an optional GitHub personal access token to raise the API rate limit, picks the language, and adjusts the display: **Default** or **Compact** density, items per row (1–3) in the app grid, and which Manage-window buttons to hide.
-- **Quick Access Menu** — **Discover** and **Settings** (**Repositories** opens from Settings), plus **Updates** with a count whenever updates are waiting. Below them: DeckyHub's own version and update check, a **Cleanup** section (shown when the download folder has files) that empties it after confirmation, and **Export Logs** for bug reports.
+- **Quick Access Menu** — **Discover**, **Search** and **Settings** (**Repositories** opens from Settings), plus **Updates** with a count whenever updates are waiting. Below them: DeckyHub's own version and update check, a **Cleanup** section (shown when the download folder has files) that empties it after confirmation, and **Export Logs** for bug reports.
 
 DeckyHub never installs or runs anything automatically. **Download ZIP** saves a release, which you install yourself via Decky's settings → Developer → Install Plugin from ZIP. For one-tap install, update and uninstall, see [Manage](#manage).
 
@@ -72,7 +73,7 @@ No setup, no configuration — the curated list shows up in Discover the moment 
 
 ### Controller buttons
 
-DeckyHub uses the standard Steam Deck controls, plus two extra shortcuts on every **Install** / **Update** button (on Discover and Updates cards, in the [Manage](#manage) window, and for DeckyHub's own update):
+DeckyHub uses the standard Steam Deck controls, plus two extra shortcuts on every **Install** / **Update** button (on Discover and Updates cards, on **Search** results, in the [Manage](#manage) window, and for DeckyHub's own update):
 
 | Button | What it does |
 | --- | --- |
@@ -85,7 +86,19 @@ Steam's footer shows the X and Y actions for whichever button is focused.
 
 Browse the curated list or search it by name, repository, category or description, and filter by **Status** (All, Installed, or Not Installed) and **Category**, and **Sort** A to Z, Z to A, or Recently added (newest additions to the list first; plugins with an update always come first). Each card is color-coded (green once it's up to date, yellow when an update is available, red on an error) so you can spot what needs attention at a glance, and says **Checking…** while its latest release is still being looked up. A card set to the pre-release **Channel** says so; stable is the default and isn't labelled. Tap **Manage** on any card to pick a channel and version, then download the release asset you want.
 
-To track a repository that isn't in the curated list, go to **Settings** → **Repositories**, search for it, and add it — it'll show up in Discover from then on.
+### Search & Install
+
+Not every Decky plugin is in the Decky store or the curated list. Open **Search** from the Quick Access Menu, type what you're after, and DeckyHub looks it up on GitHub, right from Gaming Mode.
+
+- **Only Decky plugins** — results are limited to repositories that are actually Decky plugins, so awesome-lists, guides and unrelated projects don't get in the way.
+- **Install** — adds the repository to your tracked list and hands its latest release to Decky Loader's own installer, behind the usual confirmation. From then on it shows up in Discover with update checks, like any curated plugin.
+- **Add** — only tracks the repository, so you can look at it in Discover and install it later.
+- **Y** on a result's **Install** shows that release's notes, and **X** downloads its ZIP instead.
+
+> [!WARNING]
+> Search results come straight from GitHub and nobody has reviewed them: not DeckyHub, not the Decky store. A plugin can do anything on your Deck, so only install plugins from authors you trust.
+
+Tracked repositories are listed in **Settings** → **Repositories**, where you can remove them or export and import the list.
 
 ### Updates
 
@@ -125,8 +138,8 @@ If automatic update isn't available for some reason (e.g. running inside an olde
 
 ## Good to know
 
-- DeckyHub talks to GitHub without needing you to log in, so very heavy use in a short time may still hit GitHub's public rate limit (60 requests/hour) — if it does, the error names it as a rate limit and says roughly how long to wait, rather than just a raw status code. Add a personal access token in **Settings → GitHub Access** (no scopes needed — it only reads public repos and releases) to raise that to 5,000/hour; the token stays on your device and is only ever sent to `api.github.com`.
-- Release information is cached for 30 minutes, so opening the same app's Manage window or the DeckyHub update modal again shortly after won't always show something new. Every "Check for Updates" and "Refresh" button bypasses this and asks GitHub directly.
+- DeckyHub talks to GitHub without needing you to log in. Release info for the curated list comes from one file the registry refreshes every 30 minutes, so browsing doesn't use up GitHub's public rate limit (60 requests/hour); searching and repositories you added yourself still ask GitHub directly, so very heavy use may hit it — if it does, the error names it as a rate limit and says roughly how long to wait, rather than just a raw status code. Add a personal access token in **Settings → GitHub Access** (no scopes needed — it only reads public repos and releases) to raise that to 5,000/hour; the token stays on your device and is only ever sent to `api.github.com`.
+- Release information is cached for 30 minutes, so opening the same app's Manage window or the DeckyHub update modal again shortly after won't always show something new. Every "Check for Updates" and "Refresh" button bypasses this and fetches fresh release info, though a brand-new release can take up to 30 minutes to reach the curated list's file.
 - Downloads only ever happen over HTTPS.
 
 ## Disclaimer

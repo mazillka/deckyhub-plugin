@@ -44,4 +44,4 @@ export type View = "updates" | "discover";
 export type SearchRepo = { full_name: string; description?: string; stargazers_count?: number };
 
 
-export type RepoPreference = { channel: "stable" | "prerelease"; assetFilter: string[] };
+export type RepoPreference = { channel: "stable" | "prerelease" };

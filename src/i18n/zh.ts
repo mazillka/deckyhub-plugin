@@ -3,6 +3,7 @@ import type { MessageKey } from "./en";
 export const zh: Record<MessageKey, string> = {
   "nav.updates": "更新",
   "nav.discover": "发现",
+  "nav.search": "搜索",
   "nav.repositories": "仓库",
   "nav.settings": "设置",
 
@@ -10,6 +11,9 @@ export const zh: Record<MessageKey, string> = {
   "view.updatesEmpty": "所有已安装项目均为最新版本。",
   "view.discoverDescription": "浏览受支持的 GitHub 项目及其 ZIP 发行版。",
   "view.discoverEmpty": "没有可用的仓库。",
+  "view.searchDescription": "在 GitHub 上搜索 Decky 插件。可直接安装，或添加以跟踪更新。",
+  "view.searchTitle": "搜索与安装",
+  "search.warning": "搜索结果直接来自 GitHub，未经任何审核：DeckyHub 和 Decky 商店都没有审核过。插件可以在你的 Deck 上做任何事，请只安装你信任的作者的插件。",
 
   "filter.search": "搜索",
   "filter.status": "状态",
@@ -115,7 +119,6 @@ export const zh: Record<MessageKey, string> = {
   "settings.exportLogsNote": "将 DeckyHub 的日志以 ZIP 格式保存到 /home/deck/Downloads，可附加到错误报告中。你的 GitHub 令牌永远不会被记录。",
 
   "repos.addManage": "添加与管理",
-  "repos.addGithubRepository": "添加 GitHub 仓库",
   "repos.searchGithub": "搜索 GitHub",
   "repos.searching": "搜索中…",
   "repos.clear": "清除",
@@ -131,7 +134,7 @@ export const zh: Record<MessageKey, string> = {
   "repos.remove": "移除 {repo}",
   "repos.noCustomRepos": "尚无自定义仓库。",
   "repos.removeRepositoryTitle": "移除仓库",
-  "repos.removeRepositoryDesc": "停止跟踪 {repo}？之后仍可从“发现”重新添加。",
+  "repos.removeRepositoryDesc": "停止跟踪 {repo}？之后仍可从“搜索”重新添加。",
   "repos.removeConfirm": "移除",
 
   "repos.customRegistries": "自定义注册表",

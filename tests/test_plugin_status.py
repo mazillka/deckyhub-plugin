@@ -89,13 +89,29 @@ class PluginStatusTests(unittest.TestCase):
             plugin.settings_path = Path(home) / "settings.json"
             plugin.settings_path.write_text(json.dumps({
                 "customRepos": 5,
-                "repoSettings": {"owner/repo": {"channel": "prerelease", "assetFilter": "linux"}, "not a repo": {}, "owner/other": "bogus"},
+                "repoSettings": {"owner/repo": {"channel": "prerelease"}, "not a repo": {}, "owner/other": "bogus"},
             }), encoding="utf-8")
 
             loaded = plugin._load_settings()
 
             self.assertEqual(loaded["customRepos"], [])
-            self.assertEqual(loaded["repoSettings"], {"owner/repo": {"channel": "prerelease", "assetFilter": []}, "owner/other": {"channel": "stable", "assetFilter": []}})
+            self.assertEqual(loaded["repoSettings"], {"owner/repo": {"channel": "prerelease"}, "owner/other": {"channel": "stable"}})
+
+    @unittest.skipUnless(os.name == "posix", "file modes are POSIX")
+    def test_settings_file_is_owner_only_and_loading_fixes_an_old_one(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.settings_path = Path(home) / "settings.json"
+            plugin.settings_path.write_text("{}", encoding="utf-8")
+            plugin.settings_path.chmod(0o644)
+
+            plugin.settings = plugin._load_settings()
+            self.assertEqual(plugin.settings_path.stat().st_mode & 0o777, 0o600)
+
+            plugin.settings_path.unlink()
+            plugin.settings["githubToken"] = "ghp_secret"
+            plugin._save_settings()
+            self.assertEqual(plugin.settings_path.stat().st_mode & 0o777, 0o600)
 
     def test_density_defaults_to_default_and_accepts_compact(self):
         with tempfile.TemporaryDirectory() as home:
@@ -279,7 +295,7 @@ class PluginStatusTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as home:
             plugin = Plugin()
             plugin.settings_path = Path(home) / "settings.json"
-            plugin.settings = {"customRepos": ["Owner/Repo"], "repoSettings": {"Owner/Repo": {"channel": "prerelease", "assetFilter": []}}}
+            plugin.settings = {"customRepos": ["Owner/Repo"], "repoSettings": {"Owner/Repo": {"channel": "prerelease"}}}
 
             self.assertTrue(asyncio.run(plugin.remove_custom_repo("owner/repo"))["removed"])
             self.assertEqual(plugin.settings, {"customRepos": [], "repoSettings": {}})
@@ -341,22 +357,14 @@ class PluginStatusTests(unittest.TestCase):
             result = asyncio.run(
                 plugin.save_repo_settings(
                     "owner/repo",
-                    {"channel": "prerelease", "downloadLocation": "downloads", "assetFilter": ["linux", "  ", 42, *[f"x{i}" for i in range(15)]]},
+                    {"channel": "prerelease", "downloadLocation": "downloads", "assetFilter": ["linux"]},
                 )
             )
 
             self.assertEqual(result["channel"], "prerelease")
-            self.assertNotIn("downloadLocation", result)
-            self.assertEqual(len(result["assetFilter"]), 10)
+            # Keys DeckyHub no longer uses are dropped, not stored.
+            self.assertEqual(result, {"channel": "prerelease"})
             self.assertEqual(plugin.settings["repoSettings"]["owner/repo"], result)
-
-    def test_save_repo_settings_ignores_a_non_list_asset_filter(self):
-        with tempfile.TemporaryDirectory() as home:
-            plugin = Plugin()
-            plugin.settings_path = Path(home) / "settings.json"
-            plugin.settings = {"repoSettings": {}}
-
-            self.assertEqual(asyncio.run(plugin.save_repo_settings("owner/repo", {"assetFilter": "linux"}))["assetFilter"], [])
 
     def test_save_repo_settings_rejects_invalid_repo(self):
         plugin = Plugin()

@@ -3,6 +3,7 @@ import type { MessageKey } from "./en";
 export const ja: Record<MessageKey, string> = {
   "nav.updates": "アップデート",
   "nav.discover": "見つける",
+  "nav.search": "検索",
   "nav.repositories": "リポジトリ",
   "nav.settings": "設定",
 
@@ -10,6 +11,9 @@ export const ja: Record<MessageKey, string> = {
   "view.updatesEmpty": "すべて最新の状態です。",
   "view.discoverDescription": "対応しているGitHubプロジェクトとそのZIPリリースを見つけます。",
   "view.discoverEmpty": "利用できるリポジトリがありません。",
+  "view.searchDescription": "GitHub で Decky プラグインを検索します。すぐにインストールするか、追加して更新を追跡できます。",
+  "view.searchTitle": "検索とインストール",
+  "search.warning": "検索結果は GitHub から直接取得されます。DeckyHub も Decky ストアも審査していません。プラグインは Deck 上で何でもできるため、信頼できる作者のプラグインだけをインストールしてください。",
 
   "filter.search": "検索",
   "filter.status": "状態",
@@ -115,7 +119,6 @@ export const ja: Record<MessageKey, string> = {
   "settings.exportLogsNote": "DeckyHub のログを ZIP として /home/deck/Downloads に保存します。バグ報告に添付してください。GitHub トークンはログに記録されません。",
 
   "repos.addManage": "追加と管理",
-  "repos.addGithubRepository": "GitHubリポジトリを追加",
   "repos.searchGithub": "GitHubを検索",
   "repos.searching": "検索中…",
   "repos.clear": "クリア",
@@ -131,7 +134,7 @@ export const ja: Record<MessageKey, string> = {
   "repos.remove": "{repo} を削除",
   "repos.noCustomRepos": "追加したリポジトリはまだありません。",
   "repos.removeRepositoryTitle": "リポジトリを削除",
-  "repos.removeRepositoryDesc": "{repo} の追跡を停止しますか？後で「見つける」から再度追加できます。",
+  "repos.removeRepositoryDesc": "{repo} の追跡を停止しますか？後で「検索」から再度追加できます。",
   "repos.removeConfirm": "削除",
 
   "repos.customRegistries": "カスタムレジストリ",

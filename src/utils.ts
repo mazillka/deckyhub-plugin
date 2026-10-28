@@ -28,6 +28,9 @@ export const visuallyHidden = { position: "absolute" as const, width: 1, height:
 export const windowGap = "var(--dh-window-gap, 10px)";
 export const gridGap = "var(--dh-grid-gap, 12px)";
 // The tile every card and section is drawn on (see Card and AppCard).
+// Same no-responsibility note the install confirm shows, kept in view on the Updates, Discover and Search pages.
+export const disclaimerStyle = { marginBottom: "var(--dh-card-gap, 14px)", padding: "8px 12px", color: "#ffb3b3", fontSize: "0.85em", background: "rgba(255, 107, 107, 0.08)", borderLeft: "3px solid #ff6b6b", borderRadius: 6 };
+
 export const surfaceStyle = {
   background: "linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02))",
   border: "1px solid rgba(255, 255, 255, 0.09)",
@@ -176,12 +179,10 @@ export const readableBytes = (bytes = 0) => (bytes > 1024 * 1024 ? `${(bytes / 1
 // (raw.githubusercontent.com resolves HEAD to it), via GitHub's raw-content host.
 // The Manage page takes "owner/repo" and expands it to this, so adding a registry
 // whose source is a GitHub repo is one short field.
-const GITHUB_REGISTRY_TEMPLATE = "https://raw.githubusercontent.com/{repo}/HEAD/registry/apps.json";
+export const registryUrlForRepo = (repo: string) => `https://raw.githubusercontent.com/${repo.trim()}/HEAD/registry/apps.json`;
 
 // Same rule as REPOSITORY_NAME in main.py: neither part may be only dots.
 const REPOSITORY_PATTERN = /^(?!\.+\/)[A-Za-z0-9_.-]+\/(?!\.+$)[A-Za-z0-9_.-]+$/;
-
-export const registryUrlForRepo = (repo: string) => GITHUB_REGISTRY_TEMPLATE.replace("{repo}", repo.trim());
 
 export const isRepositoryName = (value: string) => REPOSITORY_PATTERN.test(value.trim());
 
@@ -466,8 +467,8 @@ export function installTypeLabel(t: TFunc, type: number, version: string, update
     : updateLabel;
 }
 
-function matchingAssets(app: App, assets: Asset[], extraInclude: string[] = []): Asset[] {
-  const include = [...app.asset.include, ...extraInclude].map((word) => word.toLowerCase());
+function matchingAssets(app: App, assets: Asset[]): Asset[] {
+  const include = app.asset.include.map((word) => word.toLowerCase());
   const exclude = app.asset.exclude.map((word) => word.toLowerCase());
   return assets.filter((asset) => {
     const name = asset.name.toLowerCase();
@@ -515,28 +516,59 @@ function fetchReleases(repo: string, force: boolean): Promise<Release[]> {
   return request;
 }
 
+// mazillka/deckyhub-registry publishes every listed repo's recent releases (and
+// DeckyHub's own) as one file every 30 minutes (scripts/build_release_index.py there).
+// It's read from raw.githubusercontent.com, outside the API's 60-an-hour limit
+// that one call per listed repo would use up, so the API is asked only for repos
+// the file lacks (added repos and registries). Header-less, so no CORS preflight.
+const RELEASE_INDEX_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/releases.json";
+// An index this old means its job stopped publishing; ask GitHub instead.
+const RELEASE_INDEX_MAX_AGE = 6 * 60 * 60 * 1000;
+
+let releaseIndex: { at: number; request: Promise<Record<string, unknown[]> | null> } | null = null;
+
+// One download serves every repo's lookup. A forced refresh downloads it again,
+// unless one started in the last minute (every card of one Refresh shares it).
+function fetchReleaseIndex(force: boolean) {
+  if (!releaseIndex || Date.now() - releaseIndex.at > (force ? 60_000 : CACHE_TTL)) {
+    releaseIndex = {
+      at: Date.now(),
+      request: fetchNoCors(RELEASE_INDEX_URL, { signal: AbortSignal.timeout(15_000) })
+        .then((response) => (response.ok ? response.json() : null))
+        .then((index: any) => (index && Date.now() - Date.parse(index.generatedAt) < RELEASE_INDEX_MAX_AGE ? index.releases : null))
+        .catch((error: unknown) => {
+          log(`Release index unavailable, asking GitHub per repo: ${error}`);
+          return null;
+        }),
+    };
+  }
+  return releaseIndex.request;
+}
+
 async function requestReleases(repo: string, force: boolean): Promise<Release[]> {
   const cacheKey = `${RELEASES_CACHE_PREFIX}${repo}`;
   const cached = readCache<Release[]>(cacheKey);
   if (cached && !force && Date.now() - cached.at < CACHE_TTL) return cached.data;
   const url = `https://api.github.com/repos/${repo}/releases?per_page=20`;
-  let body: unknown;
-  try {
-    const response = await githubFetch(url);
-    if (!response.ok) throw await githubResponseError(response);
-    body = await response.json();
-    // GitHub sometimes answers [] to an authenticated request for a repo that has
-    // releases (about 1 in 4 in October 2026; unauthenticated ones got the list every
-    // time), so ask once more without the token before believing it. No headers also
-    // means no CORS preflight (see githubHeaders()).
-    if (githubToken && Array.isArray(body) && !body.length) {
-      const retry = await fetchNoCors(url, { signal: AbortSignal.timeout(15_000) });
-      if (retry.ok) body = await retry.json();
+  let body: unknown = (await fetchReleaseIndex(force))?.[repo.toLowerCase()];
+  if (!body) {
+    try {
+      const response = await githubFetch(url);
+      if (!response.ok) throw await githubResponseError(response);
+      body = await response.json();
+      // GitHub sometimes answers [] to an authenticated request for a repo that has
+      // releases (about 1 in 4 in October 2026; unauthenticated ones got the list every
+      // time), so ask once more without the token before believing it. No headers also
+      // means no CORS preflight (see githubHeaders()).
+      if (githubToken && Array.isArray(body) && !body.length) {
+        const retry = await fetchNoCors(url, { signal: AbortSignal.timeout(15_000) });
+        if (retry.ok) body = await retry.json();
+      }
+    } catch (error) {
+      // Older releases beat an error card; a rate limit still raises the banner.
+      if (cached) return cached.data;
+      throw error;
     }
-  } catch (error) {
-    // Older releases beat an error card; a rate limit still raises the banner.
-    if (cached) return cached.data;
-    throw error;
   }
   const releases: Release[] = (Array.isArray(body) ? body : [])
     .filter((item: any) => !item.draft)
@@ -583,18 +615,18 @@ export async function latestDeckyHubRelease(channel: UpdateChannel): Promise<Dec
 
 // A tracked app's recent releases (tag-filtered, assets matched to its
 // filters) for its version picker in AppDetailsModal.
-export function listAppReleases(app: App, preference?: RepoPreference, force = false): Promise<{ items: AppReleaseOption[]; error?: string }> {
+export function listAppReleases(app: App, force = false): Promise<{ items: AppReleaseOption[]; error?: string }> {
   const tagInclude = app.releaseTagInclude?.toLowerCase();
   return listOrError(fetchReleases(app.repo, force).then((releases) => releases
     .filter((release) => !tagInclude || release.tag.toLowerCase().includes(tagInclude))
-    .map((release) => ({ ...release, assets: matchingAssets(app, release.assets, preference?.assetFilter) }))));
+    .map((release) => ({ ...release, assets: matchingAssets(app, release.assets) }))));
 }
 
 // Fills in a card's latest release for its channel and whether it's newer
 // than what's installed.
 export async function hydrate(app: App, force: boolean, preference?: RepoPreference): Promise<App> {
   const channel: UpdateChannel = preference?.channel ?? "stable";
-  const { items, error } = await listAppReleases(app, preference, force);
+  const { items, error } = await listAppReleases(app, force);
   const release = items.find((item) => inChannel(item, channel));
   if (!release) return { ...app, channel, error: error ?? tr("release.noMatch") };
   const cmp = app.installedVersion ? compareVersions(release.tag, app.installedVersion) : null;
