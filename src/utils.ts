@@ -519,7 +519,7 @@ function fetchReleases(repo: string, force: boolean): Promise<Release[]> {
 }
 
 // mazillka/deckyhub-registry publishes every listed repo's recent releases (and
-// DeckyHub's own) as one file every hour (scripts/build_release_index.py there).
+// DeckyHub's own) as one file every 30 minutes (scripts/build_release_index.py there).
 // It's read from raw.githubusercontent.com, outside the API's 60-an-hour limit
 // that one call per listed repo would use up, so the API is asked only for repos
 // the file lacks (added repos and registries). Header-less, so no CORS preflight.
