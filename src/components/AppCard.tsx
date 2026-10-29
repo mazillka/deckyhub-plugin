@@ -183,7 +183,7 @@ export function AppCard({
   if (row)
     return (
       // The name is a direct child here too, so a row's buttons are found from its heading.
-      <div className="deckyhub-app-row" style={{ ...surfaceStyle, display: "grid", gridTemplateColumns: "36px minmax(0, 1.3fr) minmax(0, 2fr) minmax(0, 1.4fr) 230px", alignItems: "center", columnGap: 12, padding: "6px 12px" }}>
+      <div className="deckyhub-app-row deckyhub-focus-ring" style={{ ...surfaceStyle, display: "grid", gridTemplateColumns: "36px minmax(0, 1.3fr) minmax(0, 2fr) minmax(0, 1.4fr) 230px", alignItems: "center", columnGap: 12, padding: "6px 12px" }}>
         <AppMonogram app={app} style={{ width: 36, height: 36, fontSize: "0.85em" }} />
         <h3 style={cardTitleStyle}>{app.name}</h3>
         <small style={{ color: "#b8c7d3", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{app.error || app.description}</small>
@@ -198,7 +198,7 @@ export function AppCard({
   return (
     // The name stays a direct child of the card: tests (and screen readers)
     // find a card's buttons from its heading.
-    <div style={{ ...cardStyle, borderTopColor: accent }}>
+    <div className="deckyhub-focus-ring" style={{ ...cardStyle, borderTopColor: accent }}>
       <AppMonogram app={app} style={{ gridRow: "1 / 3", alignSelf: "center" }} />
       <h3 style={cardTitleStyle}>{app.name}</h3>
       <small style={categoryStyle}>{app.category}</small>

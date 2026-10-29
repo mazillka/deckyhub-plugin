@@ -1810,6 +1810,10 @@ test("Discover keeps the D-pad focused through its chips, category switches and 
   await expect(app.getByText(/^Page 2 of/)).toBeVisible();
   await expect(app.locator("[data-flow-children] h3").first()).not.toHaveText(before!);
   await expect.poll(focused).toBe("Manage");
+
+  // The card holding focus gets a ring; the others don't.
+  const rings = () => app.locator(".deckyhub-focus-ring").evaluateAll((cards) => cards.map((card) => getComputedStyle(card).outlineWidth));
+  await expect.poll(async () => (await rings()).filter((width) => width === "3px").length).toBe(1);
 });
 
 // Seeds an installed Decky plugin where dev-server.py scans for them.
