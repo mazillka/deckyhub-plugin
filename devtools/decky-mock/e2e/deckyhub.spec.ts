@@ -576,6 +576,8 @@ test("Discover shows each plugin's stats, sorts by them and counts every filter 
   await expect(unifideck.getByText(/^Updated /)).toHaveCount(0);
   await expect(unifideck.getByText("Runs as root")).toBeVisible();
   await expect(unifideck.getByText("No release in a year")).toBeVisible();
+  // The badge's tooltip doesn't show on a Deck, so Discover explains it in words.
+  await expect(app.locator(".deckyhub-root-legend")).toHaveText(/Runs as root.*full access to the system/);
   await expect(app.locator(".deckyhub-total-downloads")).toHaveText("184.5K downloads");
 
   const order = async () => {

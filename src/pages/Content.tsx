@@ -6,7 +6,7 @@ import { downloadAsset, exportLogs, getApps, getSettings, REGISTRY_UPDATED } fro
 import { useT } from "../i18n";
 import type { App, Asset, HideableButton, PluginStats, RepoPreference, UpdateChannel, View } from "../types";
 import { compactButtonStyle, DEFAULT_COLUMNS_PER_ROW, compactNumber, disclaimerStyle, fetchPluginStats, getDeckyBackend, hydrate, installAction, log, needsFreshInstall, notifyUpdates, PLUGIN_INSTALL_TYPE, surfaceStyle, updateDeckyPlugins } from "../utils";
-import { AppCard } from "../components/AppCard";
+import { AppCard, RootBadge } from "../components/AppCard";
 import { confirmPluginInstall } from "../components/AppDetailsModal";
 import { CleanupSection } from "../components/CleanupSection";
 import { showDownloadModal } from "../components/DownloadProgress";
@@ -349,6 +349,13 @@ export function Content({ fullPage }: { fullPage?: View }) {
               }
             />
             <div className="deckyhub-disclaimer" style={disclaimerStyle}>{t("install.disclaimer")}</div>
+            {/* The badge's tooltip never shows on a Deck (no hover), so Discover spells it out once. */}
+            {view === "discover" && (
+              <div className="deckyhub-root-legend" style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: "var(--dh-card-gap, 14px)", color: "#d6f5ff", fontSize: "0.85em" }}>
+                <RootBadge t={t} />
+                <span>{t("appcard.runsAsRootHint")}</span>
+              </div>
+            )}
           </KeepInView>
           {discoverFilters}
           <FocusableGrid

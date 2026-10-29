@@ -37,12 +37,17 @@ export const showReleaseInfo = (t: TFunc, title: string, publishedAt?: string | 
 const releasedAt = (app: App) => Date.parse(app.stats?.updated || app.publishedAt || "");
 const isStale = (released: number) => Date.now() - released > 365 * 24 * 60 * 60 * 1000;
 
+// The Runs as root badge, also shown in Discover's legend that explains it.
+export const RootBadge = ({ t }: { t: TFunc }) => (
+  <span title={t("appcard.runsAsRootHint")} style={{ ...pillStyle, color: "#ffb35c", background: "#ffb35c22", borderColor: "#ffb35c66" }}>{t("appcard.runsAsRoot")}</span>
+);
+
 // Runs as root / No release in a year, shared by the card and its Manage window.
 export function AppBadges({ app, t }: { app: App; t: TFunc }) {
   const released = releasedAt(app);
   return (
     <>
-      {app.stats?.root && <span title={t("appcard.runsAsRootHint")} style={{ ...pillStyle, color: "#ffb35c", background: "#ffb35c22", borderColor: "#ffb35c66" }}>{t("appcard.runsAsRoot")}</span>}
+      {app.stats?.root && <RootBadge t={t} />}
       {isStale(released) && <span title={new Date(released).toLocaleDateString()} style={{ ...pillStyle, color: "#ff8a8a", background: "#ff8a8a22", borderColor: "#ff8a8a66" }}>{t("appcard.noReleaseInYear")}</span>}
     </>
   );
