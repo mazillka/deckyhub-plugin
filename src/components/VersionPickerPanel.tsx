@@ -1,11 +1,10 @@
-import { DialogButtonPrimary as Button, DropdownItem, Focusable, Navigation } from "@decky/ui";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { DialogButtonPrimary as Button, Focusable, Navigation } from "@decky/ui";
+import { useEffect, useRef, useState } from "react";
 import { FaExternalLinkAlt, FaGithub, FaSync } from "react-icons/fa";
 import type { TFunc } from "../i18n/en";
 import type { UpdateChannel } from "../types";
-import { modalButtonStyle, windowGap } from "../utils";
+import { modalButtonStyle } from "../utils";
 import { inChannel } from "../version";
-import { keepInView } from "./KeepInView";
 
 // Shared by both version pickers: the channel's releases and the selected one.
 // A load keeps the current selection while it's still listed, except a forced
@@ -64,83 +63,5 @@ export function ReleaseActions({ t, url, repoUrl, hideReleasePage, checking, dis
         <FaSync /> {checking ? t("settings.checkingUpdate") : t("settings.checkUpdate")}
       </Button>
     </Focusable>
-  );
-}
-
-// Shared by DeckyHubUpdateModal and AppDetailsModal: the title/subtitle
-// header plus the channel+version dropdown box and its error/empty
-// messages are identical between the two (one picks DeckyHub's own
-// releases, the other a tracked app's) — only what surrounds this panel
-// (the primary action buttons) actually differs between them.
-export function VersionPickerPanel({
-  t,
-  icon,
-  title,
-  subtitle,
-  description,
-  details,
-  channel,
-  onChannelChange,
-  versionOptions,
-  selectedTag,
-  onVersionChange,
-  disabled,
-  error,
-  isEmpty,
-}: {
-  t: TFunc;
-  icon: ReactNode;
-  title: string;
-  subtitle: string;
-  // The plugin's description in full (cards clamp it to two lines).
-  description?: string;
-  // Extra lines under the description (category, repo, stats, badges).
-  details?: ReactNode;
-  channel: UpdateChannel;
-  onChannelChange: (channel: UpdateChannel) => void;
-  versionOptions: { data: string; label: string }[];
-  selectedTag: string;
-  onVersionChange: (tag: string) => void;
-  disabled: boolean;
-  error?: string | null;
-  isEmpty: boolean;
-}) {
-  return (
-    <>
-      <div onFocus={keepInView} style={{ display: "grid", gap: windowGap }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          {icon}
-          <div style={{ minWidth: 0 }}>
-            <strong style={{ display: "block", color: "#fff", fontSize: 18 }}>{title}</strong>
-            <div style={{ color: "#b8c7d3", fontSize: 13 }}>{subtitle}</div>
-          </div>
-        </div>
-        {description && <div className="deckyhub-details-description" style={{ color: "#b8c7d3", fontSize: 14, lineHeight: 1.4, overflowWrap: "anywhere" }}>{description}</div>}
-        {details}
-
-        <div style={{ display: "grid", gap: 8, padding: 12, background: "rgba(0, 0, 0, 0.2)", borderRadius: 8 }}>
-          {/* Inline label + no separator: Steam's dropdown height is fixed, so
-              this is what keeps each row short. */}
-          <DropdownItem
-            layout="inline"
-            bottomSeparator="none"
-            label={t("settings.updateChannel")}
-            rgOptions={[
-              { label: t("settings.stableReleases"), data: "stable" },
-              { label: t("settings.preReleases"), data: "prerelease" },
-            ]}
-            selectedOption={channel}
-            disabled={disabled}
-            onChange={({ data }) => onChannelChange(data as UpdateChannel)}
-          />
-          {versionOptions.length > 0 && (
-            <DropdownItem layout="inline" bottomSeparator="none" label={t("settings.version")} rgOptions={versionOptions} selectedOption={selectedTag} disabled={disabled} onChange={({ data }) => onVersionChange(String(data))} />
-          )}
-        </div>
-      </div>
-
-      {error && <small style={{ color: "#ff6b6b" }}>{error}</small>}
-      {isEmpty && <small style={{ color: "#ff6b6b" }}>{t("settings.noReleasesFound")}</small>}
-    </>
   );
 }

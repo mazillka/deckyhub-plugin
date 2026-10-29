@@ -161,23 +161,19 @@ test("download modal actions use the full modal width", async ({ page }) => {
   await expectFullWidth("OK");
 });
 
-test("Discover keeps search and status on one row", async ({ page }) => {
+test("Discover puts Search on its own line and its four menus in one row below", async ({ page }) => {
   await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
   await browseAll(page);
   const app = mock(page);
-  const search = app.getByLabel("Search");
-  const status = app.getByLabel("Status");
-
-  await expect(search).toBeVisible();
-  await expect(status).toBeVisible();
-  const [searchBox, statusBox] = await Promise.all([search.boundingBox(), status.boundingBox()]);
-  expect(searchBox).not.toBeNull();
-  expect(statusBox).not.toBeNull();
-  expect(Math.abs(searchBox!.y - statusBox!.y)).toBeLessThan(20);
-  expect(Math.abs(searchBox!.height - statusBox!.height)).toBeLessThan(20);
-  expect(statusBox!.x).toBeGreaterThan(searchBox!.x);
-  // Search gets twice a dropdown's share of the row.
-  expect(searchBox!.width).toBeGreaterThan(statusBox!.width * 1.5);
+  const boxes = await Promise.all(["Search", "Status", "Category", "Sort", "Then by"].map((label) => app.getByLabel(label, { exact: true }).boundingBox()));
+  const [search, ...menus] = boxes.map((box) => box!);
+  // Each menu sits below Search, side by side, wide enough for "All (330)" (cut off on a Deck before).
+  for (const menu of menus) {
+    expect(menu.y).toBeGreaterThan(search.y + search.height - 1);
+    expect(Math.abs(menu.y - menus[0].y)).toBeLessThan(4);
+    expect(menu.width).toBeGreaterThan(180);
+  }
+  expect(search.width).toBeGreaterThan(menus[0].width * 3);
 });
 
 test("Discover keeps its refresh action beside the description", async ({ page }) => {
@@ -497,51 +493,32 @@ test("DeckyHub version picker re-filters by channel and leaves the channel as it
   await bridgeCall(page, "save_settings", { ...settings, updateChannel: "stable" });
 });
 
-test("DeckyHub update modal's Close button is full width and dismisses the modal", async ({ page }) => {
+test("DeckyHub update modal's Close button spans its column and dismisses the modal", async ({ page }) => {
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
   await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
 
-  const [closeBox, modalBox] = await Promise.all([
+  // As wide as the Check for Updates button above it, the whole actions column.
+  const [closeBox, checkBox] = await Promise.all([
     app.getByRole("button", { name: "Close", exact: true }).boundingBox(),
-    app.locator(".steam-modal").boundingBox(),
+    app.locator(".steam-modal").getByRole("button", { name: "Check for Updates", exact: true }).boundingBox(),
   ]);
-  expect(closeBox).not.toBeNull();
-  expect(modalBox).not.toBeNull();
-  expect(closeBox!.width).toBeGreaterThanOrEqual(modalBox!.width - 48);
+  expect(Math.abs(closeBox!.width - checkBox!.width)).toBeLessThan(2);
 
   await app.getByRole("button", { name: "Close", exact: true }).click();
   await expect(app.getByText("DeckyHub Update", { exact: true })).toBeHidden();
 });
 
-test("Repository pagination stays on one row", async ({ page }) => {
+test("Search shows every result, with no pages", async ({ page }) => {
   await page.route("https://api.github.com/search/repositories**", (route) =>
-    route.fulfill({
-      json: {
-        items: Array.from({ length: 6 }, (_, index) => ({
-          full_name: `example/repo-${index}`,
-          description: "Test repository",
-          stargazers_count: index,
-        })),
-      },
-    })
+    route.fulfill({ json: { items: Array.from({ length: 12 }, (_, index) => ({ full_name: `example/repo-${index}`, description: "Test repository", stargazers_count: index })) } }),
   );
   await page.goto("/?preview=/deckyhub/search&bridge=http://127.0.0.1:8643");
   const app = mock(page);
   await app.getByLabel("Search GitHub").fill("example");
   await app.getByRole("button", { name: "Search", exact: true }).click();
-
-  const previous = app.getByRole("button", { name: "Previous", exact: true });
-  const next = app.getByRole("button", { name: "Next", exact: true });
-  const pageOf = app.getByText("Page 1 of 2", { exact: true });
-  await expect(previous).toBeVisible();
-  await expect(pageOf).toBeVisible();
-  await expect(next).toBeVisible();
-  const [previousBox, pageOfBox, nextBox] = await Promise.all([previous.boundingBox(), pageOf.boundingBox(), next.boundingBox()]);
-  expect(Math.abs(previousBox!.y - pageOfBox!.y)).toBeLessThan(20);
-  expect(Math.abs(pageOfBox!.y - nextBox!.y)).toBeLessThan(20);
-  expect(pageOfBox!.x).toBeGreaterThan(previousBox!.x);
-  expect(nextBox!.x).toBeGreaterThan(pageOfBox!.x);
+  await expect(app.getByRole("heading", { name: "example/repo-11" })).toBeVisible();
+  await expect(app.getByRole("button", { name: "Next", exact: true })).toHaveCount(0);
 });
 
 test("Discover's search also matches app descriptions", async ({ page }) => {
@@ -1801,7 +1778,7 @@ test("The D-pad moves left and right through every row of the new Discover, list
     expect(await sideBySideWithoutRightFlow(page)).toEqual([]);
     // Browsing: grid, then list.
     await browseAll(page);
-    await expect(app.getByText(/^Page 1 of/)).toBeVisible();
+    await expect(app.getByRole("button", { name: "Manage", exact: true }).first()).toBeVisible();
     expect(await sideBySideWithoutRightFlow(page)).toEqual([]);
     await app.getByRole("button", { name: "List", exact: true }).click();
     await expect(app.locator(".deckyhub-app-row").first()).toBeVisible();
@@ -1821,7 +1798,7 @@ test("The D-pad moves left and right through every row of the new Discover, list
   }
 });
 
-test("Discover keeps the D-pad focused through its chips, category switches and page turns", async ({ page }) => {
+test("Discover keeps the D-pad focused through its chips and category switches", async ({ page }) => {
   await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
   const app = mock(page);
   const focused = () => pluginFrame(page).evaluate(() => document.activeElement?.textContent?.trim() ?? "");
@@ -1836,15 +1813,8 @@ test("Discover keeps the D-pad focused through its chips, category switches and 
   await app.locator(".deckyhub-back-button").getByRole("button").click();
   await expect.poll(focused).toMatch(/^All plugins/);
 
-  // R1 turns the page and focus stays on the same spot, now holding the next page's card.
   await app.getByRole("button", { name: /^All plugins/ }).click();
-  const firstManage = app.getByRole("button", { name: "Manage", exact: true }).first();
-  await firstManage.focus();
-  const before = await app.locator("[data-flow-children] h3").first().textContent();
-  await firstManage.press("]");
-  await expect(app.getByText(/^Page 2 of/)).toBeVisible();
-  await expect(app.locator("[data-flow-children] h3").first()).not.toHaveText(before!);
-  await expect.poll(focused).toBe("Manage");
+  await app.getByRole("button", { name: "Manage", exact: true }).first().focus();
 
   // The card holding focus gets a ring; the others don't.
   const rings = () => app.locator(".deckyhub-focus-ring").evaluateAll((cards) => cards.map((card) => getComputedStyle(card).outlineWidth));
@@ -1993,11 +1963,11 @@ test("Every row of side-by-side controls lets the D-pad move left and right", as
   expect(await sideBySideWithoutRightFlow(page)).toEqual([]);
   await app.locator(".steam-modal").getByRole("button", { name: "Close", exact: true }).click();
 
-  // Search: search row, two-column results with Install/Add, pager.
+  // Search: search row, two-column results with Install/Add.
   await app.getByRole("button", { name: "/deckyhub/search" }).click();
   await app.getByLabel("Search GitHub").fill("example");
   await app.getByRole("button", { name: "Search", exact: true }).click();
-  await expect(app.getByText("Page 1 of 2", { exact: true })).toBeVisible();
+  await expect(app.getByRole("heading", { name: "example/repo-5" })).toBeVisible();
   expect(await sideBySideWithoutRightFlow(page)).toEqual([]);
 
   // Repositories: import/export, registries.
@@ -2162,28 +2132,24 @@ test("A failed download shows its reason in the download window", async ({ page 
   await expect(app.locator(".steam-modal")).toHaveCount(0);
 });
 
-test("Discover's list shows a page at a time, and L1 / R1 turn it", async ({ page }) => {
+test("Discover builds its list a batch at a time, adding more near the end", async ({ page }) => {
   await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
   const app = mock(page);
   await browseAll(page);
-  const total = (await bridgeCall(page, "get_apps")).result.apps.length;
-  const pages = Math.ceil(total / 9);
-  // Three rows of three cards (the default Items Per Row).
-  await expect(app.getByText(`Page 1 of ${pages}`, { exact: true })).toBeVisible();
-  await expect(app.locator("[data-flow-children] h3")).toHaveCount(9);
-  const first = await app.locator("[data-flow-children] h3").first().textContent();
-
-  // R1 (the mock's "]") anywhere in the list turns the page; L1 ("[") turns it back.
-  await app.getByRole("button", { name: "Manage", exact: true }).first().press("]");
-  await expect(app.getByText(`Page 2 of ${pages}`, { exact: true })).toBeVisible();
-  await expect(app.locator("[data-flow-children] h3").first()).not.toHaveText(first!);
-  await app.getByRole("button", { name: "Manage", exact: true }).first().press("[");
-  await expect(app.getByText(`Page 1 of ${pages}`, { exact: true })).toBeVisible();
-
-  // The list view shows every plugin, with no pages.
   await app.getByRole("button", { name: "List", exact: true }).click();
-  await expect(app.locator(".deckyhub-app-row")).toHaveCount(total);
-  await expect(app.locator(".deckyhub-pager")).toHaveCount(0);
+  const total = (await bridgeCall(page, "get_apps")).result.apps.length;
+  const rows = app.locator(".deckyhub-app-row");
+  // The first 30, then the next 30 once the end of the list comes into view.
+  await expect(rows).toHaveCount(30);
+  await rows.last().scrollIntoViewIfNeeded();
+  await expect.poll(() => rows.count()).toBeGreaterThan(30);
+  // Keeps going to the very last plugin, with no pages.
+  for (let shown = await rows.count(); shown < total; shown = await rows.count()) {
+    await rows.last().scrollIntoViewIfNeeded();
+    await expect.poll(() => rows.count()).toBeGreaterThan(shown);
+  }
+  await expect(rows).toHaveCount(total);
+  await expect(app.getByRole("button", { name: "Next", exact: true })).toHaveCount(0);
 });
 
 test("Search and Updates switch to the list view too, and remember it", async ({ page }) => {
@@ -2193,15 +2159,14 @@ test("Search and Updates switch to the list view too, and remember it", async ({
   const removePlugin = seedPlugin("e2e-mako", "MAKO - Frame Generation", "1.0.0");
   await mockMakoReleases(page, [makoRelease("plugin-v1.2.3", "c".repeat(64))]);
   try {
-    // Search: five results a page as a grid, all seven as a list.
+    // Search: all seven, as a grid and as a list.
     await page.goto("/?preview=/deckyhub/search&bridge=http://127.0.0.1:8643");
     const app = mock(page);
     await app.getByLabel("Search GitHub").fill("example");
     await app.getByRole("button", { name: "Search", exact: true }).click();
-    await expect(app.getByText("Page 1 of 2", { exact: true })).toBeVisible();
+    await expect(app.getByRole("heading", { name: "example/repo-6" })).toBeVisible();
     await app.getByRole("button", { name: "List", exact: true }).click();
     await expect(app.locator(".deckyhub-search-row")).toHaveCount(7);
-    await expect(app.getByText("Page 1 of 2", { exact: true })).toHaveCount(0);
     await expect(app.getByRole("heading", { name: "example/repo-6" }).locator("..").getByRole("button", { name: "Install", exact: true })).toBeVisible();
 
     // Updates opens in the list view chosen on Search, and switches back to the grid.
