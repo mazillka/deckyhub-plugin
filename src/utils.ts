@@ -2,7 +2,7 @@ import { fetchNoCors, toaster } from "@decky/api";
 import { getSettings, logFrontend, stageInstall } from "./api";
 import { showInstallDownloadModal } from "./components/DownloadProgress";
 import { en, type MessageKey, type TFunc } from "./i18n/en";
-import type { App, AppReleaseOption, Asset, DeckyHubRelease, DeckyHubReleaseOption, RepoPreference, UpdateChannel } from "./types";
+import type { App, AppReleaseOption, Asset, DeckyHubRelease, DeckyHubReleaseOption, PluginStats, RepoPreference, UpdateChannel } from "./types";
 import { compareVersions, displayVersion, inChannel, normalizeVersion } from "./version";
 
 // GitHub's unauthenticated core API allows 60 requests/hour per IP, easy to
@@ -525,50 +525,42 @@ const RELEASE_INDEX_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-r
 // An index this old means its job stopped publishing; ask GitHub instead.
 const RELEASE_INDEX_MAX_AGE = 6 * 60 * 60 * 1000;
 
-let releaseIndex: { at: number; request: Promise<Record<string, unknown[]> | null> } | null = null;
-
-// One download serves every repo's lookup. A forced refresh downloads it again,
-// unless one started in the last minute (every card of one Refresh shares it).
-function fetchReleaseIndex(force: boolean) {
-  if (!releaseIndex || Date.now() - releaseIndex.at > (force ? 60_000 : CACHE_TTL)) {
-    releaseIndex = {
-      at: Date.now(),
-      request: fetchNoCors(RELEASE_INDEX_URL, { signal: AbortSignal.timeout(15_000) })
-        .then((response) => (response.ok ? response.json() : null))
-        .then((index: any) => (index && Date.now() - Date.parse(index.generatedAt) < RELEASE_INDEX_MAX_AGE ? index.releases : null))
-        .catch((error: unknown) => {
-          log(`Release index unavailable, asking GitHub per repo: ${error}`);
-          return null;
-        }),
-    };
-  }
-  return releaseIndex.request;
+// One of the registry's raw files, downloaded once and shared by every caller for
+// CACHE_TTL. A forced refresh downloads it again, unless one started in the last
+// minute (every card of one Refresh shares it). `pick` turns the file into what
+// callers get, and its fallback stands in for a missing or broken file.
+function cachedRawJson<T>(url: string, pick: (data: any) => T, fallback: T) {
+  let cached: { at: number; request: Promise<T> } | null = null;
+  return (force = false) => {
+    if (!cached || Date.now() - cached.at > (force ? 60_000 : CACHE_TTL)) {
+      cached = {
+        at: Date.now(),
+        request: fetchNoCors(url, { signal: AbortSignal.timeout(15_000) })
+          .then((response) => (response.ok ? response.json() : null))
+          .then((data) => (data ? pick(data) : fallback))
+          .catch((error: unknown) => {
+            log(`${url} unavailable: ${error}`);
+            return fallback;
+          }),
+      };
+    }
+    return cached.request;
+  };
 }
 
-// Each listed plugin's all-time downloads, GitHub stars, last release date and
-// whether it runs as root, published next to the release index (stats.json, same
-// job). Only Discover uses it, so a missing file just leaves those out.
-const PLUGIN_STATS_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/stats.json";
+const fetchReleaseIndex = cachedRawJson<Record<string, unknown[]> | null>(
+  RELEASE_INDEX_URL,
+  (index) => (Date.now() - Date.parse(index.generatedAt) < RELEASE_INDEX_MAX_AGE ? index.releases : null),
+  null,
+);
 
-export type PluginStats = { downloads?: number; stars?: number | null; updated?: string | null; root?: boolean | null };
-
-let pluginStats: { at: number; request: Promise<Record<string, PluginStats>> } | null = null;
-
-export function fetchPluginStats(force = false) {
-  if (!pluginStats || Date.now() - pluginStats.at > (force ? 60_000 : CACHE_TTL)) {
-    pluginStats = {
-      at: Date.now(),
-      request: fetchNoCors(PLUGIN_STATS_URL, { signal: AbortSignal.timeout(15_000) })
-        .then((response) => (response.ok ? response.json() : null))
-        .then((stats: any) => stats?.plugins ?? {})
-        .catch((error: unknown) => {
-          log(`Plugin stats unavailable: ${error}`);
-          return {};
-        }),
-    };
-  }
-  return pluginStats.request;
-}
+// Each listed plugin's stats (see PluginStats), published next to the release
+// index by the same job. Only Discover uses it, so a missing file just leaves them out.
+export const fetchPluginStats = cachedRawJson<Record<string, PluginStats>>(
+  "https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/stats.json",
+  (stats) => stats.plugins ?? {},
+  {},
+);
 
 // "2 days ago", "3 months ago": how long ago a card's plugin was last released.
 export function timeAgo(time: number) {

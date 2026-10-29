@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { FaArrowCircleUp, FaCog, FaCompass, FaFileExport, FaSearch, FaSync, FaTimes, FaArrowUp } from "react-icons/fa";
 import { downloadAsset, exportLogs, getApps, getSettings, REGISTRY_UPDATED } from "../api";
 import { useT } from "../i18n";
-import type { App, Asset, HideableButton, RepoPreference, UpdateChannel, View } from "../types";
-import { compactButtonStyle, DEFAULT_COLUMNS_PER_ROW, compactNumber, disclaimerStyle, fetchPluginStats, type PluginStats, getDeckyBackend, hydrate, installAction, log, needsFreshInstall, notifyUpdates, PLUGIN_INSTALL_TYPE, surfaceStyle, updateDeckyPlugins } from "../utils";
+import type { App, Asset, HideableButton, PluginStats, RepoPreference, UpdateChannel, View } from "../types";
+import { compactButtonStyle, DEFAULT_COLUMNS_PER_ROW, compactNumber, disclaimerStyle, fetchPluginStats, getDeckyBackend, hydrate, installAction, log, needsFreshInstall, notifyUpdates, PLUGIN_INSTALL_TYPE, surfaceStyle, updateDeckyPlugins } from "../utils";
 import { AppCard } from "../components/AppCard";
 import { confirmPluginInstall } from "../components/AppDetailsModal";
 import { CleanupSection } from "../components/CleanupSection";
@@ -61,20 +61,20 @@ export function Content({ fullPage }: { fullPage?: View }) {
     if (!loaded.current) setLoading(true);
     try {
       // Downloads and stars only matter for Discover's cards and sorting.
-      const [appData, settings, stats] = await Promise.all([getApps(), getSettings(), view === "discover" ? fetchPluginStats(force) : {}]);
+      const [appData, settings, stats] = await Promise.all([getApps(), getSettings(), view === "discover" ? fetchPluginStats(force) : Promise.resolve<Record<string, PluginStats>>({})]);
       const local = appData.apps;
       const preferences = settings.repoSettings || {};
       setRepoPreferences(preferences);
       setColumnsPerRow(settings.columnsPerRow);
       setHiddenButtons(settings.hiddenButtons ?? []);
       const tracked = (view === "updates" ? local.filter((app) => app.installedVersion) : local).map((app) => {
-        const stat = (stats as Record<string, PluginStats>)[app.repo.toLowerCase()];
-        return stat ? { ...app, downloads: stat.downloads, stars: stat.stars, lastRelease: stat.updated, root: stat.root } : app;
+        const stat = stats[app.repo.toLowerCase()];
+        return stat ? { ...app, stats: stat } : app;
       });
       // A card keeps its last release check until this load's replaces it.
       setApps((current) => {
         const previous = new Map(current.map((app) => [app.id, app]));
-        return tracked.map((app) => { const kept = previous.get(app.id); return kept ? { ...kept, downloads: app.downloads, stars: app.stars, lastRelease: app.lastRelease, root: app.root } : app; });
+        return tracked.map((app) => { const kept = previous.get(app.id); return kept ? { ...kept, stats: app.stats } : app; });
       });
       setLoadError(null);
       // Discover shows every card straight away and fills each in as its
@@ -259,8 +259,8 @@ export function Content({ fullPage }: { fullPage?: View }) {
     </Card>
   );
 
-  const releasedAt = (app: App) => Date.parse(app.lastRelease || app.publishedAt || "") || 0;
-  const totalDownloads = apps.reduce((sum, app) => sum + (app.downloads ?? 0), 0);
+  const releasedAt = (app: App) => Date.parse(app.stats?.updated || app.publishedAt || "") || 0;
+  const totalDownloads = apps.reduce((sum, app) => sum + (app.stats?.downloads ?? 0), 0);
 
   const visibleApps = apps
     .filter((app) =>
@@ -273,8 +273,8 @@ export function Content({ fullPage }: { fullPage?: View }) {
     // that order reversed. Plugins without stats (added repos) go last when sorting by them.
     .sort((a, b) =>
       Number(b.updateAvailable === true) - Number(a.updateAvailable === true) || (view === "updates" ? 0
-        : sortOrder === "downloads" ? (b.downloads ?? -1) - (a.downloads ?? -1)
-        : sortOrder === "stars" ? (b.stars ?? -1) - (a.stars ?? -1)
+        : sortOrder === "downloads" ? (b.stats?.downloads ?? -1) - (a.stats?.downloads ?? -1)
+        : sortOrder === "stars" ? (b.stats?.stars ?? -1) - (a.stats?.stars ?? -1)
         : sortOrder === "updated" ? releasedAt(b) - releasedAt(a)
         : sortOrder === "added" ? apps.indexOf(b) - apps.indexOf(a)
         : sortOrder === "za" ? b.name.localeCompare(a.name)

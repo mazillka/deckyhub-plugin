@@ -34,7 +34,7 @@ export const showReleaseInfo = (t: TFunc, title: string, publishedAt?: string | 
   );
 
 // The registry's date for the release it shows, else the card's own release check.
-const releasedAt = (app: App) => Date.parse(app.lastRelease || app.publishedAt || "");
+const releasedAt = (app: App) => Date.parse(app.stats?.updated || app.publishedAt || "");
 const isStale = (released: number) => Date.now() - released > 365 * 24 * 60 * 60 * 1000;
 
 // Runs as root / No release in a year, shared by the card and its Manage window.
@@ -42,7 +42,7 @@ export function AppBadges({ app, t }: { app: App; t: TFunc }) {
   const released = releasedAt(app);
   return (
     <>
-      {app.root && <span title={t("appcard.runsAsRootHint")} style={{ ...pillStyle, color: "#ffb35c", background: "#ffb35c22", borderColor: "#ffb35c66" }}>{t("appcard.runsAsRoot")}</span>}
+      {app.stats?.root && <span title={t("appcard.runsAsRootHint")} style={{ ...pillStyle, color: "#ffb35c", background: "#ffb35c22", borderColor: "#ffb35c66" }}>{t("appcard.runsAsRoot")}</span>}
       {isStale(released) && <span title={new Date(released).toLocaleDateString()} style={{ ...pillStyle, color: "#ff8a8a", background: "#ff8a8a22", borderColor: "#ff8a8a66" }}>{t("appcard.noReleaseInYear")}</span>}
     </>
   );
@@ -51,11 +51,12 @@ export function AppBadges({ app, t }: { app: App; t: TFunc }) {
 // Updated / downloads / stars, shared by the card and its Manage window.
 export function AppStats({ app, t }: { app: App; t: TFunc }) {
   const released = releasedAt(app);
+  const { downloads, stars } = app.stats ?? {};
   return (
     <>
       {released > 0 && !isStale(released) && <span title={new Date(released).toLocaleDateString()}>{t("appcard.updated", { when: timeAgo(released) })}</span>}
-      {app.downloads !== undefined && <span title={t("appcard.downloads", { count: app.downloads.toLocaleString() })}>↓ {compactNumber(app.downloads)}</span>}
-      {app.stars != null && <span title={t("appcard.stars", { count: app.stars.toLocaleString() })}>★ {compactNumber(app.stars)}</span>}
+      {downloads !== undefined && <span title={t("appcard.downloads", { count: downloads.toLocaleString() })}>↓ {compactNumber(downloads)}</span>}
+      {stars != null && <span title={t("appcard.stars", { count: stars.toLocaleString() })}>★ {compactNumber(stars)}</span>}
     </>
   );
 }
