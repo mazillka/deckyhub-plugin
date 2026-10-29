@@ -8,7 +8,7 @@ import { Card, IconNote } from "./Card";
 // registry's scripts/discover.py), credited in About.
 const CATALOGS = [
   { name: "Decky Plugins Explorer", author: "SafetZahirovic", url: "https://github.com/SafetZahirovic/decky-plugins-explorer" },
-  { name: "Decky Extended Plugins", author: "beallio", url: "https://decky-extended-plugins.beallio.com/" },
+  { name: "Decky Extended Plugins", author: "beallio", url: "https://github.com/beallio/decky-plugins-extended" },
 ];
 
 // What DeckyHub is and who to thank, at the bottom of the Quick Access panel.

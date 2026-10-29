@@ -811,7 +811,7 @@ test("Quick Access's About thanks both plugin catalogs and links to them", async
   }
   await expect.poll(() => pluginFrame(page).evaluate(() => (window as unknown as { __opened: string[] }).__opened)).toEqual([
     "https://github.com/SafetZahirovic/decky-plugins-explorer",
-    "https://decky-extended-plugins.beallio.com/",
+    "https://github.com/beallio/decky-plugins-extended",
     "https://github.com/mazillka/deckyhub-plugin",
   ]);
 });
@@ -2036,10 +2036,40 @@ test("Discover's list shows a page at a time, and L1 / R1 turn it", async ({ pag
   await app.getByRole("button", { name: "Manage", exact: true }).first().press("[");
   await expect(app.getByText(`Page 1 of ${pages}`, { exact: true })).toBeVisible();
 
-  // The list view shows ten rows a page.
+  // The list view shows every plugin, with no pages.
   await app.getByRole("button", { name: "List", exact: true }).click();
-  await expect(app.locator(".deckyhub-app-row")).toHaveCount(10);
-  await expect(app.getByText(`Page 1 of ${Math.ceil(total / 10)}`, { exact: true })).toBeVisible();
+  await expect(app.locator(".deckyhub-app-row")).toHaveCount(total);
+  await expect(app.locator(".deckyhub-pager")).toHaveCount(0);
+});
+
+test("Search and Updates switch to the list view too, and remember it", async ({ page }) => {
+  await page.route("https://api.github.com/search/repositories**", (route) =>
+    route.fulfill({ json: { items: Array.from({ length: 7 }, (_, index) => ({ full_name: `example/repo-${index}`, description: "Test repository", stargazers_count: index })) } }),
+  );
+  const removePlugin = seedPlugin("e2e-mako", "MAKO - Frame Generation", "1.0.0");
+  await mockMakoReleases(page, [makoRelease("plugin-v1.2.3", "c".repeat(64))]);
+  try {
+    // Search: five results a page as a grid, all seven as a list.
+    await page.goto("/?preview=/deckyhub/search&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    await app.getByLabel("Search GitHub").fill("example");
+    await app.getByRole("button", { name: "Search", exact: true }).click();
+    await expect(app.getByText("Page 1 of 2", { exact: true })).toBeVisible();
+    await app.getByRole("button", { name: "List", exact: true }).click();
+    await expect(app.locator(".deckyhub-search-row")).toHaveCount(7);
+    await expect(app.getByText("Page 1 of 2", { exact: true })).toHaveCount(0);
+    await expect(app.getByRole("heading", { name: "example/repo-6" }).locator("..").getByRole("button", { name: "Install", exact: true })).toBeVisible();
+
+    // Updates opens in the list view chosen on Search, and switches back to the grid.
+    await app.getByRole("button", { name: "/deckyhub/updates" }).click();
+    await expect(app.locator(".deckyhub-app-row")).toHaveCount(1);
+    await expect(app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Update to v1.2.3", exact: true })).toBeVisible();
+    await app.getByRole("button", { name: "Grid", exact: true }).click();
+    await expect(app.locator(".deckyhub-app-row")).toHaveCount(0);
+    await expect(app.getByRole("heading", { name: "MAKO Decky" })).toBeVisible();
+  } finally {
+    removePlugin();
+  }
 });
 
 test("A repository added from search shows on Discover until it's removed", async ({ page }) => {

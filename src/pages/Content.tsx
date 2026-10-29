@@ -1,7 +1,7 @@
 import { toaster } from "@decky/api";
 import { DialogButtonPrimary as Button, Dropdown, Focusable, GamepadButton, Navigation, PanelSection, PanelSectionRow, Spinner, TextField } from "@decky/ui";
 import { useEffect, useRef, useState } from "react";
-import { FaArrowCircleUp, FaArrowLeft, FaCog, FaCompass, FaFileExport, FaList, FaSearch, FaSync, FaTh, FaTimes, FaArrowUp } from "react-icons/fa";
+import { FaArrowCircleUp, FaArrowLeft, FaCog, FaCompass, FaFileExport, FaSearch, FaSync, FaTimes, FaArrowUp } from "react-icons/fa";
 import { downloadAsset, exportLogs, getApps, getSettings, REGISTRY_UPDATED } from "../api";
 import { useT } from "../i18n";
 import type { App, Asset, HideableButton, PluginStats, RepoPreference, UpdateChannel, View } from "../types";
@@ -15,6 +15,7 @@ import { FocusableGrid } from "../components/FocusableGrid";
 import { Card, PageHeader } from "../components/Card";
 import { KeepInView, keepInView } from "../components/KeepInView";
 import { Pager } from "../components/Pager";
+import { LayoutToggle, useLayout } from "../components/LayoutToggle";
 import { RateLimitBanner } from "../components/RateLimitBanner";
 import { DeckyHubUpdate } from "../components/DeckyHubUpdate";
 
@@ -32,8 +33,6 @@ type SortOrder = (typeof SORT_ORDERS)[number];
 
 // Discover's home shelves, each the top of the list in one order, with See all for the rest.
 const SHELVES = [["popular", "downloads"], ["recent", "updated"], ["new", "added"]] as const;
-// List pages hold this many rows; grid pages three rows of cards.
-const LIST_PAGE_SIZE = 10;
 
 const chipStyle = { ...compactButtonStyle, width: "auto", marginBottom: 0, padding: "4px 16px", borderRadius: 999 };
 const bumperStyle = { padding: "1px 7px", borderRadius: 5, background: "rgba(255, 255, 255, 0.12)", fontSize: "0.75em", fontWeight: 700 };
@@ -55,7 +54,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
   // Discover opens on its shelves; a category chip or See all browses the whole list, a page at a time.
   const [browsing, setBrowsing] = useState(false);
   const [pageIndex, setPage] = useState(0);
-  const [layout, setLayout] = useState<"grid" | "list">("grid");
+  const [layout, setLayout] = useLayout();
   const [columnsPerRow, setColumnsPerRow] = useState(DEFAULT_COLUMNS_PER_ROW);
   const [repoPreferences, setRepoPreferences] = useState<Record<string, RepoPreference>>({});
   const [hiddenButtons, setHiddenButtons] = useState<HideableButton[]>([]);
@@ -312,10 +311,12 @@ export function Content({ fullPage }: { fullPage?: View }) {
       Number(b.updateAvailable === true) - Number(a.updateAvailable === true) || (view === "updates" ? 0
         : compareBy(sortOrder, a, b) || compareBy(thenBy, a, b) || compareBy("az", a, b)));
   const home = view === "discover" && !browsing;
-  const pageSize = layout === "list" ? LIST_PAGE_SIZE : columnsPerRow * 3;
-  const pageCount = Math.max(1, Math.ceil(visibleApps.length / pageSize));
+  // Discover's grid shows three rows of cards a page; lists (and Updates) show everything.
+  const pageSize = columnsPerRow * 3;
+  const paged = view === "discover" && layout === "grid";
+  const pageCount = paged ? Math.max(1, Math.ceil(visibleApps.length / pageSize)) : 1;
   const currentPage = Math.min(pageIndex, pageCount - 1);
-  const shownApps = view === "discover" ? visibleApps.slice(currentPage * pageSize, (currentPage + 1) * pageSize) : visibleApps;
+  const shownApps = paged ? visibleApps.slice(currentPage * pageSize, (currentPage + 1) * pageSize) : visibleApps;
   const turnPage = (step: number) => setPage(Math.min(Math.max(currentPage + step, 0), pageCount - 1));
   const openBrowse = (category: string, sort?: SortOrder) => {
     setCategoryFilter(category);
@@ -398,18 +399,16 @@ export function Content({ fullPage }: { fullPage?: View }) {
               actions={
                 <>
                   {browsing && (
-                    <>
-                      <div style={{ flex: "0 0 150px" }}>
-                        <Button style={{ ...compactButtonStyle, marginBottom: 0 }} onClick={() => setBrowsing(false)}>
-                          <FaArrowLeft /> {t("nav.discover")}
-                        </Button>
-                      </div>
-                      <div style={{ flex: "0 0 120px" }}>
-                        <Button style={{ ...compactButtonStyle, marginBottom: 0 }} onClick={() => { setLayout(layout === "grid" ? "list" : "grid"); setPage(0); }}>
-                          {layout === "grid" ? <><FaList /> {t("discover.list")}</> : <><FaTh /> {t("discover.grid")}</>}
-                        </Button>
-                      </div>
-                    </>
+                    <div style={{ flex: "0 0 150px" }}>
+                      <Button style={{ ...compactButtonStyle, marginBottom: 0 }} onClick={() => setBrowsing(false)}>
+                        <FaArrowLeft /> {t("nav.discover")}
+                      </Button>
+                    </div>
+                  )}
+                  {(browsing || view === "updates") && (
+                    <div style={{ flex: "0 0 120px" }}>
+                      <LayoutToggle layout={layout} onChange={(next) => { setLayout(next); setPage(0); }} />
+                    </div>
                   )}
                   <div style={{ flex: "0 0 180px" }}>
                     <Button style={{ ...compactButtonStyle, marginBottom: 0 }} onClick={() => void load(true)}>
@@ -466,7 +465,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
               if (event.detail.button === GamepadButton.BUMPER_RIGHT) turnPage(1);
             }}>
               {discoverFilters}
-              {view === "discover" && layout === "list" ? (
+              {layout === "list" ? (
                 <Focusable flow-children="down" style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
                   {shownApps.map((app) => (
                     <Focusable key={app.id} flow-children="right" onFocus={keepInView}>

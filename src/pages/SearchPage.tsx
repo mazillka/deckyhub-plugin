@@ -1,8 +1,10 @@
 import { toaster } from "@decky/api";
 import { DialogButtonPrimary as Button, Focusable, Navigation, PanelSection, PanelSectionRow, TextField } from "@decky/ui";
 import { FocusableGrid } from "../components/FocusableGrid";
+import { keepInView } from "../components/KeepInView";
 import { Card, PageHeader } from "../components/Card";
 import { Pager } from "../components/Pager";
+import { LayoutToggle, useLayout } from "../components/LayoutToggle";
 import { RateLimitBanner } from "../components/RateLimitBanner";
 import { startPluginInstall } from "../components/AppDetailsModal";
 import { showReleaseInfo } from "../components/AppCard";
@@ -31,6 +33,9 @@ export function SearchPage() {
   const [installing, setInstalling] = useState<string | null>(null);
 
   const [hiddenButtons, setHiddenButtons] = useState<HideableButton[]>([]);
+  // Shared with Discover and Updates; the list shows every result, the grid five a page.
+  const [layout, setLayout] = useLayout();
+  const shown = layout === "list" ? results : results.slice(page * RESULTS_PER_PAGE, page * RESULTS_PER_PAGE + RESULTS_PER_PAGE);
 
   useEffect(() => {
     void getSettings().then((settings) => setHiddenButtons(settings.hiddenButtons ?? []));
@@ -122,6 +127,35 @@ export function SearchPage() {
     }
   };
 
+  // Install and Add, shared by the grid's cards and the list's rows.
+  const resultActions = (repo: SearchRepo) => {
+    const added = existingRepos.has(repo.full_name.toLowerCase());
+    return (
+      <Focusable flow-children="right" style={{ display: "flex", gap: 12 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <Button
+            style={{ ...compactButtonStyle, marginBottom: 0 }}
+            disabled={installing !== null}
+            onSecondaryButton={() => void releaseInfo(repo.full_name).catch(showError)}
+            onSecondaryActionDescription={t("appcard.releaseInfo")}
+            onOptionsButton={hiddenButtons.includes("downloadZip") ? undefined : () => void downloadZip(repo.full_name).catch(showError)}
+            onOptionsActionDescription={t("settings.downloadUpdate")}
+            onMenuButton={() => Navigation.NavigateToExternalWeb(`https://github.com/${repo.full_name}`)}
+            onMenuActionDescription={t("appcard.repository")}
+            onClick={() => void install(repo.full_name).catch(showError)}
+          >
+            <FaDownload /> {t("appcard.install")}
+          </Button>
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <Button style={{ ...compactButtonStyle, marginBottom: 0 }} disabled={added} onClick={() => void add(repo.full_name).catch(showError)}>
+            {added ? <FaCheck /> : <FaPlus />} {added ? t("repos.added") : t("repos.add")}
+          </Button>
+        </div>
+      </Focusable>
+    );
+  };
+
   return (
     <>
       <RateLimitBanner />
@@ -155,56 +189,46 @@ export function SearchPage() {
                   <FaTimes /> {t("repos.clear")}
                 </Button>
               </div>
+              <div style={{ flex: "0 0 120px" }}>
+                <LayoutToggle layout={layout} onChange={setLayout} />
+              </div>
             </Focusable>
           </PanelSectionRow>
           {searchError && <PanelSectionRow>{searchError}</PanelSectionRow>}
-          {results.length > RESULTS_PER_PAGE && (
+          {layout === "grid" && results.length > RESULTS_PER_PAGE && (
             <PanelSectionRow>
               <Pager page={page} total={Math.ceil(results.length / RESULTS_PER_PAGE)} onChange={setPage} />
             </PanelSectionRow>
           )}
         </PanelSection>
       </Card>
-      {results.length > 0 && (
-        <FocusableGrid items={results.slice(page * RESULTS_PER_PAGE, page * RESULTS_PER_PAGE + RESULTS_PER_PAGE)} columns={2} keyFor={(repo) => repo.full_name}>
-          {(repo) => {
-            const added = existingRepos.has(repo.full_name.toLowerCase());
-            return (
-              <div style={{ ...surfaceStyle, height: "100%", padding: "var(--dh-card-padding, 4px 14px)" }}>
-                <PanelSection title={repo.full_name}>
-                  <PanelSectionRow>
-                    <small>
-                      {repo.description || t("repos.noDescription")} · ★ {repo.stargazers_count ?? 0}
-                    </small>
-                  </PanelSectionRow>
-                  <PanelSectionRow>
-                    <Focusable flow-children="right" style={{ display: "flex", gap: 12 }}>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <Button
-                          style={compactButtonStyle}
-                          disabled={installing !== null}
-                          onSecondaryButton={() => void releaseInfo(repo.full_name).catch(showError)}
-                          onSecondaryActionDescription={t("appcard.releaseInfo")}
-                          onOptionsButton={hiddenButtons.includes("downloadZip") ? undefined : () => void downloadZip(repo.full_name).catch(showError)}
-                          onOptionsActionDescription={t("settings.downloadUpdate")}
-                          onMenuButton={() => Navigation.NavigateToExternalWeb(`https://github.com/${repo.full_name}`)}
-                          onMenuActionDescription={t("appcard.repository")}
-                          onClick={() => void install(repo.full_name).catch(showError)}
-                        >
-                          <FaDownload /> {t("appcard.install")}
-                        </Button>
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <Button style={compactButtonStyle} disabled={added} onClick={() => void add(repo.full_name).catch(showError)}>
-                          {added ? <FaCheck /> : <FaPlus />} {added ? t("repos.added") : t("repos.add")}
-                        </Button>
-                      </div>
-                    </Focusable>
-                  </PanelSectionRow>
-                </PanelSection>
-              </div>
-            );
-          }}
+      {results.length > 0 && layout === "list" && (
+        <Focusable flow-children="down" style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {shown.map((repo) => (
+            // The name is a direct child, so a row's buttons are found from its heading.
+            <Focusable key={repo.full_name} flow-children="right" onFocus={keepInView} className="deckyhub-search-row" style={{ ...surfaceStyle, display: "grid", gridTemplateColumns: "minmax(0, 1.3fr) minmax(0, 2fr) 70px 260px", alignItems: "center", columnGap: 12, padding: "6px 12px" }}>
+              <h3 style={{ margin: 0, color: "#fff", fontSize: "1em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{repo.full_name}</h3>
+              <small style={{ color: "#b8c7d3", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{repo.description || t("repos.noDescription")}</small>
+              <small style={{ color: "#8b9aa7" }}>★ {repo.stargazers_count ?? 0}</small>
+              {resultActions(repo)}
+            </Focusable>
+          ))}
+        </Focusable>
+      )}
+      {results.length > 0 && layout === "grid" && (
+        <FocusableGrid items={shown} columns={2} keyFor={(repo) => repo.full_name}>
+          {(repo) => (
+            <div style={{ ...surfaceStyle, height: "100%", padding: "var(--dh-card-padding, 4px 14px)" }}>
+              <PanelSection title={repo.full_name}>
+                <PanelSectionRow>
+                  <small>
+                    {repo.description || t("repos.noDescription")} · ★ {repo.stargazers_count ?? 0}
+                  </small>
+                </PanelSectionRow>
+                <PanelSectionRow>{resultActions(repo)}</PanelSectionRow>
+              </PanelSection>
+            </div>
+          )}
         </FocusableGrid>
       )}
     </>
