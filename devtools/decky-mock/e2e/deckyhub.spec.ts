@@ -1043,7 +1043,8 @@ test("Release checks read the registry's release index instead of the GitHub API
     return route.fulfill({ json: [makoRelease("plugin-v1.0.0", "a".repeat(64))] });
   });
   await page.route(RELEASE_INDEX_URL, (route) =>
-    route.fulfill({ json: { generatedAt: new Date().toISOString(), releases: { "eugeniosegala/mako": [makoRelease("plugin-v7.7.7", "f".repeat(64))] } } }),
+    // A day old still counts: GitHub skips the index job's scheduled runs for hours at a time.
+    route.fulfill({ json: { generatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), releases: { "eugeniosegala/mako": [makoRelease("plugin-v7.7.7", "f".repeat(64))] } } }),
   );
   await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
   const makoCard = mock(page).getByRole("heading", { name: "MAKO Decky" }).locator("..");
