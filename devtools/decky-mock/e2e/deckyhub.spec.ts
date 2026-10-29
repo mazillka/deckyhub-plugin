@@ -304,6 +304,25 @@ test("DeckyHub automatically notifies about an available update", async ({ page 
   await expect(app.getByRole("button", { name: "Release Page", exact: true })).toBeVisible();
 });
 
+test("DeckyHub's own update check asks GitHub, not a lagging release index", async ({ page }) => {
+  // The index hasn't caught up with the newest DeckyHub release yet.
+  await page.route(RELEASE_INDEX_URL, (route) =>
+    route.fulfill({ json: { generatedAt: new Date().toISOString(), releases: { "mazillka/deckyhub-plugin": [deckyHubRelease("v9.9.8", { sha: "c" })] } } }),
+  );
+  await mockDeckyHubReleases(page, [deckyHubRelease("v9.9.9", { sha: "b" }), deckyHubRelease("v9.9.8", { sha: "c" })]);
+  await page.goto("/?bridge=http://127.0.0.1:8643");
+  await expect(mock(page).locator(".qam-content").getByRole("button", { name: "Update to v9.9.9", exact: true })).toBeVisible();
+});
+
+test("DeckyHub's update check falls back to the release index when GitHub refuses", async ({ page }) => {
+  await page.route(RELEASE_INDEX_URL, (route) =>
+    route.fulfill({ json: { generatedAt: new Date().toISOString(), releases: { "mazillka/deckyhub-plugin": [deckyHubRelease("v9.9.8", { sha: "c" })] } } }),
+  );
+  await page.route("https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=20", (route) => route.fulfill({ status: 403, json: { message: "API rate limit exceeded" } }));
+  await page.goto("/?bridge=http://127.0.0.1:8643");
+  await expect(mock(page).locator(".qam-content").getByRole("button", { name: "Update to v9.9.8", exact: true })).toBeVisible();
+});
+
 test("DeckyHub's panel Update hands the newer release straight to Decky's installer", async ({ page }) => {
   await mockDeckyHubReleases(page, [deckyHubRelease("v9.9.9", { sha: "b" })]);
   await recordInstalls(page);

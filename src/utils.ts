@@ -613,12 +613,18 @@ export function timeAgo(time: number) {
 // Download and star counts on cards: "1.2K", in the reader's locale.
 export const compactNumber = (value: number) => new Intl.NumberFormat(undefined, { notation: "compact", maximumFractionDigits: 1 }).format(value);
 
+const DECKYHUB_REPO = "mazillka/deckyhub-plugin";
+
 async function requestReleases(repo: string, force: boolean): Promise<Release[]> {
   const cacheKey = `${RELEASES_CACHE_PREFIX}${repo}`;
   const cached = readCache<Release[]>(cacheKey);
   if (cached && !force && Date.now() - cached.at < CACHE_TTL) return cached.data;
   const url = `https://api.github.com/repos/${repo}/releases?per_page=20`;
-  let body: unknown = (await fetchReleaseIndex(force))?.[repo.toLowerCase()];
+  const indexed = (await fetchReleaseIndex(force))?.[repo.toLowerCase()];
+  // DeckyHub's own update check asks GitHub first: one request, and a new DeckyHub
+  // release must show up at once, not whenever the index job next runs (GitHub
+  // skips its scheduled runs for hours). The index is its fallback.
+  let body: unknown = repo.toLowerCase() === DECKYHUB_REPO ? undefined : indexed;
   const fromIndex = Boolean(body);
   if (!body) {
     try {
@@ -636,7 +642,8 @@ async function requestReleases(repo: string, force: boolean): Promise<Release[]>
     } catch (error) {
       // Older releases beat an error card; a rate limit still raises the banner.
       if (cached) return cached.data;
-      throw error;
+      if (!indexed) throw error;
+      body = indexed;
     }
   }
   const releases: Release[] = (Array.isArray(body) ? body : [])
@@ -675,7 +682,7 @@ function listOrError<T>(items: Promise<T[]>): Promise<{ items: T[]; error?: stri
 // version picker, each with its DeckyHub-*.zip only when it carries a SHA-256
 // — Decky Loader's installer needs one to verify the download.
 export function listDeckyHubReleases(force = false): Promise<{ items: DeckyHubReleaseOption[]; error?: string }> {
-  return listOrError(fetchReleases("mazillka/deckyhub-plugin", force).then((releases) => releases.map(({ assets, ...release }) => ({
+  return listOrError(fetchReleases(DECKYHUB_REPO, force).then((releases) => releases.map(({ assets, ...release }) => ({
     ...release,
     asset: assets.find((asset) => /^DeckyHub-.*\.zip$/i.test(asset.name) && /^[0-9a-f]{64}$/i.test(asset.sha256 ?? "")),
   }))));
