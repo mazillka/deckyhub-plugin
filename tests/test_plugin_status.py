@@ -122,6 +122,14 @@ class PluginStatusTests(unittest.TestCase):
             self.assertEqual(asyncio.run(plugin.save_settings({"density": "compact"}))["density"], "compact")
             self.assertEqual(asyncio.run(plugin.save_settings({"density": "tiny"}))["density"], "default")
 
+    def test_haptics_default_on_and_can_be_turned_off(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.settings_path = Path(home) / "settings.json"
+
+            self.assertIs(asyncio.run(plugin.save_settings({}))["haptics"], True)
+            self.assertIs(asyncio.run(plugin.save_settings({"haptics": False}))["haptics"], False)
+
     def test_hidden_buttons_keep_only_known_names(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = Plugin()

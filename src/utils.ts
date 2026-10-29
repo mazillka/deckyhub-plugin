@@ -286,11 +286,41 @@ declare global {
 
 export const getDeckyBackend = () => window.DeckyBackend ?? window.opener?.DeckyBackend ?? null;
 
+// The tick Steam itself plays when its trackpad cursor moves onto a new element:
+// TriggerSimpleHapticEvent(controller, 2 = both pads, 1 = Tick, intensity 1, gain 0),
+// on the Deck's built-in controller (type 4) only. Played as focus moves within
+// DeckyHub (Motion in index.tsx), unless Display Settings turns it off.
+let hapticsOn = true;
+let deckController: number | undefined;
+let controllerList: { unregister: () => void } | null = null;
+let lastTick = 0;
+export const setHaptics = (on: boolean) => {
+  hapticsOn = on;
+};
+export function hapticTick() {
+  const input = (window as any).SteamClient?.Input;
+  // One tick per move: a focus change can fire several focus events at once.
+  if (!hapticsOn || !input || Date.now() - lastTick < 40) return;
+  try {
+    controllerList ??= input.RegisterForControllerListChanges((controllers: { eControllerType: number; nControllerIndex: number }[]) => {
+      deckController = controllers.find((controller) => controller.eControllerType === 4)?.nControllerIndex;
+    });
+    if (deckController === undefined) return;
+    lastTick = Date.now();
+    input.TriggerSimpleHapticEvent(deckController, 2, 1, 1, 0);
+  } catch (error) {
+    log(`Haptic tick failed: ${error}`);
+    hapticsOn = false;
+  }
+}
+
 // Set by this copy's onDismount (src/index.tsx). Each load of DeckyHub is a
 // fresh module, so after a self-update only the old copy still sees false.
 let unloaded = false;
 export const markUnloaded = () => {
   unloaded = true;
+  controllerList?.unregister();
+  controllerList = null;
 };
 
 // Decky Loader reloads DeckyHub itself once its update is installed. If this

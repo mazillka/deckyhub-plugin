@@ -35,7 +35,7 @@ function IconNote({ icon, children }: { icon: ReactNode; children: ReactNode }) 
 
 export function SettingsPage() {
   const t = useT();
-  const [settings, setSettings] = useState<Settings>({ overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: DEFAULT_COLUMNS_PER_ROW, githubToken: "", density: "default", hiddenButtons: [] });
+  const [settings, setSettings] = useState<Settings>({ overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: DEFAULT_COLUMNS_PER_ROW, githubToken: "", density: "default", haptics: true, hiddenButtons: [] });
   // The token field saves on an explicit button (below), not per keystroke
   // like the other settings — typing a 40+ character token would otherwise
   // fire a save on every keystroke. This tracks the field independently of
@@ -71,7 +71,7 @@ export function SettingsPage() {
       }
       // Every mounted I18nProvider (one per route) re-syncs both the locale
       // and the GitHub token off this event — see i18n/index.tsx.
-      if ("language" in next || "githubToken" in next || "density" in next) window.dispatchEvent(new Event(LOCALE_CHANGED));
+      if ("language" in next || "githubToken" in next || "density" in next || "haptics" in next) window.dispatchEvent(new Event(LOCALE_CHANGED));
     });
   };
 
@@ -180,6 +180,9 @@ export function SettingsPage() {
               selectedOption={settings.columnsPerRow}
               onChange={({ data }) => update({ columnsPerRow: data })}
             />
+          </PanelSectionRow>
+          <PanelSectionRow>
+            <ToggleField label={t("settings.haptics")} checked={settings.haptics} onChange={(checked) => update({ haptics: checked })} />
           </PanelSectionRow>
           {HIDEABLE_BUTTONS.map(([name, label]) => (
             <PanelSectionRow key={name}>

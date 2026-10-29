@@ -8,7 +8,7 @@ import { Content } from "./pages/Content";
 import { ManageRepositoriesPage } from "./pages/ManageRepositoriesPage";
 import { SearchPage } from "./pages/SearchPage";
 import { SettingsPage } from "./pages/SettingsPage";
-import { markUnloaded, pageStyle } from "./utils";
+import { hapticTick, markUnloaded, pageStyle } from "./utils";
 
 const MOTION_CSS = `
   @media (prefers-reduced-motion: no-preference) {
@@ -20,7 +20,8 @@ const MOTION_CSS = `
 `;
 
 function Motion({ children }: { children: ReactNode }) {
-  return <div className="deckyhub-motion" style={{ height: "100%" }}><style>{MOTION_CSS}</style>{children}</div>;
+  // onFocus bubbles (focusin), so every focus move within DeckyHub ticks.
+  return <div className="deckyhub-motion" style={{ height: "100%" }} onFocus={hapticTick}><style>{MOTION_CSS}</style>{children}</div>;
 }
 
 const ROUTES: Record<string, () => ReactNode> = {
