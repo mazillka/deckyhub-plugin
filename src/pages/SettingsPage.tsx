@@ -82,7 +82,7 @@ export function SettingsPage() {
                 onClick={openTokenPage}
                 style={{ borderLeft: "3px solid #1a9fff", cursor: "pointer", paddingLeft: 10 }}
               >
-                <div style={{ color: "#8fcef4", fontSize: "0.9em", marginBottom: 3 }}>{t("settings.githubTokenHowTo")}</div>
+                <div style={{ color: "#8fcef4", fontSize: "max(12px, 0.9em)", marginBottom: 3 }}>{t("settings.githubTokenHowTo")}</div>
                 <strong style={{ alignItems: "center", color: "#fff", display: "inline-flex", gap: 6, textDecoration: "underline" }}>
                   github.com/settings/tokens <FaExternalLinkAlt size="0.8em" />
                 </strong>
@@ -116,7 +116,7 @@ export function SettingsPage() {
             <div style={{ display: "grid", gap: 8 }}>
               <IconNote icon={<FaFolderOpen />}>{t("settings.whereZipsSaved")}</IconNote>
               <div style={{ borderLeft: "3px solid #1a9fff", paddingLeft: 10 }}>
-                <div style={{ color: "#8fcef4", fontSize: "0.9em", marginBottom: 3 }}>{t("dl.installInDecky")}</div>
+                <div style={{ color: "#8fcef4", fontSize: "max(12px, 0.9em)", marginBottom: 3 }}>{t("dl.installInDecky")}</div>
                 <strong style={{ color: "#fff" }}>{t("dl.installPath")}</strong>
               </div>
             </div>

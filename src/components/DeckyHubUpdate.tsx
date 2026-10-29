@@ -78,7 +78,7 @@ export function DeckyHubUpdate() {
       <PanelSection title={title}>
         {hasUpdate && (
           <PanelSectionRow>
-            <div style={{ color: "#f0c33c", fontSize: "0.85em" }}>{t("settings.updateAvailable", { version: `v${normalizeVersion(release.version!)}` })}</div>
+            <div style={{ color: "#f0c33c", fontSize: "max(12px, 0.85em)" }}>{t("settings.updateAvailable", { version: `v${normalizeVersion(release.version!)}` })}</div>
           </PanelSectionRow>
         )}
         {/* Update, with Manage as a gear beside it; Manage alone takes the full row. */}

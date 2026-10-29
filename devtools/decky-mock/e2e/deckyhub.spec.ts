@@ -1335,7 +1335,7 @@ test("Compact interface shrinks DeckyHub's buttons and spacing, Default restores
     await bridgeCall(page, "save_settings", { overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: 3, githubToken: "" });
     await app.getByRole("button", { name: "/deckyhub/settings" }).click();
     const save = app.getByRole("button", { name: "Save Settings", exact: true });
-    await expect.poll(() => minHeight(save)).toBe("36px");
+    await expect.poll(() => minHeight(save)).toBe("40px");
 
     await app.getByLabel("Interface").selectOption({ label: "Compact" });
     await expect.poll(() => minHeight(save)).toBe("28px");
@@ -1350,7 +1350,7 @@ test("Compact interface shrinks DeckyHub's buttons and spacing, Default restores
 
     await app.getByRole("button", { name: "/deckyhub/settings" }).click();
     await app.getByLabel("Interface").selectOption({ label: "Default" });
-    await expect.poll(() => minHeight(app.getByRole("button", { name: "Save Settings", exact: true }))).toBe("36px");
+    await expect.poll(() => minHeight(app.getByRole("button", { name: "Save Settings", exact: true }))).toBe("40px");
   } finally {
     await bridgeCall(page, "save_settings", { overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: 3, githubToken: "" });
   }
@@ -1827,6 +1827,38 @@ test("Discover keeps the D-pad focused through its chips, category switches and 
   // The card holding focus gets a ring; the others don't.
   const rings = () => app.locator(".deckyhub-focus-ring").evaluateAll((cards) => cards.map((card) => getComputedStyle(card).outlineWidth));
   await expect.poll(async () => (await rings()).filter((width) => width === "3px").length).toBe(1);
+});
+
+test("B goes back from a category to the shelves", async ({ page }) => {
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  await app.getByRole("button", { name: /^Utilities/ }).click();
+  await expect(app.getByRole("heading", { name: "Utilities", exact: true })).toBeVisible();
+  // The mock's Escape stands in for B.
+  await app.getByRole("button", { name: "Manage", exact: true }).first().press("Escape");
+  await expect(app.getByRole("heading", { name: "Most popular", exact: true })).toBeVisible();
+});
+
+test("Text stays readable at arm's length: nothing under 12px on the main screens", async ({ page }) => {
+  const tooSmall = () => pluginFrame(page).evaluate(() =>
+    [...document.querySelectorAll("body *")]
+      .filter((element) => !element.closest(".preview-nav, .steam-bottombar, .steam-topbar") && element.getClientRects().length && [...element.childNodes].some((node) => node.nodeType === 3 && node.textContent?.trim()))
+      .filter((element) => parseFloat(getComputedStyle(element).fontSize) < 12)
+      .map((element) => `${getComputedStyle(element).fontSize} ${element.textContent?.trim().slice(0, 30)}`));
+  await page.goto("/?bridge=http://127.0.0.1:8643");
+  await expect(mock(page).getByRole("button", { name: "Discover", exact: true })).toBeVisible();
+  expect(await tooSmall()).toEqual([]);
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  await expect(app.getByRole("heading", { name: "Most popular", exact: true })).toBeVisible();
+  expect(await tooSmall()).toEqual([]);
+  await browseAll(page);
+  await app.getByRole("button", { name: "List", exact: true }).click();
+  await expect(app.locator(".deckyhub-app-row").first()).toBeVisible();
+  expect(await tooSmall()).toEqual([]);
+  await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
+  await expect(app.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
+  expect(await tooSmall()).toEqual([]);
 });
 
 // Seeds an installed Decky plugin where dev-server.py scans for them.

@@ -185,11 +185,13 @@ export function ToggleField({ label, checked, onChange }: { label?: string; chec
 export const GamepadButton = { BUMPER_LEFT: 5, BUMPER_RIGHT: 6 };
 
 export function Focusable({ style, children, ...rest }: { style?: CSSProperties; children?: ReactNode; [key: string]: unknown }) {
-  const { "flow-children": flowChildren, noFocusRing: _noFocusRing, onActivate, onCancel: _onCancel, onButtonDown, ...divProps } = rest;
-  const bumper = onButtonDown
+  const { "flow-children": flowChildren, noFocusRing: _noFocusRing, onActivate, onCancel: _onCancel, onButtonDown, onCancelButton, onCancelActionDescription: _onCancelActionDescription, ...divProps } = rest;
+  // "Escape" stands in for B where a Focusable handles it.
+  const bumper = onButtonDown || onCancelButton
     ? (event: React.KeyboardEvent) => {
+        if (event.key === "Escape" && onCancelButton) return (onCancelButton as () => void)();
         const button = { "[": GamepadButton.BUMPER_LEFT, "]": GamepadButton.BUMPER_RIGHT }[event.key];
-        if (button) (onButtonDown as (event: { detail: { button: number } }) => void)({ detail: { button } });
+        if (button && onButtonDown) (onButtonDown as (event: { detail: { button: number } }) => void)({ detail: { button } });
       }
     : undefined;
   const flowStyle = flowChildren === "right" ? { display: "flex", flexDirection: "row" as const } : flowChildren === "down" ? { display: "flex", flexDirection: "column" as const } : {};
