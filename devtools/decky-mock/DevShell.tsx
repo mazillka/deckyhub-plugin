@@ -127,11 +127,11 @@ export default function DevShell() {
         <main className="steam-screen">
         {ActivePage ? (
           <div className="steam-page">
-            <header className="steam-topbar"><span className="steam-brand">STEAM</span><span>⌕ &nbsp; ◉ &nbsp; ◔ &nbsp; ▰ &nbsp; 12:34 PM</span></header>
+            <header className="steam-topbar"><span /><span className="steam-status">⌕ &nbsp; ◉ &nbsp; ▰ &nbsp; <strong>12:34 PM</strong></span></header>
             <div className="steam-page-content">
               <ActivePage />
             </div>
-            <footer className="steam-bottombar"><span className="steam-menu">STEAM &nbsp; MENU</span><span className="steam-legend">Ⓐ Select &nbsp;&nbsp; Ⓑ Back{hints.secondaryHint && <> &nbsp;&nbsp; Ⓨ {hints.secondaryHint}</>}{hints.optionsHint && <> &nbsp;&nbsp; Ⓧ {hints.optionsHint}</>}{hints.menuHint && <> &nbsp;&nbsp; ☰ {hints.menuHint}</>}</span></footer>
+            <footer className="steam-bottombar"><span className="steam-menu"><span className="steam-pill">STEAM</span> MENU</span><span className="steam-legend">{hints.secondaryHint && <>Ⓨ {hints.secondaryHint} &nbsp;&nbsp; </>}{hints.optionsHint && <>Ⓧ {hints.optionsHint} &nbsp;&nbsp; </>}{hints.menuHint && <>☰ {hints.menuHint} &nbsp;&nbsp; </>}Ⓐ Select &nbsp;&nbsp; Ⓑ Back</span></footer>
           </div>
         ) : (
           <div className="game-backdrop">
@@ -139,7 +139,7 @@ export default function DevShell() {
               <header className="qam-header"><span className="qam-title">⋯ <span>Quick Access</span></span><span>⚙</span></header>
               <p className="qam-app-name">{descriptor.name}</p>
               <div className="qam-content">{descriptor.content}</div>
-              <footer className="steam-bottombar"><span className="steam-menu">STEAM &nbsp; MENU</span><span className="steam-legend">Ⓐ Select &nbsp;&nbsp; Ⓑ Back{hints.secondaryHint && <> &nbsp;&nbsp; Ⓨ {hints.secondaryHint}</>}{hints.optionsHint && <> &nbsp;&nbsp; Ⓧ {hints.optionsHint}</>}{hints.menuHint && <> &nbsp;&nbsp; ☰ {hints.menuHint}</>}</span></footer>
+              <footer className="steam-bottombar"><span className="steam-menu"><span className="steam-pill">STEAM</span> MENU</span><span className="steam-legend">{hints.secondaryHint && <>Ⓨ {hints.secondaryHint} &nbsp;&nbsp; </>}{hints.optionsHint && <>Ⓧ {hints.optionsHint} &nbsp;&nbsp; </>}{hints.menuHint && <>☰ {hints.menuHint} &nbsp;&nbsp; </>}Ⓐ Select &nbsp;&nbsp; Ⓑ Back</span></footer>
             </aside>
           </div>
         )}

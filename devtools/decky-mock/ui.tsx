@@ -68,7 +68,7 @@ export function ModalRoot({ children, bAllowFullSize }: { children?: ReactNode; 
   return (
     <div className="steam-modal-backdrop">
       {/* bAllowFullSize: Steam lets the window use most of the screen. */}
-      <div className="steam-modal" style={bAllowFullSize ? { width: "calc(100vw - 64px)" } : undefined}>{children}</div>
+      <div className="steam-modal" style={bAllowFullSize ? { width: "min(657px, calc(100% - 32px))" } : undefined}>{children}</div>
     </div>
   );
 }
@@ -116,14 +116,14 @@ export function DropdownItem({
   onChange: (option: { data: unknown }) => void;
   layout?: "below" | "inline";
 }) {
-  // Like Steam's Field: "inline" puts the label beside the control instead of above it.
   // Steam's Field puts the label beside the control unless asked for "below".
   const inline = layout !== "below";
   return (
     <label className="steam-field-label" style={inline ? { display: "flex", alignItems: "center", gap: 12 } : undefined}>
       {label}
       <select
-        style={inline ? { flex: 1, marginTop: 0, width: "auto" } : undefined}
+        // Inline, Steam keeps the menu as wide as its value, right-aligned beside the label.
+        style={inline ? { flex: "0 1 auto", marginTop: 0, marginLeft: "auto", width: "auto", minWidth: 0 } : undefined}
         value={String(selectedOption)}
         onChange={(event) => {
           const option = rgOptions.find((item) => String(item.data) === event.target.value);
@@ -157,7 +157,7 @@ export function TextField({
   bShowClearAction?: boolean;
 }) {
   return (
-    <label className="steam-field-label">
+    <label className={label ? "steam-field-label" : "steam-field-label steam-field-unlabelled"}>
       {label}
       <input type={bIsPassword ? "password" : "text"} value={value} onChange={onChange} aria-label={ariaLabel} className="steam-input" />
       {bShowClearAction && value && (

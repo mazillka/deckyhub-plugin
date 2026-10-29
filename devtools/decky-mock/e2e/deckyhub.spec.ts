@@ -151,7 +151,8 @@ test("download modal actions use the full modal width", async ({ page }) => {
     const [button, modal] = await Promise.all([app.getByRole("button", { name, exact: true }).boundingBox(), app.locator(".steam-modal").boundingBox()]);
     expect(button).not.toBeNull();
     expect(modal).not.toBeNull();
-    expect(button!.width).toBeGreaterThanOrEqual(modal!.width - 48);
+    // The modal is zoomed 1.5x like Gaming Mode: 24px padding a side shows as 36.
+    expect(button!.width).toBeGreaterThanOrEqual(modal!.width - 72);
   };
 
   await app.getByRole("button", { name: "Download progress modal", exact: true }).click();
@@ -690,7 +691,7 @@ test("The Quick Access rate-limit banner stacks its buttons and stays inside the
   await app.getByRole("button", { name: "Rate limit banner", exact: true }).click();
   const banner = app.locator(".qam-content .deckyhub-rate-limit");
   // Steam's buttons don't shrink below their label; side by side they overflowed the panel.
-  await app.locator("head").evaluate((head) => head.insertAdjacentHTML("beforeend", "<style>.steam-button { min-width: 160px; white-space: nowrap; }</style>"));
+  await app.locator("head").evaluate((head) => head.insertAdjacentHTML("beforeend", "<style>.deckyhub-rate-limit .steam-button { min-width: 160px; white-space: nowrap; }</style>"));
   const [openSettings, dismiss, panel, box] = await Promise.all([
     banner.getByRole("button", { name: "Open Settings" }).boundingBox(),
     banner.getByRole("button", { name: "Dismiss" }).boundingBox(),
@@ -1818,7 +1819,7 @@ test("Discover keeps the D-pad focused through its chips and category switches",
 
   // The card holding focus gets a ring; the others don't.
   const rings = () => app.locator(".deckyhub-focus-ring").evaluateAll((cards) => cards.map((card) => getComputedStyle(card).outlineWidth));
-  await expect.poll(async () => (await rings()).filter((width) => width === "3px").length).toBe(1);
+  await expect.poll(async () => (await rings()).filter((width) => parseFloat(width) > 0).length).toBe(1);
 });
 
 test("B goes back from a category to the shelves", async ({ page }) => {
