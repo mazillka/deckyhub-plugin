@@ -58,9 +58,17 @@ DeckyHub never installs or runs anything automatically. **Download ZIP** saves a
 
 No setup, no configuration — the curated list shows up in Discover the moment you install DeckyHub. It lives in [mazillka/deckyhub-registry](https://github.com/mazillka/deckyhub-registry) and refreshes every time DeckyHub starts, so new apps show up without a DeckyHub update. DeckyHub keeps the last list it downloaded for offline use; a fresh install needs to reach GitHub once.
 
-- **Browse it:** the [plugin catalog](https://mazillka.github.io/deckyhub-registry/) lists every curated plugin, searchable and by category.
+**Where the plugins come from:**
+
+- **Suggested and hand-picked:** plugins people suggest through the registry's issues and pull requests.
+- **[Decky Extended Plugins](https://decky-extended-plugins.beallio.com/)** by [beallio](https://github.com/beallio): a community catalog of the Decky store plus community plugins, with a [security audit](https://decky-extended-plugins.beallio.com/audit).
+- **[Decky Plugins Explorer](https://safetzahirovic.github.io/decky-plugins-explorer/)** by [SafetZahirovic](https://github.com/SafetZahirovic): a nightly crawl of every public GitHub repository with a Decky `plugin.json`.
+
+A daily job checks both catalogs for plugins that aren't listed yet and opens a pull request with the ones that qualify. Every plugin, however it was found, has to have a stable GitHub release with exactly one plugin ZIP whose `plugin.json` name matches, and a person reviews each addition before it's merged. Entries are checked for a working release, not reviewed for safety; the [catalog](https://mazillka.github.io/deckyhub-registry/) flags plugins that run as root or haven't had a release in a year.
+
+- **Browse it:** the [plugin catalog](https://mazillka.github.io/deckyhub-registry/) lists every curated plugin, searchable and by category, with downloads and stars.
 - **Suggest a plugin:** open an [issue](https://github.com/mazillka/deckyhub-registry/issues/new) or a pull request in the registry repository.
-- **Want more?** Add any other GitHub repository from **Repositories** in seconds.
+- **Want more?** Find any other Decky plugin on GitHub with **[Search & Install](#search--install)**.
 
 ## Installing DeckyHub
 
