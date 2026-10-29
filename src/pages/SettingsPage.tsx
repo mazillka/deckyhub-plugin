@@ -1,8 +1,8 @@
 import { DialogButtonPrimary as Button, DropdownItem, Focusable, Navigation, PanelSection, PanelSectionRow, TextField, ToggleField } from "@decky/ui";
-import { useEffect, useState, type ReactNode } from "react";
-import { FaCog, FaExternalLinkAlt, FaGithub, FaHeart, FaListUl, FaSave, FaFolderOpen, FaInfoCircle, FaLock } from "react-icons/fa";
+import { useEffect, useState } from "react";
+import { FaCog, FaExternalLinkAlt, FaListUl, FaSave, FaFolderOpen, FaInfoCircle, FaLock } from "react-icons/fa";
 import { getSettings, saveSettings } from "../api";
-import { Card, PageHeader } from "../components/Card";
+import { Card, IconNote, PageHeader } from "../components/Card";
 import { LOCALE_CHANGED, LOCALES, useT } from "../i18n";
 import type { MessageKey } from "../i18n/en";
 import type { HideableButton, Settings } from "../types";
@@ -15,23 +15,6 @@ const HIDEABLE_BUTTONS: [HideableButton, MessageKey][] = [
   ["update", "appcard.update"],
   ["releasePage", "appcard.releasePage"],
 ];
-
-// The community catalogs the curated list's plugins were found through (see the
-// registry's scripts/discover.py), credited in About.
-const CATALOGS = [
-  { name: "Decky Plugins Explorer", author: "SafetZahirovic", url: "https://github.com/SafetZahirovic/decky-plugins-explorer" },
-  { name: "Decky Extended Plugins", author: "beallio", url: "https://decky-extended-plugins.beallio.com/" },
-];
-
-// Explanatory text with a leading icon, bright enough to read at a glance.
-function IconNote({ icon, children }: { icon: ReactNode; children: ReactNode }) {
-  return (
-    <div style={{ alignItems: "flex-start", color: "#d6f5ff", display: "flex", fontSize: "0.9em", gap: 8 }}>
-      <span style={{ color: "#8fcef4", display: "flex", flexShrink: 0, marginTop: 2 }}>{icon}</span>
-      <span>{children}</span>
-    </div>
-  );
-}
 
 export function SettingsPage() {
   const t = useT();
@@ -191,30 +174,6 @@ export function SettingsPage() {
                 checked={settings.hiddenButtons.includes(name)}
                 onChange={(checked) => update({ hiddenButtons: checked ? [...settings.hiddenButtons, name] : settings.hiddenButtons.filter((hidden) => hidden !== name) })}
               />
-            </PanelSectionRow>
-          ))}
-        </PanelSection>
-      </Card>
-
-      <Card>
-        <PanelSection title={t("settings.about")}>
-          <PanelSectionRow>
-            <IconNote icon={<FaInfoCircle />}>{t("settings.aboutText")}</IconNote>
-          </PanelSectionRow>
-          <PanelSectionRow>
-            <Button style={compactButtonStyle} onClick={() => Navigation.NavigateToExternalWeb("https://github.com/mazillka/deckyhub-plugin")}>
-              <FaGithub /> {t("settings.aboutSource")}
-            </Button>
-          </PanelSectionRow>
-          <div aria-hidden style={sectionDividerStyle} />
-          <PanelSectionRow>
-            <IconNote icon={<FaHeart />}>{t("settings.thanks")}</IconNote>
-          </PanelSectionRow>
-          {CATALOGS.map((catalog) => (
-            <PanelSectionRow key={catalog.url}>
-              <Button style={compactButtonStyle} onClick={() => Navigation.NavigateToExternalWeb(catalog.url)}>
-                <FaExternalLinkAlt /> {t("settings.catalogBy", { name: catalog.name, author: catalog.author })}
-              </Button>
             </PanelSectionRow>
           ))}
         </PanelSection>

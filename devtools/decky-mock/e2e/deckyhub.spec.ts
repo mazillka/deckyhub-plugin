@@ -797,14 +797,14 @@ test("Settings' token link opens GitHub's token page", async ({ page, context })
   expect((await popupPromise).url()).toBe("https://github.com/settings/tokens");
 });
 
-test("Settings' About thanks both plugin catalogs and links to them", async ({ page }) => {
+test("Quick Access's About thanks both plugin catalogs and links to them", async ({ page }) => {
   // Records what Steam's browser would open; real popups made this flaky on CI.
   await page.addInitScript(() => {
     const opened: string[] = [];
     Object.assign(window, { __opened: opened, open: (url: string) => void opened.push(url) });
   });
-  await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
-  const app = mock(page);
+  await page.goto("/?bridge=http://127.0.0.1:8643");
+  const app = mock(page).locator(".qam-content");
   await expect(app.getByText(/found through two community catalogs/)).toBeVisible();
   for (const label of ["Decky Plugins Explorer by SafetZahirovic", "Decky Extended Plugins by beallio", "DeckyHub on GitHub"]) {
     await app.getByRole("button", { name: label, exact: true }).click();

@@ -8,6 +8,7 @@ import type { App, Asset, HideableButton, PluginStats, RepoPreference, UpdateCha
 import { compactButtonStyle, DEFAULT_COLUMNS_PER_ROW, compactNumber, disclaimerStyle, fetchPluginStats, getDeckyBackend, hydrate, installAction, log, needsFreshInstall, notifyUpdates, PLUGIN_INSTALL_TYPE, surfaceStyle, updateDeckyPlugins } from "../utils";
 import { AppCard, RootBadge } from "../components/AppCard";
 import { confirmPluginInstall } from "../components/AppDetailsModal";
+import { AboutSection } from "../components/AboutSection";
 import { CleanupSection } from "../components/CleanupSection";
 import { showDownloadModal } from "../components/DownloadProgress";
 import { FocusableGrid } from "../components/FocusableGrid";
@@ -546,6 +547,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
           </PanelSectionRow>
         </PanelSection>
       </Card>
+      <AboutSection />
     </>
   );
 
