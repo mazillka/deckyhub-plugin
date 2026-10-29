@@ -561,8 +561,10 @@ function fetchReleases(repo: string, force: boolean): Promise<Release[]> {
 // that one call per listed repo would use up, so the API is asked only for repos
 // the file lacks (added repos and registries). Header-less, so no CORS preflight.
 const RELEASE_INDEX_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/releases.json";
-// An index this old means its job stopped publishing; ask GitHub instead.
-const RELEASE_INDEX_MAX_AGE = 6 * 60 * 60 * 1000;
+// An index this old means its job stopped publishing; ask GitHub instead. Generous on
+// purpose: GitHub skips scheduled runs for hours at a time, and a list of 300+ plugins
+// can't be asked of the API at 60 requests an hour, so a day-old index beats none.
+const RELEASE_INDEX_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
 // One of the registry's raw files, downloaded once and shared by every caller for
 // CACHE_TTL. A forced refresh downloads it again, unless one started in the last
