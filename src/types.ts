@@ -20,6 +20,12 @@ export type App = {
   releaseNotes?: string;
   assets: Asset[];
   updateAvailable?: boolean | null;
+  // From the registry's stats.json (fetchPluginStats); absent for repos it doesn't list.
+  downloads?: number;
+  stars?: number | null;
+  // When the release Discover shows came out, and whether its plugin.json asks for root.
+  lastRelease?: string | null;
+  root?: boolean | null;
   error?: string | null;
   channel?: UpdateChannel;
 };

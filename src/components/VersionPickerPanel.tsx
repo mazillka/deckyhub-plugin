@@ -1,6 +1,6 @@
 import { DialogButtonPrimary as Button, DropdownItem, Focusable, Navigation } from "@decky/ui";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { FaExternalLinkAlt, FaSync } from "react-icons/fa";
+import { FaExternalLinkAlt, FaGithub, FaSync } from "react-icons/fa";
 import type { TFunc } from "../i18n/en";
 import type { UpdateChannel } from "../types";
 import { modalButtonStyle, windowGap } from "../utils";
@@ -39,17 +39,22 @@ export function useReleasePicker<T extends { tag: string; prerelease: boolean }>
 }
 
 // The Release Page + Check for Updates row both version pickers end with.
-export function ReleaseActions({ t, url, hideReleasePage, checking, disabled, onCheck, closeModal }: { t: TFunc; url?: string; hideReleasePage: boolean; checking: boolean; disabled: boolean; onCheck: () => void; closeModal?: () => void }) {
+export function ReleaseActions({ t, url, repoUrl, hideReleasePage, checking, disabled, onCheck, closeModal }: { t: TFunc; url?: string; repoUrl?: string; hideReleasePage: boolean; checking: boolean; disabled: boolean; onCheck: () => void; closeModal?: () => void }) {
+  // Close first: Steam's browser otherwise opens underneath this modal.
+  const open = (target: string) => {
+    closeModal?.();
+    Navigation.NavigateToExternalWeb(target);
+  };
   return (
     <Focusable flow-children="right" style={{ display: "flex", gap: 8 }}>
       {url && !hideReleasePage && (
-        <Button style={{ ...modalButtonStyle, flex: 1 }} onClick={() => {
-            // Close first: Steam's browser otherwise opens underneath this modal.
-            closeModal?.();
-            Navigation.NavigateToExternalWeb(url);
-          }}
-        >
+        <Button style={{ ...modalButtonStyle, flex: 1 }} onClick={() => open(url)}>
           <FaExternalLinkAlt /> {t("appcard.releasePage")}
+        </Button>
+      )}
+      {repoUrl && (
+        <Button style={{ ...modalButtonStyle, flex: 1 }} onClick={() => open(repoUrl)}>
+          <FaGithub /> {t("appcard.repository")}
         </Button>
       )}
       <Button style={{ ...modalButtonStyle, flex: 1 }} disabled={disabled} onClick={onCheck}>
@@ -69,6 +74,8 @@ export function VersionPickerPanel({
   icon,
   title,
   subtitle,
+  description,
+  details,
   channel,
   onChannelChange,
   versionOptions,
@@ -82,6 +89,10 @@ export function VersionPickerPanel({
   icon: ReactNode;
   title: string;
   subtitle: string;
+  // The plugin's description in full (cards clamp it to two lines).
+  description?: string;
+  // Extra lines under the description (category, repo, stats, badges).
+  details?: ReactNode;
   channel: UpdateChannel;
   onChannelChange: (channel: UpdateChannel) => void;
   versionOptions: { data: string; label: string }[];
@@ -101,6 +112,8 @@ export function VersionPickerPanel({
             <div style={{ color: "#b8c7d3", fontSize: 13 }}>{subtitle}</div>
           </div>
         </div>
+        {description && <div className="deckyhub-details-description" style={{ color: "#b8c7d3", fontSize: 14, lineHeight: 1.4, overflowWrap: "anywhere" }}>{description}</div>}
+        {details}
 
         <div style={{ display: "grid", gap: 8, padding: 12, background: "rgba(0, 0, 0, 0.2)", borderRadius: 8 }}>
           {/* Inline label + no separator: Steam's dropdown height is fixed, so

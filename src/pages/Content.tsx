@@ -5,7 +5,7 @@ import { FaArrowCircleUp, FaCog, FaCompass, FaFileExport, FaSearch, FaSync, FaTi
 import { downloadAsset, exportLogs, getApps, getSettings, REGISTRY_UPDATED } from "../api";
 import { useT } from "../i18n";
 import type { App, Asset, HideableButton, RepoPreference, UpdateChannel, View } from "../types";
-import { compactButtonStyle, DEFAULT_COLUMNS_PER_ROW, disclaimerStyle, getDeckyBackend, hydrate, installAction, log, needsFreshInstall, notifyUpdates, PLUGIN_INSTALL_TYPE, surfaceStyle, updateDeckyPlugins } from "../utils";
+import { compactButtonStyle, DEFAULT_COLUMNS_PER_ROW, compactNumber, disclaimerStyle, fetchPluginStats, type PluginStats, getDeckyBackend, hydrate, installAction, log, needsFreshInstall, notifyUpdates, PLUGIN_INSTALL_TYPE, surfaceStyle, updateDeckyPlugins } from "../utils";
 import { AppCard } from "../components/AppCard";
 import { confirmPluginInstall } from "../components/AppDetailsModal";
 import { CleanupSection } from "../components/CleanupSection";
@@ -36,7 +36,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const [installedFilter, setInstalledFilter] = useState("All");
   // "" means every category.
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [sortOrder, setSortOrder] = useState<"az" | "za" | "added">("az");
+  const [sortOrder, setSortOrder] = useState<"az" | "za" | "added" | "downloads" | "stars" | "updated">("az");
   const [columnsPerRow, setColumnsPerRow] = useState(DEFAULT_COLUMNS_PER_ROW);
   const [repoPreferences, setRepoPreferences] = useState<Record<string, RepoPreference>>({});
   const [hiddenButtons, setHiddenButtons] = useState<HideableButton[]>([]);
@@ -60,17 +60,21 @@ export function Content({ fullPage }: { fullPage?: View }) {
     const run = ++loadRun.current;
     if (!loaded.current) setLoading(true);
     try {
-      const [appData, settings] = await Promise.all([getApps(), getSettings()]);
+      // Downloads and stars only matter for Discover's cards and sorting.
+      const [appData, settings, stats] = await Promise.all([getApps(), getSettings(), view === "discover" ? fetchPluginStats(force) : {}]);
       const local = appData.apps;
       const preferences = settings.repoSettings || {};
       setRepoPreferences(preferences);
       setColumnsPerRow(settings.columnsPerRow);
       setHiddenButtons(settings.hiddenButtons ?? []);
-      const tracked = view === "updates" ? local.filter((app) => app.installedVersion) : local;
+      const tracked = (view === "updates" ? local.filter((app) => app.installedVersion) : local).map((app) => {
+        const stat = (stats as Record<string, PluginStats>)[app.repo.toLowerCase()];
+        return stat ? { ...app, downloads: stat.downloads, stars: stat.stars, lastRelease: stat.updated, root: stat.root } : app;
+      });
       // A card keeps its last release check until this load's replaces it.
       setApps((current) => {
         const previous = new Map(current.map((app) => [app.id, app]));
-        return tracked.map((app) => previous.get(app.id) ?? app);
+        return tracked.map((app) => { const kept = previous.get(app.id); return kept ? { ...kept, downloads: app.downloads, stars: app.stars, lastRelease: app.lastRelease, root: app.root } : app; });
       });
       setLoadError(null);
       // Discover shows every card straight away and fills each in as its
@@ -176,6 +180,15 @@ export function Content({ fullPage }: { fullPage?: View }) {
   // A category that vanished on reload (registry change) stops filtering rather than hiding everything.
   const activeCategory = categories.includes(categoryFilter) ? categoryFilter : "";
 
+  // Discover's filters, with the Status and Category values overridable so each
+  // dropdown option can say how many cards it would show next to the other filters.
+  const matchesFilters = (app: App, installed = installedFilter, category = activeCategory) =>
+    (!query || `${app.name} ${app.repo} ${app.category} ${app.description ?? ""}`.toLowerCase().includes(query.toLowerCase())) &&
+    (installed === "All" || (installed === "Installed") === Boolean(app.installedVersion)) &&
+    (!category || app.category === category);
+  const countWith = (installed: string, category: string) => apps.filter((app) => matchesFilters(app, installed, category)).length;
+  const withCount = (label: string, count: number) => `${label} (${count})`;
+
   const discoverFilters = view === "discover" && (
     <Card>
     <PanelSection>
@@ -200,9 +213,9 @@ export function Content({ fullPage }: { fullPage?: View }) {
                 {...({ "aria-label": t("filter.status"), style: { width: "100%" } } as any)}
                 menuLabel={t("filter.status")}
               rgOptions={[
-                { label: t("filter.all"), data: "All" },
-                { label: t("filter.installed"), data: "Installed" },
-                { label: t("filter.notInstalled"), data: "Not Installed" },
+                { label: withCount(t("filter.all"), countWith("All", activeCategory)), data: "All" },
+                { label: withCount(t("filter.installed"), countWith("Installed", activeCategory)), data: "Installed" },
+                { label: withCount(t("filter.notInstalled"), countWith("Not Installed", activeCategory)), data: "Not Installed" },
               ]}
               selectedOption={installedFilter}
               onChange={({ data }) => setInstalledFilter(data)}
@@ -215,7 +228,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
               <Dropdown
                 {...({ "aria-label": t("filter.category"), style: { width: "100%" } } as any)}
                 menuLabel={t("filter.category")}
-                rgOptions={[{ label: t("filter.all"), data: "" }, ...categories.map((category) => ({ label: category, data: category }))]}
+                rgOptions={[{ label: withCount(t("filter.all"), countWith(installedFilter, "")), data: "" }, ...categories.map((category) => ({ label: withCount(category, countWith(installedFilter, category)), data: category }))]}
                 selectedOption={activeCategory}
                 onChange={({ data }) => setCategoryFilter(data)}
               />
@@ -230,6 +243,9 @@ export function Content({ fullPage }: { fullPage?: View }) {
                 rgOptions={[
                   { label: t("sort.az"), data: "az" },
                   { label: t("sort.za"), data: "za" },
+                  { label: t("sort.downloads"), data: "downloads" },
+                  { label: t("sort.stars"), data: "stars" },
+                  { label: t("sort.updated"), data: "updated" },
                   { label: t("sort.added"), data: "added" },
                 ]}
                 selectedOption={sortOrder}
@@ -243,19 +259,23 @@ export function Content({ fullPage }: { fullPage?: View }) {
     </Card>
   );
 
+  const releasedAt = (app: App) => Date.parse(app.lastRelease || app.publishedAt || "") || 0;
+  const totalDownloads = apps.reduce((sum, app) => sum + (app.downloads ?? 0), 0);
+
   const visibleApps = apps
     .filter((app) =>
       view === "updates"
         ? app.updateAvailable === true
-        : (!query || `${app.name} ${app.repo} ${app.category} ${app.description ?? ""}`.toLowerCase().includes(query.toLowerCase())) &&
-          (installedFilter === "All" || (installedFilter === "Installed") === Boolean(app.installedVersion)) &&
-          (!activeCategory || app.category === activeCategory),
+        : matchesFilters(app),
     )
     // Apps with an update first; Updates keeps registry order otherwise, Discover follows the Sort
     // dropdown. The registry only ever appends (custom repos come after it), so "Recently added" is
-    // that order reversed.
+    // that order reversed. Plugins without stats (added repos) go last when sorting by them.
     .sort((a, b) =>
       Number(b.updateAvailable === true) - Number(a.updateAvailable === true) || (view === "updates" ? 0
+        : sortOrder === "downloads" ? (b.downloads ?? -1) - (a.downloads ?? -1)
+        : sortOrder === "stars" ? (b.stars ?? -1) - (a.stars ?? -1)
+        : sortOrder === "updated" ? releasedAt(b) - releasedAt(a)
         : sortOrder === "added" ? apps.indexOf(b) - apps.indexOf(a)
         : sortOrder === "za" ? b.name.localeCompare(a.name)
         : a.name.localeCompare(b.name)));
@@ -307,7 +327,8 @@ export function Content({ fullPage }: { fullPage?: View }) {
             <PageHeader
               icon={view === "updates" ? <FaArrowCircleUp /> : <FaCompass />}
               title={info.title}
-              badge={view === "updates" && updateCount > 0 && <span className="deckyhub-update-count" title={t("toast.updatesAvailable", { count: updateCount })} style={countBadgeStyle}>{updateCount}</span>}
+              badge={view === "updates" ? updateCount > 0 && <span className="deckyhub-update-count" title={t("toast.updatesAvailable", { count: updateCount })} style={countBadgeStyle}>{updateCount}</span>
+                : totalDownloads > 0 && <span className="deckyhub-total-downloads" title={t("view.totalDownloads", { count: totalDownloads.toLocaleString() })} style={{ color: "#8b9aa7", fontSize: "0.7em", fontWeight: 400 }}>{t("view.totalDownloads", { count: compactNumber(totalDownloads) })}</span>}
               description={info.description}
               actions={
                 <>

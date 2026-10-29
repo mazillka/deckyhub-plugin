@@ -545,6 +545,41 @@ function fetchReleaseIndex(force: boolean) {
   return releaseIndex.request;
 }
 
+// Each listed plugin's all-time downloads, GitHub stars, last release date and
+// whether it runs as root, published next to the release index (stats.json, same
+// job). Only Discover uses it, so a missing file just leaves those out.
+const PLUGIN_STATS_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/stats.json";
+
+export type PluginStats = { downloads?: number; stars?: number | null; updated?: string | null; root?: boolean | null };
+
+let pluginStats: { at: number; request: Promise<Record<string, PluginStats>> } | null = null;
+
+export function fetchPluginStats(force = false) {
+  if (!pluginStats || Date.now() - pluginStats.at > (force ? 60_000 : CACHE_TTL)) {
+    pluginStats = {
+      at: Date.now(),
+      request: fetchNoCors(PLUGIN_STATS_URL, { signal: AbortSignal.timeout(15_000) })
+        .then((response) => (response.ok ? response.json() : null))
+        .then((stats: any) => stats?.plugins ?? {})
+        .catch((error: unknown) => {
+          log(`Plugin stats unavailable: ${error}`);
+          return {};
+        }),
+    };
+  }
+  return pluginStats.request;
+}
+
+// "2 days ago", "3 months ago": how long ago a card's plugin was last released.
+export function timeAgo(time: number) {
+  const days = Math.round((time - Date.now()) / 86_400_000);
+  const format = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+  return Math.abs(days) < 31 ? format.format(days, "day") : Math.abs(days) < 365 ? format.format(Math.round(days / 30), "month") : format.format(Math.round(days / 365), "year");
+}
+
+// Download and star counts on cards: "1.2K", in the reader's locale.
+export const compactNumber = (value: number) => new Intl.NumberFormat(undefined, { notation: "compact", maximumFractionDigits: 1 }).format(value);
+
 async function requestReleases(repo: string, force: boolean): Promise<Release[]> {
   const cacheKey = `${RELEASES_CACHE_PREFIX}${repo}`;
   const cached = readCache<Release[]>(cacheKey);

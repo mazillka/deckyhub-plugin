@@ -31,6 +31,7 @@ const makoRelease = (tag: string, sha256: string, day = "01") => ({
   assets: [{ name: "mako-decky.zip", browser_download_url: `https://github.com/eugeniosegala/MAKO/releases/download/${tag}/mako-decky.zip`, size: 1024, digest: `sha256:${sha256}` }],
 });
 const RELEASE_INDEX_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/releases.json";
+const PLUGIN_STATS_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/stats.json";
 const mockMakoReleases = (page: Page, releases: unknown[]) =>
   page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases**", (route) => route.fulfill({ json: releases }));
 
@@ -102,6 +103,7 @@ test.beforeEach(async ({ page }) => {
   await page.route("https://api.github.com/**", (route) => route.fulfill({ json: [release] }));
   // No release index unless a test serves one, so release lookups use the API stubs.
   await page.route(RELEASE_INDEX_URL, (route) => route.fulfill({ status: 404, body: "404: Not Found" }));
+  await page.route(PLUGIN_STATS_URL, (route) => route.fulfill({ status: 404, body: "404: Not Found" }));
   // Search keeps only repos with a Decky plugin.json; every stubbed result has one.
   await page.route("https://raw.githubusercontent.com/**/plugin.json", (route) => route.fulfill({ json: { name: "Test plugin" } }));
   await page.goto("/?bridge=http://127.0.0.1:8643");
@@ -554,6 +556,49 @@ test("Discover sorts A to Z, Z to A and by most recently added", async ({ page }
   await expect.poll(order).toBeGreaterThan(0);
   await app.getByLabel("Sort").selectOption("za");
   await expect.poll(order).toBeGreaterThan(0);
+});
+
+test("Discover shows each plugin's stats, sorts by them and counts every filter option", async ({ page }) => {
+  await page.route(PLUGIN_STATS_URL, (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), plugins: {
+    "eugeniosegala/mako": { downloads: 73981, stars: 680, updated: new Date().toISOString(), root: false },
+    "mubaraknumann/unifideck": { downloads: 110541, stars: 1410, updated: "2024-01-01T00:00:00Z", root: true },
+  } } }));
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  const mako = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+  const unifideck = app.getByRole("heading", { name: "Unifideck" }).locator("..");
+  await expect(mako.getByText("↓ 74K")).toBeVisible();
+  await expect(mako.getByText("★ 680")).toBeVisible();
+  await expect(mako.getByText("Runs as root")).toHaveCount(0);
+  await expect(mako.getByText("Updated today")).toBeVisible();
+  await expect(unifideck.getByText(/^Updated /)).toHaveCount(0);
+  await expect(unifideck.getByText("Runs as root")).toBeVisible();
+  await expect(unifideck.getByText("No release in a year")).toBeVisible();
+  await expect(app.locator(".deckyhub-total-downloads")).toHaveText("184.5K downloads");
+
+  const order = async () => {
+    const names = await app.getByRole("heading").allTextContents();
+    return names.indexOf("Unifideck") - names.indexOf("MAKO Decky");
+  };
+  await app.getByLabel("Sort").selectOption("downloads");
+  await expect.poll(order).toBeLessThan(0);
+  await expect(app.getByLabel("Sort").locator("option")).toHaveText(["A to Z", "Z to A", "Most downloaded", "Most stars", "Recently updated", "Recently added"]);
+
+  // Every option says how many cards it would show next to the other filters.
+  const total = await app.getByRole("heading", { level: 3 }).count();
+  await expect(app.getByLabel("Status").locator("option").first()).toHaveText(`All (${total})`);
+  await expect(app.getByLabel("Category").locator("option", { hasText: "Frame Generation" })).toHaveText(/^Frame Generation \(\d+\)$/);
+});
+
+test("The Manage window shows the plugin's description, details and a Repository button", async ({ page }) => {
+  await page.route(PLUGIN_STATS_URL, (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), plugins: { "eugeniosegala/mako": { downloads: 73981, stars: 680, updated: "2024-01-01T00:00:00Z", root: true } } } }));
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
+  await expect(app.locator(".steam-modal .deckyhub-details-description")).toHaveText("Boosts frame rates with Lossless Scaling frame generation.");
+  const meta = app.locator(".steam-modal .deckyhub-details-meta");
+  for (const text of ["Frame Generation", "eugeniosegala/MAKO", "↓ 74K", "★ 680", "Runs as root", "No release in a year"]) await expect(meta.getByText(text, { exact: true })).toBeVisible();
+  await expect(app.locator(".steam-modal").getByRole("button", { name: "Repository" })).toBeVisible();
 });
 
 test("A GitHub rate limit surfaces a friendly message instead of a raw status code", async ({ page }) => {

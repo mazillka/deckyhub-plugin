@@ -3,7 +3,7 @@ import { useState, type CSSProperties } from "react";
 import { FaArrowUp, FaCog, FaPlus } from "react-icons/fa";
 import { useT } from "../i18n";
 import type { App, Asset, HideableButton, RepoPreference, UpdateChannel } from "../types";
-import { compactButtonStyle, cardDescriptionStyle, installAction, PLUGIN_INSTALL_TYPE, statusKey, statusColor, surfaceStyle, visuallyHidden } from "../utils";
+import { compactButtonStyle, compactNumber, cardDescriptionStyle, timeAgo, installAction, PLUGIN_INSTALL_TYPE, statusKey, statusColor, surfaceStyle, visuallyHidden } from "../utils";
 import { displayVersion } from "../version";
 import type { TFunc } from "../i18n/en";
 import { AppDetailsModal, startPluginInstall } from "./AppDetailsModal";
@@ -32,6 +32,33 @@ export const showReleaseInfo = (t: TFunc, title: string, publishedAt?: string | 
       }
     />,
   );
+
+// The registry's date for the release it shows, else the card's own release check.
+const releasedAt = (app: App) => Date.parse(app.lastRelease || app.publishedAt || "");
+const isStale = (released: number) => Date.now() - released > 365 * 24 * 60 * 60 * 1000;
+
+// Runs as root / No release in a year, shared by the card and its Manage window.
+export function AppBadges({ app, t }: { app: App; t: TFunc }) {
+  const released = releasedAt(app);
+  return (
+    <>
+      {app.root && <span title={t("appcard.runsAsRootHint")} style={{ ...pillStyle, color: "#ffb35c", background: "#ffb35c22", borderColor: "#ffb35c66" }}>{t("appcard.runsAsRoot")}</span>}
+      {isStale(released) && <span title={new Date(released).toLocaleDateString()} style={{ ...pillStyle, color: "#ff8a8a", background: "#ff8a8a22", borderColor: "#ff8a8a66" }}>{t("appcard.noReleaseInYear")}</span>}
+    </>
+  );
+}
+
+// Updated / downloads / stars, shared by the card and its Manage window.
+export function AppStats({ app, t }: { app: App; t: TFunc }) {
+  const released = releasedAt(app);
+  return (
+    <>
+      {released > 0 && !isStale(released) && <span title={new Date(released).toLocaleDateString()}>{t("appcard.updated", { when: timeAgo(released) })}</span>}
+      {app.downloads !== undefined && <span title={t("appcard.downloads", { count: app.downloads.toLocaleString() })}>↓ {compactNumber(app.downloads)}</span>}
+      {app.stars != null && <span title={t("appcard.stars", { count: app.stars.toLocaleString() })}>★ {compactNumber(app.stars)}</span>}
+    </>
+  );
+}
 
 // Card chrome. The top border takes the status color (see statusColor()).
 const cardStyle = {
@@ -106,12 +133,14 @@ export function AppCard({
         {app.channel === "prerelease" && (
           <span style={{ ...pillStyle, color: "#ffa94d", background: "#ffa94d22", borderColor: "#ffa94d66" }}>{t("appcard.channel", { channel: t("appcard.channelPrerelease") })}</span>
         )}
+        <AppBadges app={app} t={t} />
       </div>
       <small style={{ ...cardDescriptionStyle, ...fullRow, display: "-webkit-box", color: "#b8c7d3" }}>{app.description || " "}</small>
       <div style={{ ...fullRow, display: "flex", flexWrap: "wrap", gap: "2px 14px", color: "#8b9aa7", fontSize: "0.8em" }}>
         {app.installedVersion && <span>{t("settings.installedVersion", { version: displayVersion(app.installedVersion) })}</span>}
         {/* No release and no error yet: its GitHub check is still running. */}
         <span>{t("settings.latestVersion", { version: app.latestVersion ? displayVersion(app.latestVersion) : app.error ? "—" : t("settings.checkingUpdate") })}</span>
+        <AppStats app={app} t={t} />
       </div>
       {app.error && <small style={{ ...fullRow, color: "#ff6b6b", overflowWrap: "anywhere" }}>{app.error}</small>}
       {/* Install/Update, with Manage as a gear beside it; Manage alone takes the full row. */}
