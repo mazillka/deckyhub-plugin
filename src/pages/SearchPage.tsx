@@ -1,4 +1,4 @@
-import { fetchNoCors, toaster } from "@decky/api";
+import { toaster } from "@decky/api";
 import { DialogButtonPrimary as Button, Focusable, Navigation, PanelSection, PanelSectionRow, TextField } from "@decky/ui";
 import { FocusableGrid } from "../components/FocusableGrid";
 import { Card, PageHeader } from "../components/Card";
@@ -13,20 +13,11 @@ import { addCustomRepo, downloadAsset, getApps, getSettings, REGISTRY_UPDATED } 
 import { useT } from "../i18n";
 import type { HideableButton, SearchRepo } from "../types";
 import { displayVersion } from "../version";
-import { compactButtonStyle, disclaimerStyle, githubFetch, githubResponseError, hydrate, installAction, installTypeLabel, log, surfaceStyle } from "../utils";
+import { compactButtonStyle, disclaimerStyle, githubFetch, githubResponseError, hydrate, installAction, manifestName, installTypeLabel, log, surfaceStyle } from "../utils";
 
 const RESULTS_PER_PAGE = 5;
 // No bottom margin, so the buttons line up with the search field beside them.
 const rowButtonStyle = { ...compactButtonStyle, marginBottom: 0 };
-
-// A Decky plugin has a plugin.json with a name at its root. Read from
-// raw.githubusercontent.com, which doesn't count against the GitHub API limit;
-// header-less, so no CORS preflight (see githubHeaders() in utils.ts).
-// ponytail: root only, so a monorepo plugin (MAKO keeps it in a subfolder) shows only once it's in a list.
-const isDeckyPlugin = (repo: string) =>
-  fetchNoCors(`https://raw.githubusercontent.com/${repo}/HEAD/plugin.json`, { signal: AbortSignal.timeout(10_000) })
-    .then((response) => (response.ok ? response.json() : null))
-    .then((manifest) => typeof manifest?.name === "string", () => false);
 
 export function SearchPage() {
   const t = useT();
@@ -42,7 +33,6 @@ export function SearchPage() {
   const [hiddenButtons, setHiddenButtons] = useState<HideableButton[]>([]);
 
   useEffect(() => {
-    void getApps().then((result) => setExistingRepos(new Set(result.apps.map((app) => app.repo.toLowerCase()))));
     void getSettings().then((settings) => setHiddenButtons(settings.hiddenButtons ?? []));
   }, []);
 
@@ -51,12 +41,15 @@ export function SearchPage() {
     setSearching(true);
     try {
       setSearchError(null);
+      // Read fresh each search, so a repo added or removed elsewhere shows right.
+      const existing = new Set((await getApps()).apps.map((app) => app.repo.toLowerCase()));
+      setExistingRepos(existing);
       // "decky" in the name, description, topics or README narrows GitHub's results;
       // the plugin.json check below drops the lists and guides that still match.
       const response = await githubFetch(`https://api.github.com/search/repositories?q=${encodeURIComponent(`${query} decky in:name,description,topics,readme`)}&sort=stars&order=desc&per_page=25`);
       if (!response.ok) throw await githubResponseError(response);
       const items: SearchRepo[] = (await response.json()).items || [];
-      const plugins = await Promise.all(items.map((repo) => existingRepos.has(repo.full_name.toLowerCase()) || isDeckyPlugin(repo.full_name)));
+      const plugins = await Promise.all(items.map((repo) => existing.has(repo.full_name.toLowerCase()) || manifestName(repo.full_name).then(Boolean)));
       setResults(items.filter((_, index) => plugins[index]));
       setPage(0);
     } catch (error) {
@@ -110,17 +103,20 @@ export function SearchPage() {
     if (result.jobId) showDownloadModal(t, result.jobId, { state: "queued", filename: asset.name, total: asset.size }, () => {});
   };
 
-  // Adds the repo, then installs its latest stable release the way a Discover card does.
+  // Installs its latest stable release the way a Discover card does, and tracks the
+  // repo once Decky's dialog is accepted (a cancelled or failed one adds nothing).
   const install = async (repo: string) => {
     setInstalling(repo);
     try {
-      await track(repo);
       const app = await latestRelease(repo);
       const action = installAction(app, { tag: app.latestVersion, assets: app.assets });
       if (!action) throw new Error(t("release.noMatch"));
       const label = installTypeLabel(t, action.type, displayVersion(app.latestVersion).replace(/^v/, ""));
       // Decky's own dialog takes over, so leave the page like a card's Install does.
-      await startPluginInstall(t, app.name, app.repo, app.assets[0], app.latestVersion, action, label, () => Navigation.NavigateBack());
+      await startPluginInstall(t, app.name, app.repo, app.assets[0], app.latestVersion, action, label, () => {
+        void track(repo).catch(showError);
+        Navigation.NavigateBack();
+      });
     } finally {
       setInstalling(null);
     }

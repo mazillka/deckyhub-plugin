@@ -5,7 +5,7 @@ import { FaArrowDown, FaArrowUp, FaFileArchive, FaPlus, FaRedo, FaTimes, FaTrash
 import { saveRepoSettings } from "../api";
 import type { TFunc } from "../i18n/en";
 import type { App, AppReleaseOption, Asset, HideableButton, RepoPreference, UpdateChannel } from "../types";
-import { buildVersionOptions, getDeckyBackend, installAction, installDeckyPlugin, installTypeLabel, listAppReleases, modalButtonStyle, needsFreshInstall, PLUGIN_INSTALL_TYPE, readableBytes, sectionDividerStyle, uninstallDeckyPlugin, windowGap } from "../utils";
+import { buildVersionOptions, getDeckyBackend, installAction, installDeckyPlugin, installTypeLabel, listAppReleases, manifestName, modalButtonStyle, needsFreshInstall, PLUGIN_INSTALL_TYPE, readableBytes, sectionDividerStyle, uninstallDeckyPlugin, windowGap } from "../utils";
 import { displayVersion } from "../version";
 import { AppMonogram, showReleaseInfo, AppBadges, AppStats } from "./AppCard";
 import { ReleaseActions, useReleasePicker, VersionPickerPanel } from "./VersionPickerPanel";
@@ -36,8 +36,11 @@ export function startPluginInstall(t: TFunc, appName: string, repo: string, asse
     return Promise.resolve();
   }
   // Settles once Decky has the request (its own dialog is up) or it failed.
-  const start = () => {
-    const request = installDeckyPlugin(asset, repo, action.name, tag, action.type).then(
+  const start = async () => {
+    // A repo the user added has no detect names, so installAction() falls back to
+    // its "owner/name"; Decky needs the plugin's own name from its plugin.json.
+    const name = action.name === repo ? ((await manifestName(repo)) ?? repo) : action.name;
+    const request = installDeckyPlugin(asset, repo, name, tag, action.type).then(
       () => undefined,
       (error: unknown) => void toaster.toast({ title: "DeckyHub", body: String(error) }),
     );

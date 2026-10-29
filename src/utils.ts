@@ -443,6 +443,15 @@ function callDeckyLoader(route: string, ...args: unknown[]) {
   });
 }
 
+// The name in a repo's root plugin.json (every Decky plugin has one), or null. Read
+// from raw.githubusercontent.com, which doesn't count against the GitHub API limit;
+// header-less, so no CORS preflight (see githubHeaders()).
+// ponytail: root only, so a monorepo plugin (MAKO keeps it in a subfolder) is found only once it's in a list.
+export const manifestName = (repo: string): Promise<string | null> =>
+  fetchNoCors(`https://raw.githubusercontent.com/${repo}/HEAD/plugin.json`, { signal: AbortSignal.timeout(10_000) })
+    .then((response) => (response.ok ? response.json() : null))
+    .then((manifest) => (typeof manifest?.name === "string" ? manifest.name : null), () => null);
+
 // What the Manage window can hand to Decky Loader's installer for the selected
 // release, if anything: "Update" for an installed Decky plugin when
 // the release is newer, "Install" for a registry Decky plugin that isn't
@@ -578,6 +587,7 @@ async function requestReleases(repo: string, force: boolean): Promise<Release[]>
   if (cached && !force && Date.now() - cached.at < CACHE_TTL) return cached.data;
   const url = `https://api.github.com/repos/${repo}/releases?per_page=20`;
   let body: unknown = (await fetchReleaseIndex(force))?.[repo.toLowerCase()];
+  const fromIndex = Boolean(body);
   if (!body) {
     try {
       const response = await githubFetch(url);
@@ -611,7 +621,13 @@ async function requestReleases(repo: string, force: boolean): Promise<Release[]>
   // An empty answer never replaces releases we've already seen: that's far more likely
   // the glitch above than a repo deleting every release.
   if (!releases.length && cached?.data.length) return cached.data;
-  writeCache(cacheKey, releases);
+  // The index is already one shared download, so only API answers are kept (all 300+
+  // index lists would fill most of localStorage's ~5 MB); drop any older API copy.
+  if (fromIndex) {
+    try {
+      localStorage.removeItem(cacheKey);
+    } catch {}
+  } else writeCache(cacheKey, releases);
   return releases;
 }
 
