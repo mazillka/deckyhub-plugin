@@ -7,7 +7,7 @@ import type { TFunc } from "../i18n/en";
 import type { App, AppReleaseOption, Asset, HideableButton, RepoPreference, UpdateChannel } from "../types";
 import { buildVersionOptions, getDeckyBackend, installAction, installDeckyPlugin, installTypeLabel, listAppReleases, modalButtonStyle, needsFreshInstall, PLUGIN_INSTALL_TYPE, readableBytes, sectionDividerStyle, uninstallDeckyPlugin, windowGap } from "../utils";
 import { displayVersion } from "../version";
-import { AppMonogram, showReleaseInfo } from "./AppCard";
+import { AppMonogram, showReleaseInfo, AppBadges, AppStats } from "./AppCard";
 import { ReleaseActions, useReleasePicker, VersionPickerPanel } from "./VersionPickerPanel";
 
 // Every install, update or reinstall of a third-party plugin first says
@@ -136,6 +136,15 @@ export function AppDetailsModal({
           icon={<AppMonogram app={app} />}
           title={app.name}
           subtitle={t("settings.installedVersion", { version: app.installedVersion ? displayVersion(app.installedVersion) : "—" })}
+          description={app.description}
+          details={
+            <div className="deckyhub-details-meta" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "4px 14px", color: "#8b9aa7", fontSize: 13 }}>
+              <span>{app.category}</span>
+              <span>{app.repo}</span>
+              <AppStats app={app} t={t} />
+              <AppBadges app={app} t={t} />
+            </div>
+          }
           channel={channel}
           onChannelChange={changeChannel}
           versionOptions={versionOptions}
@@ -178,7 +187,7 @@ export function AppDetailsModal({
           </>
         )}
 
-        <ReleaseActions t={t} url={selectedRelease?.url} hideReleasePage={hiddenButtons.includes("releasePage")} checking={loading} disabled={loading} onCheck={() => void load(true)} closeModal={closeModal} />
+        <ReleaseActions t={t} url={selectedRelease?.url} repoUrl={`https://github.com/${app.repo}`} hideReleasePage={hiddenButtons.includes("releasePage")} checking={loading} disabled={loading} onCheck={() => void load(true)} closeModal={closeModal} />
 
         {canUninstall && (
           <Button style={{ ...modalButtonStyle, color: "#ff6b6b" }} onClick={confirmUninstall}>
