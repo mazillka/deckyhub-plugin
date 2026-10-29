@@ -119,3 +119,33 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   .preview-nav { width: 148px; }
   .qam-panel { width: min(460px, 70%); }
 }
+
+/* ---- Steam Deck look, matched to photos of the real device (colors and shapes only; ---- */
+/* ---- sizes are set above from measurements).                                          ---- */
+:root { font-family: "Motiva Sans", "Segoe UI", Arial, Helvetica, sans-serif; }
+.steam-deck { border: 0; border-radius: 10px; background: #0e1116; }
+/* Gaming Mode's page: nearly black, a little blue at the top. */
+.steam-page { background: linear-gradient(180deg, #171c24 0%, #0e1116 55%); }
+.steam-topbar, .steam-bottombar { background: #0e1116f2; border: 0; color: #fff; }
+.steam-topbar { font-size: 15px; font-weight: 600; }
+.steam-bottombar { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.steam-menu { color: #fff; }
+/* Steam's DialogButton: flat gray, filled Steam blue while focused. */
+.steam-button, .steam-deck-full .steam-button {
+  color: #e3e6ea; text-align: center; background: #3a3f47; border: 0; border-radius: 4px; box-shadow: none; font-weight: 500;
+}
+.steam-button:hover, .steam-deck-full .steam-button:hover { background: #4a5059; }
+.steam-button:focus-visible, .steam-button:focus { color: #fff; background: #1a9fff; outline: 0; }
+.steam-button:disabled, .steam-deck-full .steam-button:disabled { color: #6f757c; background: #2a2e34; }
+/* Dropdowns: lighter gray boxes; text fields: dark. Both go Steam blue when focused. */
+.steam-select, .steam-deck-full .steam-select { color: #fff; background: #4b525b; border: 0; border-radius: 3px; }
+.steam-input, .steam-deck-full .steam-input { color: #fff; background: #2b3037; border: 0; border-radius: 3px; }
+.steam-select:focus-visible, .steam-input:focus-visible { outline: 2px solid #1a9fff; outline-offset: 0; }
+/* Dialogs: dark, borderless. */
+.steam-modal { color: #e3e6ea; background: linear-gradient(180deg, #23272e, #191c21); border: 0; border-radius: 6px; }
+.steam-modal-backdrop { background: #000c; }
+/* Quick Access: Steam's dark side panel. */
+.qam-panel { background: linear-gradient(180deg, #1d2128f5, #15181df8); border-left: 0; }
+.qam-header { border-bottom: 1px solid #2c3139; color: #fff; }
+.steam-panel { background: transparent; border: 0; box-shadow: none; }
+.steam-panel-title { color: #dcdedf; }
