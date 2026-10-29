@@ -20,7 +20,7 @@ export const pageStyle = { boxSizing: "border-box" as const, height: "100%", ove
 export const iconRow = { display: "flex", alignItems: "center", justifyContent: "center", gap: 8 } as const;
 // minWidth 0: Steam's DialogButton has a minimum width of its own, which pushed a
 // narrow button (the Manage gear) over its neighbour in side-by-side rows on a Deck.
-export const compactButtonStyle = { ...iconRow, width: "100%", minWidth: 0, minHeight: "var(--dh-button-height, 36px)", marginBottom: "var(--dh-button-gap, 8px)", padding: "var(--dh-button-padding, 6px 10px)" };
+export const compactButtonStyle = { ...iconRow, width: "100%", minWidth: 0, minHeight: "var(--dh-button-height, 40px)", marginBottom: "var(--dh-button-gap, 8px)", padding: "var(--dh-button-padding, 6px 10px)" };
 export const modalButtonStyle = { ...compactButtonStyle, marginBottom: 0 };
 export const sectionDividerStyle = { borderTop: "1px solid rgba(255, 255, 255, 0.14)", margin: "var(--dh-divider-margin, 16px) 0" };
 // Text screen readers (and tests) still read, e.g. an icon-only button's label.
@@ -29,7 +29,7 @@ export const windowGap = "var(--dh-window-gap, 10px)";
 export const gridGap = "var(--dh-grid-gap, 12px)";
 // The tile every card and section is drawn on (see Card and AppCard).
 // Same no-responsibility note the install confirm shows, kept in view on the Updates, Discover and Search pages.
-export const disclaimerStyle = { marginBottom: "var(--dh-card-gap, 14px)", padding: "8px 12px", color: "#ffb3b3", fontSize: "0.85em", background: "rgba(255, 107, 107, 0.08)", borderLeft: "3px solid #ff6b6b", borderRadius: 6 };
+export const disclaimerStyle = { marginBottom: "var(--dh-card-gap, 14px)", padding: "8px 12px", color: "#ffb3b3", fontSize: "max(12px, 0.85em)", background: "rgba(255, 107, 107, 0.08)", borderLeft: "3px solid #ff6b6b", borderRadius: 6 };
 
 export const surfaceStyle = {
   background: "linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02))",

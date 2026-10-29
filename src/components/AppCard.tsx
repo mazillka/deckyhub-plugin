@@ -82,8 +82,8 @@ const cardStyle = {
 const fullRow = { gridColumn: "1 / -1" };
 const monogramStyle = { display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: 8, color: "#fff", fontWeight: 700, letterSpacing: "0.02em" };
 const cardTitleStyle = { margin: 0, overflow: "hidden", color: "#fff", fontSize: "1.05em", fontWeight: 700, lineHeight: 1.2, textOverflow: "ellipsis", whiteSpace: "nowrap" as const };
-const categoryStyle = { color: "#8fcef4", fontSize: "0.78em", letterSpacing: "0.04em", textTransform: "uppercase" as const };
-const pillStyle = { display: "inline-block", marginRight: 6, padding: "1px 8px", border: "1px solid", borderRadius: 999, fontSize: "0.78em", fontWeight: 600 };
+const categoryStyle = { color: "#8fcef4", fontSize: "max(12px, 0.78em)", letterSpacing: "0.04em", textTransform: "uppercase" as const };
+const pillStyle = { display: "inline-block", marginRight: 6, padding: "1px 8px", border: "1px solid", borderRadius: 999, fontSize: "max(12px, 0.78em)", fontWeight: 600 };
 
 // Up to two initials, e.g. "Decky LSFG-VK" -> "DL".
 const monogram = (name: string) => name.split(/[\s-]+/).filter(Boolean).slice(0, 2).map((word) => word[0].toUpperCase()).join("");
@@ -184,10 +184,10 @@ export function AppCard({
     return (
       // The name is a direct child here too, so a row's buttons are found from its heading.
       <div className="deckyhub-app-row deckyhub-focus-ring" style={{ ...surfaceStyle, display: "grid", gridTemplateColumns: "36px minmax(0, 1.3fr) minmax(0, 2fr) minmax(0, 1.4fr) 230px", alignItems: "center", columnGap: 12, padding: "6px 12px" }}>
-        <AppMonogram app={app} style={{ width: 36, height: 36, fontSize: "0.85em" }} />
+        <AppMonogram app={app} style={{ width: 36, height: 36, fontSize: "max(12px, 0.85em)" }} />
         <h3 style={cardTitleStyle}>{app.name}</h3>
         <small style={{ color: "#b8c7d3", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{app.error || app.description}</small>
-        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "2px 10px", color: "#8b9aa7", fontSize: "0.8em" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "2px 10px", color: "#8b9aa7", fontSize: "max(12px, 0.8em)" }}>
           {statusPill}
           <AppBadges app={app} t={t} />
           <AppStats app={app} t={t} />
@@ -211,7 +211,7 @@ export function AppCard({
         <AppBadges app={app} t={t} />
       </div>
       <small style={{ ...cardDescriptionStyle, ...fullRow, display: "-webkit-box", color: "#b8c7d3" }}>{app.description || " "}</small>
-      <div style={{ ...fullRow, display: "flex", flexWrap: "wrap", gap: "2px 14px", color: "#8b9aa7", fontSize: "0.8em" }}>
+      <div style={{ ...fullRow, display: "flex", flexWrap: "wrap", gap: "2px 14px", color: "#8b9aa7", fontSize: "max(12px, 0.8em)" }}>
         {app.installedVersion && <span>{t("settings.installedVersion", { version: displayVersion(app.installedVersion) })}</span>}
         {/* No release and no error yet: its GitHub check is still running. */}
         <span>{t("settings.latestVersion", { version: app.latestVersion ? displayVersion(app.latestVersion) : app.error ? "—" : t("settings.checkingUpdate") })}</span>

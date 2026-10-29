@@ -26,7 +26,7 @@ const RELEASE_CONCURRENCY = 8;
 const NAV_LINKS = [["updates", FaArrowCircleUp], ["discover", FaCompass], ["search", FaSearch], ["settings", FaCog]] as const;
 
 
-const countBadgeStyle = { minWidth: "1.5em", padding: "0 6px", borderRadius: 999, background: "#f0c33c", color: "#1a1a1a", fontSize: "0.8em", fontWeight: 700, lineHeight: "1.5em", textAlign: "center" as const };
+const countBadgeStyle = { minWidth: "1.5em", padding: "0 6px", borderRadius: 999, background: "#f0c33c", color: "#1a1a1a", fontSize: "max(12px, 0.8em)", fontWeight: 700, lineHeight: "1.5em", textAlign: "center" as const };
 
 const SORT_ORDERS = ["az", "za", "downloads", "stars", "updated", "added"] as const;
 type SortOrder = (typeof SORT_ORDERS)[number];
@@ -37,7 +37,7 @@ const SHELVES = [["popular", "downloads"], ["recent", "updated"], ["new", "added
 const chipStyle = { ...compactButtonStyle, marginBottom: 0, padding: "4px 12px", borderRadius: 999 };
 // Category chips per row. Rows are explicit, like FocusableGrid's: Steam's D-pad can't move down a wrapped row.
 const CHIPS_PER_ROW = 5;
-const bumperStyle = { padding: "1px 7px", borderRadius: 5, background: "rgba(255, 255, 255, 0.12)", fontSize: "0.75em", fontWeight: 700 };
+const bumperStyle = { padding: "1px 7px", borderRadius: 5, background: "rgba(255, 255, 255, 0.12)", fontSize: "max(12px, 0.75em)", fontWeight: 700 };
 
 export function Content({ fullPage }: { fullPage?: View }) {
   const t = useT();
@@ -232,7 +232,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
           {/* Twice a dropdown's width: on a Deck the dropdowns' own minimum width otherwise left it no wider than one. */}
           <div style={{ flex: "2 1 0", minWidth: 0 }}>
             {/* Own label instead of TextField's, which Steam renders uppercase and padded, out of line with the dropdowns. */}
-            <div style={{ fontSize: "0.85em" }}>
+            <div style={{ fontSize: "max(12px, 0.85em)" }}>
               <div style={{ marginBottom: 4 }}>{t("filter.search")}</div>
               <TextField
                 {...({ "aria-label": t("filter.search") } as any)}
@@ -243,7 +243,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
             </div>
           </div>
           <div style={{ flex: "1 1 0", minWidth: 0 }}>
-            <div style={{ fontSize: "0.85em" }}>
+            <div style={{ fontSize: "max(12px, 0.85em)" }}>
               <div style={{ marginBottom: 4 }}>{t("filter.status")}</div>
               <Dropdown
                 {...({ "aria-label": t("filter.status"), style: { width: "100%" } } as any)}
@@ -259,7 +259,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
             </div>
           </div>
           <div style={{ flex: "1 1 0", minWidth: 0 }}>
-            <div style={{ fontSize: "0.85em" }}>
+            <div style={{ fontSize: "max(12px, 0.85em)" }}>
               <div style={{ marginBottom: 4 }}>{t("filter.category")}</div>
               <Dropdown
                 {...({ "aria-label": t("filter.category"), style: { width: "100%" } } as any)}
@@ -271,7 +271,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
             </div>
           </div>
           <div style={{ flex: "1 1 0", minWidth: 0 }}>
-            <div style={{ fontSize: "0.85em" }}>
+            <div style={{ fontSize: "max(12px, 0.85em)" }}>
               <div style={{ marginBottom: 4 }}>{t("filter.sort")}</div>
               <Dropdown
                 {...({ "aria-label": t("filter.sort"), style: { width: "100%" } } as any)}
@@ -283,7 +283,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
             </div>
           </div>
           <div style={{ flex: "1 1 0", minWidth: 0 }}>
-            <div style={{ fontSize: "0.85em" }}>
+            <div style={{ fontSize: "max(12px, 0.85em)" }}>
               <div style={{ marginBottom: 4 }}>{t("filter.thenBy")}</div>
               <Dropdown
                 {...({ "aria-label": t("filter.thenBy"), style: { width: "100%" } } as any)}
@@ -408,7 +408,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
               icon={view === "updates" ? <FaArrowCircleUp /> : <FaCompass />}
               title={browsing ? activeCategory || t("discover.allPlugins") : info.title}
               badge={view === "updates" ? updateCount > 0 && <span className="deckyhub-update-count" title={t("toast.updatesAvailable", { count: updateCount })} style={countBadgeStyle}>{updateCount}</span>
-                : totalDownloads > 0 && <span className="deckyhub-total-downloads" title={t("view.totalDownloads", { count: totalDownloads.toLocaleString() })} style={{ color: "#8b9aa7", fontSize: "0.7em", fontWeight: 400 }}>{t("view.totalDownloads", { count: compactNumber(totalDownloads) })}</span>}
+                : totalDownloads > 0 && <span className="deckyhub-total-downloads" title={t("view.totalDownloads", { count: totalDownloads.toLocaleString() })} style={{ color: "#8b9aa7", fontSize: "max(12px, 0.7em)", fontWeight: 400 }}>{t("view.totalDownloads", { count: compactNumber(totalDownloads) })}</span>}
               description={browsing ? t("discover.pluginCount", { count: visibleApps.length }) : info.description}
               actions={
                 <>
@@ -442,7 +442,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
             <div className="deckyhub-disclaimer" style={disclaimerStyle}>{t("install.disclaimer")}</div>
             {/* The badge's tooltip never shows on a Deck (no hover), so Discover spells it out once. */}
             {view === "discover" && (
-              <div className="deckyhub-root-legend" style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: "var(--dh-card-gap, 14px)", color: "#d6f5ff", fontSize: "0.85em" }}>
+              <div className="deckyhub-root-legend" style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: "var(--dh-card-gap, 14px)", color: "#d6f5ff", fontSize: "max(12px, 0.85em)" }}>
                 <RootBadge t={t} />
                 <span>{t("appcard.runsAsRootHint")}</span>
               </div>
@@ -475,7 +475,8 @@ export function Content({ fullPage }: { fullPage?: View }) {
             </>
           ) : (
             // L1 / R1 turn the page wherever focus is in the list.
-            <Focusable flow-children="down" onButtonDown={(event: { detail: { button: number } }) => {
+            // B goes back to the shelves while browsing; elsewhere it leaves the page as usual.
+            <Focusable flow-children="down" onCancelButton={browsing ? () => setBrowsing(false) : undefined} onCancelActionDescription={browsing ? t("nav.discover") : undefined} onButtonDown={(event: { detail: { button: number } }) => {
               if (view !== "discover") return;
               if (event.detail.button === GamepadButton.BUMPER_LEFT) turnPage(-1);
               if (event.detail.button === GamepadButton.BUMPER_RIGHT) turnPage(1);
@@ -559,7 +560,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
             </Button>
           </PanelSectionRow>
           <PanelSectionRow>
-            <div style={{ color: "#8fcef4", fontSize: "0.85em" }}>{t("settings.exportLogsNote")}</div>
+            <div style={{ color: "#8fcef4", fontSize: "max(12px, 0.85em)" }}>{t("settings.exportLogsNote")}</div>
           </PanelSectionRow>
         </PanelSection>
       </Card>
