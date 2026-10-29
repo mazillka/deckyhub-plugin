@@ -21,14 +21,14 @@ export type App = {
   assets: Asset[];
   updateAvailable?: boolean | null;
   // From the registry's stats.json (fetchPluginStats); absent for repos it doesn't list.
-  downloads?: number;
-  stars?: number | null;
-  // When the release Discover shows came out, and whether its plugin.json asks for root.
-  lastRelease?: string | null;
-  root?: boolean | null;
+  stats?: PluginStats;
   error?: string | null;
   channel?: UpdateChannel;
 };
+
+// A plugin's line in the registry's stats.json: all-time downloads, GitHub stars,
+// when the release Discover shows came out, and whether its plugin.json asks for root.
+export type PluginStats = { downloads?: number; stars?: number | null; updated?: string | null; root?: boolean | null };
 
 // Manage-window buttons that Display Settings can hide.
 export type HideableButton = "downloadZip" | "install" | "update" | "releasePage";

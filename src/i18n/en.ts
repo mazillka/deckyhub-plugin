@@ -8,7 +8,7 @@ export const en = {
 
   "view.updatesDescription": "",
   "view.updatesEmpty": "Everything installed is up to date.",
-  "view.discoverDescription": "Browse supported GitHub projects and their ZIP releases.",
+  "view.discoverDescription": "Browse curated Decky plugins and install them from their authors' GitHub releases.",
   "view.discoverEmpty": "No repositories are available.",
   "view.searchDescription": "Search GitHub for Decky plugins. Install one straight away, or add it to track its updates.",
   "view.searchTitle": "Search & Install",

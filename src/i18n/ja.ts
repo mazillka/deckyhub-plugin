@@ -9,7 +9,7 @@ export const ja: Record<MessageKey, string> = {
 
   "view.updatesDescription": "",
   "view.updatesEmpty": "すべて最新の状態です。",
-  "view.discoverDescription": "対応しているGitHubプロジェクトとそのZIPリリースを見つけます。",
+  "view.discoverDescription": "厳選されたDeckyプラグインを見つけて、作者のGitHubリリースからインストールします。",
   "view.discoverEmpty": "利用できるリポジトリがありません。",
   "view.searchDescription": "GitHub で Decky プラグインを検索します。すぐにインストールするか、追加して更新を追跡できます。",
   "view.searchTitle": "検索とインストール",

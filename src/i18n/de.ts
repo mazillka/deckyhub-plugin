@@ -9,7 +9,7 @@ export const de: Record<MessageKey, string> = {
 
   "view.updatesDescription": "",
   "view.updatesEmpty": "Alles Installierte ist aktuell.",
-  "view.discoverDescription": "Unterstützte GitHub-Projekte und ihre ZIP-Releases durchsuchen.",
+  "view.discoverDescription": "Kuratierte Decky-Plugins durchsuchen und direkt aus den GitHub-Releases ihrer Autoren installieren.",
   "view.discoverEmpty": "Keine Repositories verfügbar.",
   "view.searchDescription": "GitHub nach Decky-Plugins durchsuchen. Direkt installieren oder hinzufügen, um Updates zu verfolgen.",
   "view.searchTitle": "Suchen & Installieren",

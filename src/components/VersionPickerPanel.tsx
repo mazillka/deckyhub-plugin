@@ -39,6 +39,8 @@ export function useReleasePicker<T extends { tag: string; prerelease: boolean }>
 }
 
 // The Release Page + Check for Updates row both version pickers end with.
+const actionButtonStyle = { ...modalButtonStyle, flex: "1 1 auto", whiteSpace: "nowrap" as const };
+
 export function ReleaseActions({ t, url, repoUrl, hideReleasePage, checking, disabled, onCheck, closeModal }: { t: TFunc; url?: string; repoUrl?: string; hideReleasePage: boolean; checking: boolean; disabled: boolean; onCheck: () => void; closeModal?: () => void }) {
   // Close first: Steam's browser otherwise opens underneath this modal.
   const open = (target: string) => {
@@ -46,18 +48,19 @@ export function ReleaseActions({ t, url, repoUrl, hideReleasePage, checking, dis
     Navigation.NavigateToExternalWeb(target);
   };
   return (
-    <Focusable flow-children="right" style={{ display: "flex", gap: 8 }}>
+    // A button too narrow for its label moves to the next row rather than wrapping it.
+    <Focusable flow-children="right" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
       {url && !hideReleasePage && (
-        <Button style={{ ...modalButtonStyle, flex: 1 }} onClick={() => open(url)}>
+        <Button style={actionButtonStyle} onClick={() => open(url)}>
           <FaExternalLinkAlt /> {t("appcard.releasePage")}
         </Button>
       )}
       {repoUrl && (
-        <Button style={{ ...modalButtonStyle, flex: 1 }} onClick={() => open(repoUrl)}>
+        <Button style={actionButtonStyle} onClick={() => open(repoUrl)}>
           <FaGithub /> {t("appcard.repository")}
         </Button>
       )}
-      <Button style={{ ...modalButtonStyle, flex: 1 }} disabled={disabled} onClick={onCheck}>
+      <Button style={actionButtonStyle} disabled={disabled} onClick={onCheck}>
         <FaSync /> {checking ? t("settings.checkingUpdate") : t("settings.checkUpdate")}
       </Button>
     </Focusable>
