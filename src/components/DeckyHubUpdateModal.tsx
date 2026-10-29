@@ -7,7 +7,7 @@ import type { TFunc } from "../i18n/en";
 import type { Asset, DeckyHubInfo, DeckyHubReleaseOption, UpdateChannel, HideableButton } from "../types";
 import { PLUGIN_INSTALL_TYPE, buildVersionOptions, getDeckyBackend, installDeckyPlugin, installTypeLabel, listDeckyHubReleases, modalButtonStyle, resolveDeckyHubInstallType } from "../utils";
 import { normalizeVersion } from "../version";
-import { showReleaseInfo } from "./AppCard";
+import { showReleaseInfo } from "./ReleaseInfo";
 import { iconTileStyle } from "./Card";
 import { showDownloadModal } from "./DownloadProgress";
 import { primaryButtonStyle } from "./AppDetailsModal";

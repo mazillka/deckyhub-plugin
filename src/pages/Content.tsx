@@ -1,36 +1,33 @@
 import { toaster } from "@decky/api";
 import { DialogButtonPrimary as Button, Focusable, Navigation, PanelSection, PanelSectionRow, Spinner } from "@decky/ui";
 import { useEffect, useRef, useState } from "react";
-import { FaArrowCircleUp, FaArrowLeft, FaCompass, FaSync, FaTimes, FaArrowUp } from "react-icons/fa";
-import { downloadAsset, getApps, getSettings, REGISTRY_UPDATED } from "../api";
+import { FaSync } from "react-icons/fa";
+import { downloadAsset } from "../api";
 import { useT } from "../i18n";
-import type { App, Asset, HideableButton, PluginStats, RepoPreference, UpdateChannel, View } from "../types";
-import { compactButtonStyle, DEFAULT_COLUMNS_PER_ROW, compactNumber, disclaimerStyle, fetchPluginStats, getDeckyBackend, hydrate, installAction, log, needsFreshInstall, notifyUpdates, PLUGIN_INSTALL_TYPE, surfaceStyle, updateDeckyPlugins } from "../utils";
-import { AppCard, RootBadge } from "../components/AppCard";
-import { confirmPluginInstall } from "../components/AppDetailsModal";
+import type { App, Asset, UpdateChannel, View } from "../types";
+import { compactButtonStyle, compactNumber, hydrate, installAction, needsFreshInstall, PLUGIN_INSTALL_TYPE, updateDeckyPlugins } from "../utils";
+import { AppCard } from "../components/AppCard";
+import { confirmPluginInstall } from "../components/InstallFlow";
 import { showDownloadModal } from "../components/DownloadProgress";
 import { AppList } from "../components/AppList";
+import { ContentHeader } from "../components/ContentHeader";
 import { DiscoverFilters } from "../components/DiscoverFilters";
+import { EmptyState } from "../components/EmptyState";
 import { DiscoverHome } from "../components/DiscoverHome";
 import { FocusableGrid } from "../components/FocusableGrid";
 import { countBadgeStyle, QuickAccessNav } from "../components/QuickAccessNav";
 import { compareBy, type SortOrder } from "../sorting";
-import { Card, PageHeader, useSwapAnimation } from "../components/Card";
-import { KeepInView, keepInView } from "../components/KeepInView";
-import { LayoutToggle, useLayout } from "../components/LayoutToggle";
+import { Card, useSwapAnimation } from "../components/Card";
+import { useLayout } from "../components/LayoutToggle";
+import { useApps } from "../hooks/useApps";
 import { RateLimitBanner } from "../components/RateLimitBanner";
 
-// ponytail: fixed pool of 8 GitHub requests in flight; lower it if the registry grows
-// big enough to trip GitHub's secondary (burst) rate limit.
-const RELEASE_CONCURRENCY = 8;
 
 
 export function Content({ fullPage }: { fullPage?: View }) {
   const t = useT();
-  const [apps, setApps] = useState<App[]>([]);
   const view: View = fullPage ?? "updates";
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const { apps, setApps, loading, loadError, checked, listedCount, columnsPerRow, repoPreferences, setRepoPreferences, hiddenButtons, load } = useApps(view);
   const [downloading, setDownloading] = useState(false);
   const [query, setQuery] = useState("");
   const [installedFilter, setInstalledFilter] = useState("All");
@@ -42,14 +39,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
   // Discover opens on its shelves; a category chip or See all browses the whole list, a page at a time.
   const [browsing, setBrowsing] = useState(false);
   const [layout, setLayout] = useLayout();
-  const [columnsPerRow, setColumnsPerRow] = useState(DEFAULT_COLUMNS_PER_ROW);
-  const [repoPreferences, setRepoPreferences] = useState<Record<string, RepoPreference>>({});
-  const [hiddenButtons, setHiddenButtons] = useState<HideableButton[]>([]);
   const [updatingAll, setUpdatingAll] = useState(false);
-  // Release checks finished out of the current load, shown while Updates waits on them.
-  const [checked, setChecked] = useState(0);
-  // Every listed plugin, for the Quick Access menu's Discover button (its own list is installed ones only).
-  const [listedCount, setListedCount] = useState(0);
   const quickAccessRef = useRef<HTMLDivElement>(null);
   const pageRef = useRef<HTMLDivElement>(null);
   // Slides the shelves, category, page, layout, filter or sort in when it changes.
@@ -59,98 +49,6 @@ export function Content({ fullPage }: { fullPage?: View }) {
     ? { title: t("nav.updates"), description: t("view.updatesDescription"), empty: t("view.updatesEmpty") }
     : { title: t("nav.discover"), description: t("view.discoverDescription"), empty: t("view.discoverEmpty") };
 
-  // Bumped per load() so a slower, older load can't overwrite a newer one.
-  const loadRun = useRef(0);
-  // Only the first load shows the spinner; later ones (Refresh, the 15-minute
-  // timer, an install finishing) update the cards in place, so the grid keeps
-  // its controller focus and scroll position.
-  const loaded = useRef(false);
-
-  const load = async (force = false) => {
-    const run = ++loadRun.current;
-    if (!loaded.current) setLoading(true);
-    try {
-      // Downloads and stars only matter for Discover's cards and sorting.
-      const [appData, settings, stats] = await Promise.all([getApps(), getSettings(), view === "discover" ? fetchPluginStats(force) : Promise.resolve<Record<string, PluginStats>>({})]);
-      const local = appData.apps;
-      setListedCount(local.length);
-      const preferences = settings.repoSettings || {};
-      setRepoPreferences(preferences);
-      setColumnsPerRow(settings.columnsPerRow);
-      setHiddenButtons(settings.hiddenButtons ?? []);
-      const tracked = (view === "updates" ? local.filter((app) => app.installedVersion) : local).map((app) => {
-        const stat = stats[app.repo.toLowerCase()];
-        return stat ? { ...app, stats: stat } : app;
-      });
-      // A card keeps its last release check until this load's replaces it.
-      setApps((current) => {
-        const previous = new Map(current.map((app) => [app.id, app]));
-        return tracked.map((app) => { const kept = previous.get(app.id); return kept ? { ...kept, stats: app.stats } : app; });
-      });
-      setLoadError(null);
-      // Discover shows every card straight away and fills each in as its
-      // release arrives; Updates waits, since it lists only apps with an update.
-      if (view === "discover") {
-        loaded.current = true;
-        setLoading(false);
-      }
-      const hydrated = [...tracked];
-      let next = 0;
-      setChecked(0);
-      // A rolling pool: each finished request starts the next, rather than
-      // waiting for the slowest one in a fixed batch.
-      const worker = async () => {
-        while (next < tracked.length) {
-          const index = next++;
-          hydrated[index] = await hydrate(tracked[index], force, preferences[tracked[index].repo]);
-          // A newer load took over: stop, rather than check the rest for nothing.
-          if (run !== loadRun.current) return;
-          setApps((current) => current.map((app) => (app.id === hydrated[index].id ? hydrated[index] : app)));
-          setChecked((count) => count + 1);
-        }
-      };
-      await Promise.all(Array.from({ length: Math.min(RELEASE_CONCURRENCY, tracked.length) }, worker));
-      if (run !== loadRun.current) return;
-      loaded.current = true;
-      setLoading(false);
-      notifyUpdates(hydrated);
-    } catch (error) {
-      log(`Loading apps failed: ${error}`);
-      setLoadError(String(error));
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    // Automatic refreshes go through the release cache; only the Refresh and
-    // Check for Updates buttons force a fresh fetch.
-    const refresh = () => void load();
-    void load();
-    const timer = window.setInterval(refresh, 15 * 60 * 1000);
-    window.addEventListener(REGISTRY_UPDATED, refresh);
-    return () => {
-      window.clearInterval(timer);
-      window.removeEventListener(REGISTRY_UPDATED, refresh);
-    };
-  }, []);
-
-  // Decky Loader reports when an install it ran finishes; reload so the card
-  // picks up the new installed version (release data stays cached). Debounced
-  // so an "Update all" batch reloads once, not once per plugin.
-  useEffect(() => {
-    const backend = getDeckyBackend();
-    if (!backend) return;
-    let timer = 0;
-    const onFinish = () => {
-      window.clearTimeout(timer);
-      timer = window.setTimeout(() => void load(), 1000);
-    };
-    backend.addEventListener("loader/plugin_download_finish", onFinish);
-    return () => {
-      window.clearTimeout(timer);
-      backend.removeEventListener("loader/plugin_download_finish", onFinish);
-    };
-  }, []);
 
   // Opening a category, or going back, replaces what had focus: hand it to the
   // Back button or the first chip, so the D-pad doesn't start from nowhere.
@@ -313,51 +211,20 @@ export function Content({ fullPage }: { fullPage?: View }) {
       )}
       {!loading && !loadError && (
         <>
-          <KeepInView>
-            <PageHeader
-              icon={view === "updates" ? <FaArrowCircleUp /> : <FaCompass />}
-              title={browsing ? activeCategory || t("discover.allPlugins") : info.title}
-              badge={view === "updates" ? updateCount > 0 && <span className="deckyhub-update-count" title={t("toast.updatesAvailable", { count: updateCount })} style={countBadgeStyle}>{updateCount}</span>
-                : totalDownloads > 0 && <span className="deckyhub-total-downloads" title={t("view.totalDownloads", { count: totalDownloads.toLocaleString() })} style={{ color: "#8b9aa7", fontSize: "max(12px, 0.7em)", fontWeight: 400 }}>{t("view.totalDownloads", { count: compactNumber(totalDownloads) })}</span>}
-              description={browsing ? t("discover.pluginCount", { count: visibleApps.length }) : info.description}
-              actions={
-                <>
-                  {browsing && (
-                    <div className="deckyhub-back-button" style={{ flex: "0 0 150px" }}>
-                      <Button style={{ ...compactButtonStyle, marginBottom: 0 }} onClick={() => setBrowsing(false)}>
-                        <FaArrowLeft /> {t("nav.discover")}
-                      </Button>
-                    </div>
-                  )}
-                  {(browsing || view === "updates") && (
-                    <div style={{ flex: "0 0 120px" }}>
-                      <LayoutToggle layout={layout} onChange={setLayout} />
-                    </div>
-                  )}
-                  <div style={{ flex: "0 0 180px" }}>
-                    <Button style={{ ...compactButtonStyle, marginBottom: 0 }} onClick={() => void load(true)}>
-                      <FaSync /> {t("content.refresh")}
-                    </Button>
-                  </div>
-                  {batchUpdates.length > 1 && (
-                    <div style={{ flex: "0 0 220px" }}>
-                      <Button style={{ ...compactButtonStyle, marginBottom: 0 }} disabled={updatingAll} onClick={() => void updateAll()}>
-                        <FaArrowUp /> {t("content.updateAll", { count: batchUpdates.length })}
-                      </Button>
-                    </div>
-                  )}
-                </>
-              }
-            />
-            <div className="deckyhub-disclaimer" style={disclaimerStyle}>{t("install.disclaimer")}</div>
-            {/* The badge's tooltip never shows on a Deck (no hover), so Discover spells it out once. */}
-            {view === "discover" && (
-              <div className="deckyhub-root-legend" style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: "var(--dh-card-gap, 14px)", color: "#d6f5ff", fontSize: "max(12px, 0.85em)" }}>
-                <RootBadge t={t} />
-                <span>{t("appcard.runsAsRootHint")}</span>
-              </div>
-            )}
-          </KeepInView>
+          <ContentHeader
+            view={view}
+            title={browsing ? activeCategory || t("discover.allPlugins") : info.title}
+            badge={view === "updates" ? updateCount > 0 && <span className="deckyhub-update-count" title={t("toast.updatesAvailable", { count: updateCount })} style={countBadgeStyle}>{updateCount}</span>
+              : totalDownloads > 0 && <span className="deckyhub-total-downloads" title={t("view.totalDownloads", { count: totalDownloads.toLocaleString() })} style={{ color: "#8b9aa7", fontSize: "max(12px, 0.7em)", fontWeight: 400 }}>{t("view.totalDownloads", { count: compactNumber(totalDownloads) })}</span>}
+            description={browsing ? t("discover.pluginCount", { count: visibleApps.length }) : info.description}
+            onBack={browsing ? () => setBrowsing(false) : undefined}
+            layout={browsing || view === "updates" ? layout : undefined}
+            onLayout={setLayout}
+            onRefresh={() => void load(true)}
+            updateAllCount={batchUpdates.length}
+            updatingAll={updatingAll}
+            onUpdateAll={() => void updateAll()}
+          />
           <div ref={swapRef}>
           {home ? (
             <DiscoverHome total={apps.length} categories={categoryCounts} shelf={shelf} onBrowse={openBrowse} renderGrid={renderGrid} />
@@ -370,25 +237,11 @@ export function Content({ fullPage }: { fullPage?: View }) {
           )}
           </div>
           {!home && !visibleApps.length && (
-            <div className="deckyhub-empty" onFocus={keepInView} style={{ ...surfaceStyle, padding: "16px 14px", textAlign: "center" }}>
-              {/* Decky's section title is a left-aligned flex row; center it too. */}
-              <style>{".deckyhub-empty div { text-align: center; justify-content: center; }"}</style>
-              <PanelSection title={info.empty}>
-                {view === "updates" ? (
-                  <PanelSectionRow>
-                    <Button style={compactButtonStyle} onClick={() => Navigation.Navigate("/deckyhub/discover")}>
-                      <FaCompass /> {t("nav.discover")}
-                    </Button>
-                  </PanelSectionRow>
-                ) : (query || installedFilter !== "All" || activeCategory) && (
-                  <PanelSectionRow>
-                    <Button style={compactButtonStyle} onClick={() => { setQuery(""); setInstalledFilter("All"); setCategoryFilter(""); }}>
-                      <FaTimes /> {t("repos.clear")}
-                    </Button>
-                  </PanelSectionRow>
-                )}
-              </PanelSection>
-            </div>
+            <EmptyState
+              title={info.empty}
+              toDiscover={view === "updates"}
+              onClear={view === "discover" && (query || installedFilter !== "All" || activeCategory) ? () => { setQuery(""); setInstalledFilter("All"); setCategoryFilter(""); } : undefined}
+            />
           )}
         </>
       )}

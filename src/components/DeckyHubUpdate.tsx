@@ -7,7 +7,7 @@ import { useT } from "../i18n";
 import type { DeckyHubInfo, DeckyHubRelease, HideableButton, UpdateChannel } from "../types";
 import { compactButtonStyle, getDeckyBackend, installDeckyPlugin, latestDeckyHubRelease, log, seenOnce, PLUGIN_INSTALL_TYPE, resolveDeckyHubInstallType, visuallyHidden } from "../utils";
 import { normalizeVersion } from "../version";
-import { showReleaseInfo } from "./AppCard";
+import { showReleaseInfo } from "./ReleaseInfo";
 import { DeckyHubUpdateModal, downloadDeckyHubZip } from "./DeckyHubUpdateModal";
 import { Card } from "./Card";
 
