@@ -749,6 +749,24 @@ test("Settings' token link opens GitHub's token page", async ({ page, context })
   expect((await popupPromise).url()).toBe("https://github.com/settings/tokens");
 });
 
+test("Settings' About thanks both plugin catalogs and links to them", async ({ page, context }) => {
+  await context.route(/^https:\/\/(github\.com|decky-extended-plugins\.beallio\.com)\//, (route) => route.fulfill({ body: "catalog" }));
+  await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  await expect(app.getByText(/found through two community catalogs/)).toBeVisible();
+  for (const [label, url] of [
+    ["Decky Plugins Explorer by SafetZahirovic", "https://github.com/SafetZahirovic/decky-plugins-explorer"],
+    ["Decky Extended Plugins by beallio", "https://decky-extended-plugins.beallio.com/"],
+    ["DeckyHub on GitHub", "https://github.com/mazillka/deckyhub-plugin"],
+  ]) {
+    const popupPromise = page.waitForEvent("popup");
+    await app.getByRole("button", { name: label, exact: true }).click();
+    const popup = await popupPromise;
+    expect(popup.url()).toBe(url);
+    await popup.close();
+  }
+});
+
 test("An outdated Decky plugin's card offers Update and hands it to Decky's installer", async ({ page }) => {
   // dev-server.py scans .dev-data/plugins/*/plugin.json as the installed
   // Decky plugins, so seed an old MAKO there for the length of this test.
