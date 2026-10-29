@@ -81,14 +81,15 @@ A daily job checks both catalogs for plugins that aren't listed yet and opens a 
 
 ### Controller buttons
 
-DeckyHub uses the standard Steam Deck controls, plus two extra shortcuts on every **Install** / **Update** button (on Discover and Updates cards, on **Search** results, in the [Manage](#manage) window, and for DeckyHub's own update):
+DeckyHub uses the standard Steam Deck controls, plus extra shortcuts on every **Install** / **Update** button (on Discover and Updates cards, on **Search** results, in the [Manage](#manage) window, and for DeckyHub's own update):
 
 | Button | What it does |
 | --- | --- |
 | **X** | Download that release's ZIP to `/home/deck/Downloads/deckyhub` instead of installing it. Not shown when **Download ZIP** is hidden in Settings. |
 | **Y** | Show the release notes (what that release changes) without installing anything. |
+| **Menu** (☰) | Open the plugin's GitHub page. Not on DeckyHub's own update. |
 
-Steam's footer shows the X and Y actions for whichever button is focused.
+Steam's footer shows these actions for whichever button is focused.
 
 ### Discover
 

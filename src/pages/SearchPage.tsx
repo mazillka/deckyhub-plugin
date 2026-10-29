@@ -187,6 +187,8 @@ export function SearchPage() {
                           onSecondaryActionDescription={t("appcard.releaseInfo")}
                           onOptionsButton={hiddenButtons.includes("downloadZip") ? undefined : () => void downloadZip(repo.full_name).catch(showError)}
                           onOptionsActionDescription={t("settings.downloadUpdate")}
+                          onMenuButton={() => Navigation.NavigateToExternalWeb(`https://github.com/${repo.full_name}`)}
+                          onMenuActionDescription={t("appcard.repository")}
                           onClick={() => void install(repo.full_name).catch(showError)}
                         >
                           <FaDownload /> {t("appcard.install")}

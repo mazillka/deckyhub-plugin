@@ -171,6 +171,12 @@ export function AppDetailsModal({
                 // X downloads the selected release's ZIP instead of installing it.
                 onOptionsButton={hiddenButtons.includes("downloadZip") || downloading || !selectedRelease.assets[0] ? undefined : () => download(selectedRelease.assets[0])}
                 onOptionsActionDescription={t("settings.downloadUpdate")}
+                // Menu opens the repository; close first, or Steam's browser opens underneath this modal.
+                onMenuButton={() => {
+                  closeModal?.();
+                  Navigation.NavigateToExternalWeb(`https://github.com/${app.repo}`);
+                }}
+                onMenuActionDescription={t("appcard.repository")}
               >
                 {installIcons[install.type]} {installLabel}
               </Button>

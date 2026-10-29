@@ -806,6 +806,38 @@ async function acceptDisclaimer(page: Page, label: string) {
   await confirm.getByRole("button", { name: label, exact: true }).click();
 }
 
+test("Menu on an Install button opens the plugin's GitHub page", async ({ page, context }) => {
+  await context.route("https://github.com/**", (route) => route.fulfill({ body: "repo page" }));
+  await mockMakoReleases(page, [makoRelease("plugin-v1.2.3", "e".repeat(64))]);
+  await recordInstalls(page);
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  const card = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+
+  // On the card.
+  const install = card.getByRole("button", { name: "Install v1.2.3", exact: true });
+  await install.focus();
+  await expect(app.locator(".steam-legend")).toContainText("☰ Repository");
+  let popupPromise = page.waitForEvent("popup");
+  await install.press("m");
+  let popup = await popupPromise;
+  expect(popup.url()).toBe("https://github.com/eugeniosegala/MAKO");
+  await popup.close();
+
+  // In the Manage window, which closes first so the page isn't opened underneath it.
+  await card.getByRole("button", { name: "Manage", exact: true }).click();
+  const modalInstall = app.locator(".steam-modal").getByRole("button", { name: /^Install/ }).first();
+  await modalInstall.focus();
+  popupPromise = page.waitForEvent("popup");
+  await modalInstall.press("m");
+  popup = await popupPromise;
+  expect(popup.url()).toBe("https://github.com/eugeniosegala/MAKO");
+  await expect(app.locator(".steam-modal")).toHaveCount(0);
+  // Menu only opens the page; nothing is installed.
+  const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
+  expect(await frame.evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls)).toEqual([]);
+});
+
 test("Y on a card's Install button shows the release notes and the bottom bar names it", async ({ page }) => {
   await mockMakoReleases(page, [{ ...makoRelease("plugin-v1.2.3", "e".repeat(64)), body: "Faster frame pacing." }]);
   await recordInstalls(page);
