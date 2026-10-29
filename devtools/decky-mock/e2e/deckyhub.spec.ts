@@ -184,7 +184,7 @@ test("Discover keeps its refresh action beside the description", async ({ page }
   await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
   const app = mock(page);
   const title = app.getByRole("heading", { name: "Discover", exact: true });
-  const description = app.getByText("Browse curated Decky plugins and install them from their authors' GitHub releases.");
+  const description = app.getByText("Browse Decky plugins and install them from their authors' GitHub releases.");
   const refresh = app.getByRole("button", { name: "Refresh", exact: true });
 
   // On the header's row: its middle falls between the title's top and the description's bottom.
@@ -974,7 +974,7 @@ test("Search installs a plugin straight from its GitHub release", async ({ page 
   await expect(app.getByRole("heading", { name: "Search & Install", exact: true })).toBeVisible();
   await app.getByLabel("Search GitHub").fill("mako");
   await app.getByRole("button", { name: "Search", exact: true }).click();
-  // Already in the curated list, so Add shows as done; Install still works.
+  // Already in DeckyHub's list, so Add shows as done; Install still works.
   await expect(app.getByRole("button", { name: "Added", exact: true })).toBeDisabled();
   await app.getByRole("button", { name: "Install", exact: true }).click();
   await acceptDisclaimer(page, "Install v1.2.3");

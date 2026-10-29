@@ -4,7 +4,7 @@ import { useT } from "../i18n";
 import { compactButtonStyle, sectionDividerStyle } from "../utils";
 import { Card, IconNote } from "./Card";
 
-// The community catalogs the curated list's plugins were found through (see the
+// The community catalogs most listed plugins were found through (see the
 // registry's scripts/discover.py), credited in About.
 const CATALOGS = [
   { name: "Decky Plugins Explorer", author: "SafetZahirovic", url: "https://github.com/SafetZahirovic/decky-plugins-explorer" },

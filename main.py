@@ -180,7 +180,7 @@ def parse_registry(payload: object) -> list[dict]:
     return [app for app in payload["apps"] if _valid_app(app)]
 
 
-# The curated list lives in its own repository.
+# DeckyHub's plugin list lives in its own repository.
 REMOTE_REGISTRY_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/refs/heads/main/registry/apps.json"
 MAX_REMOTE_REGISTRY_BYTES = 512 * 1024
 # How many user-added registries one install will track, so a bad list can't
@@ -427,8 +427,8 @@ class Plugin:
         return item
 
     def _custom_apps(self) -> list[dict]:
-        curated = {app["repo"].casefold() for app in self.apps}
-        return [{"id": f"custom-{repo.replace('/', '-')}", "name": repo, "repo": repo, "category": "Custom", "detect": {"type": "decky-plugin", "repo": repo}, "asset": {"include": [], "exclude": ["source"]}} for repo in self.settings["customRepos"] if repo.casefold() not in curated]
+        listed = {app["repo"].casefold() for app in self.apps}
+        return [{"id": f"custom-{repo.replace('/', '-')}", "name": repo, "repo": repo, "category": "Custom", "detect": {"type": "decky-plugin", "repo": repo}, "asset": {"include": [], "exclude": ["source"]}} for repo in self.settings["customRepos"] if repo.casefold() not in listed]
 
     async def get_settings(self):
         return self.settings
