@@ -3,6 +3,16 @@ import type { CSSProperties, ReactNode } from "react";
 import { surfaceStyle } from "../utils";
 import { keepInView } from "./KeepInView";
 
+// Explanatory text with a leading icon, bright enough to read at a glance.
+export function IconNote({ icon, children }: { icon: ReactNode; children: ReactNode }) {
+  return (
+    <div style={{ alignItems: "flex-start", color: "#d6f5ff", display: "flex", fontSize: "0.9em", gap: 8 }}>
+      <span style={{ color: "#8fcef4", display: "flex", flexShrink: 0, marginTop: 2 }}>{icon}</span>
+      <span>{children}</span>
+    </div>
+  );
+}
+
 // One section of a page, drawn as a tile. Like KeepInView, it scrolls itself
 // into view when the D-pad moves focus into it.
 export function Card({ children, accent, style }: { children: ReactNode; accent?: string; style?: CSSProperties }) {
