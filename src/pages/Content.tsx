@@ -194,7 +194,8 @@ export function Content({ fullPage }: { fullPage?: View }) {
     <PanelSection>
       <PanelSectionRow>
         <Focusable flow-children="right" style={{ display: "flex", gap: 12 }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
+          {/* Twice a dropdown's width: on a Deck the dropdowns' own minimum width otherwise left it no wider than one. */}
+          <div style={{ flex: "2 1 0", minWidth: 0 }}>
             {/* Own label instead of TextField's, which Steam renders uppercase and padded, out of line with the dropdowns. */}
             <div style={{ fontSize: "0.85em" }}>
               <div style={{ marginBottom: 4 }}>{t("filter.search")}</div>
@@ -206,7 +207,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
               />
             </div>
           </div>
-          <div style={{ flex: "0 0 180px" }}>
+          <div style={{ flex: "1 1 0", minWidth: 0 }}>
             <div style={{ fontSize: "0.85em" }}>
               <div style={{ marginBottom: 4 }}>{t("filter.status")}</div>
               <Dropdown
@@ -222,7 +223,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
               />
             </div>
           </div>
-          <div style={{ flex: "0 0 180px" }}>
+          <div style={{ flex: "1 1 0", minWidth: 0 }}>
             <div style={{ fontSize: "0.85em" }}>
               <div style={{ marginBottom: 4 }}>{t("filter.category")}</div>
               <Dropdown
@@ -234,7 +235,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
               />
             </div>
           </div>
-          <div style={{ flex: "0 0 180px" }}>
+          <div style={{ flex: "1 1 0", minWidth: 0 }}>
             <div style={{ fontSize: "0.85em" }}>
               <div style={{ marginBottom: 4 }}>{t("filter.sort")}</div>
               <Dropdown

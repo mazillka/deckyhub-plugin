@@ -9,7 +9,7 @@ export const ru: Record<MessageKey, string> = {
 
   "view.updatesDescription": "",
   "view.updatesEmpty": "Всё установленное обновлено.",
-  "view.discoverDescription": "Просмотр поддерживаемых проектов GitHub и их ZIP-релизов.",
+  "view.discoverDescription": "Подборка плагинов Decky: устанавливайте их прямо из GitHub-релизов авторов.",
   "view.discoverEmpty": "Нет доступных репозиториев.",
   "view.searchDescription": "Ищите плагины Decky на GitHub. Установите сразу или добавьте, чтобы следить за обновлениями.",
   "view.searchTitle": "Поиск и установка",

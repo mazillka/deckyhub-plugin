@@ -9,7 +9,7 @@ export const zh: Record<MessageKey, string> = {
 
   "view.updatesDescription": "",
   "view.updatesEmpty": "所有已安装项目均为最新版本。",
-  "view.discoverDescription": "浏览受支持的 GitHub 项目及其 ZIP 发行版。",
+  "view.discoverDescription": "浏览精选的 Decky 插件，并从作者的 GitHub 发行版安装。",
   "view.discoverEmpty": "没有可用的仓库。",
   "view.searchDescription": "在 GitHub 上搜索 Decky 插件。可直接安装，或添加以跟踪更新。",
   "view.searchTitle": "搜索与安装",
