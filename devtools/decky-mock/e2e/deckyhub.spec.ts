@@ -576,6 +576,8 @@ test("Discover shows each plugin's stats, sorts by them and counts every filter 
   await expect(unifideck.getByText(/^Updated /)).toHaveCount(0);
   await expect(unifideck.getByText("Runs as root")).toBeVisible();
   await expect(unifideck.getByText("No release in a year")).toBeVisible();
+  // The badge's tooltip doesn't show on a Deck, so Discover explains it in words.
+  await expect(app.locator(".deckyhub-root-legend")).toHaveText(/Runs as root.*full access to the system/);
   await expect(app.locator(".deckyhub-total-downloads")).toHaveText("184.5K downloads");
 
   const order = async () => {
@@ -747,6 +749,24 @@ test("Settings' token link opens GitHub's token page", async ({ page, context })
   const popupPromise = page.waitForEvent("popup");
   await mock(page).locator(".deckyhub-token-link").click();
   expect((await popupPromise).url()).toBe("https://github.com/settings/tokens");
+});
+
+test("Settings' About thanks both plugin catalogs and links to them", async ({ page, context }) => {
+  await context.route(/^https:\/\/(github\.com|decky-extended-plugins\.beallio\.com)\//, (route) => route.fulfill({ body: "catalog" }));
+  await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  await expect(app.getByText(/found through two community catalogs/)).toBeVisible();
+  for (const [label, url] of [
+    ["Decky Plugins Explorer by SafetZahirovic", "https://github.com/SafetZahirovic/decky-plugins-explorer"],
+    ["Decky Extended Plugins by beallio", "https://decky-extended-plugins.beallio.com/"],
+    ["DeckyHub on GitHub", "https://github.com/mazillka/deckyhub-plugin"],
+  ]) {
+    const popupPromise = page.waitForEvent("popup");
+    await app.getByRole("button", { name: label, exact: true }).click();
+    const popup = await popupPromise;
+    expect(popup.url()).toBe(url);
+    await popup.close();
+  }
 });
 
 test("An outdated Decky plugin's card offers Update and hands it to Decky's installer", async ({ page }) => {
