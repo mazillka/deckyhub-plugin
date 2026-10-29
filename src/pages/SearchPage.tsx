@@ -3,7 +3,6 @@ import { DialogButtonPrimary as Button, Focusable, Navigation, PanelSection, Pan
 import { FocusableGrid } from "../components/FocusableGrid";
 import { keepInView } from "../components/KeepInView";
 import { Card, PageHeader, useSwapAnimation } from "../components/Card";
-import { Pager } from "../components/Pager";
 import { LayoutToggle, useLayout } from "../components/LayoutToggle";
 import { RateLimitBanner } from "../components/RateLimitBanner";
 import { startPluginInstall } from "../components/AppDetailsModal";
@@ -17,7 +16,6 @@ import type { HideableButton, SearchRepo } from "../types";
 import { displayVersion } from "../version";
 import { compactButtonStyle, disclaimerStyle, githubFetch, githubResponseError, hydrate, installAction, manifestName, installTypeLabel, log, surfaceStyle } from "../utils";
 
-const RESULTS_PER_PAGE = 5;
 // No bottom margin, so the buttons line up with the search field beside them.
 const rowButtonStyle = { ...compactButtonStyle, marginBottom: 0 };
 
@@ -25,7 +23,6 @@ export function SearchPage() {
   const t = useT();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchRepo[]>([]);
-  const [page, setPage] = useState(0);
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [existingRepos, setExistingRepos] = useState<Set<string>>(new Set());
@@ -33,11 +30,11 @@ export function SearchPage() {
   const [installing, setInstalling] = useState<string | null>(null);
 
   const [hiddenButtons, setHiddenButtons] = useState<HideableButton[]>([]);
-  // Shared with Discover and Updates; the list shows every result, the grid five a page.
+  // Shared with Discover and Updates; both show every result.
   const [layout, setLayout] = useLayout();
-  const shown = layout === "list" ? results : results.slice(page * RESULTS_PER_PAGE, page * RESULTS_PER_PAGE + RESULTS_PER_PAGE);
+  const shown = results;
   // Slides new results, pages and layouts in.
-  const resultsRef = useSwapAnimation([results, page, layout]);
+  const resultsRef = useSwapAnimation([results, layout]);
 
   useEffect(() => {
     void getSettings().then((settings) => setHiddenButtons(settings.hiddenButtons ?? []));
@@ -58,7 +55,6 @@ export function SearchPage() {
       const items: SearchRepo[] = (await response.json()).items || [];
       const plugins = await Promise.all(items.map((repo) => existing.has(repo.full_name.toLowerCase()) || manifestName(repo.full_name).then(Boolean)));
       setResults(items.filter((_, index) => plugins[index]));
-      setPage(0);
     } catch (error) {
       log(`Repository search failed: ${error}`);
       setSearchError(String(error));
@@ -185,7 +181,6 @@ export function SearchPage() {
                     setQuery("");
                     setResults([]);
                     setSearchError(null);
-                    setPage(0);
                   }}
                 >
                   <FaTimes /> {t("repos.clear")}
@@ -197,11 +192,6 @@ export function SearchPage() {
             </Focusable>
           </PanelSectionRow>
           {searchError && <PanelSectionRow>{searchError}</PanelSectionRow>}
-          {layout === "grid" && results.length > RESULTS_PER_PAGE && (
-            <PanelSectionRow>
-              <Pager page={page} total={Math.ceil(results.length / RESULTS_PER_PAGE)} onChange={setPage} />
-            </PanelSectionRow>
-          )}
         </PanelSection>
       </Card>
       <div ref={resultsRef}>

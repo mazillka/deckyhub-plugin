@@ -1,17 +1,18 @@
 import { toaster } from "@decky/api";
-import { MotionStyle } from "../motion";
-import { DialogButtonPrimary as Button, ModalRoot } from "@decky/ui";
+import { DialogButtonPrimary as Button } from "@decky/ui";
 import { useState } from "react";
 import { FaDownload, FaFileArchive, FaGithub, FaTimes } from "react-icons/fa";
 import { downloadAsset, getSettings, saveSettings } from "../api";
 import type { TFunc } from "../i18n/en";
 import type { Asset, DeckyHubInfo, DeckyHubReleaseOption, UpdateChannel, HideableButton } from "../types";
-import { PLUGIN_INSTALL_TYPE, buildVersionOptions, getDeckyBackend, installDeckyPlugin, installTypeLabel, listDeckyHubReleases, modalButtonStyle, resolveDeckyHubInstallType, sectionDividerStyle, windowGap } from "../utils";
+import { PLUGIN_INSTALL_TYPE, buildVersionOptions, getDeckyBackend, installDeckyPlugin, installTypeLabel, listDeckyHubReleases, modalButtonStyle, resolveDeckyHubInstallType } from "../utils";
 import { normalizeVersion } from "../version";
 import { showReleaseInfo } from "./AppCard";
 import { iconTileStyle } from "./Card";
 import { showDownloadModal } from "./DownloadProgress";
-import { ReleaseActions, useReleasePicker, VersionPickerPanel } from "./VersionPickerPanel";
+import { primaryButtonStyle } from "./AppDetailsModal";
+import { DetailsWindow } from "./DetailsWindow";
+import { ReleaseActions, useReleasePicker } from "./VersionPickerPanel";
 
 const PLUGIN_NAME = "DeckyHub";
 
@@ -101,33 +102,21 @@ export function DeckyHubUpdateModal({
   const primaryLabel = installTypeLabel(t, installType, displayVersion);
 
   return (
-    <ModalRoot closeModal={closeModal}>
-      <MotionStyle />
-      <div className="deckyhub-pop">
-      <div style={{ display: "grid", gap: windowGap }}>
-        <VersionPickerPanel
-          t={t}
-          icon={<div aria-hidden style={{ ...iconTileStyle, width: 40, height: 40 }}><FaGithub /></div>}
-          title={t("settings.deckyhubUpdate")}
-          subtitle={t("settings.installedVersion", { version: `v${info.version}` })}
-          channel={channel}
-          onChannelChange={(next) => void changeChannel(next)}
-          versionOptions={versionOptions}
-          selectedTag={selectedTag}
-          onVersionChange={setSelectedTag}
-          disabled={busy}
-          error={fetchError || selfUpdateError}
-          isEmpty={!loadingVersions && !fetchError && versions.length === 0}
-        />
-
-        <div aria-hidden style={sectionDividerStyle} />
-
-        {selectedRelease && (
+    <DetailsWindow
+      t={t}
+      closeModal={closeModal}
+      icon={<div aria-hidden style={{ ...iconTileStyle, width: 72, height: 72, borderRadius: 16, fontSize: 34 }}><FaGithub /></div>}
+      title={t("settings.deckyhubUpdate")}
+      aside="mazillka/deckyhub-plugin"
+      meta={<span>{t("settings.installedVersion", { version: `v${info.version}` })}</span>}
+      release={selectedRelease}
+      primary={
+        selectedRelease && (
           <>
             {/* Display Settings' "Hide Update" covers Update/Reinstall/Downgrade. */}
             {!hiddenButtons.includes("update") && (
               <Button
-                style={modalButtonStyle}
+                style={primaryButtonStyle}
                 disabled={busy || !selectedRelease.asset}
                 onClick={() => void selfUpdate(selectedRelease)}
                 onSecondaryButton={() => showReleaseInfo(t, `DeckyHub v${displayVersion}`, selectedRelease.publishedAt, selectedRelease.notes)}
@@ -144,15 +133,24 @@ export function DeckyHubUpdateModal({
               </Button>
             )}
           </>
-        )}
-
-        <ReleaseActions t={t} url={selectedRelease?.url} hideReleasePage={hiddenButtons.includes("releasePage")} checking={checking} disabled={busy} onCheck={() => void refresh()} closeModal={closeModal} />
-
-        <Button style={modalButtonStyle} onClick={closeModal}>
-          <FaTimes /> {t("settings.close")}
-        </Button>
-      </div>
-    </div>
-    </ModalRoot>
+        )
+      }
+      channel={channel}
+      onChannelChange={(next) => void changeChannel(next)}
+      versionOptions={versionOptions}
+      selectedTag={selectedTag}
+      onVersionChange={setSelectedTag}
+      disabled={busy}
+      error={fetchError || selfUpdateError}
+      isEmpty={!loadingVersions && !fetchError && versions.length === 0}
+      footer={
+        <>
+          <ReleaseActions t={t} url={selectedRelease?.url} hideReleasePage={hiddenButtons.includes("releasePage")} checking={checking} disabled={busy} onCheck={() => void refresh()} closeModal={closeModal} />
+          <Button style={modalButtonStyle} onClick={closeModal}>
+            <FaTimes /> {t("settings.close")}
+          </Button>
+        </>
+      }
+    />
   );
 }

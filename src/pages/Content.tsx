@@ -1,43 +1,29 @@
 import { toaster } from "@decky/api";
-import { DialogButtonPrimary as Button, Dropdown, Focusable, GamepadButton, Navigation, PanelSection, PanelSectionRow, Spinner, TextField } from "@decky/ui";
+import { DialogButtonPrimary as Button, Focusable, Navigation, PanelSection, PanelSectionRow, Spinner } from "@decky/ui";
 import { useEffect, useRef, useState } from "react";
-import { FaArrowCircleUp, FaArrowLeft, FaCog, FaCompass, FaFileExport, FaSearch, FaSync, FaTimes, FaArrowUp } from "react-icons/fa";
-import { downloadAsset, exportLogs, getApps, getSettings, REGISTRY_UPDATED } from "../api";
+import { FaArrowCircleUp, FaArrowLeft, FaCompass, FaSync, FaTimes, FaArrowUp } from "react-icons/fa";
+import { downloadAsset, getApps, getSettings, REGISTRY_UPDATED } from "../api";
 import { useT } from "../i18n";
 import type { App, Asset, HideableButton, PluginStats, RepoPreference, UpdateChannel, View } from "../types";
 import { compactButtonStyle, DEFAULT_COLUMNS_PER_ROW, compactNumber, disclaimerStyle, fetchPluginStats, getDeckyBackend, hydrate, installAction, log, needsFreshInstall, notifyUpdates, PLUGIN_INSTALL_TYPE, surfaceStyle, updateDeckyPlugins } from "../utils";
 import { AppCard, RootBadge } from "../components/AppCard";
 import { confirmPluginInstall } from "../components/AppDetailsModal";
-import { AboutSection } from "../components/AboutSection";
-import { CleanupSection } from "../components/CleanupSection";
 import { showDownloadModal } from "../components/DownloadProgress";
+import { AppList } from "../components/AppList";
+import { DiscoverFilters } from "../components/DiscoverFilters";
+import { DiscoverHome } from "../components/DiscoverHome";
 import { FocusableGrid } from "../components/FocusableGrid";
+import { countBadgeStyle, QuickAccessNav } from "../components/QuickAccessNav";
+import { compareBy, type SortOrder } from "../sorting";
 import { Card, PageHeader, useSwapAnimation } from "../components/Card";
 import { KeepInView, keepInView } from "../components/KeepInView";
-import { Pager } from "../components/Pager";
 import { LayoutToggle, useLayout } from "../components/LayoutToggle";
 import { RateLimitBanner } from "../components/RateLimitBanner";
-import { DeckyHubUpdate } from "../components/DeckyHubUpdate";
 
 // ponytail: fixed pool of 8 GitHub requests in flight; lower it if the registry grows
 // big enough to trip GitHub's secondary (burst) rate limit.
 const RELEASE_CONCURRENCY = 8;
 
-const NAV_LINKS = [["updates", FaArrowCircleUp], ["discover", FaCompass], ["search", FaSearch], ["settings", FaCog]] as const;
-
-
-const countBadgeStyle = { minWidth: "1.5em", padding: "0 6px", borderRadius: 999, background: "#f0c33c", color: "#1a1a1a", fontSize: "max(12px, 0.8em)", fontWeight: 700, lineHeight: "1.5em", textAlign: "center" as const };
-
-const SORT_ORDERS = ["az", "za", "downloads", "stars", "updated", "added"] as const;
-type SortOrder = (typeof SORT_ORDERS)[number];
-
-// Discover's home shelves, each the top of the list in one order, with See all for the rest.
-const SHELVES = [["popular", "downloads"], ["recent", "updated"], ["new", "added"]] as const;
-
-const chipStyle = { ...compactButtonStyle, marginBottom: 0, padding: "4px 12px", borderRadius: 999 };
-// Category chips per row. Rows are explicit, like FocusableGrid's: Steam's D-pad can't move down a wrapped row.
-const CHIPS_PER_ROW = 5;
-const bumperStyle = { padding: "1px 7px", borderRadius: 5, background: "rgba(255, 255, 255, 0.12)", fontSize: "max(12px, 0.75em)", fontWeight: 700 };
 
 export function Content({ fullPage }: { fullPage?: View }) {
   const t = useT();
@@ -55,7 +41,6 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const [thenBy, setThenBy] = useState<SortOrder>("az");
   // Discover opens on its shelves; a category chip or See all browses the whole list, a page at a time.
   const [browsing, setBrowsing] = useState(false);
-  const [pageIndex, setPage] = useState(0);
   const [layout, setLayout] = useLayout();
   const [columnsPerRow, setColumnsPerRow] = useState(DEFAULT_COLUMNS_PER_ROW);
   const [repoPreferences, setRepoPreferences] = useState<Record<string, RepoPreference>>({});
@@ -68,7 +53,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const quickAccessRef = useRef<HTMLDivElement>(null);
   const pageRef = useRef<HTMLDivElement>(null);
   // Slides the shelves, category, page, layout, filter or sort in when it changes.
-  const swapRef = useSwapAnimation([browsing, pageIndex, layout, categoryFilter, installedFilter, sortOrder, thenBy]);
+  const swapRef = useSwapAnimation([browsing, layout, categoryFilter, installedFilter, sortOrder, thenBy]);
 
   const info = view === "updates"
     ? { title: t("nav.updates"), description: t("view.updatesDescription"), empty: t("view.updatesEmpty") }
@@ -224,95 +209,24 @@ export function Content({ fullPage }: { fullPage?: View }) {
     (installed === "All" || (installed === "Installed") === Boolean(app.installedVersion)) &&
     (!category || app.category === category);
   const countWith = (installed: string, category: string) => apps.filter((app) => matchesFilters(app, installed, category)).length;
-  const withCount = (label: string, count: number) => `${label} (${count})`;
-
   const discoverFilters = view === "discover" && browsing && (
-    <Card>
-    <PanelSection>
-      <PanelSectionRow>
-        <Focusable flow-children="right" style={{ display: "flex", gap: 12 }}>
-          {/* Twice a dropdown's width: on a Deck the dropdowns' own minimum width otherwise left it no wider than one. */}
-          <div style={{ flex: "2 1 0", minWidth: 0 }}>
-            {/* Own label instead of TextField's, which Steam renders uppercase and padded, out of line with the dropdowns. */}
-            <div style={{ fontSize: "max(12px, 0.85em)" }}>
-              <div style={{ marginBottom: 4 }}>{t("filter.search")}</div>
-              <TextField
-                {...({ "aria-label": t("filter.search") } as any)}
-                value={query}
-                bShowClearAction
-                onChange={(event) => { setQuery(event.currentTarget.value); setPage(0); }}
-              />
-            </div>
-          </div>
-          <div style={{ flex: "1 1 0", minWidth: 0 }}>
-            <div style={{ fontSize: "max(12px, 0.85em)" }}>
-              <div style={{ marginBottom: 4 }}>{t("filter.status")}</div>
-              <Dropdown
-                {...({ "aria-label": t("filter.status"), style: { width: "100%" } } as any)}
-                menuLabel={t("filter.status")}
-              rgOptions={[
-                { label: withCount(t("filter.all"), countWith("All", activeCategory)), data: "All" },
-                { label: withCount(t("filter.installed"), countWith("Installed", activeCategory)), data: "Installed" },
-                { label: withCount(t("filter.notInstalled"), countWith("Not Installed", activeCategory)), data: "Not Installed" },
-              ]}
-              selectedOption={installedFilter}
-              onChange={({ data }) => { setInstalledFilter(data); setPage(0); }}
-              />
-            </div>
-          </div>
-          <div style={{ flex: "1 1 0", minWidth: 0 }}>
-            <div style={{ fontSize: "max(12px, 0.85em)" }}>
-              <div style={{ marginBottom: 4 }}>{t("filter.category")}</div>
-              <Dropdown
-                {...({ "aria-label": t("filter.category"), style: { width: "100%" } } as any)}
-                menuLabel={t("filter.category")}
-                rgOptions={[{ label: withCount(t("filter.all"), countWith(installedFilter, "")), data: "" }, ...categories.map((category) => ({ label: withCount(category, countWith(installedFilter, category)), data: category }))]}
-                selectedOption={activeCategory}
-                onChange={({ data }) => { setCategoryFilter(data); setPage(0); }}
-              />
-            </div>
-          </div>
-          <div style={{ flex: "1 1 0", minWidth: 0 }}>
-            <div style={{ fontSize: "max(12px, 0.85em)" }}>
-              <div style={{ marginBottom: 4 }}>{t("filter.sort")}</div>
-              <Dropdown
-                {...({ "aria-label": t("filter.sort"), style: { width: "100%" } } as any)}
-                menuLabel={t("filter.sort")}
-                rgOptions={SORT_ORDERS.map((order) => ({ label: t(`sort.${order}`), data: order }))}
-                selectedOption={sortOrder}
-                onChange={({ data }) => { setSortOrder(data); setPage(0); }}
-              />
-            </div>
-          </div>
-          <div style={{ flex: "1 1 0", minWidth: 0 }}>
-            <div style={{ fontSize: "max(12px, 0.85em)" }}>
-              <div style={{ marginBottom: 4 }}>{t("filter.thenBy")}</div>
-              <Dropdown
-                {...({ "aria-label": t("filter.thenBy"), style: { width: "100%" } } as any)}
-                menuLabel={t("filter.thenBy")}
-                rgOptions={SORT_ORDERS.map((order) => ({ label: t(`sort.${order}`), data: order }))}
-                selectedOption={thenBy}
-                onChange={({ data }) => { setThenBy(data); setPage(0); }}
-              />
-            </div>
-          </div>
-        </Focusable>
-      </PanelSectionRow>
-    </PanelSection>
-    </Card>
+    <DiscoverFilters
+      query={query}
+      onQuery={setQuery}
+      installed={installedFilter}
+      onInstalled={setInstalledFilter}
+      category={activeCategory}
+      onCategory={setCategoryFilter}
+      categories={categories}
+      countWith={countWith}
+      sortOrder={sortOrder}
+      onSortOrder={setSortOrder}
+      thenBy={thenBy}
+      onThenBy={setThenBy}
+    />
   );
 
-  const releasedAt = (app: App) => Date.parse(app.stats?.updated || app.publishedAt || "") || 0;
   const totalDownloads = apps.reduce((sum, app) => sum + (app.stats?.downloads ?? 0), 0);
-
-  // One Sort option's order; 0 for a tie.
-  const compareBy = (order: SortOrder, a: App, b: App) =>
-    order === "downloads" ? (b.stats?.downloads ?? -1) - (a.stats?.downloads ?? -1)
-    : order === "stars" ? (b.stats?.stars ?? -1) - (a.stats?.stars ?? -1)
-    : order === "updated" ? releasedAt(b) - releasedAt(a)
-    : order === "added" ? apps.indexOf(b) - apps.indexOf(a)
-    : order === "za" ? b.name.localeCompare(a.name)
-    : a.name.localeCompare(b.name);
 
   const visibleApps = apps
     .filter((app) =>
@@ -325,24 +239,18 @@ export function Content({ fullPage }: { fullPage?: View }) {
     // that order reversed. Plugins without stats (added repos) go last when sorting by them.
     .sort((a, b) =>
       Number(b.updateAvailable === true) - Number(a.updateAvailable === true) || (view === "updates" ? 0
-        : compareBy(sortOrder, a, b) || compareBy(thenBy, a, b) || compareBy("az", a, b)));
+        : compareBy(sortOrder, a, b, apps) || compareBy(thenBy, a, b, apps) || compareBy("az", a, b, apps)));
   const home = view === "discover" && !browsing;
   // Discover's grid shows three rows of cards a page; lists (and Updates) show everything.
-  const pageSize = columnsPerRow * 3;
-  const paged = view === "discover" && layout === "grid";
-  const pageCount = paged ? Math.max(1, Math.ceil(visibleApps.length / pageSize)) : 1;
-  const currentPage = Math.min(pageIndex, pageCount - 1);
-  const shownApps = paged ? visibleApps.slice(currentPage * pageSize, (currentPage + 1) * pageSize) : visibleApps;
-  const turnPage = (step: number) => setPage(Math.min(Math.max(currentPage + step, 0), pageCount - 1));
   const openBrowse = (category: string, sort?: SortOrder) => {
     setCategoryFilter(category);
     if (sort) setSortOrder(sort);
-    setPage(0);
+   
     setBrowsing(true);
   };
   // Biggest categories first, as chips on the home.
   const categoryCounts = categories.map((category) => [category, apps.filter((app) => app.category === category).length] as const).sort((a, b) => b[1] - a[1]);
-  const shelf = (order: SortOrder) => [...apps].sort((a, b) => compareBy(order, a, b) || compareBy("az", a, b)).slice(0, columnsPerRow);
+  const shelf = (order: SortOrder) => [...apps].sort((a, b) => compareBy(order, a, b, apps) || compareBy("az", a, b, apps)).slice(0, columnsPerRow);
   const updateCount = apps.filter((app) => app.updateAvailable).length;
   // Decky plugins the Updates page can update in one batch (see updateDeckyPlugins).
   const batchUpdates = view === "updates" && !hiddenButtons.includes("update")
@@ -373,8 +281,8 @@ export function Content({ fullPage }: { fullPage?: View }) {
       onUninstalled={() => void load()}
     />
   );
-  const renderGrid = (items: App[], byPosition = false) => (
-    <FocusableGrid items={items} columns={fullPage ? columnsPerRow : 1} keyFor={(app) => (byPosition ? String(items.indexOf(app)) : app.id)}>
+  const renderGrid = (items: App[]) => (
+    <FocusableGrid items={items} columns={fullPage ? columnsPerRow : 1} keyFor={(app) => app.id}>
       {(app) => renderCard(app)}
     </FocusableGrid>
   );
@@ -423,7 +331,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
                   )}
                   {(browsing || view === "updates") && (
                     <div style={{ flex: "0 0 120px" }}>
-                      <LayoutToggle layout={layout} onChange={(next) => { setLayout(next); setPage(0); }} />
+                      <LayoutToggle layout={layout} onChange={setLayout} />
                     </div>
                   )}
                   <div style={{ flex: "0 0 180px" }}>
@@ -452,58 +360,12 @@ export function Content({ fullPage }: { fullPage?: View }) {
           </KeepInView>
           <div ref={swapRef}>
           {home ? (
-            <>
-              <div className="deckyhub-category-chips">
-                <FocusableGrid items={[["", apps.length] as const, ...categoryCounts]} columns={CHIPS_PER_ROW} keyFor={([category]) => category}>
-                  {([category, count]) => (
-                    <Button style={chipStyle} onClick={() => openBrowse(category)}>
-                      {category || t("discover.allPlugins")} <span style={{ opacity: 0.7 }}>{count}</span>
-                    </Button>
-                  )}
-                </FocusableGrid>
-              </div>
-              {SHELVES.map(([name, order]) => (
-                <section key={name} className={`deckyhub-shelf-${name}`}>
-                  <Focusable flow-children="right" onFocus={keepInView} style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
-                    <h3 style={{ margin: 0, flex: 1, color: "#fff", fontSize: "1.2em" }}>{t(`discover.${name}`)}</h3>
-                    <div style={{ flex: "0 0 150px" }}>
-                      <Button style={{ ...compactButtonStyle, marginBottom: 0 }} onClick={() => openBrowse("", order)}>
-                        {t("discover.seeAll")} ›
-                      </Button>
-                    </div>
-                  </Focusable>
-                  {renderGrid(shelf(order))}
-                </section>
-              ))}
-            </>
+            <DiscoverHome total={apps.length} categories={categoryCounts} shelf={shelf} onBrowse={openBrowse} renderGrid={renderGrid} />
           ) : (
-            // L1 / R1 turn the page wherever focus is in the list.
             // B goes back to the shelves while browsing; elsewhere it leaves the page as usual.
-            <Focusable flow-children="down" onCancelButton={browsing ? () => setBrowsing(false) : undefined} onCancelActionDescription={browsing ? t("nav.discover") : undefined} onButtonDown={(event: { detail: { button: number } }) => {
-              if (view !== "discover") return;
-              if (event.detail.button === GamepadButton.BUMPER_LEFT) turnPage(-1);
-              if (event.detail.button === GamepadButton.BUMPER_RIGHT) turnPage(1);
-            }}>
+            <Focusable flow-children="down" onCancelButton={browsing ? () => setBrowsing(false) : undefined} onCancelActionDescription={browsing ? t("nav.discover") : undefined}>
               {discoverFilters}
-              {layout === "list" ? (
-                <Focusable flow-children="down" style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
-                  {shownApps.map((app) => (
-                    <Focusable key={app.id} flow-children="right" onFocus={keepInView}>
-                      {renderCard(app, "row")}
-                    </Focusable>
-                  ))}
-                </Focusable>
-              ) : (
-                // Keyed by position while paged, so L1 / R1 keep focus on the same spot of the new page.
-                renderGrid(shownApps, paged)
-              )}
-              {view === "discover" && pageCount > 1 && (
-                <div className="deckyhub-pager" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={bumperStyle}>L1</span>
-                  <div style={{ flex: 1 }}><Pager page={currentPage} total={pageCount} onChange={setPage} /></div>
-                  <span style={bumperStyle}>R1</span>
-                </div>
-              )}
+              <AppList apps={visibleApps} layout={layout} columns={columnsPerRow} renderCard={renderCard} />
             </Focusable>
           )}
           </div>
@@ -533,44 +395,6 @@ export function Content({ fullPage }: { fullPage?: View }) {
       </>
   );
 
-  // The Quick Access view loads installed apps the same way the Updates page does,
-  // and lists Updates only while there is one.
-  const navigation = (
-    <>
-      {/* The only untitled card here: Steam pads a PanelSection's bottom but leaves
-          its top to the title, so add the same space above the buttons (seen on a Deck). */}
-      <Card>
-      <div style={{ paddingTop: 26 }}>
-      <PanelSection>
-        {NAV_LINKS.filter(([page]) => page !== "updates" || updateCount > 0).map(([page, Icon]) => (
-          <PanelSectionRow key={page}>
-            <Button style={compactButtonStyle} onClick={() => Navigation.Navigate(`/deckyhub/${page}`)}>
-              <Icon /> {t(`nav.${page}`)}
-              {page === "updates" && updateCount > 0 && <span style={countBadgeStyle}>{updateCount}</span>}
-              {page === "discover" && listedCount > 0 && <span aria-hidden className="deckyhub-discover-count" style={{ ...countBadgeStyle, background: "rgba(255, 255, 255, 0.16)", color: "#fff" }}>{listedCount}</span>}
-            </Button>
-          </PanelSectionRow>
-        ))}
-      </PanelSection>
-      </div>
-      </Card>
-      <DeckyHubUpdate />
-      <CleanupSection />
-      <Card>
-        <PanelSection title={t("settings.troubleshooting")}>
-          <PanelSectionRow>
-            <Button style={compactButtonStyle} onClick={() => void exportLogs().then(({ path }) => toaster.toast({ title: "DeckyHub", body: t("repos.exportedTo", { path }) }), (error) => toaster.toast({ title: "DeckyHub", body: String(error) }))}>
-              <FaFileExport /> {t("settings.exportLogs")}
-            </Button>
-          </PanelSectionRow>
-          <PanelSectionRow>
-            <div style={{ color: "#8fcef4", fontSize: "max(12px, 0.85em)" }}>{t("settings.exportLogsNote")}</div>
-          </PanelSectionRow>
-        </PanelSection>
-      </Card>
-      <AboutSection />
-    </>
-  );
 
   return fullPage ? (
     <div ref={pageRef}>
@@ -580,7 +404,8 @@ export function Content({ fullPage }: { fullPage?: View }) {
   ) : (
     <div ref={quickAccessRef}>
       <RateLimitBanner stacked />
-      {navigation}
+      {/* Loads installed apps the same way the Updates page does, for its Updates count. */}
+      <QuickAccessNav updateCount={updateCount} listedCount={listedCount} />
     </div>
   );
 }

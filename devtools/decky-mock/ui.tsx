@@ -68,7 +68,7 @@ export function ModalRoot({ children, bAllowFullSize }: { children?: ReactNode; 
   return (
     <div className="steam-modal-backdrop">
       {/* bAllowFullSize: Steam lets the window use most of the screen. */}
-      <div className="steam-modal" style={bAllowFullSize ? { width: "min(1100px, calc(100vw - 64px))", maxHeight: "calc(100vh - 64px)", overflowY: "auto" } : undefined}>{children}</div>
+      <div className="steam-modal" style={bAllowFullSize ? { width: "calc(100vw - 64px)" } : undefined}>{children}</div>
     </div>
   );
 }
@@ -117,7 +117,8 @@ export function DropdownItem({
   layout?: "below" | "inline";
 }) {
   // Like Steam's Field: "inline" puts the label beside the control instead of above it.
-  const inline = layout === "inline";
+  // Steam's Field puts the label beside the control unless asked for "below".
+  const inline = layout !== "below";
   return (
     <label className="steam-field-label" style={inline ? { display: "flex", alignItems: "center", gap: 12 } : undefined}>
       {label}

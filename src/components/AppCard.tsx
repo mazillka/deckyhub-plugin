@@ -190,16 +190,17 @@ export function AppCard({
   if (row)
     return (
       // The name is a direct child here too, so a row's buttons are found from its heading.
-      <div className="deckyhub-app-row deckyhub-focus-ring" style={{ ...surfaceStyle, display: "grid", gridTemplateColumns: "36px minmax(0, 1.3fr) minmax(0, 2fr) minmax(0, 1.4fr) 230px", alignItems: "center", columnGap: 12, padding: "6px 12px" }}>
-        <AppMonogram app={app} style={{ width: 36, height: 36, fontSize: "max(12px, 0.85em)" }} />
-        <h3 style={cardTitleStyle}>{app.name}</h3>
-        <small style={{ color: "#b8c7d3", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{app.error || app.description}</small>
-        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "2px 10px", color: "#8b9aa7", fontSize: "max(12px, 0.8em)" }}>
+      <div className="deckyhub-app-row deckyhub-focus-ring" style={{ ...surfaceStyle, display: "grid", gridTemplateColumns: "40px minmax(0, 2fr) minmax(0, 1.4fr) 230px", gridTemplateRows: "auto auto", alignItems: "center", columnGap: 12, rowGap: 2, padding: "8px 12px" }}>
+        <AppMonogram app={app} style={{ gridRow: "1 / 3", width: 40, height: 40, fontSize: "0.85em" }} />
+        {/* Name, with the description under it. */}
+        <h3 style={{ ...cardTitleStyle, gridColumn: 2, gridRow: 1 }}>{app.name}</h3>
+        <small style={{ gridColumn: 2, gridRow: 2, color: "#b8c7d3", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{app.error || app.description}</small>
+        <div style={{ gridColumn: 3, gridRow: "1 / 3", display: "flex", flexWrap: "wrap", alignItems: "center", gap: "2px 10px", color: "#8b9aa7", fontSize: "max(12px, 0.8em)" }}>
           {statusPill}
           <AppBadges app={app} t={t} />
           <AppStats app={app} t={t} />
         </div>
-        {actions}
+        <div style={{ gridColumn: 4, gridRow: "1 / 3" }}>{actions}</div>
       </div>
     );
   return (
