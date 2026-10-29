@@ -1765,6 +1765,70 @@ async function sideBySideWithoutRightFlow(page: Page) {
   });
 }
 
+test("The D-pad moves left and right through every row of the new Discover, list and Search views", async ({ page }) => {
+  await page.route("https://api.github.com/search/repositories**", (route) =>
+    route.fulfill({ json: { items: Array.from({ length: 7 }, (_, index) => ({ full_name: `example/repo-${index}`, description: "Test repository", stargazers_count: index })) } }),
+  );
+  const removePlugin = seedPlugin("e2e-mako", "MAKO - Frame Generation", "1.0.0");
+  await mockMakoReleases(page, [makoRelease("plugin-v1.2.3", "c".repeat(64))]);
+  try {
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    // Home: category chips and shelves.
+    await expect(app.getByRole("heading", { name: "Most popular", exact: true })).toBeVisible();
+    expect(await sideBySideWithoutRightFlow(page)).toEqual([]);
+    // Browsing: grid, then list.
+    await browseAll(page);
+    await expect(app.getByText(/^Page 1 of/)).toBeVisible();
+    expect(await sideBySideWithoutRightFlow(page)).toEqual([]);
+    await app.getByRole("button", { name: "List", exact: true }).click();
+    await expect(app.locator(".deckyhub-app-row").first()).toBeVisible();
+    expect(await sideBySideWithoutRightFlow(page)).toEqual([]);
+    // Updates as a list.
+    await app.getByRole("button", { name: "/deckyhub/updates" }).click();
+    await expect(app.locator(".deckyhub-app-row")).toHaveCount(1);
+    expect(await sideBySideWithoutRightFlow(page)).toEqual([]);
+    // Search as a list.
+    await app.getByRole("button", { name: "/deckyhub/search" }).click();
+    await app.getByLabel("Search GitHub").fill("example");
+    await app.getByRole("button", { name: "Search", exact: true }).click();
+    await expect(app.locator(".deckyhub-search-row")).toHaveCount(7);
+    expect(await sideBySideWithoutRightFlow(page)).toEqual([]);
+  } finally {
+    removePlugin();
+  }
+});
+
+test("Discover keeps the D-pad focused through its chips, category switches and page turns", async ({ page }) => {
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  const focused = () => pluginFrame(page).evaluate(() => document.activeElement?.textContent?.trim() ?? "");
+  // Chips sit in explicit rows (each a left/right row inside a top-to-bottom column), so Down reaches the second row.
+  const chips = app.locator(".deckyhub-category-chips");
+  await expect(chips.locator('[data-flow-children="right"]').nth(1)).toBeVisible();
+  await expect(chips.locator('[data-flow-children="down"]').first()).toBeVisible();
+
+  // Opening a category hands focus to the Back button; going back hands it to the first chip.
+  await app.getByRole("button", { name: /^All plugins/ }).click();
+  await expect.poll(focused).toContain("Discover");
+  await app.locator(".deckyhub-back-button").getByRole("button").click();
+  await expect.poll(focused).toMatch(/^All plugins/);
+
+  // R1 turns the page and focus stays on the same spot, now holding the next page's card.
+  await app.getByRole("button", { name: /^All plugins/ }).click();
+  const firstManage = app.getByRole("button", { name: "Manage", exact: true }).first();
+  await firstManage.focus();
+  const before = await app.locator("[data-flow-children] h3").first().textContent();
+  await firstManage.press("]");
+  await expect(app.getByText(/^Page 2 of/)).toBeVisible();
+  await expect(app.locator("[data-flow-children] h3").first()).not.toHaveText(before!);
+  await expect.poll(focused).toBe("Manage");
+
+  // The card holding focus gets a ring; the others don't.
+  const rings = () => app.locator(".deckyhub-focus-ring").evaluateAll((cards) => cards.map((card) => getComputedStyle(card).outlineWidth));
+  await expect.poll(async () => (await rings()).filter((width) => width === "3px").length).toBe(1);
+});
+
 // Seeds an installed Decky plugin where dev-server.py scans for them.
 function seedPlugin(dir: string, name: string, version: string) {
   const pluginDir = new URL(`../.dev-data/plugins/${dir}/`, import.meta.url);

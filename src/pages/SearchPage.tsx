@@ -206,7 +206,7 @@ export function SearchPage() {
         <Focusable flow-children="down" style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {shown.map((repo) => (
             // The name is a direct child, so a row's buttons are found from its heading.
-            <Focusable key={repo.full_name} flow-children="right" onFocus={keepInView} className="deckyhub-search-row" style={{ ...surfaceStyle, display: "grid", gridTemplateColumns: "minmax(0, 1.3fr) minmax(0, 2fr) 70px 260px", alignItems: "center", columnGap: 12, padding: "6px 12px" }}>
+            <Focusable key={repo.full_name} flow-children="right" onFocus={keepInView} className="deckyhub-search-row deckyhub-focus-ring" style={{ ...surfaceStyle, display: "grid", gridTemplateColumns: "minmax(0, 1.3fr) minmax(0, 2fr) 70px 260px", alignItems: "center", columnGap: 12, padding: "6px 12px" }}>
               <h3 style={{ margin: 0, color: "#fff", fontSize: "1em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{repo.full_name}</h3>
               <small style={{ color: "#b8c7d3", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{repo.description || t("repos.noDescription")}</small>
               <small style={{ color: "#8b9aa7" }}>★ {repo.stargazers_count ?? 0}</small>
@@ -218,7 +218,7 @@ export function SearchPage() {
       {results.length > 0 && layout === "grid" && (
         <FocusableGrid items={shown} columns={2} keyFor={(repo) => repo.full_name}>
           {(repo) => (
-            <div style={{ ...surfaceStyle, height: "100%", padding: "var(--dh-card-padding, 4px 14px)" }}>
+            <div className="deckyhub-focus-ring" style={{ ...surfaceStyle, height: "100%", padding: "var(--dh-card-padding, 4px 14px)" }}>
               <PanelSection title={repo.full_name}>
                 <PanelSectionRow>
                   <small>

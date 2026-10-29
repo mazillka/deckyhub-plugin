@@ -11,6 +11,13 @@ import { SettingsPage } from "./pages/SettingsPage";
 import { hapticTick, markUnloaded, pageStyle } from "./utils";
 
 const MOTION_CSS = `
+  /* The card or row holding the D-pad's focus gets a ring, so it's easy to spot from the couch.
+     Steam marks the focused element with .gpfocus; the browser (and the dev mock) with :focus. */
+  .deckyhub-focus-ring { outline: 0 solid transparent; outline-offset: 2px; }
+  .deckyhub-focus-ring:focus-within, .deckyhub-focus-ring:has(.gpfocus) { outline: 3px solid #1a9fff; box-shadow: 0 0 0 6px rgba(26, 159, 255, 0.25); }
+  @media (prefers-reduced-motion: no-preference) {
+    .deckyhub-focus-ring { transition: outline-color 140ms ease, box-shadow 140ms ease; }
+  }
   @media (prefers-reduced-motion: no-preference) {
     @keyframes deckyhub-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     .deckyhub-motion { animation: deckyhub-enter 220ms cubic-bezier(.2, .8, .2, 1) both; }
