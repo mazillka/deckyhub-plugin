@@ -121,7 +121,7 @@ def _coerce_settings(settings: dict) -> dict:
         "overwriteExisting": bool(settings.get("overwriteExisting", True)),
         "updateChannel": "prerelease" if settings.get("updateChannel") == "prerelease" else "stable",
         "language": settings.get("language") if settings.get("language") in SUPPORTED_LANGUAGES else "auto",
-        "columnsPerRow": settings.get("columnsPerRow") if type(settings.get("columnsPerRow")) is int and settings["columnsPerRow"] in (1, 2, 3) else DEFAULT_COLUMNS_PER_ROW,
+        "columnsPerRow": settings.get("columnsPerRow") if type(settings.get("columnsPerRow")) is int and settings["columnsPerRow"] in (1, 2, 3, 4) else DEFAULT_COLUMNS_PER_ROW,
         # Only the frontend's api.github.com calls send it (githubHeaders() in src/utils.ts).
         "githubToken": settings["githubToken"].strip()[:255] if isinstance(settings.get("githubToken"), str) else "",
         "density": "compact" if settings.get("density") == "compact" else "default",

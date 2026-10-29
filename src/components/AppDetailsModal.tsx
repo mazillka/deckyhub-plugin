@@ -1,14 +1,19 @@
 import { toaster } from "@decky/api";
-import { DialogButtonPrimary as Button, ConfirmModal, ModalRoot, Navigation, showModal } from "@decky/ui";
+import { MotionStyle } from "../motion";
+import { DialogButtonPrimary as Button, ConfirmModal, DropdownItem, ModalRoot, Navigation, showModal } from "@decky/ui";
 import { useState } from "react";
 import { FaArrowDown, FaArrowUp, FaFileArchive, FaPlus, FaRedo, FaTimes, FaTrash } from "react-icons/fa";
 import { saveRepoSettings } from "../api";
 import type { TFunc } from "../i18n/en";
 import type { App, AppReleaseOption, Asset, HideableButton, RepoPreference, UpdateChannel } from "../types";
-import { buildVersionOptions, getDeckyBackend, installAction, installDeckyPlugin, installTypeLabel, listAppReleases, manifestName, modalButtonStyle, needsFreshInstall, PLUGIN_INSTALL_TYPE, readableBytes, sectionDividerStyle, uninstallDeckyPlugin, windowGap } from "../utils";
+import { buildVersionOptions, getDeckyBackend, installAction, installDeckyPlugin, installTypeLabel, listAppReleases, manifestName, modalButtonStyle, needsFreshInstall, PLUGIN_INSTALL_TYPE, readableBytes, surfaceStyle, uninstallDeckyPlugin } from "../utils";
 import { displayVersion } from "../version";
-import { AppMonogram, showReleaseInfo, AppBadges, AppStats } from "./AppCard";
-import { ReleaseActions, useReleasePicker, VersionPickerPanel } from "./VersionPickerPanel";
+import { AppMonogram, plainNotes, showReleaseInfo, AppBadges, AppStats } from "./AppCard";
+import { keepInView } from "./KeepInView";
+import { ReleaseActions, useReleasePicker } from "./VersionPickerPanel";
+
+// How much of the release notes the window shows; Y opens them in full.
+const NOTES_PREVIEW = 700;
 
 // Every install, update or reinstall of a third-party plugin first says
 // DeckyHub doesn't vouch for it; resolves true once the user accepts.
@@ -131,83 +136,128 @@ export function AppDetailsModal({
       />,
     );
 
+  // The release notes shown inline; Y on the Install button still opens them in full.
+  const notes = plainNotes(selectedRelease?.notes);
+  const notesPreview = notes.length > NOTES_PREVIEW ? `${notes.slice(0, NOTES_PREVIEW).replace(/\s+\S*$/, "")}…` : notes;
+  const sectionTitle = { margin: 0, color: "#9fb0bf", fontSize: 13, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" as const };
+
   return (
-    <ModalRoot closeModal={closeModal}>
-      <div style={{ display: "grid", gap: windowGap }}>
-        <VersionPickerPanel
-          t={t}
-          icon={<AppMonogram app={app} />}
-          title={app.name}
-          subtitle={t("settings.installedVersion", { version: app.installedVersion ? displayVersion(app.installedVersion) : "—" })}
-          description={app.description}
-          details={
-            <div className="deckyhub-details-meta" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "4px 14px", color: "#8b9aa7", fontSize: 13 }}>
-              <span>{app.category}</span>
-              <span>{app.repo}</span>
+    <ModalRoot closeModal={closeModal} bAllowFullSize>
+      <MotionStyle />
+      <div className="deckyhub-pop">
+      <div className="deckyhub-details" style={{ display: "grid", gap: 18 }}>
+        {/* Header: who it is, what state it's in, how popular. */}
+        <div onFocus={keepInView} style={{ display: "flex", alignItems: "center", gap: 18 }}>
+          <AppMonogram app={app} style={{ width: 72, height: 72, borderRadius: 16, fontSize: 26 }} />
+          <div style={{ flex: 1, minWidth: 0, display: "grid", gap: 6 }}>
+            <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: "2px 12px" }}>
+              <strong style={{ color: "#fff", fontSize: 26, lineHeight: 1.15 }}>{app.name}</strong>
+              <span style={{ color: "#9fb0bf", fontSize: 14 }}>{app.repo}</span>
+            </div>
+            <div className="deckyhub-details-meta" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "6px 14px", color: "#c3cfd9", fontSize: 14 }}>
+              <span style={{ color: "#8fcef4", fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>{app.category}</span>
+              <span>{t("settings.installedVersion", { version: app.installedVersion ? displayVersion(app.installedVersion) : "—" })}</span>
               <AppStats app={app} t={t} />
               <AppBadges app={app} t={t} />
             </div>
-          }
-          channel={channel}
-          onChannelChange={changeChannel}
-          versionOptions={versionOptions}
-          selectedTag={selectedTag}
-          onVersionChange={setSelectedTag}
-          disabled={loading}
-          error={fetchError}
-          isEmpty={!loading && !fetchError && releases.length === 0}
-        />
+          </div>
+        </div>
 
-        <div aria-hidden style={sectionDividerStyle} />
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(280px, 340px)", gap: 24, alignItems: "start" }}>
+          {/* What it is and what this release changes. */}
+          <div onFocus={keepInView} style={{ display: "grid", gap: 16, minWidth: 0 }}>
+            {app.description && (
+              <section style={{ display: "grid", gap: 6 }}>
+                <h3 style={sectionTitle}>{t("details.about")}</h3>
+                <div className="deckyhub-details-description" style={{ color: "#e6eef4", fontSize: 16, lineHeight: 1.5, overflowWrap: "anywhere" }}>{app.description}</div>
+              </section>
+            )}
+            {selectedRelease && (
+              <section style={{ display: "grid", gap: 6 }}>
+                <h3 style={sectionTitle}>
+                  {t("details.whatsNew", { version: displayVersion(selectedRelease.tag) })}
+                  {selectedRelease.publishedAt && <span style={{ marginLeft: 10, fontWeight: 400, letterSpacing: 0, textTransform: "none" }}>{new Date(selectedRelease.publishedAt).toLocaleDateString()}</span>}
+                </h3>
+                <div className="deckyhub-details-notes" style={{ ...surfaceStyle, padding: "12px 14px", color: "#c3cfd9", fontSize: 14, lineHeight: 1.5, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
+                  {notesPreview || t("appcard.noReleaseNotes")}
+                </div>
+              </section>
+            )}
+          </div>
 
-        {selectedRelease && (
-          <>
-            {install && !hiddenButtons.includes(install.type === PLUGIN_INSTALL_TYPE.INSTALL ? "install" : "update") && (
-              <Button
-                style={modalButtonStyle}
-                onClick={() => runInstall(selectedRelease, install)}
-                onSecondaryButton={() => showReleaseInfo(t, `${app.name} ${displayVersion(selectedRelease.tag)}`, selectedRelease.publishedAt, selectedRelease.notes)}
-                onSecondaryActionDescription={t("appcard.releaseInfo")}
-                // X downloads the selected release's ZIP instead of installing it.
-                onOptionsButton={hiddenButtons.includes("downloadZip") || downloading || !selectedRelease.assets[0] ? undefined : () => download(selectedRelease.assets[0])}
-                onOptionsActionDescription={t("settings.downloadUpdate")}
-                // Menu opens the repository; close first, or Steam's browser opens underneath this modal.
-                onMenuButton={() => {
-                  closeModal?.();
-                  Navigation.NavigateToExternalWeb(`https://github.com/${app.repo}`);
-                }}
-                onMenuActionDescription={t("appcard.repository")}
-              >
-                {installIcons[install.type]} {installLabel}
+          {/* Actions, most important first. */}
+          <div style={{ display: "grid", gap: 10 }}>
+            {selectedRelease && (
+              <>
+                {install && !hiddenButtons.includes(install.type === PLUGIN_INSTALL_TYPE.INSTALL ? "install" : "update") && (
+                  <Button
+                    style={{ ...modalButtonStyle, minHeight: 52, fontSize: "1.1em", fontWeight: 700 }}
+                    onClick={() => runInstall(selectedRelease, install)}
+                    onSecondaryButton={() => showReleaseInfo(t, `${app.name} ${displayVersion(selectedRelease.tag)}`, selectedRelease.publishedAt, selectedRelease.notes)}
+                    onSecondaryActionDescription={t("appcard.releaseInfo")}
+                    // X downloads the selected release's ZIP instead of installing it.
+                    onOptionsButton={hiddenButtons.includes("downloadZip") || downloading || !selectedRelease.assets[0] ? undefined : () => download(selectedRelease.assets[0])}
+                    onOptionsActionDescription={t("settings.downloadUpdate")}
+                    // Menu opens the repository; close first, or Steam's browser opens underneath this modal.
+                    onMenuButton={() => {
+                      closeModal?.();
+                      Navigation.NavigateToExternalWeb(`https://github.com/${app.repo}`);
+                    }}
+                    onMenuActionDescription={t("appcard.repository")}
+                  >
+                    {installIcons[install.type]} {installLabel}
+                  </Button>
+                )}
+                {hiddenButtons.includes("downloadZip") ? null : selectedRelease.assets[0] ? (
+                  <Button style={modalButtonStyle} disabled={downloading} onClick={() => download(selectedRelease.assets[0])}>
+                    <FaFileArchive /> {t("settings.downloadUpdate")}
+                  </Button>
+                ) : (
+                  <small style={{ color: "#ff6b6b" }}>{t("appcard.noMatchingAsset")}</small>
+                )}
+                {!hiddenButtons.includes("downloadZip") && selectedRelease.assets.slice(1).map((asset) => (
+                  <Button key={asset.name} style={modalButtonStyle} disabled={downloading} onClick={() => download(asset)}>
+                    <FaFileArchive /> {`${asset.name} (${readableBytes(asset.size)})`}
+                  </Button>
+                ))}
+              </>
+            )}
+
+            <div onFocus={keepInView} style={{ display: "grid", gap: 4, padding: "8px 12px", background: "rgba(0, 0, 0, 0.2)", borderRadius: 10 }}>
+              <h3 style={sectionTitle}>{t("settings.version")}</h3>
+              <DropdownItem
+                bottomSeparator="none"
+                label={t("settings.updateChannel")}
+                rgOptions={[
+                  { label: t("settings.stableReleases"), data: "stable" },
+                  { label: t("settings.preReleases"), data: "prerelease" },
+                ]}
+                selectedOption={channel}
+                disabled={loading}
+                onChange={({ data }) => changeChannel(data as UpdateChannel)}
+              />
+              {versionOptions.length > 0 && (
+                <DropdownItem bottomSeparator="none" label={t("settings.version")} rgOptions={versionOptions} selectedOption={selectedTag} disabled={loading} onChange={({ data }) => setSelectedTag(String(data))} />
+              )}
+              {fetchError && <small style={{ color: "#ff6b6b" }}>{fetchError}</small>}
+              {!loading && !fetchError && releases.length === 0 && <small style={{ color: "#ff6b6b" }}>{t("settings.noReleasesFound")}</small>}
+            </div>
+
+            <ReleaseActions t={t} url={selectedRelease?.url} repoUrl={`https://github.com/${app.repo}`} hideReleasePage={hiddenButtons.includes("releasePage")} checking={loading} disabled={loading} onCheck={() => void load(true)} closeModal={closeModal} />
+
+            {canUninstall && (
+              <Button style={{ ...modalButtonStyle, color: "#ff6b6b" }} onClick={confirmUninstall}>
+                <FaTrash /> {t("appcard.uninstall")}
               </Button>
             )}
-            {hiddenButtons.includes("downloadZip") ? null : selectedRelease.assets[0] ? (
-              <Button style={modalButtonStyle} disabled={downloading} onClick={() => download(selectedRelease.assets[0])}>
-                <FaFileArchive /> {t("settings.downloadUpdate")}
-              </Button>
-            ) : (
-              <small style={{ color: "#ff6b6b" }}>{t("appcard.noMatchingAsset")}</small>
-            )}
-            {!hiddenButtons.includes("downloadZip") && selectedRelease.assets.slice(1).map((asset) => (
-              <Button key={asset.name} style={modalButtonStyle} disabled={downloading} onClick={() => download(asset)}>
-                <FaFileArchive /> {`${asset.name} (${readableBytes(asset.size)})`}
-              </Button>
-            ))}
-          </>
-        )}
 
-        <ReleaseActions t={t} url={selectedRelease?.url} repoUrl={`https://github.com/${app.repo}`} hideReleasePage={hiddenButtons.includes("releasePage")} checking={loading} disabled={loading} onCheck={() => void load(true)} closeModal={closeModal} />
-
-        {canUninstall && (
-          <Button style={{ ...modalButtonStyle, color: "#ff6b6b" }} onClick={confirmUninstall}>
-            <FaTrash /> {t("appcard.uninstall")}
-          </Button>
-        )}
-
-        <Button style={modalButtonStyle} onClick={closeModal}>
-          <FaTimes /> {t("settings.close")}
-        </Button>
+            <Button style={modalButtonStyle} onClick={closeModal}>
+              <FaTimes /> {t("settings.close")}
+            </Button>
+          </div>
+        </div>
       </div>
+    </div>
     </ModalRoot>
   );
 }

@@ -2,7 +2,7 @@ import { toaster } from "@decky/api";
 import { DialogButtonPrimary as Button, Focusable, Navigation, PanelSection, PanelSectionRow, TextField } from "@decky/ui";
 import { FocusableGrid } from "../components/FocusableGrid";
 import { keepInView } from "../components/KeepInView";
-import { Card, PageHeader } from "../components/Card";
+import { Card, PageHeader, useSwapAnimation } from "../components/Card";
 import { Pager } from "../components/Pager";
 import { LayoutToggle, useLayout } from "../components/LayoutToggle";
 import { RateLimitBanner } from "../components/RateLimitBanner";
@@ -36,6 +36,8 @@ export function SearchPage() {
   // Shared with Discover and Updates; the list shows every result, the grid five a page.
   const [layout, setLayout] = useLayout();
   const shown = layout === "list" ? results : results.slice(page * RESULTS_PER_PAGE, page * RESULTS_PER_PAGE + RESULTS_PER_PAGE);
+  // Slides new results, pages and layouts in.
+  const resultsRef = useSwapAnimation([results, page, layout]);
 
   useEffect(() => {
     void getSettings().then((settings) => setHiddenButtons(settings.hiddenButtons ?? []));
@@ -202,6 +204,7 @@ export function SearchPage() {
           )}
         </PanelSection>
       </Card>
+      <div ref={resultsRef}>
       {results.length > 0 && layout === "list" && (
         <Focusable flow-children="down" style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {shown.map((repo) => (
@@ -231,6 +234,7 @@ export function SearchPage() {
           )}
         </FocusableGrid>
       )}
+      </div>
     </>
   );
 }

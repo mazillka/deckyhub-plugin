@@ -12,7 +12,7 @@ import { AboutSection } from "../components/AboutSection";
 import { CleanupSection } from "../components/CleanupSection";
 import { showDownloadModal } from "../components/DownloadProgress";
 import { FocusableGrid } from "../components/FocusableGrid";
-import { Card, PageHeader } from "../components/Card";
+import { Card, PageHeader, useSwapAnimation } from "../components/Card";
 import { KeepInView, keepInView } from "../components/KeepInView";
 import { Pager } from "../components/Pager";
 import { LayoutToggle, useLayout } from "../components/LayoutToggle";
@@ -67,6 +67,8 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const [listedCount, setListedCount] = useState(0);
   const quickAccessRef = useRef<HTMLDivElement>(null);
   const pageRef = useRef<HTMLDivElement>(null);
+  // Slides the shelves, category, page, layout, filter or sort in when it changes.
+  const swapRef = useSwapAnimation([browsing, pageIndex, layout, categoryFilter, installedFilter, sortOrder, thenBy]);
 
   const info = view === "updates"
     ? { title: t("nav.updates"), description: t("view.updatesDescription"), empty: t("view.updatesEmpty") }
@@ -448,6 +450,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
               </div>
             )}
           </KeepInView>
+          <div ref={swapRef}>
           {home ? (
             <>
               <div className="deckyhub-category-chips">
@@ -503,6 +506,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
               )}
             </Focusable>
           )}
+          </div>
           {!home && !visibleApps.length && (
             <div className="deckyhub-empty" onFocus={keepInView} style={{ ...surfaceStyle, padding: "16px 14px", textAlign: "center" }}>
               {/* Decky's section title is a left-aligned flex row; center it too. */}
