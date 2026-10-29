@@ -164,13 +164,15 @@ test("Discover keeps search and status on one row", async ({ page }) => {
   expect(Math.abs(searchBox!.y - statusBox!.y)).toBeLessThan(20);
   expect(Math.abs(searchBox!.height - statusBox!.height)).toBeLessThan(20);
   expect(statusBox!.x).toBeGreaterThan(searchBox!.x);
+  // Search gets twice a dropdown's share of the row.
+  expect(searchBox!.width).toBeGreaterThan(statusBox!.width * 1.5);
 });
 
 test("Discover keeps its refresh action beside the description", async ({ page }) => {
   await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
   const app = mock(page);
   const title = app.getByRole("heading", { name: "Discover", exact: true });
-  const description = app.getByText("Browse supported GitHub projects and their ZIP releases.");
+  const description = app.getByText("Browse curated Decky plugins and install them from their authors' GitHub releases.");
   const refresh = app.getByRole("button", { name: "Refresh", exact: true });
 
   // On the header's row: its middle falls between the title's top and the description's bottom.
@@ -883,6 +885,32 @@ test("Search installs a plugin straight from its GitHub release", async ({ page 
   ]);
 });
 
+test("Cancelling a search result's install leaves its repo untracked", async ({ page }) => {
+  const repo = "e2e-cancel/plugin";
+  await page.route("https://api.github.com/search/repositories**", (route) => route.fulfill({ json: { items: [{ full_name: repo, description: "Test repository", stargazers_count: 1 }] } }));
+  await page.route(`https://raw.githubusercontent.com/${repo}/HEAD/plugin.json`, (route) => route.fulfill({ json: { name: "E2E Cancel" } }));
+  await page.route(`https://api.github.com/repos/${repo}/releases**`, (route) =>
+    route.fulfill({ json: [{ ...makoRelease("v1.0.0", "e".repeat(64)), assets: [{ name: "plugin.zip", browser_download_url: `https://github.com/${repo}/releases/download/v1.0.0/plugin.zip`, size: 1024 }] }] }),
+  );
+  await recordInstalls(page);
+  await page.goto("/?preview=/deckyhub/search&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  try {
+    await app.getByLabel("Search GitHub").fill("plugin");
+    await app.getByRole("button", { name: "Search", exact: true }).click();
+    const card = app.getByRole("heading", { name: repo }).locator("..");
+    await card.getByRole("button", { name: "Install", exact: true }).click();
+    await app.locator(".steam-modal", { hasText: "Install at your own risk." }).getByRole("button", { name: "Cancel", exact: true }).click();
+
+    // A fresh search reads the tracked list again, and the repo isn't on it.
+    await app.getByRole("button", { name: "Search", exact: true }).click();
+    await expect(card.getByRole("button", { name: "Add", exact: true })).toBeEnabled();
+    expect((await bridgeCall(page, "get_settings")).result.customRepos).not.toContain(repo);
+  } finally {
+    await bridgeCall(page, "remove_custom_repo", repo);
+  }
+});
+
 test("Y and X on a search result's Install show the release notes and download the ZIP", async ({ page }) => {
   await mockMakoReleases(page, [{ ...makoRelease("plugin-v1.2.3", "e".repeat(64)), body: "Faster frame pacing." }]);
   await page.route("https://api.github.com/search/repositories**", (route) =>
@@ -922,6 +950,8 @@ test("Release checks read the registry's release index instead of the GitHub API
   const makoCard = mock(page).getByRole("heading", { name: "MAKO Decky" }).locator("..");
   await expect(makoCard.getByRole("button", { name: "Install v7.7.7", exact: true })).toBeVisible();
   expect(apiCalls).toBe(0);
+  // Index answers aren't copied into localStorage (they'd fill most of its quota).
+  expect(await pluginFrame(page).evaluate(() => localStorage.getItem("deckyhub-releases:eugeniosegala/MAKO"))).toBeNull();
 });
 
 test("A stale release index is ignored in favour of the GitHub API", async ({ page }) => {
