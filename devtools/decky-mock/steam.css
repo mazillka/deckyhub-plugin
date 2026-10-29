@@ -122,7 +122,12 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 
 /* ---- Steam Deck look, matched to photos of the real device (colors and shapes only; ---- */
 /* ---- sizes are set above from measurements).                                          ---- */
-:root { font-family: "Motiva Sans", "Segoe UI", Arial, Helvetica, sans-serif; }
+/* Steam's UI font: an installed copy, else the one Steam's own web pages load from Valve's CDN. */
+@font-face { font-family: "Motiva Sans"; font-weight: 300; src: local("Motiva Sans Light"), url("https://community.steamstatic.com/public/shared/fonts/MotivaSans-Light.ttf?v=4.015"); }
+@font-face { font-family: "Motiva Sans"; font-weight: 400; src: local("Motiva Sans"), url("https://community.steamstatic.com/public/shared/fonts/MotivaSans-Regular.ttf?v=4.015"); }
+@font-face { font-family: "Motiva Sans"; font-weight: 500; src: local("Motiva Sans Medium"), url("https://community.steamstatic.com/public/shared/fonts/MotivaSans-Medium.ttf?v=4.015"); }
+@font-face { font-family: "Motiva Sans"; font-weight: 700 900; src: local("Motiva Sans Bold"), url("https://community.steamstatic.com/public/shared/fonts/MotivaSans-Bold.ttf?v=4.015"); }
+:root, button, input, select, textarea { font-family: "Motiva Sans", "Segoe UI", Arial, Helvetica, sans-serif; }
 .steam-deck { border: 0; border-radius: 10px; background: #0e1116; }
 /* Gaming Mode's page: nearly black, a little blue at the top. */
 .steam-page { background: linear-gradient(180deg, #171c24 0%, #0e1116 55%); }
@@ -132,7 +137,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .steam-menu { color: #fff; }
 /* Steam's DialogButton: flat gray, filled Steam blue while focused. */
 .steam-button, .steam-deck-full .steam-button {
-  color: #e3e6ea; text-align: center; background: #3a3f47; border: 0; border-radius: 4px; box-shadow: none; font-weight: 500;
+  color: #e3e6ea; text-align: center; background: #3a3f47; border: 0; border-radius: 4px; box-shadow: none; font-weight: 400;
 }
 .steam-button:hover, .steam-deck-full .steam-button:hover { background: #4a5059; }
 .steam-button:focus-visible, .steam-button:focus { color: #fff; background: #1a9fff; outline: 0; }
