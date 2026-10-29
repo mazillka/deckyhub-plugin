@@ -25,6 +25,9 @@ const NAV_LINKS = [["updates", FaArrowCircleUp], ["discover", FaCompass], ["sear
 
 const countBadgeStyle = { minWidth: "1.5em", padding: "0 6px", borderRadius: 999, background: "#f0c33c", color: "#1a1a1a", fontSize: "0.8em", fontWeight: 700, lineHeight: "1.5em", textAlign: "center" as const };
 
+const SORT_ORDERS = ["az", "za", "downloads", "stars", "updated", "added"] as const;
+type SortOrder = (typeof SORT_ORDERS)[number];
+
 export function Content({ fullPage }: { fullPage?: View }) {
   const t = useT();
   const [apps, setApps] = useState<App[]>([]);
@@ -36,7 +39,9 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const [installedFilter, setInstalledFilter] = useState("All");
   // "" means every category.
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [sortOrder, setSortOrder] = useState<"az" | "za" | "added" | "downloads" | "stars" | "updated">("az");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("az");
+  // Breaks Sort's ties (many plugins share 0 stars or downloads); A to Z breaks any left.
+  const [thenBy, setThenBy] = useState<SortOrder>("az");
   const [columnsPerRow, setColumnsPerRow] = useState(DEFAULT_COLUMNS_PER_ROW);
   const [repoPreferences, setRepoPreferences] = useState<Record<string, RepoPreference>>({});
   const [hiddenButtons, setHiddenButtons] = useState<HideableButton[]>([]);
@@ -241,16 +246,21 @@ export function Content({ fullPage }: { fullPage?: View }) {
               <Dropdown
                 {...({ "aria-label": t("filter.sort"), style: { width: "100%" } } as any)}
                 menuLabel={t("filter.sort")}
-                rgOptions={[
-                  { label: t("sort.az"), data: "az" },
-                  { label: t("sort.za"), data: "za" },
-                  { label: t("sort.downloads"), data: "downloads" },
-                  { label: t("sort.stars"), data: "stars" },
-                  { label: t("sort.updated"), data: "updated" },
-                  { label: t("sort.added"), data: "added" },
-                ]}
+                rgOptions={SORT_ORDERS.map((order) => ({ label: t(`sort.${order}`), data: order }))}
                 selectedOption={sortOrder}
                 onChange={({ data }) => setSortOrder(data)}
+              />
+            </div>
+          </div>
+          <div style={{ flex: "1 1 0", minWidth: 0 }}>
+            <div style={{ fontSize: "0.85em" }}>
+              <div style={{ marginBottom: 4 }}>{t("filter.thenBy")}</div>
+              <Dropdown
+                {...({ "aria-label": t("filter.thenBy"), style: { width: "100%" } } as any)}
+                menuLabel={t("filter.thenBy")}
+                rgOptions={SORT_ORDERS.map((order) => ({ label: t(`sort.${order}`), data: order }))}
+                selectedOption={thenBy}
+                onChange={({ data }) => setThenBy(data)}
               />
             </div>
           </div>
@@ -263,6 +273,15 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const releasedAt = (app: App) => Date.parse(app.stats?.updated || app.publishedAt || "") || 0;
   const totalDownloads = apps.reduce((sum, app) => sum + (app.stats?.downloads ?? 0), 0);
 
+  // One Sort option's order; 0 for a tie.
+  const compareBy = (order: SortOrder, a: App, b: App) =>
+    order === "downloads" ? (b.stats?.downloads ?? -1) - (a.stats?.downloads ?? -1)
+    : order === "stars" ? (b.stats?.stars ?? -1) - (a.stats?.stars ?? -1)
+    : order === "updated" ? releasedAt(b) - releasedAt(a)
+    : order === "added" ? apps.indexOf(b) - apps.indexOf(a)
+    : order === "za" ? b.name.localeCompare(a.name)
+    : a.name.localeCompare(b.name);
+
   const visibleApps = apps
     .filter((app) =>
       view === "updates"
@@ -274,12 +293,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
     // that order reversed. Plugins without stats (added repos) go last when sorting by them.
     .sort((a, b) =>
       Number(b.updateAvailable === true) - Number(a.updateAvailable === true) || (view === "updates" ? 0
-        : sortOrder === "downloads" ? (b.stats?.downloads ?? -1) - (a.stats?.downloads ?? -1)
-        : sortOrder === "stars" ? (b.stats?.stars ?? -1) - (a.stats?.stars ?? -1)
-        : sortOrder === "updated" ? releasedAt(b) - releasedAt(a)
-        : sortOrder === "added" ? apps.indexOf(b) - apps.indexOf(a)
-        : sortOrder === "za" ? b.name.localeCompare(a.name)
-        : a.name.localeCompare(b.name)));
+        : compareBy(sortOrder, a, b) || compareBy(thenBy, a, b) || compareBy("az", a, b)));
   const updateCount = apps.filter((app) => app.updateAvailable).length;
   // Decky plugins the Updates page can update in one batch (see updateDeckyPlugins).
   const batchUpdates = view === "updates" && !hiddenButtons.includes("update")

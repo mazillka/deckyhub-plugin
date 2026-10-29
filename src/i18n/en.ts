@@ -21,6 +21,7 @@ export const en = {
   "filter.installed": "Installed",
   "filter.notInstalled": "Not Installed",
   "filter.sort": "Sort",
+  "filter.thenBy": "Then by",
   "sort.az": "A to Z",
   "sort.za": "Z to A",
   "sort.added": "Recently added",

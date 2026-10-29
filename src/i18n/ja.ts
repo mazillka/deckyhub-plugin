@@ -22,6 +22,7 @@ export const ja: Record<MessageKey, string> = {
   "filter.installed": "インストール済み",
   "filter.notInstalled": "未インストール",
   "filter.sort": "並べ替え",
+  "filter.thenBy": "次の順",
   "sort.az": "A→Z",
   "sort.za": "Z→A",
   "sort.added": "最近追加",

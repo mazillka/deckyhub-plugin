@@ -22,6 +22,7 @@ export const zh: Record<MessageKey, string> = {
   "filter.installed": "已安装",
   "filter.notInstalled": "未安装",
   "filter.sort": "排序",
+  "filter.thenBy": "然后按",
   "sort.az": "A 到 Z",
   "sort.za": "Z 到 A",
   "sort.added": "最近添加",

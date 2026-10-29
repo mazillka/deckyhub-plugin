@@ -594,6 +594,28 @@ test("Discover shows each plugin's stats, sorts by them and counts every filter 
   await expect(app.getByLabel("Category").locator("option", { hasText: "Frame Generation" })).toHaveText(/^Frame Generation \(\d+\)$/);
 });
 
+test("Discover's Then by breaks Sort's ties, and A to Z breaks the rest", async ({ page }) => {
+  await page.route(PLUGIN_STATS_URL, (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), plugins: {
+    "eugeniosegala/mako": { downloads: 10, stars: 500, updated: null, root: false },
+    "mubaraknumann/unifideck": { downloads: 900, stars: 500, updated: null, root: false },
+  } } }));
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await expect(app.getByRole("heading", { name: "Unifideck" })).toBeVisible();
+  const unifideckFirst = async () => {
+    const names = await app.getByRole("heading").allTextContents();
+    return names.indexOf("Unifideck") < names.indexOf("MAKO Decky");
+  };
+
+  // Same stars: the default A to Z puts MAKO Decky first, Then by downloads puts Unifideck first.
+  await app.getByLabel("Sort").selectOption("stars");
+  await expect.poll(unifideckFirst).toBe(false);
+  await app.getByLabel("Then by").selectOption("downloads");
+  await expect.poll(unifideckFirst).toBe(true);
+  await app.getByLabel("Then by").selectOption("za");
+  await expect.poll(unifideckFirst).toBe(true);
+});
+
 test("The Manage window shows the plugin's description, details and a Repository button", async ({ page }) => {
   await page.route(PLUGIN_STATS_URL, (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), plugins: { "eugeniosegala/mako": { downloads: 73981, stars: 680, updated: "2024-01-01T00:00:00Z", root: true } } } }));
   const app = mock(page);

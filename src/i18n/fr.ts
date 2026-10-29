@@ -22,6 +22,7 @@ export const fr: Record<MessageKey, string> = {
   "filter.installed": "Installé",
   "filter.notInstalled": "Non installé",
   "filter.sort": "Trier",
+  "filter.thenBy": "Puis par",
   "sort.az": "A à Z",
   "sort.za": "Z à A",
   "sort.added": "Ajoutés récemment",

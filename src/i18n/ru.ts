@@ -22,6 +22,7 @@ export const ru: Record<MessageKey, string> = {
   "filter.installed": "Установлено",
   "filter.notInstalled": "Не установлено",
   "filter.sort": "Сортировка",
+  "filter.thenBy": "Затем по",
   "sort.az": "А–Я",
   "sort.za": "Я–А",
   "sort.added": "Недавно добавленные",

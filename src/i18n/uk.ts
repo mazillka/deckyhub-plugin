@@ -22,6 +22,7 @@ export const uk: Record<MessageKey, string> = {
   "filter.installed": "Встановлено",
   "filter.notInstalled": "Не встановлено",
   "filter.sort": "Сортування",
+  "filter.thenBy": "Потім за",
   "sort.az": "А–Я",
   "sort.za": "Я–А",
   "sort.added": "Нещодавно додані",
