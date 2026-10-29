@@ -1,7 +1,7 @@
 import { toaster } from "@decky/api";
-import { DialogButtonPrimary as Button, Dropdown, Focusable, Navigation, PanelSection, PanelSectionRow, Spinner, TextField } from "@decky/ui";
+import { DialogButtonPrimary as Button, Dropdown, Focusable, GamepadButton, Navigation, PanelSection, PanelSectionRow, Spinner, TextField } from "@decky/ui";
 import { useEffect, useRef, useState } from "react";
-import { FaArrowCircleUp, FaCog, FaCompass, FaFileExport, FaSearch, FaSync, FaTimes, FaArrowUp } from "react-icons/fa";
+import { FaArrowCircleUp, FaArrowLeft, FaCog, FaCompass, FaFileExport, FaList, FaSearch, FaSync, FaTh, FaTimes, FaArrowUp } from "react-icons/fa";
 import { downloadAsset, exportLogs, getApps, getSettings, REGISTRY_UPDATED } from "../api";
 import { useT } from "../i18n";
 import type { App, Asset, HideableButton, PluginStats, RepoPreference, UpdateChannel, View } from "../types";
@@ -13,6 +13,7 @@ import { showDownloadModal } from "../components/DownloadProgress";
 import { FocusableGrid } from "../components/FocusableGrid";
 import { Card, PageHeader } from "../components/Card";
 import { KeepInView, keepInView } from "../components/KeepInView";
+import { Pager } from "../components/Pager";
 import { RateLimitBanner } from "../components/RateLimitBanner";
 import { DeckyHubUpdate } from "../components/DeckyHubUpdate";
 
@@ -28,6 +29,14 @@ const countBadgeStyle = { minWidth: "1.5em", padding: "0 6px", borderRadius: 999
 const SORT_ORDERS = ["az", "za", "downloads", "stars", "updated", "added"] as const;
 type SortOrder = (typeof SORT_ORDERS)[number];
 
+// Discover's home shelves, each the top of the list in one order, with See all for the rest.
+const SHELVES = [["popular", "downloads"], ["recent", "updated"], ["new", "added"]] as const;
+// List pages hold this many rows; grid pages three rows of cards.
+const LIST_PAGE_SIZE = 10;
+
+const chipStyle = { ...compactButtonStyle, width: "auto", marginBottom: 0, padding: "4px 16px", borderRadius: 999 };
+const bumperStyle = { padding: "1px 7px", borderRadius: 5, background: "rgba(255, 255, 255, 0.12)", fontSize: "0.75em", fontWeight: 700 };
+
 export function Content({ fullPage }: { fullPage?: View }) {
   const t = useT();
   const [apps, setApps] = useState<App[]>([]);
@@ -42,6 +51,10 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const [sortOrder, setSortOrder] = useState<SortOrder>("az");
   // Breaks Sort's ties (many plugins share 0 stars or downloads); A to Z breaks any left.
   const [thenBy, setThenBy] = useState<SortOrder>("az");
+  // Discover opens on its shelves; a category chip or See all browses the whole list, a page at a time.
+  const [browsing, setBrowsing] = useState(false);
+  const [pageIndex, setPage] = useState(0);
+  const [layout, setLayout] = useState<"grid" | "list">("grid");
   const [columnsPerRow, setColumnsPerRow] = useState(DEFAULT_COLUMNS_PER_ROW);
   const [repoPreferences, setRepoPreferences] = useState<Record<string, RepoPreference>>({});
   const [hiddenButtons, setHiddenButtons] = useState<HideableButton[]>([]);
@@ -194,7 +207,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const countWith = (installed: string, category: string) => apps.filter((app) => matchesFilters(app, installed, category)).length;
   const withCount = (label: string, count: number) => `${label} (${count})`;
 
-  const discoverFilters = view === "discover" && (
+  const discoverFilters = view === "discover" && browsing && (
     <Card>
     <PanelSection>
       <PanelSectionRow>
@@ -208,7 +221,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
                 {...({ "aria-label": t("filter.search") } as any)}
                 value={query}
                 bShowClearAction
-                onChange={(event) => setQuery(event.currentTarget.value)}
+                onChange={(event) => { setQuery(event.currentTarget.value); setPage(0); }}
               />
             </div>
           </div>
@@ -224,7 +237,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
                 { label: withCount(t("filter.notInstalled"), countWith("Not Installed", activeCategory)), data: "Not Installed" },
               ]}
               selectedOption={installedFilter}
-              onChange={({ data }) => setInstalledFilter(data)}
+              onChange={({ data }) => { setInstalledFilter(data); setPage(0); }}
               />
             </div>
           </div>
@@ -236,7 +249,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
                 menuLabel={t("filter.category")}
                 rgOptions={[{ label: withCount(t("filter.all"), countWith(installedFilter, "")), data: "" }, ...categories.map((category) => ({ label: withCount(category, countWith(installedFilter, category)), data: category }))]}
                 selectedOption={activeCategory}
-                onChange={({ data }) => setCategoryFilter(data)}
+                onChange={({ data }) => { setCategoryFilter(data); setPage(0); }}
               />
             </div>
           </div>
@@ -248,7 +261,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
                 menuLabel={t("filter.sort")}
                 rgOptions={SORT_ORDERS.map((order) => ({ label: t(`sort.${order}`), data: order }))}
                 selectedOption={sortOrder}
-                onChange={({ data }) => setSortOrder(data)}
+                onChange={({ data }) => { setSortOrder(data); setPage(0); }}
               />
             </div>
           </div>
@@ -260,7 +273,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
                 menuLabel={t("filter.thenBy")}
                 rgOptions={SORT_ORDERS.map((order) => ({ label: t(`sort.${order}`), data: order }))}
                 selectedOption={thenBy}
-                onChange={({ data }) => setThenBy(data)}
+                onChange={({ data }) => { setThenBy(data); setPage(0); }}
               />
             </div>
           </div>
@@ -294,6 +307,21 @@ export function Content({ fullPage }: { fullPage?: View }) {
     .sort((a, b) =>
       Number(b.updateAvailable === true) - Number(a.updateAvailable === true) || (view === "updates" ? 0
         : compareBy(sortOrder, a, b) || compareBy(thenBy, a, b) || compareBy("az", a, b)));
+  const home = view === "discover" && !browsing;
+  const pageSize = layout === "list" ? LIST_PAGE_SIZE : columnsPerRow * 3;
+  const pageCount = Math.max(1, Math.ceil(visibleApps.length / pageSize));
+  const currentPage = Math.min(pageIndex, pageCount - 1);
+  const shownApps = view === "discover" ? visibleApps.slice(currentPage * pageSize, (currentPage + 1) * pageSize) : visibleApps;
+  const turnPage = (step: number) => setPage(Math.min(Math.max(currentPage + step, 0), pageCount - 1));
+  const openBrowse = (category: string, sort?: SortOrder) => {
+    setCategoryFilter(category);
+    if (sort) setSortOrder(sort);
+    setPage(0);
+    setBrowsing(true);
+  };
+  // Biggest categories first, as chips on the home.
+  const categoryCounts = categories.map((category) => [category, apps.filter((app) => app.category === category).length] as const).sort((a, b) => b[1] - a[1]);
+  const shelf = (order: SortOrder) => [...apps].sort((a, b) => compareBy(order, a, b) || compareBy("az", a, b)).slice(0, columnsPerRow);
   const updateCount = apps.filter((app) => app.updateAvailable).length;
   // Decky plugins the Updates page can update in one batch (see updateDeckyPlugins).
   const batchUpdates = view === "updates" && !hiddenButtons.includes("update")
@@ -312,6 +340,24 @@ export function Content({ fullPage }: { fullPage?: View }) {
       .finally(() => setUpdatingAll(false));
     Navigation.NavigateBack();
   };
+  const renderCard = (app: App, cardLayout?: "row") => (
+    <AppCard
+      app={app}
+      layout={cardLayout}
+      preference={repoPreferences[app.repo] ?? { channel: "stable" }}
+      downloadDisabled={downloading}
+      hiddenButtons={hiddenButtons}
+      onDownload={(asset) => startDownload(asset, app.repo)}
+      onChannelChange={changeAppChannel}
+      onUninstalled={() => void load()}
+    />
+  );
+  const renderGrid = (items: App[]) => (
+    <FocusableGrid items={items} columns={fullPage ? columnsPerRow : 1} keyFor={(app) => app.id}>
+      {(app) => renderCard(app)}
+    </FocusableGrid>
+  );
+
   const page = (
       <>
       {loading && (
@@ -341,12 +387,26 @@ export function Content({ fullPage }: { fullPage?: View }) {
           <KeepInView>
             <PageHeader
               icon={view === "updates" ? <FaArrowCircleUp /> : <FaCompass />}
-              title={info.title}
+              title={browsing ? activeCategory || t("discover.allPlugins") : info.title}
               badge={view === "updates" ? updateCount > 0 && <span className="deckyhub-update-count" title={t("toast.updatesAvailable", { count: updateCount })} style={countBadgeStyle}>{updateCount}</span>
                 : totalDownloads > 0 && <span className="deckyhub-total-downloads" title={t("view.totalDownloads", { count: totalDownloads.toLocaleString() })} style={{ color: "#8b9aa7", fontSize: "0.7em", fontWeight: 400 }}>{t("view.totalDownloads", { count: compactNumber(totalDownloads) })}</span>}
-              description={info.description}
+              description={browsing ? t("discover.pluginCount", { count: visibleApps.length }) : info.description}
               actions={
                 <>
+                  {browsing && (
+                    <>
+                      <div style={{ flex: "0 0 150px" }}>
+                        <Button style={{ ...compactButtonStyle, marginBottom: 0 }} onClick={() => setBrowsing(false)}>
+                          <FaArrowLeft /> {t("nav.discover")}
+                        </Button>
+                      </div>
+                      <div style={{ flex: "0 0 120px" }}>
+                        <Button style={{ ...compactButtonStyle, marginBottom: 0 }} onClick={() => { setLayout(layout === "grid" ? "list" : "grid"); setPage(0); }}>
+                          {layout === "grid" ? <><FaList /> {t("discover.list")}</> : <><FaTh /> {t("discover.grid")}</>}
+                        </Button>
+                      </div>
+                    </>
+                  )}
                   <div style={{ flex: "0 0 180px" }}>
                     <Button style={{ ...compactButtonStyle, marginBottom: 0 }} onClick={() => void load(true)}>
                       <FaSync /> {t("content.refresh")}
@@ -371,25 +431,58 @@ export function Content({ fullPage }: { fullPage?: View }) {
               </div>
             )}
           </KeepInView>
-          {discoverFilters}
-          <FocusableGrid
-            items={visibleApps}
-            columns={fullPage ? columnsPerRow : 1}
-            keyFor={(app) => app.id}
-          >
-            {(app) => (
-              <AppCard
-                app={app}
-                preference={repoPreferences[app.repo] ?? { channel: "stable" }}
-                downloadDisabled={downloading}
-                hiddenButtons={hiddenButtons}
-                onDownload={(asset) => startDownload(asset, app.repo)}
-                onChannelChange={changeAppChannel}
-                onUninstalled={() => void load()}
-              />
-            )}
-          </FocusableGrid>
-          {!visibleApps.length && (
+          {home ? (
+            <>
+              <Focusable className="deckyhub-category-chips" flow-children="right" onFocus={keepInView} style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: "var(--dh-card-gap, 14px)" }}>
+                {[["", apps.length] as const, ...categoryCounts].map(([category, count]) => (
+                  <Button key={category} style={chipStyle} onClick={() => openBrowse(category)}>
+                    {category || t("discover.allPlugins")} <span style={{ opacity: 0.7 }}>{count}</span>
+                  </Button>
+                ))}
+              </Focusable>
+              {SHELVES.map(([name, order]) => (
+                <section key={name} className={`deckyhub-shelf-${name}`}>
+                  <Focusable flow-children="right" onFocus={keepInView} style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+                    <h3 style={{ margin: 0, flex: 1, color: "#fff", fontSize: "1.2em" }}>{t(`discover.${name}`)}</h3>
+                    <div style={{ flex: "0 0 150px" }}>
+                      <Button style={{ ...compactButtonStyle, marginBottom: 0 }} onClick={() => openBrowse("", order)}>
+                        {t("discover.seeAll")} ›
+                      </Button>
+                    </div>
+                  </Focusable>
+                  {renderGrid(shelf(order))}
+                </section>
+              ))}
+            </>
+          ) : (
+            // L1 / R1 turn the page wherever focus is in the list.
+            <Focusable flow-children="down" onButtonDown={(event: { detail: { button: number } }) => {
+              if (view !== "discover") return;
+              if (event.detail.button === GamepadButton.BUMPER_LEFT) turnPage(-1);
+              if (event.detail.button === GamepadButton.BUMPER_RIGHT) turnPage(1);
+            }}>
+              {discoverFilters}
+              {view === "discover" && layout === "list" ? (
+                <Focusable flow-children="down" style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
+                  {shownApps.map((app) => (
+                    <Focusable key={app.id} flow-children="right" onFocus={keepInView}>
+                      {renderCard(app, "row")}
+                    </Focusable>
+                  ))}
+                </Focusable>
+              ) : (
+                renderGrid(shownApps)
+              )}
+              {view === "discover" && pageCount > 1 && (
+                <div className="deckyhub-pager" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={bumperStyle}>L1</span>
+                  <div style={{ flex: 1 }}><Pager page={currentPage} total={pageCount} onChange={setPage} /></div>
+                  <span style={bumperStyle}>R1</span>
+                </div>
+              )}
+            </Focusable>
+          )}
+          {!home && !visibleApps.length && (
             <div className="deckyhub-empty" onFocus={keepInView} style={{ ...surfaceStyle, padding: "16px 14px", textAlign: "center" }}>
               {/* Decky's section title is a left-aligned flex row; center it too. */}
               <style>{".deckyhub-empty div { text-align: center; justify-content: center; }"}</style>

@@ -103,6 +103,7 @@ export function AppCard({
   onDownload,
   onChannelChange,
   onUninstalled,
+  layout = "card",
 }: {
   app: App;
   preference: RepoPreference;
@@ -111,6 +112,8 @@ export function AppCard({
   onDownload: (asset: Asset) => Promise<void>;
   onChannelChange: (repo: string, channel: UpdateChannel) => void;
   onUninstalled: () => void;
+  // "row": one line of Discover's list view.
+  layout?: "card" | "row";
 }) {
   const t = useT();
   // Quick install/update to the latest release of a Decky plugin;
@@ -126,31 +129,11 @@ export function AppCard({
   const latest = app.latestVersion ? displayVersion(app.latestVersion).replace(/^v/, "") : "";
   const quickLabel = t(isUpdate ? "settings.updateTo" : "appcard.installVersion", { version: latest });
   const accent = statusColor(app) ?? "#8fcef4";
-  return (
-    // The name stays a direct child of the card: tests (and screen readers)
-    // find a card's buttons from its heading.
-    <div style={{ ...cardStyle, borderTopColor: accent }}>
-      <AppMonogram app={app} style={{ gridRow: "1 / 3", alignSelf: "center" }} />
-      <h3 style={cardTitleStyle}>{app.name}</h3>
-      <small style={categoryStyle}>{app.category}</small>
-      <div style={fullRow}>
-        <span style={{ ...pillStyle, color: accent, background: `${accent}22`, borderColor: `${accent}66` }}>{t(statusKey(app))}</span>
-        {/* Stable is the default, so only a pre-release override earns a pill. */}
-        {app.channel === "prerelease" && (
-          <span style={{ ...pillStyle, color: "#ffa94d", background: "#ffa94d22", borderColor: "#ffa94d66" }}>{t("appcard.channel", { channel: t("appcard.channelPrerelease") })}</span>
-        )}
-        <AppBadges app={app} t={t} />
-      </div>
-      <small style={{ ...cardDescriptionStyle, ...fullRow, display: "-webkit-box", color: "#b8c7d3" }}>{app.description || " "}</small>
-      <div style={{ ...fullRow, display: "flex", flexWrap: "wrap", gap: "2px 14px", color: "#8b9aa7", fontSize: "0.8em" }}>
-        {app.installedVersion && <span>{t("settings.installedVersion", { version: displayVersion(app.installedVersion) })}</span>}
-        {/* No release and no error yet: its GitHub check is still running. */}
-        <span>{t("settings.latestVersion", { version: app.latestVersion ? displayVersion(app.latestVersion) : app.error ? "—" : t("settings.checkingUpdate") })}</span>
-        <AppStats app={app} t={t} />
-      </div>
-      {app.error && <small style={{ ...fullRow, color: "#ff6b6b", overflowWrap: "anywhere" }}>{app.error}</small>}
-      {/* Install/Update, with Manage as a gear beside it; Manage alone takes the full row. */}
-      <Focusable flow-children="right" style={{ ...fullRow, display: "flex", gap: 8, marginTop: "auto" }}>
+  const statusPill = <span style={{ ...pillStyle, color: accent, background: `${accent}22`, borderColor: `${accent}66` }}>{t(statusKey(app))}</span>;
+  const row = layout === "row";
+  // Install/Update, with Manage as a gear beside it; Manage alone takes the full width.
+  const actions = (
+      <Focusable flow-children="right" style={{ display: "flex", gap: 8, ...(row ? {} : { ...fullRow, marginTop: "auto" }) }}>
       {install && quickAction && (
           <div style={{ flex: 1, minWidth: 0 }}>
           <Button
@@ -196,6 +179,46 @@ export function AppCard({
         </Button>
         </div>
       </Focusable>
+  );
+  if (row)
+    return (
+      // The name is a direct child here too, so a row's buttons are found from its heading.
+      <div className="deckyhub-app-row" style={{ ...surfaceStyle, display: "grid", gridTemplateColumns: "36px minmax(0, 1.3fr) minmax(0, 2fr) minmax(0, 1.4fr) 230px", alignItems: "center", columnGap: 12, padding: "6px 12px" }}>
+        <AppMonogram app={app} style={{ width: 36, height: 36, fontSize: "0.85em" }} />
+        <h3 style={cardTitleStyle}>{app.name}</h3>
+        <small style={{ color: "#b8c7d3", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{app.error || app.description}</small>
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "2px 10px", color: "#8b9aa7", fontSize: "0.8em" }}>
+          {statusPill}
+          <AppBadges app={app} t={t} />
+          <AppStats app={app} t={t} />
+        </div>
+        {actions}
+      </div>
+    );
+  return (
+    // The name stays a direct child of the card: tests (and screen readers)
+    // find a card's buttons from its heading.
+    <div style={{ ...cardStyle, borderTopColor: accent }}>
+      <AppMonogram app={app} style={{ gridRow: "1 / 3", alignSelf: "center" }} />
+      <h3 style={cardTitleStyle}>{app.name}</h3>
+      <small style={categoryStyle}>{app.category}</small>
+      <div style={fullRow}>
+        {statusPill}
+        {/* Stable is the default, so only a pre-release override earns a pill. */}
+        {app.channel === "prerelease" && (
+          <span style={{ ...pillStyle, color: "#ffa94d", background: "#ffa94d22", borderColor: "#ffa94d66" }}>{t("appcard.channel", { channel: t("appcard.channelPrerelease") })}</span>
+        )}
+        <AppBadges app={app} t={t} />
+      </div>
+      <small style={{ ...cardDescriptionStyle, ...fullRow, display: "-webkit-box", color: "#b8c7d3" }}>{app.description || " "}</small>
+      <div style={{ ...fullRow, display: "flex", flexWrap: "wrap", gap: "2px 14px", color: "#8b9aa7", fontSize: "0.8em" }}>
+        {app.installedVersion && <span>{t("settings.installedVersion", { version: displayVersion(app.installedVersion) })}</span>}
+        {/* No release and no error yet: its GitHub check is still running. */}
+        <span>{t("settings.latestVersion", { version: app.latestVersion ? displayVersion(app.latestVersion) : app.error ? "—" : t("settings.checkingUpdate") })}</span>
+        <AppStats app={app} t={t} />
+      </div>
+      {app.error && <small style={{ ...fullRow, color: "#ff6b6b", overflowWrap: "anywhere" }}>{app.error}</small>}
+      {actions}
     </div>
   );
 }
