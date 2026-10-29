@@ -181,13 +181,22 @@ export function ToggleField({ label, checked, onChange }: { label?: string; chec
   );
 }
 
+// Steam's gamepad buttons the plugin listens for; the mock maps "[" / "]" to L1 / R1.
+export const GamepadButton = { BUMPER_LEFT: 5, BUMPER_RIGHT: 6 };
+
 export function Focusable({ style, children, ...rest }: { style?: CSSProperties; children?: ReactNode; [key: string]: unknown }) {
-  const { "flow-children": flowChildren, noFocusRing: _noFocusRing, onActivate, onCancel: _onCancel, ...divProps } = rest;
+  const { "flow-children": flowChildren, noFocusRing: _noFocusRing, onActivate, onCancel: _onCancel, onButtonDown, ...divProps } = rest;
+  const bumper = onButtonDown
+    ? (event: React.KeyboardEvent) => {
+        const button = { "[": GamepadButton.BUMPER_LEFT, "]": GamepadButton.BUMPER_RIGHT }[event.key];
+        if (button) (onButtonDown as (event: { detail: { button: number } }) => void)({ detail: { button } });
+      }
+    : undefined;
   const flowStyle = flowChildren === "right" ? { display: "flex", flexDirection: "row" as const } : flowChildren === "down" ? { display: "flex", flexDirection: "column" as const } : {};
   return (
     // Like Steam, onActivate makes the block itself a focus stop. The flow is
     // exposed so tests can check D-pad structure the geometric mock ignores.
-    <div data-focusable="" data-flow-children={flowChildren as string | undefined} style={{ ...flowStyle, ...style }} tabIndex={onActivate ? 0 : undefined} {...(divProps as React.HTMLAttributes<HTMLDivElement>)}>
+    <div data-focusable="" data-flow-children={flowChildren as string | undefined} style={{ ...flowStyle, ...style }} tabIndex={onActivate ? 0 : undefined} onKeyDown={bumper} {...(divProps as React.HTMLAttributes<HTMLDivElement>)}>
       {children}
     </div>
   );

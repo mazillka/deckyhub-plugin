@@ -82,6 +82,13 @@ const BRIDGE_URL = "http://127.0.0.1:8643";
 // which is a REAL SHARED FILE on disk across every test run and interactive
 // preview session. Always await this before the test that used it finishes,
 // since an unawaited call races Playwright's own page teardown.
+// Discover opens on its shelves; tests of the whole list tap the All plugins chip.
+// A query narrows it to the cards a test needs, since the list shows a page at a time.
+async function browseAll(page: Page, query?: string) {
+  await mock(page).getByRole("button", { name: /^All plugins/ }).click();
+  if (query) await mock(page).getByLabel("Search").fill(query);
+}
+
 function bridgeCall(page: Page, route: string, ...args: unknown[]) {
   return page.evaluate(
     ([bridge, route, args]) =>
@@ -120,8 +127,9 @@ test("Quick Access navigation opens Discover", async ({ page }) => {
 
   await expect(app.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
   await expect(app.getByText("STEAM", { exact: true })).toBeVisible();
-  await expect(app.getByRole("heading", { name: "MAKO Decky" })).toBeVisible();
-  await expect(app.getByText("Boosts frame rates with Lossless Scaling frame generation.")).toBeVisible();
+  // It opens on its shelves, each a row of cards.
+  await expect(app.getByRole("heading", { name: "Most popular", exact: true })).toBeVisible();
+  await expect(app.locator(".deckyhub-shelf-popular").getByRole("heading", { level: 3 })).not.toHaveCount(0);
 });
 
 test("Quick Access keeps its controller footer below its content", async ({ page }) => {
@@ -152,6 +160,7 @@ test("download modal actions use the full modal width", async ({ page }) => {
 
 test("Discover keeps search and status on one row", async ({ page }) => {
   await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  await browseAll(page);
   const app = mock(page);
   const search = app.getByLabel("Search");
   const status = app.getByLabel("Status");
@@ -515,6 +524,7 @@ test("Repository pagination stays on one row", async ({ page }) => {
 
 test("Discover's search also matches app descriptions", async ({ page }) => {
   await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  await browseAll(page);
   const app = mock(page);
   await app.getByLabel("Search").fill("lossless scaling");
 
@@ -525,18 +535,20 @@ test("Discover's search also matches app descriptions", async ({ page }) => {
 test("Discover reports an empty filtered result", async ({ page }) => {
   const app = mock(page);
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page);
   await app.getByLabel("Search").fill("does-not-exist");
 
   await expect(app.getByRole("heading", { name: "No repositories are available." })).toBeVisible();
   // Clear resets the filters straight from the empty state.
   await app.locator(".deckyhub-empty").getByRole("button", { name: "Clear", exact: true }).click();
   await expect(app.getByLabel("Search")).toHaveValue("");
-  await expect(app.getByRole("heading", { name: "MAKO Decky" })).toBeVisible();
+  await expect(app.getByRole("heading", { name: "No repositories are available." })).toHaveCount(0);
 });
 
 test("Discover filters by category", async ({ page }) => {
   const app = mock(page);
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
   await app.getByLabel("Category").selectOption("Mod Managers");
 
   await expect(app.getByRole("heading", { name: "MAKO Decky" })).toHaveCount(0);
@@ -547,17 +559,17 @@ test("Discover filters by category", async ({ page }) => {
 test("Discover sorts A to Z, Z to A and by most recently added", async ({ page }) => {
   const app = mock(page);
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
-  // MAKO Decky is the registry's first entry, Unifideck its third.
-  const order = async () => {
-    const names = await app.getByRole("heading").allTextContents();
-    return names.indexOf("MAKO Decky") - names.indexOf("Unifideck");
-  };
+  await browseAll(page);
+  const names = () => app.locator("[data-flow-children] h3").allTextContents();
+  const sorted = (list: string[]) => [...list].sort((a, b) => a.localeCompare(b));
 
-  await expect.poll(order).toBeLessThan(0);
-  await app.getByLabel("Sort").selectOption("added");
-  await expect.poll(order).toBeGreaterThan(0);
+  await expect.poll(async () => { const list = await names(); return list.length > 1 && list.join() === sorted(list).join(); }).toBe(true);
   await app.getByLabel("Sort").selectOption("za");
-  await expect.poll(order).toBeGreaterThan(0);
+  await expect.poll(async () => { const list = await names(); return list.join() === sorted(list).reverse().join(); }).toBe(true);
+  // Recently added: the registry only appends, so its last entry comes first.
+  await app.getByLabel("Sort").selectOption("added");
+  const last = (await bridgeCall(page, "get_apps")).result.apps.at(-1).name;
+  await expect.poll(async () => (await names())[0]).toBe(last);
 });
 
 test("Discover shows each plugin's stats, sorts by them and counts every filter option", async ({ page }) => {
@@ -567,6 +579,9 @@ test("Discover shows each plugin's stats, sorts by them and counts every filter 
   } } }));
   const app = mock(page);
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page);
+  // The two plugins with stats lead when sorting by them, so both are on page 1.
+  await app.getByLabel("Sort").selectOption("downloads");
   const mako = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
   const unifideck = app.getByRole("heading", { name: "Unifideck" }).locator("..");
   await expect(mako.getByText("↓ 74K")).toBeVisible();
@@ -589,7 +604,7 @@ test("Discover shows each plugin's stats, sorts by them and counts every filter 
   await expect(app.getByLabel("Sort").locator("option")).toHaveText(["A to Z", "Z to A", "Most downloaded", "Most stars", "Recently updated", "Recently added"]);
 
   // Every option says how many cards it would show next to the other filters.
-  const total = await app.getByRole("heading", { level: 3 }).count();
+  const total = (await bridgeCall(page, "get_apps")).result.apps.length;
   await expect(app.getByLabel("Status").locator("option").first()).toHaveText(`All (${total})`);
   await expect(app.getByLabel("Category").locator("option", { hasText: "Frame Generation" })).toHaveText(/^Frame Generation \(\d+\)$/);
 });
@@ -601,7 +616,7 @@ test("Discover's Then by breaks Sort's ties, and A to Z breaks the rest", async 
   } } }));
   const app = mock(page);
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
-  await expect(app.getByRole("heading", { name: "Unifideck" })).toBeVisible();
+  await browseAll(page);
   const unifideckFirst = async () => {
     const names = await app.getByRole("heading").allTextContents();
     return names.indexOf("Unifideck") < names.indexOf("MAKO Decky");
@@ -609,6 +624,7 @@ test("Discover's Then by breaks Sort's ties, and A to Z breaks the rest", async 
 
   // Same stars: the default A to Z puts MAKO Decky first, Then by downloads puts Unifideck first.
   await app.getByLabel("Sort").selectOption("stars");
+  await expect(app.getByRole("heading", { name: "Unifideck" })).toBeVisible();
   await expect.poll(unifideckFirst).toBe(false);
   await app.getByLabel("Then by").selectOption("downloads");
   await expect.poll(unifideckFirst).toBe(true);
@@ -620,6 +636,7 @@ test("The Manage window shows the plugin's description, details and a Repository
   await page.route(PLUGIN_STATS_URL, (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), plugins: { "eugeniosegala/mako": { downloads: 73981, stars: 680, updated: "2024-01-01T00:00:00Z", root: true } } } }));
   const app = mock(page);
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
   await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
   await expect(app.locator(".steam-modal .deckyhub-details-description")).toHaveText("Boosts frame rates with Lossless Scaling frame generation.");
   const meta = app.locator(".steam-modal .deckyhub-details-meta");
@@ -640,6 +657,7 @@ test("A GitHub rate limit surfaces a friendly message instead of a raw status co
   );
   const app = mock(page);
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
 
   const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
   await expect(makoCard.getByText(/GitHub rate limit reached./)).toBeVisible();
@@ -659,6 +677,7 @@ test("A GitHub rate limit surfaces a friendly message instead of a raw status co
   await expect(banner).toHaveCount(0);
 
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
   await expect(banner).toHaveCount(1);
   await banner.getByRole("button", { name: "Open Settings", exact: true }).click();
   await expect(app.getByText("GitHub Token")).toBeVisible();
@@ -694,6 +713,7 @@ test("The rate-limit message suggests adding a GitHub token only when none is co
   try {
     const app = mock(page);
     await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+    await browseAll(page, "MAKO");
     const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
     await expect(makoCard.getByText(/Add a GitHub token in Settings/)).toBeVisible();
 
@@ -704,6 +724,7 @@ test("The rate-limit message suggests adding a GitHub token only when none is co
     await bridgeCall(page, "save_settings", { overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: 3, githubToken: "ghp_already_set" });
     await app.getByRole("button", { name: "/deckyhub/settings" }).click();
     await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+    await browseAll(page, "MAKO");
 
     await expect(makoCard.getByText(/GitHub rate limit reached./)).toBeVisible();
     await expect(makoCard.getByText(/Add a GitHub token in Settings/)).toBeHidden();
@@ -1256,6 +1277,7 @@ test("The Manage window uninstalls an installed Decky plugin after confirming", 
 
   try {
     await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    await browseAll(page, "MAKO");
     const app = mock(page);
     await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
     await app.locator(".steam-modal").getByRole("button", { name: "Uninstall", exact: true }).click();
@@ -1279,6 +1301,7 @@ test("Release Page closes the Manage window before opening the page", async ({ p
   await context.route("https://github.com/**", (route) => route.fulfill({ body: "release page" }));
   const app = mock(page);
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
   await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
   const popupPromise = page.waitForEvent("popup");
   await app.locator(".steam-modal").getByRole("button", { name: "Release Page", exact: true }).click();
@@ -1302,6 +1325,7 @@ test("Compact interface shrinks DeckyHub's buttons and spacing, Default restores
 
     // Modals follow too: they render in the same document as the variables.
     await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+    await browseAll(page, "MAKO");
     await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
     const close = app.locator(".steam-modal").getByRole("button", { name: "Close", exact: true });
     await expect.poll(() => minHeight(close)).toBe("28px");
@@ -1341,6 +1365,7 @@ test("Discover's Details modal exposes every matching release asset", async ({ p
   await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases?per_page=20", (route) => route.fulfill({ json: [multiAssetRelease] }));
   const app = mock(page);
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
 
   const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
   await makoCard.getByRole("button", { name: "Manage", exact: true }).click();
@@ -1365,6 +1390,7 @@ test("Reopening Details within the cache window doesn't re-fetch its release lis
   });
   const app = mock(page);
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
   const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
 
   await makoCard.getByRole("button", { name: "Manage", exact: true }).click();
@@ -1530,6 +1556,7 @@ test("A newer pre-release of an installed pre-release counts as an update", asyn
 test("A failed release check falls back to the cached releases", async ({ page }) => {
   const app = mock(page);
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
   const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
   await expect(makoCard.getByText("Latest: v1.2.3", { exact: true })).toBeVisible();
 
@@ -1622,6 +1649,7 @@ test("Clearing a previously-saved GitHub token removes it from GitHub API reques
     await expect(saveButton).toBeDisabled();
 
     await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+    await browseAll(page, "MAKO");
     const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
     await makoCard.getByRole("button", { name: "Manage", exact: true }).click();
     const modal = app.locator(".steam-modal");
@@ -1809,7 +1837,8 @@ test("Every row of side-by-side controls lets the D-pad move left and right", as
 
   // Discover: header, search/status row, card grid, and its Manage window.
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
-  await expect(app.getByRole("button", { name: "Manage", exact: true }).nth(3)).toBeVisible();
+  await browseAll(page, "MAKO");
+  await expect(app.getByRole("button", { name: "Manage", exact: true }).first()).toBeVisible();
   expect(await sideBySideWithoutRightFlow(page)).toEqual([]);
   await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
   await expect(app.locator(".steam-modal").getByRole("button", { name: "Check for Updates", exact: true })).toBeVisible();
@@ -1896,6 +1925,7 @@ test("The Manage window's Install button names the version picked in the dropdow
 
 test("Check for Updates and Download ZIP keep the Manage window open", async ({ page }) => {
   await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  await browseAll(page, "MAKO");
   const app = mock(page);
   await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
   const modal = app.locator(".steam-modal");
@@ -1914,6 +1944,7 @@ test("Updates counts its plugins and Discover lists them first", async ({ page }
     const app = mock(page);
     await expect(app.locator(".deckyhub-update-count")).toHaveText("1");
     await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    await browseAll(page);
     await expect(mock(page).getByRole("heading", { level: 3 }).first()).toHaveText("Nexus Mods");
   } finally {
     removePlugin();
@@ -1983,18 +2014,28 @@ test("A failed download shows its reason in the download window", async ({ page 
   await expect(app.locator(".steam-modal")).toHaveCount(0);
 });
 
-test("Discover shows every card on one page", async ({ page }) => {
-  const repos = Array.from({ length: 10 }, (_, index) => `e2e-paging/repo-${index}`);
-  for (const repo of repos) await bridgeCall(page, "add_custom_repo", repo);
-  try {
-    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
-    const app = mock(page);
-    await expect(app.getByRole("heading", { name: "MAKO Decky" })).toBeVisible();
-    await expect(app.getByRole("heading", { name: "e2e-paging/repo-9" })).toBeVisible();
-    await expect(app.getByRole("button", { name: "Next", exact: true })).toHaveCount(0);
-  } finally {
-    for (const repo of repos) await bridgeCall(page, "remove_custom_repo", repo);
-  }
+test("Discover's list shows a page at a time, and L1 / R1 turn it", async ({ page }) => {
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  await browseAll(page);
+  const total = (await bridgeCall(page, "get_apps")).result.apps.length;
+  const pages = Math.ceil(total / 9);
+  // Three rows of three cards (the default Items Per Row).
+  await expect(app.getByText(`Page 1 of ${pages}`, { exact: true })).toBeVisible();
+  await expect(app.locator("[data-flow-children] h3")).toHaveCount(9);
+  const first = await app.locator("[data-flow-children] h3").first().textContent();
+
+  // R1 (the mock's "]") anywhere in the list turns the page; L1 ("[") turns it back.
+  await app.getByRole("button", { name: "Manage", exact: true }).first().press("]");
+  await expect(app.getByText(`Page 2 of ${pages}`, { exact: true })).toBeVisible();
+  await expect(app.locator("[data-flow-children] h3").first()).not.toHaveText(first!);
+  await app.getByRole("button", { name: "Manage", exact: true }).first().press("[");
+  await expect(app.getByText(`Page 1 of ${pages}`, { exact: true })).toBeVisible();
+
+  // The list view shows ten rows a page.
+  await app.getByRole("button", { name: "List", exact: true }).click();
+  await expect(app.locator(".deckyhub-app-row")).toHaveCount(10);
+  await expect(app.getByText(`Page 1 of ${Math.ceil(total / 10)}`, { exact: true })).toBeVisible();
 });
 
 test("A repository added from search shows on Discover until it's removed", async ({ page }) => {
@@ -2011,6 +2052,7 @@ test("A repository added from search shows on Discover until it's removed", asyn
     await expect(app.getByRole("button", { name: `Remove ${repo}`, exact: true })).toBeVisible();
 
     await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+    await browseAll(page, repo);
     await expect(app.getByRole("heading", { name: repo })).toBeVisible();
 
     await app.getByRole("button", { name: "/deckyhub/repositories" }).click();
@@ -2019,6 +2061,7 @@ test("A repository added from search shows on Discover until it's removed", asyn
     await expect(app.getByRole("button", { name: `Remove ${repo}`, exact: true })).toHaveCount(0);
 
     await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+    await browseAll(page, "MAKO");
     await expect(app.getByRole("heading", { name: "MAKO Decky" })).toBeVisible();
     await expect(app.getByRole("heading", { name: repo })).toHaveCount(0);
   } finally {
