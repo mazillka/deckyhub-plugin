@@ -1,4 +1,5 @@
 import { toaster } from "@decky/api";
+import { MotionStyle } from "../motion";
 import { DialogButtonPrimary as Button, ModalRoot } from "@decky/ui";
 import { useState } from "react";
 import { FaDownload, FaFileArchive, FaGithub, FaTimes } from "react-icons/fa";
@@ -101,6 +102,8 @@ export function DeckyHubUpdateModal({
 
   return (
     <ModalRoot closeModal={closeModal}>
+      <MotionStyle />
+      <div className="deckyhub-pop">
       <div style={{ display: "grid", gap: windowGap }}>
         <VersionPickerPanel
           t={t}
@@ -149,6 +152,7 @@ export function DeckyHubUpdateModal({
           <FaTimes /> {t("settings.close")}
         </Button>
       </div>
+    </div>
     </ModalRoot>
   );
 }

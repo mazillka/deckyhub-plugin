@@ -1,4 +1,5 @@
 import { toaster } from "@decky/api";
+import { MotionStyle } from "../motion";
 import { DialogButtonPrimary as Button, ModalRoot, PanelSection, PanelSectionRow, showModal } from "@decky/ui";
 import { useEffect, useState } from "react";
 import { FaExclamationTriangle, FaTimes, FaTrash } from "react-icons/fa";
@@ -18,6 +19,8 @@ type DownloadEntry = { name: string; directory: boolean };
 function ClearDownloadsModal({ t, downloads, onConfirm, closeModal }: { t: TFunc; downloads: DownloadEntry[]; onConfirm: () => void; closeModal?: () => void }) {
   return (
     <ModalRoot closeModal={closeModal}>
+      <MotionStyle />
+      <div className="deckyhub-pop">
       <div style={{ display: "grid", gap: windowGap }}>
         <strong style={{ fontSize: 16 }}>{t("settings.clearDownloadsTitle")}</strong>
         {/* Deletion can't be undone, so the question reads as a warning. */}
@@ -46,6 +49,7 @@ function ClearDownloadsModal({ t, downloads, onConfirm, closeModal }: { t: TFunc
           <FaTimes /> {t("content.cancel")}
         </Button>
       </div>
+    </div>
     </ModalRoot>
   );
 }

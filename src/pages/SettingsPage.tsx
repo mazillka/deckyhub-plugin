@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { FaCog, FaExternalLinkAlt, FaListUl, FaSave, FaFolderOpen, FaInfoCircle, FaLock } from "react-icons/fa";
 import { getSettings, saveSettings } from "../api";
 import { Card, IconNote, PageHeader } from "../components/Card";
+import { useLayout } from "../components/LayoutToggle";
 import { LOCALE_CHANGED, LOCALES, useT } from "../i18n";
 import type { MessageKey } from "../i18n/en";
 import type { HideableButton, Settings } from "../types";
@@ -18,6 +19,7 @@ const HIDEABLE_BUTTONS: [HideableButton, MessageKey][] = [
 
 export function SettingsPage() {
   const t = useT();
+  const [layout, setLayout] = useLayout();
   const [settings, setSettings] = useState<Settings>({ overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: DEFAULT_COLUMNS_PER_ROW, githubToken: "", density: "default", haptics: true, hiddenButtons: [] });
   // The token field saves on an explicit button (below), not per keystroke
   // like the other settings — typing a 40+ character token would otherwise
@@ -146,6 +148,18 @@ export function SettingsPage() {
       <Card>
         <PanelSection title={t("settings.displaySettings")}>
           <PanelSectionRow>
+            {/* The same choice as the Grid / List switch on Discover, Updates and Search. */}
+            <DropdownItem
+              label={t("settings.layout")}
+              rgOptions={[
+                { label: t("discover.grid"), data: "grid" },
+                { label: t("discover.list"), data: "list" },
+              ]}
+              selectedOption={layout}
+              onChange={({ data }) => setLayout(data)}
+            />
+          </PanelSectionRow>
+          <PanelSectionRow>
             <DropdownItem
               label={t("settings.density")}
               rgOptions={[
@@ -159,7 +173,7 @@ export function SettingsPage() {
           <PanelSectionRow>
             <DropdownItem
               label={t("settings.itemsPerRow")}
-              rgOptions={[1, 2, 3].map((count) => ({ label: String(count), data: count }))}
+              rgOptions={[1, 2, 3, 4].map((count) => ({ label: String(count), data: count }))}
               selectedOption={settings.columnsPerRow}
               onChange={({ data }) => update({ columnsPerRow: data })}
             />

@@ -1,4 +1,5 @@
 import { DialogButtonPrimary as Button, ModalRoot, ProgressBar, showModal } from "@decky/ui";
+import { MotionStyle } from "../motion";
 import { useEffect, useRef, useState } from "react";
 import { FaCheck, FaTimes } from "react-icons/fa";
 import { cancelDownload, getDownload } from "../api";
@@ -63,6 +64,8 @@ function DownloadModal({
 
   return (
     <ModalRoot closeModal={closeModal}>
+      <MotionStyle />
+      <div className="deckyhub-pop">
       <div style={{ display: "grid", gap: 14 }}>
           {preparing && (
             <div style={{ display: "grid", gap: 16 }}>
@@ -110,6 +113,7 @@ function DownloadModal({
           </Button>
         )}
       </div>
+    </div>
     </ModalRoot>
   );
 }

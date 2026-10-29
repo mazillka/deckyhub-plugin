@@ -1,7 +1,24 @@
 import { Focusable } from "@decky/ui";
-import type { CSSProperties, ReactNode } from "react";
+import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import { surfaceStyle } from "../utils";
 import { keepInView } from "./KeepInView";
+
+// A short slide-in when what a region shows changes (page, category, layout, results).
+// It animates the region rather than rebuilding it, so D-pad focus stays where it was;
+// skipped when the system asks for less motion.
+export function useSwapAnimation(deps: unknown[]) {
+  const ref = useRef<HTMLDivElement>(null);
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    ref.current?.animate?.([{ opacity: 0.3, transform: "translateY(10px)" }, { opacity: 1, transform: "none" }], { duration: 220, easing: "cubic-bezier(.2, .8, .2, 1)" });
+  }, deps);
+  return ref;
+}
 
 // Explanatory text with a leading icon, bright enough to read at a glance.
 export function IconNote({ icon, children }: { icon: ReactNode; children: ReactNode }) {

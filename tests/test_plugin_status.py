@@ -122,6 +122,14 @@ class PluginStatusTests(unittest.TestCase):
             self.assertEqual(asyncio.run(plugin.save_settings({"density": "compact"}))["density"], "compact")
             self.assertEqual(asyncio.run(plugin.save_settings({"density": "tiny"}))["density"], "default")
 
+    def test_items_per_row_takes_one_to_four(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.settings_path = Path(home) / "settings.json"
+
+            self.assertEqual(asyncio.run(plugin.save_settings({"columnsPerRow": 4}))["columnsPerRow"], 4)
+            self.assertEqual(asyncio.run(plugin.save_settings({"columnsPerRow": 5}))["columnsPerRow"], 3)
+
     def test_haptics_default_on_and_can_be_turned_off(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = Plugin()

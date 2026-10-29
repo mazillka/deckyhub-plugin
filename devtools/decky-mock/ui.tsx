@@ -64,10 +64,11 @@ export function Button({
 
 export const DialogButtonPrimary = Button;
 
-export function ModalRoot({ children }: { children?: ReactNode }) {
+export function ModalRoot({ children, bAllowFullSize }: { children?: ReactNode; bAllowFullSize?: boolean }) {
   return (
     <div className="steam-modal-backdrop">
-      <div className="steam-modal">{children}</div>
+      {/* bAllowFullSize: Steam lets the window use most of the screen. */}
+      <div className="steam-modal" style={bAllowFullSize ? { width: "min(1100px, calc(100vw - 64px))", maxHeight: "calc(100vh - 64px)", overflowY: "auto" } : undefined}>{children}</div>
     </div>
   );
 }

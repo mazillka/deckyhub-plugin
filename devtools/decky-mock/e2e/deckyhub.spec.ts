@@ -643,7 +643,10 @@ test("The Manage window shows the plugin's description, details and a Repository
   await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
   await expect(app.locator(".steam-modal .deckyhub-details-description")).toHaveText("Boosts frame rates with Lossless Scaling frame generation.");
   const meta = app.locator(".steam-modal .deckyhub-details-meta");
-  for (const text of ["Frame Generation", "eugeniosegala/MAKO", "↓ 74K", "★ 680", "Runs as root", "No release in a year"]) await expect(meta.getByText(text, { exact: true })).toBeVisible();
+  for (const text of ["Frame Generation", "↓ 74K", "★ 680", "Runs as root", "No release in a year"]) await expect(meta.getByText(text, { exact: true })).toBeVisible();
+  // The repository sits beside the name, and the selected release's notes below the description.
+  await expect(app.locator(".steam-modal").getByText("eugeniosegala/MAKO", { exact: true })).toBeVisible();
+  await expect(app.locator(".steam-modal .deckyhub-details-notes")).toBeVisible();
   await expect(app.locator(".steam-modal").getByRole("button", { name: "Repository" })).toBeVisible();
 });
 
@@ -1859,6 +1862,19 @@ test("Text stays readable at arm's length: nothing under 12px on the main screen
   await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
   await expect(app.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
   expect(await tooSmall()).toEqual([]);
+});
+
+test("With motion allowed, windows pop in and switching views slides the list in", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  await browseAll(page, "MAKO");
+  await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
+  await expect.poll(() => app.locator(".steam-modal .deckyhub-pop").evaluate((element) => getComputedStyle(element).animationName)).toBe("deckyhub-pop");
+  await app.locator(".steam-modal").getByRole("button", { name: "Close", exact: true }).click();
+  // Switching to the list animates the list in place (Web Animations), without rebuilding it.
+  await app.getByRole("button", { name: "List", exact: true }).click();
+  await expect.poll(() => pluginFrame(page).evaluate(() => document.getAnimations().length)).toBeGreaterThan(0);
 });
 
 // Seeds an installed Decky plugin where dev-server.py scans for them.
