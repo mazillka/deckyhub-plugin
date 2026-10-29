@@ -24,7 +24,7 @@ Use these project skills when working in this repository.
 
 ## GitHub API
 
-- Every release lookup goes through `fetchReleases(repo)` in `src/utils.ts` (one shared per-repo cache); don't add separate GitHub fetches.
+- Every release lookup goes through `fetchReleases(repo)` in `src/releases.ts` (one shared per-repo cache); don't add separate GitHub fetches.
 - Repos in the official registry are answered from its release index (one raw.githubusercontent.com file, no API calls); the API is only for repos the index lacks and for Search.
 - Unauthenticated use gets 60 requests/hour per IP (10/min for search): count the requests a change adds. `GET /rate_limit` is free.
 

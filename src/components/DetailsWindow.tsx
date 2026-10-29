@@ -5,7 +5,7 @@ import { MotionStyle } from "../motion";
 import type { UpdateChannel } from "../types";
 import { surfaceStyle } from "../utils";
 import { displayVersion } from "../version";
-import { plainNotes } from "./AppCard";
+import { plainNotes } from "./ReleaseInfo";
 import { keepInView } from "./KeepInView";
 
 // How much of the release notes the window shows; Y on the main button opens them in full.

@@ -47,7 +47,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Every route mounts its own I18nProvider instance (see index.tsx), so
     // this doubles as the one place that primes the GitHub token for every
-    // api.github.com call in this tree — see setGithubToken() in utils.ts.
+    // api.github.com call in this tree — see setGithubToken() in github.ts.
     // SettingsPage re-dispatches LOCALE_CHANGED whenever the token changes
     // too, not just the language, so this re-syncs both on save.
     const refresh = () =>

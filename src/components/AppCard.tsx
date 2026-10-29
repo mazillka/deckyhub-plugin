@@ -1,77 +1,14 @@
-import { DialogButtonPrimary as Button, ConfirmModal, Focusable, Navigation, showModal } from "@decky/ui";
-import { useState, type CSSProperties } from "react";
+import { DialogButtonPrimary as Button, Focusable, Navigation, showModal } from "@decky/ui";
+import { useState } from "react";
 import { FaArrowUp, FaCog, FaPlus } from "react-icons/fa";
 import { useT } from "../i18n";
 import type { App, Asset, HideableButton, RepoPreference, UpdateChannel } from "../types";
-import { compactButtonStyle, compactNumber, cardDescriptionStyle, timeAgo, installAction, PLUGIN_INSTALL_TYPE, statusKey, statusColor, surfaceStyle, visuallyHidden } from "../utils";
+import { compactButtonStyle, cardDescriptionStyle, installAction, PLUGIN_INSTALL_TYPE, statusKey, statusColor, surfaceStyle, visuallyHidden } from "../utils";
 import { displayVersion } from "../version";
-import type { TFunc } from "../i18n/en";
-import { AppDetailsModal, startPluginInstall } from "./AppDetailsModal";
-
-// ponytail: markdown read as plain text (no headings' #, bold's **, link URLs; list
-// dashes become bullets), minus images and HTML tags; render markdown if this reads badly.
-// Repeats until nothing changes, so a nested tag like <scr<b>ipt> can't reassemble one.
-export function plainNotes(notes = "") {
-  for (let previous = ""; previous !== notes; ) {
-    previous = notes;
-    notes = notes.replace(/!\[[^\]]*\]\([^)]*\)|<[^>]*>/g, "");
-  }
-  return notes
-    .replace(/^#{1,6}\s*/gm, "")
-    .replace(/\*\*|__/g, "")
-    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
-    .replace(/^\s*[-*]\s+/gm, "• ")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-}
-
-// Y on an Install/Update button shows what that release changes before installing it.
-export const showReleaseInfo = (t: TFunc, title: string, publishedAt?: string | null, notes?: string) =>
-  showModal(
-    <ConfirmModal
-      bAlertDialog
-      strTitle={title}
-      strDescription={
-        <div style={{ whiteSpace: "pre-wrap" }}>
-          {publishedAt && <p><small>{new Date(publishedAt).toLocaleDateString()}</small></p>}
-          {plainNotes(notes) || t("appcard.noReleaseNotes")}
-        </div>
-      }
-    />,
-  );
-
-// The registry's date for the release it shows, else the card's own release check.
-const releasedAt = (app: App) => Date.parse(app.stats?.updated || app.publishedAt || "");
-const isStale = (released: number) => Date.now() - released > 365 * 24 * 60 * 60 * 1000;
-
-// The Runs as root badge, also shown in Discover's legend that explains it.
-export const RootBadge = ({ t }: { t: TFunc }) => (
-  <span title={t("appcard.runsAsRootHint")} style={{ ...pillStyle, color: "#ffb35c", background: "#ffb35c22", borderColor: "#ffb35c66" }}>{t("appcard.runsAsRoot")}</span>
-);
-
-// Runs as root / No release in a year, shared by the card and its Manage window.
-export function AppBadges({ app, t }: { app: App; t: TFunc }) {
-  const released = releasedAt(app);
-  return (
-    <>
-      {app.stats?.root && <RootBadge t={t} />}
-      {isStale(released) && <span title={new Date(released).toLocaleDateString()} style={{ ...pillStyle, color: "#ff8a8a", background: "#ff8a8a22", borderColor: "#ff8a8a66" }}>{t("appcard.noReleaseInYear")}</span>}
-    </>
-  );
-}
-
-// Updated / downloads / stars, shared by the card and its Manage window.
-export function AppStats({ app, t }: { app: App; t: TFunc }) {
-  const released = releasedAt(app);
-  const { downloads, stars } = app.stats ?? {};
-  return (
-    <>
-      {released > 0 && !isStale(released) && <span title={new Date(released).toLocaleDateString()}>{t("appcard.updated", { when: timeAgo(released) })}</span>}
-      {downloads !== undefined && <span title={t("appcard.downloads", { count: downloads.toLocaleString() })}>↓ {compactNumber(downloads)}</span>}
-      {stars != null && <span title={t("appcard.stars", { count: stars.toLocaleString() })}>★ {compactNumber(stars)}</span>}
-    </>
-  );
-}
+import { AppDetailsModal } from "./AppDetailsModal";
+import { startPluginInstall } from "./InstallFlow";
+import { AppBadges, AppMonogram, AppStats, pillStyle } from "./AppBadges";
+import { showReleaseInfo } from "./ReleaseInfo";
 
 // Card chrome. The top border takes the status color (see statusColor()).
 const cardStyle = {
@@ -87,20 +24,8 @@ const cardStyle = {
   borderTop: "3px solid",
 };
 const fullRow = { gridColumn: "1 / -1" };
-const monogramStyle = { display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: 8, color: "#fff", fontWeight: 700, letterSpacing: "0.02em" };
 const cardTitleStyle = { margin: 0, overflow: "hidden", color: "#fff", fontSize: "1.05em", fontWeight: 700, lineHeight: 1.2, textOverflow: "ellipsis", whiteSpace: "nowrap" as const };
 const categoryStyle = { color: "#8fcef4", fontSize: "max(12px, 0.78em)", letterSpacing: "0.04em", textTransform: "uppercase" as const };
-const pillStyle = { display: "inline-block", marginRight: 6, padding: "1px 8px", border: "1px solid", borderRadius: 999, fontSize: "max(12px, 0.78em)", fontWeight: 600 };
-
-// Up to two initials, e.g. "Decky LSFG-VK" -> "DL".
-const monogram = (name: string) => name.split(/[\s-]+/).filter(Boolean).slice(0, 2).map((word) => word[0].toUpperCase()).join("");
-// A stable hue per category, so every card in a category shares its color.
-const categoryHue = (category: string) => [...category].reduce((hash, char) => (hash * 31 + char.charCodeAt(0)) % 360, 7);
-
-// The app's initials on its category's color, on its card and in its Manage window.
-export function AppMonogram({ app, style }: { app: App; style?: CSSProperties }) {
-  return <div aria-hidden style={{ ...monogramStyle, flexShrink: 0, background: `hsl(${categoryHue(app.category)} 45% 32%)`, ...style }}>{monogram(app.name)}</div>;
-}
 
 export function AppCard({
   app,
