@@ -27,6 +27,8 @@ export function Button({
   onSecondaryActionDescription,
   onOptionsButton,
   onOptionsActionDescription,
+  onMenuButton,
+  onMenuActionDescription,
 }: {
   onClick?: () => void;
   disabled?: boolean;
@@ -36,9 +38,11 @@ export function Button({
   onSecondaryActionDescription?: string;
   onOptionsButton?: () => void;
   onOptionsActionDescription?: string;
+  onMenuButton?: () => void;
+  onMenuActionDescription?: string;
 }) {
-  // Stands in for Steam's footer legend: "y"/"x" act as the Y/X buttons, and
-  // DevShell's bottom bar shows data-secondary-hint/data-options-hint while this is focused.
+  // Stands in for Steam's footer legend: "y"/"x"/"m" act as the Y/X/Menu buttons, and DevShell's
+  // bottom bar shows data-secondary-hint/data-options-hint/data-menu-hint while this is focused.
   return (
     <button
       onClick={onClick}
@@ -47,8 +51,9 @@ export function Button({
       style={style}
       data-secondary-hint={onSecondaryButton ? onSecondaryActionDescription : undefined}
       data-options-hint={onOptionsButton ? onOptionsActionDescription : undefined}
+      data-menu-hint={onMenuButton ? onMenuActionDescription : undefined}
       onKeyDown={(event) => {
-        const handler = { y: onSecondaryButton, x: onOptionsButton }[event.key.toLowerCase()];
+        const handler = { y: onSecondaryButton, x: onOptionsButton, m: onMenuButton }[event.key.toLowerCase()];
         if (handler) { event.preventDefault(); handler(); }
       }}
     >

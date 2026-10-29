@@ -161,6 +161,9 @@ export function AppCard({
             // X downloads the same release's ZIP instead of installing it.
             onOptionsButton={hiddenButtons.includes("downloadZip") || downloadDisabled || !app.assets[0] ? undefined : () => void onDownload(app.assets[0])}
             onOptionsActionDescription={t("settings.downloadUpdate")}
+            // Menu opens the plugin's GitHub page, to read about it before installing.
+            onMenuButton={() => Navigation.NavigateToExternalWeb(`https://github.com/${app.repo}`)}
+            onMenuActionDescription={t("appcard.repository")}
             onClick={() => {
               setInstalling(true);
               void startPluginInstall(t, app.name, app.repo, app.assets[0], app.latestVersion!, install, quickLabel, leavePage).finally(() => setInstalling(false));

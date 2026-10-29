@@ -11,7 +11,7 @@ export default function DevShell() {
   const [, forceUpdate] = useState(0);
   const [descriptor, setDescriptor] = useState<{ name: string; content?: React.ReactElement; onDismount?: () => void } | null>(null);
   const [activePath, setActivePath] = useState<string | null>(() => new URLSearchParams(window.location.search).get("preview"));
-  // Y/X-button descriptions of the focused control, as Steam's footer legend shows them.
+  // Y/X/Menu-button descriptions of the focused control, as Steam's footer legend shows them.
   const [hints, setHints] = useState<DOMStringMap>({});
 
   useEffect(() => {
@@ -131,7 +131,7 @@ export default function DevShell() {
             <div className="steam-page-content">
               <ActivePage />
             </div>
-            <footer className="steam-bottombar"><span className="steam-menu">STEAM &nbsp; MENU</span><span className="steam-legend">Ⓐ Select &nbsp;&nbsp; Ⓑ Back{hints.secondaryHint && <> &nbsp;&nbsp; Ⓨ {hints.secondaryHint}</>}{hints.optionsHint && <> &nbsp;&nbsp; Ⓧ {hints.optionsHint}</>}</span></footer>
+            <footer className="steam-bottombar"><span className="steam-menu">STEAM &nbsp; MENU</span><span className="steam-legend">Ⓐ Select &nbsp;&nbsp; Ⓑ Back{hints.secondaryHint && <> &nbsp;&nbsp; Ⓨ {hints.secondaryHint}</>}{hints.optionsHint && <> &nbsp;&nbsp; Ⓧ {hints.optionsHint}</>}{hints.menuHint && <> &nbsp;&nbsp; ☰ {hints.menuHint}</>}</span></footer>
           </div>
         ) : (
           <div className="game-backdrop">
@@ -139,7 +139,7 @@ export default function DevShell() {
               <header className="qam-header"><span className="qam-title">⋯ <span>Quick Access</span></span><span>⚙</span></header>
               <p className="qam-app-name">{descriptor.name}</p>
               <div className="qam-content">{descriptor.content}</div>
-              <footer className="steam-bottombar"><span className="steam-menu">STEAM &nbsp; MENU</span><span className="steam-legend">Ⓐ Select &nbsp;&nbsp; Ⓑ Back{hints.secondaryHint && <> &nbsp;&nbsp; Ⓨ {hints.secondaryHint}</>}{hints.optionsHint && <> &nbsp;&nbsp; Ⓧ {hints.optionsHint}</>}</span></footer>
+              <footer className="steam-bottombar"><span className="steam-menu">STEAM &nbsp; MENU</span><span className="steam-legend">Ⓐ Select &nbsp;&nbsp; Ⓑ Back{hints.secondaryHint && <> &nbsp;&nbsp; Ⓨ {hints.secondaryHint}</>}{hints.optionsHint && <> &nbsp;&nbsp; Ⓧ {hints.optionsHint}</>}{hints.menuHint && <> &nbsp;&nbsp; ☰ {hints.menuHint}</>}</span></footer>
             </aside>
           </div>
         )}
