@@ -34,7 +34,9 @@ type SortOrder = (typeof SORT_ORDERS)[number];
 // Discover's home shelves, each the top of the list in one order, with See all for the rest.
 const SHELVES = [["popular", "downloads"], ["recent", "updated"], ["new", "added"]] as const;
 
-const chipStyle = { ...compactButtonStyle, width: "auto", marginBottom: 0, padding: "4px 16px", borderRadius: 999 };
+const chipStyle = { ...compactButtonStyle, marginBottom: 0, padding: "4px 12px", borderRadius: 999 };
+// Category chips per row. Rows are explicit, like FocusableGrid's: Steam's D-pad can't move down a wrapped row.
+const CHIPS_PER_ROW = 5;
 const bumperStyle = { padding: "1px 7px", borderRadius: 5, background: "rgba(255, 255, 255, 0.12)", fontSize: "0.75em", fontWeight: 700 };
 
 export function Content({ fullPage }: { fullPage?: View }) {
@@ -64,6 +66,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
   // Every listed plugin, for the Quick Access menu's Discover button (its own list is installed ones only).
   const [listedCount, setListedCount] = useState(0);
   const quickAccessRef = useRef<HTMLDivElement>(null);
+  const pageRef = useRef<HTMLDivElement>(null);
 
   const info = view === "updates"
     ? { title: t("nav.updates"), description: t("view.updatesDescription"), empty: t("view.updatesEmpty") }
@@ -161,6 +164,17 @@ export function Content({ fullPage }: { fullPage?: View }) {
       backend.removeEventListener("loader/plugin_download_finish", onFinish);
     };
   }, []);
+
+  // Opening a category, or going back, replaces what had focus: hand it to the
+  // Back button or the first chip, so the D-pad doesn't start from nowhere.
+  const switchedView = useRef(false);
+  useEffect(() => {
+    if (!switchedView.current) {
+      switchedView.current = true;
+      return;
+    }
+    requestAnimationFrame(() => pageRef.current?.querySelector<HTMLElement>(browsing ? ".deckyhub-back-button button" : ".deckyhub-category-chips button")?.focus());
+  }, [browsing]);
 
   useEffect(() => {
     if (!fullPage) requestAnimationFrame(() => quickAccessRef.current?.scrollIntoView({ block: "start" }));
@@ -357,8 +371,8 @@ export function Content({ fullPage }: { fullPage?: View }) {
       onUninstalled={() => void load()}
     />
   );
-  const renderGrid = (items: App[]) => (
-    <FocusableGrid items={items} columns={fullPage ? columnsPerRow : 1} keyFor={(app) => app.id}>
+  const renderGrid = (items: App[], byPosition = false) => (
+    <FocusableGrid items={items} columns={fullPage ? columnsPerRow : 1} keyFor={(app) => (byPosition ? String(items.indexOf(app)) : app.id)}>
       {(app) => renderCard(app)}
     </FocusableGrid>
   );
@@ -399,7 +413,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
               actions={
                 <>
                   {browsing && (
-                    <div style={{ flex: "0 0 150px" }}>
+                    <div className="deckyhub-back-button" style={{ flex: "0 0 150px" }}>
                       <Button style={{ ...compactButtonStyle, marginBottom: 0 }} onClick={() => setBrowsing(false)}>
                         <FaArrowLeft /> {t("nav.discover")}
                       </Button>
@@ -436,13 +450,15 @@ export function Content({ fullPage }: { fullPage?: View }) {
           </KeepInView>
           {home ? (
             <>
-              <Focusable className="deckyhub-category-chips" flow-children="right" onFocus={keepInView} style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: "var(--dh-card-gap, 14px)" }}>
-                {[["", apps.length] as const, ...categoryCounts].map(([category, count]) => (
-                  <Button key={category} style={chipStyle} onClick={() => openBrowse(category)}>
-                    {category || t("discover.allPlugins")} <span style={{ opacity: 0.7 }}>{count}</span>
-                  </Button>
-                ))}
-              </Focusable>
+              <div className="deckyhub-category-chips">
+                <FocusableGrid items={[["", apps.length] as const, ...categoryCounts]} columns={CHIPS_PER_ROW} keyFor={([category]) => category}>
+                  {([category, count]) => (
+                    <Button style={chipStyle} onClick={() => openBrowse(category)}>
+                      {category || t("discover.allPlugins")} <span style={{ opacity: 0.7 }}>{count}</span>
+                    </Button>
+                  )}
+                </FocusableGrid>
+              </div>
               {SHELVES.map(([name, order]) => (
                 <section key={name} className={`deckyhub-shelf-${name}`}>
                   <Focusable flow-children="right" onFocus={keepInView} style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
@@ -474,7 +490,8 @@ export function Content({ fullPage }: { fullPage?: View }) {
                   ))}
                 </Focusable>
               ) : (
-                renderGrid(shownApps)
+                // Keyed by position while paged, so L1 / R1 keep focus on the same spot of the new page.
+                renderGrid(shownApps, paged)
               )}
               {view === "discover" && pageCount > 1 && (
                 <div className="deckyhub-pager" style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -551,10 +568,10 @@ export function Content({ fullPage }: { fullPage?: View }) {
   );
 
   return fullPage ? (
-    <>
+    <div ref={pageRef}>
       <RateLimitBanner />
       {page}
-    </>
+    </div>
   ) : (
     <div ref={quickAccessRef}>
       <RateLimitBanner stacked />
