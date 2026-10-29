@@ -690,11 +690,14 @@ export async function latestDeckyHubRelease(channel: UpdateChannel): Promise<Dec
 
 // A tracked app's recent releases (tag-filtered, assets matched to its
 // filters) for its version picker in AppDetailsModal.
+// Only releases with a matching ZIP: a newer one without it (say a Windows-only build)
+// is skipped, so cards and the version picker fall back to the last installable one.
 export function listAppReleases(app: App, force = false): Promise<{ items: AppReleaseOption[]; error?: string }> {
   const tagInclude = app.releaseTagInclude?.toLowerCase();
   return listOrError(fetchReleases(app.repo, force).then((releases) => releases
     .filter((release) => !tagInclude || release.tag.toLowerCase().includes(tagInclude))
-    .map((release) => ({ ...release, assets: matchingAssets(app, release.assets) }))));
+    .map((release) => ({ ...release, assets: matchingAssets(app, release.assets) }))
+    .filter((release) => release.assets.length > 0)));
 }
 
 // Fills in a card's latest release for its channel and whether it's newer
