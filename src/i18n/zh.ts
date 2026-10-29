@@ -129,6 +129,7 @@ export const zh: Record<MessageKey, string> = {
   "settings.densityDefault": "默认",
   "settings.densityCompact": "紧凑",
   "settings.itemsPerRow": "每行显示数量",
+  "settings.haptics": "导航时的触觉反馈",
   "settings.hideButton": "隐藏「{button}」",
   "settings.troubleshooting": "故障排除",
   "settings.exportLogs": "导出日志",

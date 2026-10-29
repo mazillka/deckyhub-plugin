@@ -129,6 +129,7 @@ export const fr: Record<MessageKey, string> = {
   "settings.densityDefault": "Par défaut",
   "settings.densityCompact": "Compacte",
   "settings.itemsPerRow": "Éléments par ligne",
+  "settings.haptics": "Retour haptique lors de la navigation",
   "settings.hideButton": "Masquer « {button} »",
   "settings.troubleshooting": "Dépannage",
   "settings.exportLogs": "Exporter les journaux",

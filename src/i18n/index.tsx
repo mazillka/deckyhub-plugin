@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { getSettings } from "../api";
-import { applyDensity, setGithubToken, setTranslator, substitute } from "../utils";
+import { applyDensity, setGithubToken, setHaptics, setTranslator, substitute } from "../utils";
 import { en, type MessageKey, type TFunc } from "./en";
 import { uk } from "./uk";
 import { ru } from "./ru";
@@ -55,6 +55,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         setPreference(settings.language || "auto");
         setGithubToken(settings.githubToken || "");
         applyDensity(settings.density);
+        setHaptics(settings.haptics !== false);
       });
     refresh();
     window.addEventListener(LOCALE_CHANGED, refresh);

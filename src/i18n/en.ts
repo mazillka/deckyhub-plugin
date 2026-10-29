@@ -128,6 +128,7 @@ export const en = {
   "settings.densityDefault": "Default",
   "settings.densityCompact": "Compact",
   "settings.itemsPerRow": "Items Per Row",
+  "settings.haptics": "Haptic feedback when navigating",
   "settings.hideButton": "Hide “{button}”",
   "settings.troubleshooting": "Troubleshooting",
   "settings.exportLogs": "Export Logs",

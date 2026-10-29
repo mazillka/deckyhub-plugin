@@ -129,6 +129,7 @@ export const de: Record<MessageKey, string> = {
   "settings.densityDefault": "Standard",
   "settings.densityCompact": "Kompakt",
   "settings.itemsPerRow": "Elemente pro Zeile",
+  "settings.haptics": "Haptisches Feedback beim Navigieren",
   "settings.hideButton": "„{button}“ ausblenden",
   "settings.troubleshooting": "Fehlerbehebung",
   "settings.exportLogs": "Protokolle exportieren",

@@ -129,6 +129,7 @@ export const uk: Record<MessageKey, string> = {
   "settings.densityDefault": "Стандартний",
   "settings.densityCompact": "Компактний",
   "settings.itemsPerRow": "Елементів у рядку",
+  "settings.haptics": "Тактильний відгук під час навігації",
   "settings.hideButton": "Приховати «{button}»",
   "settings.troubleshooting": "Усунення несправностей",
   "settings.exportLogs": "Експортувати журнали",

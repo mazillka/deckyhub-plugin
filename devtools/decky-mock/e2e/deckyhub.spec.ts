@@ -1706,7 +1706,50 @@ function seedPlugin(dir: string, name: string, version: string) {
   return () => rmSync(pluginDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
 }
 
-const defaultSettings = { overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: 3, githubToken: "", density: "default", hiddenButtons: [] };
+const defaultSettings = { overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: 3, githubToken: "", density: "default", haptics: true, hiddenButtons: [] };
+
+test("Moving focus ticks the Deck's trackpads, unless Display Settings turns it off", async ({ page }) => {
+  // Steam's controller list (the built-in Deck controller is type 4) and its haptics call.
+  await page.addInitScript(() => {
+    const ticks: unknown[][] = [];
+    Object.assign(window, {
+      __ticks: ticks,
+      SteamClient: { Input: {
+        RegisterForControllerListChanges: (callback: (list: unknown[]) => void) => {
+          callback([{ eControllerType: 2, nControllerIndex: 0 }, { eControllerType: 4, nControllerIndex: 3 }]);
+          return { unregister: () => {} };
+        },
+        TriggerSimpleHapticEvent: (...args: unknown[]) => ticks.push(args),
+      } },
+    });
+  });
+  await bridgeCall(page, "save_settings", defaultSettings);
+  try {
+    await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    const ticks = () => pluginFrame(page).evaluate(() => (window as unknown as { __ticks: unknown[][] }).__ticks.length);
+    const toggle = app.getByLabel("Haptic feedback when navigating");
+    await expect(toggle).toBeChecked();
+
+    await app.getByRole("button", { name: "Repositories", exact: true }).focus();
+    await expect.poll(ticks).toBeGreaterThan(0);
+    // The first focus registers for the controller list; this one ticks on the Deck's controller.
+    await page.waitForTimeout(60);
+    await toggle.focus();
+    expect(await pluginFrame(page).evaluate(() => (window as unknown as { __ticks: unknown[][] }).__ticks.at(-1))).toEqual([3, 2, 1, 1, 0]);
+
+    await toggle.click();
+    await expect(toggle).not.toBeChecked();
+    await page.waitForTimeout(300);
+    const before = await ticks();
+    await app.getByRole("button", { name: "Repositories", exact: true }).focus();
+    await page.waitForTimeout(60);
+    await toggle.focus();
+    expect(await ticks()).toBe(before);
+  } finally {
+    await bridgeCall(page, "save_settings", defaultSettings);
+  }
+});
 
 test("Moving focus up into a card or the page header brings its title into view", async ({ page }) => {
   await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");

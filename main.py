@@ -125,6 +125,8 @@ def _coerce_settings(settings: dict) -> dict:
         # Only the frontend's api.github.com calls send it (githubHeaders() in src/utils.ts).
         "githubToken": settings["githubToken"].strip()[:255] if isinstance(settings.get("githubToken"), str) else "",
         "density": "compact" if settings.get("density") == "compact" else "default",
+        # A haptic tick on the Deck's trackpads as focus moves (hapticTick() in src/utils.ts).
+        "haptics": bool(settings.get("haptics", True)),
         # Manage-window buttons the user chose to hide (Display Settings).
         "hiddenButtons": [name for name in HIDEABLE_BUTTONS if isinstance(settings.get("hiddenButtons"), list) and name in settings["hiddenButtons"]],
     }

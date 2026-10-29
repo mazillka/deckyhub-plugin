@@ -129,6 +129,7 @@ export const ru: Record<MessageKey, string> = {
   "settings.densityDefault": "Стандартный",
   "settings.densityCompact": "Компактный",
   "settings.itemsPerRow": "Элементов в строке",
+  "settings.haptics": "Тактильный отклик при навигации",
   "settings.hideButton": "Скрыть «{button}»",
   "settings.troubleshooting": "Устранение неполадок",
   "settings.exportLogs": "Экспортировать журналы",
