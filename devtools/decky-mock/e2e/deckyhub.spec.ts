@@ -1054,6 +1054,19 @@ test("Release checks read the registry's release index instead of the GitHub API
   expect(await pluginFrame(page).evaluate(() => localStorage.getItem("deckyhub-releases:eugeniosegala/MAKO"))).toBeNull();
 });
 
+test("A newer release without the plugin's ZIP is skipped for the last one that has it", async ({ page }) => {
+  await mockMakoReleases(page, [
+    { tag_name: "windows-v9.0.0", prerelease: false, draft: false, published_at: "2026-02-01T00:00:00Z", html_url: "https://github.com/eugeniosegala/MAKO/releases/tag/windows-v9.0.0",
+      assets: [{ name: "mako-windows.exe", browser_download_url: "https://github.com/eugeniosegala/MAKO/releases/download/windows-v9.0.0/mako-windows.exe", size: 1024 }] },
+    makoRelease("plugin-v1.2.3", "a".repeat(64)),
+  ]);
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  await browseAll(page, "MAKO");
+  const makoCard = mock(page).getByRole("heading", { name: "MAKO Decky" }).locator("..");
+  await expect(makoCard.getByRole("button", { name: "Install v1.2.3", exact: true })).toBeVisible();
+  await expect(makoCard.getByText(/No release|windows/i)).toHaveCount(0);
+});
+
 test("A stale release index is ignored in favour of the GitHub API", async ({ page }) => {
   await mockMakoReleases(page, [makoRelease("plugin-v1.0.0", "a".repeat(64))]);
   await page.route(RELEASE_INDEX_URL, (route) =>
@@ -1544,7 +1557,7 @@ test("A newer pre-release of an installed pre-release counts as an update", asyn
   mkdirSync(pluginDir, { recursive: true });
   writeFileSync(new URL("plugin.json", pluginDir), JSON.stringify({ name: "MAKO - Frame Generation", version: "1.4.0-rc.1" }));
   await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases?per_page=20", (route) =>
-    route.fulfill({ json: [{ tag_name: "plugin-v1.4.0-rc.2", prerelease: true, draft: false, published_at: "2026-01-02T00:00:00Z", html_url: "https://github.com/eugeniosegala/MAKO/releases/tag/plugin-v1.4.0-rc.2", assets: [] }] })
+    route.fulfill({ json: [{ tag_name: "plugin-v1.4.0-rc.2", prerelease: true, draft: false, published_at: "2026-01-02T00:00:00Z", html_url: "https://github.com/eugeniosegala/MAKO/releases/tag/plugin-v1.4.0-rc.2", assets: makoRelease("plugin-v1.4.0-rc.2", "b".repeat(64)).assets }] })
   );
   await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "prerelease" });
   try {
