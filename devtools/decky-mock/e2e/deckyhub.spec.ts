@@ -123,6 +123,9 @@ test("Quick Access navigation opens Discover", async ({ page }) => {
     app.getByRole("button", { name: "Settings", exact: true }).boundingBox(),
   ]);
   expect(settings!.y - (discover!.y + discover!.height)).toBeGreaterThanOrEqual(6);
+  // The button counts every plugin Discover lists.
+  const listed = (await bridgeCall(page, "get_apps")).result.apps.length;
+  await expect(app.getByRole("button", { name: "Discover", exact: true }).locator(".deckyhub-discover-count")).toHaveText(String(listed));
   await app.getByRole("button", { name: "Discover", exact: true }).click();
 
   await expect(app.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
@@ -1878,7 +1881,7 @@ test("Quick Access lists its pages in order, showing Updates only while there ar
     const nav = app.locator(".qam-content").getByRole("button");
     await expect(nav.nth(0).locator("span")).toHaveText("1");
     await expect(nav.nth(0)).toContainText("Updates");
-    await expect(nav.nth(1)).toHaveText("Discover");
+    await expect(nav.nth(1)).toHaveText(/^\s*Discover\d+$/);
     await expect(nav.nth(2)).toHaveText("Search");
     await expect(nav.nth(3)).toHaveText("Settings");
     await expect(app.getByText("Browse", { exact: true })).toHaveCount(0);
@@ -1887,7 +1890,7 @@ test("Quick Access lists its pages in order, showing Updates only while there ar
   }
 
   await page.reload();
-  await expect(mock(page).locator(".qam-content").getByRole("button").first()).toHaveText("Discover");
+  await expect(mock(page).locator(".qam-content").getByRole("button").first()).toHaveText(/^\s*Discover\d+$/);
   await expect(mock(page).getByRole("button", { name: "Updates", exact: true })).toHaveCount(0);
 });
 

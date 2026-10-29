@@ -61,6 +61,8 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const [updatingAll, setUpdatingAll] = useState(false);
   // Release checks finished out of the current load, shown while Updates waits on them.
   const [checked, setChecked] = useState(0);
+  // Every listed plugin, for the Quick Access menu's Discover button (its own list is installed ones only).
+  const [listedCount, setListedCount] = useState(0);
   const quickAccessRef = useRef<HTMLDivElement>(null);
 
   const info = view === "updates"
@@ -81,6 +83,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
       // Downloads and stars only matter for Discover's cards and sorting.
       const [appData, settings, stats] = await Promise.all([getApps(), getSettings(), view === "discover" ? fetchPluginStats(force) : Promise.resolve<Record<string, PluginStats>>({})]);
       const local = appData.apps;
+      setListedCount(local.length);
       const preferences = settings.repoSettings || {};
       setRepoPreferences(preferences);
       setColumnsPerRow(settings.columnsPerRow);
@@ -522,6 +525,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
             <Button style={compactButtonStyle} onClick={() => Navigation.Navigate(`/deckyhub/${page}`)}>
               <Icon /> {t(`nav.${page}`)}
               {page === "updates" && updateCount > 0 && <span style={countBadgeStyle}>{updateCount}</span>}
+              {page === "discover" && listedCount > 0 && <span aria-hidden className="deckyhub-discover-count" style={{ ...countBadgeStyle, background: "rgba(255, 255, 255, 0.16)", color: "#fff" }}>{listedCount}</span>}
             </Button>
           </PanelSectionRow>
         ))}
