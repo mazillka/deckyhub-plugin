@@ -37,5 +37,7 @@ for shot in (ROOT / "screenshots").glob("*.jpg"):
     image = Image.open(shot)
     image.save(img / f"{shot.stem}.webp", quality=78, method=6)
     image.resize((640, round(image.height * 640 / image.width)), Image.LANCZOS).save(img / f"{shot.stem}-640.webp", quality=78, method=6)
+# The walkthrough GIF tops the page (with the Discover screenshot for reduced motion).
+shutil.copy(ROOT / "promo" / "deckyhub.gif", img / "deckyhub.gif")
 # The promo hero (16:9) suits link previews better than a bare screenshot.
 shutil.copy(ROOT / "screenshots" / "hero.jpg", img / "og.jpg")

@@ -286,7 +286,7 @@ test("Export Logs zips the backend log into Downloads", async ({ page }) => {
   const app = mock(page);
   const toast = page.waitForEvent("console", (message) => message.text().includes("Exported to"));
   await app.getByRole("button", { name: "/deckyhub/settings" }).click();
-  await settingsTab(page, "About");
+  await settingsTab(page, "Logs");
   await app.getByRole("button", { name: "Export Logs", exact: true }).click();
 
   const name = (await toast).text().match(/DeckyHub-logs-\d{8}-\d{6}\.zip/)?.[0];
@@ -2100,14 +2100,14 @@ test("Quick Access lists its pages in order, showing Updates only while there ar
 test("Settings keeps each part on its own tab, Repositories included", async ({ page }) => {
   await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await expect(app.getByRole("tab")).toHaveText(["General", "GitHub", "Downloads", "Repositories", "About"]);
+  await expect(app.getByRole("tab")).toHaveText(["General", "GitHub", "Downloads", "Repositories", "Logs", "About"]);
   await expect(app.getByLabel("Language")).toBeVisible();
   await settingsTab(page, "Repositories");
   await expect(app.getByRole("button", { name: "Export", exact: true })).toBeVisible();
   await expect(app.getByLabel("Language")).toHaveCount(0);
   // R1 ("]" in the mock) moves to the next tab.
   await app.getByRole("tab", { name: "Repositories", exact: true }).press("]");
-  await expect(app.getByRole("tab", { name: "About", exact: true })).toHaveAttribute("aria-selected", "true");
+  await expect(app.getByRole("tab", { name: "Logs", exact: true })).toHaveAttribute("aria-selected", "true");
 });
 
 test("Repositories' old page opens Settings on its tab", async ({ page }) => {
@@ -2182,6 +2182,32 @@ test("The Updates page offers Discover when everything is up to date", async ({ 
   await expect(app.getByRole("heading", { name: "Everything installed is up to date." })).toBeVisible();
   await app.getByRole("button", { name: "Discover", exact: true }).click();
   await expect(app.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
+});
+
+test("A card says Installing… while Decky installs, then a notice says it's done", async ({ page }) => {
+  await recordInstalls(page);
+  await mockMakoReleases(page, [makoRelease("plugin-v1.2.3", "a".repeat(64))]);
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  const card = () => app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+  const install = card().getByRole("button", { name: "Install v1.2.3", exact: true });
+  await install.click();
+  await acceptDisclaimer(page, "Install v1.2.3");
+  await expect(app.locator(".qam-content")).toBeVisible();
+
+  // Decky's start event, not the confirmation, marks it installing; another plugin's doesn't.
+  await emit(page, "loader/plugin_download_start", "Some Other Plugin");
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await expect(card().getByText("Installing…", { exact: true })).toHaveCount(0);
+  await emit(page, "loader/plugin_download_start", "MAKO - Frame Generation");
+  // The status pill and the button both say so, and the button can't be pressed again.
+  await expect(card().getByText("Installing…", { exact: true })).toHaveCount(2);
+  await expect(card().getByRole("button", { name: "Installing…", exact: true })).toBeDisabled();
+
+  await emit(page, "loader/plugin_download_finish", "MAKO - Frame Generation");
+  await expect(app.getByText("MAKO - Frame Generation v1.2.3 installed.")).toBeVisible();
+  await expect(card().getByText("Installing…", { exact: true })).toHaveCount(0);
+  await expect(install).toBeEnabled();
 });
 
 test("A stalled Decky install warns once its progress goes quiet, a finished one doesn't", async ({ page }) => {

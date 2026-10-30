@@ -223,4 +223,6 @@ export const ja: Record<MessageKey, string> = {
   "welcome.gotIt": "OK",
   "settings.tabGeneral": "一般",
   "settings.tabDownloads": "ダウンロード",
+  "settings.tabTroubleshoot": "ログ",
+  "settings.tabAbout": "情報",
 };
