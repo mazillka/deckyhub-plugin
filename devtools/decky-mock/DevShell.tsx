@@ -3,7 +3,7 @@ import { showDownloadModal } from "../../src/components/DownloadProgress";
 import { en, type MessageKey } from "../../src/i18n/en";
 import pluginFactory from "../../src/index";
 import { reportRateLimit, substitute } from "../../src/utils";
-import { FaBell, FaBolt, FaCog, FaPlug, FaUserFriends } from "react-icons/fa";
+import { FaBatteryFull, FaBell, FaBolt, FaCog, FaPlug, FaSearch, FaUserFriends, FaWifi } from "react-icons/fa";
 import { routerHook, tabsHook } from "./api";
 
 const previewText = (key: MessageKey, vars?: Record<string, string | number>) => substitute(en[key], vars);
@@ -131,11 +131,11 @@ export default function DevShell() {
         <main className="steam-screen">
         {ActivePage ? (
           <div className="steam-page">
-            <header className="steam-topbar"><span /><span className="steam-status">⌕ &nbsp; ◉ &nbsp; ▰ &nbsp; <strong>12:34 PM</strong></span></header>
+            <header className="steam-topbar"><span /><span className="steam-status"><FaSearch /><FaBell /><FaWifi /><FaBatteryFull className="steam-battery" /><strong>12:34 PM</strong><span className="steam-avatar" /></span></header>
             <div className="steam-page-content">
               <ActivePage />
             </div>
-            <footer className="steam-bottombar"><span className="steam-menu"><span className="steam-pill">STEAM</span> MENU</span><span className="steam-legend">{hints.secondaryHint && <>Ⓨ {hints.secondaryHint} &nbsp;&nbsp; </>}{hints.optionsHint && <>Ⓧ {hints.optionsHint} &nbsp;&nbsp; </>}{hints.menuHint && <>☰ {hints.menuHint} &nbsp;&nbsp; </>}Ⓐ Select &nbsp;&nbsp; Ⓑ Back</span></footer>
+            <BottomBar hints={hints} />
           </div>
         ) : (
           <div className="game-backdrop">
@@ -164,12 +164,41 @@ export default function DevShell() {
                   ))}
                 </nav>
               </div>
-              <footer className="steam-bottombar"><span className="steam-menu"><span className="steam-pill">STEAM</span> MENU</span><span className="steam-legend">{hints.secondaryHint && <>Ⓨ {hints.secondaryHint} &nbsp;&nbsp; </>}{hints.optionsHint && <>Ⓧ {hints.optionsHint} &nbsp;&nbsp; </>}{hints.menuHint && <>☰ {hints.menuHint} &nbsp;&nbsp; </>}Ⓐ Select &nbsp;&nbsp; Ⓑ Back</span></footer>
+              <BottomBar hints={hints} />
             </aside>
           </div>
         )}
         </main>
       </div>
     </div>
+  );
+}
+
+// Steam's face-button glyph: four dots in a diamond, the pressed one filled. The
+// letter stays in the text (hidden) for the tests and screen readers.
+const DOTS = { Y: [10, 3], X: [3, 10], B: [17, 10], A: [10, 17] } as const;
+function FaceButton({ button }: { button: keyof typeof DOTS }) {
+  return (
+    <span className="steam-glyph">
+      <svg viewBox="0 0 20 20" width="1.6em" height="1.6em" aria-hidden>
+        {Object.entries(DOTS).map(([name, [cx, cy]]) => <circle key={name} cx={cx} cy={cy} r="2.6" fill={name === button ? "#fff" : "none"} stroke="#fff" strokeWidth="1.4" />)}
+      </svg>
+      <span className="steam-glyph-letter">{{ Y: "Ⓨ", X: "Ⓧ", B: "Ⓑ", A: "Ⓐ" }[button]}</span>
+    </span>
+  );
+}
+
+function BottomBar({ hints }: { hints: { secondaryHint?: string; optionsHint?: string; menuHint?: string } }) {
+  return (
+    <footer className="steam-bottombar">
+      <span className="steam-menu"><span className="steam-pill">STEAM</span> MENU</span>
+      <span className="steam-legend">
+        {hints.secondaryHint && <span><FaceButton button="Y" /> {hints.secondaryHint}</span>}
+        {hints.optionsHint && <span><FaceButton button="X" /> {hints.optionsHint}</span>}
+        {hints.menuHint && <span>☰ {hints.menuHint}</span>}
+        <span><FaceButton button="A" /> Select</span>
+        <span><FaceButton button="B" /> Back</span>
+      </span>
+    </footer>
   );
 }

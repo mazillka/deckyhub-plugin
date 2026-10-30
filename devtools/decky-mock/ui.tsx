@@ -8,7 +8,8 @@ import { createRoot } from "react-dom/client";
 export function PanelSection({ title, children }: { title?: ReactNode; children?: ReactNode }) {
   return (
     <section className="steam-panel">
-      {title && <h3 className="steam-panel-title">{title}</h3>}
+      {/* A div like Steam's, still a heading for the tests that find sections by title. */}
+      {title && <div className="steam-panel-title" role="heading" aria-level={3}>{title}</div>}
       {children}
     </section>
   );

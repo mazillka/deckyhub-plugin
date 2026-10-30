@@ -202,3 +202,36 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .steam-field-label:has(> .steam-input), .steam-field-label:has(> * > .steam-input) { padding: 0; color: #8b929a; background: transparent; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
 .steam-field-label:has(.steam-input) .steam-input { margin-top: 6px; color: #fff; font-size: 16px; text-transform: none; letter-spacing: 0; }
 .steam-field-unlabelled .steam-input { margin-top: 0 !important; }
+/* ---- Measured on a real Deck through Steam's debugger (devtools/deck/compare.mjs). ---- */
+.steam-deck-full, .steam-modal, .qam-content { color: #dcdedf; }
+.steam-deck-full .steam-button, .steam-modal .steam-button, .qam-content .steam-button { background: rgba(255, 255, 255, .15); border-radius: 2px; }
+.steam-deck-full .steam-button:disabled, .steam-modal .steam-button:disabled { color: #6f757c; background: #131418; }
+/* A section: its title 8px above the content, the next section 24px below. */
+.steam-deck-full .steam-panel { margin: 0 0 24px; padding: 0 16px; }
+.steam-deck-full .steam-panel-title, .steam-modal .steam-panel-title, .qam-content .steam-panel-title { margin: 0; padding-bottom: 8px; color: rgba(255, 255, 255, .7); font-size: 16px; font-weight: 600; line-height: 22px; letter-spacing: .5px; text-transform: uppercase; }
+.steam-deck-full .steam-input, .steam-modal .steam-input { min-height: 40px; padding: 10px 16px; line-height: 20px; background: rgba(255, 255, 255, .1); border-radius: 0; }
+/* A section's rows sit flush: the controls in them bring their own spacing. */
+.steam-deck-full .steam-row, .steam-modal .steam-row, .qam-content .steam-row { margin: 0; }
+/* A dropdown is a button sized to its value. */
+.steam-deck-full .steam-select, .steam-modal .steam-select { width: auto; min-height: 40px; padding: 10px 16px; line-height: 20px; color: #dcdedf; background: rgba(255, 255, 255, .15); border-radius: 2px; }
+/* A toggle: a 46px row on #23262e, its switch a 38x22 pill with a white 22px knob. */
+.steam-deck-full .steam-toggle, .steam-modal .steam-toggle, .qam-content .steam-toggle { min-height: 46px; padding: 12px; background: #23262e; border-radius: 2px; }
+.steam-toggle input { flex: 0 0 38px; appearance: none; position: relative; width: 38px; height: 22px; margin: 0; background: rgba(255, 255, 255, .15); border-radius: 11px; cursor: pointer; }
+.steam-toggle input::before { content: ""; position: absolute; top: 0; left: 0; width: 22px; height: 22px; background: #fff; border-radius: 50%; transition: left 120ms; }
+.steam-toggle input:checked { background: #1a9fff; }
+.steam-toggle input:checked::before { left: 16px; }
+.steam-toggle input:focus-visible { outline: 2px solid #1a9fff; outline-offset: 2px; }
+/* Steam's bars, as on the Deck: white status icons, a green battery and the avatar; */
+/* the legend's face-button glyphs before each action. */
+.steam-status { display: flex; align-items: center; gap: 30px; font-size: 26px; }
+.steam-status strong { margin-left: 4px; font-weight: 500; letter-spacing: .02em; }
+.steam-battery { color: #5ba32b; font-size: 34px; }
+.steam-avatar { width: 52px; height: 52px; margin-right: -4px; background: linear-gradient(135deg, #5c7e9b, #2a3a4a); border: 2px solid #8a7fe0; border-radius: 4px; }
+.steam-legend { display: flex; align-items: center; gap: 36px; text-transform: uppercase; }
+.steam-legend > span { display: inline-flex; align-items: center; gap: 10px; }
+.steam-glyph { display: inline-flex; }
+.steam-glyph-letter { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+/* A labelled text field leaves 22px below it, as Steam's does. */
+.steam-deck-full .steam-field-label:not(.steam-field-unlabelled):has(.steam-input), .steam-modal .steam-field-label:not(.steam-field-unlabelled):has(.steam-input) { margin-bottom: 22px; }
+/* A dropdown: its value, then Steam's solid triangle. */
+.steam-deck-full .steam-select, .steam-modal .steam-select { appearance: none; padding-right: 44px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M0 0h12L6 7z' fill='%23dcdedf'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; background-size: 12px 8px; }

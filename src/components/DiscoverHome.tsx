@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { useT } from "../i18n";
 import type { SortOrder } from "../sorting";
 import type { App } from "../types";
+import { ellipsis } from "../styles";
 import { compactButtonStyle } from "../utils";
 import { FocusableGrid } from "./FocusableGrid";
 import { keepInView } from "./KeepInView";
@@ -10,7 +11,8 @@ import { keepInView } from "./KeepInView";
 // Discover's home shelves, each the top of the list in one order, with See all for the rest.
 export const SHELVES = [["popular", "downloads"], ["recent", "updated"], ["new", "added"]] as const;
 
-const chipStyle = { ...compactButtonStyle, marginBottom: 0, padding: "4px 12px", borderRadius: 999 };
+// One line each, all the same height: a long name gets "…", never the count (seen on a Deck).
+const chipStyle = { ...compactButtonStyle, marginBottom: 0, padding: "4px 8px", borderRadius: 999, display: "flex", justifyContent: "center", gap: "0.3em", whiteSpace: "nowrap" as const };
 // Category chips per row. Rows are explicit, like FocusableGrid's: Steam's D-pad can't move down a wrapped row.
 const CHIPS_PER_ROW = 5;
 
@@ -23,7 +25,7 @@ export function DiscoverHome({ total, categories, shelf, onBrowse, renderGrid }:
         <FocusableGrid items={[["", total] as const, ...categories]} columns={CHIPS_PER_ROW} keyFor={([category]) => category}>
           {([category, count]) => (
             <Button style={chipStyle} onClick={() => onBrowse(category)}>
-              {category || t("discover.allPlugins")} <span style={{ opacity: 0.7 }}>{count}</span>
+              <span style={ellipsis}>{category || t("discover.allPlugins")}</span> <span style={{ opacity: 0.7, flexShrink: 0 }}>{count}</span>
             </Button>
           )}
         </FocusableGrid>
