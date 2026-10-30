@@ -6,7 +6,7 @@
 import assert from "node:assert/strict";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { after, before, test } from "node:test";
-import { connect, sleep, TARGETS, waitFor } from "./cdp.mjs";
+import { connect, goTo, resetFocus, sleep, TARGETS, waitFor } from "./cdp.mjs";
 import { BUTTON, explore, press } from "./navigation.mjs";
 
 const TAB_ID = 0x444855; // src/components/QuickAccessTab.tsx
@@ -37,7 +37,7 @@ before(async () => {
 });
 
 after(async () => {
-  await shared?.eval(`DFL.Navigation.CloseSideMenus?.(); DFL.Navigation.Navigate(${JSON.stringify(startPath || "/library/home")}); true`).catch(() => {});
+  if (shared) await resetFocus(shared, startPath || "/library/home").catch(() => {});
   for (const page of [shared, main, quickAccess]) page?.close();
 });
 
@@ -50,7 +50,7 @@ const awake = async () => { if ((await main.screenshot()).length < 15000) throw 
 
 const openPage = async (name) => {
   await awake();
-  await shared.eval(`DFL.Navigation.CloseSideMenus?.(); DFL.Navigation.Navigate("/deckyhub/${name}"); true`);
+  await goTo(shared, `/deckyhub/${name}`);
   await waitFor(main, `!!document.querySelector(".deckyhub-motion") && !document.querySelector(".deckyhub-motion .Throbber, .deckyhub-motion [class*=Spinner]")`, 30000);
   await sleep(1500);
 };
@@ -187,7 +187,8 @@ test("Search: has a search box and a Search button", async () => {
 test("Settings: layout, language and token settings are there", async () => {
   await openPage("settings");
   const text = await main.eval(`document.querySelector(".deckyhub-motion").innerText`);
-  for (const label of ["Language", "GitHub"]) assert.match(text, new RegExp(label), `no ${label} setting`);
+  // Steam draws tab names in capitals ("GITHUB ACCESS").
+  for (const label of ["Language", "GitHub"]) assert.match(text, new RegExp(label, "i"), `no ${label} setting`);
 });
 
 // The D-pad, sweeping each page like a player would, reaches every control on it.
@@ -217,6 +218,7 @@ test("Quick Access: Right from DeckyHub's tab moves focus into the panel", async
 
 test("B leaves a DeckyHub page for the one before it", async () => {
   await openPage("search");
+  // A real history entry (Decky's own navigation) for B to go back from; B removes it again.
   await shared.eval(`DFL.Navigation.Navigate("/deckyhub/settings"); true`);
   await waitFor(shared, `location.pathname.endsWith("/deckyhub/settings")`);
   await sleep(1000);
@@ -232,6 +234,22 @@ for (const name of PAGES) {
     assert.deepEqual(await audit(main, ".deckyhub-motion"), []);
   });
 }
+
+test("Settings: R1 walks every tab, each one fitting and passing the audit", async () => {
+  await openPage("settings");
+  await press(shared, BUTTON.DOWN, 600);
+  const seen = [], problems = {};
+  for (let i = 0; i < 5; i++) {
+    // The showing tab's content is marked with its id (SettingsPage.tsx).
+    const tab = await main.eval(`[...document.querySelectorAll("[class^=deckyhub-settings-]")].filter((e) => e.getClientRects().length && e.getBoundingClientRect().width > 0 && /^deckyhub-settings-(general|github|downloads|repositories|about)$/.test(e.className)).map((e) => e.className)[0] ?? "?"`);
+    seen.push(tab);
+    const found = await audit(main, ".deckyhub-motion");
+    if (found.length) problems[tab] = found;
+    await press(shared, 6, 1200); // R1
+  }
+  assert.equal(new Set(seen).size, 5, `R1 didn't reach five tabs: ${seen.join(", ")}`);
+  assert.deepEqual(problems, {});
+});
 
 test("Quick Access: all info visible, aligned and accessible", async () => {
   await openQuickAccess(TAB_ID);

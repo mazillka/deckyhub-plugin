@@ -1,7 +1,8 @@
-import { DialogButtonPrimary as Button, Focusable, Navigation } from "@decky/ui";
+import { DialogButtonPrimary as Button, Focusable } from "@decky/ui";
 import { useEffect, useState } from "react";
 import { FaCog, FaTimes } from "react-icons/fa";
 import { useT } from "../i18n";
+import { openSettings } from "../pages/SettingsPage";
 import { keepInView } from "./KeepInView";
 import { iconRow, RATE_LIMIT_CHANGED, rateLimit } from "../utils";
 
@@ -38,7 +39,7 @@ export function RateLimitBanner({ stacked = false }: { stacked?: boolean }) {
         {limit.minutesKnown ? t("rateLimit.retryIn", { minutes }) : t("rateLimit.retryLater")} {t("rateLimit.howToAvoid")}
       </small>
       <Focusable flow-children={stacked ? "down" : "right"} style={{ display: "flex", flexDirection: stacked ? "column" : "row", gap: 8 }}>
-        <Button style={bannerButton} onClick={() => Navigation.Navigate("/deckyhub/settings")}>
+        <Button style={bannerButton} onClick={() => openSettings("github")}>
           <FaCog /> {t("rateLimit.openSettings")}
         </Button>
         <Button style={bannerButton} onClick={() => setDismissed(true)}>

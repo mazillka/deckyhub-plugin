@@ -1,7 +1,7 @@
 import { DialogButtonPrimary as Button, DropdownItem, Focusable, Navigation, PanelSection, PanelSectionRow, TextField, ToggleField } from "@decky/ui";
 import { FileSelectionType, openFilePicker, toaster } from "@decky/api";
 import { useState } from "react";
-import { FaExternalLinkAlt, FaFileExport, FaFileImport, FaFolderOpen, FaInfoCircle, FaListUl, FaLock, FaSave } from "react-icons/fa";
+import { FaExternalLinkAlt, FaFileExport, FaFileImport, FaFolderOpen, FaInfoCircle, FaLock, FaSave } from "react-icons/fa";
 import { exportLogs, readTokenFile } from "../api";
 import { LOCALES, useT } from "../i18n";
 import type { MessageKey } from "../i18n/en";
@@ -105,21 +105,6 @@ export function GitHubAccessSection({ quota, tokenDraft, onTokenDraft, savedToke
               </Button>
             </div>
           </Focusable>
-        </PanelSectionRow>
-      </PanelSection>
-    </Card>
-  );
-}
-
-export function RepositoriesSection() {
-  const t = useT();
-  return (
-    <Card>
-      <PanelSection title={t("nav.repositories")}>
-        <PanelSectionRow>
-          <Button style={compactButtonStyle} onClick={() => Navigation.Navigate("/deckyhub/repositories")}>
-            <FaListUl /> {t("nav.repositories")}
-          </Button>
         </PanelSectionRow>
       </PanelSection>
     </Card>

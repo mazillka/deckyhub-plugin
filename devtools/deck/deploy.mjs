@@ -11,7 +11,7 @@ import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { connect, DECK, sleep, TARGETS, waitFor } from "./cdp.mjs";
+import { connect, DECK, goTo, resetFocus, sleep, TARGETS, waitFor } from "./cdp.mjs";
 
 const root = new URL("../../", import.meta.url).pathname.replace(/^\/(\w:)/, "$1");
 // Rollup through Node itself: pnpm's shell shim isn't on every PATH.
@@ -48,6 +48,7 @@ const url = `http://${localAddress}:${server.address().port}/DeckyHub.zip`;
 
 const shared = await connect(TARGETS.shared);
 const main = await connect(TARGETS.main);
+const startPath = await shared.eval("location.pathname.slice('/routes'.length)");
 const running = await shared.eval(`DeckyPluginLoader.plugins?.find((plugin) => plugin.name === "DeckyHub")?.version ?? null`);
 try {
   await shared.eval(`DFL.Navigation.CloseSideMenus?.(); DeckyBackend.call("utilities/install_plugin", ${JSON.stringify(url)}, "DeckyHub", ${JSON.stringify(version)}, "${sha256}", 2).then(() => true)`);
@@ -67,6 +68,7 @@ try {
   // first give Decky time to swap the files and reload DeckyHub.
   if (running === version) await sleep(15000);
   await waitFor(shared, `DeckyPluginLoader.plugins?.some((plugin) => plugin.name === "DeckyHub" && plugin.version === ${JSON.stringify(version)})`, 60000);
+  await resetFocus(shared, startPath);
   console.log(`DeckyHub ${version} is running on ${deckHost}`);
 } finally {
   shared.close();

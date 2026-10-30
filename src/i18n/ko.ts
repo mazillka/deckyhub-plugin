@@ -221,4 +221,6 @@ export const ko: Record<MessageKey, string> = {
   "welcome.body": "Decky 플러그인을 제작자의 GitHub 릴리스에서 바로 설치하고 업데이트하세요. 둘러보기에서 살펴보고, 검색으로 더 찾고, 업데이트에서 최신 상태로 유지하세요.",
   "welcome.safety": "이 플러그인들은 DeckyHub를 포함해 누구도 검토하지 않습니다. 신뢰하는 제작자의 플러그인만 설치하세요. DeckyHub는 설치 전에 항상 확인합니다.",
   "welcome.gotIt": "확인",
+  "settings.tabGeneral": "일반",
+  "settings.tabDownloads": "다운로드",
 };

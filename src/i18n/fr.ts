@@ -221,4 +221,6 @@ export const fr: Record<MessageKey, string> = {
   "welcome.body": "Installez et mettez à jour les plugins Decky directement depuis les versions GitHub de leurs auteurs. Parcourez-les ici dans Découvrir, trouvez-en d’autres avec Rechercher et gardez-les à jour dans Mises à jour.",
   "welcome.safety": "Personne ne vérifie ces plugins, pas même DeckyHub. N’installez que des plugins d’auteurs de confiance ; DeckyHub demande toujours avant d’installer quoi que ce soit.",
   "welcome.gotIt": "Compris",
+  "settings.tabGeneral": "Général",
+  "settings.tabDownloads": "Téléchargements",
 };

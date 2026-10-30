@@ -221,4 +221,6 @@ export const ja: Record<MessageKey, string> = {
   "welcome.body": "Decky プラグインを作者の GitHub リリースから直接インストール・更新できます。「探す」で見つけ、「検索」でさらに探し、「更新」で最新に保ちましょう。",
   "welcome.safety": "これらのプラグインは誰も審査していません（DeckyHub も含みます）。信頼できる作者のプラグインだけをインストールしてください。DeckyHub はインストールの前に必ず確認します。",
   "welcome.gotIt": "OK",
+  "settings.tabGeneral": "一般",
+  "settings.tabDownloads": "ダウンロード",
 };

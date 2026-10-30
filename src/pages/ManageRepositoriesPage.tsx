@@ -24,7 +24,8 @@ const REGISTRY_ERROR: Record<string, MessageKey> = {
   "nothing-new": "repos.errNothingNew",
 };
 
-export function ManageRepositoriesPage() {
+// Settings' Repositories tab (embedded: no page header or rate-limit banner of its own).
+export function ManageRepositoriesPage({ embedded }: { embedded?: boolean }) {
   const t = useT();
   const [customRepos, setCustomRepos] = useState<string[]>([]);
   const [registries, setRegistries] = useState<string[]>([]);
@@ -152,8 +153,8 @@ export function ManageRepositoriesPage() {
 
   return (
     <>
-      <RateLimitBanner />
-      <PageHeader icon={<FaListUl />} title={t("nav.repositories")} />
+      {!embedded && <RateLimitBanner />}
+      {!embedded && <PageHeader icon={<FaListUl />} title={t("nav.repositories")} />}
       <CustomReposSection repos={customRepos} onExport={() => void exportList().catch(showError)} onImport={() => void importList().catch(showError)} onRemove={confirmRemove} />
       <CustomRegistriesSection
         registries={registries}

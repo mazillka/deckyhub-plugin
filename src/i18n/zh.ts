@@ -221,4 +221,6 @@ export const zh: Record<MessageKey, string> = {
   "welcome.body": "直接从作者的 GitHub 发行版安装和更新 Decky 插件。在“发现”中浏览，用“搜索”找到更多，在“更新”中保持最新。",
   "welcome.safety": "没有人审核这些插件，DeckyHub 也不例外。请只安装你信任的作者的插件；DeckyHub 在安装前总会先询问你。",
   "welcome.gotIt": "知道了",
+  "settings.tabGeneral": "常规",
+  "settings.tabDownloads": "下载",
 };

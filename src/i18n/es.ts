@@ -221,4 +221,6 @@ export const es: Record<MessageKey, string> = {
   "welcome.body": "Instala y actualiza plugins de Decky directamente desde las versiones de sus autores en GitHub. Explóralos aquí en Descubrir, encuentra más con Buscar y mantenlos al día en Actualizaciones.",
   "welcome.safety": "Nadie revisa estos plugins, tampoco DeckyHub. Instala solo plugins de autores en los que confíes; DeckyHub siempre pregunta antes de instalar nada.",
   "welcome.gotIt": "Entendido",
+  "settings.tabGeneral": "General",
+  "settings.tabDownloads": "Descargas",
 };

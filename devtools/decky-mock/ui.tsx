@@ -336,3 +336,32 @@ export const Navigation = {
 };
 
 export const staticClasses = { Title: "decky-mock-title" };
+
+// Steam's Tabs: a tab bar (L1 / R1, here "[" and "]", switch tabs) over the active
+// tab's content, which scrolls on its own under the bar.
+export function Tabs({ tabs, activeTab, onShowTab }: { tabs: { id: string; title: string; content: ReactNode }[]; activeTab: string; onShowTab: (id: string) => void; autoFocusContents?: boolean }) {
+  const index = Math.max(0, tabs.findIndex((tab) => tab.id === activeTab));
+  const step = (delta: number) => onShowTab(tabs[(index + delta + tabs.length) % tabs.length].id);
+  return (
+    <div
+      className="steam-tabs"
+      onKeyDown={(event) => {
+        if (event.key === "[" || event.key === "]") {
+          event.preventDefault();
+          step(event.key === "]" ? 1 : -1);
+        }
+      }}
+    >
+      <div className="steam-tab-bar" role="tablist">
+        <span className="steam-tab-bumper" aria-hidden>L1</span>
+        {tabs.map((tab) => (
+          <button key={tab.id} type="button" role="tab" aria-selected={tab.id === tabs[index].id} className="steam-tab" onClick={() => onShowTab(tab.id)}>
+            {tab.title}
+          </button>
+        ))}
+        <span className="steam-tab-bumper" aria-hidden>R1</span>
+      </div>
+      <div className="steam-tab-content" role="tabpanel">{tabs[index]?.content}</div>
+    </div>
+  );
+}
