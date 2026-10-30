@@ -81,6 +81,8 @@ A daily job checks both catalogs for plugins that aren't listed yet and opens a 
 3. In Gaming Mode, open the Quick Access Menu → Decky → settings (gear icon). Turn on **Developer mode** under General if it's off, then go to **Developer** → **Install Plugin from ZIP** and select the downloaded file.
 4. Open the Quick Access Menu and pick DeckyHub's four-square icon in the tab strip (or Decky → **DeckyHub**).
 
+That's the only ZIP you'll install by hand: from then on DeckyHub installs and updates your other plugins, and itself, right from Gaming Mode.
+
 ## Using DeckyHub
 
 ### Controller buttons

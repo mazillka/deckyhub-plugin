@@ -57,8 +57,10 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
   };
 
   // A tab's sections, one under another (Down moves through them).
+  // B leaves Settings in one press: Steam's tabs would spend the first B moving focus
+  // up to the tab bar (seen on a Deck).
   const stack = (...sections: ReactNode[]) => (
-    <Focusable flow-children="down" className="deckyhub-settings-stack" style={{ display: "block", paddingTop: 8 }}>{sections}</Focusable>
+    <Focusable flow-children="down" className="deckyhub-settings-stack" onCancelButton={() => Navigation.NavigateBack()} style={{ display: "block", paddingTop: 8 }}>{sections}</Focusable>
   );
 
   return (
