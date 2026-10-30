@@ -686,6 +686,16 @@ test("A GitHub rate limit surfaces a friendly message instead of a raw status co
   await expect(app.getByText("GitHub Token")).toBeVisible();
 });
 
+test("DeckyHub adds its own Quick Access tab after Decky's", async ({ page }) => {
+  const app = mock(page);
+  const tabs = app.getByRole("navigation", { name: "Quick Access tabs" }).getByRole("button");
+  await expect(tabs).toHaveCount(2);
+  await expect(tabs.first()).toHaveAccessibleName("Decky");
+  await tabs.last().click();
+  await expect(app.locator(".qam-content .decky-mock-title")).toHaveText("DeckyHub");
+  await expect(app.locator(".qam-content").getByRole("button", { name: /^Discover/ })).toBeVisible();
+});
+
 test("The Quick Access rate-limit banner stacks its buttons and stays inside the panel", async ({ page }) => {
   const app = mock(page);
   await app.getByRole("button", { name: "Rate limit banner", exact: true }).click();
@@ -1749,7 +1759,7 @@ async function sideBySideWithoutRightFlow(page: Page) {
   return mock(page).locator("body").evaluate((body) => {
     const scope = Array.from(body.querySelectorAll(".steam-modal")).pop() ?? body;
     const controls = Array.from(scope.querySelectorAll<HTMLElement>("button, input, select, [tabindex]:not([tabindex='-1'])"))
-      .filter((control) => control.getClientRects().length && !control.closest(".preview-nav"));
+      .filter((control) => control.getClientRects().length && !control.closest(".preview-nav, .qam-tabs"));
     const label = (control: HTMLElement) => control.textContent?.trim() || control.getAttribute("aria-label") || control.tagName;
     const problems = new Set<string>();
     for (const left of controls) {

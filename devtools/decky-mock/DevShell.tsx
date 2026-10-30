@@ -3,7 +3,8 @@ import { showDownloadModal } from "../../src/components/DownloadProgress";
 import { en, type MessageKey } from "../../src/i18n/en";
 import pluginFactory from "../../src/index";
 import { reportRateLimit, substitute } from "../../src/utils";
-import { routerHook } from "./api";
+import { FaBell, FaBolt, FaCog, FaPlug, FaUserFriends } from "react-icons/fa";
+import { routerHook, tabsHook } from "./api";
 
 const previewText = (key: MessageKey, vars?: Record<string, string | number>) => substitute(en[key], vars);
 
@@ -13,6 +14,8 @@ export default function DevShell() {
   const [activePath, setActivePath] = useState<string | null>(() => new URLSearchParams(window.location.search).get("preview"));
   // Y/X/Menu-button descriptions of the focused control, as Steam's footer legend shows them.
   const [hints, setHints] = useState<DOMStringMap>({});
+  // The Quick Access tab shown: Decky's (null) or one a plugin added, by id.
+  const [qamTab, setQamTab] = useState<number | null>(null);
 
   useEffect(() => {
     const onRoutesChanged = () => forceUpdate((value) => value + 1);
@@ -97,6 +100,7 @@ export default function DevShell() {
   if (!descriptor) return null;
   const routes = Array.from(routerHook._routes.entries());
   const ActivePage = activePath ? routerHook._routes.get(activePath) : null;
+  const openTab = tabsHook.tabs.find((tab) => tab.id === qamTab);
 
   return (
     <div className="steam-mock">
@@ -137,8 +141,29 @@ export default function DevShell() {
           <div className="game-backdrop">
             <aside className="qam-panel">
               <header className="qam-header"><span className="qam-title">⋯ <span>Quick Access</span></span><span>⚙</span></header>
-              <p className="qam-app-name">{descriptor.name}</p>
-              <div className="qam-content">{descriptor.content}</div>
+              <div className="qam-body">
+                <div className="qam-main">
+                  {openTab ? (
+                    <div className="qam-content">{openTab.content}</div>
+                  ) : (
+                    <>
+                      <p className="qam-app-name">{descriptor.name}</p>
+                      <div className="qam-content">{descriptor.content}</div>
+                    </>
+                  )}
+                </div>
+                {/* Steam's tab rail; only Decky's tab and the ones plugins add do anything here. */}
+                <nav className="qam-tabs" aria-label="Quick Access tabs">
+                  <span aria-hidden><FaBell /></span>
+                  <span aria-hidden><FaUserFriends /></span>
+                  <span aria-hidden><FaCog /></span>
+                  <span aria-hidden><FaBolt /></span>
+                  <button aria-label="Decky" aria-pressed={!openTab} onClick={() => setQamTab(null)}><FaPlug /></button>
+                  {tabsHook.tabs.map((tab) => (
+                    <button key={tab.id} aria-label={`Quick Access tab ${tab.id}`} aria-pressed={openTab === tab} onClick={() => setQamTab(tab.id)}>{tab.icon}</button>
+                  ))}
+                </nav>
+              </div>
               <footer className="steam-bottombar"><span className="steam-menu"><span className="steam-pill">STEAM</span> MENU</span><span className="steam-legend">{hints.secondaryHint && <>Ⓨ {hints.secondaryHint} &nbsp;&nbsp; </>}{hints.optionsHint && <>Ⓧ {hints.optionsHint} &nbsp;&nbsp; </>}{hints.menuHint && <>☰ {hints.menuHint} &nbsp;&nbsp; </>}Ⓐ Select &nbsp;&nbsp; Ⓑ Back</span></footer>
             </aside>
           </div>
