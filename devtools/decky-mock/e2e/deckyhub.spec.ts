@@ -2379,3 +2379,18 @@ test("Install buttons and row stats stay on one line, however long the version",
   const clipped = await app.locator(".deckyhub-app-row").evaluateAll((rows) => rows.filter((row) => { const stats = row.children[4] as HTMLElement; return stats.scrollWidth > stats.clientWidth + 1; }).length);
   expect(clipped).toBe(0);
 });
+
+// The same audit devtools/deck runs on a real Deck: nothing cut off or off screen,
+// rows aligned, every control named, text with enough contrast.
+const AUDIT = readFileSync(new URL("../../deck/audit.js", import.meta.url), "utf8");
+for (const route of ["discover", "updates", "search", "settings", "repositories", ""]) {
+  test(`${route || "Quick Access"}: all info visible, aligned and accessible`, async ({ page }) => {
+    await page.goto(route ? `/?preview=/deckyhub/${route}&bridge=http://127.0.0.1:8643` : "/?bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    if (!route) await app.getByRole("button", { name: /^Quick Access tab/ }).click();
+    await expect(app.locator(".deckyhub-motion").first()).toBeVisible();
+    await page.waitForTimeout(1500);
+    const frame = page.frames().find((candidate) => candidate !== page.mainFrame())!;
+    expect(await frame.evaluate(`(${AUDIT})(".deckyhub-motion")`)).toEqual([]);
+  });
+}

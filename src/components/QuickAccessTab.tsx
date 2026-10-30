@@ -1,5 +1,5 @@
 import { useQuickAccessVisible } from "@decky/api";
-import { staticClasses } from "@decky/ui";
+import { Focusable, NavEntryPositionPreferences, staticClasses } from "@decky/ui";
 import { useSyncExternalStore, type ReactNode } from "react";
 import { getApps, getSettings } from "../api";
 import { getUpdateCount, setUpdateCount, subscribeUpdateCount } from "../notify";
@@ -20,7 +20,9 @@ function TabPanel({ children }: { children: ReactNode }) {
   return (
     <>
       <div className={staticClasses.Title} style={{ position: "sticky", top: 0, paddingRight: 16 }}>DeckyHub</div>
-      <div style={{ paddingTop: 16 }}>{visible && children}</div>
+      {/* Right from the tab strip enters at the top. Without this Steam picks whatever is
+          level with DeckyHub's icon, low in the strip: the Manage button (seen on a Deck). */}
+      <Focusable navEntryPreferPosition={NavEntryPositionPreferences.FIRST} style={{ paddingTop: 16 }}>{visible && children}</Focusable>
     </>
   );
 }

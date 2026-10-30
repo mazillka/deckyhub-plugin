@@ -1,4 +1,4 @@
-import { DropdownItem, ModalRoot } from "@decky/ui";
+import { DropdownItem, Focusable, ModalRoot } from "@decky/ui";
 import type { ReactNode } from "react";
 import type { TFunc } from "../i18n/en";
 import { MotionStyle } from "../motion";
@@ -86,21 +86,28 @@ export function DetailsWindow({
             <div style={{ flex: "1 1 300px", display: "grid", gap: 10, minWidth: 0 }}>
               <div onFocus={keepInView} style={{ display: "grid", gap: 4, padding: "8px 12px", background: "rgba(0, 0, 0, 0.2)", borderRadius: 10 }}>
                 <h3 style={sectionTitleStyle}>{t("settings.version")}</h3>
-                <DropdownItem
-                  layout="below"
-                  bottomSeparator="none"
-                  label={t("settings.updateChannel")}
-                  rgOptions={[
-                    { label: t("settings.stableReleases"), data: "stable" },
-                    { label: t("settings.preReleases"), data: "prerelease" },
-                  ]}
-                  selectedOption={channel}
-                  disabled={disabled}
-                  onChange={({ data }) => onChannelChange(data as UpdateChannel)}
-                />
-                {versionOptions.length > 0 && (
-                  <DropdownItem layout="below" bottomSeparator="none" label={t("settings.version")} rgOptions={versionOptions} selectedOption={selectedTag} disabled={disabled} onChange={({ data }) => onVersionChange(String(data))} />
-                )}
+                {/* Channel and version side by side; the version gets more room for long tags. */}
+                <Focusable flow-children="right" className="deckyhub-version-pickers" style={{ display: "grid", gridTemplateColumns: versionOptions.length > 0 ? "minmax(0, 2fr) minmax(0, 3fr)" : "minmax(0, 1fr)", gap: 12, alignItems: "end" }}>
+                  <div style={{ minWidth: 0 }}>
+                    <DropdownItem
+                      layout="below"
+                      bottomSeparator="none"
+                      label={t("settings.updateChannel")}
+                      rgOptions={[
+                        { label: t("settings.stableReleases"), data: "stable" },
+                        { label: t("settings.preReleases"), data: "prerelease" },
+                      ]}
+                      selectedOption={channel}
+                      disabled={disabled}
+                      onChange={({ data }) => onChannelChange(data as UpdateChannel)}
+                    />
+                  </div>
+                  {versionOptions.length > 0 && (
+                    <div style={{ minWidth: 0 }}>
+                      <DropdownItem layout="below" bottomSeparator="none" label={t("settings.version")} rgOptions={versionOptions} selectedOption={selectedTag} disabled={disabled} onChange={({ data }) => onVersionChange(String(data))} />
+                    </div>
+                  )}
+                </Focusable>
                 {error && <small style={{ color: "#ff6b6b" }}>{error}</small>}
                 {isEmpty && <small style={{ color: "#ff6b6b" }}>{t("settings.noReleasesFound")}</small>}
               </div>

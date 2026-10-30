@@ -4,7 +4,7 @@
 // puts the Deck back on the screen it was on. Assumes Steam and DeckyHub are in English.
 // Screenshots of every step land in devtools/deck/screenshots/.
 import assert from "node:assert/strict";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { after, before, test } from "node:test";
 import { connect, sleep, TARGETS, waitFor } from "./cdp.mjs";
 import { BUTTON, explore, press } from "./navigation.mjs";
@@ -12,6 +12,11 @@ import { BUTTON, explore, press } from "./navigation.mjs";
 const TAB_ID = 0x444855; // src/components/QuickAccessTab.tsx
 const PAGES = ["discover", "updates", "search", "settings", "repositories"];
 const shots = new URL("./screenshots/", import.meta.url);
+// What a player can't read or reach under a root: see audit.js.
+const AUDIT = readFileSync(new URL("./audit.js", import.meta.url), "utf8");
+const audit = (page, root) => page.eval(`JSON.stringify((${AUDIT})(${JSON.stringify(root)}))`).then(JSON.parse);
+// Plugin details windows to open from All plugins: every this-many-th card.
+const DETAILS_EVERY = Number(process.env.DETAILS_EVERY ?? 10);
 mkdirSync(shots, { recursive: true });
 
 let shared, main, quickAccess, startPath;
@@ -21,7 +26,7 @@ before(async () => {
   [shared, main, quickAccess] = await Promise.all([connect(TARGETS.shared), connect(TARGETS.main), connect(TARGETS.quickAccess)]);
   startPath = await shared.eval("location.pathname.slice('/routes'.length)");
   // With the screen off Steam draws nothing and ignores the D-pad; a black frame is a tiny PNG.
-  if ((await main.screenshot()).length < 15000) throw new Error("The Deck's screen is off: wake it (press a button) and keep it awake while testing.");
+  await awake();
   // Decky's plugins run in SharedJSContext: keep its errors that come from DeckyHub.
   await shared.send("Runtime.enable");
   shared.on(({ method, params }) => {
@@ -38,13 +43,20 @@ after(async () => {
 
 const save = async (page, name) => writeFileSync(new URL(`${name}.png`, shots), await page.screenshot());
 
+// Steam doesn't count our virtual presses as activity, so the screen can go off
+// mid-run; with it off Steam ignores the D-pad. Say so instead of failing oddly.
+const SCREEN_OFF = "The Deck's screen is off: wake it (press a button) and keep it awake while testing.";
+const awake = async () => { if ((await main.screenshot()).length < 15000) throw new Error(SCREEN_OFF); };
+
 const openPage = async (name) => {
+  await awake();
   await shared.eval(`DFL.Navigation.CloseSideMenus?.(); DFL.Navigation.Navigate("/deckyhub/${name}"); true`);
   await waitFor(main, `!!document.querySelector(".deckyhub-motion") && !document.querySelector(".deckyhub-motion .Throbber, .deckyhub-motion [class*=Spinner]")`, 30000);
   await sleep(1500);
 };
 
 const openQuickAccess = async (tab) => {
+  await awake();
   await shared.eval(`DFL.Navigation.OpenQuickAccessMenu(${tab ?? ""}); true`);
   await sleep(1500);
 };
@@ -192,6 +204,16 @@ test("Quick Access: the D-pad reaches every control in DeckyHub's panel", async 
   assert.deepEqual(missed, []);
 });
 
+// Steam enters a tab at its first control the first time, then where focus last was.
+test("Quick Access: Right from DeckyHub's tab moves focus into the panel", async () => {
+  await openQuickAccess(TAB_ID);
+  const inPanel = `!!document.querySelector(".deckyhub-motion .gpfocus")`;
+  for (let i = 0; i < 4 && await quickAccess.eval(inPanel); i++) await press(shared, BUTTON.LEFT, 600);
+  assert.equal(await quickAccess.eval(inPanel), false, "Left never reached the tab strip");
+  await press(shared, BUTTON.RIGHT, 600);
+  assert.ok(await quickAccess.eval(inPanel), "Right from the tab didn't enter DeckyHub's panel");
+});
+
 test("B leaves a DeckyHub page for the one before it", async () => {
   await openPage("search");
   await shared.eval(`DFL.Navigation.Navigate("/deckyhub/settings"); true`);
@@ -199,6 +221,50 @@ test("B leaves a DeckyHub page for the one before it", async () => {
   await sleep(1000);
   await press(shared, BUTTON.BACK, 1500);
   assert.match(await shared.eval("location.pathname"), /\/deckyhub\/search$/);
+});
+
+// Everything readable (nothing cut off or off screen), rows aligned, controls named,
+// text with enough contrast.
+for (const name of PAGES) {
+  test(`${name}: all info visible, aligned and accessible`, async () => {
+    await openPage(name);
+    assert.deepEqual(await audit(main, ".deckyhub-motion"), []);
+  });
+}
+
+test("Quick Access: all info visible, aligned and accessible", async () => {
+  await openQuickAccess(TAB_ID);
+  assert.deepEqual(await audit(quickAccess, ".deckyhub-motion"), []);
+});
+
+test("Plugin details: every sampled window shows all its info, aligned and accessible, and the D-pad reaches its controls", async () => {
+  await openPage("discover");
+  await main.eval(`[...document.querySelectorAll(".deckyhub-category-chips button, .deckyhub-category-chips .DialogButton")][0].click(); true`);
+  await waitFor(main, `!!document.querySelector(".deckyhub-back-button")`);
+  await sleep(2000);
+  const names = JSON.parse(await main.eval(`JSON.stringify([...document.querySelectorAll(".deckyhub-motion h3")].map((h) => h.textContent.trim()))`));
+  const problems = {};
+  for (const [index, plugin] of names.entries()) {
+    if (index % DETAILS_EVERY) continue;
+    await main.eval(`(() => {
+      const isManage = (b) => b.textContent.trim() === "Manage" || b.getAttribute("aria-label") === "Manage";
+      let card = [...document.querySelectorAll(".deckyhub-motion h3")].find((h) => h.textContent.trim() === ${JSON.stringify(plugin)});
+      while (card && ![...card.querySelectorAll("button, .DialogButton")].some(isManage)) card = card.parentElement;
+      [...card.querySelectorAll("button, .DialogButton")].find(isManage).click();
+      return true;
+    })()`);
+    await waitFor(main, `!!document.querySelector(".deckyhub-details")`);
+    await sleep(1500);
+    const found = await audit(main, ".deckyhub-details");
+    if (index === 0) {
+      await save(main, "details");
+      const { missed } = await explore(shared, main, { root: ".deckyhub-details" });
+      found.push(...missed.map((label) => `D-pad never reaches: ${label}`));
+    }
+    if (found.length) problems[plugin] = found;
+    await press(shared, BUTTON.BACK, 1200);
+  }
+  assert.deepEqual(problems, {});
 });
 
 test("No DeckyHub errors in the console", () => {

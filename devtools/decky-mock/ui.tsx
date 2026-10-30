@@ -144,8 +144,8 @@ export function DropdownItem({
   return (
     <label className="steam-field-label" style={inline ? { display: "flex", alignItems: "center", gap: 12 } : undefined}>
       {label}
-      {/* Inline, Steam keeps the menu as wide as its value, right-aligned beside the label. */}
-      <SteamSelect rgOptions={rgOptions} selectedOption={selectedOption} onChange={onChange} style={inline ? { marginTop: 0, marginLeft: "auto" } : undefined} />
+      {/* Inline, Steam keeps the menu as wide as its value, right-aligned beside the label; below it, as wide as the field. */}
+      <SteamSelect rgOptions={rgOptions} selectedOption={selectedOption} onChange={onChange} style={inline ? { marginTop: 0, marginLeft: "auto" } : { display: "flex", width: "100%", marginTop: 6 }} />
     </label>
   );
 }
@@ -198,9 +198,10 @@ export function ToggleField({ label, checked, onChange }: { label?: string; chec
 
 // Steam's gamepad buttons the plugin listens for; the mock maps "[" / "]" to L1 / R1.
 export const GamepadButton = { BUMPER_LEFT: 5, BUMPER_RIGHT: 6 };
+export enum NavEntryPositionPreferences { FIRST, LAST, MAINTAIN_X, MAINTAIN_Y, PREFERRED_CHILD }
 
 export function Focusable({ style, children, ...rest }: { style?: CSSProperties; children?: ReactNode; [key: string]: unknown }) {
-  const { "flow-children": flowChildren, noFocusRing: _noFocusRing, onActivate, onCancel: _onCancel, onButtonDown, onCancelButton, onCancelActionDescription: _onCancelActionDescription, ...divProps } = rest;
+  const { "flow-children": flowChildren, noFocusRing: _noFocusRing, onActivate, onCancel: _onCancel, onButtonDown, onCancelButton, onCancelActionDescription: _onCancelActionDescription, navEntryPreferPosition: _navEntryPreferPosition, ...divProps } = rest;
   // "Escape" stands in for B where a Focusable handles it.
   const bumper = onButtonDown || onCancelButton
     ? (event: React.KeyboardEvent) => {
