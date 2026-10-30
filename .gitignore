@@ -10,3 +10,5 @@ devtools/decky-mock/test-results/
 devtools/decky-mock/*-current.png
 .vite-preview.log
 _site/
+devtools/deck/screenshots/
+promo/reddit/

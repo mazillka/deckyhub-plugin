@@ -20,14 +20,20 @@ export type App = {
   releaseNotes?: string;
   assets: Asset[];
   updateAvailable?: boolean | null;
+  // From the registry's stats.json (fetchPluginStats); absent for repos it doesn't list.
+  stats?: PluginStats;
   error?: string | null;
   channel?: UpdateChannel;
 };
 
+// A plugin's line in the registry's stats.json: all-time downloads, GitHub stars,
+// when the release Discover shows came out, and whether its plugin.json asks for root.
+export type PluginStats = { downloads?: number; stars?: number | null; updated?: string | null; root?: boolean | null };
+
 // Manage-window buttons that Display Settings can hide.
 export type HideableButton = "downloadZip" | "install" | "update" | "releasePage";
 
-export type Settings = { overwriteExisting: boolean; updateChannel: UpdateChannel; language: string; columnsPerRow: 1 | 2 | 3; githubToken: string; density: "default" | "compact"; hiddenButtons: HideableButton[]; repoSettings?: Record<string, RepoPreference>; customRepos?: string[]; customRegistries?: string[] };
+export type Settings = { overwriteExisting: boolean; updateChannel: UpdateChannel; language: string; columnsPerRow: 1 | 2 | 3 | 4; githubToken: string; density: "default" | "compact"; haptics: boolean; hiddenButtons: HideableButton[]; repoSettings?: Record<string, RepoPreference>; customRepos?: string[]; customRegistries?: string[] };
 
 export type Download = { state: string; filename?: string; repo?: string; received?: number; total?: number; path?: string; error?: string };
 

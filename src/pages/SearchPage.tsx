@@ -1,38 +1,28 @@
-import { fetchNoCors, toaster } from "@decky/api";
+import { toaster } from "@decky/api";
 import { DialogButtonPrimary as Button, Focusable, Navigation, PanelSection, PanelSectionRow, TextField } from "@decky/ui";
-import { FocusableGrid } from "../components/FocusableGrid";
-import { Card, PageHeader } from "../components/Card";
-import { Pager } from "../components/Pager";
+import { SearchResults } from "../components/SearchResults";
+import { Card, PageHeader, useSwapAnimation } from "../components/Card";
+import { LayoutToggle, useLayout } from "../components/LayoutToggle";
 import { RateLimitBanner } from "../components/RateLimitBanner";
-import { startPluginInstall } from "../components/AppDetailsModal";
-import { showReleaseInfo } from "../components/AppCard";
+import { startPluginInstall } from "../components/InstallFlow";
+import { showReleaseInfo } from "../components/ReleaseInfo";
 import { showDownloadModal } from "../components/DownloadProgress";
 import { useEffect, useState } from "react";
-import { FaCheck, FaDownload, FaPlus, FaSearch, FaTimes } from "react-icons/fa";
+import { FaSearch, FaTimes } from "react-icons/fa";
 import { addCustomRepo, downloadAsset, getApps, getSettings, REGISTRY_UPDATED } from "../api";
 import { useT } from "../i18n";
+import { Notice } from "../components/Notice";
 import type { HideableButton, SearchRepo } from "../types";
 import { displayVersion } from "../version";
-import { compactButtonStyle, disclaimerStyle, githubFetch, githubResponseError, hydrate, installAction, installTypeLabel, log, surfaceStyle } from "../utils";
+import { compactButtonStyle, githubFetch, githubResponseError, hydrate, installAction, manifestName, installTypeLabel, log } from "../utils";
 
-const RESULTS_PER_PAGE = 5;
 // No bottom margin, so the buttons line up with the search field beside them.
 const rowButtonStyle = { ...compactButtonStyle, marginBottom: 0 };
-
-// A Decky plugin has a plugin.json with a name at its root. Read from
-// raw.githubusercontent.com, which doesn't count against the GitHub API limit;
-// header-less, so no CORS preflight (see githubHeaders() in utils.ts).
-// ponytail: root only, so a monorepo plugin (MAKO keeps it in a subfolder) shows only once it's in a list.
-const isDeckyPlugin = (repo: string) =>
-  fetchNoCors(`https://raw.githubusercontent.com/${repo}/HEAD/plugin.json`, { signal: AbortSignal.timeout(10_000) })
-    .then((response) => (response.ok ? response.json() : null))
-    .then((manifest) => typeof manifest?.name === "string", () => false);
 
 export function SearchPage() {
   const t = useT();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchRepo[]>([]);
-  const [page, setPage] = useState(0);
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [existingRepos, setExistingRepos] = useState<Set<string>>(new Set());
@@ -40,9 +30,12 @@ export function SearchPage() {
   const [installing, setInstalling] = useState<string | null>(null);
 
   const [hiddenButtons, setHiddenButtons] = useState<HideableButton[]>([]);
+  // Shared with Discover and Updates; both show every result.
+  const [layout, setLayout] = useLayout();
+  // Slides new results, pages and layouts in.
+  const resultsRef = useSwapAnimation([results, layout]);
 
   useEffect(() => {
-    void getApps().then((result) => setExistingRepos(new Set(result.apps.map((app) => app.repo.toLowerCase()))));
     void getSettings().then((settings) => setHiddenButtons(settings.hiddenButtons ?? []));
   }, []);
 
@@ -51,14 +44,16 @@ export function SearchPage() {
     setSearching(true);
     try {
       setSearchError(null);
+      // Read fresh each search, so a repo added or removed elsewhere shows right.
+      const existing = new Set((await getApps()).apps.map((app) => app.repo.toLowerCase()));
+      setExistingRepos(existing);
       // "decky" in the name, description, topics or README narrows GitHub's results;
       // the plugin.json check below drops the lists and guides that still match.
       const response = await githubFetch(`https://api.github.com/search/repositories?q=${encodeURIComponent(`${query} decky in:name,description,topics,readme`)}&sort=stars&order=desc&per_page=25`);
       if (!response.ok) throw await githubResponseError(response);
       const items: SearchRepo[] = (await response.json()).items || [];
-      const plugins = await Promise.all(items.map((repo) => existingRepos.has(repo.full_name.toLowerCase()) || isDeckyPlugin(repo.full_name)));
+      const plugins = await Promise.all(items.map((repo) => existing.has(repo.full_name.toLowerCase()) || manifestName(repo.full_name).then(Boolean)));
       setResults(items.filter((_, index) => plugins[index]));
-      setPage(0);
     } catch (error) {
       log(`Repository search failed: ${error}`);
       setSearchError(String(error));
@@ -110,17 +105,20 @@ export function SearchPage() {
     if (result.jobId) showDownloadModal(t, result.jobId, { state: "queued", filename: asset.name, total: asset.size }, () => {});
   };
 
-  // Adds the repo, then installs its latest stable release the way a Discover card does.
+  // Installs its latest stable release the way a Discover card does, and tracks the
+  // repo once Decky's dialog is accepted (a cancelled or failed one adds nothing).
   const install = async (repo: string) => {
     setInstalling(repo);
     try {
-      await track(repo);
       const app = await latestRelease(repo);
       const action = installAction(app, { tag: app.latestVersion, assets: app.assets });
       if (!action) throw new Error(t("release.noMatch"));
       const label = installTypeLabel(t, action.type, displayVersion(app.latestVersion).replace(/^v/, ""));
       // Decky's own dialog takes over, so leave the page like a card's Install does.
-      await startPluginInstall(t, app.name, app.repo, app.assets[0], app.latestVersion, action, label, () => Navigation.NavigateBack());
+      await startPluginInstall(t, app.name, app.repo, app.assets[0], app.latestVersion, action, label, () => {
+        void track(repo).catch(showError);
+        Navigation.NavigateBack();
+      });
     } finally {
       setInstalling(null);
     }
@@ -130,7 +128,7 @@ export function SearchPage() {
     <>
       <RateLimitBanner />
       <PageHeader icon={<FaSearch />} title={t("view.searchTitle")} description={t("view.searchDescription")} />
-      <div className="deckyhub-search-warning" style={disclaimerStyle}>{t("search.warning")}</div>
+      <Notice className="deckyhub-search-warning" text={t("search.warning")} />
       <Card>
         {/* The label is the section title rather than TextField's own, so the field and
             buttons share one centre line and the card is padded evenly top and bottom
@@ -139,7 +137,14 @@ export function SearchPage() {
           <PanelSectionRow>
             <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <TextField {...({ "aria-label": t("repos.searchGithub") } as any)} value={query} onChange={(event) => setQuery(event.currentTarget.value)} />
+                {/* Enter on Steam's keyboard searches, so there's no trip over to the Search button. */}
+                <TextField
+                  aria-label={t("repos.searchGithub")}
+                  placeholder={t("search.placeholder")}
+                  value={query}
+                  onChange={(event) => setQuery(event.currentTarget.value)}
+                  onKeyDown={(event) => { if (event.key === "Enter" && !searching) void search(); }}
+                />
               </div>
               <div style={{ flex: "0 0 160px" }}>
                 <Button style={rowButtonStyle} onClick={() => void search()} disabled={searching}>
@@ -153,62 +158,32 @@ export function SearchPage() {
                     setQuery("");
                     setResults([]);
                     setSearchError(null);
-                    setPage(0);
                   }}
                 >
                   <FaTimes /> {t("repos.clear")}
                 </Button>
               </div>
+              <div style={{ flex: "0 0 120px" }}>
+                <LayoutToggle layout={layout} onChange={setLayout} />
+              </div>
             </Focusable>
           </PanelSectionRow>
           {searchError && <PanelSectionRow>{searchError}</PanelSectionRow>}
-          {results.length > RESULTS_PER_PAGE && (
-            <PanelSectionRow>
-              <Pager page={page} total={Math.ceil(results.length / RESULTS_PER_PAGE)} onChange={setPage} />
-            </PanelSectionRow>
-          )}
         </PanelSection>
       </Card>
-      {results.length > 0 && (
-        <FocusableGrid items={results.slice(page * RESULTS_PER_PAGE, page * RESULTS_PER_PAGE + RESULTS_PER_PAGE)} columns={2} keyFor={(repo) => repo.full_name}>
-          {(repo) => {
-            const added = existingRepos.has(repo.full_name.toLowerCase());
-            return (
-              <div style={{ ...surfaceStyle, height: "100%", padding: "var(--dh-card-padding, 4px 14px)" }}>
-                <PanelSection title={repo.full_name}>
-                  <PanelSectionRow>
-                    <small>
-                      {repo.description || t("repos.noDescription")} · ★ {repo.stargazers_count ?? 0}
-                    </small>
-                  </PanelSectionRow>
-                  <PanelSectionRow>
-                    <Focusable flow-children="right" style={{ display: "flex", gap: 12 }}>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <Button
-                          style={compactButtonStyle}
-                          disabled={installing !== null}
-                          onSecondaryButton={() => void releaseInfo(repo.full_name).catch(showError)}
-                          onSecondaryActionDescription={t("appcard.releaseInfo")}
-                          onOptionsButton={hiddenButtons.includes("downloadZip") ? undefined : () => void downloadZip(repo.full_name).catch(showError)}
-                          onOptionsActionDescription={t("settings.downloadUpdate")}
-                          onClick={() => void install(repo.full_name).catch(showError)}
-                        >
-                          <FaDownload /> {t("appcard.install")}
-                        </Button>
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <Button style={compactButtonStyle} disabled={added} onClick={() => void add(repo.full_name).catch(showError)}>
-                          {added ? <FaCheck /> : <FaPlus />} {added ? t("repos.added") : t("repos.add")}
-                        </Button>
-                      </div>
-                    </Focusable>
-                  </PanelSectionRow>
-                </PanelSection>
-              </div>
-            );
-          }}
-        </FocusableGrid>
-      )}
+      <div ref={resultsRef}>
+        <SearchResults
+          results={results}
+          layout={layout}
+          isAdded={(repo) => existingRepos.has(repo.toLowerCase())}
+          installing={installing !== null}
+          canDownload={!hiddenButtons.includes("downloadZip")}
+          onInstall={(repo) => void install(repo).catch(showError)}
+          onAdd={(repo) => void add(repo).catch(showError)}
+          onReleaseInfo={(repo) => void releaseInfo(repo).catch(showError)}
+          onDownloadZip={(repo) => void downloadZip(repo).catch(showError)}
+        />
+      </div>
     </>
   );
 }

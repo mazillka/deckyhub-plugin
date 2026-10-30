@@ -7,7 +7,7 @@ import { useT } from "../i18n";
 import type { DeckyHubInfo, DeckyHubRelease, HideableButton, UpdateChannel } from "../types";
 import { compactButtonStyle, getDeckyBackend, installDeckyPlugin, latestDeckyHubRelease, log, seenOnce, PLUGIN_INSTALL_TYPE, resolveDeckyHubInstallType, visuallyHidden } from "../utils";
 import { normalizeVersion } from "../version";
-import { showReleaseInfo } from "./AppCard";
+import { showReleaseInfo } from "./ReleaseInfo";
 import { DeckyHubUpdateModal, downloadDeckyHubZip } from "./DeckyHubUpdateModal";
 import { Card } from "./Card";
 
@@ -75,10 +75,13 @@ export function DeckyHubUpdate() {
 
   return (
     <Card accent={hasUpdate ? "#f0c33c" : undefined}>
-      <PanelSection title={title}>
+      <PanelSection>
+        {/* Steam's section title (as measured on a Deck), minus its capitals:
+            "DECKYHUB V3.0.0-RC.13" crowded the panel. */}
+        <div style={{ paddingTop: 10, paddingBottom: 8, color: "rgba(255, 255, 255, 0.7)", fontSize: 16, fontWeight: 600, lineHeight: "22px" }}>{title}</div>
         {hasUpdate && (
           <PanelSectionRow>
-            <div style={{ color: "#f0c33c", fontSize: "0.85em" }}>{t("settings.updateAvailable", { version: `v${normalizeVersion(release.version!)}` })}</div>
+            <div style={{ color: "#f0c33c", fontSize: "max(12px, 0.85em)" }}>{t("settings.updateAvailable", { version: `v${normalizeVersion(release.version!)}` })}</div>
           </PanelSectionRow>
         )}
         {/* Update, with Manage as a gear beside it; Manage alone takes the full row. */}

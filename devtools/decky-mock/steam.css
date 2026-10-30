@@ -74,6 +74,17 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .qam-title { display: flex; gap: 9px; align-items: center; }
 .qam-app-name { margin: 16px 20px 8px; color: #8fa5bb; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; }
 .qam-content { flex: 1; overflow: auto; padding: 0 12px 12px; }
+/* Steam's tab rail down the panel's right edge, with the open tab highlighted. */
+.qam-panel { width: min(494px, 50%); }
+.qam-body { flex: 1; display: flex; min-height: 0; }
+.qam-main { flex: 1; display: flex; flex-direction: column; min-width: 0; padding-top: 12px; }
+.qam-tabs { flex: 0 0 64px; display: flex; flex-direction: column; align-items: center; gap: 6px; padding-top: 12px; color: #8b929a; font-size: 24px; background: #0e1014; }
+.qam-tabs > * { display: grid; place-items: center; width: 52px; height: 52px; padding: 0; color: inherit; font-size: inherit; background: none; border: 0; border-radius: 4px; }
+.qam-tabs > button { cursor: pointer; }
+.qam-tabs > [aria-pressed="true"] { color: #fff; background: #3d4450; }
+.qam-tabs > button:focus-visible { outline: 2px solid #1a9fff; }
+/* Steam.s Quick Access panel title (staticClasses.Title), solid so content scrolls under it. */
+.decky-mock-title { z-index: 1; display: flex; align-items: center; min-height: 40px; color: #fff; font-size: 18px; font-weight: 700; letter-spacing: .02em; background: #1b1e24; }
 .qam-panel .steam-bottombar { position: static; flex: 0 0 44px; }
 
 .steam-page { position: absolute; inset: 0; background: linear-gradient(180deg, #172636, #0b121b); }
@@ -86,9 +97,11 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 /* Production pages reserve Steam's fixed chrome themselves. The mock owns that
    chrome, so remove the duplicate inset only inside its full-page viewport. */
 .steam-deck-full .steam-panel { padding: 10px 0; background: transparent; border: 0; border-radius: 0; box-shadow: none; }
-.steam-deck-full .steam-panel-title { margin-bottom: 6px; color: #dce9f3; font-size: 14px; }
-.steam-deck-full .steam-row { margin: 5px 0; font-size: 13px; }
-.steam-deck-full .steam-button { min-height: 36px; margin: 4px 0; padding: 8px 12px; background: linear-gradient(90deg, #4c7690, #385c72); border-color: #7898aa; }
+/* Steam's Gamepad UI on a Deck: 16px text and 40px controls (measured on a real Deck). */
+.steam-deck-full { font-size: 16px; }
+.steam-deck-full .steam-panel-title { margin-bottom: 6px; color: #dce9f3; font-size: 15px; }
+.steam-deck-full .steam-row { margin: 5px 0; font-size: 16px; }
+.steam-deck-full .steam-button { min-height: 40px; margin: 4px 0; padding: 8px 12px; background: linear-gradient(90deg, #4c7690, #385c72); border-color: #7898aa; }
 .steam-deck-full .steam-input, .steam-deck-full .steam-select { padding: 9px; background: #182630; border-color: #7392a4; }
 
 .steam-deck-full .preview-nav { top: auto; bottom: 56px; left: 0; display: flex; width: auto; min-height: 44px; align-items: center; gap: 4px; padding: 4px 8px; border: 0; border-radius: 0; background: transparent; backdrop-filter: none; }
@@ -98,15 +111,16 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .steam-panel { margin: 0 0 12px; padding: 12px 14px; background: linear-gradient(180deg, #263b4d, #1c2d3c); border: 1px solid #476176; border-radius: 5px; box-shadow: inset 0 1px #ffffff0d; }
 .steam-panel-title { margin: 0 0 10px; color: #a9c9df; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 .steam-row { margin: 8px 0; color: #d5e2ed; font-size: 14px; }
-.steam-button { display: block; width: 100%; margin: 5px 0; padding: 10px 12px; color: #fff; text-align: left; background: linear-gradient(90deg, #285c82, #1e496b); border: 1px solid #5b93b8; border-radius: 4px; cursor: pointer; font-size: 14px; }
+.steam-button { display: block; width: 100%; margin: 5px 0; padding: 10px 12px; color: #fff; text-align: left; background: linear-gradient(90deg, #285c82, #1e496b); border: 1px solid #5b93b8; border-radius: 4px; cursor: pointer; font-size: 16px; }
 .steam-button:hover { background: linear-gradient(90deg, #3476a7, #245c84); }
 .steam-button:disabled { color: #7d8b97; background: #293643; border-color: #43515d; cursor: not-allowed; }
-.steam-field-label { display: block; color: #a9c2d4; font-size: 12px; }
-.steam-input, .steam-select { display: block; width: 100%; margin-top: 5px; padding: 8px 9px; color: #f3f8fc; background: #0d1721; border: 1px solid #5a7389; border-radius: 3px; }
+.steam-field-label { display: block; color: #a9c2d4; font-size: 16px; }
+.steam-input, .steam-select { display: block; width: 100%; margin-top: 5px; padding: 8px 9px; font-size: 16px; color: #f3f8fc; background: #0d1721; border: 1px solid #5a7389; border-radius: 3px; }
 .steam-toggle { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .steam-tab { padding: 9px 13px; color: #a9bdcc; background: transparent; border: 0; border-bottom: 3px solid transparent; cursor: pointer; }
 .steam-modal-backdrop { position: fixed; inset: 0; display: grid; place-items: center; z-index: 10000; background: #000b; }
-.steam-modal { width: min(420px, calc(100vw - 32px)); padding: 22px; color: #e9f2f9; background: #1b2c3d; border: 1px solid #6c8da5; border-radius: 6px; box-shadow: 0 16px 48px #000c; }
+/* Dialogs scroll when taller than the screen. */
+.steam-modal { max-height: calc(100% - 32px); overflow-y: auto; box-sizing: border-box; font-size: 16px; padding: 22px; color: #e9f2f9; background: #1b2c3d; border: 1px solid #6c8da5; border-radius: 6px; box-shadow: 0 16px 48px #000c; }
 .steam-modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .steam-modal-actions .steam-button { width: auto; margin: 0; }
 
@@ -116,3 +130,139 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   .preview-nav { width: 148px; }
   .qam-panel { width: min(460px, 70%); }
 }
+
+/* ---- Steam Deck look, matched to photos of the real device (colors and shapes only; ---- */
+/* ---- sizes are set above from measurements).                                          ---- */
+/* Steam's UI font: an installed copy, else the one Steam's own web pages load from Valve's CDN. */
+@font-face { font-family: "Motiva Sans"; font-weight: 300; src: local("Motiva Sans Light"), url("https://community.steamstatic.com/public/shared/fonts/MotivaSans-Light.ttf?v=4.015"); }
+@font-face { font-family: "Motiva Sans"; font-weight: 400; src: local("Motiva Sans"), url("https://community.steamstatic.com/public/shared/fonts/MotivaSans-Regular.ttf?v=4.015"); }
+@font-face { font-family: "Motiva Sans"; font-weight: 500; src: local("Motiva Sans Medium"), url("https://community.steamstatic.com/public/shared/fonts/MotivaSans-Medium.ttf?v=4.015"); }
+@font-face { font-family: "Motiva Sans"; font-weight: 700 900; src: local("Motiva Sans Bold"), url("https://community.steamstatic.com/public/shared/fonts/MotivaSans-Bold.ttf?v=4.015"); }
+:root, button, input, select, textarea { font-family: "Motiva Sans", "Segoe UI", Arial, Helvetica, sans-serif; }
+.steam-deck { border: 0; border-radius: 10px; background: #0e1116; }
+/* Gaming Mode's page: nearly black, a little blue at the top. */
+.steam-page { background: linear-gradient(180deg, #171c24 0%, #0e1116 55%); }
+.steam-topbar, .steam-bottombar { background: #0e1116f2; border: 0; color: #fff; }
+.steam-topbar { font-size: 15px; font-weight: 600; }
+.steam-bottombar { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.steam-menu { color: #fff; }
+/* Steam's DialogButton: flat gray, filled Steam blue while focused. */
+.steam-button, .steam-deck-full .steam-button {
+  color: #e3e6ea; text-align: center; background: #3a3f47; border: 0; border-radius: 4px; box-shadow: none; font-weight: 400;
+}
+.steam-button:hover, .steam-deck-full .steam-button:hover { background: #4a5059; }
+.steam-button:focus-visible, .steam-button:focus { color: #fff; background: #1a9fff; outline: 0; }
+.steam-button:disabled, .steam-deck-full .steam-button:disabled { color: #6f757c; background: #2a2e34; }
+/* Dropdowns: lighter gray boxes; text fields: dark. Both go Steam blue when focused. */
+.steam-select, .steam-deck-full .steam-select { color: #fff; background: #4b525b; border: 0; border-radius: 3px; }
+.steam-input, .steam-deck-full .steam-input { color: #fff; background: #2b3037; border: 0; border-radius: 3px; }
+.steam-select:focus-visible, .steam-input:focus-visible { outline: 2px solid #1a9fff; outline-offset: 0; }
+/* Dialogs: dark, borderless. */
+.steam-modal { color: #e3e6ea; background: linear-gradient(180deg, #23272e, #191c21); border: 0; border-radius: 6px; }
+.steam-modal-backdrop { background: #000c; }
+/* Quick Access: Steam's dark side panel. */
+.qam-panel { background: linear-gradient(180deg, #1d2128f5, #15181df8); border-left: 0; }
+.qam-header { border-bottom: 1px solid #2c3139; color: #fff; }
+.steam-panel { background: transparent; border: 0; box-shadow: none; }
+.steam-panel-title { color: #dcdedf; }
+
+/* ---- Measured from native 1280x800 Gaming Mode screenshots of a real Deck. ---------- */
+/* Gaming Mode is zoomed 1.5x: a 40px button is 60 screen pixels, 16px text is 24, and */
+/* a 150px-wide button is 225. So the plugin lays out in about 853x533 CSS pixels.     */
+/* The mock does the same: its page, dialogs and Quick Access content are zoomed 1.5x */
+/* inside the 1280x800 screen, while Steam's own bars stay in screen pixels.          */
+.steam-page-content { inset: 0; padding: 0; zoom: 1.5; }
+.steam-modal-backdrop { zoom: 1.5; }
+.qam-content { zoom: 1.5; }
+.steam-page { background: #000; }
+/* The bars: 60 screen pixels each, over the page (which pads itself clear of them). */
+.steam-topbar, .steam-bottombar { height: 60px; background: #000; }
+.steam-topbar { justify-content: space-between; padding: 0 24px; font-size: 22px; }
+.steam-status strong { font-size: 23px; }
+.steam-bottombar { padding: 0 36px; font-size: 18px; letter-spacing: .03em; }
+.steam-pill { display: inline-block; margin-right: 8px; padding: 3px 14px; color: #000; background: #fff; border-radius: 999px; font-size: 16px; font-weight: 800; letter-spacing: .06em; }
+.steam-deck-full .preview-nav { bottom: 64px; }
+/* Buttons, menus and fields: Steam's colors; a focused menu turns white with dark text. */
+.steam-deck-full .steam-button, .steam-modal .steam-button { margin: 0; color: #dcdedf; background: #2e3033; }
+.steam-deck-full .steam-button:focus, .steam-modal .steam-button:focus { color: #fff; background: #1a9fff; }
+.steam-deck-full .steam-select, .steam-modal .steam-select, .steam-deck-full .steam-input, .steam-modal .steam-input { min-height: 40px; padding: 0 12px; }
+.steam-deck-full .steam-select, .steam-modal .steam-select { background: #3d4047; }
+.steam-deck-full .steam-input, .steam-modal .steam-input { background: #2b2c2e; }
+.steam-select:focus, .steam-select:focus-visible { color: #111; background: #fff; outline: 0; }
+/* A labelled field (DropdownItem) is a row on #23262d that lightens while focused. */
+.steam-deck-full .steam-field-label, .steam-modal .steam-field-label { padding: 11px 12px; color: #fff; background: #23262d; }
+.steam-field-label:focus-within { background: #3a3d44; }
+/* Dialogs: black with a faint edge, 985 screen pixels (657 CSS) wide. */
+.steam-modal { width: min(657px, calc(100% - 32px)); background: #000; border: 1px solid #2f3237; border-radius: 4px; padding: 24px; }
+/* Gaming Mode shows no scrollbars. */
+.steam-deck-full *::-webkit-scrollbar, .steam-modal-backdrop *::-webkit-scrollbar, .qam-content::-webkit-scrollbar { width: 0; height: 0; }
+/* A section's content sits 16 CSS pixels in from its card, as on the Deck. */
+.steam-deck-full .steam-panel { padding: 10px 16px; }
+/* A text field's label is small, uppercase and gray above a dark field, not a row. */
+.steam-field-label:has(> .steam-input), .steam-field-label:has(> * > .steam-input) { padding: 0; color: #8b929a; background: transparent; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+.steam-field-label:has(.steam-input) .steam-input { margin-top: 6px; color: #fff; font-size: 16px; text-transform: none; letter-spacing: 0; }
+.steam-field-unlabelled .steam-input { margin-top: 0 !important; }
+/* ---- Measured on a real Deck through Steam's debugger (devtools/deck/compare.mjs). ---- */
+.steam-deck-full, .steam-modal, .qam-content { color: #dcdedf; }
+.steam-deck-full .steam-button, .steam-modal .steam-button, .qam-content .steam-button { background: rgba(255, 255, 255, .15); border-radius: 2px; }
+.steam-button.Disabled, .steam-deck-full .steam-button.Disabled, .steam-modal .steam-button.Disabled { color: #fff; background: #131418; opacity: .4; cursor: default; }
+/* A section: its title 8px above the content, the next section 24px below. */
+.steam-deck-full .steam-panel { margin: 0 0 24px; padding: 0 16px; }
+.steam-deck-full .steam-panel-title, .steam-modal .steam-panel-title, .qam-content .steam-panel-title { margin: 0; padding-bottom: 8px; color: rgba(255, 255, 255, .7); font-size: 16px; font-weight: 600; line-height: 22px; letter-spacing: .5px; text-transform: uppercase; }
+.steam-deck-full .steam-input, .steam-modal .steam-input { min-height: 40px; padding: 10px 16px; line-height: 20px; background: rgba(255, 255, 255, .1); border-radius: 0; }
+/* A section's rows sit flush: the controls in them bring their own spacing. */
+.steam-deck-full .steam-row, .steam-modal .steam-row, .qam-content .steam-row { margin: 0; }
+/* A dropdown is a button sized to its value. */
+.steam-deck-full .steam-select, .steam-modal .steam-select { width: auto; min-height: 40px; padding: 10px 16px; line-height: 20px; color: #dcdedf; background: rgba(255, 255, 255, .15); border-radius: 2px; }
+/* A toggle: a 46px row on #23262e, its switch a 38x22 pill with a white 22px knob. */
+.steam-deck-full .steam-toggle, .steam-modal .steam-toggle, .qam-content .steam-toggle { min-height: 46px; padding: 12px; background: #23262e; border-radius: 2px; }
+.steam-toggle input { flex: 0 0 38px; appearance: none; position: relative; width: 38px; height: 22px; margin: 0; background: rgba(255, 255, 255, .15); border-radius: 11px; cursor: pointer; }
+.steam-toggle input::before { content: ""; position: absolute; top: 0; left: 0; width: 22px; height: 22px; background: #fff; border-radius: 50%; transition: left 120ms; }
+.steam-toggle input:checked { background: #1a9fff; }
+.steam-toggle input:checked::before { left: 16px; }
+.steam-toggle input:focus-visible { outline: 2px solid #1a9fff; outline-offset: 2px; }
+/* Steam's bars, as on the Deck: white status icons, a green battery and the avatar; */
+/* the legend's face-button glyphs before each action. */
+.steam-status { display: flex; align-items: center; gap: 30px; font-size: 26px; }
+.steam-status strong { margin-left: 4px; font-weight: 500; letter-spacing: .02em; }
+.steam-battery { color: #5ba32b; font-size: 34px; }
+.steam-avatar { width: 52px; height: 52px; margin-right: -4px; background: linear-gradient(135deg, #5c7e9b, #2a3a4a); border: 2px solid #8a7fe0; border-radius: 4px; }
+.steam-legend { display: flex; align-items: center; gap: 36px; text-transform: uppercase; }
+.steam-legend > span { display: inline-flex; align-items: center; gap: 10px; }
+.steam-glyph { display: inline-flex; }
+.steam-glyph-letter { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+/* A labelled text field leaves 22px below it, as Steam's does. */
+.steam-deck-full .steam-field-label:not(.steam-field-unlabelled):has(.steam-input), .steam-modal .steam-field-label:not(.steam-field-unlabelled):has(.steam-input) { margin-bottom: 22px; }
+/* A dropdown: its value, then Steam's solid triangle. */
+.steam-deck-full .steam-select, .steam-modal .steam-select { appearance: none; padding-right: 44px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M0 0h12L6 7z' fill='%23dcdedf'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; background-size: 12px 8px; }
+.steam-input::placeholder { color: #8b929a; opacity: 1; }
+/* Quick Access, measured on a Deck: 522x680 screen pixels at the right, between the bars; */
+/* Steam's 48px tab strip on its left (the open tab 10% white), then a 300px panel whose   */
+/* title is 22px bold on black. Everything inside is zoomed 1.5x like the rest of Steam.  */
+.game-backdrop .steam-topbar, .game-backdrop .steam-bottombar { position: absolute; left: 0; right: 0; z-index: 2; }
+.game-backdrop .steam-topbar { top: 0; }
+.game-backdrop .steam-bottombar { bottom: 0; }
+.qam-panel { top: 60px; bottom: 60px; height: auto; width: 522px; flex-direction: row; background: #000; border: 0; box-shadow: -16px 0 36px #0008; }
+.qam-tabs { flex: 0 0 72px; gap: 0; padding: 124px 0 0; color: #969696; font-size: 36px; background: #000; border-right: 1px solid #23262e; }
+.qam-tabs > * { width: 72px; height: 72px; border-radius: 0; }
+.qam-tabs > [aria-pressed="true"] { color: #fff; background: rgba(255, 255, 255, .1); }
+.qam-main { padding-top: 0; }
+.qam-content { padding: 0; scroll-padding-top: 54px; } /* clear of the sticky title, as on the Deck */
+.decky-mock-title { position: sticky; top: 0; min-height: 34px; margin-top: 14px; padding: 6px 16px 0; color: #fff; font-size: 22px; font-weight: 700; letter-spacing: 0; background: #000; }
+/* An empty text field shows its text (and placeholder) gray, as Steam's DialogInputPlaceholder does. */
+.steam-deck-full .steam-input.Placeholder, .steam-modal .steam-input.Placeholder { color: #8b929a; }
+/* The dropdown (see SteamSelect): value and triangle, 16px in from each side; focused, white. */
+.steam-deck-full .steam-select, .steam-modal .steam-select, .steam-select { position: relative; display: inline-flex; align-items: center; justify-content: space-between; gap: 12px; width: auto; max-width: 100%; min-height: 40px; padding: 10px 16px; line-height: 20px; color: #dcdedf; background: rgba(255, 255, 255, .15); background-image: none; border-radius: 2px; }
+.steam-select-value { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.steam-select > select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; font: inherit; }
+.steam-select:focus-within { color: #111; background: #fff; }
+/* A dropdown's row (DropdownItem) is 64px: 12px around the 40px control. */
+.steam-deck-full .steam-field-label:has(.steam-select), .steam-modal .steam-field-label:has(.steam-select) { padding: 12px; }
+/* Steam's tab bar: titles side by side, the active one white and underlined; L1 / R1 at its ends. */
+.steam-tabs { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+.steam-tab-bar { display: flex; align-items: center; justify-content: center; gap: 24px; flex: 0 0 auto; padding: 4px 0 10px; }
+.steam-tab { padding: 6px 2px; color: #8b929a; font: inherit; font-size: 16px; background: none; border: 0; border-bottom: 2px solid transparent; cursor: pointer; }
+.steam-tab[aria-selected="true"] { color: #fff; border-bottom-color: #fff; }
+.steam-tab:focus-visible { color: #fff; outline: 2px solid #1a9fff; outline-offset: 2px; }
+.steam-tab-bumper { padding: 0 6px; color: #0e1116; font-size: 12px; font-weight: 700; background: #8b929a; border-radius: 4px; }
+.steam-tab-content { flex: 1; min-height: 0; overflow-y: auto; }

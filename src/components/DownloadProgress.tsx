@@ -1,4 +1,5 @@
 import { DialogButtonPrimary as Button, ModalRoot, ProgressBar, showModal } from "@decky/ui";
+import { MotionStyle } from "../motion";
 import { useEffect, useRef, useState } from "react";
 import { FaCheck, FaTimes } from "react-icons/fa";
 import { cancelDownload, getDownload } from "../api";
@@ -63,6 +64,8 @@ function DownloadModal({
 
   return (
     <ModalRoot closeModal={closeModal}>
+      <MotionStyle />
+      <div className="deckyhub-pop">
       <div style={{ display: "grid", gap: 14 }}>
           {preparing && (
             <div style={{ display: "grid", gap: 16 }}>
@@ -92,11 +95,11 @@ function DownloadModal({
                 <strong>{t("appcard.downloadComplete")}</strong>
               </div>
               <div>
-                <div style={{ color: "#8fcef4", fontSize: "0.9em", marginBottom: 5 }}>{t("dl.savedTo")}</div>
+                <div style={{ color: "#8fcef4", fontSize: "max(12px, 0.9em)", marginBottom: 5 }}>{t("dl.savedTo")}</div>
                 <div style={{ background: "rgba(26, 159, 255, 0.16)", border: "1px solid rgba(100, 200, 255, 0.5)", borderRadius: 4, color: "#fff", overflowWrap: "anywhere", padding: "8px 10px" }}>{state.path || t("dl.selectedFolder")}</div>
               </div>
               <div style={{ borderLeft: "3px solid #1a9fff", paddingLeft: 10 }}>
-                <div style={{ color: "#8fcef4", fontSize: "0.9em", marginBottom: 3 }}>{t("dl.installInDecky")}</div>
+                <div style={{ color: "#8fcef4", fontSize: "max(12px, 0.9em)", marginBottom: 3 }}>{t("dl.installInDecky")}</div>
                 <strong style={{ color: "#fff" }}>{t("dl.installPath")}</strong>
               </div>
             </>
@@ -110,6 +113,7 @@ function DownloadModal({
           </Button>
         )}
       </div>
+    </div>
     </ModalRoot>
   );
 }

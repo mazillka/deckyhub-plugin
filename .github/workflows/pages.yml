@@ -3,7 +3,7 @@ name: Deploy Website
 on:
   push:
     branches: [main]
-    paths: [docs/**, screenshots/**, devtools/build-site.py, .github/workflows/pages.yml]
+    paths: [docs/**, screenshots/**, promo/deckyhub.gif, devtools/build-site.py, .github/workflows/pages.yml]
   # The catalog comes from mazillka/deckyhub-registry, so rebuild daily to pick up its changes.
   schedule:
     - cron: "0 6 * * *"

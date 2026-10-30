@@ -1,52 +1,20 @@
 import { toaster } from "@decky/api";
-import { DialogButtonPrimary as Button, ConfirmModal, ModalRoot, Navigation, showModal } from "@decky/ui";
+import { DialogButtonPrimary as Button, ConfirmModal, Navigation, showModal } from "@decky/ui";
 import { useState } from "react";
 import { FaArrowDown, FaArrowUp, FaFileArchive, FaPlus, FaRedo, FaTimes, FaTrash } from "react-icons/fa";
 import { saveRepoSettings } from "../api";
 import type { TFunc } from "../i18n/en";
 import type { App, AppReleaseOption, Asset, HideableButton, RepoPreference, UpdateChannel } from "../types";
-import { buildVersionOptions, getDeckyBackend, installAction, installDeckyPlugin, installTypeLabel, listAppReleases, modalButtonStyle, needsFreshInstall, PLUGIN_INSTALL_TYPE, readableBytes, sectionDividerStyle, uninstallDeckyPlugin, windowGap } from "../utils";
+import { buildVersionOptions, installAction, installTypeLabel, listAppReleases, modalButtonStyle, PLUGIN_INSTALL_TYPE, readableBytes, uninstallDeckyPlugin } from "../utils";
+import { startPluginInstall } from "./InstallFlow";
 import { displayVersion } from "../version";
-import { AppMonogram, showReleaseInfo } from "./AppCard";
-import { ReleaseActions, useReleasePicker, VersionPickerPanel } from "./VersionPickerPanel";
+import { AppBadges, AppMonogram, AppStats } from "./AppBadges";
+import { showReleaseInfo } from "./ReleaseInfo";
+import { DetailsWindow } from "./DetailsWindow";
+import { ReleaseActions, useReleasePicker } from "./VersionPickerPanel";
 
-// Every install, update or reinstall of a third-party plugin first says
-// DeckyHub doesn't vouch for it; resolves true once the user accepts.
-export function confirmPluginInstall(t: TFunc, title: string, okLabel: string, note?: string): Promise<boolean> {
-  return new Promise((resolve) =>
-    showModal(
-      <ConfirmModal
-        strTitle={title}
-        strDescription={<><span style={{ color: "#ff6b6b" }}>{t("install.disclaimer")}</span>{note && <p>{note}</p>}</>}
-        strOKButtonText={okLabel}
-        onOK={() => resolve(true)}
-        onCancel={() => resolve(false)}
-      />,
-    ),
-  );
-}
-
-// Hands one release to Decky Loader's installer, shared by this window and the
-// card's quick Install/Update. installDeckyPlugin() uninstalls fresh-install
-// plugins first, before Decky's own dialog appears, so cancelling that dialog
-// would leave the plugin uninstalled — say so before starting.
-export function startPluginInstall(t: TFunc, appName: string, repo: string, asset: Asset, tag: string, action: { name: string; type: 0 | 1 | 2 | 3 }, label: string, onStarted?: () => void): Promise<void> {
-  if (!getDeckyBackend()) {
-    toaster.toast({ title: "DeckyHub", body: t("settings.selfUpdateUnavailable") });
-    return Promise.resolve();
-  }
-  // Settles once Decky has the request (its own dialog is up) or it failed.
-  const start = () => {
-    const request = installDeckyPlugin(asset, repo, action.name, tag, action.type).then(
-      () => undefined,
-      (error: unknown) => void toaster.toast({ title: "DeckyHub", body: String(error) }),
-    );
-    onStarted?.();
-    return request;
-  };
-  const note = needsFreshInstall(action.name, action.type) ? t("appcard.freshInstallDescription", { name: appName }) : undefined;
-  return confirmPluginInstall(t, `${label}?`, label, note).then((accepted) => (accepted ? start() : undefined));
-}
+// The window's main action, taller than the rest.
+export const primaryButtonStyle = { ...modalButtonStyle, minHeight: 52, fontSize: "1.1em", fontWeight: 700 };
 
 // showModal() mounts onto a separate root from the caller's tree (see the
 // same note on DeckyHubUpdateModal), so `t` must be a resolved function
@@ -129,36 +97,42 @@ export function AppDetailsModal({
     );
 
   return (
-    <ModalRoot closeModal={closeModal}>
-      <div style={{ display: "grid", gap: windowGap }}>
-        <VersionPickerPanel
-          t={t}
-          icon={<AppMonogram app={app} />}
-          title={app.name}
-          subtitle={t("settings.installedVersion", { version: app.installedVersion ? displayVersion(app.installedVersion) : "—" })}
-          channel={channel}
-          onChannelChange={changeChannel}
-          versionOptions={versionOptions}
-          selectedTag={selectedTag}
-          onVersionChange={setSelectedTag}
-          disabled={loading}
-          error={fetchError}
-          isEmpty={!loading && !fetchError && releases.length === 0}
-        />
-
-        <div aria-hidden style={sectionDividerStyle} />
-
-        {selectedRelease && (
+    <DetailsWindow
+      t={t}
+      closeModal={closeModal}
+      icon={<AppMonogram app={app} style={{ width: 72, height: 72, borderRadius: 16, fontSize: 26 }} />}
+      title={app.name}
+      aside={app.repo}
+      meta={
+        <>
+          <span style={{ color: "#8fcef4", fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>{app.category}</span>
+          <span>{t("settings.installedVersion", { version: app.installedVersion ? displayVersion(app.installedVersion) : "—" })}</span>
+          <AppStats app={app} t={t} />
+          <AppBadges app={app} t={t} />
+          {/* What Runs as root means, right where you decide to install. */}
+          {app.stats?.root && <span style={{ flexBasis: "100%", color: "#ffb35c" }}>{t("appcard.runsAsRootHint")}</span>}
+        </>
+      }
+      description={app.description}
+      release={selectedRelease}
+      primary={
+        selectedRelease && (
           <>
             {install && !hiddenButtons.includes(install.type === PLUGIN_INSTALL_TYPE.INSTALL ? "install" : "update") && (
               <Button
-                style={modalButtonStyle}
+                style={primaryButtonStyle}
                 onClick={() => runInstall(selectedRelease, install)}
                 onSecondaryButton={() => showReleaseInfo(t, `${app.name} ${displayVersion(selectedRelease.tag)}`, selectedRelease.publishedAt, selectedRelease.notes)}
                 onSecondaryActionDescription={t("appcard.releaseInfo")}
                 // X downloads the selected release's ZIP instead of installing it.
                 onOptionsButton={hiddenButtons.includes("downloadZip") || downloading || !selectedRelease.assets[0] ? undefined : () => download(selectedRelease.assets[0])}
                 onOptionsActionDescription={t("settings.downloadUpdate")}
+                // Menu opens the repository; close first, or Steam's browser opens underneath this modal.
+                onMenuButton={() => {
+                  closeModal?.();
+                  Navigation.NavigateToExternalWeb(`https://github.com/${app.repo}`);
+                }}
+                onMenuActionDescription={t("appcard.repository")}
               >
                 {installIcons[install.type]} {installLabel}
               </Button>
@@ -176,20 +150,29 @@ export function AppDetailsModal({
               </Button>
             ))}
           </>
-        )}
-
-        <ReleaseActions t={t} url={selectedRelease?.url} hideReleasePage={hiddenButtons.includes("releasePage")} checking={loading} disabled={loading} onCheck={() => void load(true)} closeModal={closeModal} />
-
-        {canUninstall && (
-          <Button style={{ ...modalButtonStyle, color: "#ff6b6b" }} onClick={confirmUninstall}>
-            <FaTrash /> {t("appcard.uninstall")}
+        )
+      }
+      channel={channel}
+      onChannelChange={changeChannel}
+      versionOptions={versionOptions}
+      selectedTag={selectedTag}
+      onVersionChange={setSelectedTag}
+      disabled={loading}
+      error={fetchError}
+      isEmpty={!loading && !fetchError && releases.length === 0}
+      footer={
+        <>
+          <ReleaseActions t={t} url={selectedRelease?.url} repoUrl={`https://github.com/${app.repo}`} hideReleasePage={hiddenButtons.includes("releasePage")} checking={loading} disabled={loading} onCheck={() => void load(true)} closeModal={closeModal} />
+          {canUninstall && (
+            <Button style={{ ...modalButtonStyle, color: "#ff6b6b" }} onClick={confirmUninstall}>
+              <FaTrash /> {t("appcard.uninstall")}
+            </Button>
+          )}
+          <Button style={modalButtonStyle} onClick={closeModal}>
+            <FaTimes /> {t("settings.close")}
           </Button>
-        )}
-
-        <Button style={modalButtonStyle} onClick={closeModal}>
-          <FaTimes /> {t("settings.close")}
-        </Button>
-      </div>
-    </ModalRoot>
+        </>
+      }
+    />
   );
 }

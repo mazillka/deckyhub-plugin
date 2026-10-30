@@ -1,26 +1,19 @@
 import { addEventListener, definePlugin, removeEventListener, routerHook } from "@decky/api";
 import { staticClasses } from "@decky/ui";
 import type { ReactNode } from "react";
-import { FaGithub } from "react-icons/fa";
 import { REGISTRY_UPDATED } from "./api";
+import { DeckyHubIcon } from "./components/DeckyHubIcon";
+import { addQuickAccessTab, removeQuickAccessTab } from "./components/QuickAccessTab";
 import { I18nProvider } from "./i18n";
 import { Content } from "./pages/Content";
-import { ManageRepositoriesPage } from "./pages/ManageRepositoriesPage";
 import { SearchPage } from "./pages/SearchPage";
 import { SettingsPage } from "./pages/SettingsPage";
-import { markUnloaded, pageStyle } from "./utils";
-
-const MOTION_CSS = `
-  @media (prefers-reduced-motion: no-preference) {
-    @keyframes deckyhub-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-    .deckyhub-motion { animation: deckyhub-enter 220ms cubic-bezier(.2, .8, .2, 1) both; }
-    .deckyhub-motion button { transition: transform 140ms ease, filter 140ms ease; }
-    .deckyhub-motion button:hover, .deckyhub-motion button:focus-visible { transform: translateY(-1px); filter: brightness(1.08); }
-  }
-`;
+import { MotionStyle } from "./motion";
+import { hapticTick, markUnloaded, pageStyle } from "./utils";
 
 function Motion({ children }: { children: ReactNode }) {
-  return <div className="deckyhub-motion" style={{ height: "100%" }}><style>{MOTION_CSS}</style>{children}</div>;
+  // onFocus bubbles (focusin), so every focus move within DeckyHub ticks.
+  return <div className="deckyhub-motion" style={{ height: "100%" }} onFocus={hapticTick}><MotionStyle />{children}</div>;
 }
 
 const ROUTES: Record<string, () => ReactNode> = {
@@ -28,7 +21,8 @@ const ROUTES: Record<string, () => ReactNode> = {
   "/deckyhub/discover": () => <Content fullPage="discover" />,
   "/deckyhub/search": () => <SearchPage />,
   "/deckyhub/settings": () => <SettingsPage />,
-  "/deckyhub/repositories": () => <ManageRepositoriesPage />,
+  // Repositories is a Settings tab; its old route opens Settings there.
+  "/deckyhub/repositories": () => <SettingsPage initialTab="repositories" />,
 };
 
 // The backend refreshes the registry in the background after startup; forward its
@@ -46,18 +40,21 @@ export default definePlugin(() => {
       </Motion>
     ));
   }
+  const content = (
+    <Motion>
+      <I18nProvider>
+        <Content />
+      </I18nProvider>
+    </Motion>
+  );
+  addQuickAccessTab(content);
   return {
     name: "DeckyHub",
     titleView: <div className={staticClasses.Title}>DeckyHub</div>,
-    content: (
-      <Motion>
-        <I18nProvider>
-          <Content />
-        </I18nProvider>
-      </Motion>
-    ),
-    icon: <FaGithub />,
+    content,
+    icon: <DeckyHubIcon />,
     onDismount() {
+      removeQuickAccessTab();
       markUnloaded();
       Object.keys(ROUTES).forEach((path) => routerHook.removeRoute(path));
       removeEventListener("registry_updated", onRegistryUpdated);

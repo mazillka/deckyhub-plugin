@@ -122,6 +122,22 @@ class PluginStatusTests(unittest.TestCase):
             self.assertEqual(asyncio.run(plugin.save_settings({"density": "compact"}))["density"], "compact")
             self.assertEqual(asyncio.run(plugin.save_settings({"density": "tiny"}))["density"], "default")
 
+    def test_items_per_row_takes_one_to_four(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.settings_path = Path(home) / "settings.json"
+
+            self.assertEqual(asyncio.run(plugin.save_settings({"columnsPerRow": 4}))["columnsPerRow"], 4)
+            self.assertEqual(asyncio.run(plugin.save_settings({"columnsPerRow": 5}))["columnsPerRow"], 3)
+
+    def test_haptics_default_on_and_can_be_turned_off(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.settings_path = Path(home) / "settings.json"
+
+            self.assertIs(asyncio.run(plugin.save_settings({}))["haptics"], True)
+            self.assertIs(asyncio.run(plugin.save_settings({"haptics": False}))["haptics"], False)
+
     def test_hidden_buttons_keep_only_known_names(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = Plugin()
@@ -383,6 +399,26 @@ class PluginStatusTests(unittest.TestCase):
 
             with self.assertRaises(ValueError):
                 asyncio.run(plugin.import_custom_repos(str(source)))
+
+    def test_read_token_file_finds_the_token_in_a_file_under_home(self):
+        token = "ghp_" + "A1b2" * 9
+        with tempfile.TemporaryDirectory() as home, patch.object(main, "DEFAULT_DOWNLOAD_DIR", str(Path(home) / "Downloads")):
+            (Path(home) / "Downloads").mkdir()
+            note = Path(home) / "Downloads" / "token.txt"
+            note.write_text(f"my token:\n  {token}  \n", encoding="utf-8")
+            self.assertEqual(asyncio.run(Plugin().read_token_file(str(note))), {"token": token})
+            note.write_text("nothing here", encoding="utf-8")
+            self.assertEqual(asyncio.run(Plugin().read_token_file(str(note))), {"token": None})
+
+    def test_read_token_file_refuses_files_outside_home_or_too_big(self):
+        with tempfile.TemporaryDirectory() as home, tempfile.TemporaryDirectory() as outside, patch.object(main, "DEFAULT_DOWNLOAD_DIR", str(Path(home) / "Downloads")):
+            stranger = Path(outside) / "token.txt"
+            stranger.write_text("ghp_" + "x" * 36, encoding="utf-8")
+            big = Path(home) / "big.txt"
+            big.write_text("x" * 5000, encoding="utf-8")
+            for path in (stranger, big):
+                with self.assertRaises(ValueError):
+                    asyncio.run(Plugin().read_token_file(str(path)))
 
     def test_export_logs_zips_plugin_logs_into_downloads(self):
         with tempfile.TemporaryDirectory() as home, patch.object(sys.modules["decky"], "DECKY_PLUGIN_LOG_DIR", str(Path(home) / "logs"), create=True), patch.object(main, "DEFAULT_DOWNLOAD_DIR", str(Path(home) / "Downloads")):

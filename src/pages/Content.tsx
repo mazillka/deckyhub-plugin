@@ -1,141 +1,66 @@
 import { toaster } from "@decky/api";
-import { DialogButtonPrimary as Button, Dropdown, Focusable, Navigation, PanelSection, PanelSectionRow, Spinner, TextField } from "@decky/ui";
+import { DialogButtonPrimary as Button, Focusable, Navigation, PanelSection, PanelSectionRow, Spinner } from "@decky/ui";
 import { useEffect, useRef, useState } from "react";
-import { FaArrowCircleUp, FaCog, FaCompass, FaFileExport, FaSearch, FaSync, FaTimes, FaArrowUp } from "react-icons/fa";
-import { downloadAsset, exportLogs, getApps, getSettings, REGISTRY_UPDATED } from "../api";
+import { FaSync } from "react-icons/fa";
+import { downloadAsset } from "../api";
 import { useT } from "../i18n";
-import type { App, Asset, HideableButton, RepoPreference, UpdateChannel, View } from "../types";
-import { compactButtonStyle, DEFAULT_COLUMNS_PER_ROW, disclaimerStyle, getDeckyBackend, hydrate, installAction, log, needsFreshInstall, notifyUpdates, PLUGIN_INSTALL_TYPE, surfaceStyle, updateDeckyPlugins } from "../utils";
+import type { App, Asset, UpdateChannel, View } from "../types";
+import { compactButtonStyle, compactNumber, hydrate, installAction, needsFreshInstall, PLUGIN_INSTALL_TYPE, updateDeckyPlugins } from "../utils";
 import { AppCard } from "../components/AppCard";
-import { confirmPluginInstall } from "../components/AppDetailsModal";
-import { CleanupSection } from "../components/CleanupSection";
+import { confirmPluginInstall } from "../components/InstallFlow";
 import { showDownloadModal } from "../components/DownloadProgress";
+import { AppList } from "../components/AppList";
+import { ContentHeader } from "../components/ContentHeader";
+import { DiscoverFilters } from "../components/DiscoverFilters";
+import { EmptyState } from "../components/EmptyState";
+import { DiscoverHome } from "../components/DiscoverHome";
 import { FocusableGrid } from "../components/FocusableGrid";
-import { Card, PageHeader } from "../components/Card";
-import { KeepInView, keepInView } from "../components/KeepInView";
+import { countBadgeStyle, QuickAccessNav } from "../components/QuickAccessNav";
+import { compareBy, type SortOrder } from "../sorting";
+import { Card, useSwapAnimation } from "../components/Card";
+import { useLayout } from "../components/LayoutToggle";
+import { useApps } from "../hooks/useApps";
 import { RateLimitBanner } from "../components/RateLimitBanner";
-import { DeckyHubUpdate } from "../components/DeckyHubUpdate";
-
-// ponytail: fixed pool of 8 GitHub requests in flight; lower it if the registry grows
-// big enough to trip GitHub's secondary (burst) rate limit.
-const RELEASE_CONCURRENCY = 8;
-
-const NAV_LINKS = [["updates", FaArrowCircleUp], ["discover", FaCompass], ["search", FaSearch], ["settings", FaCog]] as const;
+import { Welcome } from "../components/Welcome";
 
 
-const countBadgeStyle = { minWidth: "1.5em", padding: "0 6px", borderRadius: 999, background: "#f0c33c", color: "#1a1a1a", fontSize: "0.8em", fontWeight: 700, lineHeight: "1.5em", textAlign: "center" as const };
 
 export function Content({ fullPage }: { fullPage?: View }) {
   const t = useT();
-  const [apps, setApps] = useState<App[]>([]);
   const view: View = fullPage ?? "updates";
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const { apps, setApps, loading, loadError, checked, listedCount, columnsPerRow, repoPreferences, setRepoPreferences, hiddenButtons, load } = useApps(view);
   const [downloading, setDownloading] = useState(false);
   const [query, setQuery] = useState("");
   const [installedFilter, setInstalledFilter] = useState("All");
   // "" means every category.
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [sortOrder, setSortOrder] = useState<"az" | "za" | "added">("az");
-  const [columnsPerRow, setColumnsPerRow] = useState(DEFAULT_COLUMNS_PER_ROW);
-  const [repoPreferences, setRepoPreferences] = useState<Record<string, RepoPreference>>({});
-  const [hiddenButtons, setHiddenButtons] = useState<HideableButton[]>([]);
+  const [sortOrder, setSortOrder] = useState<SortOrder>("az");
+  // Breaks Sort's ties (many plugins share 0 stars or downloads); A to Z breaks any left.
+  const [thenBy, setThenBy] = useState<SortOrder>("az");
+  // Discover opens on its shelves; a category chip or See all browses the whole list, a page at a time.
+  const [browsing, setBrowsing] = useState(false);
+  const [layout, setLayout] = useLayout();
   const [updatingAll, setUpdatingAll] = useState(false);
-  // Release checks finished out of the current load, shown while Updates waits on them.
-  const [checked, setChecked] = useState(0);
   const quickAccessRef = useRef<HTMLDivElement>(null);
+  const pageRef = useRef<HTMLDivElement>(null);
+  // Slides the shelves, category, page, layout, filter or sort in when it changes.
+  const swapRef = useSwapAnimation([browsing, layout, categoryFilter, installedFilter, sortOrder, thenBy]);
 
   const info = view === "updates"
     ? { title: t("nav.updates"), description: t("view.updatesDescription"), empty: t("view.updatesEmpty") }
     : { title: t("nav.discover"), description: t("view.discoverDescription"), empty: t("view.discoverEmpty") };
 
-  // Bumped per load() so a slower, older load can't overwrite a newer one.
-  const loadRun = useRef(0);
-  // Only the first load shows the spinner; later ones (Refresh, the 15-minute
-  // timer, an install finishing) update the cards in place, so the grid keeps
-  // its controller focus and scroll position.
-  const loaded = useRef(false);
 
-  const load = async (force = false) => {
-    const run = ++loadRun.current;
-    if (!loaded.current) setLoading(true);
-    try {
-      const [appData, settings] = await Promise.all([getApps(), getSettings()]);
-      const local = appData.apps;
-      const preferences = settings.repoSettings || {};
-      setRepoPreferences(preferences);
-      setColumnsPerRow(settings.columnsPerRow);
-      setHiddenButtons(settings.hiddenButtons ?? []);
-      const tracked = view === "updates" ? local.filter((app) => app.installedVersion) : local;
-      // A card keeps its last release check until this load's replaces it.
-      setApps((current) => {
-        const previous = new Map(current.map((app) => [app.id, app]));
-        return tracked.map((app) => previous.get(app.id) ?? app);
-      });
-      setLoadError(null);
-      // Discover shows every card straight away and fills each in as its
-      // release arrives; Updates waits, since it lists only apps with an update.
-      if (view === "discover") {
-        loaded.current = true;
-        setLoading(false);
-      }
-      const hydrated = [...tracked];
-      let next = 0;
-      setChecked(0);
-      // A rolling pool: each finished request starts the next, rather than
-      // waiting for the slowest one in a fixed batch.
-      const worker = async () => {
-        while (next < tracked.length) {
-          const index = next++;
-          hydrated[index] = await hydrate(tracked[index], force, preferences[tracked[index].repo]);
-          // A newer load took over: stop, rather than check the rest for nothing.
-          if (run !== loadRun.current) return;
-          setApps((current) => current.map((app) => (app.id === hydrated[index].id ? hydrated[index] : app)));
-          setChecked((count) => count + 1);
-        }
-      };
-      await Promise.all(Array.from({ length: Math.min(RELEASE_CONCURRENCY, tracked.length) }, worker));
-      if (run !== loadRun.current) return;
-      loaded.current = true;
-      setLoading(false);
-      notifyUpdates(hydrated);
-    } catch (error) {
-      log(`Loading apps failed: ${error}`);
-      setLoadError(String(error));
-      setLoading(false);
+  // Opening a category, or going back, replaces what had focus: hand it to the
+  // Back button or the first chip, so the D-pad doesn't start from nowhere.
+  const switchedView = useRef(false);
+  useEffect(() => {
+    if (!switchedView.current) {
+      switchedView.current = true;
+      return;
     }
-  };
-
-  useEffect(() => {
-    // Automatic refreshes go through the release cache; only the Refresh and
-    // Check for Updates buttons force a fresh fetch.
-    const refresh = () => void load();
-    void load();
-    const timer = window.setInterval(refresh, 15 * 60 * 1000);
-    window.addEventListener(REGISTRY_UPDATED, refresh);
-    return () => {
-      window.clearInterval(timer);
-      window.removeEventListener(REGISTRY_UPDATED, refresh);
-    };
-  }, []);
-
-  // Decky Loader reports when an install it ran finishes; reload so the card
-  // picks up the new installed version (release data stays cached). Debounced
-  // so an "Update all" batch reloads once, not once per plugin.
-  useEffect(() => {
-    const backend = getDeckyBackend();
-    if (!backend) return;
-    let timer = 0;
-    const onFinish = () => {
-      window.clearTimeout(timer);
-      timer = window.setTimeout(() => void load(), 1000);
-    };
-    backend.addEventListener("loader/plugin_download_finish", onFinish);
-    return () => {
-      window.clearTimeout(timer);
-      backend.removeEventListener("loader/plugin_download_finish", onFinish);
-    };
-  }, []);
+    requestAnimationFrame(() => pageRef.current?.querySelector<HTMLElement>(browsing ? ".deckyhub-back-button button" : ".deckyhub-category-chips button")?.focus());
+  }, [browsing]);
 
   useEffect(() => {
     if (!fullPage) requestAnimationFrame(() => quickAccessRef.current?.scrollIntoView({ block: "start" }));
@@ -176,89 +101,57 @@ export function Content({ fullPage }: { fullPage?: View }) {
   // A category that vanished on reload (registry change) stops filtering rather than hiding everything.
   const activeCategory = categories.includes(categoryFilter) ? categoryFilter : "";
 
-  const discoverFilters = view === "discover" && (
-    <Card>
-    <PanelSection>
-      <PanelSectionRow>
-        <Focusable flow-children="right" style={{ display: "flex", gap: 12 }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            {/* Own label instead of TextField's, which Steam renders uppercase and padded, out of line with the dropdowns. */}
-            <div style={{ fontSize: "0.85em" }}>
-              <div style={{ marginBottom: 4 }}>{t("filter.search")}</div>
-              <TextField
-                {...({ "aria-label": t("filter.search") } as any)}
-                value={query}
-                bShowClearAction
-                onChange={(event) => setQuery(event.currentTarget.value)}
-              />
-            </div>
-          </div>
-          <div style={{ flex: "0 0 180px" }}>
-            <div style={{ fontSize: "0.85em" }}>
-              <div style={{ marginBottom: 4 }}>{t("filter.status")}</div>
-              <Dropdown
-                {...({ "aria-label": t("filter.status"), style: { width: "100%" } } as any)}
-                menuLabel={t("filter.status")}
-              rgOptions={[
-                { label: t("filter.all"), data: "All" },
-                { label: t("filter.installed"), data: "Installed" },
-                { label: t("filter.notInstalled"), data: "Not Installed" },
-              ]}
-              selectedOption={installedFilter}
-              onChange={({ data }) => setInstalledFilter(data)}
-              />
-            </div>
-          </div>
-          <div style={{ flex: "0 0 180px" }}>
-            <div style={{ fontSize: "0.85em" }}>
-              <div style={{ marginBottom: 4 }}>{t("filter.category")}</div>
-              <Dropdown
-                {...({ "aria-label": t("filter.category"), style: { width: "100%" } } as any)}
-                menuLabel={t("filter.category")}
-                rgOptions={[{ label: t("filter.all"), data: "" }, ...categories.map((category) => ({ label: category, data: category }))]}
-                selectedOption={activeCategory}
-                onChange={({ data }) => setCategoryFilter(data)}
-              />
-            </div>
-          </div>
-          <div style={{ flex: "0 0 180px" }}>
-            <div style={{ fontSize: "0.85em" }}>
-              <div style={{ marginBottom: 4 }}>{t("filter.sort")}</div>
-              <Dropdown
-                {...({ "aria-label": t("filter.sort"), style: { width: "100%" } } as any)}
-                menuLabel={t("filter.sort")}
-                rgOptions={[
-                  { label: t("sort.az"), data: "az" },
-                  { label: t("sort.za"), data: "za" },
-                  { label: t("sort.added"), data: "added" },
-                ]}
-                selectedOption={sortOrder}
-                onChange={({ data }) => setSortOrder(data)}
-              />
-            </div>
-          </div>
-        </Focusable>
-      </PanelSectionRow>
-    </PanelSection>
-    </Card>
+  // Discover's filters, with the Status and Category values overridable so each
+  // dropdown option can say how many cards it would show next to the other filters.
+  const matchesFilters = (app: App, installed = installedFilter, category = activeCategory) =>
+    (!query || `${app.name} ${app.repo} ${app.category} ${app.description ?? ""}`.toLowerCase().includes(query.toLowerCase())) &&
+    (installed === "All" || (installed === "Installed") === Boolean(app.installedVersion)) &&
+    (!category || app.category === category);
+  const countWith = (installed: string, category: string) => apps.filter((app) => matchesFilters(app, installed, category)).length;
+  const discoverFilters = view === "discover" && browsing && (
+    <DiscoverFilters
+      query={query}
+      onQuery={setQuery}
+      installed={installedFilter}
+      onInstalled={setInstalledFilter}
+      category={activeCategory}
+      onCategory={setCategoryFilter}
+      categories={categories}
+      countWith={countWith}
+      sortOrder={sortOrder}
+      onSortOrder={setSortOrder}
+      thenBy={thenBy}
+      onThenBy={setThenBy}
+    />
   );
+
+  const totalDownloads = apps.reduce((sum, app) => sum + (app.stats?.downloads ?? 0), 0);
 
   const visibleApps = apps
     .filter((app) =>
       view === "updates"
         ? app.updateAvailable === true
-        : (!query || `${app.name} ${app.repo} ${app.category} ${app.description ?? ""}`.toLowerCase().includes(query.toLowerCase())) &&
-          (installedFilter === "All" || (installedFilter === "Installed") === Boolean(app.installedVersion)) &&
-          (!activeCategory || app.category === activeCategory),
+        : matchesFilters(app),
     )
     // Apps with an update first; Updates keeps registry order otherwise, Discover follows the Sort
     // dropdown. The registry only ever appends (custom repos come after it), so "Recently added" is
-    // that order reversed.
+    // that order reversed. Plugins without stats (added repos) go last when sorting by them.
     .sort((a, b) =>
       Number(b.updateAvailable === true) - Number(a.updateAvailable === true) || (view === "updates" ? 0
-        : sortOrder === "added" ? apps.indexOf(b) - apps.indexOf(a)
-        : sortOrder === "za" ? b.name.localeCompare(a.name)
-        : a.name.localeCompare(b.name)));
+        : compareBy(sortOrder, a, b, apps) || compareBy(thenBy, a, b, apps) || compareBy("az", a, b, apps)));
+  const home = view === "discover" && !browsing;
+  // Discover's grid shows three rows of cards a page; lists (and Updates) show everything.
+  const openBrowse = (category: string, sort?: SortOrder) => {
+    setCategoryFilter(category);
+    if (sort) setSortOrder(sort);
+   
+    setBrowsing(true);
+  };
+  // Biggest categories first, as chips on the home.
+  const categoryCounts = categories.map((category) => [category, apps.filter((app) => app.category === category).length] as const).sort((a, b) => b[1] - a[1]);
+  // A shelf is one row of cards, or in the list view a few rows (it follows the Grid / List choice).
+  const shelfSize = layout === "list" ? 4 : columnsPerRow;
+  const shelf = (order: SortOrder) => [...apps].sort((a, b) => compareBy(order, a, b, apps) || compareBy("az", a, b, apps)).slice(0, shelfSize);
   const updateCount = apps.filter((app) => app.updateAvailable).length;
   // Decky plugins the Updates page can update in one batch (see updateDeckyPlugins).
   const batchUpdates = view === "updates" && !hiddenButtons.includes("update")
@@ -277,8 +170,27 @@ export function Content({ fullPage }: { fullPage?: View }) {
       .finally(() => setUpdatingAll(false));
     Navigation.NavigateBack();
   };
+  const renderCard = (app: App, cardLayout?: "row") => (
+    <AppCard
+      app={app}
+      layout={cardLayout}
+      preference={repoPreferences[app.repo] ?? { channel: "stable" }}
+      downloadDisabled={downloading}
+      hiddenButtons={hiddenButtons}
+      onDownload={(asset) => startDownload(asset, app.repo)}
+      onChannelChange={changeAppChannel}
+      onUninstalled={() => void load()}
+    />
+  );
+  const renderGrid = (items: App[]) => (
+    <FocusableGrid items={items} columns={fullPage ? columnsPerRow : 1} keyFor={(app) => app.id}>
+      {(app) => renderCard(app)}
+    </FocusableGrid>
+  );
+
   const page = (
       <>
+      {view === "discover" && <Welcome />}
       {loading && (
         <PanelSection>
           <PanelSectionRow>
@@ -303,121 +215,54 @@ export function Content({ fullPage }: { fullPage?: View }) {
       )}
       {!loading && !loadError && (
         <>
-          <KeepInView>
-            <PageHeader
-              icon={view === "updates" ? <FaArrowCircleUp /> : <FaCompass />}
-              title={info.title}
-              badge={view === "updates" && updateCount > 0 && <span className="deckyhub-update-count" title={t("toast.updatesAvailable", { count: updateCount })} style={countBadgeStyle}>{updateCount}</span>}
-              description={info.description}
-              actions={
-                <>
-                  <div style={{ flex: "0 0 180px" }}>
-                    <Button style={{ ...compactButtonStyle, marginBottom: 0 }} onClick={() => void load(true)}>
-                      <FaSync /> {t("content.refresh")}
-                    </Button>
-                  </div>
-                  {batchUpdates.length > 1 && (
-                    <div style={{ flex: "0 0 220px" }}>
-                      <Button style={{ ...compactButtonStyle, marginBottom: 0 }} disabled={updatingAll} onClick={() => void updateAll()}>
-                        <FaArrowUp /> {t("content.updateAll", { count: batchUpdates.length })}
-                      </Button>
-                    </div>
-                  )}
-                </>
-              }
+          <ContentHeader
+            view={view}
+            title={browsing ? activeCategory || t("discover.allPlugins") : info.title}
+            badge={view === "updates" ? updateCount > 0 && <span className="deckyhub-update-count" title={t("toast.updatesAvailable", { count: updateCount })} style={countBadgeStyle}>{updateCount}</span>
+              : totalDownloads > 0 && <span className="deckyhub-total-downloads" title={t("view.totalDownloads", { count: totalDownloads.toLocaleString() })} style={{ color: "#8b9aa7", fontSize: "max(12px, 0.7em)", fontWeight: 400 }}>{t("view.totalDownloads", { count: compactNumber(totalDownloads) })}</span>}
+            description={browsing ? t("discover.pluginCount", { count: visibleApps.length }) : info.description}
+            onBack={browsing ? () => setBrowsing(false) : undefined}
+            layout={layout}
+            onLayout={setLayout}
+            onRefresh={() => void load(true)}
+            updateAllCount={batchUpdates.length}
+            updatingAll={updatingAll}
+            onUpdateAll={() => void updateAll()}
+          />
+          <div ref={swapRef}>
+          {home ? (
+            <DiscoverHome total={apps.length} categories={categoryCounts} shelf={shelf} onBrowse={openBrowse} renderGrid={(items) => layout === "list" ? <AppList apps={items} layout="list" columns={1} renderCard={renderCard} /> : renderGrid(items)} />
+          ) : (
+            // B goes back to the shelves while browsing; elsewhere it leaves the page as usual.
+            <Focusable flow-children="down" onCancelButton={browsing ? () => setBrowsing(false) : undefined} onCancelActionDescription={browsing ? t("nav.discover") : undefined}>
+              {discoverFilters}
+              <AppList apps={visibleApps} layout={layout} columns={columnsPerRow} renderCard={renderCard} />
+            </Focusable>
+          )}
+          </div>
+          {!home && !visibleApps.length && (
+            <EmptyState
+              title={info.empty}
+              toDiscover={view === "updates"}
+              onClear={view === "discover" && (query || installedFilter !== "All" || activeCategory) ? () => { setQuery(""); setInstalledFilter("All"); setCategoryFilter(""); } : undefined}
             />
-            <div className="deckyhub-disclaimer" style={disclaimerStyle}>{t("install.disclaimer")}</div>
-          </KeepInView>
-          {discoverFilters}
-          <FocusableGrid
-            items={visibleApps}
-            columns={fullPage ? columnsPerRow : 1}
-            keyFor={(app) => app.id}
-          >
-            {(app) => (
-              <AppCard
-                app={app}
-                preference={repoPreferences[app.repo] ?? { channel: "stable" }}
-                downloadDisabled={downloading}
-                hiddenButtons={hiddenButtons}
-                onDownload={(asset) => startDownload(asset, app.repo)}
-                onChannelChange={changeAppChannel}
-                onUninstalled={() => void load()}
-              />
-            )}
-          </FocusableGrid>
-          {!visibleApps.length && (
-            <div className="deckyhub-empty" onFocus={keepInView} style={{ ...surfaceStyle, padding: "16px 14px", textAlign: "center" }}>
-              {/* Decky's section title is a left-aligned flex row; center it too. */}
-              <style>{".deckyhub-empty div { text-align: center; justify-content: center; }"}</style>
-              <PanelSection title={info.empty}>
-                {view === "updates" ? (
-                  <PanelSectionRow>
-                    <Button style={compactButtonStyle} onClick={() => Navigation.Navigate("/deckyhub/discover")}>
-                      <FaCompass /> {t("nav.discover")}
-                    </Button>
-                  </PanelSectionRow>
-                ) : (query || installedFilter !== "All" || activeCategory) && (
-                  <PanelSectionRow>
-                    <Button style={compactButtonStyle} onClick={() => { setQuery(""); setInstalledFilter("All"); setCategoryFilter(""); }}>
-                      <FaTimes /> {t("repos.clear")}
-                    </Button>
-                  </PanelSectionRow>
-                )}
-              </PanelSection>
-            </div>
           )}
         </>
       )}
       </>
   );
 
-  // The Quick Access view loads installed apps the same way the Updates page does,
-  // and lists Updates only while there is one.
-  const navigation = (
-    <>
-      {/* The only untitled card here: Steam pads a PanelSection's bottom but leaves
-          its top to the title, so add the same space above the buttons (seen on a Deck). */}
-      <Card>
-      <div style={{ paddingTop: 26 }}>
-      <PanelSection>
-        {NAV_LINKS.filter(([page]) => page !== "updates" || updateCount > 0).map(([page, Icon]) => (
-          <PanelSectionRow key={page}>
-            <Button style={compactButtonStyle} onClick={() => Navigation.Navigate(`/deckyhub/${page}`)}>
-              <Icon /> {t(`nav.${page}`)}
-              {page === "updates" && updateCount > 0 && <span style={countBadgeStyle}>{updateCount}</span>}
-            </Button>
-          </PanelSectionRow>
-        ))}
-      </PanelSection>
-      </div>
-      </Card>
-      <DeckyHubUpdate />
-      <CleanupSection />
-      <Card>
-        <PanelSection title={t("settings.troubleshooting")}>
-          <PanelSectionRow>
-            <Button style={compactButtonStyle} onClick={() => void exportLogs().then(({ path }) => toaster.toast({ title: "DeckyHub", body: t("repos.exportedTo", { path }) }), (error) => toaster.toast({ title: "DeckyHub", body: String(error) }))}>
-              <FaFileExport /> {t("settings.exportLogs")}
-            </Button>
-          </PanelSectionRow>
-          <PanelSectionRow>
-            <div style={{ color: "#8fcef4", fontSize: "0.85em" }}>{t("settings.exportLogsNote")}</div>
-          </PanelSectionRow>
-        </PanelSection>
-      </Card>
-    </>
-  );
 
   return fullPage ? (
-    <>
+    <div ref={pageRef}>
       <RateLimitBanner />
       {page}
-    </>
+    </div>
   ) : (
     <div ref={quickAccessRef}>
       <RateLimitBanner stacked />
-      {navigation}
+      {/* Loads installed apps the same way the Updates page does, for its Updates count. */}
+      <QuickAccessNav updateCount={updateCount} listedCount={listedCount} />
     </div>
   );
 }

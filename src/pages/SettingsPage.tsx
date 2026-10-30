@@ -1,43 +1,31 @@
-import { DialogButtonPrimary as Button, DropdownItem, Focusable, Navigation, PanelSection, PanelSectionRow, TextField, ToggleField } from "@decky/ui";
+import { Focusable, Navigation, Tabs } from "@decky/ui";
 import { useEffect, useState, type ReactNode } from "react";
-import { FaCog, FaExternalLinkAlt, FaListUl, FaSave, FaFolderOpen, FaInfoCircle, FaLock } from "react-icons/fa";
+import { FaCog } from "react-icons/fa";
 import { getSettings, saveSettings } from "../api";
-import { Card, PageHeader } from "../components/Card";
-import { LOCALE_CHANGED, LOCALES, useT } from "../i18n";
-import type { MessageKey } from "../i18n/en";
-import type { HideableButton, Settings } from "../types";
-import { DEFAULT_COLUMNS_PER_ROW, compactButtonStyle, githubCoreQuota, sectionDividerStyle, setGithubToken } from "../utils";
+import { PageHeader } from "../components/Card";
+import { AboutSection } from "../components/AboutSection";
+import { DisplaySection, DownloadsSection, GitHubAccessSection, LanguageSection, TroubleshootingSection } from "../components/SettingsSections";
+import { ManageRepositoriesPage } from "./ManageRepositoriesPage";
+import { useLayout } from "../components/LayoutToggle";
+import { LOCALE_CHANGED, useT } from "../i18n";
+import type { Settings } from "../types";
+import { DEFAULT_COLUMNS_PER_ROW, githubCoreQuota, setGithubToken } from "../utils";
 
-// Each hideable Manage-window button, labelled with its own translation.
-const HIDEABLE_BUTTONS: [HideableButton, MessageKey][] = [
-  ["downloadZip", "settings.downloadUpdate"],
-  ["install", "appcard.install"],
-  ["update", "appcard.update"],
-  ["releasePage", "appcard.releasePage"],
-];
-
-// Explanatory text with a leading icon, bright enough to read at a glance.
-function IconNote({ icon, children }: { icon: ReactNode; children: ReactNode }) {
-  return (
-    <div style={{ alignItems: "flex-start", color: "#d6f5ff", display: "flex", fontSize: "0.9em", gap: 8 }}>
-      <span style={{ color: "#8fcef4", display: "flex", flexShrink: 0, marginTop: 2 }}>{icon}</span>
-      <span>{children}</span>
-    </div>
-  );
-}
-
-export function SettingsPage() {
+export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
   const t = useT();
-  const [settings, setSettings] = useState<Settings>({ overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: DEFAULT_COLUMNS_PER_ROW, githubToken: "", density: "default", hiddenButtons: [] });
+  const [layout, setLayout] = useLayout();
+  const [tab, setTab] = useState<SettingsTab>(() => {
+    const opening = initialTab ?? nextTab;
+    nextTab = "general";
+    return opening;
+  });
+  const [settings, setSettings] = useState<Settings>({ overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: DEFAULT_COLUMNS_PER_ROW, githubToken: "", density: "default", haptics: true, hiddenButtons: [] });
   // The token field saves on an explicit button (below), not per keystroke
   // like the other settings — typing a 40+ character token would otherwise
   // fire a save on every keystroke. This tracks the field independently of
   // the committed `settings.githubToken` until that button is pressed.
   const [tokenDraft, setTokenDraft] = useState("");
   const [quota, setQuota] = useState<Awaited<ReturnType<typeof githubCoreQuota>>>(null);
-  // Same green/yellow/red as the app cards' status colors.
-  const quotaColor = !quota || quota.remaining > quota.limit / 2 ? "#6bcb6b" : quota.remaining > quota.limit / 10 ? "#f0c33c" : "#ff6b6b";
-  const openTokenPage = () => Navigation.NavigateToExternalWeb("https://github.com/settings/tokens");
   const refreshQuota = () => void githubCoreQuota().then(setQuota, () => setQuota(null));
 
   useEffect(() => {
@@ -64,127 +52,77 @@ export function SettingsPage() {
       }
       // Every mounted I18nProvider (one per route) re-syncs both the locale
       // and the GitHub token off this event — see i18n/index.tsx.
-      if ("language" in next || "githubToken" in next || "density" in next) window.dispatchEvent(new Event(LOCALE_CHANGED));
+      if ("language" in next || "githubToken" in next || "density" in next || "haptics" in next) window.dispatchEvent(new Event(LOCALE_CHANGED));
     });
   };
+
+  // A tab's sections, one under another (Down moves through them).
+  // B leaves Settings in one press: Steam's tabs would spend the first B moving focus
+  // up to the tab bar (seen on a Deck).
+  const stack = (...sections: ReactNode[]) => (
+    <Focusable flow-children="down" className="deckyhub-settings-stack" onCancelButton={() => Navigation.NavigateBack()} style={{ display: "block", paddingTop: 8 }}>{sections}</Focusable>
+  );
 
   return (
     <>
       <PageHeader icon={<FaCog />} title={t("nav.settings")} />
-      <Card>
-        <PanelSection title={t("settings.githubAccess")}>
-          <PanelSectionRow>
-            <div style={{ display: "grid", gap: 8 }}>
-              {/* Focusable (via onActivate) so the controller can move up onto
-                  this text: Steam only scrolls to follow focus. */}
-              <Focusable onActivate={() => {}} style={{ display: "grid", gap: 8 }}>
-                <IconNote icon={<FaInfoCircle />}>{t("settings.githubTokenIntro")}</IconNote>
-                {quota && (
-                  <strong className="deckyhub-github-quota" style={{ borderLeft: `3px solid ${quotaColor}`, color: quotaColor, paddingLeft: 10 }}>
-                    {t("settings.githubQuota", { remaining: quota.remaining, limit: quota.limit, minutes: Math.max(1, Math.ceil((quota.reset * 1000 - Date.now()) / 60_000)) })}
-                  </strong>
-                )}
-              </Focusable>
-              {/* A button (A / tap) that opens the token page in Steam's browser. */}
-              <Focusable
-                className="deckyhub-token-link"
-                onActivate={openTokenPage}
-                onClick={openTokenPage}
-                style={{ borderLeft: "3px solid #1a9fff", cursor: "pointer", paddingLeft: 10 }}
-              >
-                <div style={{ color: "#8fcef4", fontSize: "0.9em", marginBottom: 3 }}>{t("settings.githubTokenHowTo")}</div>
-                <strong style={{ alignItems: "center", color: "#fff", display: "inline-flex", gap: 6, textDecoration: "underline" }}>
-                  github.com/settings/tokens <FaExternalLinkAlt size="0.8em" />
-                </strong>
-              </Focusable>
-              <IconNote icon={<FaLock />}>{t("settings.githubTokenNote")}</IconNote>
-            </div>
-          </PanelSectionRow>
-          <div aria-hidden style={sectionDividerStyle} />
-          <PanelSectionRow>
-            <TextField label={t("settings.githubToken")} value={tokenDraft} bIsPassword bShowClearAction onChange={(event) => setTokenDraft(event.currentTarget.value)} />
-          </PanelSectionRow>
-          <PanelSectionRow>
-            <Button style={compactButtonStyle} disabled={tokenDraft.trim() === settings.githubToken} onClick={() => update({ githubToken: tokenDraft.trim() })}>
-              <FaSave /> {t("settings.saveSettings")}
-            </Button>
-          </PanelSectionRow>
-        </PanelSection>
-      </Card>
-      <Card>
-        <PanelSection title={t("nav.repositories")}>
-          <PanelSectionRow>
-            <Button style={compactButtonStyle} onClick={() => Navigation.Navigate("/deckyhub/repositories")}>
-              <FaListUl /> {t("nav.repositories")}
-            </Button>
-          </PanelSectionRow>
-        </PanelSection>
-      </Card>
-      <Card>
-        <PanelSection title={t("settings.downloadSettings")}>
-          <PanelSectionRow>
-            <div style={{ display: "grid", gap: 8 }}>
-              <IconNote icon={<FaFolderOpen />}>{t("settings.whereZipsSaved")}</IconNote>
-              <div style={{ borderLeft: "3px solid #1a9fff", paddingLeft: 10 }}>
-                <div style={{ color: "#8fcef4", fontSize: "0.9em", marginBottom: 3 }}>{t("dl.installInDecky")}</div>
-                <strong style={{ color: "#fff" }}>{t("dl.installPath")}</strong>
-              </div>
-            </div>
-          </PanelSectionRow>
-          <div aria-hidden style={sectionDividerStyle} />
-          <PanelSectionRow>
-            <ToggleField label={t("settings.overwriteExisting")} checked={settings.overwriteExisting} onChange={(checked) => update({ overwriteExisting: checked })} />
-          </PanelSectionRow>
-        </PanelSection>
-      </Card>
-
-
-      <Card>
-        <PanelSection title={t("settings.language")}>
-          <PanelSectionRow>
-            <DropdownItem
-              label={t("settings.language")}
-              rgOptions={[{ label: t("settings.autoDetect"), data: "auto" }, ...LOCALES.map((locale) => ({ label: locale.label, data: locale.code }))]}
-              selectedOption={settings.language}
-              onChange={({ data }) => update({ language: data })}
-            />
-          </PanelSectionRow>
-        </PanelSection>
-      </Card>
-
-
-      <Card>
-        <PanelSection title={t("settings.displaySettings")}>
-          <PanelSectionRow>
-            <DropdownItem
-              label={t("settings.density")}
-              rgOptions={[
-                { label: t("settings.densityDefault"), data: "default" },
-                { label: t("settings.densityCompact"), data: "compact" },
-              ]}
-              selectedOption={settings.density}
-              onChange={({ data }) => update({ density: data })}
-            />
-          </PanelSectionRow>
-          <PanelSectionRow>
-            <DropdownItem
-              label={t("settings.itemsPerRow")}
-              rgOptions={[1, 2, 3].map((count) => ({ label: String(count), data: count }))}
-              selectedOption={settings.columnsPerRow}
-              onChange={({ data }) => update({ columnsPerRow: data })}
-            />
-          </PanelSectionRow>
-          {HIDEABLE_BUTTONS.map(([name, label]) => (
-            <PanelSectionRow key={name}>
-              <ToggleField
-                label={t("settings.hideButton", { button: t(label) })}
-                checked={settings.hiddenButtons.includes(name)}
-                onChange={(checked) => update({ hiddenButtons: checked ? [...settings.hiddenButtons, name] : settings.hiddenButtons.filter((hidden) => hidden !== name) })}
-              />
-            </PanelSectionRow>
-          ))}
-        </PanelSection>
-      </Card>
+      {/* Steam's tabs (L1 / R1): each fits about one screen, instead of one long page.
+          They reach down to Steam's bottom bar (into the page's bottom padding, which
+          the negative margin gives back so the page itself doesn't scroll); their
+          content scrolls inside. */}
+      {/* overflow hidden: Steam slides the old and new tab side by side when switching,
+          which made the whole page scroll sideways and flicker (seen on a Deck). */}
+      <div className="deckyhub-settings-tabs" style={{ height: "calc(100% - 16px)", marginBottom: -56, overflow: "hidden" }}>
+        <Tabs
+          activeTab={tab}
+          onShowTab={(id: string) => setTab(id as SettingsTab)}
+          autoFocusContents
+          tabs={([
+            {
+              id: "general",
+              title: t("settings.tabGeneral"),
+              content: stack(<LanguageSection key="language" settings={settings} update={update} />, <DisplaySection key="display" settings={settings} update={update} layout={layout} onLayout={setLayout} />),
+            },
+            {
+              id: "github",
+              // Just "GitHub" in every language: "Доступ до GitHub" overflowed Steam's tab bar.
+              title: "GitHub",
+              content: stack(<GitHubAccessSection key="github" quota={quota} tokenDraft={tokenDraft} onTokenDraft={setTokenDraft} savedToken={settings.githubToken} update={update} />),
+            },
+            {
+              id: "downloads",
+              title: t("settings.tabDownloads"),
+              content: stack(<DownloadsSection key="downloads" settings={settings} update={update} />),
+            },
+            {
+              id: "repositories",
+              title: t("nav.repositories"),
+              content: stack(<ManageRepositoriesPage key="repositories" embedded />),
+            },
+            {
+              id: "troubleshoot",
+              title: t("settings.tabTroubleshoot"),
+              content: stack(<TroubleshootingSection key="troubleshooting" />),
+            },
+            {
+              id: "about",
+              // Tab names are kept short: six have to fit Steam's tab bar in every language.
+              title: t("settings.tabAbout"),
+              content: stack(<AboutSection key="about" />),
+            },
+            // Each tab's content says which tab it is, for tests on a Deck (Steam's own classes are minified).
+          ] as const).map((tab) => ({ ...tab, content: <div className={`deckyhub-settings-${tab.id}`}>{tab.content}</div> }))}
+        />
+      </div>
     </>
   );
+}
+
+export type SettingsTab = "general" | "github" | "downloads" | "repositories" | "troubleshoot" | "about";
+// The tab Settings opens on next, for links into a particular one (the rate-limit
+// banner's Open Settings goes to GitHub Access).
+let nextTab: SettingsTab = "general";
+export function openSettings(tab: SettingsTab = "general") {
+  nextTab = tab;
+  Navigation.Navigate("/deckyhub/settings");
 }

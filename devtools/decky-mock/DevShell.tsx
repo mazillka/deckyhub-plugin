@@ -3,7 +3,8 @@ import { showDownloadModal } from "../../src/components/DownloadProgress";
 import { en, type MessageKey } from "../../src/i18n/en";
 import pluginFactory from "../../src/index";
 import { reportRateLimit, substitute } from "../../src/utils";
-import { routerHook } from "./api";
+import { FaBatteryFull, FaBell, FaBolt, FaCog, FaPlug, FaSearch, FaSlidersH, FaWifi } from "react-icons/fa";
+import { routerHook, tabsHook } from "./api";
 
 const previewText = (key: MessageKey, vars?: Record<string, string | number>) => substitute(en[key], vars);
 
@@ -11,8 +12,10 @@ export default function DevShell() {
   const [, forceUpdate] = useState(0);
   const [descriptor, setDescriptor] = useState<{ name: string; content?: React.ReactElement; onDismount?: () => void } | null>(null);
   const [activePath, setActivePath] = useState<string | null>(() => new URLSearchParams(window.location.search).get("preview"));
-  // Y/X-button descriptions of the focused control, as Steam's footer legend shows them.
+  // Y/X/Menu-button descriptions of the focused control, as Steam's footer legend shows them.
   const [hints, setHints] = useState<DOMStringMap>({});
+  // The Quick Access tab shown: Decky's (null) or one a plugin added, by id.
+  const [qamTab, setQamTab] = useState<number | null>(null);
 
   useEffect(() => {
     const onRoutesChanged = () => forceUpdate((value) => value + 1);
@@ -97,6 +100,7 @@ export default function DevShell() {
   if (!descriptor) return null;
   const routes = Array.from(routerHook._routes.entries());
   const ActivePage = activePath ? routerHook._routes.get(activePath) : null;
+  const openTab = tabsHook.tabs.find((tab) => tab.id === qamTab);
 
   return (
     <div className="steam-mock">
@@ -127,24 +131,72 @@ export default function DevShell() {
         <main className="steam-screen">
         {ActivePage ? (
           <div className="steam-page">
-            <header className="steam-topbar"><span className="steam-brand">STEAM</span><span>⌕ &nbsp; ◉ &nbsp; ◔ &nbsp; ▰ &nbsp; 12:34 PM</span></header>
+            <header className="steam-topbar"><span /><span className="steam-status"><FaSearch /><FaBell /><FaWifi /><FaBatteryFull className="steam-battery" /><strong>12:34 PM</strong><span className="steam-avatar" /></span></header>
             <div className="steam-page-content">
               <ActivePage />
             </div>
-            <footer className="steam-bottombar"><span className="steam-menu">STEAM &nbsp; MENU</span><span className="steam-legend">Ⓐ Select &nbsp;&nbsp; Ⓑ Back{hints.secondaryHint && <> &nbsp;&nbsp; Ⓨ {hints.secondaryHint}</>}{hints.optionsHint && <> &nbsp;&nbsp; Ⓧ {hints.optionsHint}</>}</span></footer>
+            <BottomBar hints={hints} />
           </div>
         ) : (
           <div className="game-backdrop">
+            <header className="steam-topbar"><span /><span className="steam-status"><FaSearch /><FaBell /><FaWifi /><FaBatteryFull className="steam-battery" /><strong>12:34 PM</strong><span className="steam-avatar" /></span></header>
+            {/* As on the Deck: Steam's tab strip on the panel's left, the open tab's title over its content. */}
             <aside className="qam-panel">
-              <header className="qam-header"><span className="qam-title">⋯ <span>Quick Access</span></span><span>⚙</span></header>
-              <p className="qam-app-name">{descriptor.name}</p>
-              <div className="qam-content">{descriptor.content}</div>
-              <footer className="steam-bottombar"><span className="steam-menu">STEAM &nbsp; MENU</span><span className="steam-legend">Ⓐ Select &nbsp;&nbsp; Ⓑ Back{hints.secondaryHint && <> &nbsp;&nbsp; Ⓨ {hints.secondaryHint}</>}{hints.optionsHint && <> &nbsp;&nbsp; Ⓧ {hints.optionsHint}</>}</span></footer>
+              <nav className="qam-tabs" aria-label="Quick Access tabs">
+                <span aria-hidden><FaSlidersH /></span>
+                <span aria-hidden><FaBell /></span>
+                <span aria-hidden><FaCog /></span>
+                <span aria-hidden><FaBolt /></span>
+                <button aria-label="Decky" aria-pressed={!openTab} onClick={() => setQamTab(null)}><FaPlug /></button>
+                {tabsHook.tabs.map((tab) => (
+                  <button key={tab.id} aria-label={`Quick Access tab ${tab.id}`} aria-pressed={openTab === tab} onClick={() => setQamTab(tab.id)}>{tab.icon}</button>
+                ))}
+              </nav>
+              <div className="qam-main">
+                {openTab ? (
+                  <div className="qam-content">{openTab.content}</div>
+                ) : (
+                  <div className="qam-content">
+                    <div className="decky-mock-title">{descriptor.name}</div>
+                    {descriptor.content}
+                  </div>
+                )}
+              </div>
             </aside>
+            <BottomBar hints={hints} />
           </div>
         )}
         </main>
       </div>
     </div>
+  );
+}
+
+// Steam's face-button glyph: four dots in a diamond, the pressed one filled. The
+// letter stays in the text (hidden) for the tests and screen readers.
+const DOTS = { Y: [10, 3], X: [3, 10], B: [17, 10], A: [10, 17] } as const;
+function FaceButton({ button }: { button: keyof typeof DOTS }) {
+  return (
+    <span className="steam-glyph">
+      <svg viewBox="0 0 20 20" width="1.6em" height="1.6em" aria-hidden>
+        {Object.entries(DOTS).map(([name, [cx, cy]]) => <circle key={name} cx={cx} cy={cy} r="2.6" fill={name === button ? "#fff" : "none"} stroke="#fff" strokeWidth="1.4" />)}
+      </svg>
+      <span className="steam-glyph-letter">{{ Y: "Ⓨ", X: "Ⓧ", B: "Ⓑ", A: "Ⓐ" }[button]}</span>
+    </span>
+  );
+}
+
+function BottomBar({ hints }: { hints: { secondaryHint?: string; optionsHint?: string; menuHint?: string } }) {
+  return (
+    <footer className="steam-bottombar">
+      <span className="steam-menu"><span className="steam-pill">STEAM</span> MENU</span>
+      <span className="steam-legend">
+        {hints.secondaryHint && <span><FaceButton button="Y" /> {hints.secondaryHint}</span>}
+        {hints.optionsHint && <span><FaceButton button="X" /> {hints.optionsHint}</span>}
+        {hints.menuHint && <span>☰ {hints.menuHint}</span>}
+        <span><FaceButton button="A" /> Select</span>
+        <span><FaceButton button="B" /> Back</span>
+      </span>
+    </footer>
   );
 }

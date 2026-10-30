@@ -1,13 +1,14 @@
 import { FileSelectionType, openFilePicker, toaster } from "@decky/api";
-import { DialogButtonPrimary as Button, ConfirmModal, Focusable, PanelSection, PanelSectionRow, showModal, TextField } from "@decky/ui";
-import { Card, PageHeader } from "../components/Card";
+import { ConfirmModal, showModal } from "@decky/ui";
+import { PageHeader } from "../components/Card";
+import { CustomRegistriesSection, CustomReposSection } from "../components/RepositoriesSections";
 import { RateLimitBanner } from "../components/RateLimitBanner";
 import { useEffect, useState } from "react";
-import { FaFileExport, FaFileImport, FaListUl, FaPlus, FaRedo, FaTrash } from "react-icons/fa";
+import { FaListUl } from "react-icons/fa";
 import { addCustomRegistry, exportCustomRepos, getSettings, importCustomRepos, REGISTRY_UPDATED, refreshRegistry, removeCustomRegistry, removeCustomRepo } from "../api";
 import { useT } from "../i18n";
 import type { MessageKey } from "../i18n/en";
-import { compactButtonStyle, isRepositoryName, log, registryLabel, registryUrlForRepo } from "../utils";
+import { isRepositoryName, log, registryUrlForRepo } from "../utils";
 
 // The backend reports why an add didn't work as a reason code rather than raising,
 // so a mistyped URL never surfaces a Python exception. Keys are literal so the
@@ -23,7 +24,8 @@ const REGISTRY_ERROR: Record<string, MessageKey> = {
   "nothing-new": "repos.errNothingNew",
 };
 
-export function ManageRepositoriesPage() {
+// Settings' Repositories tab (embedded: no page header or rate-limit banner of its own).
+export function ManageRepositoriesPage({ embedded }: { embedded?: boolean }) {
   const t = useT();
   const [customRepos, setCustomRepos] = useState<string[]>([]);
   const [registries, setRegistries] = useState<string[]>([]);
@@ -151,80 +153,18 @@ export function ManageRepositoriesPage() {
 
   return (
     <>
-      <RateLimitBanner />
-      <PageHeader icon={<FaListUl />} title={t("nav.repositories")} />
-      <Card>
-        <PanelSection title={t("repos.managedRepositories")}>
-          <PanelSectionRow>
-            <Focusable flow-children="right" style={{ display: "flex", gap: 12 }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <Button style={compactButtonStyle} onClick={() => void exportList().catch(showError)}>
-                  <FaFileExport /> {t("repos.export")}
-                </Button>
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <Button style={compactButtonStyle} onClick={() => void importList().catch(showError)}>
-                  <FaFileImport /> {t("repos.import")}
-                </Button>
-              </div>
-            </Focusable>
-          </PanelSectionRow>
-          {customRepos.map((repo) => (
-            <PanelSectionRow key={repo}>
-              <Button style={compactButtonStyle} onClick={() => confirmRemove(repo)}>
-                <FaTrash /> {t("repos.remove", { repo })}
-              </Button>
-            </PanelSectionRow>
-          ))}
-          {!customRepos.length && <PanelSectionRow>{t("repos.noCustomRepos")}</PanelSectionRow>}
-        </PanelSection>
-      </Card>
-
-
-      <Card>
-        <PanelSection title={t("repos.customRegistries")}>
-          <PanelSectionRow>
-            <Focusable flow-children="right" style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <TextField
-                  label={t("repos.registrySource")}
-                  value={registryValue}
-                  onChange={(event) => setRegistryValue(event.currentTarget.value)}
-                />
-              </div>
-              <div style={{ flex: "0 0 160px", paddingTop: 24 }}>
-                <Button style={compactButtonStyle} onClick={() => void addRegistry()} disabled={registryBusy}>
-                  <FaPlus /> {registryBusy ? t("repos.registryLoading") : t("repos.addRegistry")}
-                </Button>
-              </div>
-            </Focusable>
-          </PanelSectionRow>
-          {registries.length > 0 && (
-            <PanelSectionRow>
-              <Button style={compactButtonStyle} disabled={registryBusy} onClick={() => void reloadRegistries()}>
-                <FaRedo /> {t("repos.refreshRegistries")}
-              </Button>
-            </PanelSectionRow>
-          )}
-          {registries.map((url) => (
-            <PanelSectionRow key={url}>
-              <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ flex: 1, minWidth: 0, overflowWrap: "anywhere" }}>
-                  {registryLabel(url)}
-                  <br />
-                  <small>{url}</small>
-                </div>
-                <div style={{ flex: "0 0 120px" }}>
-                  <Button style={compactButtonStyle} onClick={() => confirmRemoveRegistry(url)}>
-                    <FaTrash /> {t("repos.removeRegistry")}
-                  </Button>
-                </div>
-              </Focusable>
-            </PanelSectionRow>
-          ))}
-          {!registries.length && <PanelSectionRow>{t("repos.noCustomRegistries")}</PanelSectionRow>}
-        </PanelSection>
-      </Card>
+      {!embedded && <RateLimitBanner />}
+      {!embedded && <PageHeader icon={<FaListUl />} title={t("nav.repositories")} />}
+      <CustomReposSection repos={customRepos} onExport={() => void exportList().catch(showError)} onImport={() => void importList().catch(showError)} onRemove={confirmRemove} />
+      <CustomRegistriesSection
+        registries={registries}
+        value={registryValue}
+        onValue={setRegistryValue}
+        busy={registryBusy}
+        onAdd={() => void addRegistry()}
+        onRefresh={() => void reloadRegistries()}
+        onRemove={confirmRemoveRegistry}
+      />
     </>
   );
 }

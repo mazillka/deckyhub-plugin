@@ -14,6 +14,8 @@ Use these project skills when working in this repository.
 - Steam only scrolls to follow focus: text above a page's first focusable control is unreachable by controller. Wrap it in `<Focusable onActivate={() => {}}>` so D-pad up can land on it.
 - Clickable non-button elements need both `onActivate` (A button) and `onClick` (touchscreen).
 - Every new user-facing string needs its key in all 8 `src/i18n/*.ts` files (`en.ts` is the type source `tsc` enforces). Reuse an existing translation when the text already exists.
+- Split UI into components: pages keep state and loading, each visual section is a component in `src/components/`, and look-alike screens share one. The full rule is in [AGENTS.md](AGENTS.md#development-rules).
+- Size for the Deck, not the browser: Steam's text is about 16px, dialogs about 980px wide, and a `DropdownItem` puts its label beside the menu unless `layout="below"`, which cuts long values off in a narrow column. Keep at most four menus in a row, and give a search field its own line.
 
 ## Decky Loader
 
@@ -22,7 +24,7 @@ Use these project skills when working in this repository.
 
 ## GitHub API
 
-- Every release lookup goes through `fetchReleases(repo)` in `src/utils.ts` (one shared per-repo cache); don't add separate GitHub fetches.
+- Every release lookup goes through `fetchReleases(repo)` in `src/releases.ts` (one shared per-repo cache); don't add separate GitHub fetches.
 - Repos in the official registry are answered from its release index (one raw.githubusercontent.com file, no API calls); the API is only for repos the index lacks and for Search.
 - Unauthenticated use gets 60 requests/hour per IP (10/min for search): count the requests a change adds. `GET /rate_limit` is free.
 

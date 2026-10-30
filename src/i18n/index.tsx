@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { getSettings } from "../api";
-import { applyDensity, setGithubToken, setTranslator, substitute } from "../utils";
+import { applyDensity, setGithubToken, setHaptics, setTranslator, substitute } from "../utils";
 import { en, type MessageKey, type TFunc } from "./en";
 import { uk } from "./uk";
 import { ru } from "./ru";
@@ -9,8 +9,11 @@ import { de } from "./de";
 import { fr } from "./fr";
 import { ja } from "./ja";
 import { zh } from "./zh";
+import { ko } from "./ko";
+import { pt } from "./pt";
+import { zhTW } from "./zhTW";
 
-type Locale = "en" | "uk" | "ru" | "es" | "de" | "fr" | "ja" | "zh";
+type Locale = "en" | "uk" | "ru" | "es" | "de" | "fr" | "pt" | "ja" | "ko" | "zh" | "zh-TW";
 
 export const LOCALES: { code: Locale; label: string }[] = [
   { code: "en", label: "English" },
@@ -19,11 +22,14 @@ export const LOCALES: { code: Locale; label: string }[] = [
   { code: "es", label: "Español" },
   { code: "de", label: "Deutsch" },
   { code: "fr", label: "Français" },
+  { code: "pt", label: "Português (Brasil)" },
   { code: "ja", label: "日本語" },
-  { code: "zh", label: "中文" },
+  { code: "ko", label: "한국어" },
+  { code: "zh", label: "简体中文" },
+  { code: "zh-TW", label: "繁體中文" },
 ];
 
-const MESSAGES: Record<Locale, Record<MessageKey, string>> = { en, uk, ru, es, de, fr, ja, zh };
+const MESSAGES: Record<Locale, Record<MessageKey, string>> = { en, uk, ru, es, de, fr, pt, ja, ko, zh, "zh-TW": zhTW };
 
 export const LOCALE_CHANGED = "deckyhub-locale-changed";
 
@@ -33,7 +39,10 @@ function isLocale(value: unknown): value is Locale {
 
 function detectLocale(): Locale {
   for (const raw of navigator.languages ?? [navigator.language]) {
-    const code = raw.toLowerCase().split("-")[0];
+    const tag = raw.toLowerCase();
+    // Taiwan, Hong Kong, Macau and any "Hant" tag read Traditional Chinese.
+    if (/^zh-(tw|hk|mo|hant)/.test(tag)) return "zh-TW";
+    const code = tag.split("-")[0];
     if (isLocale(code)) return code;
   }
   return "en";
@@ -47,7 +56,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Every route mounts its own I18nProvider instance (see index.tsx), so
     // this doubles as the one place that primes the GitHub token for every
-    // api.github.com call in this tree — see setGithubToken() in utils.ts.
+    // api.github.com call in this tree — see setGithubToken() in github.ts.
     // SettingsPage re-dispatches LOCALE_CHANGED whenever the token changes
     // too, not just the language, so this re-syncs both on save.
     const refresh = () =>
@@ -55,6 +64,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         setPreference(settings.language || "auto");
         setGithubToken(settings.githubToken || "");
         applyDensity(settings.density);
+        setHaptics(settings.haptics !== false);
       });
     refresh();
     window.addEventListener(LOCALE_CHANGED, refresh);

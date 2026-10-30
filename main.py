@@ -24,8 +24,10 @@ PLUGIN_DOWNLOAD_DIR = f"{DEFAULT_DOWNLOAD_DIR}/deckyhub"
 # owner/name, where neither part is only dots: the frontend puts this straight into
 # api.github.com/repos/<repo>/releases with the user's token, so "../.." must not pass.
 REPOSITORY_NAME = re.compile(r"(?!\.+/)[A-Za-z0-9_.-]+/(?!\.+$)[A-Za-z0-9_.-]+")
+# A GitHub token: classic (ghp_ and kin) or fine-grained (github_pat_).
+GITHUB_TOKEN = re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{60,})\b")
 HIDEABLE_BUTTONS = ("downloadZip", "install", "update", "releasePage")
-SUPPORTED_LANGUAGES = {"auto", "en", "uk", "ru", "es", "de", "fr", "ja", "zh"}
+SUPPORTED_LANGUAGES = {"auto", "en", "uk", "ru", "es", "de", "fr", "pt", "ja", "ko", "zh", "zh-TW"}
 DEFAULT_COLUMNS_PER_ROW = 3
 ACTIVE_DOWNLOAD_STATES = ("queued", "downloading")
 
@@ -121,10 +123,12 @@ def _coerce_settings(settings: dict) -> dict:
         "overwriteExisting": bool(settings.get("overwriteExisting", True)),
         "updateChannel": "prerelease" if settings.get("updateChannel") == "prerelease" else "stable",
         "language": settings.get("language") if settings.get("language") in SUPPORTED_LANGUAGES else "auto",
-        "columnsPerRow": settings.get("columnsPerRow") if type(settings.get("columnsPerRow")) is int and settings["columnsPerRow"] in (1, 2, 3) else DEFAULT_COLUMNS_PER_ROW,
+        "columnsPerRow": settings.get("columnsPerRow") if type(settings.get("columnsPerRow")) is int and settings["columnsPerRow"] in (1, 2, 3, 4) else DEFAULT_COLUMNS_PER_ROW,
         # Only the frontend's api.github.com calls send it (githubHeaders() in src/utils.ts).
         "githubToken": settings["githubToken"].strip()[:255] if isinstance(settings.get("githubToken"), str) else "",
         "density": "compact" if settings.get("density") == "compact" else "default",
+        # A haptic tick on the Deck's trackpads as focus moves (hapticTick() in src/utils.ts).
+        "haptics": bool(settings.get("haptics", True)),
         # Manage-window buttons the user chose to hide (Display Settings).
         "hiddenButtons": [name for name in HIDEABLE_BUTTONS if isinstance(settings.get("hiddenButtons"), list) and name in settings["hiddenButtons"]],
     }
@@ -178,7 +182,7 @@ def parse_registry(payload: object) -> list[dict]:
     return [app for app in payload["apps"] if _valid_app(app)]
 
 
-# The curated list lives in its own repository.
+# DeckyHub's plugin list lives in its own repository.
 REMOTE_REGISTRY_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/refs/heads/main/registry/apps.json"
 MAX_REMOTE_REGISTRY_BYTES = 512 * 1024
 # How many user-added registries one install will track, so a bad list can't
@@ -425,8 +429,8 @@ class Plugin:
         return item
 
     def _custom_apps(self) -> list[dict]:
-        curated = {app["repo"].casefold() for app in self.apps}
-        return [{"id": f"custom-{repo.replace('/', '-')}", "name": repo, "repo": repo, "category": "Custom", "detect": {"type": "decky-plugin", "repo": repo}, "asset": {"include": [], "exclude": ["source"]}} for repo in self.settings["customRepos"] if repo.casefold() not in curated]
+        listed = {app["repo"].casefold() for app in self.apps}
+        return [{"id": f"custom-{repo.replace('/', '-')}", "name": repo, "repo": repo, "category": "Custom", "detect": {"type": "decky-plugin", "repo": repo}, "asset": {"include": [], "exclude": ["source"]}} for repo in self.settings["customRepos"] if repo.casefold() not in listed]
 
     async def get_settings(self):
         return self.settings
@@ -537,6 +541,22 @@ class Plugin:
 
         # Compressing the logs can take a while; keep Decky's event loop free meanwhile.
         return {"path": str(await asyncio.to_thread(export))}
+
+    async def read_token_file(self, path: str):
+        """A GitHub token from a small text file the user picked in /home/deck (typing
+        one on the Deck's keyboard is painful). Returns it for the token field; Save
+        stores it. Never logs the file's contents."""
+        source = Path(path).resolve()
+        deck_home = Path(DEFAULT_DOWNLOAD_DIR).parent.resolve()
+        if not source.is_relative_to(deck_home) or not source.is_file() or source.stat().st_size > 4096:
+            decky.logger.error("Refused to read a token from %s: not a small file inside /home/deck", source)
+            raise ValueError("Choose a small text file inside /home/deck")
+        match = GITHUB_TOKEN.search(source.read_text(encoding="utf-8", errors="replace"))
+        if not match:
+            decky.logger.info("No GitHub token in %s", source)
+            return {"token": None}
+        decky.logger.info("Read a GitHub token from %s", source)
+        return {"token": match.group(0)}
 
     async def import_custom_repos(self, path: str):
         source = Path(path).resolve()

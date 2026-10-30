@@ -1,7 +1,34 @@
 import { Focusable } from "@decky/ui";
-import type { CSSProperties, ReactNode } from "react";
+import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import { surfaceStyle } from "../utils";
 import { keepInView } from "./KeepInView";
+
+// A short slide-in when what a region shows changes (page, category, layout, results).
+// It animates the region rather than rebuilding it, so D-pad focus stays where it was;
+// skipped when the system asks for less motion.
+export function useSwapAnimation(deps: unknown[]) {
+  const ref = useRef<HTMLDivElement>(null);
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    ref.current?.animate?.([{ opacity: 0.3, transform: "translateY(10px)" }, { opacity: 1, transform: "none" }], { duration: 220, easing: "cubic-bezier(.2, .8, .2, 1)" });
+  }, deps);
+  return ref;
+}
+
+// Explanatory text with a leading icon, bright enough to read at a glance.
+export function IconNote({ icon, children }: { icon: ReactNode; children: ReactNode }) {
+  return (
+    <div style={{ alignItems: "flex-start", color: "#d6f5ff", display: "flex", fontSize: "max(12px, 0.9em)", gap: 8 }}>
+      <span style={{ color: "#8fcef4", display: "flex", flexShrink: 0, marginTop: 2 }}>{icon}</span>
+      <span>{children}</span>
+    </div>
+  );
+}
 
 // One section of a page, drawn as a tile. Like KeepInView, it scrolls itself
 // into view when the D-pad moves focus into it.
@@ -38,7 +65,7 @@ export function PageHeader({ icon, title, badge, description, actions }: { icon:
           <h2 style={{ margin: 0, color: "#fff", fontSize: "1.6em", fontWeight: 700, lineHeight: 1.15 }}>{title}</h2>
           {badge}
         </div>
-        {description && <div style={{ marginTop: 3, color: "#b8c7d3", fontSize: "0.9em" }}>{description}</div>}
+        {description && <div style={{ marginTop: 3, color: "#b8c7d3", fontSize: "max(12px, 0.9em)" }}>{description}</div>}
       </div>
       {actions}
     </Focusable>
