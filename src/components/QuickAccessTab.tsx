@@ -1,7 +1,10 @@
 import { useQuickAccessVisible } from "@decky/api";
 import { staticClasses } from "@decky/ui";
-import type { ReactNode } from "react";
-import { FaGithub } from "react-icons/fa";
+import { useSyncExternalStore, type ReactNode } from "react";
+import { getApps, getSettings } from "../api";
+import { getUpdateCount, setUpdateCount, subscribeUpdateCount } from "../notify";
+import { hydrate } from "../releases";
+import { DeckyHubIcon } from "./DeckyHubIcon";
 
 // DeckyHub's own icon in Steam's Quick Access tab strip (beside notifications,
 // friends, settings, Decky...), added through Decky's tabs hook the way Decky adds
@@ -22,11 +25,36 @@ function TabPanel({ children }: { children: ReactNode }) {
   );
 }
 
+// DeckyHub's icon, with a dot while any plugin has an update.
+function TabIcon() {
+  const updates = useSyncExternalStore(subscribeUpdateCount, getUpdateCount);
+  return (
+    <span className="deckyhub-tab-icon" style={{ position: "relative", display: "inline-flex" }}>
+      <DeckyHubIcon />
+      {updates > 0 && <span className="deckyhub-tab-dot" style={{ position: "absolute", top: -2, right: -4, width: 8, height: 8, borderRadius: "50%", background: "#1a9fff", boxShadow: "0 0 0 2px #0e141b" }} />}
+    </span>
+  );
+}
+
+// The panel only checks releases while it's open, so check installed plugins once
+// at startup too, for the dot to show before DeckyHub is first opened.
+async function checkUpdates() {
+  try {
+    const [{ apps }, settings] = await Promise.all([getApps(), getSettings()]);
+    const preferences = settings.repoSettings || {};
+    const checked = await Promise.all(apps.filter((app) => app.installedVersion).map((app) => hydrate(app, false, preferences[app.repo])));
+    setUpdateCount(checked.filter((app) => app.updateAvailable).length);
+  } catch {
+    // Offline or rate-limited: the panel's own check sets the dot later.
+  }
+}
+
 export function addQuickAccessTab(content: ReactNode) {
   const hook = tabsHook();
   if (typeof hook?.add !== "function" || typeof hook.removeById !== "function") return;
   hook.removeById(TAB_ID); // a reload of DeckyHub shouldn't leave two
-  hook.add({ id: TAB_ID, title: null, content: <TabPanel>{content}</TabPanel>, icon: <FaGithub /> });
+  hook.add({ id: TAB_ID, title: null, content: <TabPanel>{content}</TabPanel>, icon: <TabIcon /> });
+  void checkUpdates();
 }
 
 export function removeQuickAccessTab() {

@@ -18,7 +18,21 @@ export function seenOnce(key: string, value: string) {
 
 export function notifyUpdates(apps: App[]) {
   const updates = apps.filter((app) => app.updateAvailable && app.latestVersion);
+  setUpdateCount(updates.length);
   const notice = updates.map((app) => `${app.repo}:${app.latestVersion}`).sort().join("|");
   if (!notice || !seenOnce(UPDATE_NOTICE_KEY, notice)) return;
   toaster.toast({ title: tr("toast.updatesAvailable", { count: updates.length }), body: updates.map((app) => `${app.name} (${app.latestVersion})`).join(", ") });
 }
+
+// How many plugins have an update, for the dot on DeckyHub's Quick Access icon.
+let updateCount = 0;
+const updateCountListeners = new Set<() => void>();
+export function setUpdateCount(count: number) {
+  updateCount = count;
+  updateCountListeners.forEach((listener) => listener());
+}
+export const subscribeUpdateCount = (listener: () => void) => {
+  updateCountListeners.add(listener);
+  return () => void updateCountListeners.delete(listener);
+};
+export const getUpdateCount = () => updateCount;

@@ -696,6 +696,21 @@ test("DeckyHub adds its own Quick Access tab after Decky's", async ({ page }) =>
   await expect(app.locator(".qam-content").getByRole("button", { name: /^Discover/ })).toBeVisible();
 });
 
+test("DeckyHub's Quick Access icon shows a dot while a plugin has an update", async ({ page }) => {
+  const pluginDir = new URL("../.dev-data/plugins/e2e-mako-dot/", import.meta.url);
+  mkdirSync(pluginDir, { recursive: true });
+  writeFileSync(new URL("plugin.json", pluginDir), JSON.stringify({ name: "MAKO - Frame Generation", version: "1.0.0" }));
+  await mockMakoReleases(page, [makoRelease("plugin-v1.2.3", "d".repeat(64))]);
+  try {
+    await page.goto("/?bridge=http://127.0.0.1:8643");
+    // Checked at startup, before DeckyHub's panel is ever opened.
+    const tab = mock(page).getByRole("navigation", { name: "Quick Access tabs" }).getByRole("button").last();
+    await expect(tab.locator(".deckyhub-tab-dot")).toBeVisible();
+  } finally {
+    rmSync(pluginDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  }
+});
+
 test("The Quick Access rate-limit banner stacks its buttons and stays inside the panel", async ({ page }) => {
   const app = mock(page);
   await app.getByRole("button", { name: "Rate limit banner", exact: true }).click();

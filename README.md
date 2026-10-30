@@ -50,7 +50,7 @@ Tired of tabbing out to Desktop Mode, hunting through GitHub releases, and manua
 - **Updates** — see which of your tracked, installed tools have a newer release available, and update the Decky plugins among them in one go with **Update All**. You'll also get a toast notification when new updates show up.
 - **Repositories** — remove tracked repositories, and export/import your list. **Custom Registries** adds other people's app lists. Per-repository release-channel overrides live behind each app's **Manage** button on Discover/Updates instead.
 - **Settings** — shows the DeckyHub download folder and the **Overwrite Existing** toggle, lets you add an optional GitHub personal access token to raise the API rate limit, picks the language, and adjusts the display: **Default** or **Compact** density, items per row (1–3) in the app grid, and which Manage-window buttons to hide.
-- **Quick Access Menu** — DeckyHub has its own tab (the GitHub icon) in the Quick Access tab strip, next to Decky's, and still opens from Decky's plugin list too. It shows **Discover**, **Search** and **Settings** (**Repositories** opens from Settings), plus **Updates** with a count whenever updates are waiting. Below them: DeckyHub's own version and update check, a **Cleanup** section (shown when the download folder has files) that empties it after confirmation, and **Export Logs** for bug reports.
+- **Quick Access Menu** — DeckyHub has its own tab (the four-square DeckyHub icon, with a dot when updates are waiting) in the Quick Access tab strip, next to Decky's, and still opens from Decky's plugin list too. It shows **Discover**, **Search** and **Settings** (**Repositories** opens from Settings), plus **Updates** with a count whenever updates are waiting. Below them: DeckyHub's own version and update check, a **Cleanup** section (shown when the download folder has files) that empties it after confirmation, and **Export Logs** for bug reports.
 
 DeckyHub never installs or runs anything automatically. **Download ZIP** saves a release, which you install yourself via Decky's settings → Developer → Install Plugin from ZIP. For one-tap install, update and uninstall, see [Manage](#manage).
 
@@ -75,7 +75,7 @@ A daily job checks both catalogs for plugins that aren't listed yet and opens a 
 1. Make sure [Decky Loader](https://decky.xyz/) is installed.
 2. Download the latest `DeckyHub-v*.zip` from the [Releases page](https://github.com/mazillka/deckyhub-plugin/releases).
 3. In Gaming Mode, open the Quick Access Menu → Decky → settings (gear icon). Turn on **Developer mode** under General if it's off, then go to **Developer** → **Install Plugin from ZIP** and select the downloaded file.
-4. Open the Quick Access Menu and pick DeckyHub's GitHub icon in the tab strip (or Decky → **DeckyHub**).
+4. Open the Quick Access Menu and pick DeckyHub's four-square icon in the tab strip (or Decky → **DeckyHub**).
 
 ## Using DeckyHub
 
