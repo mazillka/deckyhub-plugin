@@ -3,7 +3,7 @@ import { useState } from "react";
 import { FaArrowUp, FaCog, FaPlus } from "react-icons/fa";
 import { useT } from "../i18n";
 import type { App, Asset, HideableButton, RepoPreference, UpdateChannel } from "../types";
-import { compactButtonStyle, cardDescriptionStyle, installAction, PLUGIN_INSTALL_TYPE, statusKey, statusColor, surfaceStyle, visuallyHidden } from "../utils";
+import { compactButtonStyle, cardDescriptionStyle, ellipsis, installAction, PLUGIN_INSTALL_TYPE, statusKey, statusColor, surfaceStyle, visuallyHidden } from "../utils";
 import { displayVersion } from "../version";
 import { AppDetailsModal } from "./AppDetailsModal";
 import { startPluginInstall } from "./InstallFlow";
@@ -84,7 +84,7 @@ export function AppCard({
               void startPluginInstall(t, app.name, app.repo, app.assets[0], app.latestVersion!, install, quickLabel, leavePage).finally(() => setInstalling(false));
             }}
           >
-            {isUpdate ? <FaArrowUp /> : <FaPlus />} {quickLabel}
+            {isUpdate ? <FaArrowUp /> : <FaPlus />} <span style={ellipsis}>{quickLabel}</span>
           </Button>
           </div>
       )}
@@ -115,14 +115,17 @@ export function AppCard({
   if (row)
     return (
       // The name is a direct child here too, so a row's buttons are found from its heading.
-      <div className="deckyhub-app-row deckyhub-focus-ring" style={{ ...surfaceStyle, display: "grid", gridTemplateColumns: "40px minmax(0, 2fr) minmax(0, 1.4fr) 230px", gridTemplateRows: "auto auto", alignItems: "center", columnGap: 12, rowGap: 2, padding: "8px 12px" }}>
+      <div className="deckyhub-app-row deckyhub-focus-ring" style={{ ...surfaceStyle, display: "grid", gridTemplateColumns: "40px minmax(0, 1.5fr) minmax(0, 1.5fr) 230px", gridTemplateRows: "auto auto", alignItems: "center", columnGap: 12, rowGap: 2, padding: "8px 12px" }}>
         <AppMonogram app={app} style={{ gridRow: "1 / 3", width: 40, height: 40, fontSize: "0.85em" }} />
         {/* Name, with the description under it. */}
         <h3 style={{ ...cardTitleStyle, gridColumn: 2, gridRow: 1 }}>{app.name}</h3>
-        <small style={{ gridColumn: 2, gridRow: 2, color: "#b8c7d3", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{app.error || app.description}</small>
-        <div style={{ gridColumn: 3, gridRow: "1 / 3", display: "flex", flexWrap: "wrap", alignItems: "center", gap: "2px 10px", color: "#8b9aa7", fontSize: "max(12px, 0.8em)" }}>
+        <small style={{ gridColumn: 2, gridRow: 2, color: "#b8c7d3", ...ellipsis }}>{app.error || app.description}</small>
+        {/* Status and badges, then the stats on one line under them. */}
+        <div style={{ gridColumn: 3, gridRow: 1, display: "flex", flexWrap: "wrap", alignItems: "center", gap: "2px 10px" }}>
           {statusPill}
           <AppBadges app={app} t={t} />
+        </div>
+        <div style={{ gridColumn: 3, gridRow: 2, display: "flex", gap: 10, color: "#8b9aa7", fontSize: "max(12px, 0.8em)", ...ellipsis }}>
           <AppStats app={app} t={t} />
         </div>
         <div style={{ gridColumn: 4, gridRow: "1 / 3" }}>{actions}</div>
