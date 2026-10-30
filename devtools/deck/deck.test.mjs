@@ -239,15 +239,15 @@ test("Settings: R1 walks every tab, each one fitting and passing the audit", asy
   await openPage("settings");
   await press(shared, BUTTON.DOWN, 600);
   const seen = [], problems = {};
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 6; i++) {
     // The showing tab's content is marked with its id (SettingsPage.tsx).
-    const tab = await main.eval(`[...document.querySelectorAll("[class^=deckyhub-settings-]")].filter((e) => e.getClientRects().length && e.getBoundingClientRect().width > 0 && /^deckyhub-settings-(general|github|downloads|repositories|about)$/.test(e.className)).map((e) => e.className)[0] ?? "?"`);
+    const tab = await main.eval(`[...document.querySelectorAll("[class^=deckyhub-settings-]")].filter((e) => e.getClientRects().length && e.getBoundingClientRect().width > 0 && /^deckyhub-settings-(general|github|downloads|repositories|troubleshoot|about)$/.test(e.className)).map((e) => e.className)[0] ?? "?"`);
     seen.push(tab);
     const found = await audit(main, ".deckyhub-motion");
     if (found.length) problems[tab] = found;
     await press(shared, 6, 1200); // R1
   }
-  assert.equal(new Set(seen).size, 5, `R1 didn't reach five tabs: ${seen.join(", ")}`);
+  assert.equal(new Set(seen).size, 6, `R1 didn't reach six tabs: ${seen.join(", ")}`);
   assert.deepEqual(problems, {});
 });
 

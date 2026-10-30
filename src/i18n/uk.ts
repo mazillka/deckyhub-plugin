@@ -223,4 +223,6 @@ export const uk: Record<MessageKey, string> = {
   "welcome.gotIt": "Зрозуміло",
   "settings.tabGeneral": "Загальні",
   "settings.tabDownloads": "Завантаження",
+  "settings.tabTroubleshoot": "Логи",
+  "settings.tabAbout": "Про",
 };

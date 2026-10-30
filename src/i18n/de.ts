@@ -223,4 +223,6 @@ export const de: Record<MessageKey, string> = {
   "welcome.gotIt": "Verstanden",
   "settings.tabGeneral": "Allgemein",
   "settings.tabDownloads": "Downloads",
+  "settings.tabTroubleshoot": "Logs",
+  "settings.tabAbout": "Über",
 };

@@ -224,4 +224,6 @@ export const zhTW: Record<MessageKey, string> = {
   "welcome.gotIt": "知道了",
   "settings.tabGeneral": "一般",
   "settings.tabDownloads": "下載",
+  "settings.tabTroubleshoot": "記錄",
+  "settings.tabAbout": "關於",
 };

@@ -223,4 +223,6 @@ export const ko: Record<MessageKey, string> = {
   "welcome.gotIt": "확인",
   "settings.tabGeneral": "일반",
   "settings.tabDownloads": "다운로드",
+  "settings.tabTroubleshoot": "로그",
+  "settings.tabAbout": "정보",
 };
