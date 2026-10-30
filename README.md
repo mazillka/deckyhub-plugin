@@ -19,6 +19,8 @@ Find, install and update Decky Loader plugins with your controller — from Deck
 
 <img src="screenshots/hero.jpg" width="800" alt="DeckyHub: Decky plugins, straight from GitHub. Its Discover screen on a Steam Deck, with plugin categories and the most popular plugins.">
 
+<img src="promo/deckyhub.gif" width="800" alt="DeckyHub in action on a Steam Deck: its Quick Access tab with an update dot, Discover, a plugin's details, Updates with what each brings, and Settings tabs.">
+
 <table>
 <tr>
 <td align="center"><img src="screenshots/menu.jpg" width="260" alt="DeckyHub's own tab in the Quick Access menu, with an update dot"><br><sub><b>Quick Access</b></sub></td>
