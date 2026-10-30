@@ -63,15 +63,21 @@ export async function waitFor(page, expression, timeout = 15000) {
   }
 }
 
+// Opens a Gaming Mode page by replacing the current one in Steam's history, not
+// adding to it: hundreds of test visits otherwise piled up, and B then walked back
+// through them all (seen on a Deck).
+export const goTo = (shared, path) =>
+  shared.eval(`DFL.Navigation.CloseSideMenus?.(); SteamUIStore.WindowStore.GamepadUIMainWindowInstance.m_history.replace(${JSON.stringify(path)}); true`);
+
 // Scripts click Steam's dialogs directly, not with the controller, and a dialog
 // closed that way can leave gamepad focus on its now-invisible element: the D-pad
 // then does nothing until Up (seen on a Deck). Leaving the screen and coming back
 // lets Steam place focus afresh. Call it last, with the path to end on.
 export async function resetFocus(shared, path) {
-  await shared.eval(`DFL.Navigation.CloseSideMenus?.(); DFL.Navigation.Navigate("/library/home"); true`);
+  await goTo(shared, "/library/home");
   await sleep(1200);
   if (path && path !== "/library/home") {
-    await shared.eval(`DFL.Navigation.Navigate(${JSON.stringify(path)}); true`);
+    await goTo(shared, path);
     await sleep(1200);
   }
 }

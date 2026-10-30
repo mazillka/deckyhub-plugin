@@ -6,7 +6,7 @@
 import assert from "node:assert/strict";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { after, before, test } from "node:test";
-import { connect, resetFocus, sleep, TARGETS, waitFor } from "./cdp.mjs";
+import { connect, goTo, resetFocus, sleep, TARGETS, waitFor } from "./cdp.mjs";
 import { BUTTON, explore, press } from "./navigation.mjs";
 
 const TAB_ID = 0x444855; // src/components/QuickAccessTab.tsx
@@ -50,7 +50,7 @@ const awake = async () => { if ((await main.screenshot()).length < 15000) throw 
 
 const openPage = async (name) => {
   await awake();
-  await shared.eval(`DFL.Navigation.CloseSideMenus?.(); DFL.Navigation.Navigate("/deckyhub/${name}"); true`);
+  await goTo(shared, `/deckyhub/${name}`);
   await waitFor(main, `!!document.querySelector(".deckyhub-motion") && !document.querySelector(".deckyhub-motion .Throbber, .deckyhub-motion [class*=Spinner]")`, 30000);
   await sleep(1500);
 };
@@ -217,6 +217,7 @@ test("Quick Access: Right from DeckyHub's tab moves focus into the panel", async
 
 test("B leaves a DeckyHub page for the one before it", async () => {
   await openPage("search");
+  // A real history entry (Decky's own navigation) for B to go back from; B removes it again.
   await shared.eval(`DFL.Navigation.Navigate("/deckyhub/settings"); true`);
   await waitFor(shared, `location.pathname.endsWith("/deckyhub/settings")`);
   await sleep(1000);
