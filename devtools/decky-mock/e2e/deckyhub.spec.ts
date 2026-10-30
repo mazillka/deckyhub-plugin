@@ -138,7 +138,8 @@ test("Quick Access navigation opens Discover", async ({ page }) => {
 test("Quick Access keeps its controller footer below its content", async ({ page }) => {
   const app = mock(page);
   const content = app.locator(".qam-content");
-  const footer = app.locator(".qam-panel .steam-bottombar");
+  // Steam's footer spans the screen under the panel, as on the Deck.
+  const footer = app.locator(".game-backdrop > .steam-bottombar");
   const [contentBox, footerBox] = await Promise.all([content.boundingBox(), footer.boundingBox()]);
   expect(contentBox).not.toBeNull();
   expect(footerBox).not.toBeNull();
@@ -520,6 +521,18 @@ test("Search shows every result, with no pages", async ({ page }) => {
   await app.getByRole("button", { name: "Search", exact: true }).click();
   await expect(app.getByRole("heading", { name: "example/repo-11" })).toBeVisible();
   await expect(app.getByRole("button", { name: "Next", exact: true })).toHaveCount(0);
+});
+
+test("Search hints what to type, and Enter searches", async ({ page }) => {
+  await page.route("https://api.github.com/search/repositories**", (route) =>
+    route.fulfill({ json: { items: [{ full_name: "example/enter-repo", description: "Test repository", stargazers_count: 1 }] } }),
+  );
+  await page.goto("/?preview=/deckyhub/search&bridge=http://127.0.0.1:8643");
+  const field = mock(page).getByLabel("Search GitHub");
+  await expect(field).toHaveAttribute("placeholder", "Plugin name, author or feature");
+  await field.fill("example");
+  await field.press("Enter");
+  await expect(mock(page).getByRole("heading", { name: "example/enter-repo" })).toBeVisible();
 });
 
 test("Discover's search also matches app descriptions", async ({ page }) => {
@@ -2251,6 +2264,22 @@ test("Switching the language updates Settings and the Quick Access panel", async
     await app.getByRole("button", { name: "/deckyhub/settings" }).click();
     await app.getByLabel("Язык").selectOption("auto");
     await expect(app.getByLabel("Language")).toBeVisible();
+  } finally {
+    await bridgeCall(page, "save_settings", defaultSettings);
+  }
+});
+
+test("Korean, Portuguese and Traditional Chinese are offered, saved and shown", async ({ page }) => {
+  await bridgeCall(page, "save_settings", defaultSettings);
+  try {
+    await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    for (const [code, label] of [["ko", "언어"], ["pt", "Idioma"], ["zh-TW", "語言"]]) {
+      await app.getByRole("combobox").filter({ has: page.locator("option[value='auto']") }).selectOption(code);
+      await expect(app.getByLabel(label)).toBeVisible();
+      // The backend keeps the choice rather than falling back to auto-detect.
+      expect((await bridgeCall(page, "get_settings")).result.language).toBe(code);
+    }
   } finally {
     await bridgeCall(page, "save_settings", defaultSettings);
   }

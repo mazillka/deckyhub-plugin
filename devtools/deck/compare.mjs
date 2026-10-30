@@ -2,7 +2,7 @@
 // real Deck: position, size, font and colours of the same parts of each page.
 //   DECK=192.168.1.209:8081 node devtools/deck/compare.mjs [discover updates ...]
 // Needs the mock running (localhost:5183 with its bridge) and DeckyHub on the Deck.
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { connect, sleep, TARGETS } from "./cdp.mjs";
 
@@ -13,6 +13,15 @@ const MOCK = process.env.MOCK ?? "http://localhost:5183";
 
 const shared = await connect(TARGETS.shared);
 const deck = await connect(TARGETS.main);
+// The mock lists the plugins the Deck has installed, so both show the same cards
+// and updates. Its bridge reads .dev-data/plugins/*/plugin.json as installed.
+const mockPlugins = new URL("../decky-mock/.dev-data/plugins/", import.meta.url);
+const installed = JSON.parse(await shared.eval(`JSON.stringify(DeckyPluginLoader.plugins.filter((p) => p.name !== "DeckyHub").map((p) => [p.name, p.version]))`));
+installed.forEach(([name, version], index) => {
+  const dir = new URL(`deck-${index}/`, mockPlugins);
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(new URL("plugin.json", dir), JSON.stringify({ name, version }));
+});
 const startPath = await shared.eval("location.pathname.slice(\"/routes\".length)");
 const browser = await chromium.launch();
 const mock = await browser.newPage({ viewport: { width: 1280, height: 800 } });
@@ -50,5 +59,6 @@ try {
   await shared.eval(`DFL.Navigation.Navigate(${JSON.stringify(startPath)}); true`).catch(() => {});
   shared.close(); deck.close();
   await browser.close();
+  installed.forEach((_, index) => rmSync(new URL(`deck-${index}/`, mockPlugins), { recursive: true, force: true, maxRetries: 10, retryDelay: 100 }));
 }
 process.exitCode = total ? 1 : 0;

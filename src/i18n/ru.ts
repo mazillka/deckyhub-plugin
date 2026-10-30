@@ -22,6 +22,7 @@ export const ru: Record<MessageKey, string> = {
   "view.searchDescription": "Ищите плагины Decky на GitHub. Установите сразу или добавьте, чтобы следить за обновлениями.",
   "view.searchTitle": "Поиск и установка",
   "search.warning": "Результаты поиска приходят прямо с GitHub. Их никто не проверял: ни DeckyHub, ни магазин Decky. Плагин может сделать на вашем Deck что угодно, поэтому устанавливайте только плагины авторов, которым доверяете.",
+  "search.placeholder": "Название плагина, автор или функция",
 
   "filter.search": "Поиск",
   "filter.status": "Статус",

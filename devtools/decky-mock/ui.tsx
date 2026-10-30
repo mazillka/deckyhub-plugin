@@ -47,10 +47,12 @@ export function Button({
   // Stands in for Steam's footer legend: "y"/"x"/"m" act as the Y/X/Menu buttons, and DevShell's
   // bottom bar shows data-secondary-hint/data-options-hint/data-menu-hint while this is focused.
   return (
+    // Like Steam's DialogButton, a disabled button stays focusable (the D-pad can land
+    // on it) but is dimmed and ignores presses.
     <button
-      onClick={onClick}
-      disabled={disabled}
-      className="steam-button"
+      onClick={disabled ? undefined : onClick}
+      aria-disabled={disabled || undefined}
+      className={disabled ? "steam-button Disabled" : "steam-button"}
       style={style}
       aria-label={ariaLabel}
       data-secondary-hint={onSecondaryButton ? onSecondaryActionDescription : undefined}
@@ -77,6 +79,38 @@ export function ModalRoot({ children, bAllowFullSize }: { children?: ReactNode; 
   );
 }
 
+// Steam's dropdown: a button as wide as its current value, then a solid triangle.
+// A transparent native <select> covers it, so it still opens and can be chosen from.
+function SteamSelect({ rgOptions, selectedOption, onChange, ariaLabel, style }: {
+  rgOptions: { label: ReactNode; data: unknown }[];
+  selectedOption: unknown;
+  onChange?: (option: { data: unknown }) => void;
+  ariaLabel?: string;
+  style?: CSSProperties;
+}) {
+  const selected = rgOptions.find((option) => String(option.data) === String(selectedOption));
+  return (
+    <span className="steam-select" style={style}>
+      <span className="steam-select-value">{selected?.label}</span>
+      <svg viewBox="0 0 12 8" width="12" height="8" aria-hidden><path d="M0 0h12L6 7z" fill="currentColor" /></svg>
+      <select
+        aria-label={ariaLabel}
+        value={String(selectedOption)}
+        onChange={(event) => {
+          const option = rgOptions.find((item) => String(item.data) === event.target.value);
+          if (option) onChange?.(option);
+        }}
+      >
+        {rgOptions.map((option) => (
+          <option key={String(option.data)} value={String(option.data)}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </span>
+  );
+}
+
 export function Dropdown({
   rgOptions,
   selectedOption,
@@ -88,23 +122,8 @@ export function Dropdown({
   onChange?: (option: { data: unknown }) => void;
   menuLabel?: string;
 }) {
-  return (
-    <select
-      aria-label={menuLabel}
-      value={String(selectedOption)}
-      onChange={(event) => {
-        const option = rgOptions.find((item) => String(item.data) === event.target.value);
-        if (option) onChange?.(option);
-      }}
-      className="steam-select"
-    >
-      {rgOptions.map((option) => (
-        <option key={String(option.data)} value={String(option.data)}>
-          {option.label}
-        </option>
-      ))}
-    </select>
-  );
+  // On its own, Steam's dropdown fills its container (a labelled row sizes it to its value).
+  return <SteamSelect rgOptions={rgOptions} selectedOption={selectedOption} onChange={onChange} ariaLabel={menuLabel} style={{ display: "flex", width: "100%" }} />;
 }
 
 export function DropdownItem({
@@ -125,22 +144,8 @@ export function DropdownItem({
   return (
     <label className="steam-field-label" style={inline ? { display: "flex", alignItems: "center", gap: 12 } : undefined}>
       {label}
-      <select
-        // Inline, Steam keeps the menu as wide as its value, right-aligned beside the label.
-        style={inline ? { flex: "0 1 auto", marginTop: 0, marginLeft: "auto", width: "auto", minWidth: 0 } : undefined}
-        value={String(selectedOption)}
-        onChange={(event) => {
-          const option = rgOptions.find((item) => String(item.data) === event.target.value);
-          if (option) onChange(option);
-        }}
-        className="steam-select"
-      >
-        {rgOptions.map((option) => (
-          <option key={String(option.data)} value={String(option.data)}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+      {/* Inline, Steam keeps the menu as wide as its value, right-aligned beside the label. */}
+      <SteamSelect rgOptions={rgOptions} selectedOption={selectedOption} onChange={onChange} style={inline ? { marginTop: 0, marginLeft: "auto" } : undefined} />
     </label>
   );
 }
@@ -151,9 +156,13 @@ export function TextField({
   onChange,
   bIsPassword,
   bShowClearAction,
+  placeholder,
+  onKeyDown,
   "aria-label": ariaLabel,
 }: {
   "aria-label"?: string;
+  placeholder?: string;
+  onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   label?: string;
   value?: string;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -163,7 +172,7 @@ export function TextField({
   return (
     <label className={label ? "steam-field-label" : "steam-field-label steam-field-unlabelled"}>
       {label}
-      <input type={bIsPassword ? "password" : "text"} value={value} onChange={onChange} aria-label={ariaLabel} className="steam-input" />
+      <input type={bIsPassword ? "password" : "text"} value={value} onChange={onChange} onKeyDown={onKeyDown} placeholder={placeholder} aria-label={ariaLabel} className={value ? "steam-input" : "steam-input Placeholder"} />
       {bShowClearAction && value && (
         <button
           type="button"

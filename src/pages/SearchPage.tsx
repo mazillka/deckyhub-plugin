@@ -136,7 +136,14 @@ export function SearchPage() {
           <PanelSectionRow>
             <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <TextField {...({ "aria-label": t("repos.searchGithub") } as any)} value={query} onChange={(event) => setQuery(event.currentTarget.value)} />
+                {/* Enter on Steam's keyboard searches, so there's no trip over to the Search button. */}
+                <TextField
+                  aria-label={t("repos.searchGithub")}
+                  placeholder={t("search.placeholder")}
+                  value={query}
+                  onChange={(event) => setQuery(event.currentTarget.value)}
+                  onKeyDown={(event) => { if (event.key === "Enter" && !searching) void search(); }}
+                />
               </div>
               <div style={{ flex: "0 0 160px" }}>
                 <Button style={rowButtonStyle} onClick={() => void search()} disabled={searching}>

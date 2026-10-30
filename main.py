@@ -25,7 +25,7 @@ PLUGIN_DOWNLOAD_DIR = f"{DEFAULT_DOWNLOAD_DIR}/deckyhub"
 # api.github.com/repos/<repo>/releases with the user's token, so "../.." must not pass.
 REPOSITORY_NAME = re.compile(r"(?!\.+/)[A-Za-z0-9_.-]+/(?!\.+$)[A-Za-z0-9_.-]+")
 HIDEABLE_BUTTONS = ("downloadZip", "install", "update", "releasePage")
-SUPPORTED_LANGUAGES = {"auto", "en", "uk", "ru", "es", "de", "fr", "ja", "zh"}
+SUPPORTED_LANGUAGES = {"auto", "en", "uk", "ru", "es", "de", "fr", "pt", "ja", "ko", "zh", "zh-TW"}
 DEFAULT_COLUMNS_PER_ROW = 3
 ACTIVE_DOWNLOAD_STATES = ("queued", "downloading")
 

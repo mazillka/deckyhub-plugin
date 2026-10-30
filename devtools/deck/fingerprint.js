@@ -13,13 +13,14 @@
       radius: s.borderRadius, padding: s.padding.replace(/[d.]+px/g, (px) => `${Math.round(parseFloat(px) * (el.closest("[style*=zoom], .steam-page-content, .qam-content, .steam-modal-backdrop") ? 1 : 1))}px`), text: (el.textContent || "").trim().slice(0, 30),
     };
   };
-  const all = (selector, n = 4) => [...root.querySelectorAll(selector)].filter((el) => el.getBoundingClientRect().height > 0).slice(0, n).map(pick);
+  const all = (selector, n = 4) => [...root.querySelectorAll(selector)].map((el) => el.closest(".steam-select") ?? el).filter((el) => el.getBoundingClientRect().height > 0).slice(0, n).map(pick);
   return JSON.stringify({
     viewport: [innerWidth, innerHeight, devicePixelRatio, getComputedStyle(document.documentElement).zoom],
     root: pick(root),
     title: all("h1, h2", 2),
-    buttons: all("button, .DialogButton", 6),
-    inputs: all("input, select", 3),
+    // Steam draws a dropdown as a button; the mock as a <select>.
+    buttons: all("button, .DialogButton, select", 6),
+    inputs: all("input:not([type=checkbox]):not(.steam-select input)", 3),
     cards: all("h3", 3).map((h) => h),
     disclaimer: all(".deckyhub-disclaimer", 1),
     chips: all(".deckyhub-category-chips button, .deckyhub-category-chips .DialogButton", 3),

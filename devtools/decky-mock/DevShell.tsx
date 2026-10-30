@@ -3,7 +3,7 @@ import { showDownloadModal } from "../../src/components/DownloadProgress";
 import { en, type MessageKey } from "../../src/i18n/en";
 import pluginFactory from "../../src/index";
 import { reportRateLimit, substitute } from "../../src/utils";
-import { FaBatteryFull, FaBell, FaBolt, FaCog, FaPlug, FaSearch, FaUserFriends, FaWifi } from "react-icons/fa";
+import { FaBatteryFull, FaBell, FaBolt, FaCog, FaPlug, FaSearch, FaSlidersH, FaWifi } from "react-icons/fa";
 import { routerHook, tabsHook } from "./api";
 
 const previewText = (key: MessageKey, vars?: Record<string, string | number>) => substitute(en[key], vars);
@@ -139,33 +139,31 @@ export default function DevShell() {
           </div>
         ) : (
           <div className="game-backdrop">
+            <header className="steam-topbar"><span /><span className="steam-status"><FaSearch /><FaBell /><FaWifi /><FaBatteryFull className="steam-battery" /><strong>12:34 PM</strong><span className="steam-avatar" /></span></header>
+            {/* As on the Deck: Steam's tab strip on the panel's left, the open tab's title over its content. */}
             <aside className="qam-panel">
-              <header className="qam-header"><span className="qam-title">⋯ <span>Quick Access</span></span><span>⚙</span></header>
-              <div className="qam-body">
-                <div className="qam-main">
-                  {openTab ? (
-                    <div className="qam-content">{openTab.content}</div>
-                  ) : (
-                    <>
-                      <p className="qam-app-name">{descriptor.name}</p>
-                      <div className="qam-content">{descriptor.content}</div>
-                    </>
-                  )}
-                </div>
-                {/* Steam's tab rail; only Decky's tab and the ones plugins add do anything here. */}
-                <nav className="qam-tabs" aria-label="Quick Access tabs">
-                  <span aria-hidden><FaBell /></span>
-                  <span aria-hidden><FaUserFriends /></span>
-                  <span aria-hidden><FaCog /></span>
-                  <span aria-hidden><FaBolt /></span>
-                  <button aria-label="Decky" aria-pressed={!openTab} onClick={() => setQamTab(null)}><FaPlug /></button>
-                  {tabsHook.tabs.map((tab) => (
-                    <button key={tab.id} aria-label={`Quick Access tab ${tab.id}`} aria-pressed={openTab === tab} onClick={() => setQamTab(tab.id)}>{tab.icon}</button>
-                  ))}
-                </nav>
+              <nav className="qam-tabs" aria-label="Quick Access tabs">
+                <span aria-hidden><FaSlidersH /></span>
+                <span aria-hidden><FaBell /></span>
+                <span aria-hidden><FaCog /></span>
+                <span aria-hidden><FaBolt /></span>
+                <button aria-label="Decky" aria-pressed={!openTab} onClick={() => setQamTab(null)}><FaPlug /></button>
+                {tabsHook.tabs.map((tab) => (
+                  <button key={tab.id} aria-label={`Quick Access tab ${tab.id}`} aria-pressed={openTab === tab} onClick={() => setQamTab(tab.id)}>{tab.icon}</button>
+                ))}
+              </nav>
+              <div className="qam-main">
+                {openTab ? (
+                  <div className="qam-content">{openTab.content}</div>
+                ) : (
+                  <div className="qam-content">
+                    <div className="decky-mock-title">{descriptor.name}</div>
+                    {descriptor.content}
+                  </div>
+                )}
               </div>
-              <BottomBar hints={hints} />
             </aside>
+            <BottomBar hints={hints} />
           </div>
         )}
         </main>

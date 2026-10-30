@@ -22,6 +22,7 @@ export const fr: Record<MessageKey, string> = {
   "view.searchDescription": "Cherchez des plugins Decky sur GitHub. Installez-les tout de suite ou ajoutez-les pour suivre leurs mises à jour.",
   "view.searchTitle": "Rechercher et installer",
   "search.warning": "Les résultats viennent directement de GitHub. Personne ne les a vérifiés : ni DeckyHub, ni la boutique Decky. Un plugin peut tout faire sur votre Deck, n'installez donc que des plugins d'auteurs de confiance.",
+  "search.placeholder": "Nom du plugin, auteur ou fonction",
 
   "filter.search": "Rechercher",
   "filter.status": "Statut",

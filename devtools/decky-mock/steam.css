@@ -205,7 +205,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 /* ---- Measured on a real Deck through Steam's debugger (devtools/deck/compare.mjs). ---- */
 .steam-deck-full, .steam-modal, .qam-content { color: #dcdedf; }
 .steam-deck-full .steam-button, .steam-modal .steam-button, .qam-content .steam-button { background: rgba(255, 255, 255, .15); border-radius: 2px; }
-.steam-deck-full .steam-button:disabled, .steam-modal .steam-button:disabled { color: #6f757c; background: #131418; }
+.steam-button.Disabled, .steam-deck-full .steam-button.Disabled, .steam-modal .steam-button.Disabled { color: #fff; background: #131418; opacity: .4; cursor: default; }
 /* A section: its title 8px above the content, the next section 24px below. */
 .steam-deck-full .steam-panel { margin: 0 0 24px; padding: 0 16px; }
 .steam-deck-full .steam-panel-title, .steam-modal .steam-panel-title, .qam-content .steam-panel-title { margin: 0; padding-bottom: 8px; color: rgba(255, 255, 255, .7); font-size: 16px; font-weight: 600; line-height: 22px; letter-spacing: .5px; text-transform: uppercase; }
@@ -235,3 +235,26 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .steam-deck-full .steam-field-label:not(.steam-field-unlabelled):has(.steam-input), .steam-modal .steam-field-label:not(.steam-field-unlabelled):has(.steam-input) { margin-bottom: 22px; }
 /* A dropdown: its value, then Steam's solid triangle. */
 .steam-deck-full .steam-select, .steam-modal .steam-select { appearance: none; padding-right: 44px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M0 0h12L6 7z' fill='%23dcdedf'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; background-size: 12px 8px; }
+.steam-input::placeholder { color: #8b929a; opacity: 1; }
+/* Quick Access, measured on a Deck: 522x680 screen pixels at the right, between the bars; */
+/* Steam's 48px tab strip on its left (the open tab 10% white), then a 300px panel whose   */
+/* title is 22px bold on black. Everything inside is zoomed 1.5x like the rest of Steam.  */
+.game-backdrop .steam-topbar, .game-backdrop .steam-bottombar { position: absolute; left: 0; right: 0; z-index: 2; }
+.game-backdrop .steam-topbar { top: 0; }
+.game-backdrop .steam-bottombar { bottom: 0; }
+.qam-panel { top: 60px; bottom: 60px; height: auto; width: 522px; flex-direction: row; background: #000; border: 0; box-shadow: -16px 0 36px #0008; }
+.qam-tabs { flex: 0 0 72px; gap: 0; padding: 124px 0 0; color: #969696; font-size: 36px; background: #000; border-right: 1px solid #23262e; }
+.qam-tabs > * { width: 72px; height: 72px; border-radius: 0; }
+.qam-tabs > [aria-pressed="true"] { color: #fff; background: rgba(255, 255, 255, .1); }
+.qam-main { padding-top: 0; }
+.qam-content { padding: 0; scroll-padding-top: 54px; } /* clear of the sticky title, as on the Deck */
+.decky-mock-title { position: sticky; top: 0; min-height: 34px; margin-top: 14px; padding: 6px 16px 0; color: #fff; font-size: 22px; font-weight: 700; letter-spacing: 0; background: #000; }
+/* An empty text field shows its text (and placeholder) gray, as Steam's DialogInputPlaceholder does. */
+.steam-deck-full .steam-input.Placeholder, .steam-modal .steam-input.Placeholder { color: #8b929a; }
+/* The dropdown (see SteamSelect): value and triangle, 16px in from each side; focused, white. */
+.steam-deck-full .steam-select, .steam-modal .steam-select, .steam-select { position: relative; display: inline-flex; align-items: center; justify-content: space-between; gap: 12px; width: auto; max-width: 100%; min-height: 40px; padding: 10px 16px; line-height: 20px; color: #dcdedf; background: rgba(255, 255, 255, .15); background-image: none; border-radius: 2px; }
+.steam-select-value { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.steam-select > select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; font: inherit; }
+.steam-select:focus-within { color: #111; background: #fff; }
+/* A dropdown's row (DropdownItem) is 64px: 12px around the 40px control. */
+.steam-deck-full .steam-field-label:has(.steam-select), .steam-modal .steam-field-label:has(.steam-select) { padding: 12px; }

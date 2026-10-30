@@ -7,6 +7,7 @@ import assert from "node:assert/strict";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { after, before, test } from "node:test";
 import { connect, sleep, TARGETS, waitFor } from "./cdp.mjs";
+import { BUTTON, explore, press } from "./navigation.mjs";
 
 const TAB_ID = 0x444855; // src/components/QuickAccessTab.tsx
 const PAGES = ["discover", "updates", "search", "settings", "repositories"];
@@ -18,7 +19,9 @@ const errors = [];
 
 before(async () => {
   [shared, main, quickAccess] = await Promise.all([connect(TARGETS.shared), connect(TARGETS.main), connect(TARGETS.quickAccess)]);
-  startPath = await shared.eval("location.pathname.replace(/^\\/routes/, '')");
+  startPath = await shared.eval("location.pathname.slice('/routes'.length)");
+  // With the screen off Steam draws nothing and ignores the D-pad; a black frame is a tiny PNG.
+  if ((await main.screenshot()).length < 15000) throw new Error("The Deck's screen is off: wake it (press a button) and keep it awake while testing.");
   // Decky's plugins run in SharedJSContext: keep its errors that come from DeckyHub.
   await shared.send("Runtime.enable");
   shared.on(({ method, params }) => {
@@ -172,6 +175,30 @@ test("Settings: layout, language and token settings are there", async () => {
   await openPage("settings");
   const text = await main.eval(`document.querySelector(".deckyhub-motion").innerText`);
   for (const label of ["Language", "GitHub"]) assert.match(text, new RegExp(label), `no ${label} setting`);
+});
+
+// The D-pad, sweeping each page like a player would, reaches every control on it.
+for (const name of PAGES) {
+  test(`${name}: the D-pad reaches every control`, async () => {
+    await openPage(name);
+    const { missed } = await explore(shared, main);
+    assert.deepEqual(missed, []);
+  });
+}
+
+test("Quick Access: the D-pad reaches every control in DeckyHub's panel", async () => {
+  await openQuickAccess(TAB_ID);
+  const { missed } = await explore(shared, quickAccess);
+  assert.deepEqual(missed, []);
+});
+
+test("B leaves a DeckyHub page for the one before it", async () => {
+  await openPage("search");
+  await shared.eval(`DFL.Navigation.Navigate("/deckyhub/settings"); true`);
+  await waitFor(shared, `location.pathname.endsWith("/deckyhub/settings")`);
+  await sleep(1000);
+  await press(shared, BUTTON.BACK, 1500);
+  assert.match(await shared.eval("location.pathname"), /\/deckyhub\/search$/);
 });
 
 test("No DeckyHub errors in the console", () => {
