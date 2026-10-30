@@ -1,6 +1,9 @@
-import { Dropdown, Focusable, PanelSection, PanelSectionRow, TextField } from "@decky/ui";
+import { DialogButtonPrimary as Button, Dropdown, Focusable, PanelSection, PanelSectionRow, TextField } from "@decky/ui";
+import { useState } from "react";
+import { FaFilter } from "react-icons/fa";
 import { useT } from "../i18n";
 import { SORT_ORDERS, type SortOrder } from "../sorting";
+import { compactButtonStyle } from "../utils";
 import { Card } from "./Card";
 
 const labelStyle = { fontSize: "max(12px, 0.85em)" };
@@ -18,8 +21,9 @@ function Menu<T>({ label, options, selected, onChange }: { label: string; option
   );
 }
 
-// Discover's Search, Status, Category, Sort and Then by while browsing. Each Status
-// and Category option says how many plugins it would list next to the other filters.
+// Discover's Search while browsing, with Status, Category, Sort and Then by behind
+// a Filters button (it counts the ones narrowing the list), so the first plugins
+// show above the fold. Each Status and Category option says how many it would list.
 export function DiscoverFilters({
   query,
   onQuery,
@@ -50,18 +54,27 @@ export function DiscoverFilters({
   const t = useT();
   const withCount = (label: string, count: number) => `${label} (${count})`;
   const sorts = SORT_ORDERS.map((order) => ({ label: t(`sort.${order}`), data: order }));
+  const [open, setOpen] = useState(false);
+  const active = Number(installed !== "All") + Number(category !== "");
   return (
     <Card>
       <PanelSection>
-        {/* Search on its own line: beside four menus on a Deck it, and they, got cut off. */}
         <PanelSectionRow>
-          <div style={labelStyle}>
-            <div style={{ marginBottom: 4 }}>{t("filter.search")}</div>
-            <TextField {...({ "aria-label": t("filter.search") } as any)} value={query} bShowClearAction onChange={(event) => onQuery(event.currentTarget.value)} />
-          </div>
+          <Focusable flow-children="right" style={{ display: "flex", alignItems: "flex-end", gap: 12 }}>
+            <div style={{ ...labelStyle, flex: 1, minWidth: 0 }}>
+              <div style={{ marginBottom: 4 }}>{t("filter.search")}</div>
+              <TextField {...({ "aria-label": t("filter.search") } as any)} value={query} bShowClearAction onChange={(event) => onQuery(event.currentTarget.value)} />
+            </div>
+            <div style={{ flex: "0 0 180px" }}>
+              <Button style={{ ...compactButtonStyle, marginBottom: 0 }} {...({ "aria-expanded": open } as object)} onClick={() => setOpen(!open)}>
+                <FaFilter /> {active ? t("filter.filtersActive", { count: active }) : t("filter.filters")}
+              </Button>
+            </div>
+          </Focusable>
         </PanelSectionRow>
+        {open && (
         <PanelSectionRow>
-          <Focusable flow-children="right" style={{ display: "flex", gap: 12 }}>
+          <Focusable flow-children="right" style={{ display: "flex", gap: 12, marginTop: 8 }}>
             <Menu
               label={t("filter.status")}
               options={[
@@ -82,6 +95,7 @@ export function DiscoverFilters({
             <Menu label={t("filter.thenBy")} options={sorts} selected={thenBy} onChange={onThenBy} />
           </Focusable>
         </PanelSectionRow>
+        )}
       </PanelSection>
     </Card>
   );

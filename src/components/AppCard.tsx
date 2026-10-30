@@ -1,14 +1,14 @@
 import { DialogButtonPrimary as Button, Focusable, Navigation, showModal } from "@decky/ui";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { FaArrowUp, FaCog, FaPlus } from "react-icons/fa";
 import { useT } from "../i18n";
 import type { App, Asset, HideableButton, RepoPreference, UpdateChannel } from "../types";
-import { compactButtonStyle, cardDescriptionStyle, ellipsis, installAction, PLUGIN_INSTALL_TYPE, statusKey, statusColor, surfaceStyle, visuallyHidden } from "../utils";
+import { compactButtonStyle, cardDescriptionStyle, ellipsis, installAction, isInstalling, PLUGIN_INSTALL_TYPE, statusKey, statusColor, subscribeInstalling, surfaceStyle, visuallyHidden } from "../utils";
 import { displayVersion } from "../version";
 import { AppDetailsModal } from "./AppDetailsModal";
 import { startPluginInstall } from "./InstallFlow";
 import { AppBadges, AppMonogram, AppStats, pillStyle } from "./AppBadges";
-import { showReleaseInfo } from "./ReleaseInfo";
+import { plainNotes, showReleaseInfo } from "./ReleaseInfo";
 
 // Card chrome. The top border takes the status color (see statusColor()).
 const cardStyle = {
@@ -60,9 +60,16 @@ export function AppCard({
   const [installing, setInstalling] = useState(false);
   const latest = app.latestVersion ? displayVersion(app.latestVersion).replace(/^v/, "") : "";
   const quickLabel = t(isUpdate ? "settings.updateTo" : "appcard.installVersion", { version: latest });
-  const accent = statusColor(app) ?? "#8fcef4";
-  const statusPill = <span style={{ ...pillStyle, color: accent, background: `${accent}22`, borderColor: `${accent}66` }}>{t(statusKey(app))}</span>;
+  const notes = isUpdate ? plainNotes(app.releaseNotes).replace(/\s+/g, " ") : "";
+  // Decky is installing it now (after its confirmation): say so until it finishes.
+  const deckyInstalling = useSyncExternalStore(subscribeInstalling, () => Boolean(install && isInstalling(install.name)));
+  const accent = deckyInstalling ? "#1a9fff" : statusColor(app) ?? "#8fcef4";
+  const statusPill = <span style={{ ...pillStyle, color: accent, background: `${accent}22`, borderColor: `${accent}66` }}>{deckyInstalling ? t("status.installing") : t(statusKey(app))}</span>;
   const row = layout === "row";
+  // Stable is the default, so only a pre-release override earns a pill.
+  const channelPill = app.channel === "prerelease" && (
+    <span style={{ ...pillStyle, color: "#ffa94d", background: "#ffa94d22", borderColor: "#ffa94d66" }}>{t("appcard.channel", { channel: t("appcard.channelPrerelease") })}</span>
+  );
   // Install/Update, with Manage as a gear beside it; Manage alone takes the full width.
   const actions = (
       <Focusable flow-children="right" style={{ display: "flex", gap: 8, ...(row ? {} : { ...fullRow, marginTop: "auto" }) }}>
@@ -70,7 +77,8 @@ export function AppCard({
           <div style={{ flex: 1, minWidth: 0 }}>
           <Button
             style={{ ...compactButtonStyle, marginBottom: 0 }}
-            disabled={installing}
+            disabled={installing || deckyInstalling}
+            {...(row && { "aria-label": quickLabel })}
             onSecondaryButton={() => showReleaseInfo(t, `${app.name} v${latest}`, app.publishedAt, app.releaseNotes)}
             onSecondaryActionDescription={t("appcard.releaseInfo")}
             // X downloads the same release's ZIP instead of installing it.
@@ -84,7 +92,9 @@ export function AppCard({
               void startPluginInstall(t, app.name, app.repo, app.assets[0], app.latestVersion!, install, quickLabel, leavePage).finally(() => setInstalling(false));
             }}
           >
-            {isUpdate ? <FaArrowUp /> : <FaPlus />} <span style={ellipsis}>{quickLabel}</span>
+            {/* A row's Latest line names the version, so its button can say just Update / Install
+                ("Update to v0.9.…" got cut short); its accessible name stays complete. */}
+            {isUpdate ? <FaArrowUp /> : <FaPlus />} <span style={ellipsis}>{deckyInstalling ? t("status.installing") : row ? t(isUpdate ? "appcard.update" : "appcard.install") : quickLabel}</span>
           </Button>
           </div>
       )}
@@ -119,14 +129,25 @@ export function AppCard({
         <AppMonogram app={app} style={{ gridRow: "1 / 3", width: 40, height: 40, fontSize: "0.85em" }} />
         {/* Name, with the description under it. */}
         <h3 style={{ ...cardTitleStyle, gridColumn: 2, gridRow: 1 }}>{app.name}</h3>
-        <small style={{ gridColumn: 2, gridRow: 2, color: "#b8c7d3", ...ellipsis }}>{app.error || app.description}</small>
+        {/* An update's row says what it brings instead of what the plugin is. */}
+        {!app.error && notes ? (
+          <small className="deckyhub-card-notes" style={{ gridColumn: 2, gridRow: 2, color: "#d8e6f0", ...ellipsis }}>
+            <strong style={{ color: "#f0c33c" }}>{t("details.whatsNew", { version: `v${latest}` })}:</strong> {notes}
+          </small>
+        ) : (
+          <small style={{ gridColumn: 2, gridRow: 2, color: "#b8c7d3", ...ellipsis }}>{app.error || app.description}</small>
+        )}
         {/* Status and badges, then the stats on one line under them. */}
         <div style={{ gridColumn: 3, gridRow: 1, display: "flex", flexWrap: "wrap", alignItems: "center", gap: "2px 10px" }}>
           {statusPill}
+          {channelPill}
           <AppBadges app={app} t={t} />
         </div>
-        <div style={{ gridColumn: 3, gridRow: 2, display: "flex", gap: 10, color: "#8b9aa7", fontSize: "max(12px, 0.8em)", ...ellipsis }}>
-          <AppStats app={app} t={t} />
+        {/* The release an Install / Update gives, then the stats. */}
+        <div style={{ gridColumn: 3, gridRow: 2, display: "flex", gap: 10, minWidth: 0, overflow: "hidden", whiteSpace: "nowrap", color: "#8b9aa7", fontSize: "max(12px, 0.8em)" }}>
+          {/* A long version ("v2025.10.27-dddf365") gives way with "…"; the counts always show. */}
+          <span style={{ ...ellipsis, color: "#c3cfd9" }}>{t("settings.latestVersion", { version: app.latestVersion ? displayVersion(app.latestVersion) : app.error ? "—" : t("settings.checkingUpdate") })}</span>
+          <AppStats app={app} t={t} noUpdated />
         </div>
         <div style={{ gridColumn: 4, gridRow: "1 / 3" }}>{actions}</div>
       </div>
@@ -140,10 +161,7 @@ export function AppCard({
       <small style={categoryStyle}>{app.category}</small>
       <div style={fullRow}>
         {statusPill}
-        {/* Stable is the default, so only a pre-release override earns a pill. */}
-        {app.channel === "prerelease" && (
-          <span style={{ ...pillStyle, color: "#ffa94d", background: "#ffa94d22", borderColor: "#ffa94d66" }}>{t("appcard.channel", { channel: t("appcard.channelPrerelease") })}</span>
-        )}
+        {channelPill}
         <AppBadges app={app} t={t} />
       </div>
       <small style={{ ...cardDescriptionStyle, ...fullRow, display: "-webkit-box", color: "#b8c7d3" }}>{app.description || " "}</small>
@@ -154,6 +172,12 @@ export function AppCard({
         <AppStats app={app} t={t} />
       </div>
       {app.error && <small style={{ ...fullRow, color: "#ff6b6b", overflowWrap: "anywhere" }}>{app.error}</small>}
+      {/* What an update brings, so you can decide on the card; Y (Release Info) reads it all. */}
+      {isUpdate && notes && (
+        <small className="deckyhub-card-notes" style={{ ...cardDescriptionStyle, ...fullRow, display: "-webkit-box", color: "#d8e6f0", borderLeft: "2px solid #f0c33c", paddingLeft: 8 }}>
+          <strong style={{ color: "#f0c33c" }}>{t("details.whatsNew", { version: `v${latest}` })}:</strong> {notes}
+        </small>
+      )}
       {actions}
     </div>
   );

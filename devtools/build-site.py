@@ -2,7 +2,7 @@
 
 Copies docs/, writes mazillka/deckyhub-registry's catalog into index.html
 so crawlers see it without JavaScript, and makes WebP screenshots plus a JPEG
-link-preview image from screenshots/. Needs Pillow (CI-only, not a plugin dependency).
+link-preview image (screenshots/hero.jpg) from screenshots/. Needs Pillow (CI-only, not a plugin dependency).
 """
 import json
 import shutil
@@ -37,4 +37,5 @@ for shot in (ROOT / "screenshots").glob("*.jpg"):
     image = Image.open(shot)
     image.save(img / f"{shot.stem}.webp", quality=78, method=6)
     image.resize((640, round(image.height * 640 / image.width)), Image.LANCZOS).save(img / f"{shot.stem}-640.webp", quality=78, method=6)
-shutil.copy(ROOT / "screenshots" / "discover.jpg", img / "og.jpg")
+# The promo hero (16:9) suits link previews better than a bare screenshot.
+shutil.copy(ROOT / "screenshots" / "hero.jpg", img / "og.jpg")

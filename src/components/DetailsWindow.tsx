@@ -1,11 +1,11 @@
-import { DropdownItem, ModalRoot } from "@decky/ui";
+import { DropdownItem, Focusable, ModalRoot } from "@decky/ui";
 import type { ReactNode } from "react";
 import type { TFunc } from "../i18n/en";
 import { MotionStyle } from "../motion";
 import type { UpdateChannel } from "../types";
 import { surfaceStyle } from "../utils";
 import { displayVersion } from "../version";
-import { plainNotes } from "./ReleaseInfo";
+import { plainNotes, showReleaseInfo } from "./ReleaseInfo";
 import { keepInView } from "./KeepInView";
 
 // How much of the release notes the window shows; Y on the main button opens them in full.
@@ -86,21 +86,28 @@ export function DetailsWindow({
             <div style={{ flex: "1 1 300px", display: "grid", gap: 10, minWidth: 0 }}>
               <div onFocus={keepInView} style={{ display: "grid", gap: 4, padding: "8px 12px", background: "rgba(0, 0, 0, 0.2)", borderRadius: 10 }}>
                 <h3 style={sectionTitleStyle}>{t("settings.version")}</h3>
-                <DropdownItem
-                  layout="below"
-                  bottomSeparator="none"
-                  label={t("settings.updateChannel")}
-                  rgOptions={[
-                    { label: t("settings.stableReleases"), data: "stable" },
-                    { label: t("settings.preReleases"), data: "prerelease" },
-                  ]}
-                  selectedOption={channel}
-                  disabled={disabled}
-                  onChange={({ data }) => onChannelChange(data as UpdateChannel)}
-                />
-                {versionOptions.length > 0 && (
-                  <DropdownItem layout="below" bottomSeparator="none" label={t("settings.version")} rgOptions={versionOptions} selectedOption={selectedTag} disabled={disabled} onChange={({ data }) => onVersionChange(String(data))} />
-                )}
+                {/* Channel and version side by side; the version gets more room for long tags. */}
+                <Focusable flow-children="right" className="deckyhub-version-pickers" style={{ display: "grid", gridTemplateColumns: versionOptions.length > 0 ? "minmax(0, 2fr) minmax(0, 3fr)" : "minmax(0, 1fr)", gap: 12, alignItems: "end" }}>
+                  <div style={{ minWidth: 0 }}>
+                    <DropdownItem
+                      layout="below"
+                      bottomSeparator="none"
+                      label={t("settings.updateChannel")}
+                      rgOptions={[
+                        { label: t("settings.stableReleases"), data: "stable" },
+                        { label: t("settings.preReleases"), data: "prerelease" },
+                      ]}
+                      selectedOption={channel}
+                      disabled={disabled}
+                      onChange={({ data }) => onChannelChange(data as UpdateChannel)}
+                    />
+                  </div>
+                  {versionOptions.length > 0 && (
+                    <div style={{ minWidth: 0 }}>
+                      <DropdownItem layout="below" bottomSeparator="none" label={t("settings.version")} rgOptions={versionOptions} selectedOption={selectedTag} disabled={disabled} onChange={({ data }) => onVersionChange(String(data))} />
+                    </div>
+                  )}
+                </Focusable>
                 {error && <small style={{ color: "#ff6b6b" }}>{error}</small>}
                 {isEmpty && <small style={{ color: "#ff6b6b" }}>{t("settings.noReleasesFound")}</small>}
               </div>
@@ -108,14 +115,17 @@ export function DetailsWindow({
               {footer}
             </div>
             <div onFocus={keepInView} style={{ flex: "999 1 360px", display: "grid", gap: 16, minWidth: 0 }}>
+              {/* Each text section is a D-pad stop: Steam only scrolls to follow focus, so
+                  without them the window couldn't scroll down to the notes (seen on a Deck). */}
               {description && (
-                <section style={{ display: "grid", gap: 6 }}>
+                <Focusable className="deckyhub-details-section" onActivate={() => {}} onFocus={keepInView} style={{ display: "grid", gap: 6 }}>
                   <h3 style={sectionTitleStyle}>{t("details.about")}</h3>
                   <div className="deckyhub-details-description" style={{ color: "#e6eef4", fontSize: 16, lineHeight: 1.5, overflowWrap: "anywhere" }}>{description}</div>
-                </section>
+                </Focusable>
               )}
               {release && (
-                <section style={{ display: "grid", gap: 6 }}>
+                // A opens the notes in full; here they stop after a preview.
+                <Focusable className="deckyhub-details-section" onActivate={() => showReleaseInfo(t, `${title} ${displayVersion(release.tag)}`, release.publishedAt, release.notes)} onFocus={keepInView} style={{ display: "grid", gap: 6 }}>
                   <h3 style={sectionTitleStyle}>
                     {t("details.whatsNew", { version: displayVersion(release.tag) })}
                     {release.publishedAt && <span style={{ marginLeft: 10, fontWeight: 400, letterSpacing: 0, textTransform: "none" }}>{new Date(release.publishedAt).toLocaleDateString()}</span>}
@@ -123,7 +133,7 @@ export function DetailsWindow({
                   <div className="deckyhub-details-notes" style={{ ...surfaceStyle, padding: "12px 14px", color: "#c3cfd9", fontSize: 14, lineHeight: 1.5, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
                     {notesPreview || t("appcard.noReleaseNotes")}
                   </div>
-                </section>
+                </Focusable>
               )}
             </div>
           </div>

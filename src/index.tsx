@@ -1,8 +1,8 @@
 import { addEventListener, definePlugin, removeEventListener, routerHook } from "@decky/api";
 import { staticClasses } from "@decky/ui";
 import type { ReactNode } from "react";
-import { FaGithub } from "react-icons/fa";
 import { REGISTRY_UPDATED } from "./api";
+import { DeckyHubIcon } from "./components/DeckyHubIcon";
 import { addQuickAccessTab, removeQuickAccessTab } from "./components/QuickAccessTab";
 import { I18nProvider } from "./i18n";
 import { Content } from "./pages/Content";
@@ -52,7 +52,7 @@ export default definePlugin(() => {
     name: "DeckyHub",
     titleView: <div className={staticClasses.Title}>DeckyHub</div>,
     content,
-    icon: <FaGithub />,
+    icon: <DeckyHubIcon />,
     onDismount() {
       removeQuickAccessTab();
       markUnloaded();

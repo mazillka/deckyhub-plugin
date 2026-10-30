@@ -8,7 +8,8 @@ import { createRoot } from "react-dom/client";
 export function PanelSection({ title, children }: { title?: ReactNode; children?: ReactNode }) {
   return (
     <section className="steam-panel">
-      {title && <h3 className="steam-panel-title">{title}</h3>}
+      {/* A div like Steam's, still a heading for the tests that find sections by title. */}
+      {title && <div className="steam-panel-title" role="heading" aria-level={3}>{title}</div>}
       {children}
     </section>
   );
@@ -30,6 +31,7 @@ export function Button({
   onMenuButton,
   onMenuActionDescription,
   "aria-label": ariaLabel,
+  "aria-expanded": ariaExpanded,
 }: {
   onClick?: () => void;
   disabled?: boolean;
@@ -42,16 +44,20 @@ export function Button({
   onMenuButton?: () => void;
   onMenuActionDescription?: string;
   "aria-label"?: string;
+  "aria-expanded"?: boolean;
 }) {
   // Stands in for Steam's footer legend: "y"/"x"/"m" act as the Y/X/Menu buttons, and DevShell's
   // bottom bar shows data-secondary-hint/data-options-hint/data-menu-hint while this is focused.
   return (
+    // Like Steam's DialogButton, a disabled button stays focusable (the D-pad can land
+    // on it) but is dimmed and ignores presses.
     <button
-      onClick={onClick}
-      disabled={disabled}
-      className="steam-button"
+      onClick={disabled ? undefined : onClick}
+      aria-disabled={disabled || undefined}
+      className={disabled ? "steam-button Disabled" : "steam-button"}
       style={style}
       aria-label={ariaLabel}
+      aria-expanded={ariaExpanded}
       data-secondary-hint={onSecondaryButton ? onSecondaryActionDescription : undefined}
       data-options-hint={onOptionsButton ? onOptionsActionDescription : undefined}
       data-menu-hint={onMenuButton ? onMenuActionDescription : undefined}
@@ -76,6 +82,38 @@ export function ModalRoot({ children, bAllowFullSize }: { children?: ReactNode; 
   );
 }
 
+// Steam's dropdown: a button as wide as its current value, then a solid triangle.
+// A transparent native <select> covers it, so it still opens and can be chosen from.
+function SteamSelect({ rgOptions, selectedOption, onChange, ariaLabel, style }: {
+  rgOptions: { label: ReactNode; data: unknown }[];
+  selectedOption: unknown;
+  onChange?: (option: { data: unknown }) => void;
+  ariaLabel?: string;
+  style?: CSSProperties;
+}) {
+  const selected = rgOptions.find((option) => String(option.data) === String(selectedOption));
+  return (
+    <span className="steam-select" style={style}>
+      <span className="steam-select-value">{selected?.label}</span>
+      <svg viewBox="0 0 12 8" width="12" height="8" aria-hidden><path d="M0 0h12L6 7z" fill="currentColor" /></svg>
+      <select
+        aria-label={ariaLabel}
+        value={String(selectedOption)}
+        onChange={(event) => {
+          const option = rgOptions.find((item) => String(item.data) === event.target.value);
+          if (option) onChange?.(option);
+        }}
+      >
+        {rgOptions.map((option) => (
+          <option key={String(option.data)} value={String(option.data)}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </span>
+  );
+}
+
 export function Dropdown({
   rgOptions,
   selectedOption,
@@ -87,23 +125,8 @@ export function Dropdown({
   onChange?: (option: { data: unknown }) => void;
   menuLabel?: string;
 }) {
-  return (
-    <select
-      aria-label={menuLabel}
-      value={String(selectedOption)}
-      onChange={(event) => {
-        const option = rgOptions.find((item) => String(item.data) === event.target.value);
-        if (option) onChange?.(option);
-      }}
-      className="steam-select"
-    >
-      {rgOptions.map((option) => (
-        <option key={String(option.data)} value={String(option.data)}>
-          {option.label}
-        </option>
-      ))}
-    </select>
-  );
+  // On its own, Steam's dropdown fills its container (a labelled row sizes it to its value).
+  return <SteamSelect rgOptions={rgOptions} selectedOption={selectedOption} onChange={onChange} ariaLabel={menuLabel} style={{ display: "flex", width: "100%" }} />;
 }
 
 export function DropdownItem({
@@ -124,22 +147,8 @@ export function DropdownItem({
   return (
     <label className="steam-field-label" style={inline ? { display: "flex", alignItems: "center", gap: 12 } : undefined}>
       {label}
-      <select
-        // Inline, Steam keeps the menu as wide as its value, right-aligned beside the label.
-        style={inline ? { flex: "0 1 auto", marginTop: 0, marginLeft: "auto", width: "auto", minWidth: 0 } : undefined}
-        value={String(selectedOption)}
-        onChange={(event) => {
-          const option = rgOptions.find((item) => String(item.data) === event.target.value);
-          if (option) onChange(option);
-        }}
-        className="steam-select"
-      >
-        {rgOptions.map((option) => (
-          <option key={String(option.data)} value={String(option.data)}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+      {/* Inline, Steam keeps the menu as wide as its value, right-aligned beside the label; below it, as wide as the field. */}
+      <SteamSelect rgOptions={rgOptions} selectedOption={selectedOption} onChange={onChange} style={inline ? { marginTop: 0, marginLeft: "auto" } : { display: "flex", width: "100%", marginTop: 6 }} />
     </label>
   );
 }
@@ -150,9 +159,13 @@ export function TextField({
   onChange,
   bIsPassword,
   bShowClearAction,
+  placeholder,
+  onKeyDown,
   "aria-label": ariaLabel,
 }: {
   "aria-label"?: string;
+  placeholder?: string;
+  onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   label?: string;
   value?: string;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -162,7 +175,7 @@ export function TextField({
   return (
     <label className={label ? "steam-field-label" : "steam-field-label steam-field-unlabelled"}>
       {label}
-      <input type={bIsPassword ? "password" : "text"} value={value} onChange={onChange} aria-label={ariaLabel} className="steam-input" />
+      <input type={bIsPassword ? "password" : "text"} value={value} onChange={onChange} onKeyDown={onKeyDown} placeholder={placeholder} aria-label={ariaLabel} className={value ? "steam-input" : "steam-input Placeholder"} />
       {bShowClearAction && value && (
         <button
           type="button"
@@ -188,9 +201,10 @@ export function ToggleField({ label, checked, onChange }: { label?: string; chec
 
 // Steam's gamepad buttons the plugin listens for; the mock maps "[" / "]" to L1 / R1.
 export const GamepadButton = { BUMPER_LEFT: 5, BUMPER_RIGHT: 6 };
+export enum NavEntryPositionPreferences { FIRST, LAST, MAINTAIN_X, MAINTAIN_Y, PREFERRED_CHILD }
 
 export function Focusable({ style, children, ...rest }: { style?: CSSProperties; children?: ReactNode; [key: string]: unknown }) {
-  const { "flow-children": flowChildren, noFocusRing: _noFocusRing, onActivate, onCancel: _onCancel, onButtonDown, onCancelButton, onCancelActionDescription: _onCancelActionDescription, ...divProps } = rest;
+  const { "flow-children": flowChildren, noFocusRing: _noFocusRing, onActivate, onCancel: _onCancel, onButtonDown, onCancelButton, onCancelActionDescription: _onCancelActionDescription, navEntryPreferPosition: _navEntryPreferPosition, ...divProps } = rest;
   // "Escape" stands in for B where a Focusable handles it.
   const bumper = onButtonDown || onCancelButton
     ? (event: React.KeyboardEvent) => {

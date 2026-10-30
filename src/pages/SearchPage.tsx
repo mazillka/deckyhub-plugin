@@ -11,9 +11,10 @@ import { useEffect, useState } from "react";
 import { FaSearch, FaTimes } from "react-icons/fa";
 import { addCustomRepo, downloadAsset, getApps, getSettings, REGISTRY_UPDATED } from "../api";
 import { useT } from "../i18n";
+import { Notice } from "../components/Notice";
 import type { HideableButton, SearchRepo } from "../types";
 import { displayVersion } from "../version";
-import { compactButtonStyle, disclaimerStyle, githubFetch, githubResponseError, hydrate, installAction, manifestName, installTypeLabel, log } from "../utils";
+import { compactButtonStyle, githubFetch, githubResponseError, hydrate, installAction, manifestName, installTypeLabel, log } from "../utils";
 
 // No bottom margin, so the buttons line up with the search field beside them.
 const rowButtonStyle = { ...compactButtonStyle, marginBottom: 0 };
@@ -127,7 +128,7 @@ export function SearchPage() {
     <>
       <RateLimitBanner />
       <PageHeader icon={<FaSearch />} title={t("view.searchTitle")} description={t("view.searchDescription")} />
-      <div className="deckyhub-search-warning" style={disclaimerStyle}>{t("search.warning")}</div>
+      <Notice className="deckyhub-search-warning" text={t("search.warning")} />
       <Card>
         {/* The label is the section title rather than TextField's own, so the field and
             buttons share one centre line and the card is padded evenly top and bottom
@@ -136,7 +137,14 @@ export function SearchPage() {
           <PanelSectionRow>
             <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <TextField {...({ "aria-label": t("repos.searchGithub") } as any)} value={query} onChange={(event) => setQuery(event.currentTarget.value)} />
+                {/* Enter on Steam's keyboard searches, so there's no trip over to the Search button. */}
+                <TextField
+                  aria-label={t("repos.searchGithub")}
+                  placeholder={t("search.placeholder")}
+                  value={query}
+                  onChange={(event) => setQuery(event.currentTarget.value)}
+                  onKeyDown={(event) => { if (event.key === "Enter" && !searching) void search(); }}
+                />
               </div>
               <div style={{ flex: "0 0 160px" }}>
                 <Button style={rowButtonStyle} onClick={() => void search()} disabled={searching}>

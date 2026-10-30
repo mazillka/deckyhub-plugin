@@ -21,6 +21,7 @@ export const en = {
   "view.searchDescription": "Search GitHub for Decky plugins. Install one straight away, or add it to track its updates.",
   "view.searchTitle": "Search & Install",
   "search.warning": "Search results come straight from GitHub. Nobody has reviewed them: not DeckyHub, not the Decky store. A plugin can do anything on your Deck, so only install plugins from authors you trust.",
+  "search.placeholder": "Plugin name, author or feature",
 
   "filter.search": "Search",
   "filter.status": "Status",
@@ -201,6 +202,24 @@ export const en = {
   "repos.exportedTo": "Exported to {path}",
   "repos.imported": "Imported: {repos}",
   "repos.nothingToImport": "No new repositories to import.",
+  "notice.more": "More",
+  "notice.less": "Less",
+  "filter.filters": "Filters",
+  "filter.filtersActive": "Filters ({count})",
+  "search.byOwner": "by {owner}",
+  "search.inDeckyHub": "In DeckyHub",
+  "settings.githubTokenShort": "Optional: a GitHub token raises the limit from 60 to 5,000 requests an hour.",
+  "settings.githubTokenWhy": "Why?",
+  "settings.loadTokenFile": "Load from file",
+  "settings.tokenLoaded": "Token loaded. Press Save Settings to keep it.",
+  "settings.tokenNotFound": "No GitHub token found in that file.",
+  "status.installing": "Installing…",
+  "toast.installed": "{name} installed.",
+  "toast.installedVersion": "{name} {version} installed.",
+  "welcome.title": "Welcome to DeckyHub",
+  "welcome.body": "Install and update Decky plugins straight from their authors' GitHub releases. Browse them here in Discover, find more with Search, and keep them current in Updates.",
+  "welcome.safety": "Nobody reviews these plugins, DeckyHub included. Install only plugins from authors you trust; DeckyHub always asks before installing anything.",
+  "welcome.gotIt": "Got it",
 };
 
 export type MessageKey = keyof typeof en;

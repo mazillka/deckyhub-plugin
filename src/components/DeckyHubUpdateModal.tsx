@@ -1,7 +1,8 @@
 import { toaster } from "@decky/api";
 import { DialogButtonPrimary as Button } from "@decky/ui";
 import { useState } from "react";
-import { FaDownload, FaFileArchive, FaGithub, FaTimes } from "react-icons/fa";
+import { DeckyHubIcon } from "./DeckyHubIcon";
+import { FaDownload, FaFileArchive, FaTimes } from "react-icons/fa";
 import { downloadAsset, getSettings, saveSettings } from "../api";
 import type { TFunc } from "../i18n/en";
 import type { Asset, DeckyHubInfo, DeckyHubReleaseOption, UpdateChannel, HideableButton } from "../types";
@@ -105,7 +106,7 @@ export function DeckyHubUpdateModal({
     <DetailsWindow
       t={t}
       closeModal={closeModal}
-      icon={<div aria-hidden style={{ ...iconTileStyle, width: 72, height: 72, borderRadius: 16, fontSize: 34 }}><FaGithub /></div>}
+      icon={<div aria-hidden style={{ ...iconTileStyle, width: 72, height: 72, borderRadius: 16, fontSize: 34 }}><DeckyHubIcon /></div>}
       title={t("settings.deckyhubUpdate")}
       aside="mazillka/deckyhub-plugin"
       meta={<span>{t("settings.installedVersion", { version: `v${info.version}` })}</span>}

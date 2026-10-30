@@ -24,8 +24,10 @@ PLUGIN_DOWNLOAD_DIR = f"{DEFAULT_DOWNLOAD_DIR}/deckyhub"
 # owner/name, where neither part is only dots: the frontend puts this straight into
 # api.github.com/repos/<repo>/releases with the user's token, so "../.." must not pass.
 REPOSITORY_NAME = re.compile(r"(?!\.+/)[A-Za-z0-9_.-]+/(?!\.+$)[A-Za-z0-9_.-]+")
+# A GitHub token: classic (ghp_ and kin) or fine-grained (github_pat_).
+GITHUB_TOKEN = re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{60,})\b")
 HIDEABLE_BUTTONS = ("downloadZip", "install", "update", "releasePage")
-SUPPORTED_LANGUAGES = {"auto", "en", "uk", "ru", "es", "de", "fr", "ja", "zh"}
+SUPPORTED_LANGUAGES = {"auto", "en", "uk", "ru", "es", "de", "fr", "pt", "ja", "ko", "zh", "zh-TW"}
 DEFAULT_COLUMNS_PER_ROW = 3
 ACTIVE_DOWNLOAD_STATES = ("queued", "downloading")
 
@@ -539,6 +541,22 @@ class Plugin:
 
         # Compressing the logs can take a while; keep Decky's event loop free meanwhile.
         return {"path": str(await asyncio.to_thread(export))}
+
+    async def read_token_file(self, path: str):
+        """A GitHub token from a small text file the user picked in /home/deck (typing
+        one on the Deck's keyboard is painful). Returns it for the token field; Save
+        stores it. Never logs the file's contents."""
+        source = Path(path).resolve()
+        deck_home = Path(DEFAULT_DOWNLOAD_DIR).parent.resolve()
+        if not source.is_relative_to(deck_home) or not source.is_file() or source.stat().st_size > 4096:
+            decky.logger.error("Refused to read a token from %s: not a small file inside /home/deck", source)
+            raise ValueError("Choose a small text file inside /home/deck")
+        match = GITHUB_TOKEN.search(source.read_text(encoding="utf-8", errors="replace"))
+        if not match:
+            decky.logger.info("No GitHub token in %s", source)
+            return {"token": None}
+        decky.logger.info("Read a GitHub token from %s", source)
+        return {"token": match.group(0)}
 
     async def import_custom_repos(self, path: str):
         source = Path(path).resolve()

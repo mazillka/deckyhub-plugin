@@ -7,14 +7,15 @@ import { compactButtonStyle } from "../utils";
 export type Layout = "grid" | "list";
 
 // Discover, Updates and Search share one grid/list choice, remembered on this device.
+// The list is the default: more plugins per screen, each on one line.
 const LAYOUT_KEY = "deckyhub-layout";
 
 export function useLayout() {
   const [layout, setLayout] = useState<Layout>(() => {
     try {
-      return localStorage.getItem(LAYOUT_KEY) === "list" ? "list" : "grid";
+      return localStorage.getItem(LAYOUT_KEY) === "grid" ? "grid" : "list";
     } catch {
-      return "grid";
+      return "list";
     }
   });
   const change = (next: Layout) => {

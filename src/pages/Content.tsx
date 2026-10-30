@@ -21,6 +21,7 @@ import { Card, useSwapAnimation } from "../components/Card";
 import { useLayout } from "../components/LayoutToggle";
 import { useApps } from "../hooks/useApps";
 import { RateLimitBanner } from "../components/RateLimitBanner";
+import { Welcome } from "../components/Welcome";
 
 
 
@@ -148,7 +149,9 @@ export function Content({ fullPage }: { fullPage?: View }) {
   };
   // Biggest categories first, as chips on the home.
   const categoryCounts = categories.map((category) => [category, apps.filter((app) => app.category === category).length] as const).sort((a, b) => b[1] - a[1]);
-  const shelf = (order: SortOrder) => [...apps].sort((a, b) => compareBy(order, a, b, apps) || compareBy("az", a, b, apps)).slice(0, columnsPerRow);
+  // A shelf is one row of cards, or in the list view a few rows (it follows the Grid / List choice).
+  const shelfSize = layout === "list" ? 4 : columnsPerRow;
+  const shelf = (order: SortOrder) => [...apps].sort((a, b) => compareBy(order, a, b, apps) || compareBy("az", a, b, apps)).slice(0, shelfSize);
   const updateCount = apps.filter((app) => app.updateAvailable).length;
   // Decky plugins the Updates page can update in one batch (see updateDeckyPlugins).
   const batchUpdates = view === "updates" && !hiddenButtons.includes("update")
@@ -187,6 +190,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
 
   const page = (
       <>
+      {view === "discover" && <Welcome />}
       {loading && (
         <PanelSection>
           <PanelSectionRow>
@@ -218,7 +222,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
               : totalDownloads > 0 && <span className="deckyhub-total-downloads" title={t("view.totalDownloads", { count: totalDownloads.toLocaleString() })} style={{ color: "#8b9aa7", fontSize: "max(12px, 0.7em)", fontWeight: 400 }}>{t("view.totalDownloads", { count: compactNumber(totalDownloads) })}</span>}
             description={browsing ? t("discover.pluginCount", { count: visibleApps.length }) : info.description}
             onBack={browsing ? () => setBrowsing(false) : undefined}
-            layout={browsing || view === "updates" ? layout : undefined}
+            layout={layout}
             onLayout={setLayout}
             onRefresh={() => void load(true)}
             updateAllCount={batchUpdates.length}
@@ -227,7 +231,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
           />
           <div ref={swapRef}>
           {home ? (
-            <DiscoverHome total={apps.length} categories={categoryCounts} shelf={shelf} onBrowse={openBrowse} renderGrid={renderGrid} />
+            <DiscoverHome total={apps.length} categories={categoryCounts} shelf={shelf} onBrowse={openBrowse} renderGrid={(items) => layout === "list" ? <AppList apps={items} layout="list" columns={1} renderCard={renderCard} /> : renderGrid(items)} />
           ) : (
             // B goes back to the shelves while browsing; elsewhere it leaves the page as usual.
             <Focusable flow-children="down" onCancelButton={browsing ? () => setBrowsing(false) : undefined} onCancelActionDescription={browsing ? t("nav.discover") : undefined}>

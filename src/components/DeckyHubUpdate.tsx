@@ -75,7 +75,10 @@ export function DeckyHubUpdate() {
 
   return (
     <Card accent={hasUpdate ? "#f0c33c" : undefined}>
-      <PanelSection title={title}>
+      <PanelSection>
+        {/* Steam's section title (as measured on a Deck), minus its capitals:
+            "DECKYHUB V3.0.0-RC.13" crowded the panel. */}
+        <div style={{ paddingTop: 10, paddingBottom: 8, color: "rgba(255, 255, 255, 0.7)", fontSize: 16, fontWeight: 600, lineHeight: "22px" }}>{title}</div>
         {hasUpdate && (
           <PanelSectionRow>
             <div style={{ color: "#f0c33c", fontSize: "max(12px, 0.85em)" }}>{t("settings.updateAvailable", { version: `v${normalizeVersion(release.version!)}` })}</div>
