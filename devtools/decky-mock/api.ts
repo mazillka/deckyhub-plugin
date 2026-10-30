@@ -1,7 +1,7 @@
 // Minimal stand-in for @decky/api, for local browser preview only.
 // callable()/call() are bridged to a real running main.py via dev-server.py's
 // HTTP RPC endpoint, so backend logic is real even though the loader isn't.
-import type { ComponentType } from "react";
+import type { ComponentType, ReactNode } from "react";
 
 const BRIDGE_URL = new URLSearchParams(window.location.search).get("bridge") ?? "http://127.0.0.1:8642";
 
@@ -83,3 +83,18 @@ export const definePlugin =
   <Args extends unknown[], Return>(fn: (...args: Args) => Return) =>
   (...args: Args): Return =>
     fn(...args);
+
+export const useQuickAccessVisible = () => true;
+
+// Decky's tabs hook: plugins add their own Quick Access tabs here (the mock's panel shows them).
+type QuickAccessTab = { id: number; title: unknown; content: ReactNode; icon: ReactNode };
+export const tabsHook = {
+  tabs: [] as QuickAccessTab[],
+  add(tab: QuickAccessTab) {
+    tabsHook.tabs.push(tab);
+  },
+  removeById(id: number) {
+    tabsHook.tabs = tabsHook.tabs.filter((tab) => tab.id !== id);
+  },
+};
+(window as { __TABS_HOOK_INSTANCE?: typeof tabsHook }).__TABS_HOOK_INSTANCE = tabsHook;

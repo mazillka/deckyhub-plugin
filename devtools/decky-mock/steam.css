@@ -74,6 +74,17 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .qam-title { display: flex; gap: 9px; align-items: center; }
 .qam-app-name { margin: 16px 20px 8px; color: #8fa5bb; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; }
 .qam-content { flex: 1; overflow: auto; padding: 0 12px 12px; }
+/* Steam's tab rail down the panel's right edge, with the open tab highlighted. */
+.qam-panel { width: min(494px, 50%); }
+.qam-body { flex: 1; display: flex; min-height: 0; }
+.qam-main { flex: 1; display: flex; flex-direction: column; min-width: 0; padding-top: 12px; }
+.qam-tabs { flex: 0 0 64px; display: flex; flex-direction: column; align-items: center; gap: 6px; padding-top: 12px; color: #8b929a; font-size: 24px; background: #0e1014; }
+.qam-tabs > * { display: grid; place-items: center; width: 52px; height: 52px; padding: 0; color: inherit; font-size: inherit; background: none; border: 0; border-radius: 4px; }
+.qam-tabs > button { cursor: pointer; }
+.qam-tabs > [aria-pressed="true"] { color: #fff; background: #3d4450; }
+.qam-tabs > button:focus-visible { outline: 2px solid #1a9fff; }
+/* Steam.s Quick Access panel title (staticClasses.Title), solid so content scrolls under it. */
+.decky-mock-title { z-index: 1; display: flex; align-items: center; min-height: 40px; color: #fff; font-size: 18px; font-weight: 700; letter-spacing: .02em; background: #1b1e24; }
 .qam-panel .steam-bottombar { position: static; flex: 0 0 44px; }
 
 .steam-page { position: absolute; inset: 0; background: linear-gradient(180deg, #172636, #0b121b); }
