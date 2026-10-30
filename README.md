@@ -37,7 +37,7 @@ Find, install and update Decky Loader plugins with your controller — from Deck
 > [!CAUTION]
 > **DeckyHub only fetches releases from their authors' GitHub repositories. It doesn't make, review or vouch for these plugins and isn't responsible for anything they do to your device or data. Install at your own risk.**
 
-Tired of tabbing out to Desktop Mode, hunting through GitHub releases, and manually downloading ZIPs every time a plugin updates? DeckyHub brings plugin discovery and updates straight to your controller. Browse a catalog of over 300 Steam Deck plugins, search GitHub for any other Decky plugin and install it on the spot, and get notified the moment an update drops — all without leaving your couch.
+Tired of tabbing out to Desktop Mode, hunting through GitHub releases, and manually downloading ZIPs every time a plugin updates? DeckyHub brings plugin discovery and updates straight to your controller. Browse a catalog of over 300 Steam Deck plugins, search GitHub for any other Decky plugin and install it on the spot, and get notified the moment an update drops — all without leaving your couch. It's the first and last plugin you'll ever install from a ZIP.
 
 > **A note on how this is made.** Most of DeckyHub's code was written with the help of AI tools (Claude and Codex). That doesn't mean it ships untested — every release is verified on real hardware before it goes out. I'm telling you this upfront so you know exactly what you're installing and how it got built.
 
@@ -81,7 +81,7 @@ A daily job checks both catalogs for plugins that aren't listed yet and opens a 
 3. In Gaming Mode, open the Quick Access Menu → Decky → settings (gear icon). Turn on **Developer mode** under General if it's off, then go to **Developer** → **Install Plugin from ZIP** and select the downloaded file.
 4. Open the Quick Access Menu and pick DeckyHub's four-square icon in the tab strip (or Decky → **DeckyHub**).
 
-That's the only ZIP you'll install by hand: from then on DeckyHub installs and updates your other plugins, and itself, right from Gaming Mode.
+DeckyHub is the first and last plugin you'll ever install from a ZIP: from then on it installs and updates your other plugins, and itself, right from Gaming Mode.
 
 ## Using DeckyHub
 
