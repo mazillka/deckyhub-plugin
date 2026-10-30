@@ -11,7 +11,7 @@ import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { connect, DECK, TARGETS, waitFor } from "./cdp.mjs";
+import { connect, DECK, sleep, TARGETS, waitFor } from "./cdp.mjs";
 
 const root = new URL("../../", import.meta.url).pathname.replace(/^\/(\w:)/, "$1");
 // Rollup through Node itself: pnpm's shell shim isn't on every PATH.
@@ -48,16 +48,24 @@ const url = `http://${localAddress}:${server.address().port}/DeckyHub.zip`;
 
 const shared = await connect(TARGETS.shared);
 const main = await connect(TARGETS.main);
+const running = await shared.eval(`DeckyPluginLoader.plugins?.find((plugin) => plugin.name === "DeckyHub")?.version ?? null`);
 try {
   await shared.eval(`DFL.Navigation.CloseSideMenus?.(); DeckyBackend.call("utilities/install_plugin", ${JSON.stringify(url)}, "DeckyHub", ${JSON.stringify(version)}, "${sha256}", 2).then(() => true)`);
   // Decky asks "…update DeckyHub to version <version>?" on the main screen. Press
   // Update in that dialog only: other windows (a plugin's Manage) have Update buttons too.
   await waitFor(main, `(() => {
-    const dialog = [...document.querySelectorAll("[class*=ConfirmDialog]")].find((el) => el.textContent.includes(${JSON.stringify(version)}) && /DeckyHub/.test(el.textContent));
-    const button = dialog && [...dialog.querySelectorAll("button, .DialogButton")].find((el) => el.textContent.trim() === "Update");
+    // The dialog for this version that still waits for an answer (an earlier, broken
+    // attempt can leave one behind, stuck mid-update).
+    const button = [...document.querySelectorAll("[class*=ConfirmDialog]")]
+      .filter((el) => el.textContent.includes(${JSON.stringify(version)}) && /DeckyHub/.test(el.textContent))
+      .flatMap((el) => [...el.querySelectorAll("button, .DialogButton")])
+      .find((el) => el.textContent.trim() === "Update");
     button?.click();
     return !!button;
   })()`);
+  // Reinstalling the version already running: the check below passes at once, so
+  // first give Decky time to swap the files and reload DeckyHub.
+  if (running === version) await sleep(15000);
   await waitFor(shared, `DeckyPluginLoader.plugins?.some((plugin) => plugin.name === "DeckyHub" && plugin.version === ${JSON.stringify(version)})`, 60000);
   console.log(`DeckyHub ${version} is running on ${deckHost}`);
 } finally {

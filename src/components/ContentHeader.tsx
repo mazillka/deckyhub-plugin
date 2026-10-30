@@ -3,17 +3,18 @@ import type { ReactNode } from "react";
 import { FaArrowCircleUp, FaArrowLeft, FaArrowUp, FaCompass, FaSync } from "react-icons/fa";
 import { useT } from "../i18n";
 import type { View } from "../types";
-import { compactButtonStyle, disclaimerStyle } from "../utils";
+import { compactButtonStyle } from "../utils";
 import { RootBadge } from "./AppBadges";
 import { PageHeader } from "./Card";
 import { KeepInView } from "./KeepInView";
 import { LayoutToggle, type Layout } from "./LayoutToggle";
+import { Notice } from "./Notice";
 
 const buttonStyle = { ...compactButtonStyle, marginBottom: 0 };
 
 // Updates' and Discover's header: title, badge, description and actions (Back while
-// browsing, Grid / List, Refresh, Update all), then the install disclaimer and, on
-// Discover, what the Runs as root badge means.
+// browsing, Grid / List, Refresh, Update all), then the install disclaimer, cut to
+// a line with More.
 export function ContentHeader({
   view,
   title,
@@ -78,14 +79,18 @@ export function ContentHeader({
           </>
         }
       />
-      <div className="deckyhub-disclaimer" style={disclaimerStyle}>{t("install.disclaimer")}</div>
-      {/* The badge's tooltip never shows on a Deck (no hover), so Discover spells it out once. */}
-      {view === "discover" && (
-        <div className="deckyhub-root-legend" style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: "var(--dh-card-gap, 14px)", color: "#d6f5ff", fontSize: "max(12px, 0.85em)" }}>
-          <RootBadge t={t} />
-          <span>{t("appcard.runsAsRootHint")}</span>
-        </div>
-      )}
+      {/* One line, so plugins show above the fold; More also explains the Runs as root badge
+          (its tooltip never shows on a Deck: no hover). */}
+      <Notice
+        className="deckyhub-disclaimer"
+        text={t("install.disclaimer")}
+        more={
+          <div className="deckyhub-root-legend" style={{ display: "flex", alignItems: "center", gap: 4, color: "#d6f5ff" }}>
+            <RootBadge t={t} />
+            <span>{t("appcard.runsAsRootHint")}</span>
+          </div>
+        }
+      />
     </KeepInView>
   );
 }

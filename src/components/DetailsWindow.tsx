@@ -5,7 +5,7 @@ import { MotionStyle } from "../motion";
 import type { UpdateChannel } from "../types";
 import { surfaceStyle } from "../utils";
 import { displayVersion } from "../version";
-import { plainNotes } from "./ReleaseInfo";
+import { plainNotes, showReleaseInfo } from "./ReleaseInfo";
 import { keepInView } from "./KeepInView";
 
 // How much of the release notes the window shows; Y on the main button opens them in full.
@@ -115,14 +115,17 @@ export function DetailsWindow({
               {footer}
             </div>
             <div onFocus={keepInView} style={{ flex: "999 1 360px", display: "grid", gap: 16, minWidth: 0 }}>
+              {/* Each text section is a D-pad stop: Steam only scrolls to follow focus, so
+                  without them the window couldn't scroll down to the notes (seen on a Deck). */}
               {description && (
-                <section style={{ display: "grid", gap: 6 }}>
+                <Focusable className="deckyhub-details-section" onActivate={() => {}} onFocus={keepInView} style={{ display: "grid", gap: 6 }}>
                   <h3 style={sectionTitleStyle}>{t("details.about")}</h3>
                   <div className="deckyhub-details-description" style={{ color: "#e6eef4", fontSize: 16, lineHeight: 1.5, overflowWrap: "anywhere" }}>{description}</div>
-                </section>
+                </Focusable>
               )}
               {release && (
-                <section style={{ display: "grid", gap: 6 }}>
+                // A opens the notes in full; here they stop after a preview.
+                <Focusable className="deckyhub-details-section" onActivate={() => showReleaseInfo(t, `${title} ${displayVersion(release.tag)}`, release.publishedAt, release.notes)} onFocus={keepInView} style={{ display: "grid", gap: 6 }}>
                   <h3 style={sectionTitleStyle}>
                     {t("details.whatsNew", { version: displayVersion(release.tag) })}
                     {release.publishedAt && <span style={{ marginLeft: 10, fontWeight: 400, letterSpacing: 0, textTransform: "none" }}>{new Date(release.publishedAt).toLocaleDateString()}</span>}
@@ -130,7 +133,7 @@ export function DetailsWindow({
                   <div className="deckyhub-details-notes" style={{ ...surfaceStyle, padding: "12px 14px", color: "#c3cfd9", fontSize: 14, lineHeight: 1.5, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
                     {notesPreview || t("appcard.noReleaseNotes")}
                   </div>
-                </section>
+                </Focusable>
               )}
             </div>
           </div>

@@ -261,6 +261,10 @@ test("Plugin details: every sampled window shows all its info, aligned and acces
       await save(main, "details");
       const { missed } = await explore(shared, main, { root: ".deckyhub-details" });
       found.push(...missed.map((label) => `D-pad never reaches: ${label}`));
+      // Steam only scrolls to follow focus: Down alone has to reach the bottom.
+      const scroll = `(() => { let el = document.querySelector(".deckyhub-details"); while (el && !(el.scrollHeight > el.clientHeight + 2 && /auto|scroll/.test(getComputedStyle(el).overflowY))) el = el.parentElement; return el ? el.scrollHeight - el.clientHeight - el.scrollTop : 0; })()`;
+      for (let i = 0; i < 20 && await main.eval(scroll) > 2; i++) await press(shared, BUTTON.DOWN, 400);
+      if (await main.eval(scroll) > 2) found.push("Down never scrolls to the bottom of the window");
     }
     if (found.length) problems[plugin] = found;
     await press(shared, BUTTON.BACK, 1200);

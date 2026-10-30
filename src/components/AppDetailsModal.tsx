@@ -109,6 +109,8 @@ export function AppDetailsModal({
           <span>{t("settings.installedVersion", { version: app.installedVersion ? displayVersion(app.installedVersion) : "—" })}</span>
           <AppStats app={app} t={t} />
           <AppBadges app={app} t={t} />
+          {/* What Runs as root means, right where you decide to install. */}
+          {app.stats?.root && <span style={{ flexBasis: "100%", color: "#ffb35c" }}>{t("appcard.runsAsRootHint")}</span>}
         </>
       }
       description={app.description}

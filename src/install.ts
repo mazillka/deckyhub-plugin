@@ -114,7 +114,7 @@ export async function installDeckyPlugin(asset: Asset, repo: string, pluginName:
       log(`Decky Loader uninstalled ${pluginName} before a fresh install`);
       installType = PLUGIN_INSTALL_TYPE.INSTALL;
     }
-    traceDeckyInstall(pluginName);
+    traceDeckyInstall(pluginName, version);
     const result = await callDeckyLoader("utilities/install_plugin", artifact, pluginName, normalizeVersion(displayVersion(version)), asset.sha256 ?? "", installType);
     log(`Decky Loader install_plugin ${pluginName} accepted, waiting for confirm/progress`);
     return result;
@@ -133,6 +133,7 @@ export async function updateDeckyPlugins(updates: { asset: Asset; repo: string; 
   try {
     const artifacts: string[] = [];
     for (const [index, { asset, repo }] of updates.entries()) artifacts.push(await localZip(asset, repo, index === updates.length - 1 ? handedOver : undefined));
+    for (const { name, version } of updates) traceDeckyInstall(name, version);
     return await callDeckyLoader(
       "utilities/install_plugins",
       updates.map(({ asset, name, version }, index) => ({ artifact: artifacts[index], name, version: normalizeVersion(displayVersion(version)), hash: asset.sha256 ?? "", install_type: PLUGIN_INSTALL_TYPE.UPDATE })),
@@ -142,10 +143,26 @@ export async function updateDeckyPlugins(updates: { asset: Asset; repo: string; 
   }
 }
 
+// Plugins Decky is installing right now (from its start event, so a cancelled
+// confirmation never counts), for cards to say "Installing…".
+const installingNow = new Set<string>();
+const installingListeners = new Set<() => void>();
+const setInstalling = (name: string, on: boolean) => {
+  if (on) installingNow.add(name);
+  else installingNow.delete(name);
+  installingListeners.forEach((listener) => listener());
+};
+export const subscribeInstalling = (listener: () => void) => {
+  installingListeners.add(listener);
+  return () => void installingListeners.delete(listener);
+};
+export const isInstalling = (name: string) => installingNow.has(name);
+
 // Logs every stage Decky Loader reports for this install, with elapsed time,
 // so deckyhub.log shows where a stuck install stopped. Decky's progress events
 // carry no plugin name, so all of them are logged while this one is watched.
-export function traceDeckyInstall(pluginName: string) {
+// Decky shows no notice when an install finishes, so this toasts one.
+export function traceDeckyInstall(pluginName: string, version?: string) {
   const backend = getDeckyBackend();
   if (!backend) return;
   const started = Date.now();
@@ -164,13 +181,16 @@ export function traceDeckyInstall(pluginName: string) {
   };
   const onStart = (name: string) => {
     log(`Decky install start ${name} at ${elapsed()}`);
-    if (name === pluginName) armIdle();
+    if (name !== pluginName) return;
+    setInstalling(name, true);
+    armIdle();
   };
   const onInfo = (progress: number, stage: string) => {
     log(`Decky install ${pluginName} ${progress}% ${stage} at ${elapsed()}`);
     armIdle(stage);
   };
   const stop = () => {
+    setInstalling(pluginName, false);
     window.clearTimeout(timer);
     window.clearTimeout(idleTimer);
     backend.removeEventListener("loader/plugin_download_start", onStart);
@@ -182,6 +202,7 @@ export function traceDeckyInstall(pluginName: string) {
     if (name !== pluginName) return;
     stop();
     if (name === "DeckyHub") reloadIfStillOld();
+    else toaster.toast({ title: "DeckyHub", body: version ? tr("toast.installedVersion", { name, version: displayVersion(version) }) : tr("toast.installed", { name }) });
   };
   // Backstop: Decky never sends finish after a silent failure.
   const timer = window.setTimeout(() => {

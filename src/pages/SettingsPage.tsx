@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { FaCog } from "react-icons/fa";
 import { getSettings, saveSettings } from "../api";
 import { PageHeader } from "../components/Card";
-import { DisplaySection, DownloadsSection, GitHubAccessSection, LanguageSection, RepositoriesSection } from "../components/SettingsSections";
+import { AboutSection } from "../components/AboutSection";
+import { DisplaySection, DownloadsSection, GitHubAccessSection, LanguageSection, RepositoriesSection, TroubleshootingSection } from "../components/SettingsSections";
 import { useLayout } from "../components/LayoutToggle";
 import { LOCALE_CHANGED, useT } from "../i18n";
 import type { Settings } from "../types";
@@ -62,6 +63,8 @@ export function SettingsPage() {
         <Focusable flow-children="down" style={{ display: "block", minWidth: 0 }}>
           <LanguageSection settings={settings} update={update} />
           <DisplaySection settings={settings} update={update} layout={layout} onLayout={setLayout} />
+          <TroubleshootingSection />
+          <AboutSection />
         </Focusable>
       </Focusable>
     </>

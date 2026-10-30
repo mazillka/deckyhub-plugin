@@ -17,8 +17,13 @@ const tag = (root) => `(() => {
 })()`;
 const focused = (root) => `(() => {
   const el = document.querySelector(${JSON.stringify(root)} + " .gpfocus");
-  const control = el?.closest("[data-nav-id]") ?? el?.querySelector("[data-nav-id]");
-  return control ? control.dataset.navId : null;
+  if (!el) return null;
+  const control = el.closest("[data-nav-id]") ?? el.querySelector("[data-nav-id]");
+  if (control) return control.dataset.navId;
+  // Focus on the page but not on a control we track (a toggle row, a note): still a
+  // stop the sweep can move on from, with its own id.
+  el.dataset.navId = "stop-" + document.querySelectorAll("[data-nav-id]").length;
+  return el.dataset.navId;
 })()`;
 const label = (id) => `(() => { const el = document.querySelector('[data-nav-id="${id}"]'); return (el.getAttribute("aria-label") || el.textContent || el.placeholder || el.tagName).trim().replace(/\\s+/g, " ").slice(0, 40); })()`;
 

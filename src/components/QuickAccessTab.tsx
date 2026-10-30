@@ -2,7 +2,7 @@ import { useQuickAccessVisible } from "@decky/api";
 import { Focusable, NavEntryPositionPreferences, staticClasses } from "@decky/ui";
 import { useSyncExternalStore, type ReactNode } from "react";
 import { getApps, getSettings } from "../api";
-import { getUpdateCount, setUpdateCount, subscribeUpdateCount } from "../notify";
+import { getUpdateCount, notifyUpdates, subscribeUpdateCount } from "../notify";
 import { hydrate } from "../releases";
 import { DeckyHubIcon } from "./DeckyHubIcon";
 
@@ -38,16 +38,19 @@ function TabIcon() {
   );
 }
 
-// The panel only checks releases while it's open, so check installed plugins once
-// at startup too, for the dot to show before DeckyHub is first opened.
+// The panel only checks releases while it's open, so check installed plugins at
+// startup and every few hours too: the dot (and the "Updates available" toast, once
+// per new set of updates) then shows without opening DeckyHub. Through the release
+// cache, so this costs no GitHub requests for the official list.
+const CHECK_EVERY = 3 * 60 * 60 * 1000;
+let checkTimer = 0;
 async function checkUpdates() {
   try {
     const [{ apps }, settings] = await Promise.all([getApps(), getSettings()]);
     const preferences = settings.repoSettings || {};
-    const checked = await Promise.all(apps.filter((app) => app.installedVersion).map((app) => hydrate(app, false, preferences[app.repo])));
-    setUpdateCount(checked.filter((app) => app.updateAvailable).length);
+    notifyUpdates(await Promise.all(apps.filter((app) => app.installedVersion).map((app) => hydrate(app, false, preferences[app.repo]))));
   } catch {
-    // Offline or rate-limited: the panel's own check sets the dot later.
+    // Offline or rate-limited: the next check, or the panel's own, sets the dot.
   }
 }
 
@@ -57,8 +60,11 @@ export function addQuickAccessTab(content: ReactNode) {
   hook.removeById(TAB_ID); // a reload of DeckyHub shouldn't leave two
   hook.add({ id: TAB_ID, title: null, content: <TabPanel>{content}</TabPanel>, icon: <TabIcon /> });
   void checkUpdates();
+  window.clearInterval(checkTimer);
+  checkTimer = window.setInterval(() => void checkUpdates(), CHECK_EVERY);
 }
 
 export function removeQuickAccessTab() {
+  window.clearInterval(checkTimer);
   tabsHook()?.removeById?.(TAB_ID);
 }

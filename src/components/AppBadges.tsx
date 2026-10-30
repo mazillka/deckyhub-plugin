@@ -26,13 +26,14 @@ export function AppBadges({ app, t }: { app: App; t: TFunc }) {
   );
 }
 
-// Updated / downloads / stars, shared by the card and its Manage window.
-export function AppStats({ app, t }: { app: App; t: TFunc }) {
+// Updated / downloads / stars, shared by the card and its Manage window. A list row
+// leaves out Updated (noUpdated): beside the latest version it cut the counts short.
+export function AppStats({ app, t, noUpdated }: { app: App; t: TFunc; noUpdated?: boolean }) {
   const released = releasedAt(app);
   const { downloads, stars } = app.stats ?? {};
   return (
     <>
-      {released > 0 && !isStale(released) && <span title={new Date(released).toLocaleDateString()}>{t("appcard.updated", { when: timeAgo(released) })}</span>}
+      {!noUpdated && released > 0 && !isStale(released) && <span title={new Date(released).toLocaleDateString()}>{t("appcard.updated", { when: timeAgo(released) })}</span>}
       {downloads !== undefined && <span title={t("appcard.downloads", { count: downloads.toLocaleString() })}>↓ {compactNumber(downloads)}</span>}
       {stars != null && <span title={t("appcard.stars", { count: stars.toLocaleString() })}>★ {compactNumber(stars)}</span>}
     </>

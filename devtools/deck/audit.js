@@ -27,6 +27,8 @@
     const lineClamp = s.webkitLineClamp && s.webkitLineClamp !== "none";
     if (clips && el.textContent.trim() && !lineClamp) {
       if (el.scrollWidth > el.clientWidth + 1 && s.textOverflow !== "ellipsis" && !el.querySelector("*[style*=ellipsis]")) problems.push(`cut off: ${name(el)}`);
+      // "…" only draws on a block of text: a flex or grid row that overflows is just cut.
+      else if (el.scrollWidth > el.clientWidth + 1 && /flex|grid/.test(s.display)) problems.push(`cut off (no "…"): ${name(el)}`);
       if (/hidden|clip/.test(s.overflowY) && el.scrollHeight > el.clientHeight + 2 && s.whiteSpace !== "nowrap") problems.push(`cut off below: ${name(el)}`);
     }
   }
