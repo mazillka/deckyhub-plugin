@@ -4,7 +4,7 @@
 // Needs the mock running (localhost:5183 with its bridge) and DeckyHub on the Deck.
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { connect, resetFocus, sleep, TARGETS } from "./cdp.mjs";
+import { connect, goTo, resetFocus, sleep, TARGETS } from "./cdp.mjs";
 
 const { chromium } = createRequire(new URL("../decky-mock/package.json", import.meta.url))("playwright");
 const fingerprint = readFileSync(new URL("./fingerprint.js", import.meta.url), "utf8");
@@ -42,7 +42,7 @@ const diff = (path, a, b, out) => {
 let total = 0;
 try {
   for (const name of pages) {
-    await shared.eval(`DFL.Navigation.CloseSideMenus?.(); DFL.Navigation.Navigate("/deckyhub/${name}"); true`);
+    await goTo(shared, `/deckyhub/${name}`);
     await mock.goto(`${MOCK}/app.html?preview=/deckyhub/${name}`);
     await mock.addStyleTag({ content: PIN });
     await sleep(5000);

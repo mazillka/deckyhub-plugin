@@ -11,7 +11,7 @@ import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { connect, DECK, resetFocus, sleep, TARGETS, waitFor } from "./cdp.mjs";
+import { connect, DECK, goTo, resetFocus, sleep, TARGETS, waitFor } from "./cdp.mjs";
 
 const root = new URL("../../", import.meta.url).pathname.replace(/^\/(\w:)/, "$1");
 // Rollup through Node itself: pnpm's shell shim isn't on every PATH.
