@@ -62,3 +62,16 @@ export async function waitFor(page, expression, timeout = 15000) {
     await sleep(300);
   }
 }
+
+// Scripts click Steam's dialogs directly, not with the controller, and a dialog
+// closed that way can leave gamepad focus on its now-invisible element: the D-pad
+// then does nothing until Up (seen on a Deck). Leaving the screen and coming back
+// lets Steam place focus afresh. Call it last, with the path to end on.
+export async function resetFocus(shared, path) {
+  await shared.eval(`DFL.Navigation.CloseSideMenus?.(); DFL.Navigation.Navigate("/library/home"); true`);
+  await sleep(1200);
+  if (path && path !== "/library/home") {
+    await shared.eval(`DFL.Navigation.Navigate(${JSON.stringify(path)}); true`);
+    await sleep(1200);
+  }
+}

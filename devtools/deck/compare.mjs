@@ -4,7 +4,7 @@
 // Needs the mock running (localhost:5183 with its bridge) and DeckyHub on the Deck.
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { connect, sleep, TARGETS } from "./cdp.mjs";
+import { connect, resetFocus, sleep, TARGETS } from "./cdp.mjs";
 
 const { chromium } = createRequire(new URL("../decky-mock/package.json", import.meta.url))("playwright");
 const fingerprint = readFileSync(new URL("./fingerprint.js", import.meta.url), "utf8");
@@ -56,7 +56,7 @@ try {
     total += out.length;
   }
 } finally {
-  await shared.eval(`DFL.Navigation.Navigate(${JSON.stringify(startPath)}); true`).catch(() => {});
+  await resetFocus(shared, startPath).catch(() => {});
   shared.close(); deck.close();
   await browser.close();
   installed.forEach((_, index) => rmSync(new URL(`deck-${index}/`, mockPlugins), { recursive: true, force: true, maxRetries: 10, retryDelay: 100 }));
