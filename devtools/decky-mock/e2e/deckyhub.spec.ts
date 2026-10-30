@@ -499,12 +499,12 @@ test("DeckyHub update modal's Close button spans its column and dismisses the mo
   const app = mock(page);
   await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
 
-  // As wide as the Check for Updates button above it, the whole actions column.
-  const [closeBox, checkBox] = await Promise.all([
+  // As wide as Download ZIP above it, the whole actions column.
+  const [closeBox, zipBox] = await Promise.all([
     app.getByRole("button", { name: "Close", exact: true }).boundingBox(),
-    app.locator(".steam-modal").getByRole("button", { name: "Check for Updates", exact: true }).boundingBox(),
+    app.locator(".steam-modal").getByRole("button", { name: "Download ZIP", exact: true }).boundingBox(),
   ]);
-  expect(Math.abs(closeBox!.width - checkBox!.width)).toBeLessThan(2);
+  expect(Math.abs(closeBox!.width - zipBox!.width)).toBeLessThan(2);
 
   await app.getByRole("button", { name: "Close", exact: true }).click();
   await expect(app.getByText("DeckyHub Update", { exact: true })).toBeHidden();
@@ -2321,4 +2321,17 @@ test("Custom registries: add, reject, refresh and remove", async ({ page }) => {
     // settings.json is shared across runs; never leave the fixture registry behind.
     await bridgeCall(page, "remove_custom_registry", "https://registry.test/good.json");
   }
+});
+
+test("Install buttons and row stats stay on one line, however long the version", async ({ page }) => {
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  await browseAll(page);
+  const app = mock(page);
+  await app.getByRole("button", { name: "List", exact: true }).click();
+  await expect(app.locator(".deckyhub-app-row").first()).toBeVisible();
+  // A 40px button shows as 60 screen pixels in Gaming Mode's 1.5x zoom; a second line makes it taller.
+  const heights = await app.locator(".deckyhub-app-row button").evaluateAll((buttons) => buttons.map((button) => button.getBoundingClientRect().height));
+  expect(Math.max(...heights)).toBeLessThan(62);
+  const clipped = await app.locator(".deckyhub-app-row").evaluateAll((rows) => rows.filter((row) => { const stats = row.children[4] as HTMLElement; return stats.scrollWidth > stats.clientWidth + 1; }).length);
+  expect(clipped).toBe(0);
 });

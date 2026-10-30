@@ -2,13 +2,12 @@ import { DialogButtonPrimary as Button, Focusable, Navigation, PanelSection, Pan
 import { FaCheck, FaDownload, FaPlus } from "react-icons/fa";
 import { useT } from "../i18n";
 import type { SearchRepo } from "../types";
-import { compactButtonStyle, surfaceStyle } from "../utils";
+import { compactButtonStyle, ellipsis, surfaceStyle } from "../utils";
 import { FocusableGrid } from "./FocusableGrid";
 import { keepInView } from "./KeepInView";
 import type { Layout } from "./LayoutToggle";
 
 const buttonStyle = { ...compactButtonStyle, marginBottom: 0 };
-const ellipsis = { whiteSpace: "nowrap" as const, overflow: "hidden", textOverflow: "ellipsis" };
 
 // Search's results as a two-column grid or a list of rows, each with Install (Y:
 // release notes, X: download the ZIP, Menu: the repository) and Add.

@@ -29,6 +29,7 @@ export function Button({
   onOptionsActionDescription,
   onMenuButton,
   onMenuActionDescription,
+  "aria-label": ariaLabel,
 }: {
   onClick?: () => void;
   disabled?: boolean;
@@ -40,6 +41,7 @@ export function Button({
   onOptionsActionDescription?: string;
   onMenuButton?: () => void;
   onMenuActionDescription?: string;
+  "aria-label"?: string;
 }) {
   // Stands in for Steam's footer legend: "y"/"x"/"m" act as the Y/X/Menu buttons, and DevShell's
   // bottom bar shows data-secondary-hint/data-options-hint/data-menu-hint while this is focused.
@@ -49,6 +51,7 @@ export function Button({
       disabled={disabled}
       className="steam-button"
       style={style}
+      aria-label={ariaLabel}
       data-secondary-hint={onSecondaryButton ? onSecondaryActionDescription : undefined}
       data-options-hint={onOptionsButton ? onOptionsActionDescription : undefined}
       data-menu-hint={onMenuButton ? onMenuActionDescription : undefined}

@@ -11,6 +11,9 @@ export const iconRow = { display: "flex", alignItems: "center", justifyContent: 
 // narrow button (the Manage gear) over its neighbour in side-by-side rows on a Deck.
 export const compactButtonStyle = { ...iconRow, width: "100%", minWidth: 0, minHeight: "var(--dh-button-height, 40px)", marginBottom: "var(--dh-button-gap, 8px)", padding: "var(--dh-button-padding, 6px 10px)" };
 
+// One line, cut with … when it doesn't fit (a long version in a button, stats in a row).
+export const ellipsis = { minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const };
+
 export const modalButtonStyle = { ...compactButtonStyle, marginBottom: 0 };
 
 export const sectionDividerStyle = { borderTop: "1px solid rgba(255, 255, 255, 0.14)", margin: "var(--dh-divider-margin, 16px) 0" };
