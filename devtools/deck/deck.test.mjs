@@ -6,7 +6,7 @@
 import assert from "node:assert/strict";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { after, before, test } from "node:test";
-import { connect, sleep, TARGETS, waitFor } from "./cdp.mjs";
+import { connect, resetFocus, sleep, TARGETS, waitFor } from "./cdp.mjs";
 import { BUTTON, explore, press } from "./navigation.mjs";
 
 const TAB_ID = 0x444855; // src/components/QuickAccessTab.tsx
@@ -37,7 +37,7 @@ before(async () => {
 });
 
 after(async () => {
-  await shared?.eval(`DFL.Navigation.CloseSideMenus?.(); DFL.Navigation.Navigate(${JSON.stringify(startPath || "/library/home")}); true`).catch(() => {});
+  if (shared) await resetFocus(shared, startPath || "/library/home").catch(() => {});
   for (const page of [shared, main, quickAccess]) page?.close();
 });
 
