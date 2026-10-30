@@ -49,6 +49,20 @@
     }
   }
 
+  // Cards side by side (a grid row) have their buttons at one height.
+  const cards = [...root.querySelectorAll(".deckyhub-focus-ring")].filter((card) => shown(card) && !card.classList.contains("deckyhub-app-row") && !card.classList.contains("deckyhub-search-row"));
+  const cardRows = new Map();
+  for (const card of cards) {
+    const top = Math.round(card.getBoundingClientRect().top);
+    if (!cardRows.has(top)) cardRows.set(top, []);
+    cardRows.get(top).push(card);
+  }
+  for (const row of cardRows.values()) {
+    if (row.length < 2) continue;
+    const tops = row.map((card) => { const buttons = [...card.querySelectorAll("button, .DialogButton")].filter(shown); return buttons.length ? Math.round(buttons.at(-1).getBoundingClientRect().top) : null; }).filter((top) => top !== null);
+    if (Math.max(...tops) - Math.min(...tops) > 2) problems.push(`card buttons out of line: ${row.map((card) => name(card.querySelector("h3") ?? card)).join(" / ")}`);
+  }
+
   // Accessible names.
   for (const el of controls) {
     const labelled = el.getAttribute("aria-label") || el.getAttribute("aria-labelledby") || el.textContent.trim() || el.title || el.closest("label")?.textContent.trim() || el.placeholder;
