@@ -224,4 +224,6 @@ export const pt: Record<MessageKey, string> = {
   "welcome.gotIt": "Entendi",
   "settings.tabGeneral": "Geral",
   "settings.tabDownloads": "Downloads",
+  "settings.tabTroubleshoot": "Logs",
+  "settings.tabAbout": "Sobre",
 };

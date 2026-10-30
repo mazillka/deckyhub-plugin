@@ -286,7 +286,7 @@ test("Export Logs zips the backend log into Downloads", async ({ page }) => {
   const app = mock(page);
   const toast = page.waitForEvent("console", (message) => message.text().includes("Exported to"));
   await app.getByRole("button", { name: "/deckyhub/settings" }).click();
-  await settingsTab(page, "About");
+  await settingsTab(page, "Logs");
   await app.getByRole("button", { name: "Export Logs", exact: true }).click();
 
   const name = (await toast).text().match(/DeckyHub-logs-\d{8}-\d{6}\.zip/)?.[0];
@@ -2100,14 +2100,14 @@ test("Quick Access lists its pages in order, showing Updates only while there ar
 test("Settings keeps each part on its own tab, Repositories included", async ({ page }) => {
   await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await expect(app.getByRole("tab")).toHaveText(["General", "GitHub", "Downloads", "Repositories", "About"]);
+  await expect(app.getByRole("tab")).toHaveText(["General", "GitHub", "Downloads", "Repositories", "Logs", "About"]);
   await expect(app.getByLabel("Language")).toBeVisible();
   await settingsTab(page, "Repositories");
   await expect(app.getByRole("button", { name: "Export", exact: true })).toBeVisible();
   await expect(app.getByLabel("Language")).toHaveCount(0);
   // R1 ("]" in the mock) moves to the next tab.
   await app.getByRole("tab", { name: "Repositories", exact: true }).press("]");
-  await expect(app.getByRole("tab", { name: "About", exact: true })).toHaveAttribute("aria-selected", "true");
+  await expect(app.getByRole("tab", { name: "Logs", exact: true })).toHaveAttribute("aria-selected", "true");
 });
 
 test("Repositories' old page opens Settings on its tab", async ({ page }) => {

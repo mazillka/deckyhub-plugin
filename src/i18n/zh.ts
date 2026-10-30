@@ -223,4 +223,6 @@ export const zh: Record<MessageKey, string> = {
   "welcome.gotIt": "知道了",
   "settings.tabGeneral": "常规",
   "settings.tabDownloads": "下载",
+  "settings.tabTroubleshoot": "日志",
+  "settings.tabAbout": "关于",
 };

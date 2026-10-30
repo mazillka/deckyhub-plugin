@@ -70,7 +70,9 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
           They reach down to Steam's bottom bar (into the page's bottom padding, which
           the negative margin gives back so the page itself doesn't scroll); their
           content scrolls inside. */}
-      <div className="deckyhub-settings-tabs" style={{ height: "calc(100% - 16px)", marginBottom: -56 }}>
+      {/* overflow hidden: Steam slides the old and new tab side by side when switching,
+          which made the whole page scroll sideways and flicker (seen on a Deck). */}
+      <div className="deckyhub-settings-tabs" style={{ height: "calc(100% - 16px)", marginBottom: -56, overflow: "hidden" }}>
         <Tabs
           activeTab={tab}
           onShowTab={(id: string) => setTab(id as SettingsTab)}
@@ -98,9 +100,15 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
               content: stack(<ManageRepositoriesPage key="repositories" embedded />),
             },
             {
+              id: "troubleshoot",
+              title: t("settings.tabTroubleshoot"),
+              content: stack(<TroubleshootingSection key="troubleshooting" />),
+            },
+            {
               id: "about",
-              title: t("settings.about"),
-              content: stack(<AboutSection key="about" />, <TroubleshootingSection key="troubleshooting" />),
+              // Tab names are kept short: six have to fit Steam's tab bar in every language.
+              title: t("settings.tabAbout"),
+              content: stack(<AboutSection key="about" />),
             },
             // Each tab's content says which tab it is, for tests on a Deck (Steam's own classes are minified).
           ] as const).map((tab) => ({ ...tab, content: <div className={`deckyhub-settings-${tab.id}`}>{tab.content}</div> }))}
@@ -110,7 +118,7 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
   );
 }
 
-export type SettingsTab = "general" | "github" | "downloads" | "repositories" | "about";
+export type SettingsTab = "general" | "github" | "downloads" | "repositories" | "troubleshoot" | "about";
 // The tab Settings opens on next, for links into a particular one (the rate-limit
 // banner's Open Settings goes to GitHub Access).
 let nextTab: SettingsTab = "general";

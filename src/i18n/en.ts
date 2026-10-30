@@ -222,6 +222,8 @@ export const en = {
   "welcome.gotIt": "Got it",
   "settings.tabGeneral": "General",
   "settings.tabDownloads": "Downloads",
+  "settings.tabTroubleshoot": "Logs",
+  "settings.tabAbout": "About",
 };
 
 export type MessageKey = keyof typeof en;

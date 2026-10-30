@@ -28,7 +28,7 @@ Find, install and update Decky Loader plugins with your controller — from Deck
 <tr>
 <td align="center"><img src="screenshots/all-plugins.jpg" width="260" alt="DeckyHub's All plugins list with search and filters"><br><sub><b>All plugins</b></sub></td>
 <td align="center"><img src="screenshots/search.jpg" width="260" alt="DeckyHub searching GitHub for Decky plugins"><br><sub><b>Search</b></sub></td>
-<td align="center"><img src="screenshots/settings.jpg" width="260" alt="DeckyHub's Settings in tabs: General, GitHub, Downloads, Repositories and About"><br><sub><b>Settings</b></sub></td>
+<td align="center"><img src="screenshots/settings.jpg" width="260" alt="DeckyHub's Settings in tabs: General, GitHub, Downloads, Repositories, Logs and About"><br><sub><b>Settings</b></sub></td>
 </tr>
 </table>
 
@@ -53,7 +53,7 @@ Tired of tabbing out to Desktop Mode, hunting through GitHub releases, and manua
 - **Discover** — browse DeckyHub's list of Steam Deck plugins/tools, filter by search or installed status, and see release info at a glance, color-coded by status.
 - **[Search & Install](#search--install)** — search GitHub for Decky plugins and install one in a tap, or add it to track its updates.
 - **Updates** — see which of your tracked, installed tools have a newer release available and what each one brings, and update the Decky plugins among them in one go with **Update All**. DeckyHub checks in the background every few hours, so the dot on its icon and a toast tell you when new updates show up, and each card says **Installing…** until Decky finishes, then a toast confirms it.
-- **Settings** — in tabs (**L1** / **R1** switch between them): **General** picks the language and adjusts the display (**Grid** or **List**, **Default** or **Compact** density, items per row, haptics, and which Manage-window buttons to hide); **GitHub** takes an optional personal access token to raise the API rate limit (typed, or loaded from a text file in Downloads); **Downloads** shows the download folder and the **Overwrite Existing** toggle; **Repositories** removes tracked repositories, exports and imports your list, and adds other people's app lists under **Custom Registries**; **About** has **Export Logs** for bug reports. Per-repository release-channel overrides live behind each app's **Manage** button on Discover/Updates instead.
+- **Settings** — in tabs (**L1** / **R1** switch between them): **General** picks the language and adjusts the display (**Grid** or **List**, **Default** or **Compact** density, items per row, haptics, and which Manage-window buttons to hide); **GitHub** takes an optional personal access token to raise the API rate limit (typed, or loaded from a text file in Downloads); **Downloads** shows the download folder and the **Overwrite Existing** toggle; **Repositories** removes tracked repositories, exports and imports your list, and adds other people's app lists under **Custom Registries**; **Logs** has **Export Logs** for bug reports; **About** says what DeckyHub is and credits the catalogs it builds on. Per-repository release-channel overrides live behind each app's **Manage** button on Discover/Updates instead.
 - **Quick Access Menu** — DeckyHub has its own tab (the four-square DeckyHub icon, with a dot when updates are waiting) in the Quick Access tab strip, next to Decky's, and still opens from Decky's plugin list too. It shows **Discover**, **Search** and **Settings**, plus **Updates** with a count whenever updates are waiting. Below them: DeckyHub's own version and update check, and a **Cleanup** section (shown when the download folder has files) that empties it after confirmation.
 
 DeckyHub never installs or runs anything automatically. **Download ZIP** saves a release, which you install yourself via Decky's settings → Developer → Install Plugin from ZIP. For one-tap install, update and uninstall, see [Manage](#manage).
@@ -169,6 +169,6 @@ GPL-3.0-or-later — see [LICENSE.md](LICENSE.md).
 
 ## Getting help
 
-Found a bug or have an idea? Open an issue on the [GitHub repository](https://github.com/mazillka/deckyhub-plugin/issues) with a description of what happened; attaching the ZIP from **Export Logs** (**Settings** → **About**) helps, and it never contains your GitHub token. Feedback and suggestions are always welcome.
+Found a bug or have an idea? Open an issue on the [GitHub repository](https://github.com/mazillka/deckyhub-plugin/issues) with a description of what happened; attaching the ZIP from **Export Logs** (**Settings** → **Logs**) helps, and it never contains your GitHub token. Feedback and suggestions are always welcome.
 
 Want to build DeckyHub from source or contribute a change? See [CONTRIBUTING.md](CONTRIBUTING.md).

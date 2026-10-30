@@ -223,4 +223,6 @@ export const fr: Record<MessageKey, string> = {
   "welcome.gotIt": "Compris",
   "settings.tabGeneral": "Général",
   "settings.tabDownloads": "Téléchargements",
+  "settings.tabTroubleshoot": "Journaux",
+  "settings.tabAbout": "À propos",
 };

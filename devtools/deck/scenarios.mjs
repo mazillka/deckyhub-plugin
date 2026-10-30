@@ -45,8 +45,8 @@ async function auditPages(scenario, pages = PAGES) {
     await sleep(2500);
     if (name === "settings") {
       await press(shared, BUTTON.DOWN, 500);
-      for (let tab = 0; tab < 5; tab++) {
-        const id = await main.eval(`[...document.querySelectorAll("[class^=deckyhub-settings-]")].map((e) => e.className).find((c) => /^deckyhub-settings-(general|github|downloads|repositories|about)$/.test(c)) ?? "tab" + ${tab}`);
+      for (let tab = 0; tab < 6; tab++) {
+        const id = await main.eval(`[...document.querySelectorAll("[class^=deckyhub-settings-]")].map((e) => e.className).find((c) => /^deckyhub-settings-(general|github|downloads|repositories|troubleshoot|about)$/.test(c)) ?? "tab" + ${tab}`);
         record(scenario, id.replace("deckyhub-", ""), await audit(main, ".deckyhub-motion"));
         await press(shared, 6, 1000); // R1
       }
