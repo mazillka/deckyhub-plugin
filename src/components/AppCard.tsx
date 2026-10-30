@@ -14,8 +14,10 @@ import { plainNotes, showReleaseInfo } from "./ReleaseInfo";
 const cardStyle = {
   display: "grid",
   gridTemplateColumns: "40px minmax(0, 1fr)",
-  gridTemplateRows: "auto auto",
-  alignContent: "start",
+  // Fixed rows: name, category, badges, description, stats, error, what's new, then a
+  // stretch row that pins the buttons to the bottom, so a row of cards lines up
+  // (a longer description pushed one card's buttons lower; seen on a Deck).
+  gridTemplateRows: "auto auto auto auto auto auto auto minmax(0, 1fr) auto",
   columnGap: 10,
   rowGap: 8,
   ...surfaceStyle,
@@ -72,7 +74,7 @@ export function AppCard({
   );
   // Install/Update, with Manage as a gear beside it; Manage alone takes the full width.
   const actions = (
-      <Focusable flow-children="right" style={{ display: "flex", gap: 8, ...(row ? {} : { ...fullRow, marginTop: "auto" }) }}>
+      <Focusable flow-children="right" style={{ display: "flex", gap: 8, ...(row ? {} : { ...fullRow, gridRow: 9 }) }}>
       {install && quickAction && (
           <div style={{ flex: 1, minWidth: 0 }}>
           <Button
@@ -157,24 +159,24 @@ export function AppCard({
     // find a card's buttons from its heading.
     <div className="deckyhub-focus-ring" style={{ ...cardStyle, borderTopColor: accent }}>
       <AppMonogram app={app} style={{ gridRow: "1 / 3", alignSelf: "center" }} />
-      <h3 style={cardTitleStyle}>{app.name}</h3>
-      <small style={categoryStyle}>{app.category}</small>
-      <div style={fullRow}>
+      <h3 style={{ ...cardTitleStyle, gridColumn: 2, gridRow: 1 }}>{app.name}</h3>
+      <small style={{ ...categoryStyle, gridColumn: 2, gridRow: 2 }}>{app.category}</small>
+      <div style={{ ...fullRow, gridRow: 3 }}>
         {statusPill}
         {channelPill}
         <AppBadges app={app} t={t} />
       </div>
-      <small style={{ ...cardDescriptionStyle, ...fullRow, display: "-webkit-box", color: "#b8c7d3" }}>{app.description || " "}</small>
-      <div style={{ ...fullRow, display: "flex", flexWrap: "wrap", gap: "2px 14px", color: "#8b9aa7", fontSize: "max(12px, 0.8em)" }}>
+      <small style={{ ...cardDescriptionStyle, ...fullRow, gridRow: 4, display: "-webkit-box", color: "#b8c7d3" }}>{app.description || " "}</small>
+      <div style={{ ...fullRow, gridRow: 5, display: "flex", flexWrap: "wrap", gap: "2px 14px", color: "#8b9aa7", fontSize: "max(12px, 0.8em)" }}>
         {app.installedVersion && <span>{t("settings.installedVersion", { version: displayVersion(app.installedVersion) })}</span>}
         {/* No release and no error yet: its GitHub check is still running. */}
         <span>{t("settings.latestVersion", { version: app.latestVersion ? displayVersion(app.latestVersion) : app.error ? "—" : t("settings.checkingUpdate") })}</span>
         <AppStats app={app} t={t} />
       </div>
-      {app.error && <small style={{ ...fullRow, color: "#ff6b6b", overflowWrap: "anywhere" }}>{app.error}</small>}
+      {app.error && <small style={{ ...fullRow, gridRow: 6, color: "#ff6b6b", overflowWrap: "anywhere" }}>{app.error}</small>}
       {/* What an update brings, so you can decide on the card; Y (Release Info) reads it all. */}
       {isUpdate && notes && (
-        <small className="deckyhub-card-notes" style={{ ...cardDescriptionStyle, ...fullRow, display: "-webkit-box", color: "#d8e6f0", borderLeft: "2px solid #f0c33c", paddingLeft: 8 }}>
+        <small className="deckyhub-card-notes" style={{ ...cardDescriptionStyle, ...fullRow, gridRow: 7, display: "-webkit-box", color: "#d8e6f0", borderLeft: "2px solid #f0c33c", paddingLeft: 8 }}>
           <strong style={{ color: "#f0c33c" }}>{t("details.whatsNew", { version: `v${latest}` })}:</strong> {notes}
         </small>
       )}
