@@ -17,13 +17,18 @@ Find, install and update Decky Loader plugins with your controller — from Deck
 
 [**Download**](https://github.com/mazillka/deckyhub-plugin/releases/latest) · [Website](https://mazillka.github.io/deckyhub-plugin/) · [Plugin catalog](https://mazillka.github.io/deckyhub-registry/) · [Install guide](#installing-deckyhub) · [Report an issue](https://github.com/mazillka/deckyhub-plugin/issues)
 
-<img src="screenshots/discover.jpg" width="800" alt="DeckyHub's Discover screen listing Steam Deck plugins with color-coded status">
+<img src="screenshots/hero.jpg" width="800" alt="DeckyHub: Decky plugins, straight from GitHub. Its Discover screen on a Steam Deck, with plugin categories and the most popular plugins.">
 
 <table>
 <tr>
-<td align="center"><img src="screenshots/menu.jpg" width="260" alt="DeckyHub Menu screen"><br><sub><b>Menu</b></sub></td>
+<td align="center"><img src="screenshots/menu.jpg" width="260" alt="DeckyHub's own tab in the Quick Access menu, with an update dot"><br><sub><b>Quick Access</b></sub></td>
 <td align="center"><img src="screenshots/updates.jpg" width="260" alt="DeckyHub Updates screen"><br><sub><b>Updates</b></sub></td>
 <td align="center"><img src="screenshots/manage.jpg" width="260" alt="DeckyHub Manage screen"><br><sub><b>Manage</b></sub></td>
+</tr>
+<tr>
+<td align="center"><img src="screenshots/all-plugins.jpg" width="260" alt="DeckyHub's All plugins list with search and filters"><br><sub><b>All plugins</b></sub></td>
+<td align="center"><img src="screenshots/search.jpg" width="260" alt="DeckyHub searching GitHub for Decky plugins"><br><sub><b>Search</b></sub></td>
+<td align="center"><img src="screenshots/settings.jpg" width="260" alt="DeckyHub Settings screen"><br><sub><b>Settings</b></sub></td>
 </tr>
 </table>
 

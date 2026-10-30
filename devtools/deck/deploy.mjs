@@ -1,7 +1,8 @@
 // Builds this checkout's DeckyHub, serves the ZIP from this computer and has
 // Decky Loader on the Deck install it, confirming Decky's own dialog.
 //   DECK=192.168.1.209:8081 node devtools/deck/deploy.mjs
-// The ZIP's version gets a "-dev.<time>" suffix so the Deck shows which build runs.
+// The ZIP's version gets a "-dev.<time>" suffix so the Deck shows which build runs
+// (or DECKYHUB_VERSION=3.0.0-rc.13 for one without).
 import { execSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { createSocket } from "node:dgram";
@@ -17,7 +18,8 @@ const root = new URL("../../", import.meta.url).pathname.replace(/^\/(\w:)/, "$1
 execSync(`"${process.execPath}" node_modules/rollup/dist/bin/rollup -c`, { cwd: root, stdio: "inherit" });
 
 const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
-const version = `${pkg.version}-dev.${new Date().toISOString().replace(/\D/g, "").slice(4, 12)}`;
+// DECKYHUB_VERSION sets it exactly (say, for screenshots that shouldn't show "-dev").
+const version = process.env.DECKYHUB_VERSION ?? `${pkg.version}-dev.${new Date().toISOString().replace(/\D/g, "").slice(4, 12)}`;
 const stage = join(tmpdir(), "deckyhub-deck-deploy");
 rmSync(stage, { recursive: true, force: true });
 mkdirSync(join(stage, "DeckyHub", "dist"), { recursive: true });
@@ -48,8 +50,14 @@ const shared = await connect(TARGETS.shared);
 const main = await connect(TARGETS.main);
 try {
   await shared.eval(`DFL.Navigation.CloseSideMenus?.(); DeckyBackend.call("utilities/install_plugin", ${JSON.stringify(url)}, "DeckyHub", ${JSON.stringify(version)}, "${sha256}", 2).then(() => true)`);
-  // Decky asks "Update DeckyHub to version ...?" on the main screen.
-  await waitFor(main, `(() => { const button = [...document.querySelectorAll("button, .DialogButton")].find((el) => el.textContent.trim() === "Update"); button?.click(); return !!button; })()`);
+  // Decky asks "…update DeckyHub to version <version>?" on the main screen. Press
+  // Update in that dialog only: other windows (a plugin's Manage) have Update buttons too.
+  await waitFor(main, `(() => {
+    const dialog = [...document.querySelectorAll("[class*=ConfirmDialog]")].find((el) => el.textContent.includes(${JSON.stringify(version)}) && /DeckyHub/.test(el.textContent));
+    const button = dialog && [...dialog.querySelectorAll("button, .DialogButton")].find((el) => el.textContent.trim() === "Update");
+    button?.click();
+    return !!button;
+  })()`);
   await waitFor(shared, `DeckyPluginLoader.plugins?.some((plugin) => plugin.name === "DeckyHub" && plugin.version === ${JSON.stringify(version)})`, 60000);
   console.log(`DeckyHub ${version} is running on ${deckHost}`);
 } finally {

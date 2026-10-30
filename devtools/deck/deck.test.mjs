@@ -145,14 +145,15 @@ test("Discover: disclaimer, categories and plugin cards", async () => {
   assert.ok(state.cards >= 3, "no plugin cards");
 });
 
-test("Discover: category chips are one line each, with their counts showing", async () => {
+test("Discover: category chips are one line each, whole name and count showing", async () => {
   await openPage("discover");
   const chips = JSON.parse(await main.eval(`JSON.stringify([...document.querySelectorAll(".deckyhub-category-chips button, .deckyhub-category-chips .DialogButton")].map((chip) => {
     const count = chip.lastElementChild.getBoundingClientRect();
-    return { label: chip.textContent.trim(), height: Math.round(chip.getBoundingClientRect().height), countShown: count.right <= chip.getBoundingClientRect().right };
+    const name = chip.firstElementChild;
+    return { label: chip.textContent.trim(), height: Math.round(chip.getBoundingClientRect().height), countShown: count.right <= chip.getBoundingClientRect().right, nameShown: name.scrollWidth <= name.clientWidth };
   }))`));
   assert.equal(new Set(chips.map((chip) => chip.height)).size, 1, `chip heights differ: ${JSON.stringify(chips)}`);
-  assert.deepEqual(chips.filter((chip) => !chip.countShown), []);
+  assert.deepEqual(chips.filter((chip) => !chip.countShown || !chip.nameShown), []);
 });
 
 test("Discover: All plugins lists every plugin, and Back returns home", async () => {

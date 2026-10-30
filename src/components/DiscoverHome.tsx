@@ -11,7 +11,8 @@ import { keepInView } from "./KeepInView";
 // Discover's home shelves, each the top of the list in one order, with See all for the rest.
 export const SHELVES = [["popular", "downloads"], ["recent", "updated"], ["new", "added"]] as const;
 
-// One line each, all the same height: a long name gets "…", never the count (seen on a Deck).
+// One line each, all the same height, as wide as their text (equal fifths cut
+// "Frame Generation" short on a Deck); "…" only if a row truly can't fit.
 const chipStyle = { ...compactButtonStyle, marginBottom: 0, padding: "4px 8px", borderRadius: 999, display: "flex", justifyContent: "center", gap: "0.3em", whiteSpace: "nowrap" as const };
 // Category chips per row. Rows are explicit, like FocusableGrid's: Steam's D-pad can't move down a wrapped row.
 const CHIPS_PER_ROW = 5;
@@ -22,7 +23,7 @@ export function DiscoverHome({ total, categories, shelf, onBrowse, renderGrid }:
   return (
     <>
       <div className="deckyhub-category-chips">
-        <FocusableGrid items={[["", total] as const, ...categories]} columns={CHIPS_PER_ROW} keyFor={([category]) => category}>
+        <FocusableGrid fit items={[["", total] as const, ...categories]} columns={CHIPS_PER_ROW} keyFor={([category]) => category}>
           {([category, count]) => (
             <Button style={chipStyle} onClick={() => onBrowse(category)}>
               <span style={ellipsis}>{category || t("discover.allPlugins")}</span> <span style={{ opacity: 0.7, flexShrink: 0 }}>{count}</span>
