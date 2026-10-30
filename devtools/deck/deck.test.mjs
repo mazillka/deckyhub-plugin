@@ -192,13 +192,26 @@ test("Settings: layout, language and token settings are there", async () => {
 });
 
 // The D-pad, sweeping each page like a player would, reaches every control on it.
-for (const name of PAGES) {
+for (const name of PAGES.filter((page) => page !== "settings")) {
   test(`${name}: the D-pad reaches every control`, async () => {
     await openPage(name);
     const { missed } = await explore(shared, main);
     assert.deepEqual(missed, []);
   });
 }
+
+// Settings sweeps each tab inside its own content: from the top, Left and Right on
+// Steam's tab bar would switch tabs under the sweep. R1 moves to the next tab.
+test("settings: the D-pad reaches every control on each tab", async () => {
+  await openPage("settings");
+  const missed = {};
+  for (const tab of ["general", "github", "downloads", "repositories", "troubleshoot", "about"]) {
+    const found = await explore(shared, main, { root: `.deckyhub-settings-${tab}` });
+    if (found.missed.length) missed[tab] = found.missed;
+    await press(shared, 6, 1200); // R1
+  }
+  assert.deepEqual(missed, {});
+});
 
 test("Quick Access: the D-pad reaches every control in DeckyHub's panel", async () => {
   await openQuickAccess(TAB_ID);

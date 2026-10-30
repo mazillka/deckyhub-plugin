@@ -11,7 +11,8 @@ const tag = (root) => `(() => {
   const root = document.querySelector(${JSON.stringify(root)});
   let next = document.querySelectorAll("[data-nav-id]").length;
   const controls = [...root.querySelectorAll("button, input, select, .DialogButton, [role=button]")]
-    .filter((el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && !el.disabled && !el.closest("[data-nav-id]:not(:scope)"); });
+    // Off to the side (another Settings tab Steam keeps rendered) or disabled controls aren't stops.
+    .filter((el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && r.right > 0 && r.left < innerWidth && !el.disabled && el.getAttribute("aria-disabled") !== "true" && !el.closest("[data-nav-id]:not(:scope)"); });
   for (const el of controls) if (!el.dataset.navId) el.dataset.navId = String(next++);
   return controls.map((el) => el.dataset.navId);
 })()`;
