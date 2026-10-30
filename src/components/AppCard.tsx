@@ -80,7 +80,7 @@ export function AppCard({
           <Button
             style={{ ...compactButtonStyle, marginBottom: 0 }}
             disabled={installing || deckyInstalling}
-            {...(row && { "aria-label": quickLabel })}
+            {...(row && { "aria-label": deckyInstalling ? t("status.installing") : quickLabel })}
             onSecondaryButton={() => showReleaseInfo(t, `${app.name} v${latest}`, app.publishedAt, app.releaseNotes)}
             onSecondaryActionDescription={t("appcard.releaseInfo")}
             // X downloads the same release's ZIP instead of installing it.

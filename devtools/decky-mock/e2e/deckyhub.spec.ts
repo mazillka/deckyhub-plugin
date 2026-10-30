@@ -2184,6 +2184,32 @@ test("The Updates page offers Discover when everything is up to date", async ({ 
   await expect(app.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
 });
 
+test("A card says Installing… while Decky installs, then a notice says it's done", async ({ page }) => {
+  await recordInstalls(page);
+  await mockMakoReleases(page, [makoRelease("plugin-v1.2.3", "a".repeat(64))]);
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  const card = () => app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+  const install = card().getByRole("button", { name: "Install v1.2.3", exact: true });
+  await install.click();
+  await acceptDisclaimer(page, "Install v1.2.3");
+  await expect(app.locator(".qam-content")).toBeVisible();
+
+  // Decky's start event, not the confirmation, marks it installing; another plugin's doesn't.
+  await emit(page, "loader/plugin_download_start", "Some Other Plugin");
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await expect(card().getByText("Installing…", { exact: true })).toHaveCount(0);
+  await emit(page, "loader/plugin_download_start", "MAKO - Frame Generation");
+  // The status pill and the button both say so, and the button can't be pressed again.
+  await expect(card().getByText("Installing…", { exact: true })).toHaveCount(2);
+  await expect(card().getByRole("button", { name: "Installing…", exact: true })).toBeDisabled();
+
+  await emit(page, "loader/plugin_download_finish", "MAKO - Frame Generation");
+  await expect(app.getByText("MAKO - Frame Generation v1.2.3 installed.")).toBeVisible();
+  await expect(card().getByText("Installing…", { exact: true })).toHaveCount(0);
+  await expect(install).toBeEnabled();
+});
+
 test("A stalled Decky install warns once its progress goes quiet, a finished one doesn't", async ({ page }) => {
   await recordInstalls(page);
   await page.clock.install();
