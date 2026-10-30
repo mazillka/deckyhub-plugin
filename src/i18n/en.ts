@@ -220,6 +220,8 @@ export const en = {
   "welcome.body": "Install and update Decky plugins straight from their authors' GitHub releases. Browse them here in Discover, find more with Search, and keep them current in Updates.",
   "welcome.safety": "Nobody reviews these plugins, DeckyHub included. Install only plugins from authors you trust; DeckyHub always asks before installing anything.",
   "welcome.gotIt": "Got it",
+  "settings.tabGeneral": "General",
+  "settings.tabDownloads": "Downloads",
 };
 
 export type MessageKey = keyof typeof en;

@@ -222,4 +222,6 @@ export const zhTW: Record<MessageKey, string> = {
   "welcome.body": "直接從作者的 GitHub 發行版本安裝和更新 Decky 插件。在「探索」中瀏覽，用「搜尋」找到更多，在「更新」中保持最新。",
   "welcome.safety": "沒有人審核這些插件，DeckyHub 也不例外。請只安裝你信任的作者的插件；DeckyHub 在安裝前一定會先詢問你。",
   "welcome.gotIt": "知道了",
+  "settings.tabGeneral": "一般",
+  "settings.tabDownloads": "下載",
 };

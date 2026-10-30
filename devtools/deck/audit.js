@@ -54,7 +54,8 @@
     const labelled = el.getAttribute("aria-label") || el.getAttribute("aria-labelledby") || el.textContent.trim() || el.title || el.closest("label")?.textContent.trim() || el.placeholder;
     if (!labelled) problems.push(`no name: ${el.tagName.toLowerCase()} at ${Math.round(el.getBoundingClientRect().x)},${Math.round(el.getBoundingClientRect().y)}`);
   }
-  for (const img of root.querySelectorAll("img")) if (shown(img) && !img.hasAttribute("alt")) problems.push(`no alt: ${img.src.slice(-40)}`);
+  // Steam's own controller-button glyphs (L1 / R1 on its tab bar) aren't ours to fix.
+  for (const img of root.querySelectorAll("img")) if (shown(img) && !img.hasAttribute("alt") && !/steaminputglyphs/.test(img.src)) problems.push(`no alt: ${img.src.slice(-40)}`);
 
   // Contrast: the text colour over its backgrounds, composited down to Steam's black.
   const rgba = (value) => { const m = value.match(/[\d.]+/g)?.map(Number) ?? [0, 0, 0, 0]; return [m[0], m[1], m[2], m[3] ?? 1]; };

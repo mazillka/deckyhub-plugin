@@ -25,7 +25,8 @@ const focused = (root) => `(() => {
   el.dataset.navId = "stop-" + document.querySelectorAll("[data-nav-id]").length;
   return el.dataset.navId;
 })()`;
-const label = (id) => `(() => { const el = document.querySelector('[data-nav-id="${id}"]'); return (el.getAttribute("aria-label") || el.textContent || el.placeholder || el.tagName).trim().replace(/\\s+/g, " ").slice(0, 40); })()`;
+// null once the control has left the page (Steam's tab bar switched tabs under the sweep).
+const label = (id) => `(() => { const el = document.querySelector('[data-nav-id="${id}"]'); if (!el) return null; return (el.getAttribute("aria-label") || el.textContent || el.placeholder || el.tagName).trim().replace(/\\s+/g, " ").slice(0, 40); })()`;
 
 export async function press(shared, button, wait = 350) {
   await shared.eval(`FocusNavController.DispatchVirtualButtonClick(${button}); true`);
@@ -76,6 +77,10 @@ export async function explore(shared, main, { maxSteps = 250, trace = false, roo
   while (steps < maxSteps && await step(BUTTON.UP)); // back to the top
   await sweep(BUTTON.LEFT, BUTTON.RIGHT);
   const missed = [];
-  for (const id of all) if (!reached.has(id)) missed.push(await main.eval(label(id)));
+  for (const id of all) {
+    if (reached.has(id)) continue;
+    const name = await main.eval(label(id));
+    if (name !== null) missed.push(name);
+  }
   return { controls: all.size, reached: reached.size, missed, steps };
 }

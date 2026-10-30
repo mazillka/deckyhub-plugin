@@ -84,6 +84,11 @@ const BRIDGE_URL = "http://127.0.0.1:8643";
 // since an unawaited call races Playwright's own page teardown.
 // Discover opens on its shelves; tests of the whole list tap the All plugins chip.
 // A query narrows it to the cards a test needs, since the list shows a page at a time.
+// Opens a Settings tab (Steam's Tabs; L1 / R1 on a Deck).
+async function settingsTab(page: Page, name: string) {
+  await mock(page).getByRole("tab", { name, exact: true }).click();
+}
+
 // All plugins, with its Filters open (Status, Category, Sort, Then by).
 async function browseAll(page: Page, query?: string) {
   await mock(page).getByRole("button", { name: /^All plugins/ }).click();
@@ -281,6 +286,7 @@ test("Export Logs zips the backend log into Downloads", async ({ page }) => {
   const app = mock(page);
   const toast = page.waitForEvent("console", (message) => message.text().includes("Exported to"));
   await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+  await settingsTab(page, "About");
   await app.getByRole("button", { name: "Export Logs", exact: true }).click();
 
   const name = (await toast).text().match(/DeckyHub-logs-\d{8}-\d{6}\.zip/)?.[0];
@@ -697,7 +703,7 @@ test("A GitHub rate limit surfaces a friendly message instead of a raw status co
   await expect(banner.getByText(/Try again in about \d+ min\. Add a GitHub token in Settings/)).toBeVisible();
 
   // It follows the user to other GitHub-backed screens until dismissed.
-  await app.getByRole("button", { name: "/deckyhub/repositories" }).click();
+  await app.getByRole("button", { name: "/deckyhub/search" }).click();
   await expect(banner).toHaveCount(1);
   await banner.getByRole("button", { name: "Dismiss", exact: true }).click();
   await expect(banner).toHaveCount(0);
@@ -823,6 +829,7 @@ test("An empty release list never replaces releases already seen", async ({ page
 
 test("Settings' GitHub Access says it in a line, with Why? for the rest", async ({ page }) => {
   await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
+  await settingsTab(page, "GitHub");
   const app = mock(page);
   await expect(app.getByText("Optional: a GitHub token raises the limit from 60 to 5,000 requests an hour.")).toBeVisible();
   await expect(app.getByText(/Without a token, GitHub limits this device/)).toHaveCount(0);
@@ -841,6 +848,7 @@ test("Settings loads a GitHub token from a file, for Save to keep", async ({ pag
   page.on("dialog", (dialog) => void dialog.accept(file.pathname.replace(/^\/(\w:)/, "$1")));
   try {
     await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
+    await settingsTab(page, "GitHub");
     const app = mock(page);
     await app.getByRole("button", { name: "Load from file", exact: true }).click();
     await expect(app.getByLabel("GitHub Token")).toHaveValue(token);
@@ -853,6 +861,7 @@ test("Settings loads a GitHub token from a file, for Save to keep", async ({ pag
 test("Settings' token link opens GitHub's token page", async ({ page, context }) => {
   await context.route("https://github.com/**", (route) => route.fulfill({ body: "tokens page" }));
   await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
+  await settingsTab(page, "GitHub");
   const popupPromise = page.waitForEvent("popup");
   await mock(page).getByRole("button", { name: "Why?", exact: true }).click();
   await mock(page).locator(".deckyhub-token-link").click();
@@ -866,6 +875,7 @@ test("Settings' About thanks both plugin catalogs and links to them", async ({ p
     Object.assign(window, { __opened: opened, open: (url: string) => void opened.push(url) });
   });
   await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
+  await settingsTab(page, "About");
   const app = mock(page);
   await expect(app.getByText(/found through two community catalogs/)).toBeVisible();
   for (const label of ["Decky Plugins Explorer by SafetZahirovic", "Decky Extended Plugins by beallio", "DeckyHub on GitHub"]) {
@@ -1397,10 +1407,14 @@ test("Compact interface shrinks DeckyHub's buttons and spacing, Default restores
   try {
     await bridgeCall(page, "save_settings", { overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: 3, githubToken: "" });
     await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+    await settingsTab(page, "GitHub");
     const save = app.getByRole("button", { name: "Save Settings", exact: true });
     await expect.poll(() => minHeight(save)).toBe("40px");
 
+    // Interface is on General; the Save button to measure on GitHub Access.
+    await settingsTab(page, "General");
     await app.getByLabel("Interface").selectOption({ label: "Compact" });
+    await settingsTab(page, "GitHub");
     await expect.poll(() => minHeight(save)).toBe("28px");
 
     // Modals follow too: they render in the same document as the variables.
@@ -1413,6 +1427,7 @@ test("Compact interface shrinks DeckyHub's buttons and spacing, Default restores
 
     await app.getByRole("button", { name: "/deckyhub/settings" }).click();
     await app.getByLabel("Interface").selectOption({ label: "Default" });
+    await settingsTab(page, "GitHub");
     await expect.poll(() => minHeight(app.getByRole("button", { name: "Save Settings", exact: true }))).toBe("40px");
   } finally {
     await bridgeCall(page, "save_settings", { overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: 3, githubToken: "" });
@@ -1426,6 +1441,7 @@ test("Settings shows how many GitHub requests are left", async ({ page }) => {
   );
   const app = mock(page);
   await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+  await settingsTab(page, "GitHub");
 
   await expect(app.locator(".deckyhub-github-quota")).toHaveText(/^GitHub requests left: 42 of 60 \(resets in (10|11) min\)$/);
 });
@@ -1661,6 +1677,7 @@ test("Saving a GitHub token in Settings adds it to GitHub API requests", async (
   try {
     const app = mock(page);
     await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+    await settingsTab(page, "GitHub");
     await app.getByLabel("GitHub Token").fill("ghp_test_token_abc123");
     const saveButton = app.getByRole("button", { name: "Save Settings", exact: true });
     await saveButton.click();
@@ -1688,6 +1705,7 @@ test("Settings loads a previously saved GitHub token and keeps Save disabled unt
 
     const app = mock(page);
     await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+    await settingsTab(page, "GitHub");
     const tokenField = app.getByLabel("GitHub Token");
     const saveButton = app.getByRole("button", { name: "Save Settings", exact: true });
 
@@ -1722,6 +1740,7 @@ test("Clearing a previously-saved GitHub token removes it from GitHub API reques
 
     const app = mock(page);
     await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+    await settingsTab(page, "GitHub");
     // Wait for the seeded token to load; clearing the field before that
     // leaves nothing to save, and Save stays disabled.
     await expect(app.getByLabel("GitHub Token")).toHaveValue("ghp_temp_token");
@@ -1814,7 +1833,7 @@ async function sideBySideWithoutRightFlow(page: Page) {
   return mock(page).locator("body").evaluate((body) => {
     const scope = Array.from(body.querySelectorAll(".steam-modal")).pop() ?? body;
     const controls = Array.from(scope.querySelectorAll<HTMLElement>("button, input, select, [tabindex]:not([tabindex='-1'])"))
-      .filter((control) => control.getClientRects().length && !control.closest(".preview-nav, .qam-tabs"));
+      .filter((control) => control.getClientRects().length && !control.closest(".preview-nav, .qam-tabs, .steam-tab-bar"));
     const label = (control: HTMLElement) => control.textContent?.trim() || control.getAttribute("aria-label") || control.tagName;
     const problems = new Set<string>();
     for (const left of controls) {
@@ -1969,7 +1988,7 @@ test("Moving focus ticks the Deck's trackpads, unless Display Settings turns it 
     const toggle = app.getByLabel("Haptic feedback when navigating");
     await expect(toggle).toBeChecked();
 
-    await app.getByRole("button", { name: "Repositories", exact: true }).focus();
+    await app.getByLabel("Language").focus();
     await expect.poll(ticks).toBeGreaterThan(0);
     // The first focus registers for the controller list; this one ticks on the Deck's controller.
     await page.waitForTimeout(60);
@@ -1980,7 +1999,7 @@ test("Moving focus ticks the Deck's trackpads, unless Display Settings turns it 
     await expect(toggle).not.toBeChecked();
     await page.waitForTimeout(300);
     const before = await ticks();
-    await app.getByRole("button", { name: "Repositories", exact: true }).focus();
+    await app.getByLabel("Language").focus();
     await page.waitForTimeout(60);
     await toggle.focus();
     expect(await ticks()).toBe(before);
@@ -2078,11 +2097,30 @@ test("Quick Access lists its pages in order, showing Updates only while there ar
   await expect(mock(page).getByRole("button", { name: "Updates", exact: true })).toHaveCount(0);
 });
 
-test("Settings opens Repositories", async ({ page }) => {
+test("Settings keeps each part on its own tab, Repositories included", async ({ page }) => {
   await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await app.getByRole("button", { name: "Repositories", exact: true }).click();
-  await expect(app.getByRole("heading", { name: "Repositories", exact: true })).toBeVisible();
+  await expect(app.getByRole("tab")).toHaveText(["General", "GitHub", "Downloads", "Repositories", "About"]);
+  await expect(app.getByLabel("Language")).toBeVisible();
+  await settingsTab(page, "Repositories");
+  await expect(app.getByRole("button", { name: "Export", exact: true })).toBeVisible();
+  await expect(app.getByLabel("Language")).toHaveCount(0);
+  // R1 ("]" in the mock) moves to the next tab.
+  await app.getByRole("tab", { name: "Repositories", exact: true }).press("]");
+  await expect(app.getByRole("tab", { name: "About", exact: true })).toHaveAttribute("aria-selected", "true");
+});
+
+test("Repositories' old page opens Settings on its tab", async ({ page }) => {
+  await page.goto("/?preview=/deckyhub/repositories&bridge=http://127.0.0.1:8643");
+  await expect(mock(page).getByRole("tab", { name: "Repositories", exact: true })).toHaveAttribute("aria-selected", "true");
+});
+
+test("The rate-limit banner's Open Settings goes to the GitHub tab", async ({ page }) => {
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  await app.getByRole("button", { name: "Rate limit banner", exact: true }).click();
+  await app.locator(".deckyhub-rate-limit").getByRole("button", { name: "Open Settings", exact: true }).click();
+  await expect(app.getByRole("tab", { name: "GitHub", exact: true })).toHaveAttribute("aria-selected", "true");
 });
 
 test("An up-to-date Decky plugin's card offers only Manage", async ({ page }) => {

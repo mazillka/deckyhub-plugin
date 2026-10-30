@@ -6,7 +6,6 @@ import { DeckyHubIcon } from "./components/DeckyHubIcon";
 import { addQuickAccessTab, removeQuickAccessTab } from "./components/QuickAccessTab";
 import { I18nProvider } from "./i18n";
 import { Content } from "./pages/Content";
-import { ManageRepositoriesPage } from "./pages/ManageRepositoriesPage";
 import { SearchPage } from "./pages/SearchPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { MotionStyle } from "./motion";
@@ -22,7 +21,8 @@ const ROUTES: Record<string, () => ReactNode> = {
   "/deckyhub/discover": () => <Content fullPage="discover" />,
   "/deckyhub/search": () => <SearchPage />,
   "/deckyhub/settings": () => <SettingsPage />,
-  "/deckyhub/repositories": () => <ManageRepositoriesPage />,
+  // Repositories is a Settings tab; its old route opens Settings there.
+  "/deckyhub/repositories": () => <SettingsPage initialTab="repositories" />,
 };
 
 // The backend refreshes the registry in the background after startup; forward its
