@@ -29,9 +29,9 @@ function TabPanel({ children }: { children: ReactNode }) {
 function TabIcon() {
   const updates = useSyncExternalStore(subscribeUpdateCount, getUpdateCount);
   return (
-    <span className="deckyhub-tab-icon" style={{ position: "relative", display: "inline-flex" }}>
+    <span className="deckyhub-tab-icon" style={{ position: "relative", display: "inline-flex", alignSelf: "center", lineHeight: 0 }}>
       <DeckyHubIcon />
-      {updates > 0 && <span className="deckyhub-tab-dot" style={{ position: "absolute", top: -2, right: -4, width: 8, height: 8, borderRadius: "50%", background: "#1a9fff", boxShadow: "0 0 0 2px #0e141b" }} />}
+      {updates > 0 && <span className="deckyhub-tab-dot" style={{ position: "absolute", top: -4, right: -6, width: 8, height: 8, borderRadius: "50%", background: "#ff8c1a", boxShadow: "0 0 0 2px #0e141b" }} />}
     </span>
   );
 }
