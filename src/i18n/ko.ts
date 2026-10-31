@@ -39,6 +39,7 @@ export const ko: Record<MessageKey, string> = {
   "sort.stars": "스타 많은 순",
   "sort.updated": "최근 업데이트",
   "view.totalDownloads": "다운로드 {count}회",
+  "view.prereleaseRegistry": "시험판 레지스트리",
 
   "content.loading": "불러오는 중…",
   "content.loadErrorTitle": "DeckyHub를 불러올 수 없습니다",

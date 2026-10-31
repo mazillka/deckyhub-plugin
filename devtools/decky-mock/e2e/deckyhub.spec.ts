@@ -32,6 +32,8 @@ const makoRelease = (tag: string, sha256: string, day = "01") => ({
 });
 const RELEASE_INDEX_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/releases.json";
 const PLUGIN_STATS_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/stats.json";
+// What Settings' Registry Channel: Pre-release reads instead (the registry's develop branch).
+const PRERELEASE_STATS_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index-develop/stats.json";
 const mockMakoReleases = (page: Page, releases: unknown[]) =>
   page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases**", (route) => route.fulfill({ json: releases }));
 
@@ -674,6 +676,98 @@ test("The Manage window shows the plugin's description, details and a Repository
   await expect(app.locator(".steam-modal").getByText("eugeniosegala/MAKO", { exact: true })).toBeVisible();
   await expect(app.locator(".steam-modal .deckyhub-details-notes")).toBeVisible();
   await expect(app.locator(".steam-modal").getByRole("button", { name: "Repository" })).toBeVisible();
+});
+
+test("Discover shows the registry's audit warnings next to Runs as root and explains each one", async ({ page }) => {
+  await page.route(PLUGIN_STATS_URL, (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), plugins: {
+    "eugeniosegala/mako": { downloads: 73981, stars: 680, updated: new Date().toISOString(), root: true, warnings: ["private-data", "not-in-source", "some-future-warning"] },
+    // A newer pre-release's warnings show only to people on the pre-release channel.
+    "mubaraknumann/unifideck": { downloads: 110541, stars: 1410, updated: new Date().toISOString(), root: false, prereleaseWarnings: ["blocked"] },
+  } } }));
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page);
+  await app.getByRole("button", { name: "Grid", exact: true }).click();
+  await app.getByLabel("Sort").selectOption("downloads");
+  const mako = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+  const unifideck = app.getByRole("heading", { name: "Unifideck" }).locator("..");
+  for (const text of ["Runs as root", "Reads private data", "Code not in its repo"]) await expect(mako.getByText(text, { exact: true })).toBeVisible();
+  // A warning this release doesn't know yet (the registry adds them first) shows nothing.
+  await expect(mako.getByText("some-future-warning")).toHaveCount(0);
+  await expect(unifideck.getByText("Blocked by audit")).toHaveCount(0);
+
+  // Tooltips never show on a Deck, so More on the notice says what every warning means.
+  await expect(app.locator(".deckyhub-warning-legend")).toHaveCount(0);
+  await app.locator(".deckyhub-disclaimer").getByRole("button", { name: "More", exact: true }).click();
+  const legend = app.locator(".deckyhub-warning-legend");
+  await expect(legend).toContainText("Decky Extended Plugins' automated audit");
+  for (const [badge, meaning] of [
+    ["Blocked by audit", "Not recommended for installation."],
+    ["Reads private data", "Steam login data"],
+    ["Changes system startup", "keep working outside Decky"],
+    ["Code not in its repo", "aren't in its GitHub source"],
+    ["Hidden code", "encoded or packed code"],
+    ["Skips HTTPS checks", "certificate checks"],
+    ["Runs downloaded scripts", "downloads a script"],
+    ["Known vulnerabilities", "published security flaws"],
+  ]) await expect(legend.getByText(badge, { exact: true }).locator("..")).toContainText(meaning);
+
+  // The Manage window shows them too.
+  await mako.getByRole("button", { name: "Manage", exact: true }).click();
+  const meta = app.locator(".steam-modal .deckyhub-details-meta");
+  for (const text of ["Reads private data", "Code not in its repo"]) await expect(meta.getByText(text, { exact: true })).toBeVisible();
+});
+
+test("Registry Channel: Pre-release reads the registry's develop data, says so on Discover, and switches back", async ({ page }) => {
+  const stable = { generatedAt: new Date().toISOString(), plugins: { "eugeniosegala/mako": { downloads: 10, stars: 1, updated: null, root: false } } };
+  const testing = { generatedAt: new Date().toISOString(), plugins: { "eugeniosegala/mako": { downloads: 10, stars: 1, updated: null, root: false, warnings: ["hidden-code-test", "obfuscated"] } } };
+  const asked: string[] = [];
+  await page.route(PLUGIN_STATS_URL, (route) => { asked.push("stable"); return route.fulfill({ json: stable }); });
+  await page.route(PRERELEASE_STATS_URL, (route) => { asked.push("prerelease"); return route.fulfill({ json: testing }); });
+  const { result: before } = await bridgeCall(page, "get_settings");
+  try {
+    await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    await settingsTab(page, "Repositories");
+    const channel = app.getByLabel("Registry Channel");
+    await expect(channel).toHaveValue("stable");
+    await expect(app.getByText("If they can't be loaded, DeckyHub uses the stable list.")).toBeVisible();
+    await channel.selectOption("prerelease");
+    await expect.poll(async () => (await bridgeCall(page, "get_settings")).result.registryChannel).toBe("prerelease");
+
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    await expect(app.locator(".deckyhub-registry-channel")).toHaveText("Pre-release registry");
+    await browseAll(page, "MAKO");
+    // The stats came from the develop index.
+    await expect(app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByText("Hidden code", { exact: true })).toBeVisible();
+    expect(asked).toContain("prerelease");
+
+    // Back on Stable: no badge, main's data.
+    await bridgeCall(page, "save_settings", { ...(await bridgeCall(page, "get_settings")).result, registryChannel: "stable" });
+    asked.length = 0;
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    await browseAll(page, "MAKO");
+    await expect(app.getByRole("heading", { name: "MAKO Decky" })).toBeVisible();
+    await expect(app.locator(".deckyhub-registry-channel")).toHaveCount(0);
+    expect(asked).not.toContain("prerelease");
+  } finally {
+    await bridgeCall(page, "save_settings", before);
+  }
+});
+
+test("Registry Channel: Pre-release falls back to the stable data when develop's is missing", async ({ page }) => {
+  await page.route(PLUGIN_STATS_URL, (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), plugins: { "eugeniosegala/mako": { downloads: 4242, stars: 1, updated: null, root: false } } } }));
+  await page.route(PRERELEASE_STATS_URL, (route) => route.fulfill({ status: 404, body: "404: Not Found" }));
+  const { result: before } = await bridgeCall(page, "get_settings");
+  try {
+    await bridgeCall(page, "save_settings", { ...before, registryChannel: "prerelease" });
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    await browseAll(page, "MAKO");
+    await expect(app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByText("↓ 4.2K")).toBeVisible();
+  } finally {
+    await bridgeCall(page, "save_settings", before);
+  }
 });
 
 test("A GitHub rate limit surfaces a friendly message instead of a raw status code", async ({ page }) => {

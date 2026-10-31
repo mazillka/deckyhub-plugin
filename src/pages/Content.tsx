@@ -7,6 +7,7 @@ import { useT } from "../i18n";
 import type { App, Asset, UpdateChannel, View } from "../types";
 import { compactButtonStyle, compactNumber, hydrate, installAction, needsFreshInstall, PLUGIN_INSTALL_TYPE, updateDeckyPlugins } from "../utils";
 import { AppCard } from "../components/AppCard";
+import { pillStyle } from "../components/AppBadges";
 import { confirmPluginInstall } from "../components/InstallFlow";
 import { showDownloadModal } from "../components/DownloadProgress";
 import { AppList } from "../components/AppList";
@@ -28,7 +29,7 @@ import { Welcome } from "../components/Welcome";
 export function Content({ fullPage }: { fullPage?: View }) {
   const t = useT();
   const view: View = fullPage ?? "updates";
-  const { apps, setApps, loading, loadError, checked, listedCount, columnsPerRow, repoPreferences, setRepoPreferences, hiddenButtons, load } = useApps(view);
+  const { apps, setApps, loading, loadError, checked, listedCount, columnsPerRow, repoPreferences, setRepoPreferences, hiddenButtons, registryChannel, load } = useApps(view);
   const [downloading, setDownloading] = useState(false);
   const [query, setQuery] = useState("");
   const [installedFilter, setInstalledFilter] = useState("All");
@@ -218,8 +219,15 @@ export function Content({ fullPage }: { fullPage?: View }) {
           <ContentHeader
             view={view}
             title={browsing ? activeCategory || t("discover.allPlugins") : info.title}
-            badge={view === "updates" ? updateCount > 0 && <span className="deckyhub-update-count" title={t("toast.updatesAvailable", { count: updateCount })} style={countBadgeStyle}>{updateCount}</span>
-              : totalDownloads > 0 && <span className="deckyhub-total-downloads" title={t("view.totalDownloads", { count: totalDownloads.toLocaleString() })} style={{ color: "#8b9aa7", fontSize: "max(12px, 0.7em)", fontWeight: 400 }}>{t("view.totalDownloads", { count: compactNumber(totalDownloads) })}</span>}
+            badge={
+              <>
+                {view === "updates" ? updateCount > 0 && <span className="deckyhub-update-count" title={t("toast.updatesAvailable", { count: updateCount })} style={countBadgeStyle}>{updateCount}</span>
+                  : totalDownloads > 0 && <span className="deckyhub-total-downloads" title={t("view.totalDownloads", { count: totalDownloads.toLocaleString() })} style={{ color: "#8b9aa7", fontSize: "max(12px, 0.7em)", fontWeight: 400 }}>{t("view.totalDownloads", { count: compactNumber(totalDownloads) })}</span>}
+                {/* Settings > Repositories chose the registry's develop list: say so, so a plugin
+                    that's only being tested isn't a surprise. */}
+                {registryChannel === "prerelease" && <span className="deckyhub-registry-channel" style={{ ...pillStyle, marginLeft: 8, whiteSpace: "nowrap", color: "#ffa94d", background: "#ffa94d22", borderColor: "#ffa94d66", verticalAlign: "middle" }}>{t("view.prereleaseRegistry")}</span>}
+              </>
+            }
             description={browsing ? t("discover.pluginCount", { count: visibleApps.length }) : info.description}
             onBack={browsing ? () => setBrowsing(false) : undefined}
             layout={layout}

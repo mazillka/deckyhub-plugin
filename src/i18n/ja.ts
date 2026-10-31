@@ -39,6 +39,7 @@ export const ja: Record<MessageKey, string> = {
   "sort.stars": "スター数順",
   "sort.updated": "最近の更新順",
   "view.totalDownloads": "{count} ダウンロード",
+  "view.prereleaseRegistry": "プレリリースのレジストリ",
 
   "content.loading": "読み込み中…",
   "content.loadErrorTitle": "DeckyHubを読み込めませんでした",

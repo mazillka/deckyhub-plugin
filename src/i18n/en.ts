@@ -38,6 +38,7 @@ export const en = {
   "sort.stars": "Most stars",
   "sort.updated": "Recently updated",
   "view.totalDownloads": "{count} downloads",
+  "view.prereleaseRegistry": "Pre-release registry",
 
   "content.loading": "Loading…",
   "content.loadErrorTitle": "Could Not Load DeckyHub",

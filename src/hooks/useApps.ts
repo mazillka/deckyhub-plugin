@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { getApps, getSettings, REGISTRY_UPDATED } from "../api";
-import type { App, HideableButton, PluginStats, RepoPreference, View } from "../types";
+import type { App, HideableButton, PluginStats, RepoPreference, UpdateChannel, View } from "../types";
 import { DEFAULT_COLUMNS_PER_ROW, fetchPluginStats, getDeckyBackend, hydrate, log, notifyUpdates } from "../utils";
 
 // ponytail: fixed pool of 8 GitHub requests in flight; lower it if the registry grows
@@ -17,6 +17,8 @@ export function useApps(view: View) {
   const [columnsPerRow, setColumnsPerRow] = useState(DEFAULT_COLUMNS_PER_ROW);
   const [repoPreferences, setRepoPreferences] = useState<Record<string, RepoPreference>>({});
   const [hiddenButtons, setHiddenButtons] = useState<HideableButton[]>([]);
+  // Settings' Registry channel, for the header's Pre-release registry badge.
+  const [registryChannel, setRegistryChannel] = useState<UpdateChannel>("stable");
   // Release checks finished out of the current load, shown while Updates waits on them.
   const [checked, setChecked] = useState(0);
   // Every listed plugin, for the Quick Access menu's Discover button (its own list is installed ones only).
@@ -41,6 +43,7 @@ export function useApps(view: View) {
       setRepoPreferences(preferences);
       setColumnsPerRow(settings.columnsPerRow);
       setHiddenButtons(settings.hiddenButtons ?? []);
+      setRegistryChannel(settings.registryChannel === "prerelease" ? "prerelease" : "stable");
       const tracked = (view === "updates" ? local.filter((app) => app.installedVersion) : local).map((app) => {
         const stat = stats[app.repo.toLowerCase()];
         return stat ? { ...app, stats: stat } : app;
@@ -115,5 +118,5 @@ export function useApps(view: View) {
     };
   }, []);
 
-  return { apps, setApps, loading, loadError, checked, listedCount, columnsPerRow, repoPreferences, setRepoPreferences, hiddenButtons, load };
+  return { apps, setApps, loading, loadError, checked, listedCount, columnsPerRow, repoPreferences, setRepoPreferences, hiddenButtons, registryChannel, load };
 }

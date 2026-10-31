@@ -40,6 +40,7 @@ export const zhTW: Record<MessageKey, string> = {
   "sort.stars": "星號最多",
   "sort.updated": "最近更新",
   "view.totalDownloads": "{count} 次下載",
+  "view.prereleaseRegistry": "預先發行版登錄檔",
 
   "content.loading": "載入中…",
   "content.loadErrorTitle": "無法載入 DeckyHub",
