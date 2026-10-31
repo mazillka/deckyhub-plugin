@@ -11,6 +11,7 @@ DeckyHub is in production: an update must keep existing users' settings, caches,
 - `develop` is the integration branch: branch every feature, fix and pre-release from `origin/develop` and open its PR against `develop`.
 - `main` holds stable releases only. It changes only through a PR from `develop` when cutting a stable `vX.Y.Z`; never branch from it or target it with feature work.
 - Pre-release tags (`vX.Y.Z-rc.N`) are cut from `develop`; stable tags from `main`. Details in [CONTRIBUTING.md](CONTRIBUTING.md#releases).
+- Starting work, merging, the back-merge after a stable release and cleaning up old branches: the [branches skill](.claude/skills/branches/SKILL.md).
 
 ## Steam Deck UI
 
