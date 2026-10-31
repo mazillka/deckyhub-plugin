@@ -29,6 +29,9 @@ export const gridGap = "var(--dh-grid-gap, 12px)";
 // Same no-responsibility note the install confirm shows, kept in view on the Updates, Discover and Search pages.
 export const disclaimerStyle = { marginBottom: "var(--dh-card-gap, 14px)", padding: "8px 12px", color: "#ffb3b3", fontSize: "max(12px, 0.85em)", background: "rgba(255, 107, 107, 0.08)", borderLeft: "3px solid #ff6b6b", borderRadius: 6 };
 
+// A notice that explains rather than warns (what the badges mean): the same shape in blue.
+export const infoNoticeStyle = { ...disclaimerStyle, color: "#d6f5ff", background: "rgba(29, 117, 204, 0.1)", borderLeft: "3px solid #1d75cc" };
+
 export const surfaceStyle = {
   background: "linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02))",
   border: "1px solid rgba(255, 255, 255, 0.09)",

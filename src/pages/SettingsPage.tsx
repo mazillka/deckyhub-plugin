@@ -4,12 +4,13 @@ import { FaCog } from "react-icons/fa";
 import { getSettings, saveSettings } from "../api";
 import { PageHeader } from "../components/Card";
 import { AboutSection } from "../components/AboutSection";
-import { DisplaySection, DownloadsSection, GitHubAccessSection, LanguageSection, RegistryChannelSection, TroubleshootingSection } from "../components/SettingsSections";
+import { DisplaySection, DownloadsSection, GitHubAccessSection, LanguageSection, TroubleshootingSection } from "../components/SettingsSections";
 import { ManageRepositoriesPage } from "./ManageRepositoriesPage";
 import { useLayout } from "../components/LayoutToggle";
 import { LOCALE_CHANGED, useT } from "../i18n";
 import type { Settings } from "../types";
-import { DEFAULT_COLUMNS_PER_ROW, githubCoreQuota, setGithubToken, setRegistryChannel } from "../utils";
+import { setQuickAccessTab } from "../components/QuickAccessTab";
+import { DEFAULT_COLUMNS_PER_ROW, githubCoreQuota, setGithubToken } from "../utils";
 
 export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
   const t = useT();
@@ -19,7 +20,7 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
     nextTab = "general";
     return opening;
   });
-  const [settings, setSettings] = useState<Settings>({ overwriteExisting: true, updateChannel: "stable", registryChannel: "stable", language: "auto", columnsPerRow: DEFAULT_COLUMNS_PER_ROW, githubToken: "", density: "default", haptics: true, hiddenButtons: [] });
+  const [settings, setSettings] = useState<Settings>({ overwriteExisting: true, updateChannel: "stable", registryChannel: "stable", language: "auto", columnsPerRow: DEFAULT_COLUMNS_PER_ROW, githubToken: "", density: "default", haptics: true, quickAccessTab: true, hiddenButtons: [] });
   // The token field saves on an explicit button (below), not per keystroke
   // like the other settings — typing a 40+ character token would otherwise
   // fire a save on every keystroke. This tracks the field independently of
@@ -50,9 +51,7 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
         setGithubToken(saved.githubToken);
         refreshQuota();
       }
-      // The backend reloads the list and tells open pages to reload (registry_updated);
-      // they then read the matching release index.
-      if ("registryChannel" in next) setRegistryChannel(saved.registryChannel);
+      if ("quickAccessTab" in next) setQuickAccessTab(saved.quickAccessTab);
       // Every mounted I18nProvider (one per route) re-syncs both the locale
       // and the GitHub token off this event — see i18n/index.tsx.
       if ("language" in next || "githubToken" in next || "density" in next || "haptics" in next) window.dispatchEvent(new Event(LOCALE_CHANGED));
@@ -100,7 +99,7 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
             {
               id: "repositories",
               title: t("nav.repositories"),
-              content: stack(<RegistryChannelSection key="registry-channel" settings={settings} update={update} />, <ManageRepositoriesPage key="repositories" embedded />),
+              content: stack(<ManageRepositoriesPage key="repositories" embedded />),
             },
             {
               id: "troubleshoot",

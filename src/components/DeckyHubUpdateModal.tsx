@@ -1,12 +1,12 @@
 import { toaster } from "@decky/api";
-import { DialogButtonPrimary as Button } from "@decky/ui";
+import { DialogButtonPrimary as Button, DropdownItem } from "@decky/ui";
 import { useState } from "react";
 import { DeckyHubIcon } from "./DeckyHubIcon";
 import { FaDownload, FaFileArchive, FaTimes } from "react-icons/fa";
 import { downloadAsset, getSettings, saveSettings } from "../api";
 import type { TFunc } from "../i18n/en";
 import type { Asset, DeckyHubInfo, DeckyHubReleaseOption, UpdateChannel, HideableButton } from "../types";
-import { PLUGIN_INSTALL_TYPE, buildVersionOptions, getDeckyBackend, installDeckyPlugin, installTypeLabel, listDeckyHubReleases, modalButtonStyle, resolveDeckyHubInstallType } from "../utils";
+import { PLUGIN_INSTALL_TYPE, buildVersionOptions, getDeckyBackend, installDeckyPlugin, installTypeLabel, listDeckyHubReleases, modalButtonStyle, resolveDeckyHubInstallType, setRegistryChannel } from "../utils";
 import { normalizeVersion } from "../version";
 import { showReleaseInfo } from "./ReleaseInfo";
 import { iconTileStyle } from "./Card";
@@ -33,6 +33,7 @@ export function DeckyHubUpdateModal({
   t,
   info,
   channel: initialChannel,
+  registryChannel: initialRegistryChannel,
   onCheckUpdate,
   onChannelChange,
   hiddenButtons,
@@ -41,12 +42,14 @@ export function DeckyHubUpdateModal({
   t: TFunc;
   info: DeckyHubInfo;
   channel: UpdateChannel;
+  registryChannel: UpdateChannel;
   onCheckUpdate: (channel: UpdateChannel) => void;
   onChannelChange: (channel: UpdateChannel) => void;
   hiddenButtons: HideableButton[];
   closeModal?: () => void;
 }) {
   const [channel, setChannel] = useState(initialChannel);
+  const [registryChannel, setRegistryChannelState] = useState(initialRegistryChannel);
   const { items: versions, selectedTag, setSelectedTag, loading: loadingVersions, error: fetchError, load, selected: selectedRelease } = useReleasePicker(listDeckyHubReleases, channel);
   const [checking, setChecking] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -70,6 +73,17 @@ export function DeckyHubUpdateModal({
     onChannelChange(next);
     setSelectedTag("");
     void getSettings().then((settings) => saveSettings({ ...settings, updateChannel: next }));
+  };
+
+  // Which branch of the official registry DeckyHub reads: main, or develop for changes
+  // that are still being tested (main's is used whenever develop's can't be read).
+  // The backend reloads the list and tells open pages to reload (registry_updated);
+  // they then read the matching release index.
+  const changeRegistryChannel = (next: UpdateChannel) => {
+    setRegistryChannelState(next);
+    void getSettings()
+      .then((settings) => saveSettings({ ...settings, registryChannel: next }))
+      .then((saved) => setRegistryChannel(saved.registryChannel));
   };
 
   // Every action but Check for Updates and Download ZIP closes this window;
@@ -146,6 +160,17 @@ export function DeckyHubUpdateModal({
       isEmpty={!loadingVersions && !fetchError && versions.length === 0}
       footer={
         <>
+          <div style={{ display: "grid", gap: 4, padding: "8px 12px", background: "rgba(0, 0, 0, 0.2)", borderRadius: 10 }}>
+            <DropdownItem
+              layout="below"
+              bottomSeparator="none"
+              label={t("settings.registryChannel")}
+              description={t("settings.registryChannelHint")}
+              rgOptions={[{ label: t("appcard.channelStable"), data: "stable" }, { label: t("appcard.channelPrerelease"), data: "prerelease" }]}
+              selectedOption={registryChannel}
+              onChange={({ data }) => changeRegistryChannel(data as UpdateChannel)}
+            />
+          </div>
           <ReleaseActions t={t} url={selectedRelease?.url} hideReleasePage={hiddenButtons.includes("releasePage")} checking={checking} disabled={busy} onCheck={() => void refresh()} closeModal={closeModal} />
           <Button style={modalButtonStyle} onClick={closeModal}>
             <FaTimes /> {t("settings.close")}
