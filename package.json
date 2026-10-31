@@ -1,6 +1,6 @@
 {
   "name": "deckyhub",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Discover, track, and safely download GitHub releases for Steam Deck tools from Gaming Mode.",
   "author": "Andrii Shevchuk-Yuhanets",
   "private": true,
@@ -9,7 +9,7 @@
     "build": "rollup -c",
     "typecheck": "tsc --noEmit",
     "test:backend": "python -m unittest discover -s tests",
-    "test:frontend": "node --test tests/version.test.ts"
+    "test:frontend": "node --test tests/version.test.ts tests/i18n.test.ts"
   },
   "dependencies": {
     "@decky/api": "^1.1.3",

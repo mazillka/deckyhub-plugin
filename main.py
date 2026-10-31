@@ -27,7 +27,7 @@ REPOSITORY_NAME = re.compile(r"(?!\.+/)[A-Za-z0-9_.-]+/(?!\.+$)[A-Za-z0-9_.-]+")
 # A GitHub token: classic (ghp_ and kin) or fine-grained (github_pat_).
 GITHUB_TOKEN = re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{60,})\b")
 HIDEABLE_BUTTONS = ("downloadZip", "install", "update", "releasePage")
-SUPPORTED_LANGUAGES = {"auto", "en", "uk", "ru", "es", "de", "fr", "pt", "ja", "ko", "zh", "zh-TW"}
+SUPPORTED_LANGUAGES = {"auto", "en", "uk", "ru", "es", "de", "fr", "pt", "pt-PT", "it", "pl", "tr", "nl", "cs", "ja", "ko", "zh", "zh-TW"}
 DEFAULT_COLUMNS_PER_ROW = 3
 ACTIVE_DOWNLOAD_STATES = ("queued", "downloading")
 
@@ -122,6 +122,8 @@ def _coerce_settings(settings: dict) -> dict:
     return {
         "overwriteExisting": bool(settings.get("overwriteExisting", True)),
         "updateChannel": "prerelease" if settings.get("updateChannel") == "prerelease" else "stable",
+        # Which branch of the official registry to read (see official_registry_url()).
+        "registryChannel": "prerelease" if settings.get("registryChannel") == "prerelease" else "stable",
         "language": settings.get("language") if settings.get("language") in SUPPORTED_LANGUAGES else "auto",
         "columnsPerRow": settings.get("columnsPerRow") if type(settings.get("columnsPerRow")) is int and settings["columnsPerRow"] in (1, 2, 3, 4) else DEFAULT_COLUMNS_PER_ROW,
         # Only the frontend's api.github.com calls send it (githubHeaders() in src/utils.ts).
@@ -129,6 +131,9 @@ def _coerce_settings(settings: dict) -> dict:
         "density": "compact" if settings.get("density") == "compact" else "default",
         # A haptic tick on the Deck's trackpads as focus moves (hapticTick() in src/utils.ts).
         "haptics": bool(settings.get("haptics", True)),
+        # DeckyHub's own icon in Steam's Quick Access tab strip (QuickAccessTab.tsx).
+        # Off leaves DeckyHub in Decky's plugin list.
+        "quickAccessTab": bool(settings.get("quickAccessTab", True)),
         # Manage-window buttons the user chose to hide (Display Settings).
         "hiddenButtons": [name for name in HIDEABLE_BUTTONS if isinstance(settings.get("hiddenButtons"), list) and name in settings["hiddenButtons"]],
     }
@@ -184,7 +189,19 @@ def parse_registry(payload: object) -> list[dict]:
 
 # DeckyHub's plugin list lives in its own repository.
 REMOTE_REGISTRY_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/refs/heads/main/registry/apps.json"
-MAX_REMOTE_REGISTRY_BYTES = 512 * 1024
+# The registry's develop branch: changes being tested before they reach main, for the
+# Registry: Pre-release setting.
+PRERELEASE_REGISTRY_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/refs/heads/develop/registry/apps.json"
+# The same list published as a file on the registry's GitHub releases, read first. Like
+# DeckyHub's own channels: Stable takes the newest stable release (GitHub's "latest"
+# link, no API call), Pre-release the newest release of all, stable ones included. The
+# branch files above stay the fallback, and all that older releases read, so the
+# registry keeps updating them.
+LATEST_REGISTRY_RELEASE_URL = "https://github.com/mazillka/deckyhub-registry/releases/latest/download/apps.json"
+REGISTRY_RELEASES_API_URL = "https://api.github.com/repos/mazillka/deckyhub-registry/releases?per_page=10"
+# A cap so a broken or hostile registry can't exhaust memory. Releases up to 3.0.0 used
+# 512 KB and keep it, so the official registry still stays under that (its test_docs.py).
+MAX_REMOTE_REGISTRY_BYTES = 4 * 1024 * 1024
 # How many user-added registries one install will track, so a bad list can't
 # turn startup into an unbounded sequence of network fetches.
 MAX_CUSTOM_REGISTRIES = 10
@@ -209,6 +226,38 @@ def fetch_remote_registry(url: str) -> tuple[list[dict], str]:
         raise ValueError("Remote registry is too large")
     text = raw.decode("utf-8")
     return parse_registry(json.loads(text)), text
+
+
+def newest_registry_release(prerelease: bool) -> str | None:
+    """The `apps.json` link of the channel's newest registry release, if there is one."""
+    if not prerelease:
+        return LATEST_REGISTRY_RELEASE_URL
+    # GitHub's "latest" skips pre-releases, so this asks the API (60 calls an hour per
+    # address without a token; one per registry refresh).
+    request = Request(REGISTRY_RELEASES_API_URL, headers={"User-Agent": "DeckyHub", "Accept": "application/vnd.github+json"})
+    with _OPENER.open(request, timeout=10) as response:
+        releases = json.loads(response.read(MAX_REMOTE_REGISTRY_BYTES))
+    published = [release for release in releases if isinstance(release, dict) and not release.get("draft")]
+    for release in sorted(published, key=lambda release: str(release.get("published_at") or ""), reverse=True):
+        for asset in release.get("assets") or []:
+            url = isinstance(asset, dict) and asset.get("name") == "apps.json" and asset.get("browser_download_url")
+            if isinstance(url, str) and url.startswith("https://"):
+                return url
+    return None
+
+
+def fetch_official_registry(url: str) -> tuple[list[dict], str]:
+    """The official list from its channel's newest release, else from its branch (`url`)."""
+    try:
+        release = newest_registry_release(url == PRERELEASE_REGISTRY_URL)
+        if release:
+            apps, text = fetch_remote_registry(release)
+            # An empty list is a broken publish; the branch may still have a good one.
+            if apps:
+                return apps, text
+    except Exception as error:
+        decky.logger.info("Registry release unavailable (%s); reading %s", error, url)
+    return fetch_remote_registry(url)
 
 
 def validate_registry_url(url: str) -> str:
@@ -280,7 +329,11 @@ class Plugin:
         def given(url):
             return prefetched[1] if prefetched and prefetched[0] == url else None
 
-        apps = self._fetch_registry(REMOTE_REGISTRY_URL, official=True, prefetched=given(REMOTE_REGISTRY_URL), network=network)
+        official = self.official_registry_url()
+        apps = self._fetch_registry(official, official=True, prefetched=given(official), network=network)
+        if not apps and official != REMOTE_REGISTRY_URL:
+            # The pre-release list is unreachable and never cached: the stable one beats none.
+            apps = self._fetch_registry(REMOTE_REGISTRY_URL, official=True, prefetched=given(REMOTE_REGISTRY_URL), network=network)
         # First source wins: a user-added registry can add apps but never override
         # the detect rules or asset filters of an entry from the official registry,
         # nor reuse its id (the frontend matches cards by id), nor claim its detect
@@ -299,6 +352,9 @@ class Plugin:
                     apps.append(app)
         return apps
 
+    def official_registry_url(self) -> str:
+        return PRERELEASE_REGISTRY_URL if getattr(self, "settings", {}).get("registryChannel") == "prerelease" else REMOTE_REGISTRY_URL
+
     def _fetch_registry(self, url: str, official: bool = False, prefetched: tuple[list[dict], str] | None = None, network: bool = True) -> list[dict]:
         """One registry source: fetch it, cache it, else fall back to the cache (none: no apps)."""
         cache_path = self._registry_cache_path(url)
@@ -308,7 +364,7 @@ class Plugin:
             return apps
         if network:
             try:
-                apps, text = fetch_remote_registry(url)
+                apps, text = fetch_official_registry(url) if official else fetch_remote_registry(url)
                 # An empty official list is a broken publish, not "no apps": keep the
                 # last good cache rather than overwrite it.
                 if official and not apps:
@@ -343,6 +399,8 @@ class Plugin:
         directory = Path(decky.DECKY_PLUGIN_SETTINGS_DIR)
         if url == REMOTE_REGISTRY_URL:
             return directory / "registry-cache.json"
+        if url == PRERELEASE_REGISTRY_URL:
+            return directory / "registry-cache-prerelease.json"
         return directory / "registries" / f"{hashlib.sha256(url.encode('utf-8')).hexdigest()[:16]}.json"
 
     def _save_settings(self):
@@ -442,6 +500,7 @@ class Plugin:
             return {"version": "unknown"}
 
     async def save_settings(self, settings: dict):
+        channel = getattr(self, "settings", {}).get("registryChannel")
         self.settings = {
             **_coerce_settings(settings),
             "customRepos": getattr(self, "settings", {}).get("customRepos", []),
@@ -450,6 +509,9 @@ class Plugin:
         }
         self._save_settings()
         decky.logger.info("Saved settings: %s", {**self.settings, "githubToken": bool(self.settings["githubToken"])})
+        if channel is not None and channel != self.settings["registryChannel"]:
+            # The other registry branch: load it now, and open pages reload when it lands.
+            self.registry_task = asyncio.create_task(self._refresh_registry_in_background())
         return self.settings
 
     async def clear_downloads(self):

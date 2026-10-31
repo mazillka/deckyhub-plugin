@@ -32,6 +32,8 @@ const makoRelease = (tag: string, sha256: string, day = "01") => ({
 });
 const RELEASE_INDEX_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/releases.json";
 const PLUGIN_STATS_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/stats.json";
+// What the DeckyHub window's Registry Channel: Pre-release reads instead (the registry's develop branch).
+const PRERELEASE_STATS_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index-develop/stats.json";
 const mockMakoReleases = (page: Page, releases: unknown[]) =>
   page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases**", (route) => route.fulfill({ json: releases }));
 
@@ -618,9 +620,9 @@ test("Discover shows each plugin's stats, sorts by them and counts every filter 
   await expect(unifideck.getByText("Runs as root")).toBeVisible();
   await expect(unifideck.getByText("No release in a year")).toBeVisible();
   // The badge's tooltip doesn't show on a Deck, so Discover explains it in words.
-  // The disclaimer is one line; More shows the rest, including what Runs as root means.
+  // The badges get their own one-line notice beside the disclaimer; More says what Runs as root means.
   await expect(app.locator(".deckyhub-root-legend")).toHaveCount(0);
-  await app.locator(".deckyhub-disclaimer").getByRole("button", { name: "More", exact: true }).click();
+  await app.locator(".deckyhub-badge-notice").getByRole("button", { name: "More", exact: true }).click();
   await expect(app.locator(".deckyhub-root-legend")).toHaveText(/Runs as root.*full access to the system/);
   await expect(app.locator(".deckyhub-total-downloads")).toHaveText("184.5K downloads");
 
@@ -676,6 +678,103 @@ test("The Manage window shows the plugin's description, details and a Repository
   await expect(app.locator(".steam-modal").getByRole("button", { name: "Repository" })).toBeVisible();
 });
 
+test("Discover shows the registry's audit warnings next to Runs as root and explains each one", async ({ page }) => {
+  await page.route(PLUGIN_STATS_URL, (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), plugins: {
+    "eugeniosegala/mako": { downloads: 73981, stars: 680, updated: new Date().toISOString(), root: true, fork: "original/mako", warnings: ["private-data", "not-in-source", "some-future-warning"] },
+    // A newer pre-release's warnings show only to people on the pre-release channel.
+    "mubaraknumann/unifideck": { downloads: 110541, stars: 1410, updated: new Date().toISOString(), root: false, prereleaseWarnings: ["blocked"] },
+  } } }));
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page);
+  await app.getByRole("button", { name: "Grid", exact: true }).click();
+  await app.getByLabel("Sort").selectOption("downloads");
+  const mako = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+  const unifideck = app.getByRole("heading", { name: "Unifideck" }).locator("..");
+  for (const text of ["Runs as root", "Reads private data", "Code not in its repo"]) await expect(mako.getByText(text, { exact: true })).toBeVisible();
+  // A fork the registry lists says so, and what it's a fork of.
+  await expect(mako.getByText("Fork", { exact: true })).toHaveAttribute("title", "Fork of original/mako");
+  await expect(unifideck.getByText("Fork", { exact: true })).toHaveCount(0);
+  // A warning this release doesn't know yet (the registry adds them first) shows nothing.
+  await expect(mako.getByText("some-future-warning")).toHaveCount(0);
+  await expect(unifideck.getByText("Blocked by audit")).toHaveCount(0);
+
+  // Tooltips never show on a Deck, so More on the badge notice says what every warning means.
+  await expect(app.locator(".deckyhub-warning-legend")).toHaveCount(0);
+  await app.locator(".deckyhub-badge-notice").getByRole("button", { name: "More", exact: true }).click();
+  const legend = app.locator(".deckyhub-warning-legend");
+  await expect(legend).toContainText("Decky Extended Plugins' automated audit");
+  await expect(legend.getByRole("button", { name: "Open Decky Extended Plugins audit" })).toBeVisible();
+  await expect(app.locator(".deckyhub-fork-legend")).toContainText("carries a plugin on after its original stopped");
+  for (const [badge, meaning] of [
+    ["Blocked by audit", "Not recommended for installation."],
+    ["Reads private data", "Steam login data"],
+    ["Changes system startup", "keep working outside Decky"],
+    ["Code not in its repo", "aren't in its GitHub source"],
+    ["Hidden code", "encoded or packed code"],
+    ["Skips HTTPS checks", "certificate checks"],
+    ["Runs downloaded scripts", "downloads a script"],
+    ["Known vulnerabilities", "published security flaws"],
+  ]) await expect(legend.getByText(badge, { exact: true }).locator("..")).toContainText(meaning);
+
+  // The Manage window shows them too.
+  await mako.getByRole("button", { name: "Manage", exact: true }).click();
+  const meta = app.locator(".steam-modal .deckyhub-details-meta");
+  for (const text of ["Reads private data", "Code not in its repo"]) await expect(meta.getByText(text, { exact: true })).toBeVisible();
+});
+
+test("Registry Channel: Pre-release reads the registry's develop data, says so on Discover, and switches back", async ({ page }) => {
+  const stable = { generatedAt: new Date().toISOString(), plugins: { "eugeniosegala/mako": { downloads: 10, stars: 1, updated: null, root: false } } };
+  const testing = { generatedAt: new Date().toISOString(), plugins: { "eugeniosegala/mako": { downloads: 10, stars: 1, updated: null, root: false, warnings: ["hidden-code-test", "obfuscated"] } } };
+  const asked: string[] = [];
+  await page.route(PLUGIN_STATS_URL, (route) => { asked.push("stable"); return route.fulfill({ json: stable }); });
+  await page.route(PRERELEASE_STATS_URL, (route) => { asked.push("prerelease"); return route.fulfill({ json: testing }); });
+  const { result: before } = await bridgeCall(page, "get_settings");
+  try {
+    await page.goto("/?bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+    const channel = app.locator(".steam-modal").getByLabel("Registry Channel");
+    await expect(channel).toHaveValue("stable");
+    await expect(app.getByText("If they can't be loaded, DeckyHub uses the stable list.")).toBeVisible();
+    await channel.selectOption("prerelease");
+    await expect.poll(async () => (await bridgeCall(page, "get_settings")).result.registryChannel).toBe("prerelease");
+
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    await expect(app.locator(".deckyhub-registry-channel")).toHaveText("Pre-release registry");
+    await browseAll(page, "MAKO");
+    // The stats came from the develop index.
+    await expect(app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByText("Hidden code", { exact: true })).toBeVisible();
+    expect(asked).toContain("prerelease");
+
+    // Back on Stable: no badge, main's data.
+    await bridgeCall(page, "save_settings", { ...(await bridgeCall(page, "get_settings")).result, registryChannel: "stable" });
+    asked.length = 0;
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    await browseAll(page, "MAKO");
+    await expect(app.getByRole("heading", { name: "MAKO Decky" })).toBeVisible();
+    await expect(app.locator(".deckyhub-registry-channel")).toHaveCount(0);
+    expect(asked).not.toContain("prerelease");
+  } finally {
+    await bridgeCall(page, "save_settings", before);
+  }
+});
+
+test("Registry Channel: Pre-release falls back to the stable data when develop's is missing", async ({ page }) => {
+  await page.route(PLUGIN_STATS_URL, (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), plugins: { "eugeniosegala/mako": { downloads: 4242, stars: 1, updated: null, root: false } } } }));
+  await page.route(PRERELEASE_STATS_URL, (route) => route.fulfill({ status: 404, body: "404: Not Found" }));
+  const { result: before } = await bridgeCall(page, "get_settings");
+  try {
+    await bridgeCall(page, "save_settings", { ...before, registryChannel: "prerelease" });
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    await browseAll(page, "MAKO");
+    await expect(app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByText("↓ 4.2K")).toBeVisible();
+  } finally {
+    await bridgeCall(page, "save_settings", before);
+  }
+});
+
 test("A GitHub rate limit surfaces a friendly message instead of a raw status code", async ({ page }) => {
   const resetInTwoMinutes = Math.floor(Date.now() / 1000) + 120;
   await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases?per_page=20", (route) =>
@@ -723,6 +822,32 @@ test("DeckyHub adds its own Quick Access tab after Decky's", async ({ page }) =>
   await tabs.last().click();
   await expect(app.locator(".qam-content .decky-mock-title")).toHaveText("DeckyHub");
   await expect(app.locator(".qam-content").getByRole("button", { name: /^Discover/ })).toBeVisible();
+});
+
+test("Settings can hide DeckyHub's Quick Access tab, and it stays hidden after a reload", async ({ page }) => {
+  const { result: before } = await bridgeCall(page, "get_settings");
+  try {
+    await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    const toggle = app.getByRole("switch", { name: "DeckyHub tab in Quick Access" }).or(app.getByLabel("DeckyHub tab in Quick Access"));
+    await expect(toggle).toBeChecked();
+    await expect(app.getByText("When off, open DeckyHub from Decky's plugin list.")).toBeVisible();
+    await toggle.click();
+    await expect.poll(async () => (await bridgeCall(page, "get_settings")).result.quickAccessTab).toBe(false);
+    const tabs = app.getByRole("navigation", { name: "Quick Access tabs" }).getByRole("button");
+    await app.getByRole("button", { name: "Quick Access widget", exact: true }).click();
+    // Only Decky's own tab; DeckyHub stays in its plugin list.
+    await expect(tabs).toHaveCount(1);
+    await expect(app.locator(".qam-content .decky-mock-title")).toHaveText("DeckyHub");
+
+    await page.goto("/?bridge=http://127.0.0.1:8643");
+    await expect(tabs).toHaveCount(1);
+    await bridgeCall(page, "save_settings", { ...(await bridgeCall(page, "get_settings")).result, quickAccessTab: true });
+    await page.goto("/?bridge=http://127.0.0.1:8643");
+    await expect(tabs).toHaveCount(2);
+  } finally {
+    await bridgeCall(page, "save_settings", before);
+  }
 });
 
 test("DeckyHub's Quick Access icon shows a dot while a plugin has an update", async ({ page }) => {
@@ -2364,12 +2489,12 @@ test("Switching the language updates Settings and the Quick Access panel", async
   }
 });
 
-test("Korean, Portuguese and Traditional Chinese are offered, saved and shown", async ({ page }) => {
+test("Newer languages are offered, saved and shown", async ({ page }) => {
   await bridgeCall(page, "save_settings", defaultSettings);
   try {
     await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
     const app = mock(page);
-    for (const [code, label] of [["ko", "언어"], ["pt", "Idioma"], ["zh-TW", "語言"]]) {
+    for (const [code, label] of [["ko", "언어"], ["pt", "Idioma"], ["it", "Lingua"], ["pl", "Język"], ["tr", "Dil"], ["nl", "Taal"], ["cs", "Jazyk"], ["pt-PT", "Idioma"], ["zh-TW", "語言"]]) {
       await app.getByRole("combobox").filter({ has: page.locator("option[value='auto']") }).selectOption(code);
       await expect(app.getByLabel(label)).toBeVisible();
       // The backend keeps the choice rather than falling back to auto-detect.

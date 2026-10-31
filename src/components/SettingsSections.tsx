@@ -1,4 +1,5 @@
-import { DialogButtonPrimary as Button, DropdownItem, Focusable, Navigation, PanelSection, PanelSectionRow, TextField, ToggleField } from "@decky/ui";
+import { DialogButtonPrimary as Button, DropdownItem, Focusable, PanelSection, PanelSectionRow, TextField, ToggleField } from "@decky/ui";
+import { openExternalWeb } from "../external";
 import { FileSelectionType, openFilePicker, toaster } from "@decky/api";
 import { useState } from "react";
 import { FaExternalLinkAlt, FaFileExport, FaFileImport, FaFolderOpen, FaInfoCircle, FaLock, FaSave } from "react-icons/fa";
@@ -22,7 +23,7 @@ const HIDEABLE_BUTTONS: [HideableButton, MessageKey][] = [
   ["releasePage", "appcard.releasePage"],
 ];
 
-const openTokenPage = () => Navigation.NavigateToExternalWeb("https://github.com/settings/tokens");
+const openTokenPage = () => openExternalWeb("https://github.com/settings/tokens");
 
 // Picks a text file in Downloads (made in Desktop Mode, or copied from a PC) and
 // puts the token in it into the field; Save stores it, like a typed one.
@@ -135,6 +136,7 @@ export function DownloadsSection({ settings, update }: { settings: Settings; upd
   );
 }
 
+
 export function LanguageSection({ settings, update }: { settings: Settings; update: Update }) {
   const t = useT();
   return (
@@ -143,6 +145,7 @@ export function LanguageSection({ settings, update }: { settings: Settings; upda
         <PanelSectionRow>
           <DropdownItem
             label={t("settings.language")}
+            description={t("settings.languageHint")}
             rgOptions={[{ label: t("settings.autoDetect"), data: "auto" }, ...LOCALES.map((locale) => ({ label: locale.label, data: locale.code }))]}
             selectedOption={settings.language}
             onChange={({ data }) => update({ language: data })}
@@ -154,6 +157,7 @@ export function LanguageSection({ settings, update }: { settings: Settings; upda
 }
 
 // Layout (shared with the Grid / List switches), density, items per row, haptics,
+// DeckyHub's Quick Access tab,
 // and the Manage-window buttons to hide.
 export function DisplaySection({ settings, update, layout, onLayout }: { settings: Settings; update: Update; layout: Layout; onLayout: (layout: Layout) => void }) {
   const t = useT();
@@ -187,6 +191,9 @@ export function DisplaySection({ settings, update, layout, onLayout }: { setting
         </PanelSectionRow>
         <PanelSectionRow>
           <ToggleField label={t("settings.haptics")} checked={settings.haptics} onChange={(checked) => update({ haptics: checked })} />
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <ToggleField label={t("settings.quickAccessTab")} description={t("settings.quickAccessTabHint")} checked={settings.quickAccessTab} onChange={(checked) => update({ quickAccessTab: checked })} />
         </PanelSectionRow>
         {HIDEABLE_BUTTONS.map(([name, label]) => (
           <PanelSectionRow key={name}>

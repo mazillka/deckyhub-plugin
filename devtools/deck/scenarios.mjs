@@ -7,7 +7,7 @@ import { connect, goTo, resetFocus, sleep, TARGETS, waitFor } from "./cdp.mjs";
 import { BUTTON, press } from "./navigation.mjs";
 
 const AUDIT = readFileSync(new URL("./audit.js", import.meta.url), "utf8");
-const LANGUAGES = ["en", "uk", "ru", "es", "de", "fr", "pt", "ja", "ko", "zh", "zh-TW"];
+const LANGUAGES = ["en", "uk", "ru", "es", "de", "fr", "pt", "pt-PT", "it", "pl", "tr", "nl", "cs", "ja", "ko", "zh", "zh-TW"];
 const PAGES = ["discover", "updates", "search", "settings"];
 const TAB_ID = 0x444855;
 

@@ -1,10 +1,11 @@
 import { DialogButtonPrimary as Button } from "@decky/ui";
 import type { ReactNode } from "react";
-import { FaArrowCircleUp, FaArrowLeft, FaArrowUp, FaCompass, FaSync } from "react-icons/fa";
+import { FaArrowCircleUp, FaArrowLeft, FaArrowUp, FaCompass, FaExternalLinkAlt, FaSync } from "react-icons/fa";
+import { openExternalWeb } from "../external";
 import { useT } from "../i18n";
 import type { View } from "../types";
-import { compactButtonStyle } from "../utils";
-import { RootBadge } from "./AppBadges";
+import { compactButtonStyle, infoNoticeStyle } from "../utils";
+import { AUDIT_WARNINGS, ForkBadge, RootBadge, WarningBadge } from "./AppBadges";
 import { PageHeader } from "./Card";
 import { KeepInView } from "./KeepInView";
 import { LayoutToggle, type Layout } from "./LayoutToggle";
@@ -12,9 +13,12 @@ import { Notice } from "./Notice";
 
 const buttonStyle = { ...compactButtonStyle, marginBottom: 0 };
 
+// Where the audit warnings come from, opened from the badge notice.
+const AUDIT_URL = "https://decky-extended-plugins.beallio.com/audit";
+
 // Updates' and Discover's header: title, badge, description and actions (Back while
 // browsing, Grid / List, Refresh, Update all), then the install disclaimer, cut to
-// a line with More.
+// a line with More, and a notice explaining the badges.
 export function ContentHeader({
   view,
   title,
@@ -79,16 +83,38 @@ export function ContentHeader({
           </>
         }
       />
-      {/* One line, so plugins show above the fold; More also explains the Runs as root badge
-          (its tooltip never shows on a Deck: no hover). */}
+      {/* One line each, so plugins show above the fold. The badges get their own notice:
+          their tooltips never show on a Deck (no hover), and they aren't part of the warning. */}
+      <Notice className="deckyhub-disclaimer" text={t("install.disclaimer")} />
       <Notice
-        className="deckyhub-disclaimer"
-        text={t("install.disclaimer")}
+        className="deckyhub-badge-notice"
+        style={infoNoticeStyle}
+        text={t("appcard.badgesNotice")}
         more={
-          <div className="deckyhub-root-legend" style={{ display: "flex", alignItems: "center", gap: 4, color: "#d6f5ff" }}>
-            <RootBadge t={t} />
-            <span>{t("appcard.runsAsRootHint")}</span>
-          </div>
+          <>
+            <div className="deckyhub-root-legend" style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <RootBadge t={t} />
+              <span>{t("appcard.runsAsRootHint")}</span>
+            </div>
+            <div className="deckyhub-fork-legend" style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <ForkBadge t={t} />
+              <span>{t("appcard.forkHint")}</span>
+            </div>
+            <div className="deckyhub-warning-legend" style={{ display: "grid", gap: 6 }}>
+              <span>{t("appcard.warningsIntro")}</span>
+              <div>
+                <Button style={{ ...buttonStyle, width: "auto" }} onClick={() => openExternalWeb(AUDIT_URL)}>
+                  <FaExternalLinkAlt /> {t("appcard.auditLink")}
+                </Button>
+              </div>
+              {AUDIT_WARNINGS.map((warning) => (
+                <div key={warning} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  <WarningBadge t={t} warning={warning} />
+                  <span>{t(`appcard.warning.${warning}.hint`)}</span>
+                </div>
+              ))}
+            </div>
+          </>
         }
       />
     </KeepInView>

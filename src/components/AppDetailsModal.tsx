@@ -1,4 +1,5 @@
 import { toaster } from "@decky/api";
+import { openExternalWeb } from "../external";
 import { DialogButtonPrimary as Button, ConfirmModal, Navigation, showModal } from "@decky/ui";
 import { useState } from "react";
 import { FaArrowDown, FaArrowUp, FaFileArchive, FaPlus, FaRedo, FaTimes, FaTrash } from "react-icons/fa";
@@ -130,7 +131,7 @@ export function AppDetailsModal({
                 // Menu opens the repository; close first, or Steam's browser opens underneath this modal.
                 onMenuButton={() => {
                   closeModal?.();
-                  Navigation.NavigateToExternalWeb(`https://github.com/${app.repo}`);
+                  openExternalWeb(`https://github.com/${app.repo}`);
                 }}
                 onMenuActionDescription={t("appcard.repository")}
               >

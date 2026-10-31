@@ -1,4 +1,5 @@
-import { DialogButtonPrimary as Button, Focusable, Navigation } from "@decky/ui";
+import { DialogButtonPrimary as Button, Focusable } from "@decky/ui";
+import { openExternalWeb } from "../external";
 import { FaCheck, FaDownload, FaPlus } from "react-icons/fa";
 import { pillStyle } from "./AppBadges";
 import { useT } from "../i18n";
@@ -49,7 +50,7 @@ export function SearchResults({
             onSecondaryActionDescription={t("appcard.releaseInfo")}
             onOptionsButton={canDownload ? () => onDownloadZip(repo.full_name) : undefined}
             onOptionsActionDescription={t("settings.downloadUpdate")}
-            onMenuButton={() => Navigation.NavigateToExternalWeb(`https://github.com/${repo.full_name}`)}
+            onMenuButton={() => openExternalWeb(`https://github.com/${repo.full_name}`)}
             onMenuActionDescription={t("appcard.repository")}
             onClick={() => onInstall(repo.full_name)}
           >

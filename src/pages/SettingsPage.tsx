@@ -9,6 +9,7 @@ import { ManageRepositoriesPage } from "./ManageRepositoriesPage";
 import { useLayout } from "../components/LayoutToggle";
 import { LOCALE_CHANGED, useT } from "../i18n";
 import type { Settings } from "../types";
+import { setQuickAccessTab } from "../components/QuickAccessTab";
 import { DEFAULT_COLUMNS_PER_ROW, githubCoreQuota, setGithubToken } from "../utils";
 
 export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
@@ -19,7 +20,7 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
     nextTab = "general";
     return opening;
   });
-  const [settings, setSettings] = useState<Settings>({ overwriteExisting: true, updateChannel: "stable", language: "auto", columnsPerRow: DEFAULT_COLUMNS_PER_ROW, githubToken: "", density: "default", haptics: true, hiddenButtons: [] });
+  const [settings, setSettings] = useState<Settings>({ overwriteExisting: true, updateChannel: "stable", registryChannel: "stable", language: "auto", columnsPerRow: DEFAULT_COLUMNS_PER_ROW, githubToken: "", density: "default", haptics: true, quickAccessTab: true, hiddenButtons: [] });
   // The token field saves on an explicit button (below), not per keystroke
   // like the other settings — typing a 40+ character token would otherwise
   // fire a save on every keystroke. This tracks the field independently of
@@ -50,6 +51,7 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
         setGithubToken(saved.githubToken);
         refreshQuota();
       }
+      if ("quickAccessTab" in next) setQuickAccessTab(saved.quickAccessTab);
       // Every mounted I18nProvider (one per route) re-syncs both the locale
       // and the GitHub token off this event — see i18n/index.tsx.
       if ("language" in next || "githubToken" in next || "density" in next || "haptics" in next) window.dispatchEvent(new Event(LOCALE_CHANGED));

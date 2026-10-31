@@ -138,6 +138,16 @@ class PluginStatusTests(unittest.TestCase):
             self.assertIs(asyncio.run(plugin.save_settings({}))["haptics"], True)
             self.assertIs(asyncio.run(plugin.save_settings({"haptics": False}))["haptics"], False)
 
+    def test_quick_access_tab_default_on_for_old_settings_and_can_be_turned_off(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.settings_path = Path(home) / "settings.json"
+            # A settings.json from before the setting existed keeps the tab.
+            plugin.settings_path.write_text(json.dumps({"haptics": False}), encoding="utf-8")
+            self.assertIs(plugin._load_settings()["quickAccessTab"], True)
+            self.assertIs(asyncio.run(plugin.save_settings({"quickAccessTab": False}))["quickAccessTab"], False)
+            self.assertIs(plugin._load_settings()["quickAccessTab"], False)
+
     def test_hidden_buttons_keep_only_known_names(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = Plugin()

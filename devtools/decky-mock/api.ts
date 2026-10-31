@@ -88,13 +88,21 @@ export const useQuickAccessVisible = () => true;
 
 // Decky's tabs hook: plugins add their own Quick Access tabs here (the mock's panel shows them).
 type QuickAccessTab = { id: number; title: unknown; content: ReactNode; icon: ReactNode };
+// It re-renders the panel on a change, like Decky's, so a tab added or removed later shows.
+const tabListeners = new Set<() => void>();
 export const tabsHook = {
   tabs: [] as QuickAccessTab[],
   add(tab: QuickAccessTab) {
-    tabsHook.tabs.push(tab);
+    tabsHook.tabs = [...tabsHook.tabs, tab];
+    tabListeners.forEach((listener) => listener());
   },
   removeById(id: number) {
     tabsHook.tabs = tabsHook.tabs.filter((tab) => tab.id !== id);
+    tabListeners.forEach((listener) => listener());
+  },
+  subscribe(listener: () => void) {
+    tabListeners.add(listener);
+    return () => void tabListeners.delete(listener);
   },
 };
 (window as { __TABS_HOOK_INSTANCE?: typeof tabsHook }).__TABS_HOOK_INSTANCE = tabsHook;

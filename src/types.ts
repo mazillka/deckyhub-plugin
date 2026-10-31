@@ -27,13 +27,15 @@ export type App = {
 };
 
 // A plugin's line in the registry's stats.json: all-time downloads, GitHub stars,
-// when the release Discover shows came out, and whether its plugin.json asks for root.
-export type PluginStats = { downloads?: number; stars?: number | null; updated?: string | null; root?: boolean | null };
+// when the release Discover shows came out, whether its plugin.json asks for root, and
+// what Decky Extended Plugins' audit warns about in it (and in a newer pre-release, if any),
+// and for a fork, the owner/name of the repo it was forked from.
+export type PluginStats = { downloads?: number; stars?: number | null; updated?: string | null; root?: boolean | null; fork?: string; warnings?: string[]; prereleaseWarnings?: string[] };
 
 // Manage-window buttons that Display Settings can hide.
 export type HideableButton = "downloadZip" | "install" | "update" | "releasePage";
 
-export type Settings = { overwriteExisting: boolean; updateChannel: UpdateChannel; language: string; columnsPerRow: 1 | 2 | 3 | 4; githubToken: string; density: "default" | "compact"; haptics: boolean; hiddenButtons: HideableButton[]; repoSettings?: Record<string, RepoPreference>; customRepos?: string[]; customRegistries?: string[] };
+export type Settings = { overwriteExisting: boolean; updateChannel: UpdateChannel; registryChannel: UpdateChannel; language: string; columnsPerRow: 1 | 2 | 3 | 4; githubToken: string; density: "default" | "compact"; haptics: boolean; quickAccessTab: boolean; hiddenButtons: HideableButton[]; repoSettings?: Record<string, RepoPreference>; customRepos?: string[]; customRegistries?: string[] };
 
 export type Download = { state: string; filename?: string; repo?: string; received?: number; total?: number; path?: string; error?: string };
 

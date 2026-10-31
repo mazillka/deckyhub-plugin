@@ -131,12 +131,14 @@ export function Dropdown({
 
 export function DropdownItem({
   label,
+  description,
   rgOptions,
   selectedOption,
   onChange,
   layout,
 }: {
   label?: string;
+  description?: ReactNode;
   rgOptions: { label: ReactNode; data: unknown }[];
   selectedOption: unknown;
   onChange: (option: { data: unknown }) => void;
@@ -145,11 +147,15 @@ export function DropdownItem({
   // Steam's Field puts the label beside the control unless asked for "below".
   const inline = layout !== "below";
   return (
+    <>
     <label className="steam-field-label" style={inline ? { display: "flex", alignItems: "center", gap: 12 } : undefined}>
       {label}
       {/* Inline, Steam keeps the menu as wide as its value, right-aligned beside the label; below it, as wide as the field. */}
       <SteamSelect rgOptions={rgOptions} selectedOption={selectedOption} onChange={onChange} style={inline ? { marginTop: 0, marginLeft: "auto" } : { display: "flex", width: "100%", marginTop: 6 }} />
     </label>
+    {/* Steam's Field prints its description under the row. */}
+    {description && <div className="steam-field-description" style={{ marginTop: 4, color: "#8b929a", fontSize: "0.85em" }}>{description}</div>}
+    </>
   );
 }
 
@@ -190,12 +196,20 @@ export function TextField({
   );
 }
 
-export function ToggleField({ label, checked, onChange }: { label?: string; checked?: boolean; onChange?: (checked: boolean) => void }) {
-  return (
+export function ToggleField({ label, description, checked, onChange }: { label?: string; description?: ReactNode; checked?: boolean; onChange?: (checked: boolean) => void }) {
+  const toggle = (
     <label className="steam-toggle">
       {label}
       <input type="checkbox" checked={checked} onChange={(event) => onChange?.(event.target.checked)} />
     </label>
+  );
+  if (!description) return toggle;
+  // Steam's Field prints its description under the row.
+  return (
+    <div>
+      {toggle}
+      <div className="steam-field-description" style={{ marginTop: 4, color: "#8b929a", fontSize: "0.85em" }}>{description}</div>
+    </div>
   );
 }
 
@@ -336,6 +350,9 @@ export const Navigation = {
 };
 
 export const staticClasses = { Title: "decky-mock-title" };
+
+// No Steam windows here: openExternalWeb() just opens the link (a new tab, above).
+export const Router = { WindowStore: undefined };
 
 // Steam's Tabs: a tab bar (L1 / R1, here "[" and "]", switch tabs) over the active
 // tab's content, which scrolls on its own under the bar.
