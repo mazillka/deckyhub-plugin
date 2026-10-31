@@ -196,12 +196,20 @@ export function TextField({
   );
 }
 
-export function ToggleField({ label, checked, onChange }: { label?: string; checked?: boolean; onChange?: (checked: boolean) => void }) {
-  return (
+export function ToggleField({ label, description, checked, onChange }: { label?: string; description?: ReactNode; checked?: boolean; onChange?: (checked: boolean) => void }) {
+  const toggle = (
     <label className="steam-toggle">
       {label}
       <input type="checkbox" checked={checked} onChange={(event) => onChange?.(event.target.checked)} />
     </label>
+  );
+  if (!description) return toggle;
+  // Steam's Field prints its description under the row.
+  return (
+    <div>
+      {toggle}
+      <div className="steam-field-description" style={{ marginTop: 4, color: "#8b929a", fontSize: "0.85em" }}>{description}</div>
+    </div>
   );
 }
 

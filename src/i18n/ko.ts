@@ -166,6 +166,8 @@ export const ko: Record<MessageKey, string> = {
   "settings.densityCompact": "간결",
   "settings.itemsPerRow": "한 줄당 항목 수",
   "settings.haptics": "탐색할 때 햅틱 피드백",
+  "settings.quickAccessTab": "빠른 액세스의 DeckyHub 탭",
+  "settings.quickAccessTabHint": "끄면 Decky 플러그인 목록에서 DeckyHub를 엽니다.",
   "settings.hideButton": "“{button}” 숨기기",
   "settings.troubleshooting": "문제 해결",
   "settings.exportLogs": "로그 내보내기",

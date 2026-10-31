@@ -167,6 +167,8 @@ export const pt: Record<MessageKey, string> = {
   "settings.densityCompact": "Compacta",
   "settings.itemsPerRow": "Itens por linha",
   "settings.haptics": "Vibração ao navegar",
+  "settings.quickAccessTab": "Aba do DeckyHub no Acesso rápido",
+  "settings.quickAccessTabHint": "Desativada, abra o DeckyHub pela lista de plugins do Decky.",
   "settings.hideButton": "Ocultar “{button}”",
   "settings.troubleshooting": "Solução de problemas",
   "settings.exportLogs": "Exportar logs",

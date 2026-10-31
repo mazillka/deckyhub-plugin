@@ -823,6 +823,32 @@ test("DeckyHub adds its own Quick Access tab after Decky's", async ({ page }) =>
   await expect(app.locator(".qam-content").getByRole("button", { name: /^Discover/ })).toBeVisible();
 });
 
+test("Settings can hide DeckyHub's Quick Access tab, and it stays hidden after a reload", async ({ page }) => {
+  const { result: before } = await bridgeCall(page, "get_settings");
+  try {
+    await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    const toggle = app.getByRole("switch", { name: "DeckyHub tab in Quick Access" }).or(app.getByLabel("DeckyHub tab in Quick Access"));
+    await expect(toggle).toBeChecked();
+    await expect(app.getByText("When off, open DeckyHub from Decky's plugin list.")).toBeVisible();
+    await toggle.click();
+    await expect.poll(async () => (await bridgeCall(page, "get_settings")).result.quickAccessTab).toBe(false);
+    const tabs = app.getByRole("navigation", { name: "Quick Access tabs" }).getByRole("button");
+    await app.getByRole("button", { name: "Quick Access widget", exact: true }).click();
+    // Only Decky's own tab; DeckyHub stays in its plugin list.
+    await expect(tabs).toHaveCount(1);
+    await expect(app.locator(".qam-content .decky-mock-title")).toHaveText("DeckyHub");
+
+    await page.goto("/?bridge=http://127.0.0.1:8643");
+    await expect(tabs).toHaveCount(1);
+    await bridgeCall(page, "save_settings", { ...(await bridgeCall(page, "get_settings")).result, quickAccessTab: true });
+    await page.goto("/?bridge=http://127.0.0.1:8643");
+    await expect(tabs).toHaveCount(2);
+  } finally {
+    await bridgeCall(page, "save_settings", before);
+  }
+});
+
 test("DeckyHub's Quick Access icon shows a dot while a plugin has an update", async ({ page }) => {
   const pluginDir = new URL("../.dev-data/plugins/e2e-mako-dot/", import.meta.url);
   mkdirSync(pluginDir, { recursive: true });

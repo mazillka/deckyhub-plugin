@@ -165,6 +165,8 @@ export const en = {
   "settings.densityCompact": "Compact",
   "settings.itemsPerRow": "Items Per Row",
   "settings.haptics": "Haptic feedback when navigating",
+  "settings.quickAccessTab": "DeckyHub tab in Quick Access",
+  "settings.quickAccessTabHint": "When off, open DeckyHub from Decky's plugin list.",
   "settings.hideButton": "Hide “{button}”",
   "settings.troubleshooting": "Troubleshooting",
   "settings.exportLogs": "Export Logs",

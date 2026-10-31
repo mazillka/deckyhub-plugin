@@ -166,6 +166,8 @@ export const uk: Record<MessageKey, string> = {
   "settings.densityCompact": "Компактний",
   "settings.itemsPerRow": "Елементів у рядку",
   "settings.haptics": "Тактильний відгук під час навігації",
+  "settings.quickAccessTab": "Вкладка DeckyHub у швидкому доступі",
+  "settings.quickAccessTabHint": "Якщо вимкнено, відкривайте DeckyHub зі списку плагінів Decky.",
   "settings.hideButton": "Приховати «{button}»",
   "settings.troubleshooting": "Усунення несправностей",
   "settings.exportLogs": "Експортувати журнали",
