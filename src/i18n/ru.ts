@@ -39,6 +39,7 @@ export const ru: Record<MessageKey, string> = {
   "sort.stars": "Больше звёзд",
   "sort.updated": "Недавно обновлённые",
   "view.totalDownloads": "{count} загрузок",
+  "view.prereleaseRegistry": "Пре-релиз реестра",
 
   "content.loading": "Загрузка…",
   "content.loadErrorTitle": "Не удалось загрузить DeckyHub",

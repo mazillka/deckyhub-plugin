@@ -39,6 +39,7 @@ export const zh: Record<MessageKey, string> = {
   "sort.stars": "星标最多",
   "sort.updated": "最近更新",
   "view.totalDownloads": "{count} 次下载",
+  "view.prereleaseRegistry": "预发布版注册表",
 
   "content.loading": "加载中…",
   "content.loadErrorTitle": "无法加载 DeckyHub",

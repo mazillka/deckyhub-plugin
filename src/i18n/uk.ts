@@ -39,6 +39,7 @@ export const uk: Record<MessageKey, string> = {
   "sort.stars": "Найбільше зірок",
   "sort.updated": "Нещодавно оновлені",
   "view.totalDownloads": "{count} завантажень",
+  "view.prereleaseRegistry": "Пре-реліз реєстру",
 
   "content.loading": "Завантаження…",
   "content.loadErrorTitle": "Не вдалося завантажити DeckyHub",

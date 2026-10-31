@@ -40,6 +40,7 @@ export const pt: Record<MessageKey, string> = {
   "sort.stars": "Mais estrelas",
   "sort.updated": "Atualizados recentemente",
   "view.totalDownloads": "{count} downloads",
+  "view.prereleaseRegistry": "Registro pré-lançamento",
 
   "content.loading": "Carregando…",
   "content.loadErrorTitle": "Não foi possível carregar o DeckyHub",
