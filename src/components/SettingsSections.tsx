@@ -145,6 +145,7 @@ export function LanguageSection({ settings, update }: { settings: Settings; upda
         <PanelSectionRow>
           <DropdownItem
             label={t("settings.language")}
+            description={t("settings.languageHint")}
             rgOptions={[{ label: t("settings.autoDetect"), data: "auto" }, ...LOCALES.map((locale) => ({ label: locale.label, data: locale.code }))]}
             selectedOption={settings.language}
             onChange={({ data }) => update({ language: data })}

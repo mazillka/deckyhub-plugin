@@ -27,7 +27,7 @@ REPOSITORY_NAME = re.compile(r"(?!\.+/)[A-Za-z0-9_.-]+/(?!\.+$)[A-Za-z0-9_.-]+")
 # A GitHub token: classic (ghp_ and kin) or fine-grained (github_pat_).
 GITHUB_TOKEN = re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{60,})\b")
 HIDEABLE_BUTTONS = ("downloadZip", "install", "update", "releasePage")
-SUPPORTED_LANGUAGES = {"auto", "en", "uk", "ru", "es", "de", "fr", "pt", "ja", "ko", "zh", "zh-TW"}
+SUPPORTED_LANGUAGES = {"auto", "en", "uk", "ru", "es", "de", "fr", "pt", "pt-PT", "it", "pl", "tr", "nl", "cs", "ja", "ko", "zh", "zh-TW"}
 DEFAULT_COLUMNS_PER_ROW = 3
 ACTIVE_DOWNLOAD_STATES = ("queued", "downloading")
 

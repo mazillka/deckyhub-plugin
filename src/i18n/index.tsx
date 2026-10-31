@@ -12,8 +12,14 @@ import { zh } from "./zh";
 import { ko } from "./ko";
 import { pt } from "./pt";
 import { zhTW } from "./zhTW";
+import { it } from "./it";
+import { pl } from "./pl";
+import { tr } from "./tr";
+import { nl } from "./nl";
+import { cs } from "./cs";
+import { ptPT } from "./ptPT";
 
-type Locale = "en" | "uk" | "ru" | "es" | "de" | "fr" | "pt" | "ja" | "ko" | "zh" | "zh-TW";
+type Locale = "en" | "uk" | "ru" | "es" | "de" | "fr" | "pt" | "pt-PT" | "it" | "pl" | "tr" | "nl" | "cs" | "ja" | "ko" | "zh" | "zh-TW";
 
 export const LOCALES: { code: Locale; label: string }[] = [
   { code: "en", label: "English" },
@@ -23,13 +29,19 @@ export const LOCALES: { code: Locale; label: string }[] = [
   { code: "de", label: "Deutsch" },
   { code: "fr", label: "Français" },
   { code: "pt", label: "Português (Brasil)" },
+  { code: "pt-PT", label: "Português (Portugal)" },
+  { code: "it", label: "Italiano" },
+  { code: "pl", label: "Polski" },
+  { code: "tr", label: "Türkçe" },
+  { code: "nl", label: "Nederlands" },
+  { code: "cs", label: "Čeština" },
   { code: "ja", label: "日本語" },
   { code: "ko", label: "한국어" },
   { code: "zh", label: "简体中文" },
   { code: "zh-TW", label: "繁體中文" },
 ];
 
-const MESSAGES: Record<Locale, Record<MessageKey, string>> = { en, uk, ru, es, de, fr, pt, ja, ko, zh, "zh-TW": zhTW };
+const MESSAGES: Record<Locale, Record<MessageKey, string>> = { en, uk, ru, es, de, fr, pt, "pt-PT": ptPT, it, pl, tr, nl, cs, ja, ko, zh, "zh-TW": zhTW };
 
 export const LOCALE_CHANGED = "deckyhub-locale-changed";
 
@@ -42,6 +54,7 @@ function detectLocale(): Locale {
     const tag = raw.toLowerCase();
     // Taiwan, Hong Kong, Macau and any "Hant" tag read Traditional Chinese.
     if (/^zh-(tw|hk|mo|hant)/.test(tag)) return "zh-TW";
+    if (tag.startsWith("pt-pt")) return "pt-PT";
     const code = tag.split("-")[0];
     if (isLocale(code)) return code;
   }
