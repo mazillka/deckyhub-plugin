@@ -6,7 +6,7 @@ This covers building, testing, and releasing DeckyHub. For what the plugin does 
 
 - `main.py` and `plugin.json` stay at the repository root because Decky Loader reads them from the plugin package.
 - `main.py` is the backend; `src/` contains the Decky React UI.
-- DeckyHub's plugin list lives in [mazillka/deckyhub-registry](https://github.com/mazillka/deckyhub-registry), not here; `tests/` covers the Python backend.
+- DeckyHub's plugin list lives in [mazillka/deckyhub-registry](https://github.com/mazillka/deckyhub-registry), not here; `tests/` covers the Python backend, plus the frontend's version logic and translations (`*.test.ts`).
 - `docs/` is the static GitHub Pages site: the promo page (`index.html`) and a `404.html`. The registry editor lives in [mazillka/deckyhub-registry](https://github.com/mazillka/deckyhub-registry)'s `docs/`. It remains separate from the runtime UI. `devtools/build-site.py` assembles it at deploy time: it downloads the registry's `apps.json` and writes the catalog into `index.html` and generates WebP screenshots and the link-preview JPEG from `screenshots/` (needs Pillow; CI-only). Preview locally with `python devtools/build-site.py _site` and serve `_site/`. Keep `docs/sitemap.xml` in sync when adding a page.
 
 ## Build
@@ -31,7 +31,7 @@ The build produces `dist/index.js`. Decky Loader requires `plugin.json`, `main.p
 
 1. Install Decky Loader, switch to Desktop Mode, and build the plugin as above.
 2. Copy the built plugin files (`dist/`, `main.py`, `package.json` and `plugin.json`) to `~/homebrew/plugins/DeckyHub`, or extract a release ZIP there.
-3. Restart/reload Decky Loader, then open the Quick Access Menu → Decky → DeckyHub.
+3. Restart/reload Decky Loader, then open DeckyHub's four-square tab in the Quick Access Menu (or Decky → DeckyHub).
 4. In the Quick Access Menu, tap **Manage** under **DeckyHub vX.Y.Z** and confirm the update window lists DeckyHub's releases with the installed one marked. Then open an app's **Manage** window, select an asset and confirm the resulting file is in `/home/deck/Downloads/deckyhub`. Test cancel with a larger asset and ensure no `.part` file remains.
 
 For development, rebuild the frontend after every change to `src/`, then reload the plugin. The backend uses only Python's standard library and needs no pip install.
@@ -54,7 +54,7 @@ Merge feature pull requests into `develop` with **Squash and merge** so it keeps
 
 After each stable release lands on `main`, open a pull request from `main` into `develop` titled `chore: merge main back into develop (X.Y.Z)` and merge it with **Create a merge commit**, the one PR that isn't squashed. A squash into `main` makes a commit `develop` never has, so without this back-merge the next `develop` → `main` PR conflicts even when the files are identical.
 
-The repository's `.githooks/pre-commit` hook blocks commits on `develop` and `main`. Activate it once per checkout with `git config core.hooksPath .githooks`; protected branches on GitHub should enforce the same rule remotely.
+The repository's `.githooks/pre-commit` hook blocks commits on `develop`, `main` and `staging`. Activate it once per checkout with `git config core.hooksPath .githooks`; protected branches on GitHub should enforce the same rule remotely.
 
 To release, bump `version` in `package.json` (the backend reads it at runtime; there is no second copy), then push a `v*` Git tag. The tag starts the GitHub Actions release workflow. It fails unless the tag is `v` plus the `package.json` version. It installs the locked packages, typechecks, builds, runs the frontend and backend tests and the browser E2E suite in `devtools/decky-mock/`, and packages the Decky plugin with a read-only token; a separate publish job then attaches `DeckyHub-v*.zip` to the GitHub release. Release-notes conventions are in the Release section of [AGENTS.md](AGENTS.md).
 

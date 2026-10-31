@@ -14,13 +14,13 @@ pnpm install
 pnpm run typecheck        # tsc --noEmit
 pnpm run build             # rollup -c -> dist/index.js
 pnpm run test:backend      # python -m unittest discover -s tests
-pnpm run test:frontend     # node --test tests/version.test.ts
+pnpm run test:frontend     # node --test tests/version.test.ts tests/i18n.test.ts
 npm run test:e2e --prefix devtools/decky-mock
 ```
 
 Run a single backend test: `python -m unittest tests.test_plugin_status.PluginStatusTests.test_decky_plugin_detection_reads_manifest_and_package_version`. The backend uses only the Python standard library — no pip install needed.
 
-`test:frontend` unit-tests the pure version logic in `src/version.ts` with Node's built-in runner (Node 24 strips the types), so keep that file free of imports. The Playwright suite in `devtools/decky-mock/` covers the browser UI; `pnpm run typecheck` remains the static correctness gate for `src/`. Run `npx playwright install chromium` once before its first local run.
+`test:frontend` unit-tests the pure version logic in `src/version.ts` with Node's built-in runner (Node 24 strips the types), so keep that file free of imports, and checks every language file's `{placeholders}` and registration (`tests/i18n.test.ts`). The Playwright suite in `devtools/decky-mock/` covers the browser UI; `pnpm run typecheck` remains the static correctness gate for `src/`. Run `npx playwright install chromium` once before its first local run.
 
 ## Development rules
 

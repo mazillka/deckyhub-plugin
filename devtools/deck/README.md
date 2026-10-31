@@ -6,7 +6,7 @@ Decky Loader turns on Steam's debugger (port 8081) in Gaming Mode, so a computer
 |---|---|
 | `node devtools/deck/deploy.mjs` | Builds this checkout, serves the ZIP from this computer and has Decky install it, confirming Decky's dialog. The version gets a `-dev.<time>` suffix. |
 | `node --test devtools/deck/deck.test.mjs` | Checks DeckyHub on the Deck: every page renders and fits the screen, the D-pad reaches every control, B goes back, the Quick Access tab and its update dot, and no DeckyHub errors in the console. Screenshots land in `devtools/deck/screenshots/`. Read-only, and it puts the Deck back on the screen it was on. |
-| `node devtools/deck/scenarios.mjs [scenario …]` | Audits every screen (pages, each Settings tab, Quick Access) under many setups: each of the 11 languages, Grid at 1 and 4 per row, List, Compact, the first-launch welcome, All plugins with Filters open, and a search with no results. Your DeckyHub settings and saved layout come back as they were. |
+| `node devtools/deck/scenarios.mjs [scenario …]` | Audits every screen (pages, each Settings tab, Quick Access) under many setups: every language, Grid at 1 and 4 per row, List, Compact, the first-launch welcome, All plugins with Filters open, and a search with no results. Your DeckyHub settings and saved layout come back as they were. |
 | `node devtools/deck/compare.mjs [page …]` | Lists where the dev mock (`devtools/decky-mock`, running on port 5183) looks different from the Deck: position, size, font and colours of each page's parts. It copies the Deck's installed plugins into the mock for the run, so both show the same cards. |
 
 ```bash
