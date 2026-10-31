@@ -1,4 +1,5 @@
-import { DialogButtonPrimary as Button, Focusable, Navigation } from "@decky/ui";
+import { DialogButtonPrimary as Button, Focusable } from "@decky/ui";
+import { openExternalWeb } from "../external";
 import { useEffect, useRef, useState } from "react";
 import { FaExternalLinkAlt, FaGithub, FaSync } from "react-icons/fa";
 import type { TFunc } from "../i18n/en";
@@ -44,7 +45,7 @@ export function ReleaseActions({ t, url, repoUrl, hideReleasePage, checking, dis
   // Close first: Steam's browser otherwise opens underneath this modal.
   const open = (target: string) => {
     closeModal?.();
-    Navigation.NavigateToExternalWeb(target);
+    openExternalWeb(target);
   };
   return (
     // A button too narrow for its label moves to the next row rather than wrapping it.

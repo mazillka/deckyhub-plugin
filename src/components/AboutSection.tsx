@@ -1,4 +1,5 @@
-import { DialogButtonPrimary as Button, Navigation, PanelSection, PanelSectionRow } from "@decky/ui";
+import { DialogButtonPrimary as Button, PanelSection, PanelSectionRow } from "@decky/ui";
+import { openExternalWeb } from "../external";
 import { FaExternalLinkAlt, FaGithub, FaHeart, FaInfoCircle } from "react-icons/fa";
 import { useT } from "../i18n";
 import { compactButtonStyle, ellipsis, sectionDividerStyle } from "../utils";
@@ -21,7 +22,7 @@ export function AboutSection() {
           <IconNote icon={<FaInfoCircle />}>{t("settings.aboutText")}</IconNote>
         </PanelSectionRow>
         <PanelSectionRow>
-          <Button style={compactButtonStyle} onClick={() => Navigation.NavigateToExternalWeb("https://github.com/mazillka/deckyhub-plugin")}>
+          <Button style={compactButtonStyle} onClick={() => openExternalWeb("https://github.com/mazillka/deckyhub-plugin")}>
             <FaGithub /> {t("settings.aboutSource")}
           </Button>
         </PanelSectionRow>
@@ -32,7 +33,7 @@ export function AboutSection() {
         {CATALOGS.map((catalog) => (
           <PanelSectionRow key={catalog.url}>
             {/* Name and author on a line each: as one sentence it wrapped to three in the panel. */}
-            <Button style={compactButtonStyle} aria-label={t("settings.catalogBy", { name: catalog.name, author: catalog.author })} onClick={() => Navigation.NavigateToExternalWeb(catalog.url)}>
+            <Button style={compactButtonStyle} aria-label={t("settings.catalogBy", { name: catalog.name, author: catalog.author })} onClick={() => openExternalWeb(catalog.url)}>
               <FaExternalLinkAlt />
               <span aria-hidden style={{ display: "grid", minWidth: 0, textAlign: "left" }}>
                 <span>{catalog.name}</span>

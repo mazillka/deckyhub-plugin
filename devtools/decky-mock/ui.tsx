@@ -343,6 +343,9 @@ export const Navigation = {
 
 export const staticClasses = { Title: "decky-mock-title" };
 
+// No Steam windows here: openExternalWeb() just opens the link (a new tab, above).
+export const Router = { WindowStore: undefined };
+
 // Steam's Tabs: a tab bar (L1 / R1, here "[" and "]", switch tabs) over the active
 // tab's content, which scrolls on its own under the bar.
 export function Tabs({ tabs, activeTab, onShowTab }: { tabs: { id: string; title: string; content: ReactNode }[]; activeTab: string; onShowTab: (id: string) => void; autoFocusContents?: boolean }) {
