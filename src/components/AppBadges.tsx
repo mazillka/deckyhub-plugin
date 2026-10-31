@@ -44,12 +44,19 @@ function AuditWarnings({ app, t }: { app: App; t: TFunc }) {
   );
 }
 
-// Runs as root / audit warnings / No release in a year, shared by the card and its Manage window.
+// The Fork badge: a fork the registry lists because it carries a plugin on after its
+// original stopped. Also shown in Discover's legend that explains it.
+export const ForkBadge = ({ t, repo }: { t: TFunc; repo?: string }) => (
+  <span title={repo ? t("appcard.forkOf", { repo }) : t("appcard.forkHint")} style={{ ...pillStyle, color: "#b8c7d3", background: "#b8c7d322", borderColor: "#b8c7d366" }}>{t("appcard.fork")}</span>
+);
+
+// Runs as root / Fork / audit warnings / No release in a year, shared by the card and its Manage window.
 export function AppBadges({ app, t }: { app: App; t: TFunc }) {
   const released = releasedAt(app);
   return (
     <>
       {app.stats?.root && <RootBadge t={t} />}
+      {app.stats?.fork && <ForkBadge t={t} repo={app.stats.fork} />}
       <AuditWarnings app={app} t={t} />
       {isStale(released) && <span title={new Date(released).toLocaleDateString()} style={{ ...pillStyle, color: "#ff8a8a", background: "#ff8a8a22", borderColor: "#ff8a8a66" }}>{t("appcard.noReleaseInYear")}</span>}
     </>
