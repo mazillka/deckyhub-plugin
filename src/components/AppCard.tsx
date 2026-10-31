@@ -1,4 +1,5 @@
 import { DialogButtonPrimary as Button, Focusable, Navigation, showModal } from "@decky/ui";
+import { openExternalWeb, rememberOpener } from "../external";
 import { useState, useSyncExternalStore } from "react";
 import { FaArrowUp, FaCog, FaPlus } from "react-icons/fa";
 import { useT } from "../i18n";
@@ -87,7 +88,7 @@ export function AppCard({
             onOptionsButton={hiddenButtons.includes("downloadZip") || downloadDisabled || !app.assets[0] ? undefined : () => void onDownload(app.assets[0])}
             onOptionsActionDescription={t("settings.downloadUpdate")}
             // Menu opens the plugin's GitHub page, to read about it before installing.
-            onMenuButton={() => Navigation.NavigateToExternalWeb(`https://github.com/${app.repo}`)}
+            onMenuButton={() => openExternalWeb(`https://github.com/${app.repo}`)}
             onMenuActionDescription={t("appcard.repository")}
             onClick={() => {
               setInstalling(true);
@@ -103,7 +104,9 @@ export function AppCard({
         <div style={install && quickAction ? { flex: "0 0 44px" } : { flex: 1 }}>
         <Button
           style={{ ...compactButtonStyle, marginBottom: 0, ...(install && quickAction && { padding: 0 }) }}
-          onClick={() =>
+          onClick={(event) => {
+            // Its Repository button closes it from code, which doesn't give focus back here.
+            rememberOpener(event.currentTarget);
             showModal(
               <AppDetailsModal
                 t={t}
@@ -115,8 +118,8 @@ export function AppCard({
                 onChannelChange={(channel) => onChannelChange(app.repo, channel)}
                 onUninstalled={onUninstalled}
               />
-            )
-          }
+            );
+          }}
         >
           {/* The label stays as hidden text, so the gear keeps its name for screen readers and tests. */}
           <FaCog /> <span style={install && quickAction ? visuallyHidden : undefined}>{t("appcard.manage")}</span>
