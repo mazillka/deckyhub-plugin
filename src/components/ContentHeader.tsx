@@ -4,7 +4,7 @@ import { FaArrowCircleUp, FaArrowLeft, FaArrowUp, FaCompass, FaSync } from "reac
 import { useT } from "../i18n";
 import type { View } from "../types";
 import { compactButtonStyle } from "../utils";
-import { RootBadge } from "./AppBadges";
+import { AUDIT_WARNINGS, RootBadge, WarningBadge } from "./AppBadges";
 import { PageHeader } from "./Card";
 import { KeepInView } from "./KeepInView";
 import { LayoutToggle, type Layout } from "./LayoutToggle";
@@ -79,16 +79,27 @@ export function ContentHeader({
           </>
         }
       />
-      {/* One line, so plugins show above the fold; More also explains the Runs as root badge
-          (its tooltip never shows on a Deck: no hover). */}
+      {/* One line, so plugins show above the fold; More also explains the Runs as root and
+          audit warning badges (their tooltips never show on a Deck: no hover). */}
       <Notice
         className="deckyhub-disclaimer"
         text={t("install.disclaimer")}
         more={
-          <div className="deckyhub-root-legend" style={{ display: "flex", alignItems: "center", gap: 4, color: "#d6f5ff" }}>
-            <RootBadge t={t} />
-            <span>{t("appcard.runsAsRootHint")}</span>
-          </div>
+          <>
+            <div className="deckyhub-root-legend" style={{ display: "flex", alignItems: "center", gap: 4, color: "#d6f5ff" }}>
+              <RootBadge t={t} />
+              <span>{t("appcard.runsAsRootHint")}</span>
+            </div>
+            <div className="deckyhub-warning-legend" style={{ display: "grid", gap: 6, color: "#d6f5ff" }}>
+              <span>{t("appcard.warningsIntro")}</span>
+              {AUDIT_WARNINGS.map((warning) => (
+                <div key={warning} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  <WarningBadge t={t} warning={warning} />
+                  <span>{t(`appcard.warning.${warning}.hint`)}</span>
+                </div>
+              ))}
+            </div>
+          </>
         }
       />
     </KeepInView>

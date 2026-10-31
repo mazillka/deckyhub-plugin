@@ -11,7 +11,7 @@ from urllib.error import URLError
 
 sys.modules.setdefault("decky", types.SimpleNamespace(logger=logging.getLogger("decky-test")))
 import main
-from main import REMOTE_REGISTRY_URL, parse_registry, validate_registry_url
+from main import PRERELEASE_REGISTRY_URL, REMOTE_REGISTRY_URL, parse_registry, validate_registry_url
 from main import Plugin
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -119,6 +119,51 @@ class CustomRegistryTests(unittest.TestCase):
             plugin = self.plugin(home, [CUSTOM_URL])
             asyncio.run(plugin.save_settings({"language": "de"}))
             self.assertEqual(plugin._load_settings()["customRegistries"], [CUSTOM_URL])
+
+    # registry channel
+
+    def test_prerelease_registry_reads_develop_into_its_own_cache(self):
+        self.assertEqual(main._coerce_settings({})["registryChannel"], "stable")
+        self.assertEqual(main._coerce_settings({"registryChannel": "nightly"})["registryChannel"], "stable")
+        with tempfile.TemporaryDirectory() as home:
+            plugin = self.plugin(home)
+            plugin.settings["registryChannel"] = "prerelease"
+            responses = {PRERELEASE_REGISTRY_URL: payload("owner/testing"), REMOTE_REGISTRY_URL: payload("owner/stable")}
+            with patch.object(main, "fetch_remote_registry", fake_fetch(responses)):
+                self.assertEqual([app["repo"] for app in plugin._load_registry()], ["owner/testing"])
+            # Switching back finds the stable list's cache untouched.
+            self.assertNotEqual(plugin._registry_cache_path(PRERELEASE_REGISTRY_URL), plugin._registry_cache_path(REMOTE_REGISTRY_URL))
+            self.assertFalse(plugin._registry_cache_path(REMOTE_REGISTRY_URL).exists())
+
+    def test_prerelease_registry_falls_back_to_stable_when_develop_cant_be_read(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = self.plugin(home)
+            plugin.settings["registryChannel"] = "prerelease"
+            responses = {PRERELEASE_REGISTRY_URL: URLError("404"), REMOTE_REGISTRY_URL: payload("owner/stable")}
+            with patch.object(main, "fetch_remote_registry", fake_fetch(responses)):
+                self.assertEqual([app["repo"] for app in plugin._load_registry()], ["owner/stable"])
+
+    def test_changing_the_registry_channel_reloads_the_list(self):
+        events = []
+
+        async def emit(event, *args):
+            events.append(event)
+
+        with tempfile.TemporaryDirectory() as home, patch.object(sys.modules["decky"], "emit", emit, create=True):
+            plugin = self.plugin(home)
+            plugin.apps = parse_registry(payload("owner/stable"))
+            responses = {PRERELEASE_REGISTRY_URL: payload("owner/testing"), REMOTE_REGISTRY_URL: payload("owner/stable")}
+
+            async def switch(settings):
+                await plugin.save_settings(settings)
+                await getattr(plugin, "registry_task", asyncio.sleep(0))
+
+            with patch.object(main, "fetch_remote_registry", fake_fetch(responses)):
+                asyncio.run(switch({**plugin.settings, "language": "de"}))
+                self.assertEqual(events, [])
+                asyncio.run(switch({**plugin.settings, "registryChannel": "prerelease"}))
+            self.assertEqual([app["repo"] for app in plugin.apps], ["owner/testing"])
+            self.assertEqual(events, ["registry_updated"])
 
     # add / remove
 

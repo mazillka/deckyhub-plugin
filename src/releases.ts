@@ -3,6 +3,7 @@ import { tr } from "./translate";
 import { type App, type AppReleaseOption, type Asset, type DeckyHubRelease, type DeckyHubReleaseOption, type PluginStats, type RepoPreference, type UpdateChannel } from "./types";
 import { compareVersions, inChannel } from "./version";
 import { fetchNoCors } from "@decky/api";
+import { getSettings } from "./api";
 import { githubFetch, githubHeaders, githubResponseError, githubToken } from "./github";
 
 // GitHub's unauthenticated core API allows 60 requests/hour per IP, easy to
@@ -88,38 +89,63 @@ export function fetchReleases(repo: string, force: boolean): Promise<Release[]> 
 // It's read from raw.githubusercontent.com, outside the API's 60-an-hour limit
 // that one call per listed repo would use up, so the API is asked only for repos
 // the file lacks (added repos and registries). Header-less, so no CORS preflight.
-export const RELEASE_INDEX_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/releases.json";
+const REGISTRY_RAW = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/";
+export const RELEASE_INDEX_URL = `${REGISTRY_RAW}release-index/releases.json`;
+
+// Settings' Registry channel: Pre-release reads the index the registry builds from its
+// develop branch (release-index-develop), with main's as the fallback. Module state like
+// the GitHub token, primed from settings by every I18nProvider and by Settings on save.
+export let registryChannel: UpdateChannel = "stable";
+let registryChannelLoaded: Promise<void> | null = null;
+
+export function setRegistryChannel(channel: UpdateChannel | undefined) {
+  registryChannel = channel === "prerelease" ? "prerelease" : "stable";
+  registryChannelLoaded = Promise.resolve();
+}
+
+const indexUrls = (file: string) => [...(registryChannel === "prerelease" ? [`${REGISTRY_RAW}release-index-develop/${file}`] : []), `${REGISTRY_RAW}release-index/${file}`];
 
 // An index this old means its job stopped publishing; ask GitHub instead. Generous on
 // purpose: GitHub skips scheduled runs for hours at a time, and a list of 300+ plugins
 // can't be asked of the API at 60 requests an hour, so a day-old index beats none.
 export const RELEASE_INDEX_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
-// One of the registry's raw files, downloaded once and shared by every caller for
+// One of the release index's files, downloaded once and shared by every caller for
 // CACHE_TTL. A forced refresh downloads it again, unless one started in the last
-// minute (every card of one Refresh shares it). `pick` turns the file into what
-// callers get, and its fallback stands in for a missing or broken file.
-export function cachedRawJson<T>(url: string, pick: (data: any) => T, fallback: T) {
-  let cached: { at: number; request: Promise<T> } | null = null;
-  return (force = false) => {
-    if (!cached || Date.now() - cached.at > (force ? 60_000 : CACHE_TTL)) {
-      cached = {
-        at: Date.now(),
-        request: fetchNoCors(url, { signal: AbortSignal.timeout(15_000) })
-          .then((response) => (response.ok ? response.json() : null))
-          .then((data) => (data ? pick(data) : fallback))
-          .catch((error: unknown) => {
-            log(`${url} unavailable: ${error}`);
-            return fallback;
-          }),
-      };
+// minute (every card of one Refresh shares it); switching the Registry channel
+// downloads the other branch's. `pick` turns the file into what callers get, and its
+// fallback stands in for a missing or broken file, which moves on to the next URL.
+export function cachedRawJson<T>(file: string, pick: (data: any) => T, fallback: T) {
+  let cached: { at: number; urls: string; request: Promise<T> } | null = null;
+  return async (force = false) => {
+    // A failed settings read is retried on the next call rather than kept.
+    registryChannelLoaded ??= getSettings().then((settings) => setRegistryChannel(settings.registryChannel), () => {
+      registryChannelLoaded = null;
+    });
+    await registryChannelLoaded;
+    const urls = indexUrls(file);
+    if (!cached || cached.urls !== urls.join(" ") || Date.now() - cached.at > (force ? 60_000 : CACHE_TTL)) {
+      cached = { at: Date.now(), urls: urls.join(" "), request: firstRawJson(urls, pick, fallback) };
     }
     return cached.request;
   };
 }
 
+async function firstRawJson<T>(urls: string[], pick: (data: any) => T, fallback: T): Promise<T> {
+  for (const url of urls) {
+    try {
+      const response = await fetchNoCors(url, { signal: AbortSignal.timeout(15_000) });
+      const picked = response.ok ? pick(await response.json()) : fallback;
+      if (picked !== fallback) return picked;
+    } catch (error: unknown) {
+      log(`${url} unavailable: ${error}`);
+    }
+  }
+  return fallback;
+}
+
 export const fetchReleaseIndex = cachedRawJson<Record<string, unknown[]> | null>(
-  RELEASE_INDEX_URL,
+  "releases.json",
   (index) => (Date.now() - Date.parse(index.generatedAt) < RELEASE_INDEX_MAX_AGE ? index.releases : null),
   null,
 );
@@ -127,7 +153,7 @@ export const fetchReleaseIndex = cachedRawJson<Record<string, unknown[]> | null>
 // Each listed plugin's stats (see PluginStats), published next to the release
 // index by the same job. Only Discover uses it, so a missing file just leaves them out.
 export const fetchPluginStats = cachedRawJson<Record<string, PluginStats>>(
-  "https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/stats.json",
+  "stats.json",
   (stats) => stats.plugins ?? {},
   {},
 );
