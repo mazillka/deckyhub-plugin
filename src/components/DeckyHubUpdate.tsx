@@ -110,7 +110,7 @@ export function DeckyHubUpdate() {
             // Read settings on open so Display Settings' hidden buttons are current.
             onClick={() => void getSettings().then((settings) => {
               setHiddenButtons(settings.hiddenButtons ?? []);
-              showModal(<DeckyHubUpdateModal t={t} info={info} channel={channel} onCheckUpdate={(checkedChannel) => checkForUpdate(false, checkedChannel)} onChannelChange={setChannel} hiddenButtons={settings.hiddenButtons} />);
+              showModal(<DeckyHubUpdateModal t={t} info={info} channel={channel} registryChannel={settings.registryChannel} onCheckUpdate={(checkedChannel) => checkForUpdate(false, checkedChannel)} onChannelChange={setChannel} hiddenButtons={settings.hiddenButtons} />);
             })}
           >
             <FaCog /> <span style={hasUpdate ? visuallyHidden : undefined}>{t("appcard.manage")}</span>

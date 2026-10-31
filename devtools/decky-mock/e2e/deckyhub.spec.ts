@@ -32,7 +32,7 @@ const makoRelease = (tag: string, sha256: string, day = "01") => ({
 });
 const RELEASE_INDEX_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/releases.json";
 const PLUGIN_STATS_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/stats.json";
-// What Settings' Registry Channel: Pre-release reads instead (the registry's develop branch).
+// What the DeckyHub window's Registry Channel: Pre-release reads instead (the registry's develop branch).
 const PRERELEASE_STATS_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index-develop/stats.json";
 const mockMakoReleases = (page: Page, releases: unknown[]) =>
   page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases**", (route) => route.fulfill({ json: releases }));
@@ -730,10 +730,10 @@ test("Registry Channel: Pre-release reads the registry's develop data, says so o
   await page.route(PRERELEASE_STATS_URL, (route) => { asked.push("prerelease"); return route.fulfill({ json: testing }); });
   const { result: before } = await bridgeCall(page, "get_settings");
   try {
-    await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
+    await page.goto("/?bridge=http://127.0.0.1:8643");
     const app = mock(page);
-    await settingsTab(page, "Repositories");
-    const channel = app.getByLabel("Registry Channel");
+    await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+    const channel = app.locator(".steam-modal").getByLabel("Registry Channel");
     await expect(channel).toHaveValue("stable");
     await expect(app.getByText("If they can't be loaded, DeckyHub uses the stable list.")).toBeVisible();
     await channel.selectOption("prerelease");

@@ -136,26 +136,6 @@ export function DownloadsSection({ settings, update }: { settings: Settings; upd
   );
 }
 
-// Which branch of the official registry DeckyHub reads: main, or develop for changes
-// that are still being tested (main's is used whenever develop's can't be read).
-export function RegistryChannelSection({ settings, update }: { settings: Settings; update: Update }) {
-  const t = useT();
-  return (
-    <Card>
-      <PanelSection title={t("settings.registryChannel")}>
-        <PanelSectionRow>
-          <DropdownItem
-            label={t("settings.registryChannel")}
-            description={t("settings.registryChannelHint")}
-            rgOptions={[{ label: t("appcard.channelStable"), data: "stable" }, { label: t("appcard.channelPrerelease"), data: "prerelease" }]}
-            selectedOption={settings.registryChannel}
-            onChange={({ data }) => update({ registryChannel: data })}
-          />
-        </PanelSectionRow>
-      </PanelSection>
-    </Card>
-  );
-}
 
 export function LanguageSection({ settings, update }: { settings: Settings; update: Update }) {
   const t = useT();
