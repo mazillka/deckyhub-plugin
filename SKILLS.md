@@ -18,7 +18,7 @@ DeckyHub is in production: an update must keep existing users' settings, caches,
 - Steam only scrolls to follow focus: text above a page's first focusable control is unreachable by controller. Wrap it in `<Focusable onActivate={() => {}}>` so D-pad up can land on it.
 - Clickable non-button elements need both `onActivate` (A button) and `onClick` (touchscreen).
 - Open web pages with `openExternalWeb()`, never `Navigation.NavigateToExternalWeb()`: without it, coming back from Steam's browser leaves the D-pad dead (AGENTS.md has why).
-- Every new user-facing string needs its key in all 11 `src/i18n/*.ts` language files (`en.ts` is the type source `tsc` enforces). Reuse an existing translation when the text already exists.
+- Every new user-facing string needs its key, translated, in every `src/i18n/*.ts` language file (`en.ts` is the type source `tsc` enforces); the `localization` skill has the rules and checks. Reuse an existing translation when the text already exists.
 - Split UI into components: pages keep state and loading, each visual section is a component in `src/components/`, and look-alike screens share one. The full rule is in [AGENTS.md](AGENTS.md#development-rules).
 - Size for the Deck, not the browser: Steam's text is about 16px, dialogs about 980px wide, and a `DropdownItem` puts its label beside the menu unless `layout="below"`, which cuts long values off in a narrow column. Keep at most four menus in a row, and give a search field its own line.
 
