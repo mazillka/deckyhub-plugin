@@ -156,6 +156,7 @@ export const ko: Record<MessageKey, string> = {
   "rateLimit.dismiss": "닫기",
   "settings.language": "언어",
   "settings.autoDetect": "자동 감지",
+  "settings.languageHint": "영어 외의 번역은 자동으로 만들어져 오류가 있을 수 있습니다.",
   "settings.displaySettings": "화면 설정",
   "settings.about": "정보",
   "settings.aboutText": "DeckyHub는 Decky 플러그인을 제작자의 GitHub 릴리스에서 바로 설치하고 업데이트합니다. 무료 오픈 소스입니다.",

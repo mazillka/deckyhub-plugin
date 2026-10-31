@@ -156,6 +156,7 @@ export const es: Record<MessageKey, string> = {
   "rateLimit.dismiss": "Descartar",
   "settings.language": "Idioma",
   "settings.autoDetect": "Detección automática",
+  "settings.languageHint": "Las traducciones distintas del inglés se generan automáticamente y pueden contener errores.",
   "settings.displaySettings": "Ajustes de pantalla",
   "settings.about": "Acerca de",
   "settings.aboutText": "DeckyHub instala y actualiza plugins de Decky directamente desde las versiones de GitHub de sus autores. Es gratuito y de código abierto.",

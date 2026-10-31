@@ -156,6 +156,7 @@ export const zh: Record<MessageKey, string> = {
   "rateLimit.dismiss": "关闭",
   "settings.language": "语言",
   "settings.autoDetect": "自动检测",
+  "settings.languageHint": "英语以外的翻译均为自动生成，可能存在错误。",
   "settings.displaySettings": "显示设置",
   "settings.about": "关于",
   "settings.aboutText": "DeckyHub 直接从作者的 GitHub 发行版安装和更新 Decky 插件。它免费且开源。",

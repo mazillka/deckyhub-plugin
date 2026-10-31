@@ -156,6 +156,7 @@ export const ru: Record<MessageKey, string> = {
   "rateLimit.dismiss": "Скрыть",
   "settings.language": "Язык",
   "settings.autoDetect": "Определять автоматически",
+  "settings.languageHint": "Переводы, кроме английского, сделаны автоматически и могут содержать ошибки.",
   "settings.displaySettings": "Настройки вида",
   "settings.about": "О плагине",
   "settings.aboutText": "DeckyHub устанавливает и обновляет плагины Decky прямо из GitHub-релизов их авторов. Он бесплатный и с открытым кодом.",

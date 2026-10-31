@@ -2489,12 +2489,12 @@ test("Switching the language updates Settings and the Quick Access panel", async
   }
 });
 
-test("Korean, Portuguese and Traditional Chinese are offered, saved and shown", async ({ page }) => {
+test("Newer languages are offered, saved and shown", async ({ page }) => {
   await bridgeCall(page, "save_settings", defaultSettings);
   try {
     await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
     const app = mock(page);
-    for (const [code, label] of [["ko", "언어"], ["pt", "Idioma"], ["zh-TW", "語言"]]) {
+    for (const [code, label] of [["ko", "언어"], ["pt", "Idioma"], ["it", "Lingua"], ["pl", "Język"], ["tr", "Dil"], ["nl", "Taal"], ["cs", "Jazyk"], ["pt-PT", "Idioma"], ["zh-TW", "語言"]]) {
       await app.getByRole("combobox").filter({ has: page.locator("option[value='auto']") }).selectOption(code);
       await expect(app.getByLabel(label)).toBeVisible();
       // The backend keeps the choice rather than falling back to auto-detect.

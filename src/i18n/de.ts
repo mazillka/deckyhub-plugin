@@ -156,6 +156,7 @@ export const de: Record<MessageKey, string> = {
   "rateLimit.dismiss": "Ausblenden",
   "settings.language": "Sprache",
   "settings.autoDetect": "Automatisch erkennen",
+  "settings.languageHint": "Übersetzungen außer Englisch werden automatisch erstellt und können Fehler enthalten.",
   "settings.displaySettings": "Anzeigeeinstellungen",
   "settings.about": "Über",
   "settings.aboutText": "DeckyHub installiert und aktualisiert Decky-Plugins direkt aus den GitHub-Releases ihrer Autoren. Es ist kostenlos und quelloffen.",

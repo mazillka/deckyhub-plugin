@@ -156,6 +156,7 @@ export const uk: Record<MessageKey, string> = {
   "rateLimit.dismiss": "Приховати",
   "settings.language": "Мова",
   "settings.autoDetect": "Визначати автоматично",
+  "settings.languageHint": "Переклади, крім англійської, створено автоматично, тож можливі помилки.",
   "settings.displaySettings": "Налаштування вигляду",
   "settings.about": "Про плагін",
   "settings.aboutText": "DeckyHub встановлює та оновлює плагіни Decky просто з GitHub-релізів їхніх авторів. Він безкоштовний і з відкритим кодом.",

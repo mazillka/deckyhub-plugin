@@ -155,6 +155,7 @@ export const en = {
   "rateLimit.dismiss": "Dismiss",
   "settings.language": "Language",
   "settings.autoDetect": "Auto-detect",
+  "settings.languageHint": "Translations other than English are made automatically and may contain mistakes.",
   "settings.displaySettings": "Display Settings",
   "settings.about": "About",
   "settings.aboutText": "DeckyHub installs and updates Decky plugins straight from their authors' GitHub releases. It's free and open source.",
