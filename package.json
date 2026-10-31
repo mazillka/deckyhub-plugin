@@ -9,7 +9,7 @@
     "build": "rollup -c",
     "typecheck": "tsc --noEmit",
     "test:backend": "python -m unittest discover -s tests",
-    "test:frontend": "node --test tests/version.test.ts"
+    "test:frontend": "node --test tests/version.test.ts tests/i18n.test.ts"
   },
   "dependencies": {
     "@decky/api": "^1.1.3",
