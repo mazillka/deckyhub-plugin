@@ -680,7 +680,7 @@ test("The Manage window shows the plugin's description, details and a Repository
 
 test("Discover shows the registry's audit warnings next to Runs as root and explains each one", async ({ page }) => {
   await page.route(PLUGIN_STATS_URL, (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), plugins: {
-    "eugeniosegala/mako": { downloads: 73981, stars: 680, updated: new Date().toISOString(), root: true, warnings: ["private-data", "not-in-source", "some-future-warning"] },
+    "eugeniosegala/mako": { downloads: 73981, stars: 680, updated: new Date().toISOString(), root: true, fork: "original/mako", warnings: ["private-data", "not-in-source", "some-future-warning"] },
     // A newer pre-release's warnings show only to people on the pre-release channel.
     "mubaraknumann/unifideck": { downloads: 110541, stars: 1410, updated: new Date().toISOString(), root: false, prereleaseWarnings: ["blocked"] },
   } } }));
@@ -692,6 +692,9 @@ test("Discover shows the registry's audit warnings next to Runs as root and expl
   const mako = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
   const unifideck = app.getByRole("heading", { name: "Unifideck" }).locator("..");
   for (const text of ["Runs as root", "Reads private data", "Code not in its repo"]) await expect(mako.getByText(text, { exact: true })).toBeVisible();
+  // A fork the registry lists says so, and what it's a fork of.
+  await expect(mako.getByText("Fork", { exact: true })).toHaveAttribute("title", "Fork of original/mako");
+  await expect(unifideck.getByText("Fork", { exact: true })).toHaveCount(0);
   // A warning this release doesn't know yet (the registry adds them first) shows nothing.
   await expect(mako.getByText("some-future-warning")).toHaveCount(0);
   await expect(unifideck.getByText("Blocked by audit")).toHaveCount(0);
@@ -701,6 +704,7 @@ test("Discover shows the registry's audit warnings next to Runs as root and expl
   await app.locator(".deckyhub-disclaimer").getByRole("button", { name: "More", exact: true }).click();
   const legend = app.locator(".deckyhub-warning-legend");
   await expect(legend).toContainText("Decky Extended Plugins' automated audit");
+  await expect(app.locator(".deckyhub-fork-legend")).toContainText("carries a plugin on after its original stopped");
   for (const [badge, meaning] of [
     ["Blocked by audit", "Not recommended for installation."],
     ["Reads private data", "Steam login data"],

@@ -4,7 +4,7 @@ import { FaArrowCircleUp, FaArrowLeft, FaArrowUp, FaCompass, FaSync } from "reac
 import { useT } from "../i18n";
 import type { View } from "../types";
 import { compactButtonStyle } from "../utils";
-import { AUDIT_WARNINGS, RootBadge, WarningBadge } from "./AppBadges";
+import { AUDIT_WARNINGS, ForkBadge, RootBadge, WarningBadge } from "./AppBadges";
 import { PageHeader } from "./Card";
 import { KeepInView } from "./KeepInView";
 import { LayoutToggle, type Layout } from "./LayoutToggle";
@@ -89,6 +89,10 @@ export function ContentHeader({
             <div className="deckyhub-root-legend" style={{ display: "flex", alignItems: "center", gap: 4, color: "#d6f5ff" }}>
               <RootBadge t={t} />
               <span>{t("appcard.runsAsRootHint")}</span>
+            </div>
+            <div className="deckyhub-fork-legend" style={{ display: "flex", alignItems: "center", gap: 4, color: "#d6f5ff" }}>
+              <ForkBadge t={t} />
+              <span>{t("appcard.forkHint")}</span>
             </div>
             <div className="deckyhub-warning-legend" style={{ display: "grid", gap: 6, color: "#d6f5ff" }}>
               <span>{t("appcard.warningsIntro")}</span>
