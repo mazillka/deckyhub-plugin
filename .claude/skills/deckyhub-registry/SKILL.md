@@ -7,7 +7,7 @@ description: Maintain DeckyHub's plugin registry, which lives only in mazillka/d
 
 DeckyHub's plugin list lives only in [mazillka/deckyhub-registry](https://github.com/mazillka/deckyhub-registry), `registry/apps.json` on `main`. DeckyHub downloads it at startup (`REMOTE_REGISTRY_URL` in `main.py`) and caches the last good copy; no copy ships in the plugin ZIP. The registry repo's Pages site (`docs/`: catalog `index.html` and `editor.html`, served from `main` `/docs`) loads it live; this repo's promo page renders it at deploy time (`devtools/build-site.py`, run daily by `pages.yml`). Releases from before the move read this repo's old `registry/apps.json` from `main`, which no longer exists, so they keep their cached or bundled list.
 
-The local checkout sits next to this repo: `../deckyhub-registry`. Clone it with `gh repo clone mazillka/deckyhub-registry` if it's missing. Follow [CONTRIBUTING.md](../../../CONTRIBUTING.md#releases): work on a short kebab-case branch, never commit to `main`, one topic per PR, squash-merge.
+The local checkout sits next to this repo: `../deckyhub-registry`. Clone it with `gh repo clone mazillka/deckyhub-registry` if it's missing. It uses the same branches as this repo: work on a short kebab-case branch from `develop`, never commit to `main` or `develop`, one topic per PR against `develop`, squash-merge. A `develop` → `main` PR ships to users; the registry's `ship-registry` skill has the steps.
 
 ## Adding, removing or editing an app
 
@@ -32,11 +32,15 @@ The local checkout sits next to this repo: `../deckyhub-registry`. Clone it with
    Fix every error. Warnings (no stable release, no SHA-256 digest) are worth a look but don't fail CI.
 
    Always check that every repo link is still valid, not just the entries you touched: `validate.py` checks every entry's `repo` against GitHub. Treat a renamed repo as a fix: update `repo` and every README link to the new `owner/name` (`grep -rl old/name` across the checkout) in its own PR. Treat an archived or missing repo as a question for the user: keep the entry or remove it.
-3. Commit, push and open the registry PR; `main` only accepts squash-merged PRs whose `validate` check passed. Its CI runs both checks. Merge it. Nothing needs syncing into this repo.
+3. Commit, push and open the registry PR against `develop`; it only accepts squash-merged PRs whose `validate` check passed. Its CI runs both checks. Merge it, then ship it to `main`. Nothing needs syncing into this repo.
 
 ## The registry's weekly CI run failed
 
 The registry repo's CI runs `scripts/validate.py` weekly, because a plugin's new release can break its entry (renamed ZIP, a second ZIP, a changed `plugin.json` name) with no change in the registry. Fix the entry in a registry PR.
+
+## Release index and stats
+
+The registry publishes `releases.json` and `stats.json` on its `release-index` branch (`fetchReleaseIndex()` and `fetchPluginStats()` in `src/releases.ts`). `PluginStats` in `src/types.ts` is what this repo reads from `stats.json`, including the audit `warnings` and `prereleaseWarnings` that `AuditWarnings` in `src/components/AppBadges.tsx` shows (IDs in `AUDIT_WARNINGS`, labels and hints as `appcard.warning.<id>` in every language). The registry's CI checks it against this repo's `main`: it fails if the registry stops sending a field `PluginStats` names, or a warning ID `AUDIT_WARNINGS` lists. So add fields and warning IDs here only once the registry sends them, and never rely on one the registry can drop; the registry's `audit-warnings` skill covers changing them. To test unpublished registry data on a Deck, see the `deck-test` skill.
 
 ## Schema changes
 

@@ -122,6 +122,8 @@ def _coerce_settings(settings: dict) -> dict:
     return {
         "overwriteExisting": bool(settings.get("overwriteExisting", True)),
         "updateChannel": "prerelease" if settings.get("updateChannel") == "prerelease" else "stable",
+        # Which branch of the official registry to read (see official_registry_url()).
+        "registryChannel": "prerelease" if settings.get("registryChannel") == "prerelease" else "stable",
         "language": settings.get("language") if settings.get("language") in SUPPORTED_LANGUAGES else "auto",
         "columnsPerRow": settings.get("columnsPerRow") if type(settings.get("columnsPerRow")) is int and settings["columnsPerRow"] in (1, 2, 3, 4) else DEFAULT_COLUMNS_PER_ROW,
         # Only the frontend's api.github.com calls send it (githubHeaders() in src/utils.ts).
@@ -184,7 +186,12 @@ def parse_registry(payload: object) -> list[dict]:
 
 # DeckyHub's plugin list lives in its own repository.
 REMOTE_REGISTRY_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/refs/heads/main/registry/apps.json"
-MAX_REMOTE_REGISTRY_BYTES = 512 * 1024
+# The registry's develop branch: changes being tested before they reach main, for the
+# Registry: Pre-release setting.
+PRERELEASE_REGISTRY_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/refs/heads/develop/registry/apps.json"
+# A cap so a broken or hostile registry can't exhaust memory. Releases up to 3.0.0 used
+# 512 KB and keep it, so the official registry still stays under that (its test_docs.py).
+MAX_REMOTE_REGISTRY_BYTES = 4 * 1024 * 1024
 # How many user-added registries one install will track, so a bad list can't
 # turn startup into an unbounded sequence of network fetches.
 MAX_CUSTOM_REGISTRIES = 10
@@ -280,7 +287,11 @@ class Plugin:
         def given(url):
             return prefetched[1] if prefetched and prefetched[0] == url else None
 
-        apps = self._fetch_registry(REMOTE_REGISTRY_URL, official=True, prefetched=given(REMOTE_REGISTRY_URL), network=network)
+        official = self.official_registry_url()
+        apps = self._fetch_registry(official, official=True, prefetched=given(official), network=network)
+        if not apps and official != REMOTE_REGISTRY_URL:
+            # The pre-release list is unreachable and never cached: the stable one beats none.
+            apps = self._fetch_registry(REMOTE_REGISTRY_URL, official=True, prefetched=given(REMOTE_REGISTRY_URL), network=network)
         # First source wins: a user-added registry can add apps but never override
         # the detect rules or asset filters of an entry from the official registry,
         # nor reuse its id (the frontend matches cards by id), nor claim its detect
@@ -298,6 +309,9 @@ class Plugin:
                     seen_names |= names
                     apps.append(app)
         return apps
+
+    def official_registry_url(self) -> str:
+        return PRERELEASE_REGISTRY_URL if getattr(self, "settings", {}).get("registryChannel") == "prerelease" else REMOTE_REGISTRY_URL
 
     def _fetch_registry(self, url: str, official: bool = False, prefetched: tuple[list[dict], str] | None = None, network: bool = True) -> list[dict]:
         """One registry source: fetch it, cache it, else fall back to the cache (none: no apps)."""
@@ -343,6 +357,8 @@ class Plugin:
         directory = Path(decky.DECKY_PLUGIN_SETTINGS_DIR)
         if url == REMOTE_REGISTRY_URL:
             return directory / "registry-cache.json"
+        if url == PRERELEASE_REGISTRY_URL:
+            return directory / "registry-cache-prerelease.json"
         return directory / "registries" / f"{hashlib.sha256(url.encode('utf-8')).hexdigest()[:16]}.json"
 
     def _save_settings(self):
@@ -442,6 +458,7 @@ class Plugin:
             return {"version": "unknown"}
 
     async def save_settings(self, settings: dict):
+        channel = getattr(self, "settings", {}).get("registryChannel")
         self.settings = {
             **_coerce_settings(settings),
             "customRepos": getattr(self, "settings", {}).get("customRepos", []),
@@ -450,6 +467,9 @@ class Plugin:
         }
         self._save_settings()
         decky.logger.info("Saved settings: %s", {**self.settings, "githubToken": bool(self.settings["githubToken"])})
+        if channel is not None and channel != self.settings["registryChannel"]:
+            # The other registry branch: load it now, and open pages reload when it lands.
+            self.registry_task = asyncio.create_task(self._refresh_registry_in_background())
         return self.settings
 
     async def clear_downloads(self):

@@ -15,12 +15,42 @@ export const RootBadge = ({ t }: { t: TFunc }) => (
   <span title={t("appcard.runsAsRootHint")} style={{ ...pillStyle, color: "#ffb35c", background: "#ffb35c22", borderColor: "#ffb35c66" }}>{t("appcard.runsAsRoot")}</span>
 );
 
-// Runs as root / No release in a year, shared by the card and its Manage window.
+// Warnings from Decky Extended Plugins' audit (the registry's build_release_index.py picks
+// them), explained in Discover's legend. Blocked is red; the rest look like Runs as root.
+export const AUDIT_WARNINGS = ["blocked", "private-data", "persistence", "not-in-source", "obfuscated", "no-tls-check", "runs-downloads", "vulnerable"] as const;
+type AuditWarning = (typeof AUDIT_WARNINGS)[number];
+const isAuditWarning = (key: string): key is AuditWarning => (AUDIT_WARNINGS as readonly string[]).includes(key);
+
+export const WarningBadge = ({ t, warning, prerelease }: { t: TFunc; warning: AuditWarning; prerelease?: boolean }) => {
+  const color = warning === "blocked" ? "#ff8a8a" : "#ffb35c";
+  const label = t(`appcard.warning.${warning}`);
+  // nowrap: beside the legend's text a long label squeezed onto three lines (seen on a Deck).
+  return (
+    <span title={t(`appcard.warning.${warning}.hint`)} style={{ ...pillStyle, whiteSpace: "nowrap", color, background: `${color}22`, borderColor: `${color}66` }}>
+      {prerelease ? `${t("appcard.channelPrerelease")}: ${label}` : label}
+    </span>
+  );
+};
+
+// The release this card installs: a pre-release's warnings only on the pre-release channel.
+function AuditWarnings({ app, t }: { app: App; t: TFunc }) {
+  const stable = app.stats?.warnings ?? [];
+  const prerelease = app.channel === "prerelease" ? (app.stats?.prereleaseWarnings ?? []).filter((key) => !stable.includes(key)) : [];
+  return (
+    <>
+      {stable.filter(isAuditWarning).map((key) => <WarningBadge key={key} t={t} warning={key} />)}
+      {prerelease.filter(isAuditWarning).map((key) => <WarningBadge key={key} t={t} warning={key} prerelease />)}
+    </>
+  );
+}
+
+// Runs as root / audit warnings / No release in a year, shared by the card and its Manage window.
 export function AppBadges({ app, t }: { app: App; t: TFunc }) {
   const released = releasedAt(app);
   return (
     <>
       {app.stats?.root && <RootBadge t={t} />}
+      <AuditWarnings app={app} t={t} />
       {isStale(released) && <span title={new Date(released).toLocaleDateString()} style={{ ...pillStyle, color: "#ff8a8a", background: "#ff8a8a22", borderColor: "#ff8a8a66" }}>{t("appcard.noReleaseInYear")}</span>}
     </>
   );

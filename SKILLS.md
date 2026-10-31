@@ -2,6 +2,10 @@
 
 Use these project skills when working in this repository.
 
+## Backward compatibility
+
+DeckyHub is in production: an update must keep existing users' settings, caches, self-update path and registry data working, and new behavior is opt-in. Follow the `compatibility` skill before changing any of them.
+
 ## Branches
 
 - `develop` is the integration branch: branch every feature, fix and pre-release from `origin/develop` and open its PR against `develop`.
@@ -10,10 +14,10 @@ Use these project skills when working in this repository.
 
 ## Steam Deck UI
 
-- Verify UI behavior in the mock and on real Steam Deck hardware before release. Controller-focus and modal rules are in [AGENTS.md](AGENTS.md#development-rules).
+- Verify UI behavior in the mock and on real Steam Deck hardware before release (the `deck-test` skill drives a real Deck through its debugger). Controller-focus and modal rules are in [AGENTS.md](AGENTS.md#development-rules).
 - Steam only scrolls to follow focus: text above a page's first focusable control is unreachable by controller. Wrap it in `<Focusable onActivate={() => {}}>` so D-pad up can land on it.
 - Clickable non-button elements need both `onActivate` (A button) and `onClick` (touchscreen).
-- Every new user-facing string needs its key in all 8 `src/i18n/*.ts` files (`en.ts` is the type source `tsc` enforces). Reuse an existing translation when the text already exists.
+- Every new user-facing string needs its key in all 11 `src/i18n/*.ts` language files (`en.ts` is the type source `tsc` enforces). Reuse an existing translation when the text already exists.
 - Split UI into components: pages keep state and loading, each visual section is a component in `src/components/`, and look-alike screens share one. The full rule is in [AGENTS.md](AGENTS.md#development-rules).
 - Size for the Deck, not the browser: Steam's text is about 16px, dialogs about 980px wide, and a `DropdownItem` puts its label beside the menu unless `layout="below"`, which cuts long values off in a narrow column. Keep at most four menus in a row, and give a search field its own line.
 
@@ -26,6 +30,7 @@ Use these project skills when working in this repository.
 
 - Every release lookup goes through `fetchReleases(repo)` in `src/releases.ts` (one shared per-repo cache); don't add separate GitHub fetches.
 - Repos in the official registry are answered from its release index (one raw.githubusercontent.com file, no API calls); the API is only for repos the index lacks and for Search.
+- `stats.json` from the registry's release index is a contract with the registry: read only fields it already sends, and keep `PluginStats` and `AUDIT_WARNINGS` in step with it (the `deckyhub-registry` skill explains).
 - Unauthenticated use gets 60 requests/hour per IP (10/min for search): count the requests a change adds. `GET /rate_limit` is free.
 
 ## Verification
