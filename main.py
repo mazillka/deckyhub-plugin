@@ -131,6 +131,9 @@ def _coerce_settings(settings: dict) -> dict:
         "density": "compact" if settings.get("density") == "compact" else "default",
         # A haptic tick on the Deck's trackpads as focus moves (hapticTick() in src/utils.ts).
         "haptics": bool(settings.get("haptics", True)),
+        # DeckyHub's own icon in Steam's Quick Access tab strip (QuickAccessTab.tsx).
+        # Off leaves DeckyHub in Decky's plugin list.
+        "quickAccessTab": bool(settings.get("quickAccessTab", True)),
         # Manage-window buttons the user chose to hide (Display Settings).
         "hiddenButtons": [name for name in HIDEABLE_BUTTONS if isinstance(settings.get("hiddenButtons"), list) and name in settings["hiddenButtons"]],
     }

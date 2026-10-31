@@ -166,6 +166,8 @@ export const ja: Record<MessageKey, string> = {
   "settings.densityCompact": "コンパクト",
   "settings.itemsPerRow": "1行あたりの項目数",
   "settings.haptics": "移動時の触覚フィードバック",
+  "settings.quickAccessTab": "クイックアクセスの DeckyHub タブ",
+  "settings.quickAccessTabHint": "オフの場合は、Decky のプラグイン一覧から DeckyHub を開きます。",
   "settings.hideButton": "「{button}」を非表示",
   "settings.troubleshooting": "トラブルシューティング",
   "settings.exportLogs": "ログをエクスポート",

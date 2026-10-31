@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { showDownloadModal } from "../../src/components/DownloadProgress";
 import { en, type MessageKey } from "../../src/i18n/en";
 import pluginFactory from "../../src/index";
@@ -16,6 +16,7 @@ export default function DevShell() {
   const [hints, setHints] = useState<DOMStringMap>({});
   // The Quick Access tab shown: Decky's (null) or one a plugin added, by id.
   const [qamTab, setQamTab] = useState<number | null>(null);
+  const tabs = useSyncExternalStore(tabsHook.subscribe, () => tabsHook.tabs);
 
   useEffect(() => {
     const onRoutesChanged = () => forceUpdate((value) => value + 1);
@@ -100,7 +101,7 @@ export default function DevShell() {
   if (!descriptor) return null;
   const routes = Array.from(routerHook._routes.entries());
   const ActivePage = activePath ? routerHook._routes.get(activePath) : null;
-  const openTab = tabsHook.tabs.find((tab) => tab.id === qamTab);
+  const openTab = tabs.find((tab) => tab.id === qamTab);
 
   return (
     <div className="steam-mock">
@@ -148,7 +149,7 @@ export default function DevShell() {
                 <span aria-hidden><FaCog /></span>
                 <span aria-hidden><FaBolt /></span>
                 <button aria-label="Decky" aria-pressed={!openTab} onClick={() => setQamTab(null)}><FaPlug /></button>
-                {tabsHook.tabs.map((tab) => (
+                {tabs.map((tab) => (
                   <button key={tab.id} aria-label={`Quick Access tab ${tab.id}`} aria-pressed={openTab === tab} onClick={() => setQamTab(tab.id)}>{tab.icon}</button>
                 ))}
               </nav>

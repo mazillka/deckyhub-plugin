@@ -166,6 +166,8 @@ export const ru: Record<MessageKey, string> = {
   "settings.densityCompact": "Компактный",
   "settings.itemsPerRow": "Элементов в строке",
   "settings.haptics": "Тактильный отклик при навигации",
+  "settings.quickAccessTab": "Вкладка DeckyHub в быстром доступе",
+  "settings.quickAccessTabHint": "Если выключено, открывайте DeckyHub из списка плагинов Decky.",
   "settings.hideButton": "Скрыть «{button}»",
   "settings.troubleshooting": "Устранение неполадок",
   "settings.exportLogs": "Экспортировать журналы",

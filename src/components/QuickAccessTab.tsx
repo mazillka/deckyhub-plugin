@@ -54,17 +54,31 @@ async function checkUpdates() {
   }
 }
 
+let tabContent: ReactNode = null;
+
+// The background checks run whenever Decky has the tabs hook, shown or not: the
+// "Updates available" toast still comes with the tab hidden.
 export function addQuickAccessTab(content: ReactNode) {
   const hook = tabsHook();
   if (typeof hook?.add !== "function" || typeof hook.removeById !== "function") return;
-  hook.removeById(TAB_ID); // a reload of DeckyHub shouldn't leave two
-  hook.add({ id: TAB_ID, title: null, content: <TabPanel>{content}</TabPanel>, icon: <TabIcon /> });
+  tabContent = content;
+  // Settings' "DeckyHub tab in Quick Access": on unless turned off, and on if they can't be read.
+  void getSettings().then((settings) => setQuickAccessTab(settings.quickAccessTab !== false), () => setQuickAccessTab(true));
   void checkUpdates();
   window.clearInterval(checkTimer);
   checkTimer = window.setInterval(() => void checkUpdates(), CHECK_EVERY);
 }
 
+// Shows or hides the tab; DeckyHub stays in Decky's plugin list either way.
+export function setQuickAccessTab(shown: boolean) {
+  const hook = tabsHook();
+  if (typeof hook?.add !== "function" || typeof hook.removeById !== "function" || !tabContent) return;
+  hook.removeById(TAB_ID); // a reload of DeckyHub shouldn't leave two
+  if (shown) hook.add({ id: TAB_ID, title: null, content: <TabPanel>{tabContent}</TabPanel>, icon: <TabIcon /> });
+}
+
 export function removeQuickAccessTab() {
   window.clearInterval(checkTimer);
   tabsHook()?.removeById?.(TAB_ID);
+  tabContent = null;
 }

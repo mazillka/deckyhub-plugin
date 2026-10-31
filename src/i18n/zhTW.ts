@@ -167,6 +167,8 @@ export const zhTW: Record<MessageKey, string> = {
   "settings.densityCompact": "緊湊",
   "settings.itemsPerRow": "每列顯示數量",
   "settings.haptics": "瀏覽時的觸覺回饋",
+  "settings.quickAccessTab": "快速存取中的 DeckyHub 分頁",
+  "settings.quickAccessTabHint": "關閉後，可從 Decky 的外掛清單開啟 DeckyHub。",
   "settings.hideButton": "隱藏「{button}」",
   "settings.troubleshooting": "疑難排解",
   "settings.exportLogs": "匯出記錄",

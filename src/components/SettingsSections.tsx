@@ -156,6 +156,7 @@ export function LanguageSection({ settings, update }: { settings: Settings; upda
 }
 
 // Layout (shared with the Grid / List switches), density, items per row, haptics,
+// DeckyHub's Quick Access tab,
 // and the Manage-window buttons to hide.
 export function DisplaySection({ settings, update, layout, onLayout }: { settings: Settings; update: Update; layout: Layout; onLayout: (layout: Layout) => void }) {
   const t = useT();
@@ -189,6 +190,9 @@ export function DisplaySection({ settings, update, layout, onLayout }: { setting
         </PanelSectionRow>
         <PanelSectionRow>
           <ToggleField label={t("settings.haptics")} checked={settings.haptics} onChange={(checked) => update({ haptics: checked })} />
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <ToggleField label={t("settings.quickAccessTab")} description={t("settings.quickAccessTabHint")} checked={settings.quickAccessTab} onChange={(checked) => update({ quickAccessTab: checked })} />
         </PanelSectionRow>
         {HIDEABLE_BUTTONS.map(([name, label]) => (
           <PanelSectionRow key={name}>

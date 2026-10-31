@@ -166,6 +166,8 @@ export const zh: Record<MessageKey, string> = {
   "settings.densityCompact": "紧凑",
   "settings.itemsPerRow": "每行显示数量",
   "settings.haptics": "导航时的触觉反馈",
+  "settings.quickAccessTab": "快速访问中的 DeckyHub 标签页",
+  "settings.quickAccessTabHint": "关闭后，可从 Decky 的插件列表打开 DeckyHub。",
   "settings.hideButton": "隐藏「{button}」",
   "settings.troubleshooting": "故障排除",
   "settings.exportLogs": "导出日志",
