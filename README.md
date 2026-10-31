@@ -4,7 +4,7 @@
 
 # DeckyHub
 
-**Your Steam Deck's plugin store — right inside Gaming Mode.**
+**Your Steam Deck's plugin hub — right inside Gaming Mode.**
 
 Find, install and update Decky Loader plugins with your controller — from DeckyHub's plugin list, or any plugin on GitHub.
 
@@ -45,7 +45,7 @@ Tired of tabbing out to Desktop Mode, hunting through GitHub releases, and manua
 
 ## Why you'll like it
 
-- **Any plugin on GitHub, one search away** — **Search & Install** finds Decky plugins that aren't in any store and installs them right from Gaming Mode. No Desktop Mode, no browser, no Developer Mode URL pasting.
+- **Any plugin on GitHub, one search away** — **Search & Install** finds Decky plugins that aren't in the Decky store or DeckyHub's list and installs them right from Gaming Mode. No Desktop Mode, no browser, no Developer Mode URL pasting.
 - **Never miss an update** — DeckyHub checks your installed plugins against their latest GitHub releases and pings you with a toast the moment something new is available.
 - **Built for the couch** — full gamepad navigation, color-coded status at a glance, and one-tap downloads designed for Gaming Mode, not a desktop browser squeezed onto a small screen.
 - **You stay in control** — DeckyHub never installs or runs anything on its own. Nothing touches your system until you say so, and installs go through Decky Loader's own installer and confirmation dialog (see [Manage](#manage)).
@@ -129,7 +129,7 @@ Tap **Manage** on any card in Discover or Updates to:
 
 - pick the release **channel** and a specific **version**. **Stable** shows only stable releases; **Pre-release** shows every release, newest first, so a stable release that comes out after the last pre-release is still offered;
 - **Download ZIP**, open the **Release Page**, or **Check for Updates** for that app;
-- for a Decky plugin, **Install** (not installed yet) or **Update** (the selected version is newer than the installed one). DeckyHub downloads the release ZIP (with a progress window, then a spinner until Decky is ready) and hands it to Decky Loader's own installer, the same one the Decky Store uses. Decky asks you to confirm and installs it, verifying the SHA-256 checksum GitHub publishes for the ZIP. Older releases (files uploaded before mid-2025) have no checksum and Decky installs them without that check;
+- for a Decky plugin, **Install** (not installed yet) or **Update** (the selected version is newer than the installed one). DeckyHub downloads the release ZIP (with a progress window, then a spinner until Decky is ready) and hands it to Decky Loader's own installer, the same one the Decky store uses. Decky asks you to confirm and installs it, verifying the SHA-256 checksum GitHub publishes for the ZIP. Older releases (files uploaded before mid-2025) have no checksum and Decky installs them without that check;
 - for an installed Decky plugin, **Uninstall**, which asks you to confirm and then removes the plugin and its settings through Decky Loader.
 
 ### Downloads
@@ -152,7 +152,7 @@ Under **Custom Registries**, add someone else's app list by its GitHub `owner/re
 
 The Quick Access Menu shows the installed version (**DeckyHub vX.Y.Z**) and checks for a newer DeckyHub release in the background, with a notification the first time one appears; a note names the new version and an **Update** button installs it straight away, like an app card's. **Manage** opens DeckyHub's update window, where you pick a channel (**Stable releases**, or **Pre-releases** for every release) and a version, then:
 
-- **Update to / Reinstall / Downgrade to vX.Y.Z** — downloads that release (with a progress window) and hands it to Decky Loader's own installer (the same one the Decky Store uses), which verifies its SHA-256 checksum and installs it in place. Only releases with a published checksum are offered.
+- **Update to / Reinstall / Downgrade to vX.Y.Z** — downloads that release (with a progress window) and hands it to Decky Loader's own installer (the same one the Decky store uses), which verifies its SHA-256 checksum and installs it in place. Only releases with a published checksum are offered.
 - **Download ZIP** — the classic path: saves the release ZIP to `/home/deck/Downloads/deckyhub`, which you then install yourself via Decky's settings → Developer → Install Plugin from ZIP.
 
 If automatic update isn't available for some reason (e.g. running inside an older Decky Loader build), fall back to Download ZIP.
