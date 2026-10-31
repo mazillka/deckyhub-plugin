@@ -620,9 +620,9 @@ test("Discover shows each plugin's stats, sorts by them and counts every filter 
   await expect(unifideck.getByText("Runs as root")).toBeVisible();
   await expect(unifideck.getByText("No release in a year")).toBeVisible();
   // The badge's tooltip doesn't show on a Deck, so Discover explains it in words.
-  // The disclaimer is one line; More shows the rest, including what Runs as root means.
+  // The badges get their own one-line notice beside the disclaimer; More says what Runs as root means.
   await expect(app.locator(".deckyhub-root-legend")).toHaveCount(0);
-  await app.locator(".deckyhub-disclaimer").getByRole("button", { name: "More", exact: true }).click();
+  await app.locator(".deckyhub-badge-notice").getByRole("button", { name: "More", exact: true }).click();
   await expect(app.locator(".deckyhub-root-legend")).toHaveText(/Runs as root.*full access to the system/);
   await expect(app.locator(".deckyhub-total-downloads")).toHaveText("184.5K downloads");
 
@@ -699,11 +699,12 @@ test("Discover shows the registry's audit warnings next to Runs as root and expl
   await expect(mako.getByText("some-future-warning")).toHaveCount(0);
   await expect(unifideck.getByText("Blocked by audit")).toHaveCount(0);
 
-  // Tooltips never show on a Deck, so More on the notice says what every warning means.
+  // Tooltips never show on a Deck, so More on the badge notice says what every warning means.
   await expect(app.locator(".deckyhub-warning-legend")).toHaveCount(0);
-  await app.locator(".deckyhub-disclaimer").getByRole("button", { name: "More", exact: true }).click();
+  await app.locator(".deckyhub-badge-notice").getByRole("button", { name: "More", exact: true }).click();
   const legend = app.locator(".deckyhub-warning-legend");
   await expect(legend).toContainText("Decky Extended Plugins' automated audit");
+  await expect(legend.getByRole("button", { name: "Open Decky Extended Plugins audit" })).toBeVisible();
   await expect(app.locator(".deckyhub-fork-legend")).toContainText("carries a plugin on after its original stopped");
   for (const [badge, meaning] of [
     ["Blocked by audit", "Not recommended for installation."],
