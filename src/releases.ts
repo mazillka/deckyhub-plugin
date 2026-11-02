@@ -171,9 +171,13 @@ export const fetchVirusScans = cachedRawJson<Record<string, VirusScan>>(
 
 // The report for this exact file: one for a ZIP since replaced under the same name
 // (a different SHA-256) doesn't count.
-export async function virusScanOf(asset: Asset, force = false): Promise<VirusScan | null> {
-  const scan = (await fetchVirusScans(force))[asset.url];
+export function scanFor(scans: Record<string, VirusScan>, asset: Asset | undefined): VirusScan | null {
+  const scan = asset && scans[asset.url];
   return scan && (!asset.sha256 || !scan.sha256 || scan.sha256.toLowerCase() === asset.sha256.toLowerCase()) ? scan : null;
+}
+
+export async function virusScanOf(asset: Asset, force = false): Promise<VirusScan | null> {
+  return scanFor(await fetchVirusScans(force), asset);
 }
 
 export const DECKYHUB_REPO = "mazillka/deckyhub-plugin";

@@ -750,6 +750,30 @@ test("DeckyHub's update window shows its release's ClamAV report and how release
   await expect(scan.getByText(/scanned with ClamAV before it's published.*GitHub CodeQL/)).toBeVisible();
 });
 
+test("Discover cards show the ClamAV verdict for the release they install, and the badge notice explains it", async ({ page }) => {
+  const url = "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/mako-decky.zip";
+  await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", "c".repeat(64))]);
+  await mockVirusScans(page, { [url]: { sha256: "c".repeat(64), result: "infected", found: ["Unix.Trojan.Test-1"], scannedAt: new Date().toISOString() } });
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page);
+  await app.getByRole("button", { name: "Grid", exact: true }).click();
+  await app.getByLabel("Search").fill("MAKO");
+  const mako = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+  await expect(mako.getByText("Threat found", { exact: true })).toBeVisible();
+  await app.getByLabel("Search").fill("Unifideck");
+  // No report yet: no badge, rather than a guess.
+  await expect(app.getByRole("heading", { name: "Unifideck" }).locator("..").locator(".deckyhub-scan-badge")).toHaveCount(0);
+
+  await app.locator(".deckyhub-badge-notice").getByRole("button", { name: "More", exact: true }).click();
+  const legend = app.locator(".deckyhub-scan-legend");
+  for (const [badge, meaning] of [
+    ["No threats", "isn't proof of safety"],
+    ["Threat found", "decide for yourself"],
+    ["Not fully scanned", "Manage says why"],
+  ]) await expect(legend.getByText(badge, { exact: true }).locator("..")).toContainText(meaning);
+});
+
 test("Discover shows the registry's audit warnings next to Runs as root and explains each one", async ({ page }) => {
   await page.route(PLUGIN_STATS_URL, (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), plugins: {
     "eugeniosegala/mako": { downloads: 73981, stars: 680, updated: new Date().toISOString(), root: true, fork: "original/mako", warnings: ["private-data", "not-in-source", "some-future-warning"] },
