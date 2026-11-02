@@ -1,6 +1,6 @@
 # Contributing to DeckyHub
 
-This covers building, testing, and releasing DeckyHub. For what the plugin does as a user, see [README.md](README.md).
+This covers building, testing, and releasing DeckyHub. For what the plugin does as a user, see [README.md](README.md). Everyone taking part in issues and pull requests follows the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Repository layout
 
