@@ -22,6 +22,8 @@ export type App = {
   updateAvailable?: boolean | null;
   // From the registry's stats.json (fetchPluginStats); absent for repos it doesn't list.
   stats?: PluginStats;
+  // ClamAV's report for the ZIP the card installs (Discover only; null: not scanned yet).
+  scan?: VirusScan | null;
   error?: string | null;
   channel?: UpdateChannel;
 };

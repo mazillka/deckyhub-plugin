@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { getApps, getSettings, REGISTRY_UPDATED } from "../api";
-import type { App, HideableButton, PluginStats, RepoPreference, UpdateChannel, View } from "../types";
-import { DEFAULT_COLUMNS_PER_ROW, fetchPluginStats, getDeckyBackend, hydrate, log, notifyUpdates } from "../utils";
+import type { App, HideableButton, PluginStats, RepoPreference, UpdateChannel, View, VirusScan } from "../types";
+import { DEFAULT_COLUMNS_PER_ROW, fetchPluginStats, fetchVirusScans, getDeckyBackend, hydrate, log, notifyUpdates, scanFor } from "../utils";
 
 // ponytail: fixed pool of 8 GitHub requests in flight; lower it if the registry grows
 // big enough to trip GitHub's secondary (burst) rate limit.
@@ -35,8 +35,14 @@ export function useApps(view: View) {
     const run = ++loadRun.current;
     if (!loaded.current) setLoading(true);
     try {
-      // Downloads and stars only matter for Discover's cards and sorting.
-      const [appData, settings, stats] = await Promise.all([getApps(), getSettings(), view === "discover" ? fetchPluginStats(force) : Promise.resolve<Record<string, PluginStats>>({})]);
+      // Downloads, stars and virus scan badges only matter for Discover's cards and sorting.
+      const discover = view === "discover";
+      const [appData, settings, stats, scans] = await Promise.all([
+        getApps(),
+        getSettings(),
+        discover ? fetchPluginStats(force) : Promise.resolve<Record<string, PluginStats>>({}),
+        discover ? fetchVirusScans(force) : Promise.resolve<Record<string, VirusScan>>({}),
+      ]);
       const local = appData.apps;
       setListedCount(local.length);
       const preferences = settings.repoSettings || {};
@@ -68,7 +74,9 @@ export function useApps(view: View) {
       const worker = async () => {
         while (next < tracked.length) {
           const index = next++;
-          hydrated[index] = await hydrate(tracked[index], force, preferences[tracked[index].repo]);
+          const app = await hydrate(tracked[index], force, preferences[tracked[index].repo]);
+          // The report for the ZIP this card installs, once its release is known.
+          hydrated[index] = discover ? { ...app, scan: scanFor(scans, app.assets[0]) } : app;
           // A newer load took over: stop, rather than check the rest for nothing.
           if (run !== loadRun.current) return;
           setApps((current) => current.map((app) => (app.id === hydrated[index].id ? hydrated[index] : app)));

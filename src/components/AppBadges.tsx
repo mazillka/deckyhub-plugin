@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import type { TFunc } from "../i18n/en";
-import type { App } from "../types";
+import { FaShieldAlt } from "react-icons/fa";
+import type { App, VirusScan } from "../types";
 import { compactNumber, timeAgo } from "../utils";
 
 export const pillStyle = { display: "inline-block", marginRight: 6, padding: "1px 8px", border: "1px solid", borderRadius: 999, fontSize: "max(12px, 0.78em)", fontWeight: 600 };
@@ -50,7 +51,23 @@ export const ForkBadge = ({ t, repo }: { t: TFunc; repo?: string }) => (
   <span title={repo ? t("appcard.forkOf", { repo }) : t("appcard.forkHint")} style={{ ...pillStyle, color: "#b8c7d3", background: "#b8c7d322", borderColor: "#b8c7d366" }}>{t("appcard.fork")}</span>
 );
 
-// Runs as root / Fork / audit warnings / No release in a year, shared by the card and its Manage window.
+// ClamAV's verdict on the release the card installs (the registry's scans.json), also shown
+// in Discover's legend. Nothing until the ZIP has a report; Manage has the full report.
+export type ScanBadgeKind = "clean" | "infected" | "partial";
+export const SCAN_BADGES: ScanBadgeKind[] = ["clean", "infected", "partial"];
+const SCAN_COLORS: Record<ScanBadgeKind, string> = { clean: "#6bcb6b", infected: "#ff8a8a", partial: "#ffb35c" };
+const scanKind = (scan: VirusScan): ScanBadgeKind => (scan.result === "clean" ? "clean" : scan.result === "infected" ? "infected" : "partial");
+
+export const ScanBadge = ({ t, kind }: { t: TFunc; kind: ScanBadgeKind }) => {
+  const color = SCAN_COLORS[kind];
+  return (
+    <span className={`deckyhub-scan-badge deckyhub-scan-${kind}`} title={t(`appcard.scan.${kind}.hint`)} style={{ ...pillStyle, whiteSpace: "nowrap", color, background: `${color}22`, borderColor: `${color}66` }}>
+      <FaShieldAlt /> {t(`appcard.scan.${kind}`)}
+    </span>
+  );
+};
+
+// Runs as root / Fork / audit warnings / virus scan / No release in a year, shared by the card and its Manage window.
 export function AppBadges({ app, t }: { app: App; t: TFunc }) {
   const released = releasedAt(app);
   return (
@@ -58,6 +75,7 @@ export function AppBadges({ app, t }: { app: App; t: TFunc }) {
       {app.stats?.root && <RootBadge t={t} />}
       {app.stats?.fork && <ForkBadge t={t} repo={app.stats.fork} />}
       <AuditWarnings app={app} t={t} />
+      {app.scan && <ScanBadge t={t} kind={scanKind(app.scan)} />}
       {isStale(released) && <span title={new Date(released).toLocaleDateString()} style={{ ...pillStyle, color: "#ff8a8a", background: "#ff8a8a22", borderColor: "#ff8a8a66" }}>{t("appcard.noReleaseInYear")}</span>}
     </>
   );
