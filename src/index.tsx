@@ -1,6 +1,6 @@
 import { addEventListener, definePlugin, removeEventListener, routerHook } from "@decky/api";
-import { staticClasses } from "@decky/ui";
-import type { ReactNode } from "react";
+import { Router, staticClasses } from "@decky/ui";
+import { type ReactNode, useEffect } from "react";
 import { REGISTRY_UPDATED } from "./api";
 import { DeckyHubIcon } from "./components/DeckyHubIcon";
 import { addQuickAccessTab, removeQuickAccessTab } from "./components/QuickAccessTab";
@@ -10,6 +10,23 @@ import { SearchPage } from "./pages/SearchPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { MotionStyle } from "./motion";
 import { hapticTick, markUnloaded, pageStyle } from "./utils";
+
+// Steam's history for its main window, which @decky/ui doesn't type.
+type MainWindowHistory = { location: { pathname: string }; replace: (path: string) => void; push: (path: string) => void };
+
+// B on a page with nothing behind it opens Steam's menu instead of leaving DeckyHub
+// (after a Steam UI reload or a cut-short Deck test run, seen on a Deck). Put Library
+// behind the page then, so B always leaves.
+function BackToLibrary() {
+  useEffect(() => {
+    const history = (Router.WindowStore?.GamepadUIMainWindowInstance as unknown as { m_history?: MainWindowHistory } | undefined)?.m_history;
+    if ((window as { navigation?: { canGoBack?: boolean } }).navigation?.canGoBack !== false || !history) return;
+    const path = history.location.pathname;
+    history.replace("/library/home");
+    history.push(path);
+  }, []);
+  return null;
+}
 
 function Motion({ children }: { children: ReactNode }) {
   // onFocus bubbles (focusin), so every focus move within DeckyHub ticks.
@@ -34,6 +51,7 @@ export default definePlugin(() => {
   for (const [path, page] of Object.entries(ROUTES)) {
     routerHook.addRoute(path, () => (
       <Motion>
+        <BackToLibrary />
         <div style={pageStyle}>
           <I18nProvider>{page()}</I18nProvider>
         </div>
