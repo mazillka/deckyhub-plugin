@@ -113,8 +113,8 @@ def structured_data(page: str, latest: dict | None) -> str:
         app["softwareVersion"] = latest["tag_name"].removeprefix("v")
         app["dateModified"] = latest.get("published_at")
     graph = [{"@type": "WebSite", "name": "DeckyHub", "url": SITE}, app] + ([{"@type": "FAQPage", "mainEntity": faq}] if faq else [])
-    # "</" would end the script element early.
-    data = json.dumps({"@context": "https://schema.org", "@graph": graph}, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    # No "<" at all inside the script element, so nothing in the page's text can end it.
+    data = json.dumps({"@context": "https://schema.org", "@graph": graph}, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
     return '<script type="application/ld+json">' + data + "</script>"
 
 
