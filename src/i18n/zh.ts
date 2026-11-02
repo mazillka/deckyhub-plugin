@@ -130,6 +130,12 @@ export const zh: Record<MessageKey, string> = {
   "scan.scannedAt": "扫描时间：{date}",
   "scan.hint": "DeckyHub 的注册表会用开源杀毒软件 ClamAV 扫描它提供的每个插件 ZIP，并用 YARA 和 YARA Forge 的社区规则（其中许多针对 Linux 恶意软件）扫描其中的文件。结果干净并不代表安全。",
   "scan.virusTotalHint": "VirusTotal 会在 Steam 浏览器中打开，并按 SHA-256 查找此 ZIP。不会上传任何内容，因此只有在有人提交过同一文件时才会有结果。",
+  "scan.copyLink": "复制 ZIP 链接",
+  "scan.scanLink": "在 VirusTotal 扫描链接",
+  "scan.copied": "已复制 ZIP 链接",
+  "scan.copyFailed": "无法复制链接",
+  "scan.pasteIntoVirusTotal": "请粘贴到 VirusTotal 页面的 URL 输入框中并开始扫描。",
+  "scan.scanLinkHint": "“在 VirusTotal 扫描链接”会复制 ZIP 的下载链接并打开 VirusTotal 的 URL 扫描页面：请在那里粘贴链接。VirusTotal 主要评估链接本身，因此可能不会检查 ZIP 里的内容。",
   "scan.deckyhubChecks": "每个 DeckyHub 版本在发布前都会用 ClamAV 扫描，其代码在每次更改时都会由 GitHub CodeQL 检查。",
 
   "dl.downloading": "正在下载 {filename}",

@@ -130,6 +130,12 @@ export const ja: Record<MessageKey, string> = {
   "scan.scannedAt": "スキャン日時: {date}",
   "scan.hint": "DeckyHub のレジストリは、提供するすべてのプラグイン ZIP をオープンソースのウイルス対策ソフト ClamAV で、中のファイルを YARA と YARA Forge のコミュニティルール (多くは Linux マルウェア向け) でスキャンしています。問題なしでも安全の証明にはなりません。",
   "scan.virusTotalHint": "VirusTotal が Steam のブラウザで開き、この ZIP を SHA-256 で検索します。何もアップロードされないため、同じファイルが以前に送信されている場合にのみ結果が表示されます。",
+  "scan.copyLink": "ZIP のリンクをコピー",
+  "scan.scanLink": "VirusTotal でリンクをスキャン",
+  "scan.copied": "ZIP のリンクをコピーしました",
+  "scan.copyFailed": "リンクをコピーできませんでした",
+  "scan.pasteIntoVirusTotal": "VirusTotal のページの URL 欄に貼り付けて、スキャンを開始してください。",
+  "scan.scanLinkHint": "「VirusTotal でリンクをスキャン」は ZIP のダウンロードリンクをコピーし、VirusTotal の URL スキャンページを開きます。そこにリンクを貼り付けてください。VirusTotal は主にリンク自体を評価するため、ZIP の中身は確認されない場合があります。",
   "scan.deckyhubChecks": "DeckyHub の各リリースは公開前に ClamAV でスキャンされ、そのコードは変更のたびに GitHub CodeQL で検査されています。",
 
   "dl.downloading": "{filename} をダウンロード中",

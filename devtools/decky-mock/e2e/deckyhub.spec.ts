@@ -749,6 +749,35 @@ test("VirusTotal looks the selected ZIP up by its SHA-256, even before the regis
   await expect(app.locator(".steam-modal .deckyhub-virus-scan")).toHaveCount(0);
 });
 
+test("Copy ZIP link copies the download link, and Scan link on VirusTotal also opens VirusTotal's URL scan page", async ({ page }) => {
+  // Records what Steam's browser would open and what lands on the clipboard.
+  await page.addInitScript(() => {
+    const opened: string[] = [];
+    const copied: string[] = [];
+    Object.assign(window, { __opened: opened, __copied: copied, open: (url: string) => void opened.push(url) });
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async (text: string) => void copied.push(text) } });
+  });
+  const zip = "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/mako-decky.zip";
+  await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", "c".repeat(64))]);
+  await mockVirusScans(page, {});
+  await page.reload();
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
+  const manage = app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true });
+  await manage.click();
+  const scan = app.locator(".steam-modal .deckyhub-virus-scan");
+  const recorded = () => pluginFrame(page).evaluate(() => ({ opened: (window as unknown as { __opened: string[] }).__opened, copied: (window as unknown as { __copied: string[] }).__copied }));
+  await scan.getByRole("button", { name: "Copy ZIP link", exact: true }).click();
+  await expect.poll(recorded).toEqual({ opened: [], copied: [zip] });
+  // Copying leaves the window open.
+  await expect(scan).toBeVisible();
+
+  await scan.getByRole("button", { name: "Scan link on VirusTotal", exact: true }).click();
+  await expect.poll(recorded).toEqual({ opened: ["https://www.virustotal.com/gui/home/url"], copied: [zip, zip] });
+  await expect(app.locator(".steam-modal .deckyhub-virus-scan")).toHaveCount(0);
+});
+
 test("The Manage window says when ClamAV found something, and never calls an unscanned ZIP clean", async ({ page }) => {
   const url = "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/mako-decky.zip";
   await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", "c".repeat(64))]);

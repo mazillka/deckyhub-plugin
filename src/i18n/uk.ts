@@ -130,6 +130,12 @@ export const uk: Record<MessageKey, string> = {
   "scan.scannedAt": "Перевірено: {date}",
   "scan.hint": "Реєстр DeckyHub перевіряє кожен ZIP плагіна, який пропонує, антивірусом з відкритим кодом ClamAV, а файли всередині — YARA з правилами спільноти YARA Forge, багато з яких написані для шкідливого ПЗ для Linux. Чистий результат не доводить безпечність.",
   "scan.virusTotalHint": "VirusTotal відкриється в браузері Steam і шукатиме цей ZIP за його SHA-256. Нічого не завантажується, тож результати будуть, лише якщо хтось уже надсилав туди такий самий файл.",
+  "scan.copyLink": "Копіювати посилання на ZIP",
+  "scan.scanLink": "Перевірити посилання у VirusTotal",
+  "scan.copied": "Посилання на ZIP скопійовано",
+  "scan.copyFailed": "Не вдалося скопіювати посилання",
+  "scan.pasteIntoVirusTotal": "Вставте його в поле URL на сторінці VirusTotal і запустіть перевірку.",
+  "scan.scanLinkHint": "«Перевірити посилання у VirusTotal» копіює посилання для завантаження ZIP і відкриває сторінку перевірки URL у VirusTotal: вставте посилання туди. VirusTotal оцінює переважно саме посилання, тож може не перевірити вміст ZIP.",
   "scan.deckyhubChecks": "Кожен реліз DeckyHub перевіряється ClamAV перед публікацією, а його код перевіряє GitHub CodeQL після кожної зміни.",
 
   "dl.downloading": "Завантаження {filename}",

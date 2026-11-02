@@ -1,10 +1,11 @@
+import { toaster } from "@decky/api";
 import { DialogButtonPrimary as Button, ConfirmModal, Focusable, showModal } from "@decky/ui";
 import { useEffect, useState } from "react";
-import { FaExternalLinkAlt, FaShieldAlt } from "react-icons/fa";
+import { FaCopy, FaExternalLinkAlt, FaShieldAlt } from "react-icons/fa";
 import { openExternalWeb } from "../external";
 import type { TFunc } from "../i18n/en";
 import type { Asset, ScanVerdict, VirusScan } from "../types";
-import { modalButtonStyle, timeAgo, virusScanOf } from "../utils";
+import { copyText, modalButtonStyle, timeAgo, virusScanOf } from "../utils";
 import { sectionTitleStyle } from "./DetailsWindow";
 import { keepInView } from "./KeepInView";
 
@@ -27,6 +28,11 @@ const line = (t: TFunc, { name, verdict }: Scanner) => t("scan.verdict", { scann
 // VirusTotal's page for a file, found by its SHA-256. Nothing is uploaded: VirusTotal
 // only has a result if someone sent it the same file before, else it says it's unknown.
 const virusTotalUrl = (sha256: string) => `https://www.virustotal.com/gui/file/${sha256.toLowerCase()}`;
+// VirusTotal's URL scan page. It can't be handed the link, so Scan Link copies it first
+// and the user pastes it there.
+const VIRUSTOTAL_URL_SCAN = "https://www.virustotal.com/gui/home/url";
+// The document a button press came from (Steam's main window for a Manage window).
+const pageOf = (event?: { currentTarget?: EventTarget | null }) => (event?.currentTarget as Node | null | undefined)?.ownerDocument ?? document;
 
 // The full report for one ZIP, in its own window over the Manage window.
 const showScanReport = (t: TFunc, asset: Asset, scan: VirusScan) =>
@@ -53,6 +59,7 @@ const showScanReport = (t: TFunc, asset: Asset, scan: VirusScan) =>
           {scannersOf(scan).some(({ verdict }) => verdict && verdict.result !== "clean") && <span>{t("scan.yourChoice")}</span>}
           <small style={{ color: MUTED }}>{t("scan.hint")}</small>
           <small style={{ color: MUTED }}>{t("scan.virusTotalHint")}</small>
+          <small style={{ color: MUTED }}>{t("scan.scanLinkHint")}</small>
         </div>
       }
     />,
@@ -62,7 +69,9 @@ const showScanReport = (t: TFunc, asset: Asset, scan: VirusScan) =>
 // would install, from the registry's scans.json. A ZIP not scanned yet says so; it's never
 // shown as clean. It informs, never blocks: whether to install stays the user's call.
 // VirusTotal looks the ZIP up by its SHA-256 in Steam's browser (closeModal first, or the
-// browser opens underneath the window). `note` adds a line under it (DeckyHub's own
+// browser opens underneath the window). Copy Link puts the ZIP's download link on the
+// clipboard, and Scan Link does that too, then opens VirusTotal's URL scan page to paste
+// it into. `note` adds a line under it (DeckyHub's own
 // release checks).
 export function VirusScanReport({ t, asset, note, closeModal }: { t: TFunc; asset?: Asset; note?: string; closeModal?: () => void }) {
   const [scan, setScan] = useState<VirusScan | null | undefined>(undefined);
@@ -85,6 +94,18 @@ export function VirusScanReport({ t, asset, note, closeModal }: { t: TFunc; asse
     closeModal?.();
     openExternalWeb(virusTotalUrl(sha256));
   };
+  const link = asset.url.startsWith("https://") ? asset.url : undefined;
+  // The toast says what to do with the link, or gives it to type in when copying failed.
+  const copyLink = async (page: Document, then?: string) => {
+    if (!link) return;
+    const copied = await copyText(link, page);
+    toaster.toast({ title: copied ? t("scan.copied") : t("scan.copyFailed"), body: copied ? (then ?? link) : link });
+  };
+  const scanLink = async (page: Document) => {
+    await copyLink(page, t("scan.pasteIntoVirusTotal"));
+    closeModal?.();
+    openExternalWeb(VIRUSTOTAL_URL_SCAN);
+  };
   return (
     <div className="deckyhub-virus-scan" onFocus={keepInView} style={{ display: "grid", gap: 6, padding: "8px 12px", background: "rgba(0, 0, 0, 0.2)", borderRadius: 10 }}>
       <h3 style={sectionTitleStyle}>{t("scan.title")}</h3>
@@ -106,7 +127,7 @@ export function VirusScanReport({ t, asset, note, closeModal }: { t: TFunc; asse
           {scannersOf(scan).some(({ verdict }) => verdict && verdict.result !== "clean") && <small style={{ color: MUTED }}>{t("scan.yourChoice")}</small>}
         </>
       )}
-      {(scan || sha256) && (
+      {(scan || sha256 || link) && (
         <Focusable flow-children="right" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
           {scan && (
             <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={() => showScanReport(t, asset, scan)}>
@@ -116,6 +137,16 @@ export function VirusScanReport({ t, asset, note, closeModal }: { t: TFunc; asse
           {sha256 && (
             <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={openVirusTotal}>
               <FaExternalLinkAlt /> VirusTotal
+            </Button>
+          )}
+          {link && (
+            <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={(event) => void copyLink(pageOf(event))}>
+              <FaCopy /> {t("scan.copyLink")}
+            </Button>
+          )}
+          {link && (
+            <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={(event) => void scanLink(pageOf(event))}>
+              <FaExternalLinkAlt /> {t("scan.scanLink")}
             </Button>
           )}
         </Focusable>

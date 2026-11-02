@@ -130,6 +130,12 @@ export const tr: Record<MessageKey, string> = {
   "scan.scannedAt": "Tarandı: {date}",
   "scan.hint": "DeckyHub'ın kayıt listesi sunduğu her eklenti ZIP'ini açık kaynaklı bir antivirüs olan ClamAV ile, içindeki dosyaları da YARA ve çoğu Linux kötü amaçlı yazılımları için yazılmış YARA Forge topluluk kurallarıyla tarar. Temiz bir sonuç güvenliğin kanıtı değildir.",
   "scan.virusTotalHint": "VirusTotal, Steam'in tarayıcısında açılır ve bu ZIP'i SHA-256'sıyla arar. Hiçbir şey yüklenmez; bu yüzden yalnızca biri aynı dosyayı daha önce gönderdiyse sonuç vardır.",
+  "scan.copyLink": "ZIP bağlantısını kopyala",
+  "scan.scanLink": "Bağlantıyı VirusTotal'da tara",
+  "scan.copied": "ZIP bağlantısı kopyalandı",
+  "scan.copyFailed": "Bağlantı kopyalanamadı",
+  "scan.pasteIntoVirusTotal": "VirusTotal sayfasındaki URL kutusuna yapıştır ve taramayı başlat.",
+  "scan.scanLinkHint": "Bağlantıyı VirusTotal'da tara, ZIP'in indirme bağlantısını kopyalar ve VirusTotal'ın URL tarama sayfasını açar: bağlantıyı oraya yapıştır. VirusTotal çoğunlukla bağlantının kendisini değerlendirir, bu yüzden ZIP'in içini denetlemeyebilir.",
   "scan.deckyhubChecks": "Her DeckyHub sürümü yayımlanmadan önce ClamAV ile taranır ve kodu her değişiklikte GitHub CodeQL ile denetlenir.",
 
   "dl.downloading": "{filename} indiriliyor",
