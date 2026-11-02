@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Suggest a plugin for DeckyHub's list
+    url: https://github.com/mazillka/deckyhub-registry/issues/new
+    about: The plugin list lives in mazillka/deckyhub-registry. Suggest, fix or remove a plugin there.
+  - name: Report a security vulnerability
+    url: https://github.com/mazillka/deckyhub-plugin/security/advisories/new
+    about: Please report vulnerabilities privately, not in a public issue.

@@ -1,0 +1,54 @@
+name: Bug report
+description: Something in DeckyHub doesn't work as it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! A problem with a plugin in DeckyHub's list (wrong version, missing release, broken link) may belong in [mazillka/deckyhub-registry](https://github.com/mazillka/deckyhub-registry/issues/new); a bug in the plugin itself goes to that plugin's repository.
+  - type: input
+    id: deckyhub-version
+    attributes:
+      label: DeckyHub version
+      description: Shown as "DeckyHub vX.Y.Z" in DeckyHub's Quick Access Menu tab.
+      placeholder: "3.1.0"
+    validations:
+      required: true
+  - type: input
+    id: decky-version
+    attributes:
+      label: Decky Loader version
+      description: Decky → Settings (gear) → General.
+      placeholder: "3.1.10"
+    validations:
+      required: true
+  - type: input
+    id: steamos-version
+    attributes:
+      label: SteamOS version
+      description: Steam → Settings → System. Say so if it isn't a Steam Deck or SteamOS.
+      placeholder: "3.7.13 Stable"
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you expected, and what happened instead. Screenshots help.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open DeckyHub → Discover
+        2. Tap ...
+        3. See ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: In DeckyHub, open Settings → Logs and tap Export Logs, then drag the ZIP from /home/deck/Downloads into this box. It lists repository names, file paths and versions; your GitHub token is never logged.
