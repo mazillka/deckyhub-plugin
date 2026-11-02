@@ -7,6 +7,7 @@ on:
   # The catalog comes from mazillka/deckyhub-registry, so rebuild daily to pick up its changes.
   schedule:
     - cron: "0 6 * * *"
+  # Also started by release.yml from main after each release, for the release notes page.
   workflow_dispatch:
 
 permissions:
@@ -23,8 +24,11 @@ jobs:
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.x"
-      - run: pip install pillow==13.0.0
+      - run: pip install pillow==13.0.0 markdown==3.7
       - run: python devtools/build-site.py _site
+        env:
+          # The release notes page reads DeckyHub's releases from the GitHub API.
+          GITHUB_TOKEN: ${{ github.token }}
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: _site

@@ -257,6 +257,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      # To rebuild the website (pages.yml) for the release notes page.
+      actions: write
     steps:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
@@ -344,3 +346,10 @@ jobs:
           VT_DETECTIONS: ${{ needs.virustotal.outputs.detections }}
           MD_RESULT: ${{ needs.metadefender.outputs.result }}
           MD_DETECTIONS: ${{ needs.metadefender.outputs.detections }}
+      # The website's release notes page lists this release on the next build; start it
+      # now, from main (the website is always main's). Never fails the release.
+      - name: Rebuild the website
+        continue-on-error: true
+        run: gh workflow run pages.yml --ref main --repo "$GITHUB_REPOSITORY"
+        env:
+          GH_TOKEN: ${{ github.token }}

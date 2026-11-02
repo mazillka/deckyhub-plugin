@@ -10,8 +10,19 @@ class DocsTests(unittest.TestCase):
         for page in (ROOT / "docs").glob("*.html"):
             if page.name == "404.html":
                 continue
-            url = "https://mazillka.github.io/deckyhub-plugin/" + ("" if page.name == "index.html" else page.name)
+            url = "https://deckyhub.com/" + ("" if page.name == "index.html" else page.name)
             self.assertIn(f"<loc>{url}</loc>", sitemap)
+
+
+    def test_the_site_uses_its_own_domain_and_welcomes_crawlers(self):
+        docs = ROOT / "docs"
+        for page in [*docs.glob("*.html"), docs / "sitemap.xml", docs / "llms.txt", ROOT / "devtools" / "build-site.py"]:
+            self.assertNotIn("mazillka.github.io", page.read_text(encoding="utf-8"), page.name)
+        robots = (docs / "robots.txt").read_text(encoding="utf-8")
+        self.assertIn("Sitemap: https://deckyhub.com/sitemap.xml", robots)
+        self.assertNotIn("Disallow: /", robots)
+        llms = (docs / "llms.txt").read_text(encoding="utf-8")
+        self.assertTrue(llms.startswith("# DeckyHub\n\n> "), "llms.txt opens with a title and a one-line summary")
 
 
 if __name__ == "__main__":
