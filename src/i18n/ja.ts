@@ -112,6 +112,8 @@ export const ja: Record<MessageKey, string> = {
   "scan.viewReport": "スキャンレポート",
   "scan.reportTitle": "ウイルススキャンレポート",
   "scan.found": "検出: {names}",
+  "scan.reason": "理由: {reason}",
+  "scan.yourChoice": "インストールは妨げられません。レポートを確認して、ご自身で判断してください。",
   "scan.file": "ファイル: {file}",
   "scan.sha256": "SHA-256: {hash}",
   "scan.engine": "スキャナー: {engine}、シグネチャ {signatures}",

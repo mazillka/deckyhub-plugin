@@ -112,6 +112,8 @@ export const ko: Record<MessageKey, string> = {
   "scan.viewReport": "검사 보고서",
   "scan.reportTitle": "바이러스 검사 보고서",
   "scan.found": "발견: {names}",
+  "scan.reason": "이유: {reason}",
+  "scan.yourChoice": "설치를 막지는 않습니다. 보고서를 읽고 직접 결정하세요.",
   "scan.file": "파일: {file}",
   "scan.sha256": "SHA-256: {hash}",
   "scan.engine": "검사기: {engine}, 시그니처 {signatures}",

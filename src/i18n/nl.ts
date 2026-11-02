@@ -112,6 +112,8 @@ export const nl: Record<MessageKey, string> = {
   "scan.viewReport": "Scanrapport",
   "scan.reportTitle": "Virusscanrapport",
   "scan.found": "Gevonden: {names}",
+  "scan.reason": "Reden: {reason}",
+  "scan.yourChoice": "Dit houdt je niet tegen om het te installeren: lees het rapport en beslis zelf.",
   "scan.file": "Bestand: {file}",
   "scan.sha256": "SHA-256: {hash}",
   "scan.engine": "Scanner: {engine}, signaturen {signatures}",

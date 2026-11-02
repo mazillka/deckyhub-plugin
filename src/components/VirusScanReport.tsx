@@ -22,10 +22,12 @@ const showScanReport = (t: TFunc, asset: Asset, scan: VirusScan) =>
         <div style={{ display: "grid", gap: 6, overflowWrap: "anywhere" }}>
           <strong style={{ color: COLORS[scan.result] }}>{summary(t, scan)}</strong>
           {scan.result === "incomplete" && scan.found?.length ? <span>{t("scan.found", { names: scan.found.join(", ") })}</span> : null}
+          {scan.reason && <span>{t("scan.reason", { reason: scan.reason })}</span>}
           <span>{t("scan.file", { file: asset.name })}</span>
           {scan.sha256 && <span>{t("scan.sha256", { hash: scan.sha256 })}</span>}
           {scan.engine && <span>{t("scan.engine", { engine: scan.engine, signatures: scan.signatures || "—" })}</span>}
           {scan.scannedAt && <span>{t("scan.scannedAt", { date: new Date(scan.scannedAt).toLocaleString() })}</span>}
+          {scan.result !== "clean" && <span>{t("scan.yourChoice")}</span>}
           <small style={{ color: "#9fb0bf" }}>{t("scan.hint")}</small>
         </div>
       }
@@ -34,7 +36,8 @@ const showScanReport = (t: TFunc, asset: Asset, scan: VirusScan) =>
 
 // The Manage window's virus scan box: what ClamAV made of the ZIP the window would
 // install, from the registry's scans.json. A ZIP it hasn't scanned says so; it's never
-// shown as clean. `note` adds a line under it (DeckyHub's own release checks).
+// shown as clean. It informs, never blocks: whether to install stays the user's call.
+// `note` adds a line under it (DeckyHub's own release checks).
 export function VirusScanReport({ t, asset, note }: { t: TFunc; asset?: Asset; note?: string }) {
   const [scan, setScan] = useState<VirusScan | null | undefined>(undefined);
   useEffect(() => {
@@ -62,7 +65,9 @@ export function VirusScanReport({ t, asset, note }: { t: TFunc; asset?: Asset; n
           <span style={{ color: COLORS[scan.result], fontWeight: 600, overflowWrap: "anywhere" }}>
             <FaShieldAlt /> {summary(t, scan)}
           </span>
+          {scan.reason && <small style={{ color: "#9fb0bf", overflowWrap: "anywhere" }}>{scan.reason}</small>}
           {scan.scannedAt && <small style={{ color: "#9fb0bf" }}>{t("scan.byClamAV", { when: timeAgo(Date.parse(scan.scannedAt)) })}</small>}
+          {scan.result !== "clean" && <small style={{ color: "#9fb0bf" }}>{t("scan.yourChoice")}</small>}
           <Button style={modalButtonStyle} onClick={() => showScanReport(t, asset, scan)}>
             {t("scan.viewReport")}
           </Button>

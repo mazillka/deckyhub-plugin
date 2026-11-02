@@ -15,9 +15,9 @@ You can expect an initial response within a few days. Once a fix is released, th
 
 ## How releases are checked
 
-- **Virus scan:** every release ZIP is scanned with [ClamAV](https://www.clamav.net/) and that day's signatures before it's published (`.github/workflows/release.yml`). A release ClamAV flags, or can't scan, isn't published. The scan report is attached to each release as `ClamAV-scan-vX.Y.Z.txt`, and DeckyHub's update window shows it too.
+- **Virus scan:** every release ZIP is scanned with [ClamAV](https://www.clamav.net/) and that day's signatures before it's published (`.github/workflows/release.yml`). The scan never holds a release back: its result (no threats, what ClamAV flagged, or that it couldn't scan) is stated in the release notes, and the scan report is attached to each release as `ClamAV-scan-vX.Y.Z.txt`, and DeckyHub's update window shows it too.
 - **Code analysis:** GitHub [CodeQL](https://github.com/mazillka/deckyhub-plugin/actions/workflows/codeql.yml) checks the Python and TypeScript code on every push and pull request, and weekly (`.github/workflows/codeql.yml`).
-- **Listed plugins:** DeckyHub's registry scans every plugin ZIP it offers with ClamAV every few hours and publishes one report per ZIP, which a plugin's Manage window shows. A clean scan isn't proof of safety.
+- **Listed plugins:** DeckyHub's registry scans every plugin ZIP it offers with ClamAV every few hours and publishes one report per ZIP, so every listed plugin has one (a failed scan is a report too, with the reason). A plugin's Manage window shows it, and you decide whether to install. A clean scan isn't proof of safety.
 
 ## Scope
 

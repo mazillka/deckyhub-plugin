@@ -111,6 +111,8 @@ export const en = {
   "scan.viewReport": "Scan report",
   "scan.reportTitle": "Virus scan report",
   "scan.found": "Found: {names}",
+  "scan.reason": "Reason: {reason}",
+  "scan.yourChoice": "This doesn't stop you installing it: read the report and decide for yourself.",
   "scan.file": "File: {file}",
   "scan.sha256": "SHA-256: {hash}",
   "scan.engine": "Scanner: {engine}, signatures {signatures}",

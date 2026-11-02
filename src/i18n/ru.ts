@@ -112,6 +112,8 @@ export const ru: Record<MessageKey, string> = {
   "scan.viewReport": "Отчёт проверки",
   "scan.reportTitle": "Отчёт проверки на вирусы",
   "scan.found": "Найдено: {names}",
+  "scan.reason": "Причина: {reason}",
+  "scan.yourChoice": "Это не мешает установке: посмотрите отчёт и решите сами.",
   "scan.file": "Файл: {file}",
   "scan.sha256": "SHA-256: {hash}",
   "scan.engine": "Сканер: {engine}, сигнатуры {signatures}",

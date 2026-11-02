@@ -33,8 +33,9 @@ export type App = {
 export type PluginStats = { downloads?: number; stars?: number | null; updated?: string | null; root?: boolean | null; fork?: string; warnings?: string[]; prereleaseWarnings?: string[] };
 
 // One plugin ZIP's line in the registry's scans.json (fetchVirusScans): what ClamAV made
-// of it. found lists what it matched (infected), or the size limit it hit (incomplete).
-export type VirusScan = { sha256?: string; result: "clean" | "infected" | "incomplete" | "error"; found?: string[]; engine?: string; signatures?: string; scannedAt?: string };
+// of it. found lists what it matched (infected), or the size limit it hit (incomplete);
+// reason says why a scan failed (error), in English from the registry.
+export type VirusScan = { sha256?: string; result: "clean" | "infected" | "incomplete" | "error"; found?: string[]; reason?: string; engine?: string; signatures?: string; scannedAt?: string };
 
 // Manage-window buttons that Display Settings can hide.
 export type HideableButton = "downloadZip" | "install" | "update" | "releasePage";
