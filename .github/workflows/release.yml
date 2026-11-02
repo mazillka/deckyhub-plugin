@@ -52,10 +52,28 @@ jobs:
           unzip -Z1 "DeckyHub-${GITHUB_REF_NAME}.zip" | grep -Fx "DeckyHub/dist/index.js"
           if unzip -Z1 "DeckyHub-${GITHUB_REF_NAME}.zip" | grep -F ".map"; then echo "source map in the ZIP"; exit 1; fi
           sha256sum "DeckyHub-${GITHUB_REF_NAME}.zip"
+      # The same ZIP under a fixed name, for one link that always gets the newest stable
+      # release (releases/latest/download/DeckyHub.zip, for Decky's Install Plugin from
+      # URL), and the Desktop Mode installer, filled in with this release's tag and the
+      # ZIP's SHA-256 so it installs exactly this ZIP. None of the names start "DeckyHub-"
+      # (the self-update's pattern) or contain "deckyhub-" (the registry's filter).
+      - name: Add the fixed-name ZIP and the Desktop Mode installer
+        run: |
+          zip="DeckyHub-${GITHUB_REF_NAME}.zip"
+          sha=$(sha256sum "$zip" | cut -d' ' -f1)
+          cp "$zip" DeckyHub.zip
+          sed -e "s/@TAG@/${GITHUB_REF_NAME}/g" -e "s/@SHA256@/${sha}/g" installer/install-deckyhub.sh > install-deckyhub.sh
+          sed -e "s/@TAG@/${GITHUB_REF_NAME}/g" installer/Install-DeckyHub.desktop > Install-DeckyHub.desktop
+          if grep -n "@TAG@\|@SHA256@" install-deckyhub.sh Install-DeckyHub.desktop; then echo "placeholder left in the installer"; exit 1; fi
+          bash -n install-deckyhub.sh
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-zip
-          path: DeckyHub-${{ github.ref_name }}.zip
+          path: |
+            DeckyHub-${{ github.ref_name }}.zip
+            DeckyHub.zip
+            Install-DeckyHub.desktop
+            install-deckyhub.sh
           if-no-files-found: error
 
   # Scans the packaged ZIP with ClamAV and that day's signatures. Never stops the release:
@@ -145,7 +163,7 @@ jobs:
           [[ "$GITHUB_REF_NAME" == *-* ]] && prerelease=(--prerelease)
           zip="DeckyHub-${GITHUB_REF_NAME}.zip"
           report="ClamAV-scan-${GITHUB_REF_NAME}.txt"
-          files=("$zip")
+          files=("$zip" DeckyHub.zip Install-DeckyHub.desktop install-deckyhub.sh)
           link=""
           if [[ -f "$report" ]]; then
             files+=("$report")
