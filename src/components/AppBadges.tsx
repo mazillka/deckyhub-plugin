@@ -51,6 +51,16 @@ export const ForkBadge = ({ t, repo }: { t: TFunc; repo?: string }) => (
   <span title={repo ? t("appcard.forkOf", { repo }) : t("appcard.forkHint")} style={{ ...pillStyle, color: "#b8c7d3", background: "#b8c7d322", borderColor: "#b8c7d366" }}>{t("appcard.fork")}</span>
 );
 
+// The AI badge: the plugin's repository has files that set it up for AI coding assistants
+// (the registry's stats.json lists them), so it's likely developed with AI help. Also shown
+// in Discover's legend, which says what it does and doesn't mean.
+const AI_COLOR = "#c49bff";
+export const AiBadge = ({ t, files }: { t: TFunc; files?: string[] }) => (
+  <span className="deckyhub-ai-badge" title={files?.length ? t("appcard.aiFiles", { files: files.join(", ") }) : t("appcard.aiHint")} style={{ ...pillStyle, color: AI_COLOR, background: `${AI_COLOR}22`, borderColor: `${AI_COLOR}66` }}>
+    {t("appcard.ai")}
+  </span>
+);
+
 // The virus scans' verdict on the release the card installs (the registry's scans.json):
 // the worse of ClamAV's and YARA's, also shown in Discover's legend. Nothing until the ZIP
 // has a report; Manage has the full report.
@@ -71,13 +81,14 @@ export const ScanBadge = ({ t, kind }: { t: TFunc; kind: ScanBadgeKind }) => {
   );
 };
 
-// Runs as root / Fork / audit warnings / virus scan / No release in a year, shared by the card and its Manage window.
+// Runs as root / Fork / AI / audit warnings / virus scan / No release in a year, shared by the card and its Manage window.
 export function AppBadges({ app, t }: { app: App; t: TFunc }) {
   const released = releasedAt(app);
   return (
     <>
       {app.stats?.root && <RootBadge t={t} />}
       {app.stats?.fork && <ForkBadge t={t} repo={app.stats.fork} />}
+      {app.stats?.ai?.length ? <AiBadge t={t} files={app.stats.ai} /> : null}
       <AuditWarnings app={app} t={t} />
       {app.scan && <ScanBadge t={t} kind={scanKind(app.scan)} />}
       {isStale(released) && <span title={new Date(released).toLocaleDateString()} style={{ ...pillStyle, color: "#ff8a8a", background: "#ff8a8a22", borderColor: "#ff8a8a66" }}>{t("appcard.noReleaseInYear")}</span>}

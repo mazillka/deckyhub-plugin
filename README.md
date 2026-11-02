@@ -12,6 +12,8 @@ Find, install and update Decky Loader plugins with your controller — from Deck
 [![Pre-release](https://img.shields.io/github/v/release/mazillka/deckyhub-plugin?include_prereleases&label=pre-release&color=8a9bb2)](https://github.com/mazillka/deckyhub-plugin/releases)
 [![Tests](https://img.shields.io/github/actions/workflow/status/mazillka/deckyhub-plugin/ci.yml?branch=main&label=tests)](https://github.com/mazillka/deckyhub-plugin/actions/workflows/ci.yml)
 [![Downloads](https://img.shields.io/github/downloads/mazillka/deckyhub-plugin/total?color=1d75cc)](https://github.com/mazillka/deckyhub-plugin/releases)
+[![ClamAV](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmazillka%2Fdeckyhub-registry%2Fvirus-scans%2Fbadges%2Fmazillka%2Fdeckyhub-plugin%2Fclamav.json)](https://github.com/mazillka/deckyhub-registry#how-it-works)
+[![YARA](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmazillka%2Fdeckyhub-registry%2Fvirus-scans%2Fbadges%2Fmazillka%2Fdeckyhub-plugin%2Fyara.json)](https://github.com/mazillka/deckyhub-registry#how-it-works)
 [![License](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE.md)
 [![Decky Loader plugin](https://img.shields.io/badge/Decky_Loader-plugin-green)](https://decky.xyz/)
 
@@ -131,7 +133,8 @@ Cards can carry these badges. **More** on the "What the badges on plugins mean" 
 | **Runs as root** | Its backend runs as root, with full access to the system. Install only if you trust the author. |
 | **No release in a year** | No new release for over a year, so it may be abandoned. |
 | **Fork** | A fork that carries a plugin on after its original stopped. DeckyHub lists it only while it's the active one. |
-| **No threats** / **Threat found** / **Not fully scanned** The virus scans of the release you'd install (ClamAV and YARA; the badge shows the worse of the two): nothing found, something flagged (it may be a false positive; open **Manage** for the report and decide), or it couldn't scan all of it (**Manage** says why). No badge until it's been scanned. A clean scan isn't proof of safety. |
+| **AI** | Its repository has instructions for AI coding assistants (`CLAUDE.md`, `AGENTS.md`, `.cursorrules`, `.github/copilot-instructions.md` and similar), so it's likely developed with AI help. It says nothing about quality or safety, and no badge doesn't mean no AI was used. |
+| **No threats** / **Threat found** / **Not fully scanned** | The virus scans of the release you'd install (ClamAV and YARA; the badge shows the worse of the two): nothing found, something flagged (it may be a false positive; open **Manage** for the report and decide), or it couldn't scan all of it (**Manage** says why). No badge until it's been scanned. A clean scan isn't proof of safety. |
 
 These warnings come from Decky Extended Plugins' automated [security audit](https://decky-extended-plugins.beallio.com/audit) of the release you'd install. Routine findings like `sudo`, `mount` or `systemctl` aren't shown. A warning isn't proof of harm, and no warning isn't proof of safety.
 

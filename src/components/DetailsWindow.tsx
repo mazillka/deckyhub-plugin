@@ -13,9 +13,9 @@ const NOTES_PREVIEW = 700;
 export const sectionTitleStyle = { margin: 0, color: "#9fb0bf", fontSize: 13, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" as const };
 
 // The wide details window both a plugin's Manage window and DeckyHub's own update
-// window use: a header (who, what state, how popular), About and the selected
-// release's notes on the left, and on the right the main action, the version box
-// and whatever else the caller adds, most important first.
+// window use: a header (who, what state, how popular), About under it, then the selected
+// release's notes on the left and on the right the main action, the version box and
+// whatever else the caller adds, most important first.
 export function DetailsWindow({
   t,
   closeModal,
@@ -82,6 +82,16 @@ export function DetailsWindow({
             </div>
           </div>
 
+          {/* About sits under the header, above the version box, so a narrow window (a Deck's)
+              says what the plugin is before asking which version to install. It's on screen
+              when the window opens, so it isn't a D-pad stop: focus starts on the pickers. */}
+          {description && (
+            <div className="deckyhub-details-about" style={{ display: "grid", gap: 6 }}>
+              <h3 style={sectionTitleStyle}>{t("details.about")}</h3>
+              <div className="deckyhub-details-description" style={{ color: "#e6eef4", fontSize: 16, lineHeight: 1.5, overflowWrap: "anywhere" }}>{description}</div>
+            </div>
+          )}
+
           {/* Actions come first, so in one column (a narrow window) they sit on top; in two,
               row-reverse puts them on the right. */}
           <div style={{ display: "flex", flexDirection: "row-reverse", flexWrap: "wrap", gap: 24, alignItems: "flex-start" }}>
@@ -121,12 +131,6 @@ export function DetailsWindow({
             <div onFocus={keepInView} style={{ flex: "999 1 360px", display: "grid", gap: 16, minWidth: 0 }}>
               {/* Each text section is a D-pad stop: Steam only scrolls to follow focus, so
                   without them the window couldn't scroll down to the notes (seen on a Deck). */}
-              {description && (
-                <Focusable className="deckyhub-details-section" onActivate={() => {}} onFocus={keepInView} style={{ display: "grid", gap: 6 }}>
-                  <h3 style={sectionTitleStyle}>{t("details.about")}</h3>
-                  <div className="deckyhub-details-description" style={{ color: "#e6eef4", fontSize: 16, lineHeight: 1.5, overflowWrap: "anywhere" }}>{description}</div>
-                </Focusable>
-              )}
               {release && (
                 // A opens the notes in full; here they stop after a preview.
                 <Focusable className="deckyhub-details-section" onActivate={() => showReleaseInfo(t, `${title} ${displayVersion(release.tag)}`, release.publishedAt, release.notes)} onFocus={keepInView} style={{ display: "grid", gap: 6 }}>
