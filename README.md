@@ -172,7 +172,8 @@ Tap **Manage** on any card in Discover or Updates to:
 - pick the release **channel** and a specific **version**. **Stable** shows only stable releases; **Pre-release** shows every release, newest first, so a stable release that comes out after the last pre-release is still offered;
 - **Download ZIP**, open the **Release Page**, or **Check for Updates** for that app;
 - for a Decky plugin, **Install** (not installed yet) or **Update** (the selected version is newer than the installed one). DeckyHub downloads the release ZIP (with a progress window, then a spinner until Decky is ready) and hands it to Decky Loader's own installer, the same one the Decky store uses. Decky asks you to confirm and installs it, verifying the SHA-256 checksum GitHub publishes for the ZIP. Older releases (files uploaded before mid-2025) have no checksum and Decky installs them without that check;
-- for an installed Decky plugin, **Uninstall**, which asks you to confirm and then removes the plugin and its settings through Decky Loader.
+- for an installed Decky plugin, **Uninstall**, which asks you to confirm and then removes the plugin and its settings through Decky Loader;
+- check the **Virus scan** of the selected version's ZIP: **No threats found**, **Threat found** (with what was matched), or **Not scanned yet**, and when it was scanned. **Scan report** shows the full report: the file, its SHA-256, the ClamAV and signature versions, and the date. DeckyHub's registry [scans every plugin ZIP it offers](https://github.com/mazillka/deckyhub-registry#repositories) with [ClamAV](https://www.clamav.net/), an open-source antivirus, every few hours, so a brand-new release may not have a report yet. A clean scan isn't proof of safety: ClamAV knows Linux malware less well than Windows malware.
 
 ### Settings
 
@@ -210,6 +211,8 @@ The Quick Access Menu shows the installed version (**DeckyHub vX.Y.Z**) and chec
 - **Update to / Reinstall / Downgrade to vX.Y.Z** — downloads that release (with a progress window) and hands it to Decky Loader's own installer (the same one the Decky store uses), which verifies its SHA-256 checksum and installs it in place. Only releases with a published checksum are offered.
 - **Download ZIP** — the classic path: saves the release ZIP to `/home/deck/Downloads/deckyhub`, which you then install yourself (see [Installing DeckyHub](#installing-deckyhub), step 3).
 
+The update window also shows the selected release's **Virus scan** report. Every DeckyHub release is scanned with ClamAV before it's published (a release with anything found isn't published), and its scan report is attached to the [release](https://github.com/mazillka/deckyhub-plugin/releases); its Python and TypeScript code is checked by GitHub [CodeQL](https://github.com/mazillka/deckyhub-plugin/actions/workflows/codeql.yml) on every change.
+
 **Registry Channel**, in DeckyHub's own **Manage** window (Quick Access → DeckyHub → **Manage**), picks which version of DeckyHub's own plugin list you see. **Stable** (the default) is what everyone gets. **Pre-release** shows plugins and list changes that are still being tested, and Updates and Discover say **Pre-release registry** while it's on; if that list can't be loaded, DeckyHub uses the stable one. Switching reloads the list straight away.
 
 ## Uninstalling DeckyHub
@@ -232,7 +235,7 @@ Downloads only ever happen over HTTPS.
 
 DeckyHub has no account, analytics or telemetry, and sends nothing to its author or to any server of its own.
 
-- **What it connects to:** only GitHub — `raw.githubusercontent.com` and `github.com` for the plugin list, release info and downloads, and `api.github.com` for search and repositories that aren't in the list — plus the HTTPS address of any custom registry you add. GitHub sees these requests as it would any browser's (your IP address and which repositories are looked up), under [GitHub's privacy statement](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement). Links such as a plugin's repository or the audit page open only when you tap them.
+- **What it connects to:** only GitHub — `raw.githubusercontent.com` and `github.com` for the plugin list, release info, virus scan reports and downloads, and `api.github.com` for search and repositories that aren't in the list — plus the HTTPS address of any custom registry you add. GitHub sees these requests as it would any browser's (your IP address and which repositories are looked up), under [GitHub's privacy statement](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement). Links such as a plugin's repository or the audit page open only when you tap them.
 - **What stays on your Deck:** your settings, tracked repositories, custom registries and the cached plugin list and release info. The settings file is readable only by your user.
 - **Your GitHub token** is optional, needs no scopes, is only ever sent to `api.github.com`, and is never written to the logs.
 - **Logs** never leave the Deck on their own. **Export Logs** saves a ZIP to your Downloads folder with what DeckyHub did and any errors (repository names, file paths, versions); you decide whether to attach it to an issue.

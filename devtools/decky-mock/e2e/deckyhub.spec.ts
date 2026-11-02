@@ -34,6 +34,9 @@ const RELEASE_INDEX_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-r
 const PLUGIN_STATS_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/stats.json";
 // What the DeckyHub window's Registry Channel: Pre-release reads instead (the registry's develop branch).
 const PRERELEASE_STATS_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index-develop/stats.json";
+// The registry's ClamAV reports, keyed by download URL (both Registry channels read this one).
+const VIRUS_SCANS_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/virus-scans/scans.json";
+const mockVirusScans = (page: Page, files: Record<string, unknown>) => page.route(VIRUS_SCANS_URL, (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), files } }));
 const mockMakoReleases = (page: Page, releases: unknown[]) =>
   page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases**", (route) => route.fulfill({ json: releases }));
 
@@ -122,6 +125,7 @@ test.beforeEach(async ({ page }) => {
   // No release index unless a test serves one, so release lookups use the API stubs.
   await page.route(RELEASE_INDEX_URL, (route) => route.fulfill({ status: 404, body: "404: Not Found" }));
   await page.route(PLUGIN_STATS_URL, (route) => route.fulfill({ status: 404, body: "404: Not Found" }));
+  await page.route(VIRUS_SCANS_URL, (route) => route.fulfill({ status: 404, body: "404: Not Found" }));
   // Search keeps only repos with a Decky plugin.json; every stubbed result has one.
   await page.route("https://raw.githubusercontent.com/**/plugin.json", (route) => route.fulfill({ json: { name: "Test plugin" } }));
   await page.goto("/?bridge=http://127.0.0.1:8643");
@@ -676,6 +680,56 @@ test("The Manage window shows the plugin's description, details and a Repository
   await expect(app.locator(".steam-modal").getByText("eugeniosegala/MAKO", { exact: true })).toBeVisible();
   await expect(app.locator(".steam-modal .deckyhub-details-notes")).toBeVisible();
   await expect(app.locator(".steam-modal").getByRole("button", { name: "Repository" })).toBeVisible();
+});
+
+test("The Manage window shows the selected ZIP's ClamAV report, and the full report on request", async ({ page }) => {
+  const sha = "c".repeat(64);
+  await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", sha)]);
+  await mockVirusScans(page, { "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/mako-decky.zip": { sha256: sha, result: "clean", engine: "ClamAV 1.4.3", signatures: "27806", scannedAt: new Date().toISOString() } });
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
+  await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
+  const scan = app.locator(".steam-modal .deckyhub-virus-scan");
+  await expect(scan.getByText("No threats found")).toBeVisible();
+  await expect(scan.getByText("Scanned by ClamAV: today")).toBeVisible();
+  await scan.getByRole("button", { name: "Scan report", exact: true }).click();
+  const report = app.locator(".steam-modal").filter({ hasText: "Virus scan report" });
+  for (const text of ["File: mako-decky.zip", `SHA-256: ${sha}`, "Scanner: ClamAV 1.4.3, signatures 27806"]) await expect(report.getByText(text, { exact: true })).toBeVisible();
+});
+
+test("The Manage window says when ClamAV found something, and never calls an unscanned ZIP clean", async ({ page }) => {
+  const url = "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/mako-decky.zip";
+  await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", "c".repeat(64))]);
+  await mockVirusScans(page, { [url]: { sha256: "c".repeat(64), result: "infected", found: ["Unix.Trojan.Test-1"], scannedAt: new Date().toISOString() } });
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
+  const manage = app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true });
+  await manage.click();
+  await expect(app.locator(".steam-modal .deckyhub-virus-scan").getByText("Threat found: Unix.Trojan.Test-1")).toBeVisible();
+
+  // A report for a ZIP since replaced under the same name (another SHA-256) doesn't count.
+  await page.unroute(VIRUS_SCANS_URL);
+  await mockVirusScans(page, { [url]: { sha256: "d".repeat(64), result: "clean", scannedAt: new Date().toISOString() } });
+  await page.reload();
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
+  await manage.click();
+  const scan = app.locator(".steam-modal .deckyhub-virus-scan");
+  await expect(scan.getByText("Not scanned yet", { exact: false })).toBeVisible();
+  await expect(scan.getByText("No threats found")).toHaveCount(0);
+});
+
+test("DeckyHub's update window shows its release's ClamAV report and how releases are checked", async ({ page }) => {
+  await mockDeckyHubReleases(page, [deckyHubRelease("v9.9.9", { sha: "b" })]);
+  await mockVirusScans(page, { [deckyHubZipUrl("v9.9.9")]: { sha256: "b".repeat(64), result: "clean", scannedAt: new Date().toISOString() } });
+  await page.goto("/?bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+  const scan = app.locator(".steam-modal .deckyhub-virus-scan");
+  await expect(scan.getByText("No threats found")).toBeVisible();
+  await expect(scan.getByText(/scanned with ClamAV before it's published.*GitHub CodeQL/)).toBeVisible();
 });
 
 test("Discover shows the registry's audit warnings next to Runs as root and explains each one", async ({ page }) => {
