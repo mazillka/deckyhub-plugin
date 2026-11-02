@@ -163,6 +163,15 @@ If automatic update isn't available for some reason (e.g. running inside an olde
 - Release information is cached for 30 minutes, so opening the same app's Manage window or the DeckyHub update modal again shortly after won't always show something new. Every "Check for Updates" and "Refresh" button bypasses this and fetches fresh release info, though a brand-new release can take up to an hour to reach the plugin list's release file.
 - Downloads only ever happen over HTTPS.
 
+## Privacy
+
+DeckyHub has no account, analytics or telemetry, and sends nothing to its author or to any server of its own.
+
+- **What it connects to:** only GitHub — `raw.githubusercontent.com` and `github.com` for the plugin list, release info and downloads, and `api.github.com` for search and repositories that aren't in the list — plus the HTTPS address of any custom registry you add. GitHub sees these requests as it would any browser's (your IP address and which repositories are looked up), under [GitHub's privacy statement](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement). Links such as a plugin's repository or the audit page open only when you tap them.
+- **What stays on your Deck:** your settings, tracked repositories, custom registries and the cached plugin list and release info. The settings file is readable only by your user.
+- **Your GitHub token** is optional, needs no scopes, is only ever sent to `api.github.com`, and is never written to the logs.
+- **Logs** never leave the Deck on their own. **Export Logs** saves a ZIP to your Downloads folder with what DeckyHub did and any errors (repository names, file paths, versions); you decide whether to attach it to an issue.
+
 ## Disclaimer
 
 Not affiliated with Valve or the Decky Loader project. DeckyHub is a discovery and download tool: plugin information comes from public GitHub repositories, and every plugin belongs to its own authors. DeckyHub doesn't review, own or endorse any third-party plugin or its content, and isn't responsible for what one does. Plugins are installed at your own risk, so look at a plugin's repository before you install it, especially one found through Search.
