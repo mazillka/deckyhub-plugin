@@ -682,20 +682,71 @@ test("The Manage window shows the plugin's description, details and a Repository
   await expect(app.locator(".steam-modal").getByRole("button", { name: "Repository" })).toBeVisible();
 });
 
-test("The Manage window shows the selected ZIP's ClamAV report, and the full report on request", async ({ page }) => {
+test("The Manage window shows the selected ZIP's ClamAV and YARA reports, and the full report on request", async ({ page }) => {
   const sha = "c".repeat(64);
   await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", sha)]);
-  await mockVirusScans(page, { "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/mako-decky.zip": { sha256: sha, result: "clean", engine: "ClamAV 1.4.3", signatures: "27806", scannedAt: new Date().toISOString() } });
+  const scannedAt = new Date().toISOString();
+  await mockVirusScans(page, { "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/mako-decky.zip": { sha256: sha, result: "clean", engine: "ClamAV 1.4.3", signatures: "27806", scannedAt, yara: { result: "clean", engine: "YARA 4.5.0", signatures: "YARA Forge core 2026-11-01", scannedAt } } });
   const app = mock(page);
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
   await browseAll(page, "MAKO");
   await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
   const scan = app.locator(".steam-modal .deckyhub-virus-scan");
-  await expect(scan.getByText("No threats found")).toBeVisible();
-  await expect(scan.getByText("Scanned by ClamAV: today")).toBeVisible();
+  await expect(scan.locator(".deckyhub-scan-clamav")).toContainText("ClamAV: No threats found");
+  await expect(scan.locator(".deckyhub-scan-clamav")).toContainText("Scanned: today");
+  await expect(scan.locator(".deckyhub-scan-yara")).toContainText("YARA: No threats found");
+  await expect(scan.locator(".deckyhub-scan-yara")).toContainText("Scanned: today");
   await scan.getByRole("button", { name: "Scan report", exact: true }).click();
   const report = app.locator(".steam-modal").filter({ hasText: "Virus scan report" });
-  for (const text of ["File: mako-decky.zip", `SHA-256: ${sha}`, "Scanner: ClamAV 1.4.3, signatures 27806"]) await expect(report.getByText(text, { exact: true })).toBeVisible();
+  for (const text of ["File: mako-decky.zip", `SHA-256: ${sha}`, "Scanner: ClamAV 1.4.3, signatures 27806", "Scanner: YARA 4.5.0, rules YARA Forge core 2026-11-01"]) await expect(report.getByText(text, { exact: true })).toBeVisible();
+});
+
+test("YARA's verdict counts too, and a report from before YARA says it hasn't scanned the ZIP", async ({ page }) => {
+  const url = "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/mako-decky.zip";
+  await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", "c".repeat(64))]);
+  const scannedAt = new Date().toISOString();
+  await mockVirusScans(page, { [url]: { sha256: "c".repeat(64), result: "clean", scannedAt, yara: { result: "infected", found: ["ELASTIC_Linux_Trojan_Test"], scannedAt } } });
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
+  const mako = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+  await expect(mako.getByText("Threat found", { exact: true })).toBeVisible();
+  await mako.getByRole("button", { name: "Manage", exact: true }).click();
+  const scan = app.locator(".steam-modal .deckyhub-virus-scan");
+  await expect(scan.locator(".deckyhub-scan-yara")).toContainText("YARA: Threat found: ELASTIC_Linux_Trojan_Test");
+  await expect(scan.getByText(/decide for yourself/)).toBeVisible();
+
+  await page.unroute(VIRUS_SCANS_URL);
+  await mockVirusScans(page, { [url]: { sha256: "c".repeat(64), result: "clean", scannedAt } });
+  await page.reload();
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
+  await expect(mako.getByText("No threats", { exact: true })).toBeVisible();
+  await mako.getByRole("button", { name: "Manage", exact: true }).click();
+  await expect(scan.locator(".deckyhub-scan-clamav")).toContainText("ClamAV: No threats found");
+  await expect(scan.locator(".deckyhub-scan-yara")).toContainText("YARA: Not scanned yet");
+});
+
+test("VirusTotal looks the selected ZIP up by its SHA-256, even before the registry has scanned it", async ({ page }) => {
+  // Records what Steam's browser would open; real popups made this flaky on CI.
+  await page.addInitScript(() => {
+    const opened: string[] = [];
+    Object.assign(window, { __opened: opened, open: (url: string) => void opened.push(url) });
+  });
+  const sha = "C".repeat(64);
+  await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", sha)]);
+  await mockVirusScans(page, {});
+  await page.reload();
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
+  await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
+  const scan = app.locator(".steam-modal .deckyhub-virus-scan");
+  await expect(scan.getByText("Not scanned yet", { exact: false })).toBeVisible();
+  await scan.getByRole("button", { name: "VirusTotal", exact: true }).click();
+  await expect.poll(() => pluginFrame(page).evaluate(() => (window as unknown as { __opened: string[] }).__opened)).toEqual([`https://www.virustotal.com/gui/file/${"c".repeat(64)}`]);
+  // The Manage window closes first, or Steam's browser would open underneath it.
+  await expect(app.locator(".steam-modal .deckyhub-virus-scan")).toHaveCount(0);
 });
 
 test("The Manage window says when ClamAV found something, and never calls an unscanned ZIP clean", async ({ page }) => {
@@ -707,7 +758,7 @@ test("The Manage window says when ClamAV found something, and never calls an uns
   await browseAll(page, "MAKO");
   const manage = app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true });
   await manage.click();
-  await expect(app.locator(".steam-modal .deckyhub-virus-scan").getByText("Threat found: Unix.Trojan.Test-1")).toBeVisible();
+  await expect(app.locator(".steam-modal .deckyhub-virus-scan").getByText("ClamAV: Threat found: Unix.Trojan.Test-1")).toBeVisible();
 
   // A report for a ZIP since replaced under the same name (another SHA-256) doesn't count.
   await page.unroute(VIRUS_SCANS_URL);
@@ -718,7 +769,7 @@ test("The Manage window says when ClamAV found something, and never calls an uns
   await manage.click();
   const scan = app.locator(".steam-modal .deckyhub-virus-scan");
   await expect(scan.getByText("Not scanned yet", { exact: false })).toBeVisible();
-  await expect(scan.getByText("No threats found")).toHaveCount(0);
+  await expect(scan.getByText("No threats found", { exact: false })).toHaveCount(0);
 });
 
 test("A failed scan shows why, and Install stays the user's choice", async ({ page }) => {
@@ -730,7 +781,7 @@ test("A failed scan shows why, and Install stays the user's choice", async ({ pa
   await browseAll(page, "MAKO");
   await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
   const scan = app.locator(".steam-modal .deckyhub-virus-scan");
-  await expect(scan.getByText("Couldn't be scanned")).toBeVisible();
+  await expect(scan.getByText("ClamAV: Couldn't be scanned")).toBeVisible();
   await expect(scan.getByText("Couldn't download it: HTTP Error 404")).toBeVisible();
   await expect(scan.getByText(/decide for yourself/)).toBeVisible();
   // The scan informs; it never takes the Install button away.
@@ -746,7 +797,7 @@ test("DeckyHub's update window shows its release's ClamAV report and how release
   const app = mock(page);
   await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
   const scan = app.locator(".steam-modal .deckyhub-virus-scan");
-  await expect(scan.getByText("No threats found")).toBeVisible();
+  await expect(scan.getByText("ClamAV: No threats found")).toBeVisible();
   await expect(scan.getByText(/scanned with ClamAV before it's published.*GitHub CodeQL/)).toBeVisible();
 });
 

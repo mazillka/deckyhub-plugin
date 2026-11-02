@@ -22,7 +22,7 @@ export type App = {
   updateAvailable?: boolean | null;
   // From the registry's stats.json (fetchPluginStats); absent for repos it doesn't list.
   stats?: PluginStats;
-  // ClamAV's report for the ZIP the card installs (Discover only; null: not scanned yet).
+  // The virus scan report for the ZIP the card installs (Discover only; null: not scanned yet).
   scan?: VirusScan | null;
   error?: string | null;
   channel?: UpdateChannel;
@@ -34,10 +34,15 @@ export type App = {
 // and for a fork, the owner/name of the repo it was forked from.
 export type PluginStats = { downloads?: number; stars?: number | null; updated?: string | null; root?: boolean | null; fork?: string; warnings?: string[]; prereleaseWarnings?: string[] };
 
-// One plugin ZIP's line in the registry's scans.json (fetchVirusScans): what ClamAV made
-// of it. found lists what it matched (infected), or the size limit it hit (incomplete);
-// reason says why a scan failed (error), in English from the registry.
-export type VirusScan = { sha256?: string; result: "clean" | "infected" | "incomplete" | "error"; found?: string[]; reason?: string; engine?: string; signatures?: string; scannedAt?: string };
+// One scanner's verdict on a plugin ZIP. found lists what it matched (infected), or for
+// ClamAV the size limit it hit (incomplete); reason says why a scan failed (error) or,
+// for YARA, which files it couldn't look at (incomplete), in English from the registry.
+export type ScanVerdict = { result: "clean" | "infected" | "incomplete" | "error"; found?: string[]; reason?: string; engine?: string; signatures?: string; scannedAt?: string };
+
+// One plugin ZIP's line in the registry's scans.json (fetchVirusScans): ClamAV's verdict
+// at the top (all DeckyHub releases read it), YARA's under yara (absent until YARA has
+// scanned the ZIP, and in reports from before the registry ran YARA).
+export type VirusScan = ScanVerdict & { sha256?: string; yara?: ScanVerdict };
 
 // Manage-window buttons that Display Settings can hide.
 export type HideableButton = "downloadZip" | "install" | "update" | "releasePage";
