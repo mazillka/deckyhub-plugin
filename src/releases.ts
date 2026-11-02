@@ -1,6 +1,6 @@
 import { log } from "./log";
 import { tr } from "./translate";
-import { type App, type AppReleaseOption, type Asset, type DeckyHubRelease, type DeckyHubReleaseOption, type PluginStats, type RepoPreference, type UpdateChannel } from "./types";
+import { type App, type AppReleaseOption, type Asset, type DeckyHubRelease, type DeckyHubReleaseOption, type PluginStats, type RepoPreference, type UpdateChannel, type VirusScan } from "./types";
 import { compareVersions, inChannel } from "./version";
 import { fetchNoCors } from "@decky/api";
 import { getSettings } from "./api";
@@ -115,7 +115,8 @@ export const RELEASE_INDEX_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 // minute (every card of one Refresh shares it); switching the Registry channel
 // downloads the other branch's. `pick` turns the file into what callers get, and its
 // fallback stands in for a missing or broken file, which moves on to the next URL.
-export function cachedRawJson<T>(file: string, pick: (data: any) => T, fallback: T) {
+// `urlsOf` picks where the file lives: the channel's release index by default.
+export function cachedRawJson<T>(file: string, pick: (data: any) => T, fallback: T, urlsOf: (file: string) => string[] = indexUrls) {
   let cached: { at: number; urls: string; request: Promise<T> } | null = null;
   return async (force = false) => {
     // A failed settings read is retried on the next call rather than kept.
@@ -123,7 +124,7 @@ export function cachedRawJson<T>(file: string, pick: (data: any) => T, fallback:
       registryChannelLoaded = null;
     });
     await registryChannelLoaded;
-    const urls = indexUrls(file);
+    const urls = urlsOf(file);
     if (!cached || cached.urls !== urls.join(" ") || Date.now() - cached.at > (force ? 60_000 : CACHE_TTL)) {
       cached = { at: Date.now(), urls: urls.join(" "), request: firstRawJson(urls, pick, fallback) };
     }
@@ -157,6 +158,23 @@ export const fetchPluginStats = cachedRawJson<Record<string, PluginStats>>(
   (stats) => stats.plugins ?? {},
   {},
 );
+
+// ClamAV's report for every plugin ZIP in both release indexes (DeckyHub's own too),
+// keyed by download URL: the registry's virus-scan workflow (scripts/virus_scan.py
+// there) publishes it on its own branch, the same for both Registry channels.
+export const fetchVirusScans = cachedRawJson<Record<string, VirusScan>>(
+  "scans.json",
+  (scans) => scans.files ?? {},
+  {},
+  (file) => [`${REGISTRY_RAW}virus-scans/${file}`],
+);
+
+// The report for this exact file: one for a ZIP since replaced under the same name
+// (a different SHA-256) doesn't count.
+export async function virusScanOf(asset: Asset, force = false): Promise<VirusScan | null> {
+  const scan = (await fetchVirusScans(force))[asset.url];
+  return scan && (!asset.sha256 || !scan.sha256 || scan.sha256.toLowerCase() === asset.sha256.toLowerCase()) ? scan : null;
+}
 
 export const DECKYHUB_REPO = "mazillka/deckyhub-plugin";
 

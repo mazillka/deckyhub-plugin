@@ -26,6 +26,7 @@ export function DetailsWindow({
   description,
   release,
   primary,
+  scan,
   channel,
   onChannelChange,
   versionOptions,
@@ -48,6 +49,8 @@ export function DetailsWindow({
   release?: { tag: string; publishedAt: string | null; notes?: string } | null;
   // Install / Update and Download ZIP, under the version box.
   primary: ReactNode;
+  // The selected ZIP's virus scan report, under the actions.
+  scan?: ReactNode;
   channel: UpdateChannel;
   onChannelChange: (channel: UpdateChannel) => void;
   versionOptions: { data: string; label: string }[];
@@ -112,6 +115,7 @@ export function DetailsWindow({
                 {isEmpty && <small style={{ color: "#ff6b6b" }}>{t("settings.noReleasesFound")}</small>}
               </div>
               {primary}
+              {scan}
               {footer}
             </div>
             <div onFocus={keepInView} style={{ flex: "999 1 360px", display: "grid", gap: 16, minWidth: 0 }}>

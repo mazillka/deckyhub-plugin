@@ -130,7 +130,8 @@ Tap **Manage** on any card in Discover or Updates to:
 - pick the release **channel** and a specific **version**. **Stable** shows only stable releases; **Pre-release** shows every release, newest first, so a stable release that comes out after the last pre-release is still offered;
 - **Download ZIP**, open the **Release Page**, or **Check for Updates** for that app;
 - for a Decky plugin, **Install** (not installed yet) or **Update** (the selected version is newer than the installed one). DeckyHub downloads the release ZIP (with a progress window, then a spinner until Decky is ready) and hands it to Decky Loader's own installer, the same one the Decky store uses. Decky asks you to confirm and installs it, verifying the SHA-256 checksum GitHub publishes for the ZIP. Older releases (files uploaded before mid-2025) have no checksum and Decky installs them without that check;
-- for an installed Decky plugin, **Uninstall**, which asks you to confirm and then removes the plugin and its settings through Decky Loader.
+- for an installed Decky plugin, **Uninstall**, which asks you to confirm and then removes the plugin and its settings through Decky Loader;
+- check the **Virus scan** of the selected version's ZIP: **No threats found**, **Threat found** (with what was matched), or **Not scanned yet**, and when it was scanned. **Scan report** shows the full report: the file, its SHA-256, the ClamAV and signature versions, and the date. DeckyHub's registry [scans every plugin ZIP it offers](https://github.com/mazillka/deckyhub-registry#repositories) with [ClamAV](https://www.clamav.net/), an open-source antivirus, every few hours, so a brand-new release may not have a report yet. A clean scan isn't proof of safety: ClamAV knows Linux malware less well than Windows malware.
 
 ### Downloads
 
@@ -152,6 +153,8 @@ The Quick Access Menu shows the installed version (**DeckyHub vX.Y.Z**) and chec
 
 - **Update to / Reinstall / Downgrade to vX.Y.Z** — downloads that release (with a progress window) and hands it to Decky Loader's own installer (the same one the Decky store uses), which verifies its SHA-256 checksum and installs it in place. Only releases with a published checksum are offered.
 - **Download ZIP** — the classic path: saves the release ZIP to `/home/deck/Downloads/deckyhub`, which you then install yourself via Decky's settings → Developer → Install Plugin from ZIP.
+
+The update window also shows the selected release's **Virus scan** report. Every DeckyHub release is scanned with ClamAV before it's published (a release with anything found isn't published), and its scan report is attached to the [release](https://github.com/mazillka/deckyhub-plugin/releases); its Python and TypeScript code is checked by GitHub [CodeQL](https://github.com/mazillka/deckyhub-plugin/actions/workflows/codeql.yml) on every change.
 
 If automatic update isn't available for some reason (e.g. running inside an older Decky Loader build), fall back to Download ZIP.
 

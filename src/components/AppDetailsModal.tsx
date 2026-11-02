@@ -12,6 +12,7 @@ import { displayVersion } from "../version";
 import { AppBadges, AppMonogram, AppStats } from "./AppBadges";
 import { showReleaseInfo } from "./ReleaseInfo";
 import { DetailsWindow } from "./DetailsWindow";
+import { VirusScanReport } from "./VirusScanReport";
 import { ReleaseActions, useReleasePicker } from "./VersionPickerPanel";
 
 // The window's main action, taller than the rest.
@@ -153,6 +154,7 @@ export function AppDetailsModal({
           </>
         )
       }
+      scan={<VirusScanReport t={t} asset={selectedRelease?.assets[0]} />}
       channel={channel}
       onChannelChange={changeChannel}
       versionOptions={versionOptions}
