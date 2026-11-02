@@ -133,7 +133,8 @@ Cards can carry these badges. **More** on the "What the badges on plugins mean" 
 | **Runs as root** | Its backend runs as root, with full access to the system. Install only if you trust the author. |
 | **No release in a year** | No new release for over a year, so it may be abandoned. |
 | **Fork** | A fork that carries a plugin on after its original stopped. DeckyHub lists it only while it's the active one. |
-| **No threats** / **Threat found** / **Not fully scanned** The virus scans of the release you'd install (ClamAV and YARA; the badge shows the worse of the two): nothing found, something flagged (it may be a false positive; open **Manage** for the report and decide), or it couldn't scan all of it (**Manage** says why). No badge until it's been scanned. A clean scan isn't proof of safety. |
+| **AI** | Its repository has instructions for AI coding assistants (`CLAUDE.md`, `AGENTS.md`, `.cursorrules`, `.github/copilot-instructions.md` and similar), so it's likely developed with AI help. It says nothing about quality or safety, and no badge doesn't mean no AI was used. |
+| **No threats** / **Threat found** / **Not fully scanned** | The virus scans of the release you'd install (ClamAV and YARA; the badge shows the worse of the two): nothing found, something flagged (it may be a false positive; open **Manage** for the report and decide), or it couldn't scan all of it (**Manage** says why). No badge until it's been scanned. A clean scan isn't proof of safety. |
 
 These warnings come from Decky Extended Plugins' automated [security audit](https://decky-extended-plugins.beallio.com/audit) of the release you'd install. Routine findings like `sudo`, `mount` or `systemctl` aren't shown. A warning isn't proof of harm, and no warning isn't proof of safety.
 

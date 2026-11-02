@@ -31,8 +31,9 @@ export type App = {
 // A plugin's line in the registry's stats.json: all-time downloads, GitHub stars,
 // when the release Discover shows came out, whether its plugin.json asks for root, and
 // what Decky Extended Plugins' audit warns about in it (and in a newer pre-release, if any),
-// and for a fork, the owner/name of the repo it was forked from.
-export type PluginStats = { downloads?: number; stars?: number | null; updated?: string | null; root?: boolean | null; fork?: string; warnings?: string[]; prereleaseWarnings?: string[] };
+// for a fork, the owner/name of the repo it was forked from, and the AI coding assistant
+// files (CLAUDE.md, AGENTS.md, .cursorrules...) in its repository, if any.
+export type PluginStats = { downloads?: number; stars?: number | null; updated?: string | null; root?: boolean | null; fork?: string; ai?: string[]; warnings?: string[]; prereleaseWarnings?: string[] };
 
 // One scanner's verdict on a plugin ZIP. found lists what it matched (infected), or for
 // ClamAV the size limit it hit (incomplete); reason says why a scan failed (error) or,

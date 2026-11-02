@@ -5,7 +5,7 @@ import { openExternalWeb } from "../external";
 import { useT } from "../i18n";
 import type { View } from "../types";
 import { compactButtonStyle, infoNoticeStyle } from "../utils";
-import { AUDIT_WARNINGS, ForkBadge, RootBadge, SCAN_BADGES, ScanBadge, WarningBadge } from "./AppBadges";
+import { AiBadge, AUDIT_WARNINGS, ForkBadge, RootBadge, SCAN_BADGES, ScanBadge, WarningBadge } from "./AppBadges";
 import { PageHeader } from "./Card";
 import { KeepInView } from "./KeepInView";
 import { LayoutToggle, type Layout } from "./LayoutToggle";
@@ -99,6 +99,10 @@ export function ContentHeader({
             <div className="deckyhub-fork-legend" style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <ForkBadge t={t} />
               <span>{t("appcard.forkHint")}</span>
+            </div>
+            <div className="deckyhub-ai-legend" style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <AiBadge t={t} />
+              <span>{t("appcard.aiHint")}</span>
             </div>
             <div className="deckyhub-scan-legend" style={{ display: "grid", gap: 6 }}>
               {SCAN_BADGES.map((kind) => (

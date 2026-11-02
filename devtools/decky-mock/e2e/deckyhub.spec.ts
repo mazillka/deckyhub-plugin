@@ -856,7 +856,7 @@ test("Discover cards show the ClamAV verdict for the release they install, and t
 
 test("Discover shows the registry's audit warnings next to Runs as root and explains each one", async ({ page }) => {
   await page.route(PLUGIN_STATS_URL, (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), plugins: {
-    "eugeniosegala/mako": { downloads: 73981, stars: 680, updated: new Date().toISOString(), root: true, fork: "original/mako", warnings: ["private-data", "not-in-source", "some-future-warning"] },
+    "eugeniosegala/mako": { downloads: 73981, stars: 680, updated: new Date().toISOString(), root: true, fork: "original/mako", ai: ["AGENTS.md", "CLAUDE.md"], warnings: ["private-data", "not-in-source", "some-future-warning"] },
     // A newer pre-release's warnings show only to people on the pre-release channel.
     "mubaraknumann/unifideck": { downloads: 110541, stars: 1410, updated: new Date().toISOString(), root: false, prereleaseWarnings: ["blocked"] },
   } } }));
@@ -871,6 +871,10 @@ test("Discover shows the registry's audit warnings next to Runs as root and expl
   // A fork the registry lists says so, and what it's a fork of.
   await expect(mako.getByText("Fork", { exact: true })).toHaveAttribute("title", "Fork of original/mako");
   await expect(unifideck.getByText("Fork", { exact: true })).toHaveCount(0);
+  // A repository set up for AI coding assistants gets the AI badge, naming the files.
+  await expect(mako.locator(".deckyhub-ai-badge")).toHaveText("AI");
+  await expect(mako.locator(".deckyhub-ai-badge")).toHaveAttribute("title", /instructions for AI coding assistants \(AGENTS\.md, CLAUDE\.md\)/);
+  await expect(unifideck.locator(".deckyhub-ai-badge")).toHaveCount(0);
   // A warning this release doesn't know yet (the registry adds them first) shows nothing.
   await expect(mako.getByText("some-future-warning")).toHaveCount(0);
   await expect(unifideck.getByText("Blocked by audit")).toHaveCount(0);
@@ -882,6 +886,7 @@ test("Discover shows the registry's audit warnings next to Runs as root and expl
   await expect(legend).toContainText("Decky Extended Plugins' automated audit");
   await expect(legend.getByRole("button", { name: "Open Decky Extended Plugins audit" })).toBeVisible();
   await expect(app.locator(".deckyhub-fork-legend")).toContainText("carries a plugin on after its original stopped");
+  await expect(app.locator(".deckyhub-ai-legend")).toContainText("no badge doesn't mean no AI was used");
   for (const [badge, meaning] of [
     ["Blocked by audit", "Not recommended for installation."],
     ["Reads private data", "Steam login data"],
