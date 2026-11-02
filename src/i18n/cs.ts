@@ -112,6 +112,8 @@ export const cs: Record<MessageKey, string> = {
   "scan.viewReport": "Zpráva o kontrole",
   "scan.reportTitle": "Zpráva o antivirové kontrole",
   "scan.found": "Nalezeno: {names}",
+  "scan.reason": "Důvod: {reason}",
+  "scan.yourChoice": "Instalaci to nebrání: přečtěte si zprávu a rozhodněte sami.",
   "scan.file": "Soubor: {file}",
   "scan.sha256": "SHA-256: {hash}",
   "scan.engine": "Skener: {engine}, signatury {signatures}",

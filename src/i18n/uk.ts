@@ -112,6 +112,8 @@ export const uk: Record<MessageKey, string> = {
   "scan.viewReport": "Звіт перевірки",
   "scan.reportTitle": "Звіт перевірки на віруси",
   "scan.found": "Знайдено: {names}",
+  "scan.reason": "Причина: {reason}",
+  "scan.yourChoice": "Це не заважає встановленню: перегляньте звіт і вирішіть самі.",
   "scan.file": "Файл: {file}",
   "scan.sha256": "SHA-256: {hash}",
   "scan.engine": "Сканер: {engine}, сигнатури {signatures}",

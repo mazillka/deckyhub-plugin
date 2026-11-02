@@ -113,6 +113,8 @@ export const zhTW: Record<MessageKey, string> = {
   "scan.viewReport": "掃描報告",
   "scan.reportTitle": "病毒掃描報告",
   "scan.found": "發現：{names}",
+  "scan.reason": "原因：{reason}",
+  "scan.yourChoice": "這不會阻止你安裝：請閱讀報告後自行決定。",
   "scan.file": "檔案：{file}",
   "scan.sha256": "SHA-256：{hash}",
   "scan.engine": "掃描器：{engine}，特徵碼 {signatures}",

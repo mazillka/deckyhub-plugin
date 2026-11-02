@@ -113,6 +113,8 @@ export const ptPT: Record<MessageKey, string> = {
   "scan.viewReport": "Relatório da verificação",
   "scan.reportTitle": "Relatório da verificação de vírus",
   "scan.found": "Encontrado: {names}",
+  "scan.reason": "Motivo: {reason}",
+  "scan.yourChoice": "Isto não impede a instalação: leia o relatório e decida por si.",
   "scan.file": "Ficheiro: {file}",
   "scan.sha256": "SHA-256: {hash}",
   "scan.engine": "Verificador: {engine}, assinaturas {signatures}",

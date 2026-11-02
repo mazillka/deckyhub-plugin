@@ -112,6 +112,8 @@ export const tr: Record<MessageKey, string> = {
   "scan.viewReport": "Tarama raporu",
   "scan.reportTitle": "Virüs tarama raporu",
   "scan.found": "Bulunan: {names}",
+  "scan.reason": "Neden: {reason}",
+  "scan.yourChoice": "Bu, yüklemeni engellemez: raporu oku ve kendin karar ver.",
   "scan.file": "Dosya: {file}",
   "scan.sha256": "SHA-256: {hash}",
   "scan.engine": "Tarayıcı: {engine}, imzalar {signatures}",

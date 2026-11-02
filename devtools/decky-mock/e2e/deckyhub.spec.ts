@@ -721,6 +721,24 @@ test("The Manage window says when ClamAV found something, and never calls an uns
   await expect(scan.getByText("No threats found")).toHaveCount(0);
 });
 
+test("A failed scan shows why, and Install stays the user's choice", async ({ page }) => {
+  const url = "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/mako-decky.zip";
+  await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", "c".repeat(64))]);
+  await mockVirusScans(page, { [url]: { result: "error", reason: "Couldn't download it: HTTP Error 404", scannedAt: new Date().toISOString() } });
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
+  await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
+  const scan = app.locator(".steam-modal .deckyhub-virus-scan");
+  await expect(scan.getByText("Couldn't be scanned")).toBeVisible();
+  await expect(scan.getByText("Couldn't download it: HTTP Error 404")).toBeVisible();
+  await expect(scan.getByText(/decide for yourself/)).toBeVisible();
+  // The scan informs; it never takes the Install button away.
+  await expect(app.locator(".steam-modal").getByRole("button", { name: /Install/ }).first()).toBeEnabled();
+  await scan.getByRole("button", { name: "Scan report", exact: true }).click();
+  await expect(app.locator(".steam-modal").filter({ hasText: "Virus scan report" }).getByText("Reason: Couldn't download it: HTTP Error 404", { exact: true })).toBeVisible();
+});
+
 test("DeckyHub's update window shows its release's ClamAV report and how releases are checked", async ({ page }) => {
   await mockDeckyHubReleases(page, [deckyHubRelease("v9.9.9", { sha: "b" })]);
   await mockVirusScans(page, { [deckyHubZipUrl("v9.9.9")]: { sha256: "b".repeat(64), result: "clean", scannedAt: new Date().toISOString() } });

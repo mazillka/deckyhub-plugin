@@ -112,6 +112,8 @@ export const zh: Record<MessageKey, string> = {
   "scan.viewReport": "扫描报告",
   "scan.reportTitle": "病毒扫描报告",
   "scan.found": "发现：{names}",
+  "scan.reason": "原因：{reason}",
+  "scan.yourChoice": "这不会阻止你安装：请阅读报告后自行决定。",
   "scan.file": "文件：{file}",
   "scan.sha256": "SHA-256：{hash}",
   "scan.engine": "扫描器：{engine}，特征库 {signatures}",
