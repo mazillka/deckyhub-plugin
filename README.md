@@ -13,7 +13,7 @@ Find, install and update Decky Loader plugins with your controller — from Deck
 [![Tests](https://img.shields.io/github/actions/workflow/status/mazillka/deckyhub-plugin/ci.yml?branch=main&label=tests)](https://github.com/mazillka/deckyhub-plugin/actions/workflows/ci.yml)
 [![Downloads](https://img.shields.io/github/downloads/mazillka/deckyhub-plugin/total?color=1d75cc)](https://github.com/mazillka/deckyhub-plugin/releases)
 [![License](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE.md)
-[![Platform](https://img.shields.io/badge/platform-SteamOS-green)](https://store.steampowered.com/steamos)
+[![Decky Loader plugin](https://img.shields.io/badge/Decky_Loader-plugin-green)](https://decky.xyz/)
 
 [**Download**](https://github.com/mazillka/deckyhub-plugin/releases/latest) · [Website](https://mazillka.github.io/deckyhub-plugin/) · [Plugin catalog](https://mazillka.github.io/deckyhub-registry/) · [Install guide](#installing-deckyhub) · [Report an issue](https://github.com/mazillka/deckyhub-plugin/issues)
 
@@ -39,26 +39,28 @@ Find, install and update Decky Loader plugins with your controller — from Deck
 > [!CAUTION]
 > **DeckyHub only fetches releases from their authors' GitHub repositories. It doesn't make, review or vouch for these plugins and isn't responsible for anything they do to your device or data. Install at your own risk.**
 
-Tired of tabbing out to Desktop Mode, hunting through GitHub releases, and manually downloading ZIPs every time a plugin updates? DeckyHub brings plugin discovery and updates straight to your controller. Browse a catalog of over 300 Steam Deck plugins, search GitHub for any other Decky plugin and install it on the spot, and get notified the moment an update drops — all without leaving your couch. It's the first and last plugin you'll ever install from a ZIP.
+Tired of tabbing out to Desktop Mode, hunting through GitHub releases, and manually downloading ZIPs every time a plugin updates? DeckyHub brings plugin discovery and updates straight to your controller. Browse a catalog of over 500 Steam Deck plugins, search GitHub for any other Decky plugin and install it on the spot, and get notified when an update drops — all without leaving your couch. It's the first and last plugin you'll ever install from a ZIP.
 
 > **A note on how this is made.** Most of DeckyHub's code was written with the help of AI tools (Claude and Codex). That doesn't mean it ships untested — every release is verified on real hardware before it goes out. I'm telling you this upfront so you know exactly what you're installing and how it got built.
+
+**Contents:** [Why you'll like it](#why-youll-like-it) · [What it does](#what-it-does) · [The plugin list](#the-plugin-list) · [Requirements](#requirements) · [Installing](#installing-deckyhub) · [Using DeckyHub](#using-deckyhub) · [Uninstalling](#uninstalling-deckyhub) · [Troubleshooting](#troubleshooting) · [Privacy](#privacy) · [Disclaimer](#disclaimer) · [Getting help](#getting-help)
 
 ## Why you'll like it
 
 - **Any plugin on GitHub, one search away** — **Search & Install** finds Decky plugins that aren't in the Decky store or DeckyHub's list and installs them right from Gaming Mode. No Desktop Mode, no browser, no Developer Mode URL pasting.
-- **Never miss an update** — DeckyHub checks your installed plugins against their latest GitHub releases and pings you with a toast the moment something new is available.
+- **Never miss an update** — DeckyHub checks your installed plugins against their latest GitHub releases every few hours and pings you with a toast when something new is available.
 - **Built for the couch** — full gamepad navigation, color-coded status at a glance, and one-tap downloads designed for Gaming Mode, not a desktop browser squeezed onto a small screen.
 - **You stay in control** — DeckyHub never installs or runs anything on its own. Nothing touches your system until you say so, and installs go through Decky Loader's own installer and confirmation dialog (see [Manage](#manage)).
 
 ## What it does
 
-- **Discover** — browse DeckyHub's list of Steam Deck plugins/tools, filter by search or installed status, and see release info at a glance, color-coded by status.
+- **[Discover](#discover)** — browse DeckyHub's list of Steam Deck plugins/tools, filter by search or installed status, and see release info at a glance, color-coded by status.
 - **[Search & Install](#search--install)** — search GitHub for Decky plugins and install one in a tap, or add it to track its updates.
-- **Updates** — see which of your tracked, installed tools have a newer release available and what each one brings, and update the Decky plugins among them in one go with **Update All**. DeckyHub checks in the background every few hours, so the dot on its icon and a toast tell you when new updates show up, and each card says **Installing…** until Decky finishes, then a toast confirms it.
-- **Settings** — in tabs (**L1** / **R1** switch between them): **General** picks the language (translations other than English are made automatically, so they may have mistakes) and adjusts the display (**Grid** or **List**, **Default** or **Compact** density, items per row, haptics, whether DeckyHub has its own tab in Quick Access, and which Manage-window buttons to hide); **GitHub** takes an optional personal access token to raise the API rate limit (typed, or loaded from a text file in Downloads); **Downloads** shows the download folder and the **Overwrite Existing** toggle; **Repositories** removes tracked repositories, exports and imports your list, and adds other people's app lists under **Custom Registries**; **Logs** has **Export Logs** for bug reports; **About** says what DeckyHub is and credits the catalogs it builds on. Per-repository release-channel overrides live behind each app's **Manage** button on Discover/Updates instead.
+- **[Updates](#updates)** — see which of your tracked, installed tools have a newer release available and what each one brings, and update the Decky plugins among them in one go with **Update All**. DeckyHub checks in the background every few hours, so the dot on its icon and a toast tell you when new updates show up, and each card says **Installing…** until Decky finishes, then a toast confirms it.
+- **[Settings](#settings)** — language, display, an optional GitHub token, downloads, your tracked repositories and custom registries, and log export.
 - **Quick Access Menu** — DeckyHub has its own tab (the four-square DeckyHub icon, with a dot when updates are waiting) in the Quick Access tab strip, next to Decky's, and still opens from Decky's plugin list too. It shows **Discover**, **Search** and **Settings**, plus **Updates** with a count whenever updates are waiting. Below them: DeckyHub's own version and update check, and a **Cleanup** section (shown when the download folder has files) that empties it after confirmation.
 
-DeckyHub never installs or runs anything automatically. **Download ZIP** saves a release, which you install yourself via Decky's settings → Developer → Install Plugin from ZIP. For one-tap install, update and uninstall, see [Manage](#manage).
+If you'd rather install a plugin yourself, **Download ZIP** saves the release instead, and you install it the same way as DeckyHub itself (see [Installing DeckyHub](#installing-deckyhub), step 3).
 
 ## The plugin list
 
@@ -70,11 +72,16 @@ No setup, no configuration — the plugin list shows up in Discover the moment y
 - **[Decky Extended Plugins](https://decky-extended-plugins.beallio.com/)** by [beallio](https://github.com/beallio): a community catalog of the Decky store plus community plugins, with a [security audit](https://decky-extended-plugins.beallio.com/audit).
 - **[Decky Plugins Explorer](https://safetzahirovic.github.io/decky-plugins-explorer/)** by [SafetZahirovic](https://github.com/SafetZahirovic): a nightly crawl of every public GitHub repository with a Decky `plugin.json`.
 
-A daily job checks both catalogs, plus its own search of GitHub for repositories tagged or named like Decky plugins, for plugins that aren't listed yet, skips ones that look unfinished (brand new, nobody using them yet, a placeholder version), and opens a pull request with the ones that qualify. Every plugin, however it was found, has to have a stable GitHub release with exactly one plugin ZIP whose `plugin.json` name matches. These are automatic checks for a working release: nobody reviews the plugins themselves, for safety or anything else; the [catalog](https://mazillka.github.io/deckyhub-registry/) and Discover flag plugins that run as root, haven't had a release in a year, or got a warning from the [security audit](https://decky-extended-plugins.beallio.com/audit).
+A daily job checks both catalogs, plus its own search of GitHub for repositories tagged or named like Decky plugins, for plugins that aren't listed yet, skips ones that look unfinished (brand new, nobody using them yet, a placeholder version), and opens a pull request with the ones that qualify. Every plugin, however it was found, has to have a stable GitHub release with exactly one plugin ZIP whose `plugin.json` name matches. These are automatic checks for a working release: nobody reviews the plugins themselves, for safety or anything else; the [catalog](https://mazillka.github.io/deckyhub-registry/) and Discover flag plugins that run as root, haven't had a release in a year, or got a warning from the [security audit](https://decky-extended-plugins.beallio.com/audit) (see [Badges](#badges)).
 
 - **Browse it:** the [plugin catalog](https://mazillka.github.io/deckyhub-registry/) lists every plugin, searchable and by category, with downloads and stars.
 - **Suggest a plugin:** open an [issue](https://github.com/mazillka/deckyhub-registry/issues/new) or a pull request in the registry repository.
 - **Want more?** Find any other Decky plugin on GitHub with **[Search & Install](#search--install)**.
+
+## Requirements
+
+- A Steam Deck, or another SteamOS device, with [Decky Loader](https://decky.xyz/) 3.x installed.
+- An internet connection that can reach GitHub. No GitHub account is needed.
 
 ## Installing DeckyHub
 
@@ -83,7 +90,7 @@ A daily job checks both catalogs, plus its own search of GitHub for repositories
 3. In Gaming Mode, open the Quick Access Menu → Decky → settings (gear icon). Turn on **Developer mode** under General if it's off, then go to **Developer** → **Install Plugin from ZIP** and select the downloaded file.
 4. Open the Quick Access Menu and pick DeckyHub's four-square icon in the tab strip (or Decky → **DeckyHub**).
 
-DeckyHub is the first and last plugin you'll ever install from a ZIP: from then on it installs and updates your other plugins, and itself, right from Gaming Mode.
+From then on, DeckyHub installs and updates your other plugins, and itself, right from Gaming Mode.
 
 ## Using DeckyHub
 
@@ -103,7 +110,42 @@ Steam's footer shows these actions for whichever button is focused.
 
 Discover opens on three shelves, **Most popular**, **Recently updated** and **New in DeckyHub**, under a row of category chips with how many plugins each holds. Tap a chip, or **See all** on a shelf, to browse the whole list: as a compact list of every plugin (the default), or as a **Grid** of cards a page at a time (**L1** / **R1** turn the page). **Updates** and **Search** have the same **Grid** / **List** switch, and DeckyHub remembers your choice. The first time, a short welcome above the shelves says what DeckyHub does and how to stay safe.
 
-Browse the list or search it by name, repository, category or description, and open **Filters** to filter by **Status** (All, Installed, or Not Installed) and **Category**, and **Sort** A to Z, Z to A, Most downloaded, Most stars, Recently updated, or Recently added (newest additions to the list first; plugins with an update always come first), with **Then by** ordering plugins the first sort leaves tied. Every **Status** and **Category** option shows how many plugins it would list. Each card is color-coded (green once it's up to date, yellow when an update is available, red on an error) so you can spot what needs attention at a glance, and says **Checking…** while its latest release is still being looked up. Listed plugins also show their all-time downloads, GitHub stars and when they were last updated, plus a **Runs as root** badge when the plugin's backend runs as root (full access to the system), **No release in a year** when it may be abandoned, and **Fork** on a fork that carries a plugin on after its original stopped. Warnings from Decky Extended Plugins' automated [security audit](https://decky-extended-plugins.beallio.com/audit) of the release you'd install sit beside them: **Reads private data**, **Changes system startup**, **Code not in its repo**, **Hidden code**, **Skips HTTPS checks**, **Runs downloaded scripts**, **Known vulnerabilities**, or **Blocked by audit** (not recommended for installation). **More** on the "What the badges on plugins mean" notice at the top of Discover explains each badge and links to the audit; a warning isn't proof of harm, and no warning isn't proof of safety. Those numbers and warnings come from the registry, refreshed every hour; the page header shows the total downloads. A card set to the pre-release **Channel** says so; stable is the default and isn't labelled. Tap **Manage** on any card to pick a channel and version, then download the release asset you want.
+Each card is color-coded (green once it's up to date, yellow when an update is available, red on an error) so you can spot what needs attention at a glance, and says **Checking…** while its latest release is still being looked up. Listed plugins also show their all-time downloads, GitHub stars and when they were last updated; the page header shows the total downloads. A card set to the pre-release **Channel** says so; stable is the default and isn't labelled. Tap **Manage** on any card to pick a channel and version, then download the release asset you want.
+
+#### Search, filters and sorting
+
+Search the list by name, repository, category or description, and open **Filters** to narrow it:
+
+- **Status:** All, Installed, or Not Installed.
+- **Category:** any of the list's categories.
+- **Sort:** A to Z, Z to A, Most downloaded, Most stars, Recently updated, or Recently added (newest additions to the list first). Plugins with an update always come first, and **Then by** orders plugins the first sort leaves tied.
+
+Every **Status** and **Category** option shows how many plugins it would list.
+
+#### Badges
+
+Cards can carry these badges. **More** on the "What the badges on plugins mean" notice at the top of Discover explains them in the app too.
+
+| Badge | What it means |
+| --- | --- |
+| **Runs as root** | Its backend runs as root, with full access to the system. Install only if you trust the author. |
+| **No release in a year** | No new release for over a year, so it may be abandoned. |
+| **Fork** | A fork that carries a plugin on after its original stopped. DeckyHub lists it only while it's the active one. |
+
+These warnings come from Decky Extended Plugins' automated [security audit](https://decky-extended-plugins.beallio.com/audit) of the release you'd install. Routine findings like `sudo`, `mount` or `systemctl` aren't shown. A warning isn't proof of harm, and no warning isn't proof of safety.
+
+| Warning | What the audit found |
+| --- | --- |
+| **Blocked by audit** | Malware or a broken archive. Not recommended for installation. |
+| **Reads private data** | It reads Steam login data, SSH keys or secrets from the environment. |
+| **Changes system startup** | It edits shell profiles, preloads libraries, loads kernel modules or adds device rules, which keep working outside Decky. |
+| **Code not in its repo** | The release has scripts or programs that aren't in its GitHub source, so you can't read what they do. |
+| **Hidden code** | It contains encoded or packed code that's hard to read. |
+| **Skips HTTPS checks** | It turns off certificate checks, so what it downloads could be tampered with. |
+| **Runs downloaded scripts** | It downloads a script and runs it straight away. |
+| **Known vulnerabilities** | It bundles libraries with published security flaws. |
+
+A warning about a newer pre-release is labelled **Pre-release:**. Download counts, stars and warnings come from the registry, refreshed every hour.
 
 ### Search & Install
 
@@ -121,7 +163,7 @@ Tracked repositories are listed in **Settings** → **Repositories**, where you 
 
 ### Updates
 
-Shows every tracked tool that's installed and has a newer release available, along with its installed and latest version. Update a plugin from its [Manage](#manage) window, or, when more than one Decky plugin is waiting, tap **Update All** to hand them all to Decky Loader's installer behind a single confirmation. Plugins that need a fresh install instead of an in-place update (currently Unifideck) are left out of **Update All**; update those from their Manage window. The **Updates** button in the Quick Access Menu shows how many updates are waiting.
+Shows every tracked tool that's installed and has a newer release available, along with its installed and latest version. Update a plugin from its [Manage](#manage) window, or, when more than one Decky plugin is waiting, tap **Update All** to hand them all to Decky Loader's installer behind a single confirmation. A few plugins can't be updated in place because of a Decky Loader bug: **Update All** leaves them out, and their Manage window explains that DeckyHub removes the installed version before Decky installs the new one. The **Updates** button in the Quick Access Menu shows how many updates are waiting.
 
 ### Manage
 
@@ -133,6 +175,23 @@ Tap **Manage** on any card in Discover or Updates to:
 - for an installed Decky plugin, **Uninstall**, which asks you to confirm and then removes the plugin and its settings through Decky Loader;
 - check the **Virus scan** of the selected version's ZIP: **No threats found**, **Threat found** (with what was matched), or **Not scanned yet**, and when it was scanned. **Scan report** shows the full report: the file, its SHA-256, the ClamAV and signature versions, and the date. DeckyHub's registry [scans every plugin ZIP it offers](https://github.com/mazillka/deckyhub-registry#repositories) with [ClamAV](https://www.clamav.net/), an open-source antivirus, every few hours, so a brand-new release may not have a report yet. A clean scan isn't proof of safety: ClamAV knows Linux malware less well than Windows malware.
 
+### Settings
+
+Settings is split into tabs; **L1** / **R1** switch between them.
+
+| Tab | What's in it |
+| --- | --- |
+| **General** | The language, and the display: **Grid** or **List**, **Default** or **Compact** density, items per row, haptics, whether DeckyHub has its own tab in Quick Access, and which Manage-window buttons to hide. |
+| **GitHub** | An optional personal access token that raises GitHub's rate limit (see [Troubleshooting](#troubleshooting)). Type it, or load it from a text file in Downloads. |
+| **Downloads** | The download folder and the **Overwrite Existing** toggle (see [Downloads](#downloads)). |
+| **Repositories** | Your tracked repositories, export and import, and **Custom Registries** (see [Repositories](#repositories)). |
+| **Logs** | **Export Logs**, for bug reports. |
+| **About** | What DeckyHub is, and the catalogs it builds on. |
+
+DeckyHub comes in English, Ukrainian, Russian, Spanish, German, French, Portuguese (Brazil and Portugal), Italian, Polish, Turkish, Dutch, Czech, Japanese, Korean, and Chinese (Simplified and Traditional). Translations other than English are made automatically, so they may have mistakes; corrections are welcome.
+
+A tracked app's release channel isn't set here: use its [Manage](#manage) window.
+
 ### Downloads
 
 All downloads are saved to `/home/deck/Downloads/deckyhub`. **Cleanup** → **Empty Folder** in the Quick Access Menu clears that folder after confirmation. Starting a download opens a progress dialog with a **Cancel** button; once it finishes, the same dialog shows where the ZIP was saved and how to install it. If a download is interrupted, no partial file is left behind.
@@ -143,8 +202,6 @@ When GitHub provides a checksum for a release asset, DeckyHub always verifies it
 
 Repositories is a tab in **Settings**. Add a repository from **Search** with the **+** beside a result's **Install** (results already in DeckyHub say **In DeckyHub** instead). Export your custom repositories to `DeckyHub-repositories.json` in `/home/deck/Downloads` to back them up or share them, or import that file back in. Any repository you've added can be removed again here; the plugins in DeckyHub's own list stay available and can't be removed. Prefer a bigger screen? The [Registry Editor](https://mazillka.github.io/deckyhub-registry/editor.html) is a browser-based tool for building or editing a repository list file before importing it.
 
-To switch a tracked app between stable and pre-release releases, use its [Manage](#manage) window.
-
 Under **Custom Registries**, add someone else's app list by its GitHub `owner/repo` (DeckyHub reads its `registry/apps.json`) or any HTTPS `.json` URL. Its apps join Discover alongside DeckyHub's own; up to 10 registries are allowed, and **Refresh registries** downloads them all again. An added registry can only add apps: it can't change or replace one DeckyHub already lists, including the plugins you have installed.
 
 ### Keeping DeckyHub itself updated
@@ -152,19 +209,36 @@ Under **Custom Registries**, add someone else's app list by its GitHub `owner/re
 The Quick Access Menu shows the installed version (**DeckyHub vX.Y.Z**) and checks for a newer DeckyHub release in the background, with a notification the first time one appears; a note names the new version and an **Update** button installs it straight away, like an app card's. **Manage** opens DeckyHub's update window, where you pick a channel (**Stable releases**, or **Pre-releases** for every release) and a version, then:
 
 - **Update to / Reinstall / Downgrade to vX.Y.Z** — downloads that release (with a progress window) and hands it to Decky Loader's own installer (the same one the Decky store uses), which verifies its SHA-256 checksum and installs it in place. Only releases with a published checksum are offered.
-- **Download ZIP** — the classic path: saves the release ZIP to `/home/deck/Downloads/deckyhub`, which you then install yourself via Decky's settings → Developer → Install Plugin from ZIP.
+- **Download ZIP** — the classic path: saves the release ZIP to `/home/deck/Downloads/deckyhub`, which you then install yourself (see [Installing DeckyHub](#installing-deckyhub), step 3).
 
 The update window also shows the selected release's **Virus scan** report. Every DeckyHub release is scanned with ClamAV before it's published (a release with anything found isn't published), and its scan report is attached to the [release](https://github.com/mazillka/deckyhub-plugin/releases); its Python and TypeScript code is checked by GitHub [CodeQL](https://github.com/mazillka/deckyhub-plugin/actions/workflows/codeql.yml) on every change.
 
-If automatic update isn't available for some reason (e.g. running inside an older Decky Loader build), fall back to Download ZIP.
-
 **Registry Channel**, in DeckyHub's own **Manage** window (Quick Access → DeckyHub → **Manage**), picks which version of DeckyHub's own plugin list you see. **Stable** (the default) is what everyone gets. **Pre-release** shows plugins and list changes that are still being tested, and Updates and Discover say **Pre-release registry** while it's on; if that list can't be loaded, DeckyHub uses the stable one. Switching reloads the list straight away.
 
-## Good to know
+## Uninstalling DeckyHub
 
-- DeckyHub talks to GitHub without needing you to log in. Release info for DeckyHub's list comes from one file the registry refreshes every hour, so browsing doesn't use up GitHub's public rate limit (60 requests/hour); searching and repositories you added yourself still ask GitHub directly, so very heavy use may hit it — if it does, the error names it as a rate limit and says roughly how long to wait, rather than just a raw status code. Add a personal access token in **Settings → GitHub** (no scopes needed — it only reads public repos and releases) to raise that to 5,000/hour; the token stays on your device and is only ever sent to `api.github.com`.
-- Release information is cached for 30 minutes, so opening the same app's Manage window or the DeckyHub update modal again shortly after won't always show something new. Every "Check for Updates" and "Refresh" button bypasses this and fetches fresh release info, though a brand-new release can take up to an hour to reach the plugin list's release file.
-- Downloads only ever happen over HTTPS.
+Open Decky's settings (gear icon) → **Plugins**, open the menu next to **DeckyHub** and choose **Uninstall**. Decky removes DeckyHub together with its settings and cached lists. Plugins you installed through DeckyHub stay installed.
+
+Files DeckyHub saved to Downloads aren't removed: release ZIPs in `/home/deck/Downloads/deckyhub`, and any exported repository lists or log ZIPs in `/home/deck/Downloads`. Use **Cleanup** → **Empty Folder** before uninstalling, or delete them in Desktop Mode.
+
+## Troubleshooting
+
+- **"Rate limit" errors.** DeckyHub talks to GitHub without needing you to log in. Release info for DeckyHub's list comes from one file the registry refreshes every hour, so browsing doesn't use up GitHub's public rate limit (60 requests/hour). Searching and repositories you added yourself still ask GitHub directly, so very heavy use may hit it; the error then says roughly how long to wait. To raise the limit to 5,000/hour, add a personal access token in **Settings → GitHub** (no scopes needed; see [Privacy](#privacy) for where it goes).
+- **A new release doesn't show up.** Release information is cached for 30 minutes. Every **Check for Updates** and **Refresh** button skips the cache, though a brand-new release can take up to an hour to reach the plugin list's release file.
+- **Discover is empty on a fresh install.** DeckyHub needs to reach GitHub once to download the plugin list; after that it works offline from the last copy.
+- **Install, Update or DeckyHub's own update doesn't work.** On an older Decky Loader build, one-tap installs may not be available. Use **Download ZIP** and install it from Decky's Developer settings (see [Installing DeckyHub](#installing-deckyhub), step 3), or update Decky Loader.
+- **Anything else.** Open an issue (see [Getting help](#getting-help)) and attach the ZIP from **Export Logs**.
+
+Downloads only ever happen over HTTPS.
+
+## Privacy
+
+DeckyHub has no account, analytics or telemetry, and sends nothing to its author or to any server of its own.
+
+- **What it connects to:** only GitHub — `raw.githubusercontent.com` and `github.com` for the plugin list, release info, virus scan reports and downloads, and `api.github.com` for search and repositories that aren't in the list — plus the HTTPS address of any custom registry you add. GitHub sees these requests as it would any browser's (your IP address and which repositories are looked up), under [GitHub's privacy statement](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement). Links such as a plugin's repository or the audit page open only when you tap them.
+- **What stays on your Deck:** your settings, tracked repositories, custom registries and the cached plugin list and release info. The settings file is readable only by your user.
+- **Your GitHub token** is optional, needs no scopes, is only ever sent to `api.github.com`, and is never written to the logs.
+- **Logs** never leave the Deck on their own. **Export Logs** saves a ZIP to your Downloads folder with what DeckyHub did and any errors (repository names, file paths, versions); you decide whether to attach it to an issue.
 
 ## Disclaimer
 
@@ -176,6 +250,6 @@ GPL-3.0-or-later — see [LICENSE.md](LICENSE.md).
 
 ## Getting help
 
-Found a bug or have an idea? Open an issue on the [GitHub repository](https://github.com/mazillka/deckyhub-plugin/issues) with a description of what happened; attaching the ZIP from **Export Logs** (**Settings** → **Logs**) helps, and it never contains your GitHub token. Feedback and suggestions are always welcome.
+Found a bug or have an idea? Open an issue on the [GitHub repository](https://github.com/mazillka/deckyhub-plugin/issues) with a description of what happened; attaching the ZIP from **Export Logs** (**Settings** → **Logs**) helps. Feedback and suggestions are always welcome.
 
 Want to build DeckyHub from source or contribute a change? See [CONTRIBUTING.md](CONTRIBUTING.md).
