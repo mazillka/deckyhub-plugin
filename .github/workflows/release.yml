@@ -199,8 +199,59 @@ jobs:
           echo "**VirusTotal:** $result${detections:+ ($detections)} — [report]($url)" >> "$GITHUB_STEP_SUMMARY"
           [[ "$result" == clean ]] || echo "::warning::VirusTotal result for $zip: $result${detections:+ ($detections)}. The release is still published; its notes say so."
 
+  # Same idea with OPSWAT MetaDefender Cloud (20+ engines), again only for DeckyHub's own
+  # ZIP: never stops the release, skipped when the METADEFENDER_API_KEY secret isn't set.
+  metadefender:
+    needs: build
+    runs-on: ubuntu-latest
+    outputs:
+      result: ${{ steps.md.outputs.result }}
+      detections: ${{ steps.md.outputs.detections }}
+      url: ${{ steps.md.outputs.url }}
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-zip
+      - name: Scan the release ZIP on MetaDefender
+        id: md
+        env:
+          MD_API_KEY: ${{ secrets.METADEFENDER_API_KEY }}
+        run: |
+          zip="DeckyHub-${GITHUB_REF_NAME}.zip"
+          if [[ -z "$MD_API_KEY" ]]; then
+            echo "::notice::METADEFENDER_API_KEY isn't set, so the ZIP wasn't uploaded to MetaDefender."
+            echo "result=skipped" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          result=error
+          detections=""
+          url=""
+          if data_id=$(curl -sSf --retry 3 -X POST -H "apikey: $MD_API_KEY" -H "filename: $zip" -H "Content-Type: application/octet-stream" --data-binary "@$zip" https://api.metadefender.com/v4/file | jq -er '.data_id'); then
+            url="https://metadefender.opswat.com/results/file/${data_id}/regular/overview"
+            result=pending
+            # Poll every 20 s, for up to 15 minutes.
+            for _ in $(seq 45); do
+              sleep 20
+              body=$(curl -sSf --retry 3 -H "apikey: $MD_API_KEY" "https://api.metadefender.com/v4/file/${data_id}") || continue
+              [[ "$(jq -r '.scan_results.progress_percentage // 0' <<< "$body")" == 100 ]] || continue
+              detected=$(jq '.scan_results.total_detected_avs // 0' <<< "$body")
+              total=$(jq '.scan_results.total_avs // 0' <<< "$body")
+              detections="$detected/$total"
+              if (( detected == 0 )); then result=clean; else result=flagged; fi
+              jq -r '"Verdict: \(.scan_results.scan_all_result_a)"' <<< "$body"
+              jq -r '.scan_results.scan_details | to_entries[] | select((.value.threat_found // "") != "") | "\(.key): \(.value.threat_found)"' <<< "$body"
+              break
+            done
+          else
+            echo "::warning::Couldn't upload the ZIP to MetaDefender (bad API key, quota used up or service down)."
+          fi
+          echo "MetaDefender: $result${detections:+ ($detections engines flagged it)} $url"
+          { echo "result=$result"; echo "detections=$detections"; echo "url=$url"; } >> "$GITHUB_OUTPUT"
+          echo "**MetaDefender:** $result${detections:+ ($detections)}${url:+ — [report]($url)}" >> "$GITHUB_STEP_SUMMARY"
+          [[ "$result" == clean ]] || echo "::warning::MetaDefender result for $zip: $result${detections:+ ($detections)}. The release is still published; its notes say so."
+
   publish:
-    needs: [build, scan, virustotal]
+    needs: [build, scan, virustotal, metadefender]
     # The scan never holds a release back, even if its job broke: the notes say so.
     if: ${{ !cancelled() && needs.build.result == 'success' }}
     runs-on: ubuntu-latest
@@ -240,8 +291,16 @@ jobs:
           esac
           vt_line=""
           [[ -n "$vt" ]] && vt_line="- **VirusTotal:** $vt"$'\n'
+          case "$MD_RESULT" in
+            clean) md="No engine flagged \`$zip\` (${MD_DETECTIONS}) — [MetaDefender report]($MD_URL)." ;;
+            flagged) md="${MD_DETECTIONS} engines flagged \`$zip\` — [MetaDefender report]($MD_URL). Single detections are often false positives; read the report before you install." ;;
+            pending) md="MetaDefender hadn't finished when this release was published — [see its report]($MD_URL)." ;;
+            *) md="" ;;
+          esac
+          md_line=""
+          [[ -n "$md" ]] && md_line="- **MetaDefender:** $md"$'\n'
           # Kept as the last section when the notes are rewritten (AGENTS.md's Release section).
-          notes="## Security checks"$'\n\n'"- **Virus scan:** $scan"$'\n'"$vt_line""- **Code analysis:** GitHub [CodeQL](https://github.com/${GITHUB_REPOSITORY}/actions/workflows/codeql.yml) checks the Python and TypeScript code on every change."
+          notes="## Security checks"$'\n\n'"- **Virus scan:** $scan"$'\n'"$vt_line""$md_line""- **Code analysis:** GitHub [CodeQL](https://github.com/${GITHUB_REPOSITORY}/actions/workflows/codeql.yml) checks the Python and TypeScript code on every change."
           gh release create "$GITHUB_REF_NAME" "${files[@]}" --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes --notes "$notes" "${prerelease[@]}"
         env:
           GH_TOKEN: ${{ github.token }}
@@ -250,3 +309,38 @@ jobs:
           VT_RESULT: ${{ needs.virustotal.outputs.result }}
           VT_DETECTIONS: ${{ needs.virustotal.outputs.detections }}
           VT_URL: ${{ needs.virustotal.outputs.url }}
+          MD_RESULT: ${{ needs.metadefender.outputs.result }}
+          MD_DETECTIONS: ${{ needs.metadefender.outputs.detections }}
+          MD_URL: ${{ needs.metadefender.outputs.url }}
+      # shields.io endpoint JSON for the README's and the website's VirusTotal and
+      # MetaDefender badges, on the orphan `badges` branch. Stable releases only, like the
+      # Release badge next to them; a scan that was skipped or failed keeps the old badge.
+      - name: Update the scan badges
+        if: ${{ !contains(github.ref_name, '-') }}
+        continue-on-error: true
+        run: |
+          badge() { # file label result detections
+            local color message
+            case "$3" in
+              clean) color=brightgreen; message="no threats ($4, ${GITHUB_REF_NAME})" ;;
+              flagged) color=orange; message="$4 flagged (${GITHUB_REF_NAME})" ;;
+              pending) color=lightgrey; message="pending (${GITHUB_REF_NAME})" ;;
+              *) return 0 ;;
+            esac
+            jq -nc --arg label "$2" --arg message "$message" --arg color "$color" '{schemaVersion: 1, label: $label, message: $message, color: $color}' > "$1"
+          }
+          remote="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git clone -q --depth 1 --branch badges "$remote" badges; then cd badges
+          else mkdir badges && cd badges && git init -q -b badges; fi
+          badge virustotal.json VirusTotal "$VT_RESULT" "$VT_DETECTIONS"
+          badge metadefender.json MetaDefender "$MD_RESULT" "$MD_DETECTIONS"
+          git add -A
+          git diff --cached --quiet && exit 0
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "Scan badges for ${GITHUB_REF_NAME}"
+          git push -q "$remote" HEAD:badges
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VT_RESULT: ${{ needs.virustotal.outputs.result }}
+          VT_DETECTIONS: ${{ needs.virustotal.outputs.detections }}
+          MD_RESULT: ${{ needs.metadefender.outputs.result }}
+          MD_DETECTIONS: ${{ needs.metadefender.outputs.detections }}
