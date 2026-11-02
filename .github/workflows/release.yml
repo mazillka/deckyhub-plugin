@@ -142,8 +142,65 @@ jobs:
           path: ClamAV-scan-${{ github.ref_name }}.txt
           if-no-files-found: error
 
+  # Uploads DeckyHub's own release ZIP to VirusTotal (70+ antivirus engines) and waits for
+  # the verdict. Only DeckyHub's ZIP: listed plugins are only looked up by SHA-256 in the
+  # app, never uploaded. Like the ClamAV scan it never stops the release, and it's skipped
+  # when the VIRUSTOTAL_API_KEY secret isn't set. Free-tier uploads are public on
+  # VirusTotal, which is fine: the same ZIP is published on GitHub minutes later.
+  virustotal:
+    needs: build
+    runs-on: ubuntu-latest
+    outputs:
+      result: ${{ steps.vt.outputs.result }}
+      detections: ${{ steps.vt.outputs.detections }}
+      url: ${{ steps.vt.outputs.url }}
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-zip
+      - name: Scan the release ZIP on VirusTotal
+        id: vt
+        env:
+          VT_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
+        run: |
+          zip="DeckyHub-${GITHUB_REF_NAME}.zip"
+          sha=$(sha256sum "$zip" | cut -d' ' -f1)
+          url="https://www.virustotal.com/gui/file/${sha}"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          if [[ -z "$VT_API_KEY" ]]; then
+            echo "::notice::VIRUSTOTAL_API_KEY isn't set, so the ZIP wasn't uploaded to VirusTotal."
+            echo "result=skipped" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          result=error
+          detections=""
+          # The free API allows 4 requests a minute, so poll every 30 s, for up to 15 minutes.
+          if analysis=$(curl -sSf --retry 3 -H "x-apikey: $VT_API_KEY" -F "file=@$zip" https://www.virustotal.com/api/v3/files | jq -er '.data.id'); then
+            result=pending
+            for _ in $(seq 30); do
+              sleep 30
+              body=$(curl -sSf --retry 3 -H "x-apikey: $VT_API_KEY" "https://www.virustotal.com/api/v3/analyses/${analysis}") || continue
+              [[ "$(jq -r '.data.attributes.status' <<< "$body")" == completed ]] || continue
+              malicious=$(jq '.data.attributes.stats.malicious' <<< "$body")
+              suspicious=$(jq '.data.attributes.stats.suspicious' <<< "$body")
+              # Engines that gave a verdict; unsupported/timed-out/failed ones don't count.
+              total=$(jq '.data.attributes.stats | .malicious + .suspicious + .undetected + .harmless' <<< "$body")
+              detections="$((malicious + suspicious))/$total"
+              if (( malicious + suspicious == 0 )); then result=clean; else result=flagged; fi
+              jq '.data.attributes.stats' <<< "$body"
+              jq -r '.data.attributes.results[] | select(.category == "malicious" or .category == "suspicious") | "\(.engine_name): \(.result)"' <<< "$body"
+              break
+            done
+          else
+            echo "::warning::Couldn't upload the ZIP to VirusTotal (bad API key, quota used up or service down)."
+          fi
+          echo "VirusTotal: $result${detections:+ ($detections engines flagged it)} $url"
+          { echo "result=$result"; echo "detections=$detections"; } >> "$GITHUB_OUTPUT"
+          echo "**VirusTotal:** $result${detections:+ ($detections)} — [report]($url)" >> "$GITHUB_STEP_SUMMARY"
+          [[ "$result" == clean ]] || echo "::warning::VirusTotal result for $zip: $result${detections:+ ($detections)}. The release is still published; its notes say so."
+
   publish:
-    needs: [build, scan]
+    needs: [build, scan, virustotal]
     # The scan never holds a release back, even if its job broke: the notes say so.
     if: ${{ !cancelled() && needs.build.result == 'success' }}
     runs-on: ubuntu-latest
@@ -175,10 +232,21 @@ jobs:
             error) scan="ClamAV couldn't scan \`$zip\`$link." ;;
             *) scan="The ClamAV scan didn't run for this release." ;;
           esac
+          case "$VT_RESULT" in
+            clean) vt="No engine flagged \`$zip\` (${VT_DETECTIONS}) — [VirusTotal report]($VT_URL)." ;;
+            flagged) vt="${VT_DETECTIONS} engines flagged \`$zip\` — [VirusTotal report]($VT_URL). Single detections are often false positives; read the report before you install." ;;
+            pending) vt="VirusTotal hadn't finished when this release was published — [see its report]($VT_URL)." ;;
+            *) vt="" ;;
+          esac
+          vt_line=""
+          [[ -n "$vt" ]] && vt_line="- **VirusTotal:** $vt"$'\n'
           # Kept as the last section when the notes are rewritten (AGENTS.md's Release section).
-          notes="## Security checks"$'\n\n'"- **Virus scan:** $scan"$'\n'"- **Code analysis:** GitHub [CodeQL](https://github.com/${GITHUB_REPOSITORY}/actions/workflows/codeql.yml) checks the Python and TypeScript code on every change."
+          notes="## Security checks"$'\n\n'"- **Virus scan:** $scan"$'\n'"$vt_line""- **Code analysis:** GitHub [CodeQL](https://github.com/${GITHUB_REPOSITORY}/actions/workflows/codeql.yml) checks the Python and TypeScript code on every change."
           gh release create "$GITHUB_REF_NAME" "${files[@]}" --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes --notes "$notes" "${prerelease[@]}"
         env:
           GH_TOKEN: ${{ github.token }}
           RESULT: ${{ needs.scan.outputs.result }}
           FOUND: ${{ needs.scan.outputs.found }}
+          VT_RESULT: ${{ needs.virustotal.outputs.result }}
+          VT_DETECTIONS: ${{ needs.virustotal.outputs.detections }}
+          VT_URL: ${{ needs.virustotal.outputs.url }}
