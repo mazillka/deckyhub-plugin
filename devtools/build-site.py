@@ -27,7 +27,7 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parent.parent
 REGISTRY_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/refs/heads/main/registry/apps.json"
 RELEASES_URL = "https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=30"
-SITE = "https://mazillka.github.io/deckyhub-plugin/"
+SITE = "https://deckyhub.com/"
 REPO_URL = "https://github.com/mazillka/deckyhub-plugin"
 
 
