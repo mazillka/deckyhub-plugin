@@ -151,7 +151,7 @@ export function DeckyHubUpdateModal({
           </>
         )
       }
-      scan={<VirusScanReport t={t} asset={selectedRelease?.asset} note={t("scan.deckyhubChecks")} />}
+      scan={<VirusScanReport t={t} asset={selectedRelease?.asset} note={t("scan.deckyhubChecks")} closeModal={closeModal} />}
       channel={channel}
       onChannelChange={(next) => void changeChannel(next)}
       versionOptions={versionOptions}

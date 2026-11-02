@@ -51,12 +51,16 @@ export const ForkBadge = ({ t, repo }: { t: TFunc; repo?: string }) => (
   <span title={repo ? t("appcard.forkOf", { repo }) : t("appcard.forkHint")} style={{ ...pillStyle, color: "#b8c7d3", background: "#b8c7d322", borderColor: "#b8c7d366" }}>{t("appcard.fork")}</span>
 );
 
-// ClamAV's verdict on the release the card installs (the registry's scans.json), also shown
-// in Discover's legend. Nothing until the ZIP has a report; Manage has the full report.
+// The virus scans' verdict on the release the card installs (the registry's scans.json):
+// the worse of ClamAV's and YARA's, also shown in Discover's legend. Nothing until the ZIP
+// has a report; Manage has the full report.
 export type ScanBadgeKind = "clean" | "infected" | "partial";
 export const SCAN_BADGES: ScanBadgeKind[] = ["clean", "infected", "partial"];
 const SCAN_COLORS: Record<ScanBadgeKind, string> = { clean: "#6bcb6b", infected: "#ff8a8a", partial: "#ffb35c" };
-const scanKind = (scan: VirusScan): ScanBadgeKind => (scan.result === "clean" ? "clean" : scan.result === "infected" ? "infected" : "partial");
+const scanKind = (scan: VirusScan): ScanBadgeKind => {
+  const results = [scan.result, scan.yara?.result];
+  return results.includes("infected") ? "infected" : results.some((result) => result && result !== "clean") ? "partial" : "clean";
+};
 
 export const ScanBadge = ({ t, kind }: { t: TFunc; kind: ScanBadgeKind }) => {
   const color = SCAN_COLORS[kind];
