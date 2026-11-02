@@ -2,18 +2,22 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>DeckyHub — the plugin hub for your Steam Deck</title>
-<meta name="description" content="Find, install and update Decky Loader plugins straight from Gaming Mode: a catalog of over 500 plugins, or any Decky plugin on GitHub. Gamepad-first, open source, and never installs anything without your tap.">
+<title>DeckyHub: Decky Loader plugin store for Steam Deck</title>
+<meta name="description" content="DeckyHub is a free, open-source plugin store for Steam Deck: find, install and update 500+ Decky Loader plugins from Gaming Mode, including plugins not on the official Decky store.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="canonical" href="https://mazillka.github.io/deckyhub-plugin/">
 <meta name="theme-color" content="#10151f">
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="DeckyHub">
+<meta property="og:locale" content="en_US">
 <meta property="og:url" content="https://mazillka.github.io/deckyhub-plugin/">
-<meta property="og:title" content="DeckyHub — the plugin hub for your Steam Deck">
-<meta property="og:description" content="Discover, download and update Decky Loader plugins straight from Gaming Mode.">
+<meta property="og:title" content="DeckyHub: Decky Loader plugin store for Steam Deck">
+<meta property="og:description" content="Find, install and update 500+ Decky Loader plugins from Gaming Mode, including plugins not on the official Decky store.">
 <meta property="og:image" content="https://mazillka.github.io/deckyhub-plugin/img/og.jpg">
+<meta property="og:image:alt" content="DeckyHub's Discover screen on a Steam Deck, with plugin categories and popular plugins">
 <meta name="twitter:card" content="summary_large_image">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"DeckyHub","applicationCategory":"UtilitiesApplication","operatingSystem":"SteamOS","description":"Decky Loader plugin that discovers, downloads and updates other Steam Deck plugins from Gaming Mode.","url":"https://mazillka.github.io/deckyhub-plugin/","downloadUrl":"https://github.com/mazillka/deckyhub-plugin/releases/latest","image":"https://mazillka.github.io/deckyhub-plugin/img/og.jpg","license":"https://www.gnu.org/licenses/gpl-3.0.html","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+<link rel="alternate" type="application/atom+xml" title="DeckyHub releases" href="https://github.com/mazillka/deckyhub-plugin/releases.atom">
+<!-- structured-data -->
 <style>
 :root{color-scheme:dark;--bg:#10151f;--panel:#182131;--line:#2e405a;--text:#eef4ff;--muted:#b6c3d4;--dim:#8a9bb2;--accent:#1d75cc;--accent2:#4b9cf0;--ok:#59bf6f;--warn:#e8b54a}
 *{box-sizing:border-box}html{scroll-behavior:smooth}
@@ -50,6 +54,7 @@ code{background:#0f1724;border:1px solid var(--line);border-radius:4px;padding:1
 .app{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;text-decoration:none;color:var(--text);display:block}
 .app:hover{border-color:var(--accent2)}.app small{display:block;color:var(--accent2);font-size:.78rem;text-transform:uppercase;letter-spacing:.05em}
 .app p{margin:6px 0 0;color:var(--muted);font-size:.92rem}.app code{font-size:.78rem;color:var(--dim);border:0;background:none;padding:0}
+.latest{margin:14px 0 0;color:var(--dim);font-size:.9rem}.latest:empty{display:none}
 .editor-head{display:flex;flex-wrap:wrap;gap:12px;align-items:end;justify-content:space-between}
 details{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin-bottom:10px}
 summary{cursor:pointer;font-weight:600}details p{color:var(--muted);margin:10px 0 0}
@@ -60,10 +65,11 @@ footer .wrap{display:grid;gap:10px}
 </head>
 <body>
 <nav><div class="wrap">
-<a class="brand" href="#">DeckyHub</a>
-<span class="links" style="display:flex;gap:20px"><a href="#features">Features</a><a href="#tour">Tour</a><a href="#install">Install</a><a href="#catalog">Catalog</a><a class="keep" href="https://mazillka.github.io/deckyhub-registry/editor.html">Registry editor</a><a class="keep" href="https://github.com/mazillka/deckyhub-plugin">GitHub</a></span>
+<a class="brand" href="./">DeckyHub</a>
+<span class="links" style="display:flex;gap:20px"><a href="#features">Features</a><a href="#tour">Tour</a><a href="#install">Install</a><a href="#catalog">Catalog</a><a href="releases.html">Release notes</a><a class="keep" href="https://mazillka.github.io/deckyhub-registry/editor.html">Registry editor</a><a class="keep" href="https://github.com/mazillka/deckyhub-plugin">GitHub</a></span>
 </div></nav>
 
+<main>
 <header><div class="wrap">
 <h1>Your Steam Deck's plugin hub, <br>right inside Gaming Mode.</h1>
 <p class="lead">Discover, download and update Decky Loader plugins with your controller. No Desktop Mode, no hunting through GitHub releases, no zip juggling.</p>
@@ -71,6 +77,7 @@ footer .wrap{display:grid;gap:10px}
 <a class="btn" href="https://github.com/mazillka/deckyhub-plugin/releases/latest">Download DeckyHub</a>
 <a class="btn ghost" href="#install">How to install</a>
 </div>
+<p class="latest"><!-- latest --></p>
 <div class="hero-shot"><picture><source media="(prefers-reduced-motion: reduce)" srcset="img/discover-640.webp 640w, img/discover.webp 1280w" sizes="(max-width:940px) 100vw, 900px"><img src="img/deckyhub.gif" width="800" height="500" style="width:100%" fetchpriority="high" alt="DeckyHub in action on a Steam Deck: its Quick Access tab, Discover, a plugin's details, Updates and Settings"></picture></div>
 </div></header>
 
@@ -91,10 +98,10 @@ footer .wrap{display:grid;gap:10px}
 <h2>Take the tour</h2>
 <p class="sub">Four screens, all reachable from the Quick Access Menu.</p>
 <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(420px,100%),1fr))">
-<figure><div class="shot"><img src="img/menu.webp" srcset="img/menu-640.webp 640w, img/menu.webp 1280w" sizes="(max-width:900px) 100vw, 540px" width="1280" height="800" alt="DeckyHub Menu screen" loading="lazy" decoding="async"></div><figcaption><strong>Menu</strong> — jump to Discover, Search, Updates or Settings from DeckyHub's own Quick Access tab, and keep DeckyHub itself up to date.</figcaption></figure>
-<figure><div class="shot"><img src="img/discover.webp" srcset="img/discover-640.webp 640w, img/discover.webp 1280w" sizes="(max-width:900px) 100vw, 540px" width="1280" height="800" alt="DeckyHub Discover screen" loading="lazy" decoding="async"></div><figcaption><strong>Discover</strong> — browse the catalog, filter by install status, open Manage to pick a channel and version.</figcaption></figure>
-<figure><div class="shot"><img src="img/updates.webp" srcset="img/updates-640.webp 640w, img/updates.webp 1280w" sizes="(max-width:900px) 100vw, 540px" width="1280" height="800" alt="DeckyHub Updates screen" loading="lazy" decoding="async"></div><figcaption><strong>Updates</strong> — every installed tool with a newer release, next to the version you have.</figcaption></figure>
-<figure><div class="shot"><img src="img/manage.webp" srcset="img/manage-640.webp 640w, img/manage.webp 1280w" sizes="(max-width:900px) 100vw, 540px" width="1280" height="800" alt="DeckyHub Manage screen" loading="lazy" decoding="async"></div><figcaption><strong>Manage</strong> — download the ZIP, or install and update through Decky Loader.</figcaption></figure>
+<figure><div class="shot"><img src="img/menu.webp" srcset="img/menu-640.webp 640w, img/menu.webp 1280w" sizes="(max-width:900px) 100vw, 540px" width="1280" height="800" alt="DeckyHub's Quick Access menu on a Steam Deck: update status, Discover, Updates and Settings" loading="lazy" decoding="async"></div><figcaption><strong>Menu</strong> — jump to Discover, Search, Updates or Settings from DeckyHub's own Quick Access tab, and keep DeckyHub itself up to date.</figcaption></figure>
+<figure><div class="shot"><img src="img/discover.webp" srcset="img/discover-640.webp 640w, img/discover.webp 1280w" sizes="(max-width:900px) 100vw, 540px" width="1280" height="800" alt="DeckyHub Discover screen: Decky Loader plugins by category, with downloads, stars and safety badges" loading="lazy" decoding="async"></div><figcaption><strong>Discover</strong> — browse the catalog, filter by install status, open Manage to pick a channel and version.</figcaption></figure>
+<figure><div class="shot"><img src="img/updates.webp" srcset="img/updates-640.webp 640w, img/updates.webp 1280w" sizes="(max-width:900px) 100vw, 540px" width="1280" height="800" alt="DeckyHub Updates screen: installed Decky plugins with new versions and what each update brings" loading="lazy" decoding="async"></div><figcaption><strong>Updates</strong> — every installed tool with a newer release, next to the version you have.</figcaption></figure>
+<figure><div class="shot"><img src="img/manage.webp" srcset="img/manage-640.webp 640w, img/manage.webp 1280w" sizes="(max-width:900px) 100vw, 540px" width="1280" height="800" alt="DeckyHub Manage window for a plugin: version picker, install button and virus scan results" loading="lazy" decoding="async"></div><figcaption><strong>Manage</strong> — download the ZIP, or install and update through Decky Loader.</figcaption></figure>
 </div>
 </div></section>
 
@@ -133,8 +140,10 @@ footer .wrap{display:grid;gap:10px}
 <details><summary>How is DeckyHub made?</summary><p>Most of the code was written with the help of AI tools (Claude and Codex). Every release is still tested on real Steam Deck hardware before it ships.</p></details>
 </div></section>
 
+</main>
+
 <footer><div class="wrap">
-<div>DeckyHub is open source under GPL-3.0-or-later · <a href="https://github.com/mazillka/deckyhub-plugin">Source</a> · <a href="https://github.com/mazillka/deckyhub-plugin/issues">Report an issue</a></div>
+<div>DeckyHub is open source under GPL-3.0-or-later · <a href="https://github.com/mazillka/deckyhub-plugin">Source</a> · <a href="releases.html">Release notes</a> · <a href="https://github.com/mazillka/deckyhub-plugin/issues">Report an issue</a></div>
 <div><strong>Disclaimer:</strong> Not affiliated with Valve or the Decky Loader project. Plugin information comes from public GitHub repositories, and every plugin belongs to its own authors; DeckyHub doesn't review, own or endorse them. Plugins are installed at your own risk, so look at a plugin's repository before you install it.</div>
 </div></footer>
 

@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- devtools/build-site.py rewrites this with each page's last change date. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url><loc>https://mazillka.github.io/deckyhub-plugin/</loc></url>
+<url><loc>https://mazillka.github.io/deckyhub-plugin/releases.html</loc></url>
 </urlset>

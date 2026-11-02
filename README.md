@@ -17,7 +17,7 @@ Find, install and update Decky Loader plugins with your controller — from Deck
 [![License](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE.md)
 [![Decky Loader plugin](https://img.shields.io/badge/Decky_Loader-plugin-green)](https://decky.xyz/)
 
-[**Download**](https://github.com/mazillka/deckyhub-plugin/releases/latest) · [Website](https://mazillka.github.io/deckyhub-plugin/) · [Plugin catalog](https://mazillka.github.io/deckyhub-registry/) · [Install guide](#installing-deckyhub) · [Report an issue](https://github.com/mazillka/deckyhub-plugin/issues)
+[**Download**](https://github.com/mazillka/deckyhub-plugin/releases/latest) · [Website](https://mazillka.github.io/deckyhub-plugin/) · [Release notes](https://mazillka.github.io/deckyhub-plugin/releases.html) · [Plugin catalog](https://mazillka.github.io/deckyhub-registry/) · [Install guide](#installing-deckyhub) · [Report an issue](https://github.com/mazillka/deckyhub-plugin/issues)
 
 <img src="screenshots/hero.jpg" width="800" alt="DeckyHub: Decky plugins, straight from GitHub. Its Discover screen on a Steam Deck, with plugin categories and the most popular plugins.">
 
