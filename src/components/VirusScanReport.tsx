@@ -35,7 +35,7 @@ const VIRUSTOTAL_URL_SCAN = "https://www.virustotal.com/gui/home/url";
 const pageOf = (event?: { currentTarget?: EventTarget | null }) => (event?.currentTarget as Node | null | undefined)?.ownerDocument ?? document;
 
 // The full report for one ZIP, in its own window over the Manage window.
-const showScanReport = (t: TFunc, asset: Asset, scan: VirusScan) =>
+const showScanReport = (t: TFunc, asset: Asset, scan: VirusScan, showExternalGuidance: boolean) =>
   showModal(
     <ConfirmModal
       bAlertDialog
@@ -58,8 +58,8 @@ const showScanReport = (t: TFunc, asset: Asset, scan: VirusScan) =>
           {scan.sha256 && <span>{t("scan.sha256", { hash: scan.sha256 })}</span>}
           {scannersOf(scan).some(({ verdict }) => verdict && verdict.result !== "clean") && <span>{t("scan.yourChoice")}</span>}
           <small style={{ color: MUTED }}>{t("scan.hint")}</small>
-          <small style={{ color: MUTED }}>{t("scan.virusTotalHint")}</small>
-          <small style={{ color: MUTED }}>{t("scan.scanLinkHint")}</small>
+          {showExternalGuidance && <small style={{ color: MUTED }}>{t("scan.virusTotalHint")}</small>}
+          {showExternalGuidance && <small style={{ color: MUTED }}>{t("scan.scanLinkHint")}</small>}
         </div>
       }
     />,
@@ -73,7 +73,19 @@ const showScanReport = (t: TFunc, asset: Asset, scan: VirusScan) =>
 // clipboard, and Scan Link does that too, then opens VirusTotal's URL scan page to paste
 // it into. `note` adds a line under it (DeckyHub's own
 // release checks).
-export function VirusScanReport({ t, asset, note, closeModal }: { t: TFunc; asset?: Asset; note?: string; closeModal?: () => void }) {
+export function VirusScanReport({
+  t,
+  asset,
+  note,
+  closeModal,
+  showExternalActions = true,
+}: {
+  t: TFunc;
+  asset?: Asset;
+  note?: string;
+  closeModal?: () => void;
+  showExternalActions?: boolean;
+}) {
   const [scan, setScan] = useState<VirusScan | null | undefined>(undefined);
   useEffect(() => {
     let current = true;
@@ -127,24 +139,24 @@ export function VirusScanReport({ t, asset, note, closeModal }: { t: TFunc; asse
           {scannersOf(scan).some(({ verdict }) => verdict && verdict.result !== "clean") && <small style={{ color: MUTED }}>{t("scan.yourChoice")}</small>}
         </>
       )}
-      {(scan || sha256 || link) && (
+      {(scan || (showExternalActions && (sha256 || link))) && (
         <Focusable flow-children="right" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
           {scan && (
-            <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={() => showScanReport(t, asset, scan)}>
+            <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={() => showScanReport(t, asset, scan, showExternalActions)}>
               {t("scan.viewReport")}
             </Button>
           )}
-          {sha256 && (
+          {showExternalActions && sha256 && (
             <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={openVirusTotal}>
               <FaExternalLinkAlt /> VirusTotal
             </Button>
           )}
-          {link && (
+          {showExternalActions && link && (
             <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={(event) => void copyLink(pageOf(event))}>
               <FaCopy /> {t("scan.copyLink")}
             </Button>
           )}
-          {link && (
+          {showExternalActions && link && (
             <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={(event) => void scanLink(pageOf(event))}>
               <FaExternalLinkAlt /> {t("scan.scanLink")}
             </Button>
