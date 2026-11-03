@@ -154,7 +154,7 @@ export function AppDetailsModal({
           </>
         )
       }
-      scan={<VirusScanReport t={t} asset={selectedRelease?.assets[0]} closeModal={closeModal} />}
+      scan={<VirusScanReport t={t} asset={selectedRelease?.assets[0]} closeModal={closeModal} showExternalActions={false} />}
       channel={channel}
       onChannelChange={changeChannel}
       versionOptions={versionOptions}
