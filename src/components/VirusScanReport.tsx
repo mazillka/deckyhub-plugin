@@ -123,16 +123,14 @@ export function VirusScanReport({
       (found) => current && setScan(found),
       () => current && setScan("unavailable"),
     );
-    if (!showExternalActions) {
-      virusTotalReportOf(asset).then(
-        (found) => current && setVirusTotal(found),
-        () => current && setVirusTotal(null),
-      );
-    }
+    virusTotalReportOf(asset).then(
+      (found) => current && setVirusTotal(found),
+      () => current && setVirusTotal(null),
+    );
     return () => {
       current = false;
     };
-  }, [asset?.url, asset?.sha256, showExternalActions]);
+  }, [asset?.url, asset?.sha256]);
   if (!asset) return null;
   const report = typeof scan === "object" ? scan : null;
   const sha256 = [asset.sha256, report?.unverifiedMatch ? undefined : report?.sha256].find((hash) => hash && /^[0-9a-f]{64}$/i.test(hash));
