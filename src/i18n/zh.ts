@@ -132,6 +132,8 @@ export const zh: Record<MessageKey, string> = {
   "scan.rules": "扫描器：{engine}，规则 {rules}",
   "scan.scannedAt": "扫描时间：{date}",
   "scan.hint": "DeckyHub 的注册表会用开源杀毒软件 ClamAV 扫描它提供的每个插件 ZIP，并用 YARA 和 YARA Forge 的社区规则（其中许多针对 Linux 恶意软件）扫描其中的文件。结果干净并不代表安全。",
+  "scan.unverifiedMatch": "未验证 ZIP 是否匹配",
+  "scan.virusTotalResult": "VirusTotal：{total} 个引擎中有 {flagged} 个标记了此 ZIP",
   "scan.virusTotalHint": "VirusTotal 会在 Steam 浏览器中打开，并按 SHA-256 查找此 ZIP。不会上传任何内容，因此只有在有人提交过同一文件时才会有结果。",
   "scan.copyLink": "复制 ZIP 链接",
   "scan.scanLink": "在 VirusTotal 扫描链接",

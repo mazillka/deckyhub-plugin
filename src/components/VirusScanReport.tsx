@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { FaCopy, FaExternalLinkAlt, FaShieldAlt } from "react-icons/fa";
 import { openExternalWeb } from "../external";
 import type { TFunc } from "../i18n/en";
+import { virusTotalReportOf } from "../releases";
 import type { Asset, ScanVerdict, VirusScan } from "../types";
 import { copyText, modalButtonStyle, timeAgo, virusScanOf } from "../utils";
 import { sectionTitleStyle } from "./DetailsWindow";
@@ -35,14 +36,30 @@ const VIRUSTOTAL_URL_SCAN = "https://www.virustotal.com/gui/home/url";
 const pageOf = (event?: { currentTarget?: EventTarget | null }) => (event?.currentTarget as Node | null | undefined)?.ownerDocument ?? document;
 
 // The full report for one ZIP, in its own window over the Manage window.
-const showScanReport = (t: TFunc, asset: Asset, scan: VirusScan, showExternalGuidance: boolean) =>
-  showModal(
+type VirusTotalReport = NonNullable<Awaited<ReturnType<typeof virusTotalReportOf>>>;
+
+function VirusTotalResult({ t, report }: { t: TFunc; report: VirusTotalReport }) {
+  return (
+    <div style={{ display: "grid", gap: 2 }}>
+      <strong style={{ color: report.flagged ? COLORS.infected : COLORS.clean }}>
+        {t("scan.virusTotalResult", { flagged: report.flagged, total: report.total })}
+      </strong>
+      {report.scannedAt !== undefined && <small style={{ color: MUTED }}>
+        {t("scan.scannedAt", { date: new Date(report.scannedAt * 1000).toLocaleString() })}
+      </small>}
+    </div>
+  );
+}
+
+const showScanReport = (t: TFunc, asset: Asset, scan: VirusScan | null | undefined, virusTotal: VirusTotalReport | null, showExternalGuidance: boolean) => {
+  const hash = virusTotal ? asset.sha256 : scan?.sha256;
+  return showModal(
     <ConfirmModal
       bAlertDialog
       strTitle={t("scan.reportTitle")}
       strDescription={
         <div style={{ display: "grid", gap: 6, overflowWrap: "anywhere" }}>
-          {scannersOf(scan).map((scanner) => {
+          {scan && scannersOf(scan).map((scanner) => {
             const { name, verdict } = scanner;
             return (
               <div key={name} style={{ display: "grid", gap: 4 }}>
@@ -55,15 +72,18 @@ const showScanReport = (t: TFunc, asset: Asset, scan: VirusScan, showExternalGui
             );
           })}
           <span>{t("scan.file", { file: asset.name })}</span>
-          {scan.sha256 && <span>{t("scan.sha256", { hash: scan.sha256 })}</span>}
-          {scannersOf(scan).some(({ verdict }) => verdict && verdict.result !== "clean") && <span>{t("scan.yourChoice")}</span>}
+          {hash && <span>{t("scan.sha256", { hash })}</span>}
+          {virusTotal && <VirusTotalResult t={t} report={virusTotal} />}
+          {scan && scannersOf(scan).some(({ verdict }) => verdict && verdict.result !== "clean") && <span>{t("scan.yourChoice")}</span>}
           <small style={{ color: MUTED }}>{t("scan.hint")}</small>
+          {scan?.unverifiedMatch && <small style={{ color: MUTED }}>{t("scan.unverifiedMatch")}</small>}
           {showExternalGuidance && <small style={{ color: MUTED }}>{t("scan.virusTotalHint")}</small>}
           {showExternalGuidance && <small style={{ color: MUTED }}>{t("scan.scanLinkHint")}</small>}
         </div>
       }
     />,
   );
+};
 
 // The Manage window's virus scan box: what ClamAV and YARA made of the ZIP the window
 // would install, from the registry's scans.json. A ZIP not scanned yet says so; it's never
@@ -87,18 +107,26 @@ export function VirusScanReport({
   showExternalActions?: boolean;
 }) {
   const [scan, setScan] = useState<VirusScan | null | undefined>(undefined);
+  const [virusTotal, setVirusTotal] = useState<VirusTotalReport | null>(null);
   useEffect(() => {
     let current = true;
     setScan(undefined);
+    setVirusTotal(null);
     if (!asset) return;
     virusScanOf(asset).then(
       (found) => current && setScan(found),
       () => current && setScan(null),
     );
+    if (!showExternalActions) {
+      virusTotalReportOf(asset).then(
+        (found) => current && setVirusTotal(found),
+        () => current && setVirusTotal(null),
+      );
+    }
     return () => {
       current = false;
     };
-  }, [asset?.url, asset?.sha256]);
+  }, [asset?.url, asset?.sha256, showExternalActions]);
   if (!asset) return null;
   const sha256 = [asset.sha256, scan?.sha256].find((hash) => hash && /^[0-9a-f]{64}$/i.test(hash));
   const openVirusTotal = () => {
@@ -124,9 +152,12 @@ export function VirusScanReport({
       {scan === undefined ? (
         <small style={{ color: MUTED }}>{t("scan.checking")}</small>
       ) : scan === null ? (
-        <small style={{ color: MUTED }}>{t("scan.notScanned")}</small>
+        <small style={{ color: MUTED }}>{virusTotal
+          ? t("scan.verdict", { scanner: "ClamAV / YARA", verdict: t("scan.pending") })
+          : t("scan.notScanned")}</small>
       ) : (
         <>
+          {scan.unverifiedMatch && <small style={{ color: MUTED }}>{t("scan.unverifiedMatch")}</small>}
           {scannersOf(scan).map((scanner) => (
             <div key={scanner.name} className={`deckyhub-scan-${scanner.name.toLowerCase()}`} style={{ display: "grid", gap: 2 }}>
               <span style={{ color: scanner.verdict ? COLORS[scanner.verdict.result] : MUTED, fontWeight: 600, overflowWrap: "anywhere" }}>
@@ -139,10 +170,11 @@ export function VirusScanReport({
           {scannersOf(scan).some(({ verdict }) => verdict && verdict.result !== "clean") && <small style={{ color: MUTED }}>{t("scan.yourChoice")}</small>}
         </>
       )}
-      {(scan || (showExternalActions && (sha256 || link))) && (
+      {virusTotal && <VirusTotalResult t={t} report={virusTotal} />}
+      {(scan || virusTotal || (showExternalActions && (sha256 || link))) && (
         <Focusable flow-children="right" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-          {scan && (
-            <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={() => showScanReport(t, asset, scan, showExternalActions)}>
+          {(scan || virusTotal) && (
+            <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={() => showScanReport(t, asset, scan, virusTotal, showExternalActions)}>
               {t("scan.viewReport")}
             </Button>
           )}

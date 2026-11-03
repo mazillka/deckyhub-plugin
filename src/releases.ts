@@ -173,11 +173,35 @@ export const fetchVirusScans = cachedRawJson<Record<string, VirusScan>>(
 // (a different SHA-256) doesn't count.
 export function scanFor(scans: Record<string, VirusScan>, asset: Asset | undefined): VirusScan | null {
   const scan = asset && scans[asset.url];
-  return scan && (!asset.sha256 || !scan.sha256 || scan.sha256.toLowerCase() === asset.sha256.toLowerCase()) ? scan : null;
+  if (!asset || !scan) return null;
+  const validHash = (hash?: string) => /^[0-9a-f]{64}$/i.test(hash ?? "");
+  if (!validHash(asset.sha256) || !validHash(scan.sha256)) return { ...scan, unverifiedMatch: true };
+  return scan.sha256!.toLowerCase() === asset.sha256!.toLowerCase() ? scan : null;
 }
 
 export async function virusScanOf(asset: Asset, force = false): Promise<VirusScan | null> {
   return scanFor(await fetchVirusScans(force), asset);
+}
+
+const fetchVirusTotalReports = cachedRawJson<Record<string, unknown>>(
+  "reports.json",
+  (index) => index.reports ?? {},
+  {},
+  (file) => [`${REGISTRY_RAW}virustotal-reports/${file}`],
+);
+
+export async function virusTotalReportOf(asset: Asset) {
+  const hash = asset.sha256?.toLowerCase();
+  if (!hash || !/^[0-9a-f]{64}$/.test(hash)) return null;
+  const reports = await fetchVirusTotalReports();
+  const report = reports[hash] as { state?: string; stats?: Record<string, unknown>; scannedAt?: unknown } | undefined;
+  if (report?.state !== "complete" || !report.stats) return null;
+  const { malicious, suspicious, harmless, undetected } = report.stats;
+  const count = (value: unknown): value is number => typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
+  if (!count(malicious) || !count(suspicious) || !count(harmless) || !count(undetected)) return null;
+  const total = malicious + suspicious + harmless + undetected;
+  if (!total) return null;
+  return { flagged: malicious + suspicious, total, scannedAt: count(report.scannedAt) ? report.scannedAt : undefined };
 }
 
 export const DECKYHUB_REPO = "mazillka/deckyhub-plugin";
