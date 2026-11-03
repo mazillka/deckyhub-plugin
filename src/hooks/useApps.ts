@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { getApps, getSettings, REGISTRY_UPDATED } from "../api";
 import type { App, HideableButton, PluginStats, RepoPreference, UpdateChannel, View, VirusScan } from "../types";
 import { DEFAULT_COLUMNS_PER_ROW, fetchPluginStats, fetchVirusScans, getDeckyBackend, hydrate, log, notifyUpdates, scanFor } from "../utils";
+import { virusTotalReportOf } from "../releases";
 
 // ponytail: fixed pool of 8 GitHub requests in flight; lower it if the registry grows
 // big enough to trip GitHub's secondary (burst) rate limit.
@@ -77,6 +78,10 @@ export function useApps(view: View) {
           const app = await hydrate(tracked[index], force, preferences[tracked[index].repo]);
           // The report for the ZIP this card installs, once its release is known.
           hydrated[index] = discover ? { ...app, scan: scanFor(scans, app.assets[0]) } : app;
+          if (discover && app.assets[0]) {
+            const report = await virusTotalReportOf(app.assets[0]).catch(() => null);
+            hydrated[index] = { ...hydrated[index], virusTotal: report };
+          }
           // A newer load took over: stop, rather than check the rest for nothing.
           if (run !== loadRun.current) return;
           setApps((current) => current.map((app) => (app.id === hydrated[index].id ? hydrated[index] : app)));

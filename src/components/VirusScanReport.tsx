@@ -55,11 +55,15 @@ function VirusTotalResult({ t, report }: { t: TFunc; report: VirusTotalReport })
   );
 }
 
-const showScanReport = (t: TFunc, asset: Asset, scan: VirusScan | null | undefined, virusTotal: VirusTotalReport | null, showExternalGuidance: boolean) => {
-  const hash = virusTotal ? asset.sha256 : scan?.sha256;
-  return showModal(
+function ScanReportModal({ t, asset, scan, virusTotal, showExternalGuidance, showExternalActions, closeParent, closeModal }: {
+  t: TFunc; asset: Asset; scan: VirusScan | null; virusTotal: VirusTotalReport | null;
+  showExternalGuidance: boolean; showExternalActions: boolean; closeParent?: () => void; closeModal?: () => void;
+}) {
+  const hash = [asset.sha256, scan?.unverifiedMatch ? undefined : scan?.sha256].find((value) => value && /^[0-9a-f]{64}$/i.test(value));
+  return (
     <ConfirmModal
       bAlertDialog
+      closeModal={closeModal}
       strTitle={t("scan.reportTitle")}
       strDescription={
         <div style={{ display: "grid", gap: 6, overflowWrap: "anywhere" }}>
@@ -79,15 +83,21 @@ const showScanReport = (t: TFunc, asset: Asset, scan: VirusScan | null | undefin
           <span>{t("scan.file", { file: asset.name })}</span>
           {hash && <span>{t("scan.sha256", { hash })}</span>}
           {virusTotal && <VirusTotalResult t={t} report={virusTotal} />}
+          {showExternalActions && hash && <Button onClick={() => {
+            closeModal?.();
+            closeParent?.();
+            openExternalWeb(virusTotalUrl(hash));
+          }}><FaExternalLinkAlt /> VirusTotal</Button>}
           {scan && scannersOf(scan).some(({ verdict }) => verdict && verdict.result !== "clean") && <span>{t("scan.yourChoice")}</span>}
           <small style={{ color: MUTED }}>{t("scan.hint")}</small>
+          <strong style={{ color: COLORS.infected }}>{t("scan.safetyWarning")}</strong>
           {showExternalGuidance && <small style={{ color: MUTED }}>{t("scan.virusTotalHint")}</small>}
           {showExternalGuidance && <small style={{ color: MUTED }}>{t("scan.scanLinkHint")}</small>}
         </div>
       }
-    />,
+    />
   );
-};
+}
 
 // The Manage window's virus scan box: what ClamAV and YARA made of the ZIP the window
 // would install, from the registry's scans.json. A ZIP not scanned yet says so; it's never
@@ -134,11 +144,6 @@ export function VirusScanReport({
   if (!asset) return null;
   const report = typeof scan === "object" ? scan : null;
   const sha256 = [asset.sha256, report?.unverifiedMatch ? undefined : report?.sha256].find((hash) => hash && /^[0-9a-f]{64}$/i.test(hash));
-  const openVirusTotal = () => {
-    if (!sha256) return;
-    closeModal?.();
-    openExternalWeb(virusTotalUrl(sha256));
-  };
   const link = asset.url.startsWith("https://") ? asset.url : undefined;
   // The toast says what to do with the link, or gives it to type in when copying failed.
   const copyLink = async (page: Document, then?: string) => {
@@ -178,14 +183,9 @@ export function VirusScanReport({
       {virusTotal && <VirusTotalResult t={t} report={virusTotal} />}
       {(report || virusTotal || (showExternalActions && sha256) || (showZipActions && link)) && (
         <Focusable flow-children="right" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-          {(report || virusTotal) && (
-            <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={() => showScanReport(t, asset, report, virusTotal, showZipActions)}>
+          {(report || virusTotal || (showExternalActions && sha256)) && (
+            <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={() => showModal(<ScanReportModal t={t} asset={asset} scan={report} virusTotal={virusTotal} showExternalGuidance={showZipActions} showExternalActions={showExternalActions} closeParent={closeModal} />)}>
               {t("scan.viewReport")}
-            </Button>
-          )}
-          {showExternalActions && sha256 && (
-            <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={openVirusTotal}>
-              <FaExternalLinkAlt /> VirusTotal
             </Button>
           )}
           {showZipActions && link && (

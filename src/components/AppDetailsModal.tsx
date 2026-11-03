@@ -73,7 +73,7 @@ export function AppDetailsModal({
     void startPluginInstall(t, app.name, app.repo, release.assets[0], release.tag, action, installLabel, () => {
       closeModal?.();
       Navigation.NavigateBack();
-    });
+    }, [...(app.stats?.warnings ?? []), ...(app.channel === "prerelease" ? app.stats?.prereleaseWarnings ?? [] : [])]);
 
   // Installed Decky plugins can be removed through Decky Loader — never
   // DeckyHub itself from here. The loader doesn't confirm, so we do.
