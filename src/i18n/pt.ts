@@ -133,6 +133,8 @@ export const pt: Record<MessageKey, string> = {
   "scan.rules": "Verificador: {engine}, regras {rules}",
   "scan.scannedAt": "Verificado: {date}",
   "scan.hint": "O registro do DeckyHub verifica cada ZIP de plugin que oferece com o ClamAV, um antivírus de código aberto, e os arquivos dentro dele com o YARA e as regras da comunidade do YARA Forge, muitas escritas para malware de Linux. Um resultado limpo não prova segurança.",
+  "scan.unverifiedMatch": "Correspondência do ZIP não verificada",
+  "scan.virusTotalResult": "VirusTotal: {flagged} de {total} mecanismos sinalizaram este ZIP",
   "scan.virusTotalHint": "O VirusTotal abre no navegador da Steam e busca este ZIP pelo SHA-256. Nada é enviado, então só há resultados se alguém já mandou o mesmo arquivo antes.",
   "scan.copyLink": "Copiar link do ZIP",
   "scan.scanLink": "Verificar link no VirusTotal",

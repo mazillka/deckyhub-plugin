@@ -90,7 +90,9 @@ export function AppBadges({ app, t }: { app: App; t: TFunc }) {
       {app.stats?.fork && <ForkBadge t={t} repo={app.stats.fork} />}
       {app.stats?.ai?.length ? <AiBadge t={t} files={app.stats.ai} /> : null}
       <AuditWarnings app={app} t={t} />
-      {app.scan && <ScanBadge t={t} kind={scanKind(app.scan)} />}
+      {app.scan && (app.scan.unverifiedMatch
+        ? <small style={{ color: SCAN_COLORS.partial }}>{t("scan.unverifiedMatch")}</small>
+        : <ScanBadge t={t} kind={scanKind(app.scan)} />)}
       {isStale(released) && <span title={new Date(released).toLocaleDateString()} style={{ ...pillStyle, color: "#ff8a8a", background: "#ff8a8a22", borderColor: "#ff8a8a66" }}>{t("appcard.noReleaseInYear")}</span>}
     </>
   );

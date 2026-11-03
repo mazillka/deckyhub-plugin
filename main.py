@@ -728,11 +728,11 @@ class Plugin:
             target_dir = Path(PLUGIN_DOWNLOAD_DIR)
             target_dir.mkdir(parents=True, exist_ok=True)
             target = target_dir / name
-            if target.exists() and not self.settings.get("overwriteExisting"):
-                target = self._next_name(target)
-            # Finished jobs are only read by their own progress window, which stops
-            # polling once it has seen the final state, so drop them here.
-            self.downloads = {key: job for key, job in self.downloads.items() if job["state"] in ACTIVE_DOWNLOAD_STATES}
+            reserved = {Path(job["path"]) for job in self.downloads.values()
+                        if job["state"] in ACTIVE_DOWNLOAD_STATES and job.get("path")}
+            if not self.settings.get("overwriteExisting") and (target.exists() or target in reserved):
+                target = self._next_name(target, reserved)
+            self._prune_downloads()
             job_id = f"{name}-{time.monotonic_ns()}"
             self.downloads[job_id] = {"state": "queued", "filename": target.name, "received": 0, "total": asset.get("size") or 0, "path": str(target), "error": None, "repo": repo, "url": asset["url"]}
             self.download_queue.put_nowait((job_id, asset, target))
@@ -798,11 +798,12 @@ class Plugin:
                 await asyncio.to_thread(self._download, job_id, asset, target)
             finally:
                 self.download_queue.task_done()
+                self._prune_downloads()
 
-    def _next_name(self, target: Path) -> Path:
+    def _next_name(self, target: Path, reserved: set[Path] | frozenset[Path] = frozenset()) -> Path:
         for number in range(1, 1000):
             candidate = target.with_name(f"{target.stem} ({number}){target.suffix}")
-            if not candidate.exists():
+            if candidate not in reserved and not candidate.exists():
                 return candidate
         raise RuntimeError("Too many files with this name")
 
@@ -833,6 +834,7 @@ class Plugin:
             decky.logger.error("Download of %s failed: %s", asset["url"], error)
             temp.unlink(missing_ok=True)
         finally:
+            job["finished_at"] = time.monotonic()
             self.cancelled.discard(job_id)
 
     def _download_with_urllib(self, job_id: str, asset: dict, temp: Path):
@@ -870,7 +872,18 @@ class Plugin:
             raise RuntimeError((process.stderr.read() or "curl download failed").strip())
         job["received"] = temp.stat().st_size
 
+    def _prune_downloads(self):
+        cutoff = time.monotonic() - 300
+        finished = sorted(
+            ((job["finished_at"], key) for key, job in self.downloads.items() if "finished_at" in job),
+            reverse=True,
+        )
+        for index, (finished_at, key) in enumerate(finished):
+            if index >= 100 or finished_at < cutoff:
+                self.downloads.pop(key, None)
+
     async def get_download(self, job_id: str):
+        self._prune_downloads()
         return self.downloads.get(job_id, {"state": "missing"})
 
     async def cancel_download(self, job_id: str):
