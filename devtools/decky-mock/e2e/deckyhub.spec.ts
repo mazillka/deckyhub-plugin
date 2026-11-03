@@ -1312,6 +1312,7 @@ test("Menu on an Install button opens the plugin's GitHub page", async ({ page, 
   await popup.close();
 
   // In the Manage window, which closes first so the page isn't opened underneath it.
+  await browseAll(page, "MAKO");
   await card.getByRole("button", { name: "Manage", exact: true }).click();
   const modalInstall = app.locator(".steam-modal").getByRole("button", { name: /^Install/ }).first();
   await modalInstall.focus();
