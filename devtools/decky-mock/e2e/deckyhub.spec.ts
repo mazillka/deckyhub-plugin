@@ -710,7 +710,7 @@ test("YARA's verdict counts too, and a report from before YARA says it hasn't sc
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
   await browseAll(page, "MAKO");
   const mako = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
-  await expect(mako.getByText("Threat found", { exact: true })).toBeVisible();
+  await expect(mako.getByText("Threat found · 1/2", { exact: true })).toBeVisible();
   await mako.getByRole("button", { name: "Manage", exact: true }).click();
   const scan = app.locator(".steam-modal .deckyhub-virus-scan");
   await expect(scan.locator(".deckyhub-scan-yara")).toContainText("YARA: Threat found: ELASTIC_Linux_Trojan_Test");
@@ -721,7 +721,7 @@ test("YARA's verdict counts too, and a report from before YARA says it hasn't sc
   await page.reload();
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
   await browseAll(page, "MAKO");
-  await expect(mako.getByText("No threats", { exact: true })).toBeVisible();
+  await expect(mako.getByText("Not fully scanned · 1/2", { exact: true })).toBeVisible();
   await mako.getByRole("button", { name: "Manage", exact: true }).click();
   await expect(scan.locator(".deckyhub-scan-clamav")).toContainText("ClamAV: No threats found");
   await expect(scan.locator(".deckyhub-scan-yara")).toContainText("YARA: Not scanned yet");
@@ -902,7 +902,7 @@ test("Discover cards show the ClamAV verdict for the release they install, and t
   await app.getByRole("button", { name: "Grid", exact: true }).click();
   await app.getByLabel("Search").fill("MAKO");
   const mako = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
-  await expect(mako.getByText("Threat found", { exact: true })).toBeVisible();
+  await expect(mako.getByText("Threat found · 0/2", { exact: true })).toBeVisible();
   await app.getByLabel("Search").fill("Unifideck");
   // No report yet: no badge, rather than a guess.
   await expect(app.getByRole("heading", { name: "Unifideck" }).locator("..").locator(".deckyhub-scan-badge")).toHaveCount(0);
