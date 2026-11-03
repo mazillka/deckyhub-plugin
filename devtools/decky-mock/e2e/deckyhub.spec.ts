@@ -727,12 +727,7 @@ test("YARA's verdict counts too, and a report from before YARA says it hasn't sc
   await expect(scan.locator(".deckyhub-scan-yara")).toContainText("YARA: Not scanned yet");
 });
 
-test("VirusTotal looks the selected ZIP up by its SHA-256, even before the registry has scanned it", async ({ page }) => {
-  // Records what Steam's browser would open; real popups made this flaky on CI.
-  await page.addInitScript(() => {
-    const opened: string[] = [];
-    Object.assign(window, { __opened: opened, open: (url: string) => void opened.push(url) });
-  });
+test("Plugin Details keeps an unscanned ZIP inside DeckyHub", async ({ page }) => {
   const sha = "C".repeat(64);
   await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", sha)]);
   await mockVirusScans(page, {});
@@ -743,23 +738,16 @@ test("VirusTotal looks the selected ZIP up by its SHA-256, even before the regis
   await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
   const scan = app.locator(".steam-modal .deckyhub-virus-scan");
   await expect(scan.getByText("Not scanned yet", { exact: false })).toBeVisible();
-  await scan.getByRole("button", { name: "VirusTotal", exact: true }).click();
-  await expect.poll(() => pluginFrame(page).evaluate(() => (window as unknown as { __opened: string[] }).__opened)).toEqual([`https://www.virustotal.com/gui/file/${"c".repeat(64)}`]);
-  // The Manage window closes first, or Steam's browser would open underneath it.
-  await expect(app.locator(".steam-modal .deckyhub-virus-scan")).toHaveCount(0);
+  await expect(scan.getByRole("button", { name: "VirusTotal", exact: true })).toHaveCount(0);
+  await expect(scan.getByRole("button", { name: "Copy ZIP link", exact: true })).toHaveCount(0);
+  await expect(scan.getByRole("button", { name: "Scan link on VirusTotal", exact: true })).toHaveCount(0);
 });
 
-test("Copy ZIP link copies the download link, and Scan link on VirusTotal also opens VirusTotal's URL scan page", async ({ page }) => {
-  // Records what Steam's browser would open and what lands on the clipboard.
-  await page.addInitScript(() => {
-    const opened: string[] = [];
-    const copied: string[] = [];
-    Object.assign(window, { __opened: opened, __copied: copied, open: (url: string) => void opened.push(url) });
-    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async (text: string) => void copied.push(text) } });
-  });
+test("Plugin Details lets users review ClamAV and YARA reports", async ({ page }) => {
   const zip = "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/mako-decky.zip";
   await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", "c".repeat(64))]);
-  await mockVirusScans(page, {});
+  const scannedAt = new Date().toISOString();
+  await mockVirusScans(page, { [zip]: { sha256: "c".repeat(64), result: "clean", scannedAt, yara: { result: "infected", found: ["ELASTIC_Linux_Trojan_Test"], scannedAt } } });
   await page.reload();
   const app = mock(page);
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
@@ -767,15 +755,10 @@ test("Copy ZIP link copies the download link, and Scan link on VirusTotal also o
   const manage = app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true });
   await manage.click();
   const scan = app.locator(".steam-modal .deckyhub-virus-scan");
-  const recorded = () => pluginFrame(page).evaluate(() => ({ opened: (window as unknown as { __opened: string[] }).__opened, copied: (window as unknown as { __copied: string[] }).__copied }));
-  await scan.getByRole("button", { name: "Copy ZIP link", exact: true }).click();
-  await expect.poll(recorded).toEqual({ opened: [], copied: [zip] });
-  // Copying leaves the window open.
-  await expect(scan).toBeVisible();
-
-  await scan.getByRole("button", { name: "Scan link on VirusTotal", exact: true }).click();
-  await expect.poll(recorded).toEqual({ opened: ["https://www.virustotal.com/gui/home/url"], copied: [zip, zip] });
-  await expect(app.locator(".steam-modal .deckyhub-virus-scan")).toHaveCount(0);
+  await scan.getByRole("button", { name: "View scan report", exact: true }).click();
+  const report = app.locator(".steam-modal").last();
+  await expect(report.getByText("ClamAV: No threats found", { exact: true })).toBeVisible();
+  await expect(report.getByText("YARA: Threat found: ELASTIC_Linux_Trojan_Test", { exact: true })).toBeVisible();
 });
 
 test("The Manage window says when ClamAV found something, and never calls an unscanned ZIP clean", async ({ page }) => {
