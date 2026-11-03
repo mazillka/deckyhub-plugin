@@ -731,7 +731,6 @@ test("Plugin Details keeps an unscanned ZIP inside DeckyHub", async ({ page }) =
   const sha = "C".repeat(64);
   await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", sha)]);
   await mockVirusScans(page, {});
-  await page.reload();
   const app = mock(page);
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
   await browseAll(page, "MAKO");
@@ -748,14 +747,13 @@ test("Plugin Details lets users review ClamAV and YARA reports", async ({ page }
   await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", "c".repeat(64))]);
   const scannedAt = new Date().toISOString();
   await mockVirusScans(page, { [zip]: { sha256: "c".repeat(64), result: "clean", scannedAt, yara: { result: "infected", found: ["ELASTIC_Linux_Trojan_Test"], scannedAt } } });
-  await page.reload();
   const app = mock(page);
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
   await browseAll(page, "MAKO");
   const manage = app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true });
   await manage.click();
   const scan = app.locator(".steam-modal .deckyhub-virus-scan");
-  await scan.getByRole("button", { name: "View scan report", exact: true }).click();
+  await scan.getByRole("button", { name: "Scan report", exact: true }).click();
   const report = app.locator(".steam-modal").last();
   await expect(report.getByText("ClamAV: No threats found", { exact: true })).toBeVisible();
   await expect(report.getByText("YARA: Threat found: ELASTIC_Linux_Trojan_Test", { exact: true })).toBeVisible();
