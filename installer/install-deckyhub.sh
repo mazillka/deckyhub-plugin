@@ -87,14 +87,36 @@ install_all() {
     if ! unzip -q "${WORK}/DeckyHub.zip" -d "${WORK}/unpacked" >> "$LOG" 2>&1 || [ ! -f "${WORK}/unpacked/DeckyHub/plugin.json" ]; then
         echo "The DeckyHub ZIP couldn't be unpacked." > "$STATUS_FILE"; return
     fi
-    mkdir -p "${HOMEBREW}/plugins"
-    [ -d "${HOMEBREW}/plugins/DeckyHub" ] && echo "update" > "${WORK}/had-deckyhub"
-    rm -rf "${HOMEBREW}/plugins/DeckyHub"
-    mv "${WORK}/unpacked/DeckyHub" "${HOMEBREW}/plugins/DeckyHub"
-    [ -n "$SUDO_USER" ] && chown -R "$SUDO_USER:" "${HOMEBREW}/plugins/DeckyHub"
+    target="${HOMEBREW}/plugins/DeckyHub"
+    if ! mkdir -p "${HOMEBREW}/plugins" ||
+        ! staging=$(mktemp -d "${HOMEBREW}/.deckyhub-install.XXXXXX"); then
+        echo "Couldn't prepare the DeckyHub installation." > "$STATUS_FILE"; return
+    fi
+    if ! cp -a "${WORK}/unpacked/DeckyHub" "$staging/new" ||
+        { [ -n "$SUDO_USER" ] && ! chown -R "$SUDO_USER:" "$staging/new"; }; then
+        rm -rf "$staging"
+        echo "Couldn't prepare the new DeckyHub files." > "$STATUS_FILE"; return
+    fi
+    if [ -e "$target" ] || [ -L "$target" ]; then
+        if ! mv -T "$target" "$staging/previous"; then
+            rm -rf "$staging"
+            echo "Couldn't move the previous DeckyHub installation." > "$STATUS_FILE"; return
+        fi
+        echo "update" > "${WORK}/had-deckyhub"
+    fi
+    if ! mv -T "$staging/new" "$target"; then
+        if [ -f "${WORK}/had-deckyhub" ] && ! mv -T "$staging/previous" "$target"; then
+            echo "Installation failed. The previous copy is saved at $staging/previous." > "$STATUS_FILE"; return
+        fi
+        rm -rf "$staging"
+        echo "Couldn't put the new DeckyHub files in place." > "$STATUS_FILE"; return
+    fi
+    rm -rf "$staging"
 
     echo "90"; echo "# Restarting Decky Loader"
-    systemctl restart plugin_loader >> "$LOG" 2>&1
+    if ! systemctl restart plugin_loader >> "$LOG" 2>&1; then
+        echo "DeckyHub files were installed, but Decky Loader couldn't restart. Restart the Steam Deck to load them." > "$STATUS_FILE"; return
+    fi
     echo "ok" > "$STATUS_FILE"
     echo "100"; echo "# Done"
 }

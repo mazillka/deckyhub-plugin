@@ -710,7 +710,7 @@ test("YARA's verdict counts too, and a report from before YARA says it hasn't sc
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
   await browseAll(page, "MAKO");
   const mako = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
-  await expect(mako.getByText("Threat found", { exact: true })).toBeVisible();
+  await expect(mako.getByText("Threat found · 1/2", { exact: true })).toBeVisible();
   await mako.getByRole("button", { name: "Manage", exact: true }).click();
   const scan = app.locator(".steam-modal .deckyhub-virus-scan");
   await expect(scan.locator(".deckyhub-scan-yara")).toContainText("YARA: Threat found: ELASTIC_Linux_Trojan_Test");
@@ -721,7 +721,7 @@ test("YARA's verdict counts too, and a report from before YARA says it hasn't sc
   await page.reload();
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
   await browseAll(page, "MAKO");
-  await expect(mako.getByText("No threats", { exact: true })).toBeVisible();
+  await expect(mako.getByText("Not fully scanned · 1/2", { exact: true })).toBeVisible();
   await mako.getByRole("button", { name: "Manage", exact: true }).click();
   await expect(scan.locator(".deckyhub-scan-clamav")).toContainText("ClamAV: No threats found");
   await expect(scan.locator(".deckyhub-scan-yara")).toContainText("YARA: Not scanned yet");
@@ -737,7 +737,7 @@ test("Plugin Details keeps an unscanned ZIP inside DeckyHub", async ({ page }) =
   await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
   const scan = app.locator(".steam-modal .deckyhub-virus-scan");
   await expect(scan.getByText("Not scanned yet", { exact: false })).toBeVisible();
-  await expect(scan.getByRole("button", { name: "VirusTotal", exact: true })).toHaveCount(0);
+  await expect(scan.getByRole("button", { name: "VirusTotal", exact: true })).toBeVisible();
   await expect(scan.getByRole("button", { name: "Copy ZIP link", exact: true })).toHaveCount(0);
   await expect(scan.getByRole("button", { name: "Scan link on VirusTotal", exact: true })).toHaveCount(0);
 });
@@ -782,10 +782,91 @@ test("The Manage window says when ClamAV found something, and never calls an uns
   await expect(scan.getByText("No threats found", { exact: false })).toHaveCount(0);
 });
 
+test("An unverified scan does not present a clean verdict as belonging to the selected ZIP", async ({ page }) => {
+  const url = "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/mako-decky.zip";
+  const release = makoRelease("plugin-v2.0.0", "c".repeat(64));
+  release.assets[0].digest = "";
+  await mockMakoReleases(page, [release]);
+  await mockVirusScans(page, { [url]: { sha256: "d".repeat(64), result: "clean" } });
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
+  await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
+  const scan = app.locator(".steam-modal .deckyhub-virus-scan");
+  await expect(scan.getByText("This report may describe a different ZIP; the match is unverified.")).toBeVisible();
+  await expect(scan.getByText("No threats found", { exact: false })).toHaveCount(0);
+  await scan.getByRole("button", { name: "Scan report" }).click();
+  const report = app.locator(".steam-modal").last();
+  await expect(report.getByText("This report may describe a different ZIP; the match is unverified.")).toBeVisible();
+});
+
+test("A delayed VirusTotal response follows the selected release", async ({ page }) => {
+  const first = "c".repeat(64), second = "d".repeat(64);
+  await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", first, "02"), makoRelease("plugin-v1.0.0", second, "01")]);
+  await mockVirusScans(page, {});
+  let releaseReport!: () => void;
+  const gate = new Promise<void>((resolve) => { releaseReport = resolve; });
+  let requestStarted!: () => void;
+  const started = new Promise<void>((resolve) => { requestStarted = resolve; });
+  await page.route("https://raw.githubusercontent.com/mazillka/deckyhub-registry/virustotal-reports/reports.json", async (route) => {
+    requestStarted();
+    await gate;
+    await route.fulfill({ json: { reports: {
+      [first]: { state: "complete", stats: { malicious: 5, suspicious: 0, harmless: 0, undetected: 10 } },
+      [second]: { state: "complete", stats: { malicious: 1, suspicious: 0, harmless: 0, undetected: 10 } },
+    } } });
+  });
+  try {
+    const app = mock(page);
+    await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+    await browseAll(page, "MAKO");
+    await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
+    await started;
+    const modal = app.locator(".steam-modal .deckyhub-details");
+    await modal.getByLabel("Version").selectOption("plugin-v1.0.0");
+    releaseReport();
+    await expect(modal.getByText("VirusTotal: 1 of 11 engines flagged this ZIP")).toBeVisible();
+    await expect(modal.getByText("VirusTotal: 5 of 15 engines flagged this ZIP")).toHaveCount(0);
+  } finally {
+    releaseReport();
+  }
+});
+
+test("VirusTotal pending and error reports are shown separately", async ({ page }) => {
+  const first = "c".repeat(64), second = "d".repeat(64);
+  await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", first, "02"), makoRelease("plugin-v1.0.0", second, "01")]);
+  await mockVirusScans(page, {});
+  await page.route("https://raw.githubusercontent.com/mazillka/deckyhub-registry/virustotal-reports/reports.json", (route) => route.fulfill({ json: { reports: {
+    [first]: { state: "pending" }, [second]: { state: "error" },
+  } } }));
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
+  await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
+  const modal = app.locator(".steam-modal .deckyhub-details");
+  await expect(modal.getByText("VirusTotal: Scan pending")).toBeVisible();
+  await modal.getByLabel("Version").selectOption("plugin-v1.0.0");
+  await expect(modal.getByText("VirusTotal: Couldn't be scanned")).toBeVisible();
+});
+
+test("Unavailable scan data and unsupported VirusTotal ZIPs are distinct", async ({ page }) => {
+  const sha = "c".repeat(64);
+  await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", sha)]);
+  await page.route(VIRUS_SCANS_URL, (route) => route.fulfill({ status: 503 }));
+  await page.route("https://raw.githubusercontent.com/mazillka/deckyhub-registry/virustotal-reports/reports.json", (route) => route.fulfill({ json: { reports: { [sha]: { state: "unsupported" } } } }));
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
+  await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
+  const scan = app.locator(".steam-modal .deckyhub-virus-scan");
+  await expect(scan.getByText("Report unavailable", { exact: true })).toBeVisible();
+  await expect(scan.getByText("VirusTotal: ZIP is too large for VirusTotal")).toBeVisible();
+});
+
 test("A failed scan shows why, and Install stays the user's choice", async ({ page }) => {
   const url = "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/mako-decky.zip";
   await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", "c".repeat(64))]);
-  await mockVirusScans(page, { [url]: { result: "error", reason: "Couldn't download it: HTTP Error 404", scannedAt: new Date().toISOString() } });
+  await mockVirusScans(page, { [url]: { sha256: "c".repeat(64), result: "error", reason: "Couldn't download it: HTTP Error 404", scannedAt: new Date().toISOString() } });
   const app = mock(page);
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
   await browseAll(page, "MAKO");
@@ -821,7 +902,7 @@ test("Discover cards show the ClamAV verdict for the release they install, and t
   await app.getByRole("button", { name: "Grid", exact: true }).click();
   await app.getByLabel("Search").fill("MAKO");
   const mako = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
-  await expect(mako.getByText("Threat found", { exact: true })).toBeVisible();
+  await expect(mako.getByText("Threat found · 0/2", { exact: true })).toBeVisible();
   await app.getByLabel("Search").fill("Unifideck");
   // No report yet: no badge, rather than a guess.
   await expect(app.getByRole("heading", { name: "Unifideck" }).locator("..").locator(".deckyhub-scan-badge")).toHaveCount(0);
@@ -1231,6 +1312,7 @@ test("Menu on an Install button opens the plugin's GitHub page", async ({ page, 
   await popup.close();
 
   // In the Manage window, which closes first so the page isn't opened underneath it.
+  await browseAll(page, "MAKO");
   await card.getByRole("button", { name: "Manage", exact: true }).click();
   const modalInstall = app.locator(".steam-modal").getByRole("button", { name: /^Install/ }).first();
   await modalInstall.focus();

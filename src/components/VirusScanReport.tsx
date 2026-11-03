@@ -39,6 +39,10 @@ const pageOf = (event?: { currentTarget?: EventTarget | null }) => (event?.curre
 type VirusTotalReport = NonNullable<Awaited<ReturnType<typeof virusTotalReportOf>>>;
 
 function VirusTotalResult({ t, report }: { t: TFunc; report: VirusTotalReport }) {
+  if (report.state !== "complete") {
+    const verdict = report.state === "pending" ? t("scan.waiting") : report.state === "unsupported" ? t("scan.unsupported") : report.state === "unavailable" ? t("scan.unavailable") : t("scan.error");
+    return <small style={{ color: MUTED }}>{t("scan.verdict", { scanner: "VirusTotal", verdict })}</small>;
+  }
   return (
     <div style={{ display: "grid", gap: 2 }}>
       <strong style={{ color: report.flagged ? COLORS.infected : COLORS.clean }}>
@@ -59,6 +63,7 @@ const showScanReport = (t: TFunc, asset: Asset, scan: VirusScan | null | undefin
       strTitle={t("scan.reportTitle")}
       strDescription={
         <div style={{ display: "grid", gap: 6, overflowWrap: "anywhere" }}>
+          {scan?.unverifiedMatch && <strong style={{ color: COLORS.incomplete }}>{t("scan.unverifiedDetail")}</strong>}
           {scan && scannersOf(scan).map((scanner) => {
             const { name, verdict } = scanner;
             return (
@@ -76,7 +81,6 @@ const showScanReport = (t: TFunc, asset: Asset, scan: VirusScan | null | undefin
           {virusTotal && <VirusTotalResult t={t} report={virusTotal} />}
           {scan && scannersOf(scan).some(({ verdict }) => verdict && verdict.result !== "clean") && <span>{t("scan.yourChoice")}</span>}
           <small style={{ color: MUTED }}>{t("scan.hint")}</small>
-          {scan?.unverifiedMatch && <small style={{ color: MUTED }}>{t("scan.unverifiedMatch")}</small>}
           {showExternalGuidance && <small style={{ color: MUTED }}>{t("scan.virusTotalHint")}</small>}
           {showExternalGuidance && <small style={{ color: MUTED }}>{t("scan.scanLinkHint")}</small>}
         </div>
@@ -99,14 +103,16 @@ export function VirusScanReport({
   note,
   closeModal,
   showExternalActions = true,
+  showZipActions = showExternalActions,
 }: {
   t: TFunc;
   asset?: Asset;
   note?: string;
   closeModal?: () => void;
   showExternalActions?: boolean;
+  showZipActions?: boolean;
 }) {
-  const [scan, setScan] = useState<VirusScan | null | undefined>(undefined);
+  const [scan, setScan] = useState<VirusScan | "unavailable" | null | undefined>(undefined);
   const [virusTotal, setVirusTotal] = useState<VirusTotalReport | null>(null);
   useEffect(() => {
     let current = true;
@@ -115,20 +121,19 @@ export function VirusScanReport({
     if (!asset) return;
     virusScanOf(asset).then(
       (found) => current && setScan(found),
-      () => current && setScan(null),
+      () => current && setScan("unavailable"),
     );
-    if (!showExternalActions) {
-      virusTotalReportOf(asset).then(
-        (found) => current && setVirusTotal(found),
-        () => current && setVirusTotal(null),
-      );
-    }
+    virusTotalReportOf(asset).then(
+      (found) => current && setVirusTotal(found),
+      () => current && setVirusTotal(null),
+    );
     return () => {
       current = false;
     };
-  }, [asset?.url, asset?.sha256, showExternalActions]);
+  }, [asset?.url, asset?.sha256]);
   if (!asset) return null;
-  const sha256 = [asset.sha256, scan?.sha256].find((hash) => hash && /^[0-9a-f]{64}$/i.test(hash));
+  const report = typeof scan === "object" ? scan : null;
+  const sha256 = [asset.sha256, report?.unverifiedMatch ? undefined : report?.sha256].find((hash) => hash && /^[0-9a-f]{64}$/i.test(hash));
   const openVirusTotal = () => {
     if (!sha256) return;
     closeModal?.();
@@ -151,14 +156,14 @@ export function VirusScanReport({
       <h3 style={sectionTitleStyle}>{t("scan.title")}</h3>
       {scan === undefined ? (
         <small style={{ color: MUTED }}>{t("scan.checking")}</small>
+      ) : scan === "unavailable" ? (
+        <small style={{ color: MUTED }}>{t("scan.unavailable")}</small>
       ) : scan === null ? (
-        <small style={{ color: MUTED }}>{virusTotal
-          ? t("scan.verdict", { scanner: "ClamAV / YARA", verdict: t("scan.pending") })
-          : t("scan.notScanned")}</small>
+        <small style={{ color: MUTED }}>{t("scan.notScanned")}</small>
       ) : (
         <>
-          {scan.unverifiedMatch && <small style={{ color: MUTED }}>{t("scan.unverifiedMatch")}</small>}
-          {scannersOf(scan).map((scanner) => (
+          {scan.unverifiedMatch && <strong style={{ color: COLORS.incomplete }}>{t("scan.unverifiedDetail")}</strong>}
+          {!scan.unverifiedMatch && scannersOf(scan).map((scanner) => (
             <div key={scanner.name} className={`deckyhub-scan-${scanner.name.toLowerCase()}`} style={{ display: "grid", gap: 2 }}>
               <span style={{ color: scanner.verdict ? COLORS[scanner.verdict.result] : MUTED, fontWeight: 600, overflowWrap: "anywhere" }}>
                 <FaShieldAlt /> {line(t, scanner)}
@@ -167,14 +172,14 @@ export function VirusScanReport({
               {scanner.verdict?.scannedAt && <small style={{ color: MUTED }}>{t("scan.scannedWhen", { when: timeAgo(Date.parse(scanner.verdict.scannedAt)) })}</small>}
             </div>
           ))}
-          {scannersOf(scan).some(({ verdict }) => verdict && verdict.result !== "clean") && <small style={{ color: MUTED }}>{t("scan.yourChoice")}</small>}
+          {!scan.unverifiedMatch && scannersOf(scan).some(({ verdict }) => verdict && verdict.result !== "clean") && <small style={{ color: MUTED }}>{t("scan.yourChoice")}</small>}
         </>
       )}
       {virusTotal && <VirusTotalResult t={t} report={virusTotal} />}
-      {(scan || virusTotal || (showExternalActions && (sha256 || link))) && (
+      {(report || virusTotal || (showExternalActions && sha256) || (showZipActions && link)) && (
         <Focusable flow-children="right" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-          {(scan || virusTotal) && (
-            <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={() => showScanReport(t, asset, scan, virusTotal, showExternalActions)}>
+          {(report || virusTotal) && (
+            <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={() => showScanReport(t, asset, report, virusTotal, showZipActions)}>
               {t("scan.viewReport")}
             </Button>
           )}
@@ -183,12 +188,12 @@ export function VirusScanReport({
               <FaExternalLinkAlt /> VirusTotal
             </Button>
           )}
-          {showExternalActions && link && (
+          {showZipActions && link && (
             <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={(event) => void copyLink(pageOf(event))}>
               <FaCopy /> {t("scan.copyLink")}
             </Button>
           )}
-          {showExternalActions && link && (
+          {showZipActions && link && (
             <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={(event) => void scanLink(pageOf(event))}>
               <FaExternalLinkAlt /> {t("scan.scanLink")}
             </Button>

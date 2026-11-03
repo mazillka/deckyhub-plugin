@@ -523,6 +523,37 @@ class PluginStatusTests(unittest.TestCase):
             self.assertEqual(second["jobId"], first["jobId"])
             self.assertEqual(len(plugin.downloads), 1)
 
+    def test_queued_downloads_with_the_same_filename_reserve_distinct_paths(self):
+        with tempfile.TemporaryDirectory() as home, patch("main.PLUGIN_DOWNLOAD_DIR", home):
+            plugin = Plugin()
+            plugin.settings = {"overwriteExisting": False}
+            plugin.downloads = {}
+            plugin.download_queue = asyncio.Queue()
+            first = {"name": "asset.zip", "url": "https://github.com/owner/repo/releases/download/v1/asset.zip"}
+            second = {"name": "asset.zip", "url": "https://github.com/owner/repo/releases/download/v2/asset.zip"}
+            one = asyncio.run(plugin.download_asset(first, "owner/repo"))
+            two = asyncio.run(plugin.download_asset(second, "owner/repo"))
+            self.assertEqual(plugin.downloads[one["jobId"]]["filename"], "asset.zip")
+            self.assertEqual(plugin.downloads[two["jobId"]]["filename"], "asset (1).zip")
+
+    def test_cancelling_an_active_download_removes_partial_file(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.downloads = {"job": {"state": "queued", "received": 0, "total": 0}}
+            plugin.cancelled = set()
+            target = Path(home) / "asset.zip"
+
+            def interrupted(job_id, asset, temp):
+                temp.write_bytes(b"partial")
+                self.assertTrue(asyncio.run(plugin.cancel_download(job_id))["ok"])
+                raise InterruptedError("Download cancelled")
+
+            with patch.object(plugin, "_download_with_urllib", side_effect=interrupted):
+                plugin._download("job", {"url": "https://example.com/asset.zip"}, target)
+            self.assertEqual(plugin.downloads["job"]["state"], "cancelled")
+            self.assertFalse(target.exists())
+            self.assertFalse(target.with_name(target.name + ".part").exists())
+
     def test_stage_install_downloads_a_verified_zip_for_decky_to_read(self):
         with tempfile.TemporaryDirectory() as home, patch.object(sys.modules["decky"], "DECKY_PLUGIN_RUNTIME_DIR", home, create=True):
             plugin = Plugin()

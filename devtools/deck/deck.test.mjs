@@ -206,6 +206,7 @@ test("settings: the D-pad reaches every control on each tab", async () => {
   await openPage("settings");
   const missed = {};
   for (const tab of ["general", "github", "downloads", "repositories", "troubleshoot", "about"]) {
+    console.log(`  Checking Settings: ${tab}`);
     const found = await explore(shared, main, { root: `.deckyhub-settings-${tab}` });
     if (found.missed.length) missed[tab] = found.missed;
     await press(shared, 6, 1200); // R1
