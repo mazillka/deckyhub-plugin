@@ -326,17 +326,17 @@ class PluginStatusTests(unittest.TestCase):
             self.assertTrue(asyncio.run(plugin.remove_custom_repo("owner/repo"))["removed"])
             self.assertEqual(plugin.settings, {"customRepos": [], "repoSettings": {}})
 
-    def test_download_asset_drops_finished_jobs(self):
+    def test_download_asset_retains_recent_jobs_and_prunes_old_ones(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = Plugin()
             plugin.settings = {"overwriteExisting": True}
-            plugin.downloads = {"old": {"state": "complete"}, "running": {"state": "downloading", "repo": "owner/other", "url": "x"}}
+            plugin.downloads = {"old": {"state": "complete", "finished_at": 699}, "recent": {"state": "complete", "finished_at": 900}, "running": {"state": "downloading", "repo": "owner/other", "url": "x"}}
             plugin.download_queue = asyncio.Queue()
 
-            with patch("main.PLUGIN_DOWNLOAD_DIR", home):
+            with patch("main.PLUGIN_DOWNLOAD_DIR", home), patch("main.time.monotonic", return_value=1000):
                 result = asyncio.run(plugin.download_asset({"name": "a.zip", "url": "https://github.com/owner/repo/releases/download/v1/a.zip"}, "owner/repo"))
 
-            self.assertEqual(set(plugin.downloads), {"running", result["jobId"]})
+            self.assertEqual(set(plugin.downloads), {"recent", "running", result["jobId"]})
 
     def test_custom_repository_export_and_import(self):
         with tempfile.TemporaryDirectory() as home:
