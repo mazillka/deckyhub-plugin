@@ -92,7 +92,7 @@ export function AppCard({
             onMenuActionDescription={t("appcard.repository")}
             onClick={() => {
               setInstalling(true);
-              void startPluginInstall(t, app.name, app.repo, app.assets[0], app.latestVersion!, install, quickLabel, leavePage).finally(() => setInstalling(false));
+              void startPluginInstall(t, app.name, app.repo, app.assets[0], app.latestVersion!, install, quickLabel, leavePage, [...(app.stats?.warnings ?? []), ...(app.channel === "prerelease" ? app.stats?.prereleaseWarnings ?? [] : [])]).finally(() => setInstalling(false));
             }}
           >
             {/* A row's Latest line names the version, so its button can say just Update / Install

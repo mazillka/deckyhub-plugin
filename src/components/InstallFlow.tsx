@@ -3,15 +3,17 @@ import { ConfirmModal, showModal } from "@decky/ui";
 import type { TFunc } from "../i18n/en";
 import type { Asset } from "../types";
 import { getDeckyBackend, installDeckyPlugin, manifestName, needsFreshInstall } from "../utils";
+import { VirusScanReport } from "./VirusScanReport";
+import { AUDIT_WARNINGS, WarningBadge } from "./AppBadges";
 
 // Every install, update or reinstall of a third-party plugin first says
 // DeckyHub doesn't vouch for it; resolves true once the user accepts.
-export function confirmPluginInstall(t: TFunc, title: string, okLabel: string, note?: string): Promise<boolean> {
+export function confirmPluginInstall(t: TFunc, title: string, okLabel: string, note?: string, asset?: Asset, warnings: string[] = []): Promise<boolean> {
   return new Promise((resolve) =>
     showModal(
       <ConfirmModal
         strTitle={title}
-        strDescription={<><span style={{ color: "#ff6b6b" }}>{t("install.disclaimer")}</span>{note && <p>{note}</p>}</>}
+        strDescription={<><span style={{ color: "#ff6b6b" }}>{t("install.disclaimer")}</span>{note && <p>{note}</p>}{warnings.filter((warning): warning is (typeof AUDIT_WARNINGS)[number] => (AUDIT_WARNINGS as readonly string[]).includes(warning)).map((warning) => <p key={warning}><WarningBadge t={t} warning={warning} /> {t(`appcard.warning.${warning}.hint`)}</p>)}{asset && <VirusScanReport t={t} asset={asset} showExternalActions={false} />}</>}
         strOKButtonText={okLabel}
         onOK={() => resolve(true)}
         onCancel={() => resolve(false)}
@@ -24,7 +26,7 @@ export function confirmPluginInstall(t: TFunc, title: string, okLabel: string, n
 // card's quick Install/Update. installDeckyPlugin() uninstalls fresh-install
 // plugins first, before Decky's own dialog appears, so cancelling that dialog
 // would leave the plugin uninstalled — say so before starting.
-export function startPluginInstall(t: TFunc, appName: string, repo: string, asset: Asset, tag: string, action: { name: string; type: 0 | 1 | 2 | 3 }, label: string, onStarted?: () => void): Promise<void> {
+export function startPluginInstall(t: TFunc, appName: string, repo: string, asset: Asset, tag: string, action: { name: string; type: 0 | 1 | 2 | 3 }, label: string, onStarted?: () => void, warnings: string[] = []): Promise<void> {
   if (!getDeckyBackend()) {
     toaster.toast({ title: "DeckyHub", body: t("settings.selfUpdateUnavailable") });
     return Promise.resolve();
@@ -42,5 +44,5 @@ export function startPluginInstall(t: TFunc, appName: string, repo: string, asse
     return request;
   };
   const note = needsFreshInstall(action.name, action.type) ? t("appcard.freshInstallDescription", { name: appName }) : undefined;
-  return confirmPluginInstall(t, `${label}?`, label, note).then((accepted) => (accepted ? start() : undefined));
+  return confirmPluginInstall(t, `${label}?`, label, note, asset, warnings).then((accepted) => (accepted ? start() : undefined));
 }
