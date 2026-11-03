@@ -67,16 +67,18 @@ export const AiBadge = ({ t, files }: { t: TFunc; files?: string[] }) => (
 export type ScanBadgeKind = "clean" | "infected" | "partial";
 export const SCAN_BADGES: ScanBadgeKind[] = ["clean", "infected", "partial"];
 const SCAN_COLORS: Record<ScanBadgeKind, string> = { clean: "#6bcb6b", infected: "#ff8a8a", partial: "#ffb35c" };
-const scanKind = (scan: VirusScan): ScanBadgeKind => {
+const scanSummary = (scan: VirusScan) => {
   const results = [scan.result, scan.yara?.result];
-  return results.includes("infected") ? "infected" : results.some((result) => result && result !== "clean") ? "partial" : "clean";
+  const passed = results.filter((result) => result === "clean").length;
+  const kind: ScanBadgeKind = results.includes("infected") ? "infected" : passed === results.length ? "clean" : "partial";
+  return { kind, count: `${passed}/${results.length}` };
 };
 
-export const ScanBadge = ({ t, kind }: { t: TFunc; kind: ScanBadgeKind }) => {
+export const ScanBadge = ({ t, kind, count }: { t: TFunc; kind: ScanBadgeKind; count?: string }) => {
   const color = SCAN_COLORS[kind];
   return (
     <span className={`deckyhub-scan-badge deckyhub-scan-${kind}`} title={t(`appcard.scan.${kind}.hint`)} style={{ ...pillStyle, whiteSpace: "nowrap", color, background: `${color}22`, borderColor: `${color}66` }}>
-      <FaShieldAlt /> {t(`appcard.scan.${kind}`)}
+      <FaShieldAlt /> {t(`appcard.scan.${kind}`)}{count && ` · ${count}`}
     </span>
   );
 };
@@ -92,7 +94,7 @@ export function AppBadges({ app, t }: { app: App; t: TFunc }) {
       <AuditWarnings app={app} t={t} />
       {app.scan && (app.scan.unverifiedMatch
         ? <small style={{ color: SCAN_COLORS.partial }}>{t("scan.unverifiedMatch")}</small>
-        : <ScanBadge t={t} kind={scanKind(app.scan)} />)}
+        : <ScanBadge t={t} {...scanSummary(app.scan)} />)}
       {isStale(released) && <span title={new Date(released).toLocaleDateString()} style={{ ...pillStyle, color: "#ff8a8a", background: "#ff8a8a22", borderColor: "#ff8a8a66" }}>{t("appcard.noReleaseInYear")}</span>}
     </>
   );

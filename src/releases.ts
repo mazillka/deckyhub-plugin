@@ -5,6 +5,7 @@ import { compareVersions, inChannel } from "./version";
 import { fetchNoCors } from "@decky/api";
 import { getSettings } from "./api";
 import { githubFetch, githubHeaders, githubResponseError, githubToken } from "./github";
+import { createRawCache } from "./rawCache";
 
 // GitHub's unauthenticated core API allows 60 requests/hour per IP, easy to
 // burn through when Discover/Updates check every tracked app. Release lists
@@ -12,6 +13,8 @@ import { githubFetch, githubHeaders, githubResponseError, githubToken } from "./
 // every cache read is bypassed by force=true wherever the user explicitly asks
 // to check (Refresh, Check for Updates).
 export const CACHE_TTL = 30 * 60 * 1000;
+// A transient outage should not hide registry data for the full successful-cache TTL.
+export const FAILED_RAW_JSON_TTL = 30_000;
 
 // fetchReleases' localStorage envelope: when it was fetched (for CACHE_TTL)
 // and the data. Only successful results are ever written, so a failure never
@@ -117,32 +120,28 @@ export const RELEASE_INDEX_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 // fallback stands in for a missing or broken file, which moves on to the next URL.
 // `urlsOf` picks where the file lives: the channel's release index by default.
 export function cachedRawJson<T>(file: string, pick: (data: any) => T, fallback: T, urlsOf: (file: string) => string[] = indexUrls) {
-  let cached: { at: number; urls: string; request: Promise<T> } | null = null;
+  const cached = createRawCache((urls) => firstRawJson(urls, pick, fallback), CACHE_TTL, FAILED_RAW_JSON_TTL);
   return async (force = false) => {
     // A failed settings read is retried on the next call rather than kept.
     registryChannelLoaded ??= getSettings().then((settings) => setRegistryChannel(settings.registryChannel), () => {
       registryChannelLoaded = null;
     });
     await registryChannelLoaded;
-    const urls = urlsOf(file);
-    if (!cached || cached.urls !== urls.join(" ") || Date.now() - cached.at > (force ? 60_000 : CACHE_TTL)) {
-      cached = { at: Date.now(), urls: urls.join(" "), request: firstRawJson(urls, pick, fallback) };
-    }
-    return cached.request;
+    return cached(urlsOf(file), force);
   };
 }
 
-async function firstRawJson<T>(urls: string[], pick: (data: any) => T, fallback: T): Promise<T> {
+async function firstRawJson<T>(urls: string[], pick: (data: any) => T, fallback: T): Promise<{ value: T; failed: boolean }> {
   for (const url of urls) {
     try {
       const response = await fetchNoCors(url, { signal: AbortSignal.timeout(15_000) });
       const picked = response.ok ? pick(await response.json()) : fallback;
-      if (picked !== fallback) return picked;
+      if (picked !== fallback) return { value: picked, failed: false };
     } catch (error: unknown) {
       log(`${url} unavailable: ${error}`);
     }
   }
-  return fallback;
+  return { value: fallback, failed: true };
 }
 
 export const fetchReleaseIndex = cachedRawJson<Record<string, unknown[]> | null>(
@@ -162,12 +161,15 @@ export const fetchPluginStats = cachedRawJson<Record<string, PluginStats>>(
 // ClamAV's report for every plugin ZIP in both release indexes (DeckyHub's own too),
 // keyed by download URL: the registry's virus-scan workflow (scripts/virus_scan.py
 // there) publishes it on its own branch, the same for both Registry channels.
-export const fetchVirusScans = cachedRawJson<Record<string, VirusScan>>(
+const fetchVirusScansResult = cachedRawJson<Record<string, VirusScan> | null>(
   "scans.json",
-  (scans) => scans.files ?? {},
-  {},
+  (scans) => scans.files && typeof scans.files === "object" && !Array.isArray(scans.files) ? scans.files : null,
+  null,
   (file) => [`${REGISTRY_RAW}virus-scans/${file}`],
 );
+export async function fetchVirusScans(force = false): Promise<Record<string, VirusScan>> {
+  return (await fetchVirusScansResult(force)) ?? {};
+}
 
 // The report for this exact file: one for a ZIP since replaced under the same name
 // (a different SHA-256) doesn't count.
@@ -180,13 +182,15 @@ export function scanFor(scans: Record<string, VirusScan>, asset: Asset | undefin
 }
 
 export async function virusScanOf(asset: Asset, force = false): Promise<VirusScan | null> {
-  return scanFor(await fetchVirusScans(force), asset);
+  const scans = await fetchVirusScansResult(force);
+  if (scans === null) throw new Error("Scan reports unavailable");
+  return scanFor(scans, asset);
 }
 
-const fetchVirusTotalReports = cachedRawJson<Record<string, unknown>>(
+const fetchVirusTotalReports = cachedRawJson<Record<string, unknown> | null>(
   "reports.json",
-  (index) => index.reports ?? {},
-  {},
+  (index) => index.reports && typeof index.reports === "object" && !Array.isArray(index.reports) ? index.reports : null,
+  null,
   (file) => [`${REGISTRY_RAW}virustotal-reports/${file}`],
 );
 
@@ -194,14 +198,18 @@ export async function virusTotalReportOf(asset: Asset) {
   const hash = asset.sha256?.toLowerCase();
   if (!hash || !/^[0-9a-f]{64}$/.test(hash)) return null;
   const reports = await fetchVirusTotalReports();
+  if (reports === null) return { state: "unavailable" as const };
   const report = reports[hash] as { state?: string; stats?: Record<string, unknown>; scannedAt?: unknown } | undefined;
+  if (report?.state === "pending" || report?.state === "waiting") return { state: "pending" as const };
+  if (report?.state === "error") return { state: "error" as const };
+  if (report?.state === "unsupported") return { state: "unsupported" as const };
   if (report?.state !== "complete" || !report.stats) return null;
   const { malicious, suspicious, harmless, undetected } = report.stats;
   const count = (value: unknown): value is number => typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
   if (!count(malicious) || !count(suspicious) || !count(harmless) || !count(undetected)) return null;
   const total = malicious + suspicious + harmless + undetected;
   if (!total) return null;
-  return { flagged: malicious + suspicious, total, scannedAt: count(report.scannedAt) ? report.scannedAt : undefined };
+  return { state: "complete" as const, flagged: malicious + suspicious, total, scannedAt: count(report.scannedAt) ? report.scannedAt : undefined };
 }
 
 export const DECKYHUB_REPO = "mazillka/deckyhub-plugin";
