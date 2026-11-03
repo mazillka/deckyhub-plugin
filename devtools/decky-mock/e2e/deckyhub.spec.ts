@@ -737,7 +737,7 @@ test("Plugin Details keeps an unscanned ZIP inside DeckyHub", async ({ page }) =
   await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
   const scan = app.locator(".steam-modal .deckyhub-virus-scan");
   await expect(scan.getByText("Not scanned yet", { exact: false })).toBeVisible();
-  await expect(scan.getByRole("button", { name: "VirusTotal", exact: true })).toHaveCount(0);
+  await expect(scan.getByRole("button", { name: "VirusTotal", exact: true })).toBeVisible();
   await expect(scan.getByRole("button", { name: "Copy ZIP link", exact: true })).toHaveCount(0);
   await expect(scan.getByRole("button", { name: "Scan link on VirusTotal", exact: true })).toHaveCount(0);
 });
