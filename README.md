@@ -38,6 +38,10 @@ Find, install and update Decky Loader plugins with your controller — from Deck
 <td align="center"><img src="screenshots/search.jpg" width="260" alt="DeckyHub searching GitHub for Decky plugins"><br><sub><b>Search</b></sub></td>
 <td align="center"><img src="screenshots/settings.jpg" width="260" alt="DeckyHub's Settings in tabs: General, GitHub, Downloads, Repositories, Logs and About"><br><sub><b>Settings</b></sub></td>
 </tr>
+<tr>
+<td align="center"><img src="screenshots/discover.jpg" width="260" alt="DeckyHub's Discover screen with category chips and popular plugins, each with its virus scan badge"><br><sub><b>Discover</b></sub></td>
+<td align="center"><img src="screenshots/scan-report.jpg" width="260" alt="DeckyHub's virus scan report for a plugin: ClamAV, YARA and VirusTotal results, the file and its SHA-256"><br><sub><b>Virus scan report</b></sub></td>
+</tr>
 </table>
 
 </div>
