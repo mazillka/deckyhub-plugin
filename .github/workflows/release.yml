@@ -237,7 +237,8 @@ jobs:
               detected=$(jq '.scan_results.total_detected_avs // 0' <<< "$body")
               total=$(jq '.scan_results.total_avs // 0' <<< "$body")
               detections="$detected/$total"
-              if (( detected == 0 )); then result=clean; else result=flagged; fi
+              code=$(jq '.scan_results.scan_all_result_i // -1' <<< "$body")
+              if (( detected > 0 )); then result=flagged; elif (( code == 0 && total > 0 )); then result=clean; else result=error; fi
               jq -r '"Verdict: \(.scan_results.scan_all_result_a)"' <<< "$body"
               jq -r '.scan_results.scan_details | to_entries[] | select((.value.threat_found // "") != "") | "\(.key): \(.value.threat_found)"' <<< "$body"
               break
@@ -403,7 +404,8 @@ jobs:
               detected=$(jq '.scan_results.total_detected_avs // 0' <<< "$body")
               total=$(jq '.scan_results.total_avs // 0' <<< "$body")
               detections="$detected/$total"
-              if (( detected == 0 )); then result=clean; else result=flagged; fi
+              code=$(jq '.scan_results.scan_all_result_i // -1' <<< "$body")
+              if (( detected > 0 )); then result=flagged; elif (( code == 0 && total > 0 )); then result=clean; else result=error; fi
               jq -r '"Verdict: \(.scan_results.scan_all_result_a)"' <<< "$body"
               jq -r '.scan_results.scan_details | to_entries[] | select((.value.threat_found // "") != "") | "\(.key): \(.value.threat_found)"' <<< "$body"
               break
