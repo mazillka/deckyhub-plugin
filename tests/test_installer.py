@@ -2,16 +2,20 @@
 local files, systemctl records its calls, and the home folder is a temporary one
 (DECKYHUB_USER_HOME). Needs root or passwordless sudo (GitHub's runners have it)."""
 import hashlib
+import json
 import os
 import shutil
 import stat
 import subprocess
 import tempfile
+import sys
 import unittest
 import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "installer"))
+from build_installer import fill, starter_lines  # noqa: E402  (what release.yml fills the installer in with)
 SCRIPT = ROOT / "installer" / "install-deckyhub.sh"
 DESKTOP = ROOT / "installer" / "Install-DeckyHub.desktop"
 TAG = "v9.9.9"
@@ -64,10 +68,12 @@ class InstallerTests(unittest.TestCase):
             archive.writestr("DeckyHub/dist/index.js", "// new")
         self.sha256 = hashlib.sha256((self.fixtures / "DeckyHub.zip").read_bytes()).hexdigest()
 
-    def run_installer(self, sha256=None, extra_args=()):
+    def run_installer(self, sha256=None, extra_args=(), picks=None):
         script = self.dir / "install-deckyhub.sh"
-        script.write_text(SCRIPT.read_text().replace("@TAG@", TAG).replace("@SHA256@", sha256 or self.sha256))
+        script.write_text(fill(SCRIPT.read_text(), TAG, sha256 or self.sha256))
         env = {"PATH": f"{self.bin}:/usr/bin:/bin", "FIXTURES": str(self.fixtures), "DECKYHUB_USER_HOME": str(self.home), "HOME": str(self.home)}
+        if picks is not None:
+            env["DECKYHUB_PICKS"] = picks
         command = ["env", *[f"{key}={value}" for key, value in env.items()], "bash", str(script), *extra_args]
         return subprocess.run(command if os.geteuid() == 0 else ["sudo", "-n", *command], capture_output=True, text=True, timeout=60)
 
@@ -127,6 +133,46 @@ class InstallerTests(unittest.TestCase):
         text = SCRIPT.read_text()
         for word in ('verb="Install"', 'verb="Update"', 'verb="Reinstall"'):
             self.assertIn(word, text)
+
+    def pending_file(self):
+        return self.home / "homebrew" / "settings" / "DeckyHub" / "pending-installs.json"
+
+    def test_picked_plugins_are_saved_for_deckyhub_before_it_restarts(self):
+        result = self.run_installer(picks="mako-decky,css-loader,not-in-the-list")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(self.pending_file().read_text()), ["eugeniosegala/MAKO", "DeckThemes/SDH-CssLoader"])
+        self.assertIn("✓ 2 optional plugin(s) chosen", result.stdout)
+        self.assertIn("You are responsible for what you install", result.stdout)
+        # The installer itself downloads nothing but Decky Loader and DeckyHub.
+        self.assertNotIn("MAKO", (self.fixtures / "curl.log").read_text())
+
+    def test_without_picks_nothing_is_saved(self):
+        for picks in (None, ""):
+            result = self.run_installer(picks=picks)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertFalse(self.pending_file().exists())
+            self.assertNotIn("optional plugin", result.stdout)
+
+    def test_the_checklist_starts_unticked_and_names_the_risks(self):
+        text = SCRIPT.read_text()
+        self.assertIn('rows+=(FALSE "$id"', text)  # nothing is ticked by default
+        self.assertNotIn("TRUE", text.split("choose_plugins()")[1].split("# Not root yet")[0])
+        for phrase in ("You are responsible for what you install", "AI-assisted", "Runs as root", "Warning: ", "deckyhub.com/plugins/${id}.html", "Details and security scans"):
+            self.assertIn(phrase, text)
+
+    def test_the_release_fills_in_every_placeholder_and_the_hand_picked_list(self):
+        filled = fill(SCRIPT.read_text(), TAG, self.sha256)
+        self.assertNotIn("@TAG@", filled)
+        self.assertNotIn("@SHA256@", filled)
+        self.assertNotIn("@STARTER_PLUGINS@", filled)
+        starter = [line.strip().strip("'").split("|")[0] for line in starter_lines().splitlines()]
+        self.assertEqual(starter, ["decky-lsfg-vk", "mako-decky", "decky-multiframegen", "decky-framegen", "css-loader", "protondb-decky"])
+
+    def test_the_starter_list_refuses_characters_that_could_break_the_shell(self):
+        bad = self.dir / "bad.json"
+        bad.write_text(json.dumps({"plugins": [{"id": "x", "name": "X", "repo": "o/x", "description": "$(touch /tmp/pwned)"}]}))
+        with self.assertRaises(SystemExit):
+            starter_lines(bad)
 
     def test_the_finish_message_says_nothing_was_collected(self):
         result = self.run_installer()

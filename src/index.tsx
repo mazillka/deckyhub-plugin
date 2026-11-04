@@ -5,11 +5,12 @@ import { REGISTRY_UPDATED } from "./api";
 import { DeckyHubIcon } from "./components/DeckyHubIcon";
 import { addQuickAccessTab, removeQuickAccessTab } from "./components/QuickAccessTab";
 import { I18nProvider } from "./i18n";
+import { announcePendingInstalls } from "./components/PendingInstalls";
 import { Content } from "./pages/Content";
 import { SearchPage } from "./pages/SearchPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { MotionStyle } from "./motion";
-import { hapticTick, markUnloaded, pageStyle } from "./utils";
+import { hapticTick, markUnloaded, pageStyle, tr } from "./utils";
 
 // Steam's history for its main window, which @decky/ui doesn't type.
 type MainWindowHistory = { location: { pathname: string }; replace: (path: string) => void; push: (path: string) => void };
@@ -49,6 +50,8 @@ const onRegistryUpdated = () => window.dispatchEvent(new Event(REGISTRY_UPDATED)
 
 export default definePlugin(() => {
   addEventListener("registry_updated", onRegistryUpdated);
+  // Plugins picked in the Desktop Mode installer: remind the user once the Steam UI is up.
+  window.setTimeout(() => void announcePendingInstalls(tr), 8000);
   for (const [path, page] of Object.entries(ROUTES)) {
     routerHook.addRoute(path, () => (
       <Motion>

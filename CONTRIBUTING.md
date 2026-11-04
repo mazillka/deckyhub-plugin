@@ -36,7 +36,7 @@ The build produces `dist/index.js`. Decky Loader requires `plugin.json`, `main.p
 
 For development, rebuild the frontend after every change to `src/`, then reload the plugin. The backend uses only Python's standard library and needs no pip install.
 
-For installer changes, run `python3 -m unittest tests.test_installer` on Linux with root or passwordless sudo. Before release, also try the Desktop Mode launcher on a Deck: review the introduction, password prompt, progress and completion message in both cases (Decky Loader missing, and already installed), the Install, Update and Reinstall wording, and that each dialog's icon shows. The automated tests use stand-ins and do not exercise the real desktop dialogs or Decky Loader installer.
+For installer changes, run `python3 -m unittest tests.test_installer` on Linux with root or passwordless sudo. Before release, also try the Desktop Mode launcher on a Deck: review the introduction, password prompt, progress and completion message in both cases (Decky Loader missing, and already installed), the Install, Update and Reinstall wording, and that each dialog's icon shows. To change the optional plugins, edit `installer/starter-plugins.json` (ids from the registry, plain characters only) and check the checklist on a Deck: nothing ticked, notes and page links shown, and DeckyHub offers the picks after the restart. The automated tests use stand-ins and do not exercise the real desktop dialogs or Decky Loader installer.
 
 ## Local browser preview
 

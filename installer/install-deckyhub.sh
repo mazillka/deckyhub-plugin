@@ -17,6 +17,13 @@
 # Options:
 #   --update-only   Skip Decky Loader installation; only install/update DeckyHub.
 #                   Needs Decky Loader to be installed already.
+#   --plugins=a,b   Pick optional plugins by id without the checklist (see STARTER_PLUGINS).
+#
+# Optional plugins: a checklist (nothing ticked) offers a few hand-picked plugins with notes
+# on AI help, root and audit warnings, and says you're responsible for what you install. This
+# installer doesn't install them: it saves the picks (pending-installs.json in DeckyHub's
+# settings folder) and DeckyHub offers to install them, with its usual confirmation for each,
+# the first time it opens.
 #
 # DECKYHUB_USER_HOME is for tests only: the home folder to install into.
 
@@ -28,13 +35,23 @@ DECKY_INSTALLER_URL="https://github.com/SteamDeckHomebrew/decky-installer/releas
 TITLE="DeckyHub Installer"
 TEMP_PASSWORD="DeckyHub!"
 UPDATE_ONLY=0
+PLUGINS_ARG=""
+STATS_URL="https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/stats.json"
+
+# Optional plugins (id|name|repo|what it does). release.yml fills this in from
+# installer/starter-plugins.json (build_installer.py).
+STARTER_PLUGINS=(
+@STARTER_PLUGINS@
+)
 
 for arg in "$@"; do
     [ "$arg" = "--update-only" ] && UPDATE_ONLY=1
+    case "$arg" in --plugins=*) PLUGINS_ARG="${arg#--plugins=}" ;; esac
 done
 
 PRIVACY="Your privacy: nothing about you or your Deck is collected, saved or sent anywhere. Your password is used only on this Deck, right now, and is never stored. The installer only downloads files from GitHub."
 OTHER_WAY="You can also install DeckyHub without this installer: download its ZIP and add it in Decky's settings (no password needed). Steps: https://github.com/mazillka/deckyhub-plugin#option-2-manual-zip"
+RESPONSIBILITY="You are responsible for what you install. These plugins are made by other people. DeckyHub doesn't make, review or vouch for them, and they run on your Deck. Read the notes first: AI-assisted means its code was probably written with AI help, and Warning marks something an audit found."
 WARRANTY="DeckyHub is a free community project. It comes as it is, with no guarantee."
 
 # Dialogs when zenity is there (SteamOS has it), plain text in the terminal otherwise. Texts
@@ -50,6 +67,56 @@ fail() { if has_zenity; then zen --title="$TITLE" --width=480 --icon=dialog-erro
 
 # The version of the DeckyHub in folder $1 (from its package.json), or nothing.
 installed_version() { sed -n 's/.*"version": *"\([^"]*\)".*/\1/p' "$1/package.json" 2> /dev/null | head -1; }
+
+# One line per optional plugin, in order: what the registry's stats say about it (AI help,
+# root, audit warnings). Prints nothing when the stats can't be read.
+plugin_notes() {
+    local repos=() entry repo
+    for entry in "${STARTER_PLUGINS[@]}"; do
+        IFS='|' read -r _ _ repo _ <<< "$entry"
+        repos+=("$repo")
+    done
+    curl -fsSL --connect-timeout 15 --max-time 30 "$STATS_URL" 2> /dev/null | python3 -c '
+import json, sys
+labels = {"blocked": "Blocked by audit", "private-data": "Reads private data", "persistence": "Changes system startup",
+          "not-in-source": "Code not in its repo", "obfuscated": "Hidden code", "no-tls-check": "Skips HTTPS checks",
+          "runs-downloads": "Runs downloaded scripts", "vulnerable": "Known vulnerabilities"}
+try:
+    plugins = json.load(sys.stdin)["plugins"]
+except Exception:
+    sys.exit(1)
+for repo in sys.argv[1:]:
+    stats = plugins.get(repo.casefold())
+    if stats is None:
+        print("Not checked")
+        continue
+    notes = []
+    if stats.get("ai"):
+        notes.append("AI-assisted")
+    if stats.get("root"):
+        notes.append("Runs as root")
+    notes += ["Warning: " + labels.get(key, key) for key in stats.get("warnings") or []]
+    print("; ".join(notes) or "No warnings")
+' "${repos[@]}" 2> /dev/null || true
+}
+
+# Sets PICKS to the chosen plugin ids (comma separated, maybe none).
+choose_plugins() {
+    PICKS=""
+    if [ -n "$PLUGINS_ARG" ]; then PICKS="$PLUGINS_ARG"; return 0; fi
+    (( ${#STARTER_PLUGINS[@]} )) && has_zenity || return 0
+    local notes=() rows=() i=0 entry id name repo what
+    mapfile -t notes < <(plugin_notes)
+    for entry in "${STARTER_PLUGINS[@]}"; do
+        IFS='|' read -r id name repo what <<< "$entry"
+        rows+=(FALSE "$id" "${name}"$'\n'"${what}" "${notes[i]:-Not checked}" "deckyhub.com/plugins/${id}.html")
+        i=$((i + 1))
+    done
+    PICKS=$(zen --title="$TITLE" --width=800 --height=540 --list --checklist --hide-column=2 --print-column=2 --separator=',' \
+        --ok-label="Continue" --cancel-label="Skip" \
+        --text="Optional plugins\n\nDecky Loader and DeckyHub are installed either way. Tick any plugins you'd like to add, or skip this: you can always add plugins later from DeckyHub.\n\nThis installer doesn't install them. DeckyHub asks you to confirm each one the first time you open it. Every plugin has a page with its details and security scans on deckyhub.com (last column).\n\n${RESPONSIBILITY}" \
+        --column=Pick --column=ID --column=Plugin --column=Notes --column="Details and security scans" "${rows[@]}") || PICKS=""
+}
 
 # Not root yet: say what's going to happen, check GitHub is reachable, then get the admin
 # password and run this script again as root.
@@ -90,7 +157,9 @@ if (( EUID != 0 )); then
     else
         headline="This will download and install Decky Loader and DeckyHub ${TAG} on your Steam Deck."
     fi
-    intro_text="${headline}\n\nHere's what will happen:\n${steps}\n${why}\n\n${PRIVACY}\n\n${OTHER_WAY}\n\n${WARRANTY}"
+    extras=""
+    (( ${#STARTER_PLUGINS[@]} )) && { has_zenity || [ -n "$PLUGINS_ARG" ]; } && extras="Next you can pick optional plugins, such as frame generation or themes. They aren't installed now: DeckyHub asks you to confirm each one later.\n\n"
+    intro_text="${headline}\n\nHere's what will happen:\n${steps}\n${extras}${why}\n\n${PRIVACY}\n\n${OTHER_WAY}\n\n${WARRANTY}"
 
     if has_zenity; then
         zen --title="$TITLE" --width=560 --icon=system-software-install --question --ok-label="${verb}" --cancel-label="Cancel" --text="$intro_text" || exit 0
@@ -106,6 +175,9 @@ if (( EUID != 0 )); then
     if ! curl -Is --connect-timeout 30 https://github.com | head -1 | grep -q " 200"; then
         fail "Can't reach GitHub.\n\nCheck that your Deck is connected to Wi-Fi, then start the installer again."
     fi
+
+    choose_plugins
+    export DECKYHUB_PICKS="$PICKS"
 
     STATUS=$(passwd -S "$USER" 2> /dev/null)
     if [ "${STATUS:${#USER}+1:2}" = "NP" ]; then
@@ -204,6 +276,27 @@ install_all() {
     fi
     rm -rf "$staging"
 
+    # The picks go to DeckyHub's settings folder before Decky restarts, so DeckyHub finds them
+    # when it loads. Only ids from the list above count; they're written as repositories.
+    picked=()
+    if [ -n "$DECKYHUB_PICKS" ]; then
+        IFS=',' read -ra wanted <<< "$DECKYHUB_PICKS"
+        for want in "${wanted[@]}"; do
+            for entry in "${STARTER_PLUGINS[@]}"; do
+                IFS='|' read -r id name repo what <<< "$entry"
+                [ "$id" = "$want" ] && { picked+=("$repo"); echo "$name" >> "${WORK}/picked-names"; }
+            done
+        done
+    fi
+    if (( ${#picked[@]} )); then
+        settings_dir="${HOMEBREW}/settings/DeckyHub"
+        json=""
+        for repo in "${picked[@]}"; do json+="\"${repo}\","; done
+        if ! { mkdir -p "$settings_dir" && printf '[%s]\n' "${json%,}" > "${settings_dir}/pending-installs.json"; }; then
+            rm -f "${WORK}/picked-names"
+        fi
+    fi
+
     step 90 "Restarting Decky Loader…"
     # Installed either way; if Decky can't restart, the finish message says to restart the Deck.
     systemctl restart plugin_loader >> "$LOG" 2>&1 || echo "no-restart" > "${WORK}/no-restart"
@@ -236,8 +329,13 @@ if [ -f "${WORK}/no-restart" ]; then
 else
     done_text+="✓ Decky Loader restarted\n"
 fi
+if [ -f "${WORK}/picked-names" ]; then
+    count=$(wc -l < "${WORK}/picked-names" | tr -d ' ')
+    done_text+="✓ ${count} optional plugin(s) chosen. DeckyHub asks you to confirm them when you open it.\n"
+fi
 cleanup="The installer's temporary files are removed when you close this."
 [ -n "$DECKYHUB_TEMP_PASSWORD" ] && cleanup="The installer's temporary files and the temporary password are removed when you close this."
 next="What now: switch to Gaming Mode, open the Quick Access menu (the ··· button) and choose DeckyHub."
+[ -f "${WORK}/picked-names" ] && next+="\n\n${RESPONSIBILITY}"
 message="All done!\n\n${done_text}\n${next}\n\nNothing about you or your Deck was collected or sent. ${cleanup}"
 if [ -f "${WORK}/no-restart" ]; then warn "$message"; else say "$message"; fi

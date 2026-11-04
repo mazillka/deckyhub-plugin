@@ -16,7 +16,7 @@ DeckyHub runs inside Decky Loader on SteamOS (Steam Deck and other SteamOS devic
 
 ## Install
 
-- Easiest, from Desktop Mode: download https://github.com/mazillka/deckyhub-plugin/releases/latest/download/Install-DeckyHub.desktop, double-click it, choose Execute, read the overview of the steps and enter your Deck's admin password (needed because installing and restarting Decky Loader change the system). It checks Decky Loader first and installs it with Decky's official installer if it's missing, then installs DeckyHub. It collects, saves and sends no information.
+- Easiest, from Desktop Mode: download https://github.com/mazillka/deckyhub-plugin/releases/latest/download/Install-DeckyHub.desktop, double-click it, choose Execute, read the overview of the steps and enter your Deck's admin password (needed because installing and restarting Decky Loader change the system). It checks Decky Loader first and installs it with Decky's official installer if it's missing, then installs DeckyHub. It collects, saves and sends no information. It can also offer a short checklist of optional plugins (none ticked), which DeckyHub installs after you confirm.
 - From Gaming Mode, with Decky Loader installed: Decky settings > General > Developer mode on, then Developer > Install Plugin from URL with https://github.com/mazillka/deckyhub-plugin/releases/latest/download/DeckyHub.zip
 - Or download the latest DeckyHub-vX.Y.Z.zip from https://github.com/mazillka/deckyhub-plugin/releases and use Decky's Developer > Install Plugin from ZIP.
 
