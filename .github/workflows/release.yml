@@ -76,351 +76,35 @@ jobs:
             install-deckyhub.sh
           if-no-files-found: error
 
-  # Scans the packaged ZIP with ClamAV and that day's signatures. Never stops the release:
-  # the result (clean, flagged or couldn't scan) goes into the report attached to it and
-  # into its notes, and people decide whether to install. The code itself is checked by
-  # CodeQL (codeql.yml) on every push and PR.
+  # Each file is scanned by scan.yml (ClamAV, VirusTotal, MetaDefender); never stops the release.
+  # The code itself is checked by CodeQL (codeql.yml) on every push and PR.
   scan:
     needs: build
-    runs-on: ubuntu-latest
-    outputs:
-      result: ${{ steps.scan.outputs.result }}
-      found: ${{ steps.scan.outputs.found }}
-    steps:
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: release-zip
-      - name: Install ClamAV and today's signatures
-        id: install
-        continue-on-error: true
-        run: |
-          sudo apt-get update -q
-          sudo apt-get install -yq clamav
-          # The package starts its own updater; stop it so ours doesn't wait on its lock.
-          sudo systemctl stop clamav-freshclam || true
-          for wait in 0 30 120; do
-            sleep "$wait"
-            sudo freshclam --stdout && exit 0
-          done
-          exit 1
-      - name: Scan the release ZIP
-        id: scan
-        env:
-          INSTALLED: ${{ steps.install.outcome }}
-        run: |
-          zip="DeckyHub-${GITHUB_REF_NAME}.zip"
-          # Not named DeckyHub-*: the self-update and the registry's asset filter look for that.
-          report="ClamAV-scan-${GITHUB_REF_NAME}.txt"
-          status=0
-          if [[ "$INSTALLED" == success ]]; then
-            clamscan --stdout --max-filesize=2048M --max-scansize=4095M --alert-exceeds-max=yes "$zip" > scan.log 2>&1 || status=$?
-          else
-            echo "ClamAV couldn't be installed or couldn't download its virus signatures, so the ZIP wasn't scanned." > scan.log
-            status=2
-          fi
-          case "$status" in
-            0) result=clean ;;
-            1) result=infected ;;
-            *) result=error ;;
-          esac
-          found=$(grep -oE ': .+ FOUND$' scan.log | sed -E 's/^: (.+) FOUND$/\1/' | sort -u | paste -sd, - || true)
-          {
-            echo "ClamAV scan of $zip"
-            echo "Result: $result${found:+ ($found)}"
-            echo "SHA-256: $(sha256sum "$zip" | cut -d' ' -f1)"
-            echo "Scanner: $(clamscan --version 2>/dev/null || echo 'not available')"
-            echo "Scanned: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-            echo
-            cat scan.log
-          } > "$report"
-          cat "$report"
-          { echo "result=$result"; echo "found=$found"; } >> "$GITHUB_OUTPUT"
-          [[ "$result" == clean ]] || echo "::warning::ClamAV result for $zip: $result${found:+ ($found)}. The release is still published; its notes and report say so."
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: clamav-report
-          path: ClamAV-scan-${{ github.ref_name }}.txt
-          if-no-files-found: error
-
-  # Uploads DeckyHub's own release ZIP to VirusTotal (70+ antivirus engines) and waits for
-  # the verdict. Only DeckyHub's ZIP: listed plugins are only looked up by SHA-256 in the
-  # app, never uploaded. Like the ClamAV scan it never stops the release, and it's skipped
-  # when the VIRUSTOTAL_API_KEY secret isn't set. Free-tier uploads are public on
-  # VirusTotal, which is fine: the same ZIP is published on GitHub minutes later.
-  virustotal:
-    needs: build
-    runs-on: ubuntu-latest
-    outputs:
-      result: ${{ steps.vt.outputs.result }}
-      detections: ${{ steps.vt.outputs.detections }}
-      url: ${{ steps.vt.outputs.url }}
-    steps:
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: release-zip
-      - name: Scan the release ZIP on VirusTotal
-        id: vt
-        env:
-          VT_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
-        run: |
-          zip="DeckyHub-${GITHUB_REF_NAME}.zip"
-          sha=$(sha256sum "$zip" | cut -d' ' -f1)
-          url="https://www.virustotal.com/gui/file/${sha}"
-          echo "url=$url" >> "$GITHUB_OUTPUT"
-          if [[ -z "$VT_API_KEY" ]]; then
-            echo "::notice::VIRUSTOTAL_API_KEY isn't set, so the ZIP wasn't uploaded to VirusTotal."
-            echo "result=skipped" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          result=error
-          detections=""
-          # The free API allows 4 requests a minute, so poll every 30 s, for up to 15 minutes.
-          if analysis=$(curl -sSf --retry 3 -H "x-apikey: $VT_API_KEY" -F "file=@$zip" https://www.virustotal.com/api/v3/files | jq -er '.data.id'); then
-            result=pending
-            for _ in $(seq 30); do
-              sleep 30
-              body=$(curl -sSf --retry 3 -H "x-apikey: $VT_API_KEY" "https://www.virustotal.com/api/v3/analyses/${analysis}") || continue
-              [[ "$(jq -r '.data.attributes.status' <<< "$body")" == completed ]] || continue
-              malicious=$(jq '.data.attributes.stats.malicious' <<< "$body")
-              suspicious=$(jq '.data.attributes.stats.suspicious' <<< "$body")
-              # Engines that gave a verdict; unsupported/timed-out/failed ones don't count.
-              total=$(jq '.data.attributes.stats | .malicious + .suspicious + .undetected + .harmless' <<< "$body")
-              detections="$((malicious + suspicious))/$total"
-              if (( malicious + suspicious == 0 )); then result=clean; else result=flagged; fi
-              jq '.data.attributes.stats' <<< "$body"
-              jq -r '.data.attributes.results[] | select(.category == "malicious" or .category == "suspicious") | "\(.engine_name): \(.result)"' <<< "$body"
-              break
-            done
-          else
-            echo "::warning::Couldn't upload the ZIP to VirusTotal (bad API key, quota used up or service down)."
-          fi
-          echo "VirusTotal: $result${detections:+ ($detections engines flagged it)} $url"
-          { echo "result=$result"; echo "detections=$detections"; } >> "$GITHUB_OUTPUT"
-          echo "**VirusTotal:** $result${detections:+ ($detections)} — [report]($url)" >> "$GITHUB_STEP_SUMMARY"
-          [[ "$result" == clean ]] || echo "::warning::VirusTotal result for $zip: $result${detections:+ ($detections)}. The release is still published; its notes say so."
-
-  # Same idea with OPSWAT MetaDefender Cloud (20+ engines), again only for DeckyHub's own
-  # ZIP: never stops the release, skipped when the METADEFENDER_API_KEY secret isn't set.
-  metadefender:
-    needs: build
-    runs-on: ubuntu-latest
-    outputs:
-      result: ${{ steps.md.outputs.result }}
-      detections: ${{ steps.md.outputs.detections }}
-      url: ${{ steps.md.outputs.url }}
-    steps:
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: release-zip
-      - name: Scan the release ZIP on MetaDefender
-        id: md
-        env:
-          MD_API_KEY: ${{ secrets.METADEFENDER_API_KEY }}
-        run: |
-          zip="DeckyHub-${GITHUB_REF_NAME}.zip"
-          if [[ -z "$MD_API_KEY" ]]; then
-            echo "::notice::METADEFENDER_API_KEY isn't set, so the ZIP wasn't uploaded to MetaDefender."
-            echo "result=skipped" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          result=error
-          detections=""
-          url=""
-          if data_id=$(curl -sSf --retry 3 -X POST -H "apikey: $MD_API_KEY" -H "filename: $zip" -H "Content-Type: application/octet-stream" --data-binary "@$zip" https://api.metadefender.com/v4/file | jq -er '.data_id'); then
-            url="https://metadefender.opswat.com/results/file/${data_id}/regular/overview"
-            result=pending
-            # Poll every 20 s, for up to 15 minutes.
-            for _ in $(seq 45); do
-              sleep 20
-              body=$(curl -sSf --retry 3 -H "apikey: $MD_API_KEY" "https://api.metadefender.com/v4/file/${data_id}") || continue
-              [[ "$(jq -r '.scan_results.progress_percentage // 0' <<< "$body")" == 100 ]] || continue
-              detected=$(jq '.scan_results.total_detected_avs // 0' <<< "$body")
-              total=$(jq '.scan_results.total_avs // 0' <<< "$body")
-              detections="$detected/$total"
-              code=$(jq '.scan_results.scan_all_result_i // -1' <<< "$body")
-              if (( detected > 0 )); then result=flagged; elif (( code == 0 && total > 0 )); then result=clean; else result=error; fi
-              jq -r '"Verdict: \(.scan_results.scan_all_result_a)"' <<< "$body"
-              jq -r '.scan_results.scan_details | to_entries[] | select((.value.threat_found // "") != "") | "\(.key): \(.value.threat_found)"' <<< "$body"
-              break
-            done
-          else
-            echo "::warning::Couldn't upload the ZIP to MetaDefender (bad API key, quota used up or service down)."
-          fi
-          echo "MetaDefender: $result${detections:+ ($detections engines flagged it)} $url"
-          { echo "result=$result"; echo "detections=$detections"; echo "url=$url"; } >> "$GITHUB_OUTPUT"
-          echo "**MetaDefender:** $result${detections:+ ($detections)}${url:+ — [report]($url)}" >> "$GITHUB_STEP_SUMMARY"
-          [[ "$result" == clean ]] || echo "::warning::MetaDefender result for $zip: $result${detections:+ ($detections)}. The release is still published; its notes say so."
+    uses: ./.github/workflows/scan.yml
+    secrets: inherit
+    with:
+      clamav-files: DeckyHub-${{ github.ref_name }}.zip
+      file: DeckyHub-${{ github.ref_name }}.zip
+      report: ClamAV-scan-${{ github.ref_name }}.txt
+      artifact: clamav-report
+      what: release ZIP
 
   scan-desktop:
     needs: build
-    runs-on: ubuntu-latest
-    outputs:
-      result: ${{ steps.scan.outputs.result }}
-      found: ${{ steps.scan.outputs.found }}
-    steps:
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: release-zip
-      - name: Install ClamAV and today's signatures
-        id: install
-        continue-on-error: true
-        run: |
-          sudo apt-get update -q
-          sudo apt-get install -yq clamav
-          # The package starts its own updater; stop it so ours doesn't wait on its lock.
-          sudo systemctl stop clamav-freshclam || true
-          for wait in 0 30 120; do
-            sleep "$wait"
-            sudo freshclam --stdout && exit 0
-          done
-          exit 1
-      - name: Scan the Desktop installer
-        id: scan
-        env:
-          INSTALLED: ${{ steps.install.outcome }}
-        run: |
-          zip="install-deckyhub.sh"
-          # Not named DeckyHub-*: the self-update and the registry's asset filter look for that.
-          report="ClamAV-desktop-${GITHUB_REF_NAME}.txt"
-          status=0
-          if [[ "$INSTALLED" == success ]]; then
-            clamscan --stdout --max-filesize=2048M --max-scansize=4095M --alert-exceeds-max=yes Install-DeckyHub.desktop "$zip" > scan.log 2>&1 || status=$?
-          else
-            echo "ClamAV couldn't be installed or couldn't download its virus signatures, so the Desktop installer wasn't scanned." > scan.log
-            status=2
-          fi
-          case "$status" in
-            0) result=clean ;;
-            1) result=infected ;;
-            *) result=error ;;
-          esac
-          found=$(grep -oE ': .+ FOUND$' scan.log | sed -E 's/^: (.+) FOUND$/\1/' | sort -u | paste -sd, - || true)
-          {
-            echo "ClamAV scan of $zip"
-            echo "Result: $result${found:+ ($found)}"
-            echo "SHA-256: $(sha256sum "$zip" | cut -d' ' -f1)"
-            echo "Scanner: $(clamscan --version 2>/dev/null || echo 'not available')"
-            echo "Scanned: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-            echo
-            cat scan.log
-          } > "$report"
-          cat "$report"
-          { echo "result=$result"; echo "found=$found"; } >> "$GITHUB_OUTPUT"
-          [[ "$result" == clean ]] || echo "::warning::ClamAV result for $zip: $result${found:+ ($found)}. The release is still published; its notes and report say so."
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: clamav-desktop-report
-          path: ClamAV-desktop-${{ github.ref_name }}.txt
-          if-no-files-found: error
-
-
-  virustotal-desktop:
-    needs: build
-    runs-on: ubuntu-latest
-    outputs:
-      result: ${{ steps.vt.outputs.result }}
-      detections: ${{ steps.vt.outputs.detections }}
-      url: ${{ steps.vt.outputs.url }}
-    steps:
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: release-zip
-      - name: Scan the Desktop installer on VirusTotal
-        id: vt
-        env:
-          VT_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
-        run: |
-          zip="install-deckyhub.sh"
-          sha=$(sha256sum "$zip" | cut -d' ' -f1)
-          url="https://www.virustotal.com/gui/file/${sha}"
-          echo "url=$url" >> "$GITHUB_OUTPUT"
-          if [[ -z "$VT_API_KEY" ]]; then
-            echo "::notice::VIRUSTOTAL_API_KEY isn't set, so the Desktop installer wasn't uploaded to VirusTotal."
-            echo "result=skipped" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          result=error
-          detections=""
-          # Offset this upload from the ZIP job; combined polling stays within the free API's rate limit.
-          sleep 30
-          if analysis=$(curl -sSf --retry 3 -H "x-apikey: $VT_API_KEY" -F "file=@$zip" https://www.virustotal.com/api/v3/files | jq -er '.data.id'); then
-            result=pending
-            for _ in $(seq 15); do
-              sleep 60
-              body=$(curl -sSf --retry 3 -H "x-apikey: $VT_API_KEY" "https://www.virustotal.com/api/v3/analyses/${analysis}") || continue
-              [[ "$(jq -r '.data.attributes.status' <<< "$body")" == completed ]] || continue
-              malicious=$(jq '.data.attributes.stats.malicious' <<< "$body")
-              suspicious=$(jq '.data.attributes.stats.suspicious' <<< "$body")
-              # Engines that gave a verdict; unsupported/timed-out/failed ones don't count.
-              total=$(jq '.data.attributes.stats | .malicious + .suspicious + .undetected + .harmless' <<< "$body")
-              detections="$((malicious + suspicious))/$total"
-              if (( malicious + suspicious == 0 )); then result=clean; else result=flagged; fi
-              jq '.data.attributes.stats' <<< "$body"
-              jq -r '.data.attributes.results[] | select(.category == "malicious" or .category == "suspicious") | "\(.engine_name): \(.result)"' <<< "$body"
-              break
-            done
-          else
-            echo "::warning::Couldn't upload the Desktop installer to VirusTotal (bad API key, quota used up or service down)."
-          fi
-          echo "VirusTotal: $result${detections:+ ($detections engines flagged it)} $url"
-          { echo "result=$result"; echo "detections=$detections"; } >> "$GITHUB_OUTPUT"
-          echo "**VirusTotal:** $result${detections:+ ($detections)} — [report]($url)" >> "$GITHUB_STEP_SUMMARY"
-          [[ "$result" == clean ]] || echo "::warning::VirusTotal result for $zip: $result${detections:+ ($detections)}. The release is still published; its notes say so."
-
-
-  metadefender-desktop:
-    needs: build
-    runs-on: ubuntu-latest
-    outputs:
-      result: ${{ steps.md.outputs.result }}
-      detections: ${{ steps.md.outputs.detections }}
-      url: ${{ steps.md.outputs.url }}
-    steps:
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: release-zip
-      - name: Scan the Desktop installer on MetaDefender
-        id: md
-        env:
-          MD_API_KEY: ${{ secrets.METADEFENDER_API_KEY }}
-        run: |
-          zip="install-deckyhub.sh"
-          if [[ -z "$MD_API_KEY" ]]; then
-            echo "::notice::METADEFENDER_API_KEY isn't set, so the Desktop installer wasn't uploaded to MetaDefender."
-            echo "result=skipped" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          result=error
-          detections=""
-          url=""
-          if data_id=$(curl -sSf --retry 3 -X POST -H "apikey: $MD_API_KEY" -H "filename: $zip" -H "Content-Type: application/octet-stream" --data-binary "@$zip" https://api.metadefender.com/v4/file | jq -er '.data_id'); then
-            url="https://metadefender.opswat.com/results/file/${data_id}/regular/overview"
-            result=pending
-            # Poll every 20 s, for up to 15 minutes.
-            for _ in $(seq 45); do
-              sleep 20
-              body=$(curl -sSf --retry 3 -H "apikey: $MD_API_KEY" "https://api.metadefender.com/v4/file/${data_id}") || continue
-              [[ "$(jq -r '.scan_results.progress_percentage // 0' <<< "$body")" == 100 ]] || continue
-              detected=$(jq '.scan_results.total_detected_avs // 0' <<< "$body")
-              total=$(jq '.scan_results.total_avs // 0' <<< "$body")
-              detections="$detected/$total"
-              code=$(jq '.scan_results.scan_all_result_i // -1' <<< "$body")
-              if (( detected > 0 )); then result=flagged; elif (( code == 0 && total > 0 )); then result=clean; else result=error; fi
-              jq -r '"Verdict: \(.scan_results.scan_all_result_a)"' <<< "$body"
-              jq -r '.scan_results.scan_details | to_entries[] | select((.value.threat_found // "") != "") | "\(.key): \(.value.threat_found)"' <<< "$body"
-              break
-            done
-          else
-            echo "::warning::Couldn't upload the Desktop installer to MetaDefender (bad API key, quota used up or service down)."
-          fi
-          echo "MetaDefender: $result${detections:+ ($detections engines flagged it)} $url"
-          { echo "result=$result"; echo "detections=$detections"; echo "url=$url"; } >> "$GITHUB_OUTPUT"
-          echo "**MetaDefender:** $result${detections:+ ($detections)}${url:+ — [report]($url)}" >> "$GITHUB_STEP_SUMMARY"
-          [[ "$result" == clean ]] || echo "::warning::MetaDefender result for $zip: $result${detections:+ ($detections)}. The release is still published; its notes say so."
-
+    uses: ./.github/workflows/scan.yml
+    secrets: inherit
+    with:
+      clamav-files: Install-DeckyHub.desktop install-deckyhub.sh
+      file: install-deckyhub.sh
+      report: ClamAV-desktop-${{ github.ref_name }}.txt
+      artifact: clamav-desktop-report
+      what: Desktop installer
+      vt-delay: 30
+      vt-interval: 60
+      vt-polls: 15
 
   publish:
-    needs: [build, scan, virustotal, metadefender, scan-desktop, virustotal-desktop, metadefender-desktop]
+    needs: [build, scan, scan-desktop]
     # The scan never holds a release back, even if its job broke: the notes say so.
     if: ${{ !cancelled() && needs.build.result == 'success' }}
     runs-on: ubuntu-latest
@@ -498,20 +182,20 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RESULT: ${{ needs.scan.outputs.result }}
           FOUND: ${{ needs.scan.outputs.found }}
-          VT_RESULT: ${{ needs.virustotal.outputs.result }}
-          VT_DETECTIONS: ${{ needs.virustotal.outputs.detections }}
-          VT_URL: ${{ needs.virustotal.outputs.url }}
-          MD_RESULT: ${{ needs.metadefender.outputs.result }}
-          MD_DETECTIONS: ${{ needs.metadefender.outputs.detections }}
-          MD_URL: ${{ needs.metadefender.outputs.url }}
+          VT_RESULT: ${{ needs.scan.outputs.vt-result }}
+          VT_DETECTIONS: ${{ needs.scan.outputs.vt-detections }}
+          VT_URL: ${{ needs.scan.outputs.vt-url }}
+          MD_RESULT: ${{ needs.scan.outputs.md-result }}
+          MD_DETECTIONS: ${{ needs.scan.outputs.md-detections }}
+          MD_URL: ${{ needs.scan.outputs.md-url }}
           DESKTOP_RESULT: ${{ needs.scan-desktop.outputs.result }}
           DESKTOP_FOUND: ${{ needs.scan-desktop.outputs.found }}
-          DESKTOP_VT_RESULT: ${{ needs.virustotal-desktop.outputs.result }}
-          DESKTOP_VT_DETECTIONS: ${{ needs.virustotal-desktop.outputs.detections }}
-          DESKTOP_VT_URL: ${{ needs.virustotal-desktop.outputs.url }}
-          DESKTOP_MD_RESULT: ${{ needs.metadefender-desktop.outputs.result }}
-          DESKTOP_MD_DETECTIONS: ${{ needs.metadefender-desktop.outputs.detections }}
-          DESKTOP_MD_URL: ${{ needs.metadefender-desktop.outputs.url }}
+          DESKTOP_VT_RESULT: ${{ needs.scan-desktop.outputs.vt-result }}
+          DESKTOP_VT_DETECTIONS: ${{ needs.scan-desktop.outputs.vt-detections }}
+          DESKTOP_VT_URL: ${{ needs.scan-desktop.outputs.vt-url }}
+          DESKTOP_MD_RESULT: ${{ needs.scan-desktop.outputs.md-result }}
+          DESKTOP_MD_DETECTIONS: ${{ needs.scan-desktop.outputs.md-detections }}
+          DESKTOP_MD_URL: ${{ needs.scan-desktop.outputs.md-url }}
       # shields.io endpoint JSON for the README's and the website's VirusTotal and
       # MetaDefender badges, on the orphan `badges` branch. Stable releases only, like the
       # Release badge next to them; a scan that was skipped or failed keeps the old badge.
@@ -540,10 +224,10 @@ jobs:
           git push -q "$remote" HEAD:badges
         env:
           GH_TOKEN: ${{ github.token }}
-          VT_RESULT: ${{ needs.virustotal.outputs.result }}
-          VT_DETECTIONS: ${{ needs.virustotal.outputs.detections }}
-          MD_RESULT: ${{ needs.metadefender.outputs.result }}
-          MD_DETECTIONS: ${{ needs.metadefender.outputs.detections }}
+          VT_RESULT: ${{ needs.scan.outputs.vt-result }}
+          VT_DETECTIONS: ${{ needs.scan.outputs.vt-detections }}
+          MD_RESULT: ${{ needs.scan.outputs.md-result }}
+          MD_DETECTIONS: ${{ needs.scan.outputs.md-detections }}
       # The website's release notes page lists this release on the next build; start it
       # now, from main (the website is always main's). Never fails the release.
       - name: Rebuild the website
