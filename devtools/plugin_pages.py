@@ -27,6 +27,7 @@ SCAN_LABELS = {"clean": ("No threats", "clean"), "infected": ("Threat found", "s
 SCAN_RESULTS = {"clean": "no threats found", "infected": "threat found", "incomplete": "only partly scanned", "error": "couldn't be scanned"}
 
 EXTRA_STYLE = """
+.skip{position:absolute;left:-9999px;top:8px;z-index:20;background:#fff;color:#10151f;padding:8px 14px;border-radius:6px;font-weight:600;text-decoration:none}.skip:focus{left:8px}
 .crumbs{color:var(--dim);font-size:.9rem;margin:28px 0 6px}.crumbs a{color:var(--dim)}
 .plugin h1{margin-top:0}.plugin h2{font-size:1.25rem;margin:32px 0 10px}
 .lead{font-size:1.15rem;color:var(--muted);margin:0 0 18px}
@@ -189,8 +190,9 @@ def page(shell: dict[str, str], title: str, description: str, path: str, body: s
 <style>{shell["style"]}</style>
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
 {shell["nav"]}
-<main><div class="wrap plugin">
+<main id="main"><div class="wrap plugin">
 {body}
 </div></main>
 {shell["footer"]}

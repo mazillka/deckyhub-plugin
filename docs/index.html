@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>DeckyHub: Decky Loader plugin store for Steam Deck</title>
-<meta name="description" content="DeckyHub is a free, open-source plugin store for Steam Deck: find, install and update 500+ Decky Loader plugins from Gaming Mode, including plugins not on the official Decky store.">
+<meta name="description" content="DeckyHub is a free, open-source plugin store for Steam Deck: find, install and update 500+ Decky Loader plugins from Gaming Mode.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="canonical" href="https://deckyhub.com/">
 <meta name="theme-color" content="#10151f">
@@ -72,12 +72,14 @@ nav.site-nav .site-links a{color:#b6c3d4;text-decoration:none;font-size:.95rem;p
 nav.site-nav .site-links a:hover,nav.site-nav .site-links a[aria-current=page]{color:#fff}
 nav.site-nav a:focus-visible{outline:2px solid #4b9cf0;outline-offset:3px}
 @media(max-width:640px){nav.site-nav .site-nav-inner{padding:0 16px;gap:16px}nav.site-nav .site-links{gap:16px}}
+.skip{position:absolute;left:-9999px;top:8px;z-index:20;background:#fff;color:#10151f;padding:8px 14px;border-radius:6px;font-weight:600;text-decoration:none}.skip:focus{left:8px}
 </style>
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
 <nav class="site-nav" aria-label="Main navigation"><div class="site-nav-inner"><a class="site-brand" href="https://deckyhub.com/">DeckyHub</a><div class="site-links"><a href="https://deckyhub.com/" aria-current="page">Home</a><a href="https://registry.deckyhub.com/">Catalog</a><a href="https://registry.deckyhub.com/editor.html">Registry editor</a><a href="https://deckyhub.com/#install">Install</a><a href="https://deckyhub.com/releases.html">Release notes</a></div></div></nav>
 
-<main>
+<main id="main">
 <header><div class="wrap">
 <h1>Your Steam Deck's plugin hub, <br>right inside Gaming Mode.</h1>
 <p class="lead">Discover, download and update Decky Loader plugins with your controller. No Desktop Mode, no hunting through GitHub releases, no zip juggling.</p>
@@ -86,7 +88,7 @@ nav.site-nav a:focus-visible{outline:2px solid #4b9cf0;outline-offset:3px}
 <a class="btn ghost" href="#install">How to install</a>
 </div>
 <p class="latest"><!-- latest --></p>
-<div class="badges" aria-label="Virus scans of the latest release"><a href="https://github.com/mazillka/deckyhub-registry#how-it-works"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmazillka%2Fdeckyhub-registry%2Fvirus-scans%2Fbadges%2Fmazillka%2Fdeckyhub-plugin%2Fclamav.json" alt="ClamAV scan of the latest release" height="20" loading="lazy"></a><a href="https://github.com/mazillka/deckyhub-registry#how-it-works"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmazillka%2Fdeckyhub-registry%2Fvirus-scans%2Fbadges%2Fmazillka%2Fdeckyhub-plugin%2Fyara.json" alt="YARA scan of the latest release" height="20" loading="lazy"></a><a href="https://github.com/mazillka/deckyhub-plugin/releases/latest"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmazillka%2Fdeckyhub-plugin%2Fbadges%2Fvirustotal.json" alt="VirusTotal scan of the latest release" height="20" loading="lazy"></a><a href="https://github.com/mazillka/deckyhub-plugin/releases/latest"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmazillka%2Fdeckyhub-plugin%2Fbadges%2Fmetadefender.json" alt="MetaDefender scan of the latest release" height="20" loading="lazy"></a></div>
+<div class="badges" aria-label="Virus scans of the latest release"><a href="https://github.com/mazillka/deckyhub-registry#how-it-works"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmazillka%2Fdeckyhub-registry%2Fvirus-scans%2Fbadges%2Fmazillka%2Fdeckyhub-plugin%2Fclamav.json" alt="ClamAV scan of the latest release" width="170" height="20" loading="lazy"></a><a href="https://github.com/mazillka/deckyhub-registry#how-it-works"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmazillka%2Fdeckyhub-registry%2Fvirus-scans%2Fbadges%2Fmazillka%2Fdeckyhub-plugin%2Fyara.json" alt="YARA scan of the latest release" width="156" height="20" loading="lazy"></a><a href="https://github.com/mazillka/deckyhub-plugin/releases/latest"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmazillka%2Fdeckyhub-plugin%2Fbadges%2Fvirustotal.json" alt="VirusTotal scan of the latest release" width="202" height="20" loading="lazy"></a><a href="https://github.com/mazillka/deckyhub-plugin/releases/latest"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmazillka%2Fdeckyhub-plugin%2Fbadges%2Fmetadefender.json" alt="MetaDefender scan of the latest release" width="202" height="20" loading="lazy"></a></div>
 <div class="hero-shot"><picture><source media="(prefers-reduced-motion: reduce)" srcset="img/discover-640.webp 640w, img/discover.webp 1280w" sizes="(max-width:940px) 100vw, 900px"><img src="img/deckyhub.gif" width="800" height="500" style="width:100%" fetchpriority="high" alt="DeckyHub in action on a Steam Deck: its Quick Access tab, Discover, a plugin's details, Updates and Settings"></picture></div>
 </div></header>
 
