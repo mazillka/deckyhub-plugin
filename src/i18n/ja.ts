@@ -58,6 +58,7 @@ export const ja: Record<MessageKey, string> = {
   "details.about": "概要",
   "details.whatsNew": "{version} の新機能",
   "appcard.repository": "リポジトリ",
+  "appcard.deckyhubPage": "DeckyHub ページ",
   "appcard.channel": "チャンネル: {channel}",
   "appcard.channelStable": "安定版",
   "appcard.channelPrerelease": "プレリリース",

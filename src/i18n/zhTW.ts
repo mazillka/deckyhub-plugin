@@ -59,6 +59,7 @@ export const zhTW: Record<MessageKey, string> = {
   "details.about": "簡介",
   "details.whatsNew": "{version} 新功能",
   "appcard.repository": "儲存庫",
+  "appcard.deckyhubPage": "DeckyHub 頁面",
   "appcard.channel": "頻道：{channel}",
   "appcard.channelStable": "穩定版",
   "appcard.channelPrerelease": "預先發行版",

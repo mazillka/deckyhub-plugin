@@ -736,6 +736,8 @@ test("The Manage window shows the plugin's description, details and a Repository
   await expect(app.locator(".steam-modal").getByText("eugeniosegala/MAKO", { exact: true })).toBeVisible();
   await expect(app.locator(".steam-modal .deckyhub-details-notes")).toBeVisible();
   await expect(app.locator(".steam-modal").getByRole("button", { name: "Repository" })).toBeVisible();
+  // A plugin the official registry lists has a page on registry.deckyhub.com.
+  await expect(app.locator(".steam-modal").getByRole("button", { name: "DeckyHub page" })).toBeVisible();
 });
 
 test("Plugin details offers focus stops through long release notes", async ({ page }) => {

@@ -58,6 +58,7 @@ export const zh: Record<MessageKey, string> = {
   "details.about": "简介",
   "details.whatsNew": "{version} 新功能",
   "appcard.repository": "仓库",
+  "appcard.deckyhubPage": "DeckyHub 页面",
   "appcard.channel": "渠道：{channel}",
   "appcard.channelStable": "稳定版",
   "appcard.channelPrerelease": "预发布版",
