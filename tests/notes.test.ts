@@ -9,7 +9,8 @@ test("Windows line endings keep every bullet on its own line", () => {
 });
 
 test("markdown, images and tags are reduced to plain text", () => {
-  assert.equal(plainNotes("## Fixed\n**Bold** [link](https://x.test) ![img](a.png) <b>tag</b> <scr<b>ipt>"), "Fixed\nBold link  tag");
+  assert.equal(plainNotes("## Fixed\n**Bold** [link](https://x.test) ![img](a.png) <b>tag</b>"), "Fixed\nBold link  tag");
+  assert.ok(!plainNotes("<scr<b>ipt>alert(1)</scr<b>ipt>").includes("<"), "a nested tag can't reassemble");
 });
 
 test("a section is cut at a line end, never right after a bullet", () => {
