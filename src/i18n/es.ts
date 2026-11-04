@@ -140,6 +140,7 @@ export const es: Record<MessageKey, string> = {
   "scan.unsupported": "El ZIP es demasiado grande para VirusTotal",
   "scan.unverifiedDetail": "Este informe puede corresponder a otro ZIP; la coincidencia no está verificada.",
   "scan.virusTotalResult": "VirusTotal: {flagged} de {total} motores marcaron este ZIP",
+  "scan.metaDefenderResult": "MetaDefender: {flagged} de {total} motores marcaron este ZIP",
   "scan.virusTotalHint": "VirusTotal se abre en el navegador de Steam y busca este ZIP por su SHA-256. No se sube nada, así que solo tiene resultados si alguien ya le envió el mismo archivo.",
   "scan.copyLink": "Copiar enlace del ZIP",
   "scan.scanLink": "Analizar enlace en VirusTotal",

@@ -31,6 +31,7 @@ const makoRelease = (tag: string, sha256: string, day = "01") => ({
   assets: [{ name: "mako-decky.zip", browser_download_url: `https://github.com/eugeniosegala/MAKO/releases/download/${tag}/mako-decky.zip`, size: 1024, digest: `sha256:${sha256}` }],
 });
 const RELEASE_INDEX_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/releases.json";
+const METADEFENDER_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/metadefender-reports/reports.json";
 const PLUGIN_STATS_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/stats.json";
 // What the DeckyHub window's Registry Channel: Pre-release reads instead (the registry's develop branch).
 const PRERELEASE_STATS_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index-develop/stats.json";
@@ -126,6 +127,7 @@ test.beforeEach(async ({ page }) => {
   await page.route(RELEASE_INDEX_URL, (route) => route.fulfill({ status: 404, body: "404: Not Found" }));
   await page.route(PLUGIN_STATS_URL, (route) => route.fulfill({ status: 404, body: "404: Not Found" }));
   await page.route(VIRUS_SCANS_URL, (route) => route.fulfill({ status: 404, body: "404: Not Found" }));
+  await page.route(METADEFENDER_URL, (route) => route.fulfill({ status: 404, body: "404: Not Found" }));
   // Search keeps only repos with a Decky plugin.json; every stubbed result has one.
   await page.route("https://raw.githubusercontent.com/**/plugin.json", (route) => route.fulfill({ json: { name: "Test plugin" } }));
   await page.goto("/?bridge=http://127.0.0.1:8643");
@@ -692,15 +694,33 @@ test("Installed shows Discover's stats and security badges", async ({ page }) =>
     await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", sha)]);
     await page.route(PLUGIN_STATS_URL, (route) => route.fulfill({ json: { generatedAt: scannedAt, plugins: { "eugeniosegala/mako": { downloads: 73981, stars: 680, updated: "2024-01-01T00:00:00Z", root: true } } } }));
     await mockVirusScans(page, { [url]: { sha256: sha, result: "clean", scannedAt, yara: { result: "infected", found: ["ELASTIC_Linux_Trojan_Test"], scannedAt } } });
+    await page.route(METADEFENDER_URL, (route) => route.fulfill({ json: { reports: { [sha]: { state: "complete", flagged: 1, total: 20, dataId: "abc123" } } } }));
     await page.goto("/?preview=/deckyhub/installed&bridge=http://127.0.0.1:8643");
     const app = mock(page);
     const card = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
-    for (const text of ["↓ 74K", "★ 680", "Runs as root", "Threat found · 1/2"]) await expect(card.getByText(text, { exact: true })).toBeVisible();
+    for (const text of ["↓ 74K", "★ 680", "Runs as root", "Threat found · 1/3"]) await expect(card.getByText(text, { exact: true })).toBeVisible();
     await card.getByRole("button", { name: "Manage", exact: true }).click();
     await expect(app.locator(".steam-modal .deckyhub-scan-yara")).toContainText("Threat found: ELASTIC_Linux_Trojan_Test");
+    await expect(app.locator(".steam-modal").getByText("MetaDefender: 1 of 20 engines flagged this ZIP")).toBeVisible();
   } finally {
     removePlugin();
   }
+});
+
+test("MetaDefender reports are used only for the selected ZIP hash", async ({ page }) => {
+  const sha = "c".repeat(64);
+  const url = "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/mako-decky.zip";
+  const scannedAt = new Date().toISOString();
+  await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", sha)]);
+  await mockVirusScans(page, { [url]: { sha256: sha, result: "clean", scannedAt, yara: { result: "clean", scannedAt } } });
+  await page.route(METADEFENDER_URL, (route) => route.fulfill({ json: { reports: { ["d".repeat(64)]: { state: "complete", flagged: 1, total: 20 } } } }));
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  await browseAll(page, "MAKO");
+  const app = mock(page);
+  const card = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+  await expect(card.getByText("No threats · 2/2", { exact: true })).toBeVisible();
+  await card.getByRole("button", { name: "Manage", exact: true }).click();
+  await expect(app.locator(".steam-modal").getByText(/MetaDefender:/)).toHaveCount(0);
 });
 
 test("The Manage window shows the plugin's description, details and a Repository button", async ({ page }) => {

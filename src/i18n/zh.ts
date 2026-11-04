@@ -140,6 +140,7 @@ export const zh: Record<MessageKey, string> = {
   "scan.unsupported": "ZIP 超出 VirusTotal 的大小限制",
   "scan.unverifiedDetail": "此报告可能属于另一个 ZIP；文件匹配尚未确认。",
   "scan.virusTotalResult": "VirusTotal：{total} 个引擎中有 {flagged} 个标记了此 ZIP",
+  "scan.metaDefenderResult": "MetaDefender：{total} 个引擎中有 {flagged} 个标记了此 ZIP",
   "scan.virusTotalHint": "VirusTotal 会在 Steam 浏览器中打开，并按 SHA-256 查找此 ZIP。不会上传任何内容，因此只有在有人提交过同一文件时才会有结果。",
   "scan.copyLink": "复制 ZIP 链接",
   "scan.scanLink": "在 VirusTotal 扫描链接",

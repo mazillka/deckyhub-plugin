@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { FaCopy, FaExternalLinkAlt, FaShieldAlt } from "react-icons/fa";
 import { openExternalWeb } from "../external";
 import type { TFunc } from "../i18n/en";
-import { virusTotalReportOf } from "../releases";
+import { metaDefenderReportOf, virusTotalReportOf } from "../releases";
 import type { Asset, ScanVerdict, VirusScan } from "../types";
 import { copyText, modalButtonStyle, timeAgo, virusScanOf } from "../utils";
 import { sectionTitleStyle } from "./DetailsWindow";
@@ -55,8 +55,8 @@ function VirusTotalResult({ t, report }: { t: TFunc; report: VirusTotalReport })
   );
 }
 
-function ScanReportModal({ t, asset, scan, virusTotal, showExternalGuidance, showExternalActions, closeParent, closeModal }: {
-  t: TFunc; asset: Asset; scan: VirusScan | null; virusTotal: VirusTotalReport | null;
+function ScanReportModal({ t, asset, scan, virusTotal, metaDefender, showExternalGuidance, showExternalActions, closeParent, closeModal }: {
+  t: TFunc; asset: Asset; scan: VirusScan | null; virusTotal: VirusTotalReport | null; metaDefender: Awaited<ReturnType<typeof metaDefenderReportOf>>;
   showExternalGuidance: boolean; showExternalActions: boolean; closeParent?: () => void; closeModal?: () => void;
 }) {
   const hash = [asset.sha256, scan?.unverifiedMatch ? undefined : scan?.sha256].find((value) => value && /^[0-9a-f]{64}$/i.test(value));
@@ -83,6 +83,7 @@ function ScanReportModal({ t, asset, scan, virusTotal, showExternalGuidance, sho
           <Focusable onActivate={() => {}} onFocus={keepInView}>{t("scan.file", { file: asset.name })}</Focusable>
           {hash && <Focusable onActivate={() => {}} onFocus={keepInView}>{t("scan.sha256", { hash })}</Focusable>}
           {virusTotal && <Focusable onActivate={() => {}} onFocus={keepInView}><VirusTotalResult t={t} report={virusTotal} /></Focusable>}
+          {metaDefender && <Focusable onActivate={() => {}} onFocus={keepInView}>{t("scan.metaDefenderResult", { flagged: metaDefender.flagged, total: metaDefender.total })}</Focusable>}
           {showExternalActions && hash && <Button onClick={() => {
             closeModal?.();
             closeParent?.();
@@ -124,10 +125,12 @@ export function VirusScanReport({
 }) {
   const [scan, setScan] = useState<VirusScan | "unavailable" | null | undefined>(undefined);
   const [virusTotal, setVirusTotal] = useState<VirusTotalReport | null>(null);
+  const [metaDefender, setMetaDefender] = useState<Awaited<ReturnType<typeof metaDefenderReportOf>>>(null);
   useEffect(() => {
     let current = true;
     setScan(undefined);
     setVirusTotal(null);
+    setMetaDefender(null);
     if (!asset) return;
     virusScanOf(asset).then(
       (found) => current && setScan(found),
@@ -137,6 +140,7 @@ export function VirusScanReport({
       (found) => current && setVirusTotal(found),
       () => current && setVirusTotal(null),
     );
+    metaDefenderReportOf(asset).then((found) => current && setMetaDefender(found), () => current && setMetaDefender(null));
     return () => {
       current = false;
     };
@@ -181,10 +185,11 @@ export function VirusScanReport({
         </>
       )}
       {virusTotal && <VirusTotalResult t={t} report={virusTotal} />}
-      {(report || virusTotal || (showExternalActions && sha256) || (showZipActions && link)) && (
+      {metaDefender && <small>{t("scan.metaDefenderResult", { flagged: metaDefender.flagged, total: metaDefender.total })}</small>}
+      {(report || virusTotal || metaDefender || (showExternalActions && sha256) || (showZipActions && link)) && (
         <Focusable flow-children="right" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-          {(report || virusTotal || (showExternalActions && sha256)) && (
-            <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={() => showModal(<ScanReportModal t={t} asset={asset} scan={report} virusTotal={virusTotal} showExternalGuidance={showZipActions} showExternalActions={showExternalActions} closeParent={closeModal} />)}>
+          {(report || virusTotal || metaDefender || (showExternalActions && sha256)) && (
+            <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={() => showModal(<ScanReportModal t={t} asset={asset} scan={report} virusTotal={virusTotal} metaDefender={metaDefender} showExternalGuidance={showZipActions} showExternalActions={showExternalActions} closeParent={closeModal} />)}>
               {t("scan.viewReport")}
             </Button>
           )}

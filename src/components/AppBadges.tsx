@@ -67,10 +67,13 @@ export const AiBadge = ({ t, files }: { t: TFunc; files?: string[] }) => (
 export type ScanBadgeKind = "clean" | "infected" | "partial";
 export const SCAN_BADGES: ScanBadgeKind[] = ["clean", "infected", "partial"];
 const SCAN_COLORS: Record<ScanBadgeKind, string> = { clean: "#6bcb6b", infected: "#ff8a8a", partial: "#ffb35c" };
-const scanSummary = (scan: VirusScan, virusTotal?: App["virusTotal"]) => {
+const scanSummary = (scan: VirusScan, virusTotal?: App["virusTotal"], metaDefender?: App["metaDefender"]) => {
   const results = [scan.result, scan.yara?.result].filter((result): result is NonNullable<typeof result> => result != null);
   if (virusTotal?.state === "complete" && virusTotal.flagged !== undefined) {
     results.push(virusTotal.flagged ? "infected" : "clean");
+  }
+  if (metaDefender?.state === "complete" && metaDefender.flagged !== undefined) {
+    results.push(metaDefender.flagged ? "infected" : "clean");
   }
   const passed = results.filter((result) => result === "clean").length;
   const kind: ScanBadgeKind = results.includes("infected") ? "infected" : scan.yara && passed === results.length ? "clean" : "partial";
@@ -97,7 +100,7 @@ export function AppBadges({ app, t }: { app: App; t: TFunc }) {
       <AuditWarnings app={app} t={t} />
       {app.scan && (app.scan.unverifiedMatch
         ? <small style={{ color: SCAN_COLORS.partial }}>{t("scan.unverifiedMatch")}</small>
-        : <ScanBadge t={t} {...scanSummary(app.scan, app.virusTotal)} />)}
+        : <ScanBadge t={t} {...scanSummary(app.scan, app.virusTotal, app.metaDefender)} />)}
       {isStale(released) && <span title={new Date(released).toLocaleDateString()} style={{ ...pillStyle, color: "#ff8a8a", background: "#ff8a8a22", borderColor: "#ff8a8a66" }}>{t("appcard.noReleaseInYear")}</span>}
     </>
   );

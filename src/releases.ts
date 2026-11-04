@@ -212,6 +212,25 @@ export async function virusTotalReportOf(asset: Asset) {
   return { state: "complete" as const, flagged: malicious + suspicious, total, scannedAt: count(report.scannedAt) ? report.scannedAt : undefined };
 }
 
+const fetchMetaDefenderReports = cachedRawJson<Record<string, unknown> | null>(
+  "reports.json",
+  (index) => index.reports && typeof index.reports === "object" && !Array.isArray(index.reports) ? index.reports : null,
+  null,
+  (file) => [`${REGISTRY_RAW}metadefender-reports/${file}`],
+);
+
+export async function metaDefenderReportOf(asset: Asset) {
+  const hash = asset.sha256?.toLowerCase();
+  if (!hash || !/^[0-9a-f]{64}$/.test(hash)) return null;
+  const reports = await fetchMetaDefenderReports();
+  if (!reports) return null;
+  const report = reports[hash] as { state?: string; flagged?: unknown; total?: unknown; dataId?: unknown } | undefined;
+  if (report?.state !== "complete") return null;
+  const { flagged, total, dataId } = report;
+  if (typeof flagged !== "number" || !Number.isSafeInteger(flagged) || flagged < 0 || typeof total !== "number" || !Number.isSafeInteger(total) || total <= 0 || flagged > total) return null;
+  return { state: "complete" as const, flagged, total, dataId: typeof dataId === "string" && /^[A-Za-z0-9_-]+$/.test(dataId) ? dataId : undefined };
+}
+
 export const DECKYHUB_REPO = "mazillka/deckyhub-plugin";
 
 export async function requestReleases(repo: string, force: boolean): Promise<Release[]> {
