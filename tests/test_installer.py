@@ -147,6 +147,15 @@ class InstallerTests(unittest.TestCase):
         # The installer itself downloads nothing but Decky Loader and DeckyHub.
         self.assertNotIn("MAKO", (self.fixtures / "curl.log").read_text())
 
+    def test_the_terminal_gets_no_markup_tags(self):
+        result = self.run_installer(picks="mako-decky")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        for tag in ("<b>", "</b>", "<span", "</span>"):
+            self.assertNotIn(tag, result.stdout)
+        self.assertIn("All done!", result.stdout)
+        failed = self.run_installer(sha256="0" * 64)
+        self.assertNotIn("<", failed.stderr)
+
     def test_without_picks_nothing_is_saved(self):
         for picks in (None, ""):
             result = self.run_installer(picks=picks)
@@ -166,10 +175,14 @@ class InstallerTests(unittest.TestCase):
         self.assertIn('<a href=\\"https://github.com/${repo}\\">github.com/${repo}</a>', picker)
         self.assertIn('<a href=\\"https://deckyhub.com/plugins/${id}.html\\">deckyhub.com/plugins/${id}.html</a>', picker)
         self.assertIn("Plugin ${i} of ${total}", picker)
+        # Icons: each card gets its category's, or a warning triangle when its notes have a warning.
+        self.assertIn('--icon="$icon"', picker)
+        self.assertIn("icon=dialog-warning", picker)
+        self.assertIn("--icon=package-x-generic", picker)
         self.assertIn("<b>Decky Loader and DeckyHub are installed either way.</b>", picker)
         self.assertLess(picker.index("${NOTES_EXPLAINED}"), picker.index("${RESPONSIBILITY}"))
         for phrase in ("You install them at your own risk", "it isn't responsible for anything they do", "You install it at your own risk: DeckyHub isn't responsible for what it does", "AI-assisted", "Runs as root", "Warning: ", "look at its page on deckyhub.com (details and security scans) and at its author's GitHub page (both are linked on each plugin's card)",
-                       "What the notes mean:", "GitHub stars and downloads", "Latest version: ${versions[i - 1]:-unknown}", "Version: ${TAG}", "newest release today", "No warnings: the audit found nothing", "Not checked: the notes couldn't be loaded", "changes system startup", "has hidden code"):
+                       "What the notes mean:", "GitHub stars and downloads", "Latest version: ${versions[i - 1]:-unknown}", "Version: ${TAG}", "newest release today", "the audit found nothing", "the notes couldn't be loaded", "changes system startup", "has hidden code"):
             self.assertIn(phrase, text)
 
     def test_the_release_fills_in_every_placeholder_and_the_hand_picked_list(self):

@@ -50,22 +50,24 @@ for arg in "$@"; do
     case "$arg" in --plugins=*) PLUGINS_ARG="${arg#--plugins=}" ;; esac
 done
 
-PRIVACY="Your privacy: nothing about you or your Deck is collected, saved or sent anywhere. Your password is used only on this Deck, right now, and is never stored. The installer only downloads files from GitHub."
+C_OK="#3b9d5a"; C_WARN="#d9822b"; C_AI="#8b5cf6"; C_DIM="#8a98ad"
+OK_MARK="<span foreground='${C_OK}'>✓</span>"; WARN_MARK="<span foreground='${C_WARN}'>⚠</span>"
+
+PRIVACY="<b>Your privacy:</b> nothing about you or your Deck is collected, saved or sent anywhere. Your password is used only on this Deck, right now, and is never stored. The installer only downloads files from GitHub."
 OTHER_WAY="You can also install DeckyHub without this installer: download its ZIP and add it in Decky's settings (no password needed). Steps: https://github.com/mazillka/deckyhub-plugin#option-2-manual-zip"
-RESPONSIBILITY="These plugins are made by other people. DeckyHub doesn't make, review or vouch for them, and it isn't responsible for anything they do to your Deck or your data. You install them at your own risk. Before you do, read each plugin's notes and look at its page on deckyhub.com (details and security scans) and at its author's GitHub page (both are linked on each plugin's card)."
-NOTES_EXPLAINED="What the notes mean:\n  AI-assisted: its code was probably written with AI help. That says nothing about its quality or safety.\n  Runs as root: it has full access to your Deck. Many plugins need that, so add it only if you trust its author.\n  Warning: an audit found something. For example it changes system startup (it edits shell profiles or loads modules that keep working after you remove it), has hidden code (encoded or packed, hard to read), reads private data, runs scripts it downloads, skips HTTPS checks, has code that isn't in its repository, or has known vulnerabilities.\n  No warnings: the audit found nothing. That isn't proof of safety.\n  Not checked: the notes couldn't be loaded (no connection).\n  ★ and ↓ (after the notes): GitHub stars and downloads. More people using a plugin doesn't make it safer.\n\nLatest version is the newest release today. DeckyHub installs the newest one when you confirm."
+RESPONSIBILITY="${WARN_MARK} These plugins are made by other people. DeckyHub doesn't make, review or vouch for them, and it isn't responsible for anything they do to your Deck or your data. <b>You install them at your own risk.</b> Before you do, read each plugin's notes and look at its page on deckyhub.com (details and security scans) and at its author's GitHub page (both are linked on each plugin's card)."
+NOTES_EXPLAINED="<b>What the notes mean:</b>\n  <span foreground='${C_AI}'>✦ <b>AI-assisted:</b></span> its code was probably written with AI help. That says nothing about its quality or safety.\n  <span foreground='${C_WARN}'>⚠ <b>Runs as root:</b></span> it has full access to your Deck. Many plugins need that, so add it only if you trust its author.\n  <span foreground='${C_WARN}'>⚠ <b>Warning:</b></span> an audit found something. For example it changes system startup (it edits shell profiles or loads modules that keep working after you remove it), has hidden code (encoded or packed, hard to read), reads private data, runs scripts it downloads, skips HTTPS checks, has code that isn't in its repository, or has known vulnerabilities.\n  <span foreground='${C_OK}'>✓ <b>No warnings:</b></span> the audit found nothing. That isn't proof of safety.\n  <b>Not checked:</b> the notes couldn't be loaded (no connection).\n  <b>★ and ↓ (after the notes):</b> GitHub stars and downloads. More people using a plugin doesn't make it safer.\n\nLatest version is the newest release today. DeckyHub installs the newest one when you confirm."
 WARRANTY="DeckyHub is a free community project. It comes as it is, with no guarantee."
 
 # Dialogs when zenity is there (SteamOS has it), plain text in the terminal otherwise. Texts
 # use \n for line breaks: zenity understands it, the terminal gets printf %b.
 has_zenity() { command -v zenity > /dev/null && [ -n "${DISPLAY}${WAYLAND_DISPLAY}" ]; }
 zen() { zenity 2> >(grep -v 'Gtk' >&2) --window-icon=system-software-install "$@"; }
-say() { if has_zenity; then zen --title="$TITLE" --width=480 --icon=dialog-information --info --text="$1"; else printf '%b
-' "$1"; fi; }
-warn() { if has_zenity; then zen --title="$TITLE" --width=480 --icon=dialog-warning --warning --text="$1"; else printf '%b
-' "$1"; fi; }
-fail() { if has_zenity; then zen --title="$TITLE" --width=480 --icon=dialog-error --error --text="$1"; else printf 'Error: %b
-' "$1" >&2; fi; exit 1; }
+# Texts use Pango markup (bold, colors, sizes) in zenity; the terminal gets them without the tags.
+plain() { printf '%b\n' "$1" | sed -e 's/<[^>]*>//g'; }
+say() { if has_zenity; then zen --title="$TITLE" --width=480 --icon=dialog-information --info --text="$1"; else plain "$1"; fi; }
+warn() { if has_zenity; then zen --title="$TITLE" --width=480 --icon=dialog-warning --warning --text="$1"; else plain "$1"; fi; }
+fail() { if has_zenity; then zen --title="$TITLE" --width=480 --icon=dialog-error --error --text="$1"; else plain "Error: $1" >&2; fi; exit 1; }
 
 # The version of the DeckyHub in folder $1 (from its package.json), or nothing.
 installed_version() { sed -n 's/.*"version": *"\([^"]*\)".*/\1/p' "$1/package.json" 2> /dev/null | head -1; }
@@ -105,13 +107,13 @@ for repo in sys.argv[1:]:
         continue
     notes = []
     if stats.get("ai"):
-        notes.append("AI-assisted")
+        notes.append("<span foreground=\"#8b5cf6\">✦ AI-assisted</span>")
     if stats.get("root"):
-        notes.append("Runs as root")
-    notes += ["Warning: " + labels.get(key, key) for key in stats.get("warnings") or []]
+        notes.append("<span foreground=\"#d9822b\">⚠ Runs as root</span>")
+    notes += ["<span foreground=\"#d9822b\">⚠ Warning: " + labels.get(key, key) + "</span>" for key in stats.get("warnings") or []]
     popularity = " · ".join(
         label + compact(stats[key]) for label, key in (("★ ", "stars"), ("↓ ", "downloads")) if isinstance(stats.get(key), int))
-    print("; ".join(notes) or "No warnings", popularity, sep="\t")
+    print("  ".join(notes) or "<span foreground=\"#3b9d5a\">✓ No warnings</span>", popularity, sep="\t")
 ' "${repos[@]}" 2> /dev/null || true
 }
 
@@ -148,7 +150,7 @@ choose_plugins() {
     PICKS=""
     if [ -n "$PLUGINS_ARG" ]; then PICKS="$PLUGINS_ARG"; return 0; fi
     (( ${#STARTER_PLUGINS[@]} )) && has_zenity || return 0
-    local notes=() versions=() picks=() i=0 total=${#STARTER_PLUGINS[@]} entry id name repo what tag category note popularity decky_line hub_line decky_version hub_installed
+    local notes=() versions=() picks=() i=0 total=${#STARTER_PLUGINS[@]} entry id name repo what tag category note popularity decky_line hub_line decky_version hub_installed icon
     mapfile -t notes < <(plugin_notes)
     mapfile -t versions < <(plugin_versions)
     # Decky Loader writes its version next to its service; DeckyHub's is in its package.json.
@@ -158,15 +160,18 @@ choose_plugins() {
     if (( HAS_DECKY )); then decky_line="already installed, only checked"; else decky_line="installed first"; fi
     case "$verb" in Update) hub_line="will be updated" ;; Reinstall) hub_line="will be reinstalled" ;; *) hub_line="will be installed" ;; esac
 
-    zen --title="$TITLE" --width=640 --question --ok-label="Show the plugins" --cancel-label="Skip this" --default-cancel \
-        --text="<b>Optional plugins</b>\n\n<b>Decky Loader and DeckyHub are installed either way.</b>\n  Decky Loader (Required): ${decky_line}. Version: ${decky_version}. <a href=\"https://github.com/SteamDeckHomebrew/decky-loader\">github.com/SteamDeckHomebrew/decky-loader</a>\n  DeckyHub (Required): ${hub_line}. Version: ${TAG}${hub_installed:+ (now ${hub_installed})}. <a href=\"https://github.com/mazillka/deckyhub-plugin\">github.com/mazillka/deckyhub-plugin</a>\n\nNext you'll see ${total} optional plugins, one at a time. Choose Add or Skip for each, or skip this: you can always add plugins later from DeckyHub.\n\nThis installer doesn't install them. DeckyHub asks you to confirm each one the first time you open it.\n\n${NOTES_EXPLAINED}\n\n${RESPONSIBILITY}" || return 0
+    zen --title="$TITLE" --width=640 --icon=package-x-generic --question --ok-label="Show the plugins" --cancel-label="Skip this" --default-cancel \
+        --text="<span size='x-large'><b>Optional plugins</b></span>\n\n<b>Decky Loader and DeckyHub are installed either way.</b>\n  ${OK_MARK} <b>Decky Loader</b> (Required): ${decky_line}. Version: ${decky_version}. <a href=\"https://github.com/SteamDeckHomebrew/decky-loader\">github.com/SteamDeckHomebrew/decky-loader</a>\n  ${OK_MARK} <b>DeckyHub</b> (Required): ${hub_line}. Version: ${TAG}${hub_installed:+ (now ${hub_installed})}. <a href=\"https://github.com/mazillka/deckyhub-plugin\">github.com/mazillka/deckyhub-plugin</a>\n\nNext you'll see ${total} optional plugins, one at a time. Choose Add or Skip for each, or skip this: you can always add plugins later from DeckyHub.\n\nThis installer doesn't install them. DeckyHub asks you to confirm each one the first time you open it.\n\n${NOTES_EXPLAINED}\n\n${RESPONSIBILITY}" || return 0
 
     for entry in "${STARTER_PLUGINS[@]}"; do
         IFS='|' read -r id name repo what tag category <<< "$entry"
         IFS=$'\t' read -r note popularity <<< "${notes[i]:-Not checked}"
         i=$((i + 1))
-        if zen --title="$TITLE" --width=640 --question --ok-label="Add this plugin" --cancel-label="Skip" --default-cancel \
-            --text="Plugin ${i} of ${total}\n\n<b>${name}</b>  (${category})\n${what}\n\nLatest version: ${versions[i - 1]:-unknown}\n${note:-Not checked}${popularity:+ · $popularity}\n\nLook at it before you decide:\n  GitHub: <a href=\"https://github.com/${repo}\">github.com/${repo}</a>\n  DeckyHub page (details and security scans): <a href=\"https://deckyhub.com/plugins/${id}.html\">deckyhub.com/plugins/${id}.html</a>\n\nYou install it at your own risk: DeckyHub isn't responsible for what it does. Nothing is added unless you choose Add."; then
+        # An icon for the category, or a warning triangle when the notes have something to say.
+        case "$category" in "Frame Generation") icon=video-display ;; Customization) icon=preferences-desktop-theme ;; "Game Libraries") icon=applications-games ;; *) icon=package-x-generic ;; esac
+        case "$note" in *Warning*|*"Runs as root"*) icon=dialog-warning ;; esac
+        if zen --title="$TITLE" --width=640 --icon="$icon" --question --ok-label="Add this plugin" --cancel-label="Skip" --default-cancel \
+            --text="<span foreground='${C_DIM}'>Plugin ${i} of ${total}</span>\n\n<span size='large'><b>${name}</b></span>  <span foreground='${C_DIM}'>(${category})</span>\n${what}\n\nLatest version: ${versions[i - 1]:-unknown}\n${note:-Not checked}${popularity:+ · $popularity}\n\nLook at it before you decide:\n  GitHub: <a href=\"https://github.com/${repo}\">github.com/${repo}</a>\n  DeckyHub page (details and security scans): <a href=\"https://deckyhub.com/plugins/${id}.html\">deckyhub.com/plugins/${id}.html</a>\n\nYou install it at your own risk: DeckyHub isn't responsible for what it does. Nothing is added unless you choose Add."; then
             picks+=("$id")
         fi
     done
@@ -195,22 +200,22 @@ if (( EUID != 0 )); then
     add_step() { steps+="  ${n}. $1\n"; n=$((n + 1)); }
     add_step "You type your Deck's admin password."
     if (( HAS_DECKY )); then
-        add_step "Decky Loader comes first. It's the add-on system DeckyHub runs in. We only check that it's installed. It is, so nothing is installed or changed here."
+        add_step "<b>Decky Loader comes first.</b> It's the add-on system DeckyHub runs in. We only check that it's installed. It is, so nothing is installed or changed here."
     else
-        add_step "Decky Loader comes first. It's the add-on system DeckyHub runs in, and it isn't installed yet, so it's installed now."
+        add_step "<b>Decky Loader comes first.</b> It's the add-on system DeckyHub runs in, and it isn't installed yet, so it's installed now."
     fi
     add_step "Only then is DeckyHub ${TAG} downloaded from GitHub and checked, to make sure it's the right file."
     add_step "DeckyHub is put in its folder. If you already have it, your old copy stays safe until the new one is ready."
     add_step "Decky Loader restarts. This takes a few seconds."
     if (( HAS_DECKY )); then
-        why="Why a password? Restarting Decky Loader is a change to the Deck itself, and the Deck only allows that with the admin password."
+        why="<b>Why a password?</b> Restarting Decky Loader is a change to the Deck itself, and the Deck only allows that with the admin password."
     else
-        why="Why a password? Installing and restarting Decky Loader are changes to the Deck itself, and the Deck only allows that with the admin password. Decky Loader's own installer asks for the same one."
+        why="<b>Why a password?</b> Installing and restarting Decky Loader are changes to the Deck itself, and the Deck only allows that with the admin password. Decky Loader's own installer asks for the same one."
     fi
     if (( HAS_DECKY )); then
-        headline="This will download and ${verb,,} DeckyHub ${TAG} on your Steam Deck.\nDecky Loader is already installed, so it's only checked."
+        headline="<span size='large'><b>This will download and ${verb,,} DeckyHub ${TAG} on your Steam Deck.</b></span>\nDecky Loader is already installed, so it's only checked."
     else
-        headline="This will download and install Decky Loader and DeckyHub ${TAG} on your Steam Deck."
+        headline="<span size='large'><b>This will download and install Decky Loader and DeckyHub ${TAG} on your Steam Deck.</b></span>"
     fi
     extras=""
     (( ${#STARTER_PLUGINS[@]} )) && { has_zenity || [ -n "$PLUGINS_ARG" ]; } && extras="Next you can pick optional plugins, such as frame generation or themes. They aren't installed now: DeckyHub asks you to confirm each one later.\n\n"
@@ -219,7 +224,7 @@ if (( EUID != 0 )); then
     if has_zenity; then
         zen --title="$TITLE" --width=560 --icon=system-software-install --question --ok-label="${verb}" --cancel-label="Cancel" --text="$intro_text" || exit 0
     else
-        printf '%b\n' "$intro_text"
+        plain "$intro_text"
         if [ -t 0 ]; then
             read -r -p "Continue? [Y/n] " answer
             [[ "$answer" =~ ^[Nn] ]] && exit 0
@@ -283,7 +288,7 @@ install_all() {
         fi
         bash "${WORK}/install_release.sh" >> "$LOG" 2>&1
         if [ ! -f "${HOMEBREW}/services/PluginLoader" ]; then
-            echo "Decky Loader didn't finish installing.\n\nInstall it from https://decky.xyz first, then start this installer again.\n\nDetails:\n$(tail -n 5 "$LOG")" > "$STATUS_FILE"; return
+            echo "Decky Loader didn't finish installing.\n\nInstall it from https://decky.xyz first, then start this installer again.\n\nDetails:\n$(tail -n 5 "$LOG" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g')" > "$STATUS_FILE"; return
         fi
         echo "decky" > "${WORK}/installed-decky"
     fi
@@ -371,26 +376,26 @@ INSTALL_STATUS=$(cat "$STATUS_FILE" 2> /dev/null)
 
 # What was done, then what to do next.
 done_text=""
-if [ -f "${WORK}/installed-decky" ]; then done_text+="✓ Decky Loader installed\n"; else done_text+="✓ Decky Loader was already installed\n"; fi
+if [ -f "${WORK}/installed-decky" ]; then done_text+="${OK_MARK} Decky Loader installed\n"; else done_text+="${OK_MARK} Decky Loader was already installed\n"; fi
 if [ -f "${WORK}/same-version" ]; then
-    done_text+="✓ DeckyHub ${TAG} reinstalled (file checked)\n"
+    done_text+="${OK_MARK} DeckyHub ${TAG} reinstalled (file checked)\n"
 elif [ -f "${WORK}/had-deckyhub" ]; then
-    done_text+="✓ DeckyHub updated to ${TAG} (file checked)\n"
+    done_text+="${OK_MARK} DeckyHub updated to ${TAG} (file checked)\n"
 else
-    done_text+="✓ DeckyHub ${TAG} installed (file checked)\n"
+    done_text+="${OK_MARK} DeckyHub ${TAG} installed (file checked)\n"
 fi
 if [ -f "${WORK}/no-restart" ]; then
-    done_text+="! Decky Loader couldn't restart by itself. Restart your Steam Deck to start using DeckyHub.\n"
+    done_text+="${WARN_MARK} Decky Loader couldn't restart by itself. Restart your Steam Deck to start using DeckyHub.\n"
 else
-    done_text+="✓ Decky Loader restarted\n"
+    done_text+="${OK_MARK} Decky Loader restarted\n"
 fi
 if [ -f "${WORK}/picked-names" ]; then
     count=$(wc -l < "${WORK}/picked-names" | tr -d ' ')
-    done_text+="✓ ${count} optional plugin(s) chosen. DeckyHub asks you to confirm them when you open it.\n"
+    done_text+="${OK_MARK} ${count} optional plugin(s) chosen. DeckyHub asks you to confirm them when you open it.\n"
 fi
 cleanup="The installer's temporary files are removed when you close this."
 [ -n "$DECKYHUB_TEMP_PASSWORD" ] && cleanup="The installer's temporary files and the temporary password are removed when you close this."
 next="What now: switch to Gaming Mode, open the Quick Access menu (the ··· button) and choose DeckyHub."
 [ -f "${WORK}/picked-names" ] && next+="\n\n${RESPONSIBILITY}"
-message="All done!\n\n${done_text}\n${next}\n\nNothing about you or your Deck was collected or sent. ${cleanup}"
+message="<span size='x-large'><b>All done!</b></span>\n\n${done_text}\n${next}\n\nNothing about you or your Deck was collected or sent. ${cleanup}"
 if [ -f "${WORK}/no-restart" ]; then warn "$message"; else say "$message"; fi
