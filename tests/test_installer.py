@@ -4,6 +4,7 @@ local files, systemctl records its calls, and the home folder is a temporary one
 import hashlib
 import json
 import os
+import re
 import shutil
 import stat
 import subprocess
@@ -129,11 +130,6 @@ class InstallerTests(unittest.TestCase):
         self.assertIn(f"✓ DeckyHub {TAG} reinstalled (file checked)", result.stdout)
         self.assertNotIn("updated to", result.stdout)
 
-    def test_the_intro_names_install_update_and_reinstall(self):
-        text = SCRIPT.read_text()
-        for word in ('verb="Install"', 'verb="Update"', 'verb="Reinstall"'):
-            self.assertIn(word, text)
-
     def pending_file(self):
         return self.home / "homebrew" / "settings" / "DeckyHub" / "pending-installs.json"
 
@@ -163,27 +159,70 @@ class InstallerTests(unittest.TestCase):
             self.assertFalse(self.pending_file().exists())
             self.assertNotIn("optional plugin", result.stdout)
 
-    def test_each_plugin_gets_its_own_dialog_with_links_and_skip_as_the_default(self):
-        text = SCRIPT.read_text()
-        picker = text.split("choose_plugins()")[1].split("# Not root yet")[0]
-        # Nothing is added unless the user chooses Add: Skip has the focus.
-        self.assertEqual(picker.count("--default-cancel"), 2)
-        self.assertIn('--ok-label="Add this plugin" --cancel-label="Skip"', picker)
-        self.assertNotIn("TRUE", picker)
-        self.assertNotIn("--checklist", picker)
-        # Links are clickable in a dialog's text: the plugin's repository and its DeckyHub page.
-        self.assertIn('<a href=\\"https://github.com/${repo}\\">github.com/${repo}</a>', picker)
-        self.assertIn('<a href=\\"https://deckyhub.com/plugins/${id}.html\\">deckyhub.com/plugins/${id}.html</a>', picker)
-        self.assertIn("Plugin ${i} of ${total}", picker)
-        # Icons: each card gets its category's, or a warning triangle when its notes have a warning.
-        self.assertIn('--icon="$icon"', picker)
-        self.assertIn("icon=dialog-warning", picker)
-        self.assertIn("--icon=package-x-generic", picker)
-        self.assertIn("<b>Decky Loader and DeckyHub are installed either way.</b>", picker)
-        self.assertLess(picker.index("${NOTES_EXPLAINED}"), picker.index("${RESPONSIBILITY}"))
-        for phrase in ("You install them at your own risk", "it isn't responsible for anything they do", "You install it at your own risk: DeckyHub isn't responsible for what it does", "AI-assisted", "Runs as root", "Warning: ", "look at its page on deckyhub.com (details and security scans) and at its author's GitHub page (both are linked on each plugin's card)",
-                       "What the notes mean:", "GitHub stars and downloads", "Latest version: ${versions[i - 1]:-unknown}", "Version: ${TAG}", "newest release today", "the audit found nothing", "the notes couldn't be loaded", "changes system startup", "has hidden code"):
-            self.assertIn(phrase, text)
+    def run_picker(self, add=(), overview_ok=True):
+        """Runs choose_plugins() from the real script with a stand-in for zenity: returns (the PICKS it
+        ends up with, [(ok label, zenity arguments, dialog text)] for every dialog it showed)."""
+        text = fill(SCRIPT.read_text(), TAG, self.sha256)
+
+        def one(pattern):
+            return re.search(pattern, text, re.M | re.S).group(0)
+
+        parts = [one(r"^C_OK=.*\nOK_MARK=[^\n]*$"), one(r"^STARTER_PLUGINS=\(\n.*?^\)"), one(r"^PLUGINS_ARG=[^\n]*$"), one(r"^STATS_URL=[^\n]*$"),
+                 one(r"^RELEASES_URL=[^\n]*$"), one(r"^RESPONSIBILITY=[^\n]*$"), one(r"^NOTES_EXPLAINED=[^\n]*$"), one(r"^installed_version\(\)[^\n]*$"),
+                 one(r"^plugin_notes\(\) \{\n.*?^\}"), one(r"^plugin_versions\(\) \{\n.*?^\}"), one(r"^choose_plugins\(\) \{\n.*?^\}")]
+        log = self.dir / "dialogs.bin"
+        harness = self.dir / "picker.sh"
+        harness.write_text("\n".join(parts) + """
+has_zenity() { return 0; }
+zen() {
+    local text="" ok="" a
+    for a in "$@"; do case "$a" in --text=*) text="${a#--text=}" ;; --ok-label=*) ok="${a#--ok-label=}" ;; esac; done
+    printf '%s\\0%s\\0%s\\0' "$ok" "$*" "$text" >> "$DIALOGS"
+    case "$ok" in
+        "Show the plugins") return $OVERVIEW ;;
+        "Add this plugin") for name in $ADD; do [[ "$text" == *"<b>${name//_/ }</b>"* ]] && return 0; done; return 1 ;;
+    esac
+    return 1
+}
+HAS_DECKY=1; HOMEBREW_CHECK=/nonexistent; TAG=v9.9.9; verb=Install
+choose_plugins
+echo "PICKS=$PICKS"
+""")
+        env = {"PATH": f"{self.bin}:/usr/bin:/bin", "DIALOGS": str(log), "OVERVIEW": "0" if overview_ok else "1", "ADD": " ".join(name.replace(" ", "_") for name in add)}
+        result = subprocess.run(["env", *[f"{key}={value}" for key, value in env.items()], "bash", str(harness)], capture_output=True, text=True, timeout=60)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        picks = re.search(r"^PICKS=(.*)$", result.stdout, re.M).group(1)
+        fields = log.read_bytes().decode().split("\0")[:-1] if log.exists() else []
+        return picks, [tuple(fields[index:index + 3]) for index in range(0, len(fields), 3)]
+
+    def test_the_picker_shows_the_overview_then_one_card_per_plugin_and_keeps_only_what_was_added(self):
+        picks, dialogs = self.run_picker(add=("MAKO Decky", "CSS Loader"))
+        self.assertEqual(picks, "mako-decky,css-loader")
+        self.assertEqual([ok for ok, _, _ in dialogs], ["Show the plugins"] + ["Add this plugin"] * 6)
+        # Nothing is added by accident: Skip has the focus in every dialog.
+        for _, arguments, _ in dialogs:
+            self.assertIn("--default-cancel", arguments)
+        overview = dialogs[0][2]
+        self.assertIn("You install them at your own risk", overview)
+        self.assertLess(overview.index("What the notes mean"), overview.index("You install them at your own risk"))  # the notice sits last
+        mako = next(text for _, _, text in dialogs if "<b>MAKO Decky</b>" in text)
+        self.assertIn("Plugin 2 of 6", mako)
+        self.assertIn('<a href="https://github.com/eugeniosegala/MAKO">', mako)
+        self.assertIn('<a href="https://deckyhub.com/plugins/mako-decky.html">', mako)
+        self.assertIn("You install it at your own risk", mako)
+
+    def test_each_card_gets_its_categorys_icon(self):
+        _, dialogs = self.run_picker()
+        icons = {re.search(r"<b>([^<]+)</b>", text).group(1): re.search(r"--icon=(\S+)", arguments).group(1) for _, arguments, text in dialogs[1:]}
+        self.assertEqual(icons["MAKO Decky"], "video-display")
+        self.assertEqual(icons["CSS Loader"], "preferences-desktop-theme")
+        self.assertEqual(icons["ProtonDB Badges"], "applications-games")
+
+    def test_skipping_the_overview_or_every_card_picks_nothing(self):
+        picks, dialogs = self.run_picker(add=("MAKO Decky",), overview_ok=False)
+        self.assertEqual((picks, len(dialogs)), ("", 1))  # no cards were shown
+        picks, _ = self.run_picker()
+        self.assertEqual(picks, "")
 
     def test_the_release_fills_in_every_placeholder_and_the_hand_picked_list(self):
         filled = fill(SCRIPT.read_text(), TAG, self.sha256)
@@ -225,7 +264,11 @@ class InstallerTests(unittest.TestCase):
         self.assertIn("This is usually a Wi-Fi hiccup", result.stderr)
 
     def test_the_intro_lists_the_steps_and_says_no_information_is_used(self):
+        # A source check on purpose: this is the text a user reads before agreeing to anything, and
+        # the intro runs only as a normal user with a screen, which these tests don't have.
         text = SCRIPT.read_text()
+        for verb in ('verb="Install"', 'verb="Update"', 'verb="Reinstall"'):
+            self.assertIn(verb, text)
         self.assertIn("Here's what will happen:", text)
         self.assertIn("This will download and install Decky Loader and DeckyHub", text)
         self.assertIn("Decky Loader is already installed, so it's only checked.", text)
