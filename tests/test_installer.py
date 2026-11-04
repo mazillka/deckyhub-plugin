@@ -156,7 +156,13 @@ class InstallerTests(unittest.TestCase):
     def test_the_checklist_starts_unticked_and_names_the_risks(self):
         text = SCRIPT.read_text()
         self.assertIn('rows+=(FALSE "$id"', text)  # nothing is ticked by default
-        self.assertNotIn("TRUE", text.split("choose_plugins()")[1].split("# Not root yet")[0])
+        # Only Decky Loader and DeckyHub are ticked (always installed, so they come first and say Required).
+        picker = text.split("choose_plugins()")[1].split("# Not root yet")[0]
+        self.assertEqual(picker.count("TRUE"), 2)
+        self.assertIn('rows+=(TRUE "decky-loader"', picker)
+        self.assertIn('rows+=(TRUE "deckyhub"', picker)
+        self.assertIn("<b>Decky Loader and DeckyHub are installed either way.</b>", picker)
+        self.assertIn("Required: ", picker)
         for phrase in ("You are responsible for what you install", "AI-assisted", "Runs as root", "Warning: ", "deckyhub.com/plugins/${id}.html", "Details and security scans",
                        "What the notes mean:", "No warnings: the audit found nothing", "Not checked: the notes couldn't be loaded", "changes system startup", "has hidden code"):
             self.assertIn(phrase, text)

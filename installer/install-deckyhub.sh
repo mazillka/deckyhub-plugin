@@ -106,8 +106,12 @@ choose_plugins() {
     PICKS=""
     if [ -n "$PLUGINS_ARG" ]; then PICKS="$PLUGINS_ARG"; return 0; fi
     (( ${#STARTER_PLUGINS[@]} )) && has_zenity || return 0
-    local notes=() rows=() i=0 entry id name repo what
+    local notes=() rows=() i=0 entry id name repo what decky_note hub_note
     mapfile -t notes < <(plugin_notes)
+    if (( HAS_DECKY )); then decky_note="Required: already installed, only checked"; else decky_note="Required: installed first"; fi
+    case "$verb" in Update) hub_note="Required: will be updated" ;; Reinstall) hub_note="Required: will be reinstalled" ;; *) hub_note="Required: will be installed" ;; esac
+    rows+=(TRUE "decky-loader" "Decky Loader"$'\n'"The add-on system DeckyHub runs in" "$decky_note" "decky.xyz")
+    rows+=(TRUE "deckyhub" "DeckyHub"$'\n'"Finds, installs and updates plugins from Gaming Mode" "$hub_note" "deckyhub.com")
     for entry in "${STARTER_PLUGINS[@]}"; do
         IFS='|' read -r id name repo what <<< "$entry"
         rows+=(FALSE "$id" "${name}"$'\n'"${what}" "${notes[i]:-Not checked}" "deckyhub.com/plugins/${id}.html")
@@ -115,7 +119,7 @@ choose_plugins() {
     done
     PICKS=$(zen --title="$TITLE" --width=860 --height=720 --list --checklist --hide-column=2 --print-column=2 --separator=',' \
         --ok-label="Continue" --cancel-label="Skip" \
-        --text="Optional plugins\n\nDecky Loader and DeckyHub are installed either way. Tick any plugins you'd like to add, or skip this: you can always add plugins later from DeckyHub.\n\nThis installer doesn't install them. DeckyHub asks you to confirm each one the first time you open it. Every plugin has a page with its details and security scans on deckyhub.com (last column).\n\n${RESPONSIBILITY}\n\n${NOTES_EXPLAINED}" \
+        --text="<b>Optional plugins</b>\n\n<b>Decky Loader and DeckyHub are installed either way.</b> They're the first two rows, and they stay installed even if you untick them. Tick any other plugins you'd like to add, or skip this: you can always add plugins later from DeckyHub.\n\nThis installer doesn't install them. DeckyHub asks you to confirm each one the first time you open it. Every plugin has a page with its details and security scans on deckyhub.com (last column).\n\n${RESPONSIBILITY}\n\n${NOTES_EXPLAINED}" \
         --column=Pick --column=ID --column=Plugin --column=Notes --column="Details and security scans" "${rows[@]}") || PICKS=""
 }
 
