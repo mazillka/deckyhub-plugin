@@ -32,6 +32,7 @@ from PIL import Image
 
 import plugin_pages
 from plugin_pages import nice_date
+import site_shell
 
 ROOT = Path(__file__).resolve().parent.parent
 REGISTRY_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/refs/heads/main/registry/apps.json"
@@ -129,37 +130,33 @@ PREVIEW = sys.argv[sys.argv.index("--preview") + 1] if "--preview" in sys.argv e
 shutil.copytree(ROOT / "docs", out, dirs_exist_ok=True)
 with urllib.request.urlopen(REGISTRY_URL) as response:
     apps = json.load(response)["apps"]
-cards = "\n".join(
-    f'<a class="app" href="plugins/{escape(a["id"])}.html"><small>{escape(a["category"])}</small>'
-    f'<strong>{escape(a["name"])}</strong><p>{escape(a.get("description", ""))}</p><code>{escape(a["repo"])}</code></a>'
-    for a in apps
-)
+data = plugin_pages.load_data()
 index = out / "index.html"
 page = index.read_text(encoding="utf-8")
-if "<!-- catalog -->" not in page:
-    sys.exit("docs/index.html is missing the <!-- catalog --> placeholder")
+if "<!-- popular -->" not in page:
+    sys.exit("docs/index.html is missing the <!-- popular --> placeholder")
 releases = fetch_releases()
 latest = next((release for release in releases if not release.get("prerelease")), None)
 for placeholder in ("<!-- structured-data -->", "<!-- latest -->"):
     if placeholder not in page:
         sys.exit(f"docs/index.html is missing the {placeholder} placeholder")
-page = page.replace("<!-- catalog -->", cards).replace("<!-- structured-data -->", structured_data(page, latest))
+page = page.replace("<!-- popular -->", plugin_pages.popular_cards(apps, data)).replace("<!-- plugin-count -->", str(len(apps))).replace("<!-- structured-data -->", structured_data(page, latest))
 if latest:
     page = page.replace("<!-- latest -->", f'Latest release: <a href="releases.html#{escape(latest["tag_name"])}">{escape(latest["tag_name"])}</a>, {nice_date(latest.get("published_at"))} · <a href="releases.html">Release notes</a>')
 readme = (ROOT / "README.md").read_text(encoding="utf-8")
 page = re.sub(r"<!-- steps: (.+?) -->", lambda match: plugin_pages.readme_steps(readme, match.group(1)), page)
-index.write_text(page, encoding="utf-8")
+index.write_text(site_shell.apply(page), encoding="utf-8")
 
 notes = out / "releases.html"
 notes_page = notes.read_text(encoding="utf-8")
 if "<!-- releases -->" not in notes_page:
     sys.exit("docs/releases.html is missing the <!-- releases --> placeholder")
-notes.write_text(notes_page.replace("<!-- releases -->", release_articles(releases)), encoding="utf-8")
+notes.write_text(site_shell.apply(notes_page.replace("<!-- releases -->", release_articles(releases))), encoding="utf-8")
 
-plugin_urls = plugin_pages.write_pages(out, apps, (ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
+plugin_urls = plugin_pages.write_pages(out, apps, (ROOT / "docs" / "releases.html").read_text(encoding="utf-8"), data)
 llms = out / "llms.txt"
 if llms.exists():
-    llms.write_text(llms.read_text(encoding="utf-8").rstrip("\n") + "\n\n## Plugin pages\n\n" + "".join(
+    llms.write_text(llms.read_text(encoding="utf-8").rstrip("\n") + "\n\n## Plugins\n\n- [All plugins](" + SITE + "plugins/): every plugin, most downloaded first, with search and categories.\n" + "".join(
         f"- [{a['name']}]({SITE}plugins/{a['id']}.html): {a.get('description') or ''} (github.com/{a['repo']})\n" for a in sorted(apps, key=lambda a: a["name"].casefold())), encoding="utf-8")
 
 today = time.strftime("%Y-%m-%d", time.gmtime())

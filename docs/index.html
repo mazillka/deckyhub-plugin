@@ -56,28 +56,19 @@ code{background:#0f1724;border:1px solid var(--line);border-radius:4px;padding:1
 .app:hover{border-color:var(--accent2)}.app small{display:block;color:var(--accent2);font-size:.78rem;text-transform:uppercase;letter-spacing:.05em}
 .app p{margin:6px 0 0;color:var(--muted);font-size:.92rem}.app code{font-size:.78rem;color:var(--dim);border:0;background:none;padding:0}
 .latest{margin:14px 0 0;color:var(--dim);font-size:.9rem}.latest:empty{display:none}
-.editor-head{display:flex;flex-wrap:wrap;gap:12px;align-items:end;justify-content:space-between}
+
 details{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin-bottom:10px}
 summary{cursor:pointer;font-weight:600}details p{color:var(--muted);margin:10px 0 0}
 footer{padding:40px 0;border-top:1px solid var(--line);color:var(--dim);font-size:.88rem}
 footer .wrap{display:grid;gap:10px}
 @media(max-width:640px){header{padding:40px 0 24px}header p.lead{font-size:1.05rem}header h1 br{display:none}.hero-shot{margin-top:28px;border-radius:10px}section{padding:44px 0}.sub{margin-bottom:24px}.wrap{padding:0 16px}nav .wrap{gap:14px}.cta .btn{flex:1;justify-content:center}.editor-head .btn{width:100%;justify-content:center}}
 
-/* Shared navigation across deckyhub.com and registry.deckyhub.com. */
-nav.site-nav{position:sticky;top:0;z-index:5;background:rgba(16,21,31,.94);backdrop-filter:blur(8px);border-bottom:1px solid #2e405a}
-nav.site-nav .site-nav-inner{max-width:1100px;margin:auto;padding:0 20px;display:flex;align-items:center;gap:24px;min-height:56px}
-nav.site-nav .site-brand{flex:none;color:#eef4ff;font-weight:700;text-decoration:none}
-nav.site-nav .site-links{display:flex;gap:20px;align-items:center;overflow-x:auto;white-space:nowrap;margin-left:auto;scrollbar-width:thin}
-nav.site-nav .site-links a{color:#b6c3d4;text-decoration:none;font-size:.95rem;padding:16px 0}
-nav.site-nav .site-links a:hover,nav.site-nav .site-links a[aria-current=page]{color:#fff}
-nav.site-nav a:focus-visible{outline:2px solid #4b9cf0;outline-offset:3px}
-@media(max-width:640px){nav.site-nav .site-nav-inner{padding:0 16px;gap:16px}nav.site-nav .site-links{gap:16px}}
-.skip{position:absolute;left:-9999px;top:8px;z-index:20;background:#fff;color:#10151f;padding:8px 14px;border-radius:6px;font-weight:600;text-decoration:none}.skip:focus{left:8px}
+/* site-nav-style */
 </style>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
-<nav class="site-nav" aria-label="Main navigation"><div class="site-nav-inner"><a class="site-brand" href="https://deckyhub.com/">DeckyHub</a><div class="site-links"><a href="https://deckyhub.com/" aria-current="page">Home</a><a href="https://registry.deckyhub.com/">Catalog</a><a href="https://registry.deckyhub.com/editor.html">Registry editor</a><a href="https://deckyhub.com/#install">Install</a><a href="https://deckyhub.com/releases.html">Release notes</a></div></div></nav>
+<!-- site-nav: home -->
 
 <main id="main">
 <header><div class="wrap">
@@ -132,19 +123,11 @@ nav.site-nav a:focus-visible{outline:2px solid #4b9cf0;outline-offset:3px}
 <p class="sub" style="margin-top:20px">Alternatively, choose <strong>Developer → Install Plugin from URL</strong> and enter <code>https://github.com/mazillka/deckyhub-plugin/releases/latest/download/DeckyHub.zip</code>. <a href="https://github.com/mazillka/deckyhub-plugin#installing-deckyhub">Full install guide</a></p>
 </div></section>
 
-<section id="catalog"><div class="wrap">
-<h2>Ready out of the box</h2>
-<p class="sub">These plugins show up in Discover the moment you install DeckyHub, and new ones arrive without a DeckyHub update. They're suggested by users or found through the community catalogs <a href="https://decky-extended-plugins.beallio.com/">Decky Extended Plugins</a> and <a href="https://safetzahirovic.github.io/decky-plugins-explorer/">Decky Plugins Explorer</a> or by the registry's own GitHub search, and each one is checked for a working release before it's added. Find anything else with <strong>Search</strong>.</p>
-<div class="catalog"><!-- catalog --></div>
-<div class="cta" style="margin-top:24px"><a class="btn ghost" href="https://registry.deckyhub.com/">Search the full catalog</a><a class="btn ghost" href="https://github.com/mazillka/deckyhub-registry/issues/new">Suggest a plugin</a></div>
-</div></section>
-
-<section id="editor"><div class="wrap">
-<div class="editor-head">
-<div><h2>Registry editor</h2>
-<p class="sub" style="margin:0">Prefer a bigger screen? Build or edit a plugin list in your browser and export it as a registry file. Host it anywhere over HTTPS (a GitHub repo works) and add it in DeckyHub under <strong>Settings → Repositories → Custom Registries</strong>. Nothing is uploaded.</p></div>
-<a class="btn" href="https://registry.deckyhub.com/editor.html">Open registry editor</a>
-</div>
+<section id="plugins"><div class="wrap">
+<h2>Popular plugins</h2>
+<p class="sub">These show up in Discover the moment you install DeckyHub, and new ones arrive without a DeckyHub update. They're suggested by users or found through the community catalogs <a href="https://decky-extended-plugins.beallio.com/">Decky Extended Plugins</a> and <a href="https://safetzahirovic.github.io/decky-plugins-explorer/">Decky Plugins Explorer</a> or by the registry's own GitHub search, and each one is checked for a working release before it's added. Find anything else with <strong>Search</strong>.</p>
+<div class="catalog"><!-- popular --></div>
+<div class="cta" style="margin-top:24px"><a class="btn" href="plugins/">Browse all <!-- plugin-count --> plugins</a><a class="btn ghost" href="https://registry.deckyhub.com/">Add a plugin or build your own list</a></div>
 </div></section>
 
 <section id="faq"><div class="wrap">
@@ -158,10 +141,7 @@ nav.site-nav a:focus-visible{outline:2px solid #4b9cf0;outline-offset:3px}
 
 </main>
 
-<footer><div class="wrap">
-<div>DeckyHub is open source under GPL-3.0-or-later · <a href="https://github.com/mazillka/deckyhub-plugin">Source</a> · <a href="releases.html">Release notes</a> · <a href="https://github.com/mazillka/deckyhub-plugin/issues">Report an issue</a></div>
-<div><strong>Disclaimer:</strong> Not affiliated with Valve or the Decky Loader project. Plugin information comes from public GitHub repositories, and every plugin belongs to its own authors; DeckyHub doesn't review, own or endorse them. Plugins are installed at your own risk, so look at a plugin's repository before you install it.</div>
-</div></footer>
+<!-- site-footer -->
 
 </body>
 </html>

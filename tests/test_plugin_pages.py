@@ -22,10 +22,14 @@ class PluginPageTests(unittest.TestCase):
         self.assertIn(".facts li.wide{grid-column:1/-1}", page)
         self.assertIn("overflow-wrap:anywhere", page.split(".facts li{", 1)[1].split("}", 1)[0])
 
-    def test_the_footer_home_link_works_from_a_plugin_page(self):
-        footer = self.page().split("<footer>", 1)[1]
-        self.assertIn('<a href="/">Home</a>', footer)
-        self.assertNotIn('href="./"', footer)
+    def test_the_menu_and_footer_links_work_from_a_plugin_page(self):
+        page = self.page()
+        # Links are absolute, so they work from /plugins/ too (a relative "./" would be /plugins/ itself).
+        for part in (page.split("<nav", 1)[1].split("</nav>", 1)[0], page.split("<footer>", 1)[1]):
+            self.assertNotRegex(part, r'href="\.?\.?/')
+        self.assertIn('<a href="https://deckyhub.com/">Home</a>', page)
+        self.assertIn('<a href="https://deckyhub.com/plugins/" aria-current="page">Plugins</a>', page)  # this section is highlighted
+        self.assertIn('<a href="https://registry.deckyhub.com/">Contribute</a>', page)
 
     def test_the_title_and_description_fit_a_search_result(self):
         page = self.page()
