@@ -142,7 +142,8 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(json.loads(self.pending_file().read_text()), ["eugeniosegala/MAKO", "DeckThemes/SDH-CssLoader"])
         self.assertIn("✓ 2 optional plugin(s) chosen", result.stdout)
-        self.assertIn("You are responsible for what you install", result.stdout)
+        self.assertIn("You install them at your own risk", result.stdout)
+        self.assertIn("it isn't responsible for anything they do to your Deck or your data", result.stdout)
         # The installer itself downloads nothing but Decky Loader and DeckyHub.
         self.assertNotIn("MAKO", (self.fixtures / "curl.log").read_text())
 
@@ -167,7 +168,7 @@ class InstallerTests(unittest.TestCase):
         self.assertIn("Plugin ${i} of ${total}", picker)
         self.assertIn("<b>Decky Loader and DeckyHub are installed either way.</b>", picker)
         self.assertLess(picker.index("${NOTES_EXPLAINED}"), picker.index("${RESPONSIBILITY}"))
-        for phrase in ("You are responsible for what you install", "AI-assisted", "Runs as root", "Warning: ", "look at its page on deckyhub.com (details and security scans) and at its author's GitHub page",
+        for phrase in ("You install them at your own risk", "it isn't responsible for anything they do", "You install it at your own risk: DeckyHub isn't responsible for what it does", "AI-assisted", "Runs as root", "Warning: ", "look at its page on deckyhub.com (details and security scans) and at its author's GitHub page (both are linked on each plugin's card)",
                        "What the notes mean:", "GitHub stars and downloads", "Latest version: ${versions[i - 1]:-unknown}", "Version: ${TAG}", "newest release today", "No warnings: the audit found nothing", "Not checked: the notes couldn't be loaded", "changes system startup", "has hidden code"):
             self.assertIn(phrase, text)
 

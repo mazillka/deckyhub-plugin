@@ -20,7 +20,7 @@
 #   --plugins=a,b   Pick optional plugins by id without the checklist (see STARTER_PLUGINS).
 #
 # Optional plugins: a checklist (nothing ticked) offers a few hand-picked plugins with notes
-# on AI help, root and audit warnings, and says you're responsible for what you install. This
+# on AI help, root and audit warnings, and says DeckyHub isn't responsible for what you install: it's at your own risk. This
 # installer doesn't install them: it saves the picks (pending-installs.json in DeckyHub's
 # settings folder) and DeckyHub offers to install them, with its usual confirmation for each,
 # the first time it opens.
@@ -52,7 +52,7 @@ done
 
 PRIVACY="Your privacy: nothing about you or your Deck is collected, saved or sent anywhere. Your password is used only on this Deck, right now, and is never stored. The installer only downloads files from GitHub."
 OTHER_WAY="You can also install DeckyHub without this installer: download its ZIP and add it in Decky's settings (no password needed). Steps: https://github.com/mazillka/deckyhub-plugin#option-2-manual-zip"
-RESPONSIBILITY="You are responsible for what you install. These plugins are made by other people. DeckyHub doesn't make, review or vouch for them, and they run on your Deck. Read each plugin's notes first, and before you install it look at its page on deckyhub.com (details and security scans) and at its author's GitHub page (both are linked on each plugin's card)."
+RESPONSIBILITY="These plugins are made by other people. DeckyHub doesn't make, review or vouch for them, and it isn't responsible for anything they do to your Deck or your data. You install them at your own risk. Before you do, read each plugin's notes and look at its page on deckyhub.com (details and security scans) and at its author's GitHub page (both are linked on each plugin's card)."
 NOTES_EXPLAINED="What the notes mean:\n  AI-assisted: its code was probably written with AI help. That says nothing about its quality or safety.\n  Runs as root: it has full access to your Deck. Many plugins need that, so add it only if you trust its author.\n  Warning: an audit found something. For example it changes system startup (it edits shell profiles or loads modules that keep working after you remove it), has hidden code (encoded or packed, hard to read), reads private data, runs scripts it downloads, skips HTTPS checks, has code that isn't in its repository, or has known vulnerabilities.\n  No warnings: the audit found nothing. That isn't proof of safety.\n  Not checked: the notes couldn't be loaded (no connection).\n  ★ and ↓ (after the notes): GitHub stars and downloads. More people using a plugin doesn't make it safer.\n\nLatest version is the newest release today. DeckyHub installs the newest one when you confirm."
 WARRANTY="DeckyHub is a free community project. It comes as it is, with no guarantee."
 
@@ -166,7 +166,7 @@ choose_plugins() {
         IFS=$'\t' read -r note popularity <<< "${notes[i]:-Not checked}"
         i=$((i + 1))
         if zen --title="$TITLE" --width=640 --question --ok-label="Add this plugin" --cancel-label="Skip" --default-cancel \
-            --text="Plugin ${i} of ${total}\n\n<b>${name}</b>  (${category})\n${what}\n\nLatest version: ${versions[i - 1]:-unknown}\n${note:-Not checked}${popularity:+ · $popularity}\n\nLook at it before you decide:\n  GitHub: <a href=\"https://github.com/${repo}\">github.com/${repo}</a>\n  DeckyHub page (details and security scans): <a href=\"https://deckyhub.com/plugins/${id}.html\">deckyhub.com/plugins/${id}.html</a>\n\nYou are responsible for what you install. Nothing is added unless you choose Add."; then
+            --text="Plugin ${i} of ${total}\n\n<b>${name}</b>  (${category})\n${what}\n\nLatest version: ${versions[i - 1]:-unknown}\n${note:-Not checked}${popularity:+ · $popularity}\n\nLook at it before you decide:\n  GitHub: <a href=\"https://github.com/${repo}\">github.com/${repo}</a>\n  DeckyHub page (details and security scans): <a href=\"https://deckyhub.com/plugins/${id}.html\">deckyhub.com/plugins/${id}.html</a>\n\nYou install it at your own risk: DeckyHub isn't responsible for what it does. Nothing is added unless you choose Add."; then
             picks+=("$id")
         fi
     done
