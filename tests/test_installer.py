@@ -166,13 +166,13 @@ class InstallerTests(unittest.TestCase):
         self.assertLess(picker.index("${NOTES_EXPLAINED}"), picker.index("${RESPONSIBILITY}"))
         self.assertLess(picker.index("${RESPONSIBILITY}"), picker.index("--column=Pick"))
         self.assertIn("Required: ", picker)
-        # Each plugin's cell ends with where its source lives.
-        self.assertEqual(picker.count('"github.com/'), 3)
-        self.assertIn('"github.com/${repo}"', picker)
-        # Names are links in the text, so the table has no page or stars columns of its own.
+        # One block per plugin, no table: its repository and its notes are in the same cell.
+        self.assertIn(" · github.com/${repo}", picker)
+        self.assertIn("--hide-header", picker)
+        # Names are links in the text, so the list has no page, category or stars columns.
         self.assertNotIn("Details and security scans\"", picker)
         self.assertNotIn("--column=\"Stars and downloads\"", picker)
-        self.assertEqual(picker.count("--column="), 5)
+        self.assertEqual(picker.count("--column="), 3)  # pick, hidden id, plugin
         for phrase in ("You are responsible for what you install", "AI-assisted", "Runs as root", "Warning: ", r'<a href=\"https://deckyhub.com/plugins/${id}.html\">${name}</a>', "Click a plugin's name", "look at its DeckyHub page and its author's GitHub page before you install it", '(<a href=\"https://github.com/${repo}\">GitHub</a>)',
                        "What the notes mean:", "grouped by category", "GitHub stars and downloads", "Latest version: ${versions[i]:-unknown}", "Version: ${TAG}", "newest release today", "No warnings: the audit found nothing", "Not checked: the notes couldn't be loaded", "changes system startup", "has hidden code"):
             self.assertIn(phrase, text)
