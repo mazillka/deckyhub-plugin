@@ -62,13 +62,20 @@ summary{cursor:pointer;font-weight:600}details p{color:var(--muted);margin:10px 
 footer{padding:40px 0;border-top:1px solid var(--line);color:var(--dim);font-size:.88rem}
 footer .wrap{display:grid;gap:10px}
 @media(max-width:640px){header{padding:40px 0 24px}header p.lead{font-size:1.05rem}header h1 br{display:none}.hero-shot{margin-top:28px;border-radius:10px}section{padding:44px 0}.sub{margin-bottom:24px}.wrap{padding:0 16px}nav .wrap{gap:14px}.cta .btn{flex:1;justify-content:center}.editor-head .btn{width:100%;justify-content:center}}
+
+/* Shared navigation across deckyhub.com and registry.deckyhub.com. */
+nav.site-nav{position:sticky;top:0;z-index:5;background:rgba(16,21,31,.94);backdrop-filter:blur(8px);border-bottom:1px solid #2e405a}
+nav.site-nav .site-nav-inner{max-width:1100px;margin:auto;padding:0 20px;display:flex;align-items:center;gap:24px;min-height:56px}
+nav.site-nav .site-brand{flex:none;color:#eef4ff;font-weight:700;text-decoration:none}
+nav.site-nav .site-links{display:flex;gap:20px;align-items:center;overflow-x:auto;white-space:nowrap;margin-left:auto;scrollbar-width:thin}
+nav.site-nav .site-links a{color:#b6c3d4;text-decoration:none;font-size:.95rem;padding:16px 0}
+nav.site-nav .site-links a:hover,nav.site-nav .site-links a[aria-current=page]{color:#fff}
+nav.site-nav a:focus-visible{outline:2px solid #4b9cf0;outline-offset:3px}
+@media(max-width:640px){nav.site-nav .site-nav-inner{padding:0 16px;gap:16px}nav.site-nav .site-links{gap:16px}}
 </style>
 </head>
 <body>
-<nav><div class="wrap">
-<a class="brand" href="./">DeckyHub</a>
-<span class="links" style="display:flex;gap:20px"><a href="#features">Features</a><a href="#tour">Tour</a><a href="#install">Install</a><a href="#catalog">Catalog</a><a href="releases.html">Release notes</a><a class="keep" href="https://registry.deckyhub.com/editor.html">Registry editor</a><a class="keep" href="https://github.com/mazillka/deckyhub-plugin">GitHub</a></span>
-</div></nav>
+<nav class="site-nav" aria-label="Main navigation"><div class="site-nav-inner"><a class="site-brand" href="https://deckyhub.com/">DeckyHub</a><div class="site-links"><a href="https://deckyhub.com/" aria-current="page">Home</a><a href="https://registry.deckyhub.com/">Catalog</a><a href="https://registry.deckyhub.com/editor.html">Registry editor</a><a href="https://deckyhub.com/#install">Install</a><a href="https://deckyhub.com/releases.html">Release notes</a></div></div></nav>
 
 <main>
 <header><div class="wrap">
@@ -112,7 +119,9 @@ footer .wrap{display:grid;gap:10px}
 <p class="sub">One file in Desktop Mode installs DeckyHub, and <a href="https://decky.xyz/">Decky Loader</a> too if your Deck doesn't have it yet.</p>
 <ol class="steps">
 <li>Switch to <strong>Desktop Mode</strong> and download <a href="https://github.com/mazillka/deckyhub-plugin/releases/latest/download/Install-DeckyHub.desktop"><code>Install-DeckyHub.desktop</code></a>.</li>
-<li>Double-click it in <strong>Downloads</strong>, choose <strong>Execute</strong>, and enter your admin password when asked (no password set? It offers a temporary one, like Decky's own installer).</li>
+<li>Double-click it in <strong>Downloads</strong> and choose <strong>Execute</strong> (or <strong>Continue</strong>) when asked.</li>
+<li>Review the installation, choose <strong>Continue</strong>, and enter your admin password when asked. If you haven't set one, the installer offers a temporary password and removes it when finished.</li>
+<li>Follow the progress window until installation is complete. If there's a problem, the installer explains what to do next.</li>
 <li>Back in Gaming Mode, open DeckyHub's four-square tab in the <strong>Quick Access</strong> menu and start browsing.</li>
 </ol>
 <p class="sub" style="margin-top:20px">Already have Decky and staying in Gaming Mode? In Decky's settings turn on <strong>Developer mode</strong>, then <strong>Developer → Install Plugin from URL</strong> with <code>https://github.com/mazillka/deckyhub-plugin/releases/latest/download/DeckyHub.zip</code>, or download the ZIP from the <a href="https://github.com/mazillka/deckyhub-plugin/releases/latest">Releases page</a> and use <strong>Install Plugin from ZIP</strong>. <a href="https://github.com/mazillka/deckyhub-plugin#installing-deckyhub">Full install guide</a></p>

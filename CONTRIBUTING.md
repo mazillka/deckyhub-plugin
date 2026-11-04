@@ -36,6 +36,8 @@ The build produces `dist/index.js`. Decky Loader requires `plugin.json`, `main.p
 
 For development, rebuild the frontend after every change to `src/`, then reload the plugin. The backend uses only Python's standard library and needs no pip install.
 
+For installer changes, run `python3 -m unittest tests.test_installer` on Linux with root or passwordless sudo. Before release, also try the Desktop Mode launcher on a Deck: review the introduction, password prompt, progress and completion message, including the path where Decky Loader is missing. The automated tests use stand-ins and do not exercise the real desktop dialogs or Decky Loader installer.
+
 ## Local browser preview
 
 `devtools/decky-mock/` is a standalone tool for iterating on `src/` in a regular browser instead of a Steam Deck — it swaps `@decky/ui`/`@decky/api` for plain stand-ins and bridges backend calls to a real, running `main.py`. It's for exercising layout and logic only, not for visual QA, since the real `@decky/ui` components are scraped from Steam's own webpack bundle at runtime and can't be replicated outside it. See [devtools/decky-mock/README.md](devtools/decky-mock/README.md) for setup and known limitations.
