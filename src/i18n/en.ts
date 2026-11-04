@@ -147,7 +147,7 @@ export const en = {
   "scan.copyFailed": "Couldn't copy the link",
   "scan.pasteIntoVirusTotal": "Paste it into the URL box on VirusTotal's page and start the scan.",
   "scan.scanLinkHint": "Scan link on VirusTotal copies the ZIP's download link and opens VirusTotal's URL scan page: paste the link there. VirusTotal mainly rates the link itself, so it may not check what's inside the ZIP.",
-  "scan.deckyhubChecks": "Every DeckyHub release is scanned with ClamAV before it's published, and its code is checked by GitHub CodeQL on every change.",
+  "scan.deckyhubChecks": "Every DeckyHub release is scanned with ClamAV, VirusTotal and MetaDefender before it's published, and its code is checked by GitHub CodeQL on every change. View report shows each scanner's version and date.",
 
   "dl.downloading": "Downloading {filename}",
   "dl.preparing": "Preparing download…",

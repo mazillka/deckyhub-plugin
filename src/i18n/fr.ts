@@ -148,7 +148,7 @@ export const fr: Record<MessageKey, string> = {
   "scan.copyFailed": "Impossible de copier le lien",
   "scan.pasteIntoVirusTotal": "Collez-le dans le champ URL de la page de VirusTotal et lancez l'analyse.",
   "scan.scanLinkHint": "Analyser le lien sur VirusTotal copie le lien de téléchargement du ZIP et ouvre la page d'analyse d'URL de VirusTotal : collez-y le lien. VirusTotal évalue surtout le lien lui-même, il peut donc ne pas vérifier le contenu du ZIP.",
-  "scan.deckyhubChecks": "Chaque version de DeckyHub est analysée avec ClamAV avant sa publication, et son code est vérifié par GitHub CodeQL à chaque modification.",
+  "scan.deckyhubChecks": "Chaque version de DeckyHub est analysée avec ClamAV, VirusTotal et MetaDefender avant sa publication, et son code est vérifié par GitHub CodeQL à chaque modification. Le rapport indique la version et la date de chaque analyseur.",
 
   "dl.downloading": "Téléchargement de {filename}",
   "dl.preparing": "Préparation du téléchargement…",

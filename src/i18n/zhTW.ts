@@ -149,7 +149,7 @@ export const zhTW: Record<MessageKey, string> = {
   "scan.copyFailed": "無法複製連結",
   "scan.pasteIntoVirusTotal": "請貼到 VirusTotal 頁面的 URL 輸入框並開始掃描。",
   "scan.scanLinkHint": "「在 VirusTotal 掃描連結」會複製 ZIP 的下載連結並開啟 VirusTotal 的 URL 掃描頁面：請在那裡貼上連結。VirusTotal 主要評估連結本身，因此可能不會檢查 ZIP 裡的內容。",
-  "scan.deckyhubChecks": "每個 DeckyHub 版本在發布前都會用 ClamAV 掃描，其程式碼在每次變更時都會由 GitHub CodeQL 檢查。",
+  "scan.deckyhubChecks": "每個 DeckyHub 版本在發布前都會用 ClamAV、VirusTotal 和 MetaDefender 掃描，其程式碼在每次變更時都會由 GitHub CodeQL 檢查。報告會顯示每個掃描器的版本與日期。",
 
   "dl.downloading": "正在下載 {filename}",
   "dl.preparing": "正在準備下載…",
