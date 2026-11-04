@@ -6,6 +6,7 @@ import { openExternalWeb } from "../external";
 import type { TFunc } from "../i18n/en";
 import { metaDefenderReportOf, virusTotalReportOf } from "../releases";
 import type { Asset, ScanVerdict, VirusScan } from "../types";
+import { displayVersion } from "../version";
 import { copyText, modalButtonStyle, timeAgo, virusScanOf } from "../utils";
 import { sectionTitleStyle } from "./DetailsWindow";
 import { keepInView } from "./KeepInView";
@@ -122,6 +123,7 @@ function ScanReportModal({ t, asset, scan, virusTotal, metaDefender, showExterna
 export function VirusScanReport({
   t,
   asset,
+  version,
   note,
   closeModal,
   showExternalActions = true,
@@ -129,6 +131,8 @@ export function VirusScanReport({
 }: {
   t: TFunc;
   asset?: Asset;
+  // The release the scanned ZIP belongs to, shown beside the title.
+  version?: string;
   note?: string;
   closeModal?: () => void;
   showExternalActions?: boolean;
@@ -177,7 +181,7 @@ export function VirusScanReport({
   };
   return (
     <div className="deckyhub-virus-scan" onFocus={keepInView} style={{ display: "grid", gap: 6, padding: "8px 12px", background: "rgba(0, 0, 0, 0.2)", borderRadius: 10, borderLeft: `4px solid ${accent}` }}>
-      <h3 style={sectionTitleStyle}>{t("scan.title")}</h3>
+      <h3 style={sectionTitleStyle}>{t("scan.title")}{version && <span style={{ marginLeft: 10, fontWeight: 400, letterSpacing: 0, textTransform: "none" }}>{displayVersion(version)}</span>}</h3>
       {scan === undefined ? (
         <small style={{ color: MUTED }}>{t("scan.checking")}</small>
       ) : scan === "unavailable" ? (
