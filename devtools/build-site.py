@@ -10,6 +10,11 @@ with the FAQ taken from the page's own <details>), writes a page per plugin
 Needs Pillow and Markdown (CI-only, not plugin dependencies). GITHUB_TOKEN, if
 set, is sent with the releases request; without the releases (GitHub down),
 the site still builds and the release notes page links to GitHub.
+
+`--preview /develop/` builds the same site as a preview under that path (pages.yml puts
+the develop branch there): every link into the site points inside the preview, search
+engines are told to stay away (noindex, no canonical link, no sitemap) and a banner says
+it isn't the live site.
 """
 import json
 import os
@@ -121,7 +126,8 @@ def structured_data(page: str, latest: dict | None) -> str:
     return '<script type="application/ld+json">' + data + "</script>"
 
 
-out = Path(sys.argv[1] if len(sys.argv) > 1 else "_site")
+out = Path(sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("--") else "_site")
+PREVIEW = sys.argv[sys.argv.index("--preview") + 1] if "--preview" in sys.argv else None
 
 shutil.copytree(ROOT / "docs", out, dirs_exist_ok=True)
 with urllib.request.urlopen(REGISTRY_URL) as response:
@@ -177,3 +183,18 @@ for shot in (ROOT / "screenshots").glob("*.jpg"):
 shutil.copy(ROOT / "promo" / "deckyhub.gif", img / "deckyhub.gif")
 # The promo hero (16:9) suits link previews better than a bare screenshot.
 shutil.copy(ROOT / "screenshots" / "hero.jpg", img / "og.jpg")
+
+
+if PREVIEW:
+    base = "/" + PREVIEW.strip("/") + "/"
+    banner = ('<div style="background:#e8b54a;color:#10151f;text-align:center;padding:6px 12px;font:600 14px system-ui,sans-serif">'
+              f'Preview build from the develop branch, not the live site. <a href="{SITE}" style="color:#10151f">Go to deckyhub.com</a></div>')
+    for sitemap in ("sitemap.xml", "robots.txt"):
+        (out / sitemap).unlink(missing_ok=True)
+    for html_file in out.rglob("*.html"):
+        text = html_file.read_text(encoding="utf-8")
+        text = text.replace(SITE, base).replace('href="/', f'href="{base}').replace('src="/', f'src="{base}')
+        text = re.sub(r'<link rel="canonical"[^>]*>|<meta property="og:url"[^>]*>', "", text)
+        text = text.replace("<head>", '<head>\n<meta name="robots" content="noindex,nofollow">', 1)
+        text = re.sub(r"(<body[^>]*>)", lambda match: match.group(1) + "\n" + banner.replace(f'href="{base}"', f'href="{SITE}"'), text, count=1)
+        html_file.write_text(text, encoding="utf-8")
