@@ -87,6 +87,13 @@ def scan_kind(channel: dict) -> str:
     return "infected" if "infected" in results else "partial" if any(result != "clean" for result in results) else "clean"
 
 
+def fit(text: str, limit: int) -> str:
+    """text cut at a word boundary to at most `limit` characters, with an ellipsis when it was cut."""
+    if len(text) <= limit:
+        return text
+    return text[: limit - 1].rsplit(" ", 1)[0].rstrip(" ,;:.-") + "…"
+
+
 def json_ld(data: dict) -> str:
     # No "<" at all inside the script element, so nothing in a name or description can end it.
     return '<script type="application/ld+json">' + json.dumps({"@context": "https://schema.org", **data}, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c") + "</script>"
@@ -160,7 +167,8 @@ def shell_of(releases_page: str) -> dict[str, str]:
     footer = re.search(r"<footer>.*?</footer>", releases_page, re.S)
     if not (style and nav and footer):
         raise SystemExit("docs/releases.html is missing its style, navigation or footer")
-    return {"style": style.group(1) + EXTRA_STYLE, "nav": nav.group(0), "footer": footer.group(0)}
+    # The footer's "./" is the site root from releases.html, but it'd be /plugins/ from a plugin page.
+    return {"style": style.group(1) + EXTRA_STYLE, "nav": nav.group(0), "footer": footer.group(0).replace('href="./"', 'href="/"')}
 
 
 def page(shell: dict[str, str], title: str, description: str, path: str, body: str, data: list[str]) -> str:
@@ -230,8 +238,14 @@ def plugin_page(shell: dict[str, str], app: dict, stats: dict, scans: dict, warn
     trail = json_ld({"@type": "BreadcrumbList", "itemListElement": [
         {"@type": "ListItem", "position": 1, "name": "DeckyHub", "item": SITE},
         {"@type": "ListItem", "position": 2, "name": name}]})
-    title = f"{name}: {category} plugin for Steam Deck (Decky Loader) | DeckyHub"
-    summary = f"{description.rstrip('.')}. A Decky Loader plugin for Steam Deck: install and update it from Gaming Mode with DeckyHub." if description else f"{name}, a {category} Decky Loader plugin for Steam Deck. Install and update it from Gaming Mode with DeckyHub."
+    # Search results show about 60 characters of a title and 155 of a description.
+    title = f"{name}: Decky plugin for Steam Deck | DeckyHub"
+    if len(title) > 70:
+        title = f"{fit(name, 40)} | DeckyHub"
+    tail = " A Decky Loader plugin for Steam Deck; install it from Gaming Mode with DeckyHub."
+    cut = fit(description.rstrip("."), 155 - len(tail))
+    summary = cut + ("" if cut.endswith("…") else ".") + tail if description else f"{name}, a {category} Decky Loader plugin for Steam Deck. Install and update it from Gaming Mode with DeckyHub."
+    summary = fit(summary, 160)
     return page(shell, title, summary, f"plugins/{app['id']}.html", body, [trail, json_ld(data)])
 
 
