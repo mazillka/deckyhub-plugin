@@ -153,29 +153,22 @@ class InstallerTests(unittest.TestCase):
             self.assertFalse(self.pending_file().exists())
             self.assertNotIn("optional plugin", result.stdout)
 
-    def test_the_checklist_starts_unticked_and_names_the_risks(self):
+    def test_each_plugin_gets_its_own_dialog_with_links_and_skip_as_the_default(self):
         text = SCRIPT.read_text()
-        self.assertIn('rows+=(FALSE "$id"', text)  # nothing is ticked by default
-        # Only Decky Loader and DeckyHub are ticked (always installed, so they come first and say Required).
         picker = text.split("choose_plugins()")[1].split("# Not root yet")[0]
-        self.assertEqual(picker.count("TRUE"), 2)
-        self.assertIn('rows+=(TRUE "decky-loader"', picker)
-        self.assertIn('rows+=(TRUE "deckyhub"', picker)
+        # Nothing is added unless the user chooses Add: Skip has the focus.
+        self.assertEqual(picker.count("--default-cancel"), 2)
+        self.assertIn('--ok-label="Add this plugin" --cancel-label="Skip"', picker)
+        self.assertNotIn("TRUE", picker)
+        self.assertNotIn("--checklist", picker)
+        # Links are clickable in a dialog's text: the plugin's repository and its DeckyHub page.
+        self.assertIn('<a href=\\"https://github.com/${repo}\\">github.com/${repo}</a>', picker)
+        self.assertIn('<a href=\\"https://deckyhub.com/plugins/${id}.html\\">deckyhub.com/plugins/${id}.html</a>', picker)
+        self.assertIn("Plugin ${i} of ${total}", picker)
         self.assertIn("<b>Decky Loader and DeckyHub are installed either way.</b>", picker)
-        # The notice sits right above the table, after the explanation of the notes.
         self.assertLess(picker.index("${NOTES_EXPLAINED}"), picker.index("${RESPONSIBILITY}"))
-        self.assertLess(picker.index("${RESPONSIBILITY}"), picker.index("--column=Pick"))
-        self.assertIn("Required: ", picker)
-        # One block per plugin, no table: its repository and its notes are in the same cell.
-        self.assertIn(" · github.com/${repo}", picker)
-        self.assertIn("--hide-header", picker)
-        # A plain list: no page, category or stars columns, and no link block above it.
-        self.assertNotIn("links+=", picker)
-        self.assertNotIn("Details and security scans\"", picker)
-        self.assertNotIn("--column=\"Stars and downloads\"", picker)
-        self.assertEqual(picker.count("--column="), 3)  # pick, hidden id, plugin
-        for phrase in ("You are responsible for what you install", "AI-assisted", "Runs as root", "Warning: ", "look at its page on deckyhub.com (details and security scans) and at its author's GitHub page (the address under its name)", 
-                       "What the notes mean:", "grouped by category", "GitHub stars and downloads", "Latest version: ${versions[i]:-unknown}", "Version: ${TAG}", "newest release today", "No warnings: the audit found nothing", "Not checked: the notes couldn't be loaded", "changes system startup", "has hidden code"):
+        for phrase in ("You are responsible for what you install", "AI-assisted", "Runs as root", "Warning: ", "look at its page on deckyhub.com (details and security scans) and at its author's GitHub page",
+                       "What the notes mean:", "GitHub stars and downloads", "Latest version: ${versions[i - 1]:-unknown}", "Version: ${TAG}", "newest release today", "No warnings: the audit found nothing", "Not checked: the notes couldn't be loaded", "changes system startup", "has hidden code"):
             self.assertIn(phrase, text)
 
     def test_the_release_fills_in_every_placeholder_and_the_hand_picked_list(self):

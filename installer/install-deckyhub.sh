@@ -52,7 +52,7 @@ done
 
 PRIVACY="Your privacy: nothing about you or your Deck is collected, saved or sent anywhere. Your password is used only on this Deck, right now, and is never stored. The installer only downloads files from GitHub."
 OTHER_WAY="You can also install DeckyHub without this installer: download its ZIP and add it in Decky's settings (no password needed). Steps: https://github.com/mazillka/deckyhub-plugin#option-2-manual-zip"
-RESPONSIBILITY="You are responsible for what you install. These plugins are made by other people. DeckyHub doesn't make, review or vouch for them, and they run on your Deck. Read each plugin's notes first, and before you install it look at its page on deckyhub.com (details and security scans) and at its author's GitHub page (the address under its name)."
+RESPONSIBILITY="You are responsible for what you install. These plugins are made by other people. DeckyHub doesn't make, review or vouch for them, and they run on your Deck. Read each plugin's notes first, and before you install it look at its page on deckyhub.com (details and security scans) and at its author's GitHub page (both are linked on each plugin's card)."
 NOTES_EXPLAINED="What the notes mean:\n  AI-assisted: its code was probably written with AI help. That says nothing about its quality or safety.\n  Runs as root: it has full access to your Deck. Many plugins need that, so add it only if you trust its author.\n  Warning: an audit found something. For example it changes system startup (it edits shell profiles or loads modules that keep working after you remove it), has hidden code (encoded or packed, hard to read), reads private data, runs scripts it downloads, skips HTTPS checks, has code that isn't in its repository, or has known vulnerabilities.\n  No warnings: the audit found nothing. That isn't proof of safety.\n  Not checked: the notes couldn't be loaded (no connection).\n  ★ and ↓ (after the notes): GitHub stars and downloads. More people using a plugin doesn't make it safer.\n\nLatest version is the newest release today. DeckyHub installs the newest one when you confirm."
 WARRANTY="DeckyHub is a free community project. It comes as it is, with no guarantee."
 
@@ -141,41 +141,36 @@ for arg in sys.argv[1:]:
 ' "${args[@]}" 2> /dev/null || true
 }
 
-# Sets PICKS to the chosen plugin ids (comma separated, maybe none).
+# Sets PICKS to the chosen plugin ids (comma separated, maybe none). One dialog per plugin: its
+# links are clickable there (a dialog's text can hold links, a list cell can't), and Skip is
+# the default button, so nothing is added unless the user chooses Add.
 choose_plugins() {
     PICKS=""
     if [ -n "$PLUGINS_ARG" ]; then PICKS="$PLUGINS_ARG"; return 0; fi
     (( ${#STARTER_PLUGINS[@]} )) && has_zenity || return 0
-    local notes=() versions=() rows=() i=0 entry id name repo what tag category note popularity decky_note hub_note decky_version hub_installed
+    local notes=() versions=() picks=() i=0 total=${#STARTER_PLUGINS[@]} entry id name repo what tag category note popularity decky_line hub_line decky_version hub_installed
     mapfile -t notes < <(plugin_notes)
     mapfile -t versions < <(plugin_versions)
     # Decky Loader writes its version next to its service; DeckyHub's is in its package.json.
     decky_version="the newest release, chosen by Decky's own installer"
     [ -s "${HOMEBREW_CHECK}/services/.loader.version" ] && decky_version="$(head -n 1 "${HOMEBREW_CHECK}/services/.loader.version") (installed)"
     hub_installed="$(installed_version "${HOMEBREW_CHECK}/plugins/DeckyHub")"
-    if (( HAS_DECKY )); then decky_note="Required: already installed, only checked"; else decky_note="Required: installed first"; fi
-    case "$verb" in Update) hub_note="Required: will be updated" ;; Reinstall) hub_note="Required: will be reinstalled" ;; *) hub_note="Required: will be installed" ;; esac
-    rows+=(TRUE "decky-loader" "Decky Loader  (Required)"$'
-'"The add-on system DeckyHub runs in"$'
-'"Version: ${decky_version} · github.com/SteamDeckHomebrew/decky-loader"$'
-'"${decky_note}")
-    rows+=(TRUE "deckyhub" "DeckyHub  (Required)"$'
-'"Finds, installs and updates plugins from Gaming Mode"$'
-'"Version: ${TAG}${hub_installed:+ (now ${hub_installed})} · github.com/mazillka/deckyhub-plugin"$'
-'"${hub_note}")
+    if (( HAS_DECKY )); then decky_line="already installed, only checked"; else decky_line="installed first"; fi
+    case "$verb" in Update) hub_line="will be updated" ;; Reinstall) hub_line="will be reinstalled" ;; *) hub_line="will be installed" ;; esac
+
+    zen --title="$TITLE" --width=640 --question --ok-label="Show the plugins" --cancel-label="Skip this" --default-cancel \
+        --text="<b>Optional plugins</b>\n\n<b>Decky Loader and DeckyHub are installed either way.</b>\n  Decky Loader (Required): ${decky_line}. Version: ${decky_version}. <a href=\"https://github.com/SteamDeckHomebrew/decky-loader\">github.com/SteamDeckHomebrew/decky-loader</a>\n  DeckyHub (Required): ${hub_line}. Version: ${TAG}${hub_installed:+ (now ${hub_installed})}. <a href=\"https://github.com/mazillka/deckyhub-plugin\">github.com/mazillka/deckyhub-plugin</a>\n\nNext you'll see ${total} optional plugins, one at a time. Choose Add or Skip for each, or skip this: you can always add plugins later from DeckyHub.\n\nThis installer doesn't install them. DeckyHub asks you to confirm each one the first time you open it.\n\n${NOTES_EXPLAINED}\n\n${RESPONSIBILITY}" || return 0
+
     for entry in "${STARTER_PLUGINS[@]}"; do
         IFS='|' read -r id name repo what tag category <<< "$entry"
         IFS=$'\t' read -r note popularity <<< "${notes[i]:-Not checked}"
-        rows+=(FALSE "$id" "${name}  (${category})"$'
-'"${what}"$'
-'"Latest version: ${versions[i]:-unknown} · github.com/${repo}"$'
-'"${note:-Not checked}${popularity:+ · $popularity}")
         i=$((i + 1))
+        if zen --title="$TITLE" --width=640 --question --ok-label="Add this plugin" --cancel-label="Skip" --default-cancel \
+            --text="Plugin ${i} of ${total}\n\n<b>${name}</b>  (${category})\n${what}\n\nLatest version: ${versions[i - 1]:-unknown}\n${note:-Not checked}${popularity:+ · $popularity}\n\nLook at it before you decide:\n  GitHub: <a href=\"https://github.com/${repo}\">github.com/${repo}</a>\n  DeckyHub page (details and security scans): <a href=\"https://deckyhub.com/plugins/${id}.html\">deckyhub.com/plugins/${id}.html</a>\n\nYou are responsible for what you install. Nothing is added unless you choose Add."; then
+            picks+=("$id")
+        fi
     done
-    PICKS=$(zen --title="$TITLE" --width=760 --height=720 --list --checklist --hide-column=2 --print-column=2 --separator=',' \
-        --ok-label="Continue" --cancel-label="Skip" \
-        --text="<b>Optional plugins</b>\n\n<b>Decky Loader and DeckyHub are installed either way.</b> They're the first two rows, and they stay installed even if you untick them. Tick any other plugins you'd like to add, or skip this: you can always add plugins later from DeckyHub.\n\nThis installer doesn't install them. DeckyHub asks you to confirm each one the first time you open it. Plugins are grouped by category.\n\n${NOTES_EXPLAINED}\n\n${RESPONSIBILITY}" \
-        --column=Pick --column=ID --column=Plugin --hide-header "${rows[@]}") || PICKS=""
+    PICKS=$(IFS=','; echo "${picks[*]}")
 }
 
 # Not root yet: say what's going to happen, check GitHub is reachable, then get the admin
