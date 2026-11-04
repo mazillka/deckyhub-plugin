@@ -2461,7 +2461,7 @@ test("Quick Access lists its pages in order, showing Updates only while there ar
     await expect(nav.nth(4)).toHaveText("Settings");
     await nav.nth(2).click();
     await expect(app.getByRole("heading", { name: "Installed", exact: true })).toBeVisible();
-    await expect(app.getByText("MAKO - Frame Generation", { exact: true })).toBeVisible();
+    await expect(app.getByRole("heading", { name: "MAKO Decky" })).toBeVisible();
     await expect(app.getByText("Browse", { exact: true })).toHaveCount(0);
   } finally {
     removePlugin();
