@@ -157,7 +157,8 @@ class InstallerTests(unittest.TestCase):
         text = SCRIPT.read_text()
         self.assertIn('rows+=(FALSE "$id"', text)  # nothing is ticked by default
         self.assertNotIn("TRUE", text.split("choose_plugins()")[1].split("# Not root yet")[0])
-        for phrase in ("You are responsible for what you install", "AI-assisted", "Runs as root", "Warning: ", "deckyhub.com/plugins/${id}.html", "Details and security scans"):
+        for phrase in ("You are responsible for what you install", "AI-assisted", "Runs as root", "Warning: ", "deckyhub.com/plugins/${id}.html", "Details and security scans",
+                       "What the notes mean:", "No warnings: the audit found nothing", "Not checked: the notes couldn't be loaded", "changes system startup", "has hidden code"):
             self.assertIn(phrase, text)
 
     def test_the_release_fills_in_every_placeholder_and_the_hand_picked_list(self):
