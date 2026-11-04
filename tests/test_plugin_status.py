@@ -611,6 +611,11 @@ class PluginStatusTests(unittest.TestCase):
             with patch.object(plugin, "_download_with_urllib", side_effect=lambda job_id, asset, temp: temp.write_bytes(b"data")) as download:
                 self.assertEqual(asyncio.run(plugin.stage_install(asset, "other/repo")), {"error": "Only GitHub release assets for the selected repository can be downloaded"})
                 download.assert_not_called()
+                # A URL that starts right but climbs out of the repository's releases is refused too.
+                for url in ("https://github.com/owner/repo/releases/download/../../../other/repo/releases/download/v1/a.zip",
+                            "https://github.com/owner/repo/releases/download/v1/./../a.zip", "https://github.com/owner/repo/releases/download/v1\\a.zip"):
+                    self.assertEqual(asyncio.run(plugin.stage_install({**asset, "url": url}, "owner/repo")), {"error": "Only GitHub release assets for the selected repository can be downloaded"})
+                download.assert_not_called()
                 self.assertIn("SHA256", asyncio.run(plugin.stage_install(asset, "owner/repo"))["error"])
 
             self.assertEqual(list((Path(home) / "installs").iterdir()), [])

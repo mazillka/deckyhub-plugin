@@ -815,6 +815,9 @@ class Plugin:
         prefix = f"https://github.com/{repo}/releases/download/" if isinstance(repo, str) and REPOSITORY_NAME.fullmatch(repo) else ""
         if not isinstance(asset, dict) or not prefix or not isinstance(asset.get("url"), str) or not asset["url"].startswith(prefix):
             raise ValueError("Only GitHub release assets for the selected repository can be downloaded")
+        # No "." or ".." segments (or backslashes): the URL has to stay under the repository's releases.
+        if "\\" in asset["url"] or any(part in (".", "..") for part in asset["url"][len(prefix):].split("?")[0].split("/")):
+            raise ValueError("Only GitHub release assets for the selected repository can be downloaded")
         name = Path(asset.get("name", "download")).name
         if not name or name in (".", ".."):
             raise ValueError("Invalid asset filename")

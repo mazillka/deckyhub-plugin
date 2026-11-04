@@ -31,7 +31,6 @@ REPO="mazillka/deckyhub-plugin"
 ZIP_URL="https://github.com/${REPO}/releases/download/${TAG}/DeckyHub-${TAG}.zip"
 DECKY_INSTALLER_URL="https://github.com/SteamDeckHomebrew/decky-installer/releases/latest/download/install_release.sh"
 TITLE="DeckyHub Installer"
-TEMP_PASSWORD="DeckyHub!"
 PLUGINS_ARG=""
 STATS_URL="https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/stats.json"
 RELEASES_URL="https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/releases.json"
@@ -233,8 +232,11 @@ if (( EUID != 0 )); then
 
     STATUS=$(passwd -S "$USER" 2> /dev/null)
     if [ "${STATUS:${#USER}+1:2}" = "NP" ]; then
+        # A random password, not a fixed one anyone could guess while it's set. It's shown here, so
+        # it can still be removed if the run is ever cut off (sudo passwd -d, with this password).
+        TEMP_PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 12)
         if has_zenity && zen --title="$TITLE" --width=480 --icon=dialog-password --question \
-            --text="Your Deck doesn't have an admin password yet.\n\nThe installer can set a temporary one, use it, and remove it again when it's done. Decky Loader's own installer does the same.\n\nContinue?"; then
+            --text="Your Deck doesn't have an admin password yet.\n\nThe installer can set a temporary one (${TEMP_PASSWORD}), use it, and remove it again when it's done. Decky Loader's own installer does the same.\n\nIf the installer is ever cut off, the password stays until you remove it: open Konsole and type  sudo passwd -d ${USER}  with this password.\n\nContinue?"; then
             yes "$TEMP_PASSWORD" | passwd "$USER" > /dev/null || fail "Couldn't set a temporary password.\n\nOpen Konsole, type passwd and press Enter to set your own, then start the installer again."
             trap 'echo "$TEMP_PASSWORD" | sudo -S -k passwd -d "$USER" > /dev/null' EXIT
             PASS="$TEMP_PASSWORD"
