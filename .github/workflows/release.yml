@@ -109,6 +109,7 @@ jobs:
           INSTALLED: ${{ steps.install.outcome }}
         run: |
           zip="DeckyHub-${GITHUB_REF_NAME}.zip"
+          # Not named DeckyHub-*: the self-update and the registry's asset filter look for that.
           report="ClamAV-scan-${GITHUB_REF_NAME}.txt"
           status=0
           if [[ "$INSTALLED" == success ]]; then
@@ -135,6 +136,11 @@ jobs:
           cat "$report"
           { echo "result=$result"; echo "found=$found"; } >> "$GITHUB_OUTPUT"
           [[ "$result" == clean ]] || echo "::warning::ClamAV result for $zip: $result${found:+ ($found)}. The release is still published; its notes and report say so."
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: clamav-report
+          path: ClamAV-scan-${{ github.ref_name }}.txt
+          if-no-files-found: error
 
   # Uploads DeckyHub's own release ZIP to VirusTotal (70+ antivirus engines) and waits for
   # the verdict. Only DeckyHub's ZIP: listed plugins are only looked up by SHA-256 in the
@@ -274,6 +280,7 @@ jobs:
           INSTALLED: ${{ steps.install.outcome }}
         run: |
           zip="install-deckyhub.sh"
+          # Not named DeckyHub-*: the self-update and the registry's asset filter look for that.
           report="ClamAV-desktop-${GITHUB_REF_NAME}.txt"
           status=0
           if [[ "$INSTALLED" == success ]]; then
@@ -300,6 +307,11 @@ jobs:
           cat "$report"
           { echo "result=$result"; echo "found=$found"; } >> "$GITHUB_OUTPUT"
           [[ "$result" == clean ]] || echo "::warning::ClamAV result for $zip: $result${found:+ ($found)}. The release is still published; its notes and report say so."
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: clamav-desktop-report
+          path: ClamAV-desktop-${{ github.ref_name }}.txt
+          if-no-files-found: error
 
 
   virustotal-desktop:
@@ -420,16 +432,36 @@ jobs:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: release-zip
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        continue-on-error: true
+        with:
+          name: clamav-report
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        continue-on-error: true
+        with:
+          name: clamav-desktop-report
       - name: Create GitHub Release
         run: |
           prerelease=()
           [[ "$GITHUB_REF_NAME" == *-* ]] && prerelease=(--prerelease)
           zip="DeckyHub-${GITHUB_REF_NAME}.zip"
+          report="ClamAV-scan-${GITHUB_REF_NAME}.txt"
           files=("$zip" DeckyHub.zip Install-DeckyHub.desktop install-deckyhub.sh)
+          link=""
+          if [[ -f "$report" ]]; then
+            files+=("$report")
+            link=" ([scan report](https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/${report}))"
+          fi
+          desktop_report="ClamAV-desktop-${GITHUB_REF_NAME}.txt"
+          desktop_link=""
+          if [[ -f "$desktop_report" ]]; then
+            files+=("$desktop_report")
+            desktop_link=" ([scan report](https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/${desktop_report}))"
+          fi
           case "$DESKTOP_RESULT" in
-            clean) desktop_scan="No threats found." ;;
-            infected) desktop_scan="Flagged: ${DESKTOP_FOUND} ([scan log](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}))." ;;
-            *) desktop_scan="Scan unavailable." ;;
+            clean) desktop_scan="No threats found$desktop_link." ;;
+            infected) desktop_scan="Flagged: ${DESKTOP_FOUND}$desktop_link." ;;
+            *) desktop_scan="Scan unavailable$desktop_link." ;;
           esac
           desktop_vt="${DESKTOP_VT_RESULT:-unavailable}"
           [[ -n "$DESKTOP_VT_DETECTIONS" ]] && desktop_vt+=" (${DESKTOP_VT_DETECTIONS})"
@@ -438,9 +470,9 @@ jobs:
           [[ -n "$DESKTOP_MD_DETECTIONS" ]] && desktop_md+=" (${DESKTOP_MD_DETECTIONS})"
           [[ -n "$DESKTOP_MD_URL" ]] && desktop_md+=" — [report]($DESKTOP_MD_URL)"
           case "$RESULT" in
-            clean) scan="ClamAV found no threats in \`$zip\`." ;;
-            infected) scan="ClamAV flagged \`$zip\`: ${FOUND}. It may be a false positive; read [the scan log](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}) before you install." ;;
-            error) scan="ClamAV couldn't scan \`$zip\`." ;;
+            clean) scan="ClamAV found no threats in \`$zip\`$link." ;;
+            infected) scan="ClamAV flagged \`$zip\`: ${FOUND}$link. It may be a false positive; read the report before you install." ;;
+            error) scan="ClamAV couldn't scan \`$zip\`$link." ;;
             *) scan="The ClamAV scan didn't run for this release." ;;
           esac
           case "$VT_RESULT" in
