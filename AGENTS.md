@@ -2,7 +2,7 @@
 
 This file provides guidance to coding agents (including Claude Code) working in this repository.
 
-Repository skills are available in `.agents/skills/` and mirrored in `.claude/skills/` for Claude Code. Keep each matching `SKILL.md` in sync when updating shared guidance; apply a skill when it is relevant to the task. `CLAUDE.md` points here so both tools use the same project rules.
+Repository skills live only in `.agents/skills/`; `.claude/skills` is a symlink to it for Claude Code (on Windows, run `git config core.symlinks true` before checking out). Edit them there; apply a skill when it is relevant to the task. For multi-file changes use `plan-then-implement`: plan with the strongest model, implement with a cheaper one. `CLAUDE.md` points here so both tools use the same project rules.
 
 ## What this is
 
