@@ -45,6 +45,10 @@ jobs:
         env:
           # The release notes page reads DeckyHub's releases from the GitHub API.
           GITHUB_TOKEN: ${{ github.token }}
+      # Not blocking: it lists page problems (titles, descriptions, links) in the log.
+      - name: Audit the site
+        continue-on-error: true
+        run: python main/devtools/audit-site.py _site
       # The preview must never stop the live site: it's built on the side and only moved in
       # when it worked (a develop without --preview support yet fails here and is skipped).
       - name: Build the develop preview
