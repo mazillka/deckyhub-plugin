@@ -32,7 +32,7 @@ EXTRA_STYLE = """
 .plugin h1{margin-top:0}.plugin h2{font-size:1.25rem;margin:32px 0 10px}
 .lead{font-size:1.15rem;color:var(--muted);margin:0 0 18px}
 .facts{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin:0;padding:0;list-style:none}
-.facts li{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;color:var(--muted);font-size:.9rem}.facts strong{display:block;color:var(--text);font-size:1.05rem}
+.facts li{min-width:0;overflow-wrap:anywhere;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;color:var(--muted);font-size:.9rem}.facts li.wide{grid-column:1/-1}.facts strong{display:block;color:var(--text);font-size:1.05rem}
 .badges{display:grid;gap:8px;margin:0;padding:0;list-style:none}.badges li{color:var(--muted)}
 .badge{padding:1px 8px;border-radius:999px;border:1px solid currentColor;font-size:.8rem;white-space:nowrap;margin-right:6px}
 .root{color:#ffb35c}.stale{color:#ff8a8a}.warn{color:var(--warn)}.fork{color:var(--muted)}.clean{color:#6bcb6b}.ai{color:#c49bff}
@@ -218,7 +218,7 @@ def plugin_page(shell: dict[str, str], app: dict, stats: dict, scans: dict, warn
 <h1>{escape(name)}</h1>
 <p class="lead">{escape(description)}</p>
 <p><a class="btn" href="/#install">Install with DeckyHub</a><a class="btn ghost" href="{escape(repo_url)}">Source on GitHub</a></p>
-<ul class="facts">{"".join(facts)}<li><strong><a href="{escape(repo_url)}">{escape(repo)}</a></strong>Repository</li></ul>
+<ul class="facts">{"".join(facts)}<li class="wide"><strong><a href="{escape(repo_url)}">{escape(repo)}</a></strong>Repository</li></ul>
 <h2>Install {escape(name)} on Steam Deck</h2>
 <p>{escape(name)} is a <a href="https://decky.xyz/">Decky Loader</a> plugin. With <a href="/">DeckyHub</a> installed, open DeckyHub's <strong>Discover</strong> tab in Gaming Mode, search for <strong>{escape(name)}</strong> and press <strong>Install</strong>. DeckyHub hands the release to Decky Loader's own installer and checks its SHA-256 whenever GitHub publishes one. You can also download the ZIP from its <a href="{escape(repo_url)}/releases">releases</a> and install it by hand from Decky's developer settings.</p>
 <h2>Safety information</h2>
