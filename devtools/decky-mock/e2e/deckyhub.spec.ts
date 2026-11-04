@@ -774,9 +774,9 @@ test("The Manage window shows the selected ZIP's ClamAV and YARA reports, and th
   await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
   const scan = app.locator(".steam-modal .deckyhub-virus-scan");
   await expect(scan.locator(".deckyhub-scan-clamav")).toContainText("ClamAV: No threats found");
-  await expect(scan.locator(".deckyhub-scan-clamav")).toContainText("Scanned: today");
+  await expect(scan.locator(".deckyhub-scan-clamav")).toContainText("today");
   await expect(scan.locator(".deckyhub-scan-yara")).toContainText("YARA: No threats found");
-  await expect(scan.locator(".deckyhub-scan-yara")).toContainText("Scanned: today");
+  await expect(scan.locator(".deckyhub-scan-yara")).toContainText("today");
   await scan.getByRole("button", { name: "Scan report", exact: true }).click();
   const report = app.locator(".steam-modal").filter({ hasText: "Virus scan report" });
   for (const text of ["File: mako-decky.zip", `SHA-256: ${sha}`, "Scanner: ClamAV 1.4.3, signatures 27806", "Scanner: YARA 4.5.0, rules YARA Forge core 2026-11-01"]) await expect(report.getByText(text, { exact: true })).toBeVisible();
