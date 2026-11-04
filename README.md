@@ -64,7 +64,7 @@ Tired of tabbing out to Desktop Mode, hunting through GitHub releases, and manua
 - **[Settings](#settings)** — language, display, an optional GitHub token, downloads, your tracked repositories and custom registries, and log export.
 - **Quick Access Menu** — DeckyHub has its own tab (the four-square DeckyHub icon, with a dot when updates are waiting) in the Quick Access tab strip, next to Decky's, and still opens from Decky's plugin list too. It shows **Discover**, **Search** and **Settings**, plus **Updates** with a count whenever updates are waiting. Below them: DeckyHub's own version and update check, and a **Cleanup** section (shown when the download folder has files) that empties it after confirmation.
 
-If you'd rather install a plugin yourself, **Download ZIP** saves the release instead, and you install it the same way as DeckyHub itself (see [Install using a ZIP file](#install-using-a-zip-file)).
+If you'd rather install a plugin yourself, **Download ZIP** saves the release instead, and you install it the same way as DeckyHub itself (see [Option 2: Manual ZIP](#option-2-manual-zip)).
 
 ## The plugin list
 
@@ -89,11 +89,20 @@ A daily job checks both catalogs, plus its own search of GitHub for repositories
 
 ## Installing DeckyHub
 
-Choose the Desktop file to install DeckyHub (and Decky Loader if needed), or install the ZIP with an existing Decky Loader. Afterward, DeckyHub can install and update plugins from Gaming Mode.
+There are two ways to install DeckyHub. Pick one:
 
-### Install using the Desktop file (recommended)
+| | **Desktop installer** (recommended) | **Manual ZIP** |
+| --- | --- | --- |
+| Where | Desktop Mode | Gaming Mode |
+| Decky Loader | Checked, and installed if it's missing | Must already be installed |
+| Admin password | Needed | Not needed |
+| What you do | Download one file and follow the steps it shows | Download the ZIP and add it in Decky's developer settings, or paste a link |
 
-Installs [Decky Loader](https://decky.xyz/) too if your Deck doesn't have it yet.
+Afterward, DeckyHub can install and update plugins from Gaming Mode.
+
+### Option 1: Desktop installer (recommended)
+
+Checks for [Decky Loader](https://decky.xyz/) first and installs it if your Deck doesn't have it yet. Prefer not to use it? [Option 2](#option-2-manual-zip) needs no password.
 
 1. Switch to Desktop Mode (**Steam** → **Power** → **Switch to Desktop**).
 2. Download [`Install-DeckyHub.desktop`](https://github.com/mazillka/deckyhub-plugin/releases/latest/download/Install-DeckyHub.desktop).
@@ -104,9 +113,9 @@ Installs [Decky Loader](https://decky.xyz/) too if your Deck doesn't have it yet
 
 What it does: first it checks that Decky Loader is installed, and if it isn't, runs [Decky Loader's official installer](https://github.com/SteamDeckHomebrew/decky-installer). Only then does it download that release's `DeckyHub-v*.zip` from GitHub, check its SHA-256 against the one the installer was made with (and stop if they differ), put it in Decky's plugins folder and restart Decky. The password is needed because installing and restarting Decky Loader change the Deck itself. The script is [`installer/install-deckyhub.sh`](installer/install-deckyhub.sh); each release attaches it filled in with its own version and checksum, and scans it for malware like the ZIP.
 
-### Install using a ZIP file
+### Option 2: Manual ZIP
 
-Decky Loader must already be installed.
+Decky Loader must already be installed. No admin password is needed.
 
 1. Download the latest `DeckyHub-v*.zip` from the [Releases page](https://github.com/mazillka/deckyhub-plugin/releases).
 2. In Gaming Mode, open the Quick Access Menu → Decky → settings (gear icon). Turn on **Developer mode** under General if it's off, then go to **Developer** → **Install Plugin from ZIP** and select the downloaded file.
@@ -245,7 +254,7 @@ Under **Custom Registries**, add someone else's app list by its GitHub `owner/re
 The Quick Access Menu shows the installed version (**DeckyHub vX.Y.Z**) and checks for a newer DeckyHub release in the background, with a notification the first time one appears; a note names the new version and an **Update** button installs it straight away, like an app card's. **Manage** opens DeckyHub's update window, where you pick a channel (**Stable releases**, or **Pre-releases** for every release) and a version, then:
 
 - **Update to / Reinstall / Downgrade to vX.Y.Z** — downloads that release (with a progress window) and hands it to Decky Loader's own installer (the same one the Decky store uses), which verifies its SHA-256 checksum and installs it in place. Only releases with a published checksum are offered.
-- **Download ZIP** — the classic path: saves the release ZIP to `/home/deck/Downloads/deckyhub`, which you then install yourself (see [Install using a ZIP file](#install-using-a-zip-file)).
+- **Download ZIP** — the classic path: saves the release ZIP to `/home/deck/Downloads/deckyhub`, which you then install yourself (see [Option 2: Manual ZIP](#option-2-manual-zip)).
 
 The update window also shows the selected release's **Virus scan** report. Every DeckyHub release is scanned with ClamAV before it's published; the result is stated in its release notes and its scan report is attached to the [release](https://github.com/mazillka/deckyhub-plugin/releases); its Python and TypeScript code is checked by GitHub [CodeQL](https://github.com/mazillka/deckyhub-plugin/actions/workflows/codeql.yml) on every change.
 
@@ -262,7 +271,7 @@ Files DeckyHub saved to Downloads aren't removed: release ZIPs in `/home/deck/Do
 - **"Rate limit" errors.** DeckyHub talks to GitHub without needing you to log in. Release info for DeckyHub's list comes from one file the registry refreshes every hour, so browsing doesn't use up GitHub's public rate limit (60 requests/hour). Searching and repositories you added yourself still ask GitHub directly, so very heavy use may hit it; the error then says roughly how long to wait. To raise the limit to 5,000/hour, add a personal access token in **Settings → GitHub** (no scopes needed; see [Privacy](#privacy) for where it goes).
 - **A new release doesn't show up.** Release information is cached for 30 minutes. Every **Check for Updates** and **Refresh** button skips the cache, though a brand-new release can take up to an hour to reach the plugin list's release file.
 - **Discover is empty on a fresh install.** DeckyHub needs to reach GitHub once to download the plugin list; after that it works offline from the last copy.
-- **Install, Update or DeckyHub's own update doesn't work.** On an older Decky Loader build, one-tap installs may not be available. Use **Download ZIP** and install it from Decky's Developer settings (see [Install using a ZIP file](#install-using-a-zip-file)), or update Decky Loader.
+- **Install, Update or DeckyHub's own update doesn't work.** On an older Decky Loader build, one-tap installs may not be available. Use **Download ZIP** and install it from Decky's Developer settings (see [Option 2: Manual ZIP](#option-2-manual-zip)), or update Decky Loader.
 - **Anything else.** Open an issue (see [Getting help](#getting-help)) and attach the ZIP from **Export Logs**.
 
 Downloads only ever happen over HTTPS.

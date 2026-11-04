@@ -34,6 +34,7 @@ for arg in "$@"; do
 done
 
 PRIVACY="Your privacy: nothing about you or your Deck is collected, saved or sent anywhere. Your password is used only on this Deck, right now, and is never stored. The installer only downloads files from GitHub."
+OTHER_WAY="You can also install DeckyHub without this installer: download its ZIP and add it in Decky's settings (no password needed). Steps: https://github.com/mazillka/deckyhub-plugin#option-2-manual-zip"
 WARRANTY="DeckyHub is a free community project. It comes as it is, with no guarantee."
 
 # Dialogs when zenity is there (SteamOS has it), plain text in the terminal otherwise. Texts
@@ -89,7 +90,7 @@ if (( EUID != 0 )); then
     else
         headline="This will download and install Decky Loader and DeckyHub ${TAG} on your Steam Deck."
     fi
-    intro_text="${headline}\n\nHere's what will happen:\n${steps}\n${why}\n\n${PRIVACY}\n\n${WARRANTY}"
+    intro_text="${headline}\n\nHere's what will happen:\n${steps}\n${why}\n\n${PRIVACY}\n\n${OTHER_WAY}\n\n${WARRANTY}"
 
     if has_zenity; then
         zen --title="$TITLE" --width=560 --icon=system-software-install --question --ok-label="${verb}" --cancel-label="Cancel" --text="$intro_text" || exit 0

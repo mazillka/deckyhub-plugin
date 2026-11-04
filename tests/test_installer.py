@@ -152,6 +152,8 @@ class InstallerTests(unittest.TestCase):
         self.assertIn("This will download and install Decky Loader and DeckyHub", text)
         self.assertIn("Decky Loader is already installed, so it's only checked.", text)
         self.assertIn("Why a password?", text)
+        self.assertIn("You can also install DeckyHub without this installer", text)
+        self.assertIn("#option-2-manual-zip", text)
         self.assertLess(text.index("Decky Loader comes first"), text.index("Only then is DeckyHub"))
         self.assertIn("not your Steam password", text)
         self.assertIn("nothing about you or your Deck is collected, saved or sent anywhere", text)
