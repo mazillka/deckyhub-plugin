@@ -8,8 +8,8 @@ import { displayVersion } from "../version";
 import { plainNotes, showReleaseInfo, textSections } from "./ReleaseInfo";
 import { keepInView } from "./KeepInView";
 
-// How much of the release notes the window shows; Y on the main button opens them in full.
-const NOTES_PREVIEW = 700;
+// How much of the release notes the window shows (nearly always all of it); Y on the main button opens them in full.
+const NOTES_PREVIEW = 6000;
 export const sectionTitleStyle = { margin: 0, color: "#9fb0bf", fontSize: 13, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" as const };
 
 // The wide details window both a plugin's Manage window and DeckyHub's own update
@@ -49,7 +49,7 @@ export function DetailsWindow({
   release?: { tag: string; publishedAt: string | null; notes?: string } | null;
   // Install / Update and Download ZIP, under the version box.
   primary: ReactNode;
-  // The selected ZIP's virus scan report, under the actions.
+  // The selected ZIP's virus scan report, under About and above the actions.
   scan?: ReactNode;
   channel: UpdateChannel;
   onChannelChange: (channel: UpdateChannel) => void;
@@ -94,11 +94,14 @@ export function DetailsWindow({
             </div>
           )}
 
-          {/* Actions come first, so in one column (a narrow window) they sit on top; in two,
-              row-reverse puts them on the right. */}
-          <Focusable flow-children="right" style={{ display: "flex", flexDirection: "row-reverse", flexWrap: "wrap", gap: 24, alignItems: "flex-start" }}>
-            {/* Version first: pick the channel and release, then act on it. */}
-            <Focusable flow-children="down" style={{ flex: "1 1 300px", display: "grid", gap: 10, minWidth: 0 }}>
+          {/* Is it safe? comes before which version and Install: the scan box sits above the actions. */}
+          {scan}
+
+          {/* One column, in the order you decide: version, actions, what's new, then links. Every control and
+              text section is a D-pad stop in this one flow, so Down walks to the end of the notes (a two-column
+              layout left them out of reach on a Deck). Each text section is its own stop because Steam only
+              scrolls to follow focus. */}
+          <Focusable flow-children="down" style={{ display: "grid", gap: 10 }}>
               <div onFocus={keepInView} style={{ display: "grid", gap: 4, padding: "8px 12px", background: "rgba(0, 0, 0, 0.2)", borderRadius: 10 }}>
                 <h3 style={sectionTitleStyle}>{t("settings.version")}</h3>
                 {/* Channel and version side by side; the version gets more room for long tags. */}
@@ -126,27 +129,25 @@ export function DetailsWindow({
                 {error && <small style={{ color: "#ff6b6b" }}>{error}</small>}
                 {isEmpty && <small style={{ color: "#ff6b6b" }}>{t("settings.noReleasesFound")}</small>}
               </div>
-              {primary}
-              {scan}
-              {footer}
-            </Focusable>
-            <div onFocus={keepInView} style={{ flex: "999 1 360px", display: "grid", gap: 16, minWidth: 0 }}>
-              {/* Each text section is a D-pad stop: Steam only scrolls to follow focus, so
-                  without them the window couldn't scroll down to the notes (seen on a Deck). */}
-              {release && (
-                <div className="deckyhub-details-section">
-                  <h3 style={sectionTitleStyle}>
-                    {t("details.whatsNew", { version: displayVersion(release.tag) })}
-                    {release.publishedAt && <span style={{ marginLeft: 10, fontWeight: 400, letterSpacing: 0, textTransform: "none" }}>{new Date(release.publishedAt).toLocaleDateString()}</span>}
-                  </h3>
-                  <Focusable flow-children="down" className="deckyhub-details-notes" style={{ ...surfaceStyle, padding: "12px 14px", color: "#c3cfd9", fontSize: 14, lineHeight: 1.5, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
-                    {textSections(notesPreview || t("appcard.noReleaseNotes")).map((section, index) => (
-                      <Focusable key={index} onActivate={() => showReleaseInfo(t, `${title} ${displayVersion(release.tag)}`, release.publishedAt, release.notes)} onFocus={keepInView}>{section}</Focusable>
-                    ))}
-                  </Focusable>
-                </div>
-              )}
-            </div>
+            {primary}
+          </Focusable>
+
+            {release && (
+              <div className="deckyhub-details-section">
+                <h3 style={sectionTitleStyle}>
+                  {t("details.whatsNew", { version: displayVersion(release.tag) })}
+                  {release.publishedAt && <span style={{ marginLeft: 10, fontWeight: 400, letterSpacing: 0, textTransform: "none" }}>{new Date(release.publishedAt).toLocaleDateString()}</span>}
+                </h3>
+                <Focusable flow-children="down" className="deckyhub-details-notes" style={{ ...surfaceStyle, padding: "12px 14px", color: "#c3cfd9", fontSize: 14, lineHeight: 1.5, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
+                  {textSections(notesPreview || t("appcard.noReleaseNotes")).map((section, index) => (
+                    <Focusable key={index} onActivate={() => showReleaseInfo(t, `${title} ${displayVersion(release.tag)}`, release.publishedAt, release.notes)} onFocus={keepInView}>{section}</Focusable>
+                  ))}
+                </Focusable>
+              </div>
+            )}
+
+          <Focusable flow-children="down" style={{ display: "grid", gap: 10 }}>
+            {footer}
           </Focusable>
         </Focusable>
       </div>

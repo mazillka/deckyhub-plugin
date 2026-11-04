@@ -178,6 +178,29 @@ test("Discover: a plugin's Manage window opens and fits", async () => {
   await main.eval(`[...document.querySelectorAll("button, .DialogButton")].find((b) => b.textContent.trim() === "Close")?.click(); true`);
 });
 
+test("Discover: the D-pad opens a plugin's details and reads its release notes to the end", async () => {
+  await openPage("discover");
+  const focused = () => main.eval(`(() => { const a = document.activeElement; const n = document.querySelector(".deckyhub-details-notes"); return JSON.stringify({ text: (a?.getAttribute("aria-label") || a?.textContent || "").trim().slice(0, 40), inNotes: !!(n && n.contains(a)), bottom: a ? Math.round(a.getBoundingClientRect().bottom) : 0, height: innerHeight }); })()`).then(JSON.parse);
+  // Down the page until a Manage button has focus, then A: no clicks, like a player.
+  for (let step = 0; step < 60 && (await focused()).text !== "Manage"; step++) await press(shared, BUTTON.DOWN, 250);
+  assert.equal((await focused()).text, "Manage", "the D-pad never reached a Manage button");
+  await press(shared, BUTTON.OK, 500);
+  await waitFor(main, `!!document.querySelector(".deckyhub-details-notes")`);
+  await sleep(1000);
+  const sections = await main.eval(`document.querySelector(".deckyhub-details-notes").children.length`);
+  let reached = 0, last = null;
+  for (let step = 0; step < 80 && reached < sections; step++) {
+    await press(shared, BUTTON.DOWN, 250);
+    const now = await focused();
+    if (now.inNotes && now.text !== last?.text) reached++;
+    if (now.inNotes) last = now;
+  }
+  await save(main, "details-notes");
+  await press(shared, BUTTON.BACK, 500); // closes the window before any assertion can fail and leave it open
+  assert.equal(reached, sections, `the D-pad reached ${reached} of ${sections} release-note sections`);
+  assert.ok(last.bottom <= last.height, "the last release-note section is below the screen");
+});
+
 test("Search: has a search box and a Search button", async () => {
   await openPage("search");
   assert.ok(await main.eval(`!!document.querySelector(".deckyhub-motion input")`), "no search box");
