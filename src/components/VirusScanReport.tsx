@@ -66,34 +66,34 @@ function ScanReportModal({ t, asset, scan, virusTotal, showExternalGuidance, sho
       closeModal={closeModal}
       strTitle={t("scan.reportTitle")}
       strDescription={
-        <div style={{ display: "grid", gap: 6, overflowWrap: "anywhere" }}>
-          {scan?.unverifiedMatch && <strong style={{ color: COLORS.incomplete }}>{t("scan.unverifiedDetail")}</strong>}
+        <Focusable flow-children="down" style={{ display: "grid", gap: 6, overflowWrap: "anywhere" }}>
+          {scan?.unverifiedMatch && <Focusable onActivate={() => {}} onFocus={keepInView}><strong style={{ color: COLORS.incomplete }}>{t("scan.unverifiedDetail")}</strong></Focusable>}
           {scan && scannersOf(scan).map((scanner) => {
             const { name, verdict } = scanner;
             return (
-              <div key={name} style={{ display: "grid", gap: 4 }}>
-                <strong style={{ color: verdict ? COLORS[verdict.result] : MUTED }}>{line(t, scanner)}</strong>
-                {verdict?.result === "incomplete" && verdict.found?.length ? <span>{t("scan.found", { names: verdict.found.join(", ") })}</span> : null}
-                {verdict?.reason && <span>{t("scan.reason", { reason: verdict.reason })}</span>}
-                {verdict?.engine && <span>{name === "YARA" ? t("scan.rules", { engine: verdict.engine, rules: verdict.signatures || "—" }) : t("scan.engine", { engine: verdict.engine, signatures: verdict.signatures || "—" })}</span>}
-                {verdict?.scannedAt && <span>{t("scan.scannedAt", { date: new Date(verdict.scannedAt).toLocaleString() })}</span>}
-              </div>
+              <Focusable key={name} flow-children="down" style={{ display: "grid", gap: 4 }}>
+                <Focusable onActivate={() => {}} onFocus={keepInView}><strong style={{ color: verdict ? COLORS[verdict.result] : MUTED }}>{line(t, scanner)}</strong></Focusable>
+                {verdict?.result === "incomplete" && verdict.found?.length ? <Focusable onActivate={() => {}} onFocus={keepInView}>{t("scan.found", { names: verdict.found.join(", ") })}</Focusable> : null}
+                {verdict?.reason && <Focusable onActivate={() => {}} onFocus={keepInView}>{t("scan.reason", { reason: verdict.reason })}</Focusable>}
+                {verdict?.engine && <Focusable onActivate={() => {}} onFocus={keepInView}>{name === "YARA" ? t("scan.rules", { engine: verdict.engine, rules: verdict.signatures || "—" }) : t("scan.engine", { engine: verdict.engine, signatures: verdict.signatures || "—" })}</Focusable>}
+                {verdict?.scannedAt && <Focusable onActivate={() => {}} onFocus={keepInView}>{t("scan.scannedAt", { date: new Date(verdict.scannedAt).toLocaleString() })}</Focusable>}
+              </Focusable>
             );
           })}
-          <span>{t("scan.file", { file: asset.name })}</span>
-          {hash && <span>{t("scan.sha256", { hash })}</span>}
-          {virusTotal && <VirusTotalResult t={t} report={virusTotal} />}
+          <Focusable onActivate={() => {}} onFocus={keepInView}>{t("scan.file", { file: asset.name })}</Focusable>
+          {hash && <Focusable onActivate={() => {}} onFocus={keepInView}>{t("scan.sha256", { hash })}</Focusable>}
+          {virusTotal && <Focusable onActivate={() => {}} onFocus={keepInView}><VirusTotalResult t={t} report={virusTotal} /></Focusable>}
           {showExternalActions && hash && <Button onClick={() => {
             closeModal?.();
             closeParent?.();
             openExternalWeb(virusTotalUrl(hash));
           }}><FaExternalLinkAlt /> VirusTotal</Button>}
-          {scan && scannersOf(scan).some(({ verdict }) => verdict && verdict.result !== "clean") && <span>{t("scan.yourChoice")}</span>}
-          <small style={{ color: MUTED }}>{t("scan.hint")}</small>
-          <strong style={{ color: COLORS.infected }}>{t("scan.safetyWarning")}</strong>
-          {showExternalGuidance && <small style={{ color: MUTED }}>{t("scan.virusTotalHint")}</small>}
-          {showExternalGuidance && <small style={{ color: MUTED }}>{t("scan.scanLinkHint")}</small>}
-        </div>
+          {scan && scannersOf(scan).some(({ verdict }) => verdict && verdict.result !== "clean") && <Focusable onActivate={() => {}} onFocus={keepInView}>{t("scan.yourChoice")}</Focusable>}
+          <Focusable onActivate={() => {}} onFocus={keepInView}><small style={{ color: MUTED }}>{t("scan.hint")}</small></Focusable>
+          <Focusable onActivate={() => {}} onFocus={keepInView}><strong style={{ color: COLORS.infected }}>{t("scan.safetyWarning")}</strong></Focusable>
+          {showExternalGuidance && <Focusable onActivate={() => {}} onFocus={keepInView}><small style={{ color: MUTED }}>{t("scan.virusTotalHint")}</small></Focusable>}
+          {showExternalGuidance && <Focusable onActivate={() => {}} onFocus={keepInView}><small style={{ color: MUTED }}>{t("scan.scanLinkHint")}</small></Focusable>}
+        </Focusable>
       }
     />
   );

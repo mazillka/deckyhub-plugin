@@ -5,7 +5,7 @@ import { MotionStyle } from "../motion";
 import type { UpdateChannel } from "../types";
 import { surfaceStyle } from "../utils";
 import { displayVersion } from "../version";
-import { plainNotes, showReleaseInfo } from "./ReleaseInfo";
+import { plainNotes, showReleaseInfo, textSections } from "./ReleaseInfo";
 import { keepInView } from "./KeepInView";
 
 // How much of the release notes the window shows; Y on the main button opens them in full.
@@ -68,8 +68,8 @@ export function DetailsWindow({
     <ModalRoot closeModal={closeModal} bAllowFullSize>
       <MotionStyle />
       <div className="deckyhub-pop">
-        <div className="deckyhub-details" style={{ display: "grid", gap: 18 }}>
-          <div onFocus={keepInView} style={{ display: "flex", alignItems: "center", gap: 18 }}>
+        <Focusable flow-children="down" className="deckyhub-details" style={{ display: "grid", gap: 18 }}>
+          <Focusable onActivate={() => {}} onFocus={keepInView} style={{ display: "flex", alignItems: "center", gap: 18 }}>
             {icon}
             <div style={{ flex: 1, minWidth: 0, display: "grid", gap: 6 }}>
               <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: "2px 12px" }}>
@@ -80,23 +80,25 @@ export function DetailsWindow({
                 {meta}
               </div>
             </div>
-          </div>
+          </Focusable>
 
           {/* About sits under the header, above the version box, so a narrow window (a Deck's)
               says what the plugin is before asking which version to install. It's on screen
-              when the window opens, so it isn't a D-pad stop: focus starts on the pickers. */}
+              can also be reached again with the D-pad after scrolling down. */}
           {description && (
             <div className="deckyhub-details-about" style={{ display: "grid", gap: 6 }}>
               <h3 style={sectionTitleStyle}>{t("details.about")}</h3>
-              <div className="deckyhub-details-description" style={{ color: "#e6eef4", fontSize: 16, lineHeight: 1.5, overflowWrap: "anywhere" }}>{description}</div>
+              <Focusable flow-children="down" className="deckyhub-details-description" style={{ color: "#e6eef4", fontSize: 16, lineHeight: 1.5, overflowWrap: "anywhere", whiteSpace: "pre-wrap" }}>
+                {textSections(description).map((section, index) => <Focusable key={index} onActivate={() => {}} onFocus={keepInView}>{section}</Focusable>)}
+              </Focusable>
             </div>
           )}
 
           {/* Actions come first, so in one column (a narrow window) they sit on top; in two,
               row-reverse puts them on the right. */}
-          <div style={{ display: "flex", flexDirection: "row-reverse", flexWrap: "wrap", gap: 24, alignItems: "flex-start" }}>
+          <Focusable flow-children="right" style={{ display: "flex", flexDirection: "row-reverse", flexWrap: "wrap", gap: 24, alignItems: "flex-start" }}>
             {/* Version first: pick the channel and release, then act on it. */}
-            <div style={{ flex: "1 1 300px", display: "grid", gap: 10, minWidth: 0 }}>
+            <Focusable flow-children="down" style={{ flex: "1 1 300px", display: "grid", gap: 10, minWidth: 0 }}>
               <div onFocus={keepInView} style={{ display: "grid", gap: 4, padding: "8px 12px", background: "rgba(0, 0, 0, 0.2)", borderRadius: 10 }}>
                 <h3 style={sectionTitleStyle}>{t("settings.version")}</h3>
                 {/* Channel and version side by side; the version gets more room for long tags. */}
@@ -127,25 +129,26 @@ export function DetailsWindow({
               {primary}
               {scan}
               {footer}
-            </div>
+            </Focusable>
             <div onFocus={keepInView} style={{ flex: "999 1 360px", display: "grid", gap: 16, minWidth: 0 }}>
               {/* Each text section is a D-pad stop: Steam only scrolls to follow focus, so
                   without them the window couldn't scroll down to the notes (seen on a Deck). */}
               {release && (
-                // A opens the notes in full; here they stop after a preview.
-                <Focusable className="deckyhub-details-section" onActivate={() => showReleaseInfo(t, `${title} ${displayVersion(release.tag)}`, release.publishedAt, release.notes)} onFocus={keepInView} style={{ display: "grid", gap: 6 }}>
+                <div className="deckyhub-details-section">
                   <h3 style={sectionTitleStyle}>
                     {t("details.whatsNew", { version: displayVersion(release.tag) })}
                     {release.publishedAt && <span style={{ marginLeft: 10, fontWeight: 400, letterSpacing: 0, textTransform: "none" }}>{new Date(release.publishedAt).toLocaleDateString()}</span>}
                   </h3>
-                  <div className="deckyhub-details-notes" style={{ ...surfaceStyle, padding: "12px 14px", color: "#c3cfd9", fontSize: 14, lineHeight: 1.5, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
-                    {notesPreview || t("appcard.noReleaseNotes")}
-                  </div>
-                </Focusable>
+                  <Focusable flow-children="down" className="deckyhub-details-notes" style={{ ...surfaceStyle, padding: "12px 14px", color: "#c3cfd9", fontSize: 14, lineHeight: 1.5, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
+                    {textSections(notesPreview || t("appcard.noReleaseNotes")).map((section, index) => (
+                      <Focusable key={index} onActivate={() => showReleaseInfo(t, `${title} ${displayVersion(release.tag)}`, release.publishedAt, release.notes)} onFocus={keepInView}>{section}</Focusable>
+                    ))}
+                  </Focusable>
+                </div>
               )}
             </div>
-          </div>
-        </div>
+          </Focusable>
+        </Focusable>
       </div>
     </ModalRoot>
   );
