@@ -166,8 +166,12 @@ class InstallerTests(unittest.TestCase):
         self.assertLess(picker.index("${NOTES_EXPLAINED}"), picker.index("${RESPONSIBILITY}"))
         self.assertLess(picker.index("${RESPONSIBILITY}"), picker.index("--column=Pick"))
         self.assertIn("Required: ", picker)
-        for phrase in ("You are responsible for what you install", "AI-assisted", "Runs as root", "Warning: ", "deckyhub.com/plugins/${id}.html", "Details and security scans",
-                       "What the notes mean:", "Stars and downloads", "grouped by category", "GitHub stars and downloads", "Latest version: ${versions[i]:-unknown}", "Version: ${TAG}", "newest release today", "No warnings: the audit found nothing", "Not checked: the notes couldn't be loaded", "changes system startup", "has hidden code"):
+        # Names are links in the text, so the table has no page or stars columns of its own.
+        self.assertNotIn("Details and security scans\"", picker)
+        self.assertNotIn("--column=\"Stars and downloads\"", picker)
+        self.assertEqual(picker.count("--column="), 5)
+        for phrase in ("You are responsible for what you install", "AI-assisted", "Runs as root", "Warning: ", r'<a href=\"https://deckyhub.com/plugins/${id}.html\">${name}</a>', "Click a plugin's name",
+                       "What the notes mean:", "grouped by category", "GitHub stars and downloads", "Latest version: ${versions[i]:-unknown}", "Version: ${TAG}", "newest release today", "No warnings: the audit found nothing", "Not checked: the notes couldn't be loaded", "changes system startup", "has hidden code"):
             self.assertIn(phrase, text)
 
     def test_the_release_fills_in_every_placeholder_and_the_hand_picked_list(self):

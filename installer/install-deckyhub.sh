@@ -53,7 +53,7 @@ done
 PRIVACY="Your privacy: nothing about you or your Deck is collected, saved or sent anywhere. Your password is used only on this Deck, right now, and is never stored. The installer only downloads files from GitHub."
 OTHER_WAY="You can also install DeckyHub without this installer: download its ZIP and add it in Decky's settings (no password needed). Steps: https://github.com/mazillka/deckyhub-plugin#option-2-manual-zip"
 RESPONSIBILITY="You are responsible for what you install. These plugins are made by other people. DeckyHub doesn't make, review or vouch for them, and they run on your Deck. Read each plugin's notes first."
-NOTES_EXPLAINED="What the notes mean:\n  AI-assisted: its code was probably written with AI help. That says nothing about its quality or safety.\n  Runs as root: it has full access to your Deck. Many plugins need that, so add it only if you trust its author.\n  Warning: an audit found something. For example it changes system startup (it edits shell profiles or loads modules that keep working after you remove it), has hidden code (encoded or packed, hard to read), reads private data, runs scripts it downloads, skips HTTPS checks, has code that isn't in its repository, or has known vulnerabilities.\n  No warnings: the audit found nothing. That isn't proof of safety.\n  Not checked: the notes couldn't be loaded (no connection).\n  ★ and ↓: GitHub stars and downloads. More people using a plugin doesn't make it safer.\n\nLatest version is the newest release today. DeckyHub installs the newest one when you confirm."
+NOTES_EXPLAINED="What the notes mean:\n  AI-assisted: its code was probably written with AI help. That says nothing about its quality or safety.\n  Runs as root: it has full access to your Deck. Many plugins need that, so add it only if you trust its author.\n  Warning: an audit found something. For example it changes system startup (it edits shell profiles or loads modules that keep working after you remove it), has hidden code (encoded or packed, hard to read), reads private data, runs scripts it downloads, skips HTTPS checks, has code that isn't in its repository, or has known vulnerabilities.\n  No warnings: the audit found nothing. That isn't proof of safety.\n  Not checked: the notes couldn't be loaded (no connection).\n  ★ and ↓ (under the notes): GitHub stars and downloads. More people using a plugin doesn't make it safer.\n\nLatest version is the newest release today. DeckyHub installs the newest one when you confirm."
 WARRANTY="DeckyHub is a free community project. It comes as it is, with no guarantee."
 
 # Dialogs when zenity is there (SteamOS has it), plain text in the terminal otherwise. Texts
@@ -146,7 +146,7 @@ choose_plugins() {
     PICKS=""
     if [ -n "$PLUGINS_ARG" ]; then PICKS="$PLUGINS_ARG"; return 0; fi
     (( ${#STARTER_PLUGINS[@]} )) && has_zenity || return 0
-    local notes=() versions=() rows=() i=0 entry id name repo what tag category note popularity decky_note hub_note decky_version hub_installed
+    local notes=() versions=() rows=() i=0 entry id name repo what tag category note popularity decky_note hub_note decky_version hub_installed last_category="" sep="" links
     mapfile -t notes < <(plugin_notes)
     mapfile -t versions < <(plugin_versions)
     # Decky Loader writes its version next to its service; DeckyHub's is in its package.json.
@@ -155,18 +155,24 @@ choose_plugins() {
     hub_installed="$(installed_version "${HOMEBREW_CHECK}/plugins/DeckyHub")"
     if (( HAS_DECKY )); then decky_note="Required: already installed, only checked"; else decky_note="Required: installed first"; fi
     case "$verb" in Update) hub_note="Required: will be updated" ;; Reinstall) hub_note="Required: will be reinstalled" ;; *) hub_note="Required: will be installed" ;; esac
-    rows+=(TRUE "decky-loader" "Decky Loader"$'\n'"The add-on system DeckyHub runs in"$'\n'"Version: ${decky_version}" "Required" "$decky_note" "" "decky.xyz")
-    rows+=(TRUE "deckyhub" "DeckyHub"$'\n'"Finds, installs and updates plugins from Gaming Mode"$'\n'"Version: ${TAG}${hub_installed:+ (now ${hub_installed})}" "Required" "$hub_note" "" "deckyhub.com")
+    # A list cell can't hold a link, but the dialog's text can: every plugin's name links to its
+    # page on deckyhub.com (details and security scans), grouped like the table.
+    links="Click a plugin's name to read its details and security scans on deckyhub.com:\n  Required: <a href=\"https://decky.xyz\">Decky Loader</a> · <a href=\"https://deckyhub.com\">DeckyHub</a>"
+    rows+=(TRUE "decky-loader" "Decky Loader"$'\n'"The add-on system DeckyHub runs in"$'\n'"Version: ${decky_version}" "Required" "$decky_note")
+    rows+=(TRUE "deckyhub" "DeckyHub"$'\n'"Finds, installs and updates plugins from Gaming Mode"$'\n'"Version: ${TAG}${hub_installed:+ (now ${hub_installed})}" "Required" "$hub_note")
     for entry in "${STARTER_PLUGINS[@]}"; do
         IFS='|' read -r id name repo what tag category <<< "$entry"
         IFS=$'\t' read -r note popularity <<< "${notes[i]:-Not checked}"
-        rows+=(FALSE "$id" "${name}"$'\n'"${what}"$'\n'"Latest version: ${versions[i]:-unknown}" "$category" "${note:-Not checked}" "$popularity" "deckyhub.com/plugins/${id}.html")
+        rows+=(FALSE "$id" "${name}"$'\n'"${what}"$'\n'"Latest version: ${versions[i]:-unknown}" "$category" "${note:-Not checked}${popularity:+$'\n'$popularity}")
+        if [ "$category" != "$last_category" ]; then links+="\n  ${category}: "; last_category="$category"; sep=""; fi
+        links+="${sep}<a href=\"https://deckyhub.com/plugins/${id}.html\">${name}</a>"
+        sep=" · "
         i=$((i + 1))
     done
-    PICKS=$(zen --title="$TITLE" --width=1060 --height=720 --list --checklist --hide-column=2 --print-column=2 --separator=',' \
+    PICKS=$(zen --title="$TITLE" --width=900 --height=720 --list --checklist --hide-column=2 --print-column=2 --separator=',' \
         --ok-label="Continue" --cancel-label="Skip" \
-        --text="<b>Optional plugins</b>\n\n<b>Decky Loader and DeckyHub are installed either way.</b> They're the first two rows, and they stay installed even if you untick them. Tick any other plugins you'd like to add, or skip this: you can always add plugins later from DeckyHub.\n\nThis installer doesn't install them. DeckyHub asks you to confirm each one the first time you open it. Plugins are grouped by category, and every plugin has a page with its details and security scans on deckyhub.com (last column).\n\n${NOTES_EXPLAINED}\n\n${RESPONSIBILITY}" \
-        --column=Pick --column=ID --column=Plugin --column=Category --column=Notes --column="Stars and downloads" --column="Details and security scans" "${rows[@]}") || PICKS=""
+        --text="<b>Optional plugins</b>\n\n<b>Decky Loader and DeckyHub are installed either way.</b> They're the first two rows, and they stay installed even if you untick them. Tick any other plugins you'd like to add, or skip this: you can always add plugins later from DeckyHub.\n\nThis installer doesn't install them. DeckyHub asks you to confirm each one the first time you open it. Plugins are grouped by category.\n\n${links}\n\n${NOTES_EXPLAINED}\n\n${RESPONSIBILITY}" \
+        --column=Pick --column=ID --column=Plugin --column=Category --column=Notes "${rows[@]}") || PICKS=""
 }
 
 # Not root yet: say what's going to happen, check GitHub is reachable, then get the admin
