@@ -25,6 +25,7 @@ export type App = {
   // The virus scan report for the ZIP the card installs (Discover only; null: not scanned yet).
   scan?: VirusScan | null;
   virusTotal?: { state: string; flagged?: number; total?: number } | null;
+  metaDefender?: { state: string; flagged?: number; total?: number } | null;
   error?: string | null;
   channel?: UpdateChannel;
 };

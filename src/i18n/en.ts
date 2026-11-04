@@ -139,6 +139,7 @@ export const en = {
   "scan.unsupported": "ZIP is too large for VirusTotal",
   "scan.unverifiedDetail": "This report may describe a different ZIP; the match is unverified.",
   "scan.virusTotalResult": "VirusTotal: {flagged} of {total} engines flagged this ZIP",
+  "scan.metaDefenderResult": "MetaDefender: {flagged} of {total} engines flagged this ZIP",
   "scan.virusTotalHint": "VirusTotal opens in Steam's browser and looks this ZIP up by its SHA-256. Nothing is uploaded, so it only has results if someone sent it the same file before.",
   "scan.copyLink": "Copy ZIP link",
   "scan.scanLink": "Scan link on VirusTotal",

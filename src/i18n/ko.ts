@@ -140,6 +140,7 @@ export const ko: Record<MessageKey, string> = {
   "scan.unsupported": "ZIP이 VirusTotal 제한보다 큽니다",
   "scan.unverifiedDetail": "이 보고서는 다른 ZIP에 대한 것일 수 있습니다. 일치 여부는 확인되지 않았습니다.",
   "scan.virusTotalResult": "VirusTotal: 엔진 {total}개 중 {flagged}개가 이 ZIP을 탐지했습니다",
+  "scan.metaDefenderResult": "MetaDefender: 엔진 {total}개 중 {flagged}개가 이 ZIP을 탐지했습니다",
   "scan.virusTotalHint": "VirusTotal이 Steam 브라우저에서 열리고 이 ZIP을 SHA-256으로 찾습니다. 아무것도 업로드되지 않으므로, 누군가 같은 파일을 이전에 보낸 경우에만 결과가 있습니다.",
   "scan.copyLink": "ZIP 링크 복사",
   "scan.scanLink": "VirusTotal에서 링크 검사",
