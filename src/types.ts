@@ -8,7 +8,7 @@ export type App = {
   description?: string;
   repo: string;
   category: string;
-  // From the official registry (not a custom repository or registry): it has a page on registry.deckyhub.com.
+  // From the official registry (not a custom repository or registry): it has a page on deckyhub.com.
   official?: boolean;
   releaseTagInclude?: string;
   asset: { include: string[]; exclude: string[] };

@@ -338,7 +338,7 @@ class Plugin:
         # the detect rules or asset filters of an entry from the official registry,
         # nor reuse its id (the frontend matches cards by id), nor claim its detect
         # names (an Update would install this repo's release over that plugin).
-        # Marked official: only these have a page on registry.deckyhub.com (the frontend links to it).
+        # Marked official: only these have a page on deckyhub.com (the frontend links to it).
         apps = [{**app, "official": True} for app in apps]
         seen = {app["repo"].casefold() for app in apps}
         seen_ids = {app["id"] for app in apps}

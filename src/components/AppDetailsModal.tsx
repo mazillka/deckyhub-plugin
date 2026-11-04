@@ -165,7 +165,7 @@ export function AppDetailsModal({
       isEmpty={!loading && !fetchError && releases.length === 0}
       footer={
         <>
-          <ReleaseActions t={t} url={selectedRelease?.url} repoUrl={`https://github.com/${app.repo}`} pageUrl={app.official ? `https://registry.deckyhub.com/plugins/${encodeURIComponent(app.id)}.html` : undefined} hideReleasePage={hiddenButtons.includes("releasePage")} checking={loading} disabled={loading} onCheck={() => void load(true)} closeModal={closeModal} />
+          <ReleaseActions t={t} url={selectedRelease?.url} repoUrl={`https://github.com/${app.repo}`} pageUrl={app.official ? `https://deckyhub.com/plugins/${encodeURIComponent(app.id)}.html` : undefined} hideReleasePage={hiddenButtons.includes("releasePage")} checking={loading} disabled={loading} onCheck={() => void load(true)} closeModal={closeModal} />
           {canUninstall && (
             <Button style={{ ...modalButtonStyle, color: "#ff6b6b" }} onClick={confirmUninstall}>
               <FaTrash /> {t("appcard.uninstall")}
