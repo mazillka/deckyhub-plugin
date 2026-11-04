@@ -49,7 +49,7 @@ export function DetailsWindow({
   release?: { tag: string; publishedAt: string | null; notes?: string } | null;
   // Install / Update and Download ZIP, under the version box.
   primary: ReactNode;
-  // The selected ZIP's virus scan report, under the actions.
+  // The selected ZIP's virus scan report, under About and above the actions.
   scan?: ReactNode;
   channel: UpdateChannel;
   onChannelChange: (channel: UpdateChannel) => void;
@@ -94,6 +94,9 @@ export function DetailsWindow({
             </div>
           )}
 
+          {/* Is it safe? comes before which version and Install: the scan box sits above the actions. */}
+          {scan}
+
           {/* Actions come first, so in one column (a narrow window) they sit on top; in two,
               row-reverse puts them on the right. */}
           <Focusable flow-children="right" style={{ display: "flex", flexDirection: "row-reverse", flexWrap: "wrap", gap: 24, alignItems: "flex-start" }}>
@@ -127,7 +130,6 @@ export function DetailsWindow({
                 {isEmpty && <small style={{ color: "#ff6b6b" }}>{t("settings.noReleasesFound")}</small>}
               </div>
               {primary}
-              {scan}
               {footer}
             </Focusable>
             <div onFocus={keepInView} style={{ flex: "999 1 360px", display: "grid", gap: 16, minWidth: 0 }}>

@@ -160,6 +160,10 @@ export function VirusScanReport({
   const report = typeof scan === "object" ? scan : null;
   const sha256 = [asset.sha256, report?.unverifiedMatch ? undefined : report?.sha256].find((hash) => hash && /^[0-9a-f]{64}$/i.test(hash));
   const link = asset.url.startsWith("https://") ? asset.url : undefined;
+  // The box's accent: the worst thing any scanner said, grey while nothing has a verdict.
+  const verdicts = report && !report.unverifiedMatch ? scannersOf(report).map(({ verdict }) => verdict?.result) : [];
+  const flagged = verdicts.includes("infected") || !!virusTotal?.flagged || !!metaDefender?.flagged;
+  const accent = flagged ? COLORS.infected : verdicts.length > 0 && verdicts.every((result) => result === "clean") ? COLORS.clean : verdicts.length > 0 || report?.unverifiedMatch ? COLORS.incomplete : MUTED;
   // The toast says what to do with the link, or gives it to type in when copying failed.
   const copyLink = async (page: Document, then?: string) => {
     if (!link) return;
@@ -172,7 +176,7 @@ export function VirusScanReport({
     openExternalWeb(VIRUSTOTAL_URL_SCAN);
   };
   return (
-    <div className="deckyhub-virus-scan" onFocus={keepInView} style={{ display: "grid", gap: 6, padding: "8px 12px", background: "rgba(0, 0, 0, 0.2)", borderRadius: 10 }}>
+    <div className="deckyhub-virus-scan" onFocus={keepInView} style={{ display: "grid", gap: 6, padding: "8px 12px", background: "rgba(0, 0, 0, 0.2)", borderRadius: 10, borderLeft: `4px solid ${accent}` }}>
       <h3 style={sectionTitleStyle}>{t("scan.title")}</h3>
       {scan === undefined ? (
         <small style={{ color: MUTED }}>{t("scan.checking")}</small>
@@ -196,6 +200,7 @@ export function VirusScanReport({
         ? <Row color={virusTotal.flagged ? COLORS.infected : COLORS.clean} label={t("scan.virusTotalResult", { flagged: virusTotal.flagged, total: virusTotal.total })} when={virusTotal.scannedAt !== undefined ? timeAgo(virusTotal.scannedAt * 1000) : undefined} />
         : <VirusTotalResult t={t} report={virusTotal} />)}
       {metaDefender && <Row color={metaDefender.flagged ? COLORS.infected : COLORS.clean} label={t("scan.metaDefenderResult", { flagged: metaDefender.flagged, total: metaDefender.total })} />}
+      {report && <small style={{ color: MUTED }}>{t("scan.safetyWarning")}</small>}
       {(report || virusTotal || metaDefender || (showExternalActions && sha256) || (showZipActions && link)) && (
         <Focusable flow-children="right" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
           {(report || virusTotal || metaDefender || (showExternalActions && sha256)) && (
