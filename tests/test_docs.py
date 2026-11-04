@@ -20,7 +20,9 @@ class DocsTests(unittest.TestCase):
             self.assertNotIn("mazillka.github.io", page.read_text(encoding="utf-8"), page.name)
         robots = (docs / "robots.txt").read_text(encoding="utf-8")
         self.assertIn("Sitemap: https://deckyhub.com/sitemap.xml", robots)
-        self.assertNotIn("Disallow: /", robots)
+        # Nothing is blocked, except the develop preview (a copy of the site that must stay out of search).
+        self.assertEqual([line for line in robots.splitlines() if line.startswith("Disallow:") and line != "Disallow: /develop/"], [])
+        self.assertNotIn("Disallow: /\n", robots + "\n")
         llms = (docs / "llms.txt").read_text(encoding="utf-8")
         self.assertTrue(llms.startswith("# DeckyHub\n\n> "), "llms.txt opens with a title and a one-line summary")
 
