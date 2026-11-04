@@ -1,0 +1,48 @@
+{
+  "_comment": "Optional plugins the Desktop Mode installer offers (none ticked). Each id is a plugin in the registry (mazillka/deckyhub-registry), picked by hand. \"tag\" (optional) is the part of a release tag to follow, for a repo with several release streams. Texts are plain words and may only use letters, digits, spaces and . , ; : ( ) / + - (build_installer.py checks it). \"category\" is the registry's category; the checklist lists plugins grouped by it, in this order.",
+  "plugins": [
+    {
+      "id": "decky-lsfg-vk",
+      "name": "Decky LSFG-VK",
+      "repo": "xXJSONDeruloXx/decky-lsfg-vk",
+      "description": "Frame generation with Lossless Scaling (LSFG-VK)",
+      "category": "Frame Generation"
+    },
+    {
+      "id": "mako-decky",
+      "name": "MAKO Decky",
+      "repo": "eugeniosegala/MAKO",
+      "description": "Boosts frame rates with Lossless Scaling frame generation",
+      "tag": "plugin-v",
+      "category": "Frame Generation"
+    },
+    {
+      "id": "decky-multiframegen",
+      "name": "Decky MultiFrameGen",
+      "repo": "MWGIH/DeckyMultiFrameGen",
+      "description": "Installs OptiScaler, HelixSR and MAKO and picks which one to use",
+      "category": "Frame Generation"
+    },
+    {
+      "id": "decky-framegen",
+      "name": "Decky Framegen",
+      "repo": "xXJSONDeruloXx/Decky-Framegen",
+      "description": "Controls Lossless Scaling frame generation for games",
+      "category": "Frame Generation"
+    },
+    {
+      "id": "css-loader",
+      "name": "CSS Loader",
+      "repo": "DeckThemes/SDH-CssLoader",
+      "description": "Custom themes for the Steam interface",
+      "category": "Customization"
+    },
+    {
+      "id": "protondb-decky",
+      "name": "ProtonDB Badges",
+      "repo": "bschelst/protondb-decky",
+      "description": "ProtonDB compatibility ratings in your library",
+      "category": "Game Libraries"
+    }
+  ]
+}

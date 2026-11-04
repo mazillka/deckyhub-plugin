@@ -62,9 +62,9 @@ jobs:
           zip="DeckyHub-${GITHUB_REF_NAME}.zip"
           sha=$(sha256sum "$zip" | cut -d' ' -f1)
           cp "$zip" DeckyHub.zip
-          sed -e "s/@TAG@/${GITHUB_REF_NAME}/g" -e "s/@SHA256@/${sha}/g" installer/install-deckyhub.sh > install-deckyhub.sh
+          python3 installer/build_installer.py "${GITHUB_REF_NAME}" "${sha}" > install-deckyhub.sh
           sed -e "s/@TAG@/${GITHUB_REF_NAME}/g" installer/Install-DeckyHub.desktop > Install-DeckyHub.desktop
-          if grep -n "@TAG@\|@SHA256@" install-deckyhub.sh Install-DeckyHub.desktop; then echo "placeholder left in the installer"; exit 1; fi
+          if grep -n "@TAG@\|@SHA256@\|@STARTER_PLUGINS@" install-deckyhub.sh Install-DeckyHub.desktop; then echo "placeholder left in the installer"; exit 1; fi
           bash -n install-deckyhub.sh
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

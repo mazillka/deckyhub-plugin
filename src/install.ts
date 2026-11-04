@@ -123,10 +123,10 @@ export async function installDeckyPlugin(asset: Asset, repo: string, pluginName:
   }
 }
 
-// Several updates in one go: Decky Loader shows one confirm dialog listing them
-// all and installs them in order. Fresh-install plugins need their uninstall
+// Several updates (or, with installType INSTALL, new plugins) in one go: Decky Loader shows
+// one confirm dialog listing them all and installs them in order. Fresh-install plugins need their uninstall
 // first, so callers leave them out.
-export async function updateDeckyPlugins(updates: { asset: Asset; repo: string; name: string; version: string }[]) {
+export async function updateDeckyPlugins(updates: { asset: Asset; repo: string; name: string; version: string }[], installType: 0 | 2 = PLUGIN_INSTALL_TYPE.UPDATE) {
   // One at a time, so a single progress window shows at once; the last one
   // stays up until Decky's dialog is.
   const { handedOver, done } = handOff();
@@ -136,7 +136,7 @@ export async function updateDeckyPlugins(updates: { asset: Asset; repo: string; 
     for (const { name, version } of updates) traceDeckyInstall(name, version);
     return await callDeckyLoader(
       "utilities/install_plugins",
-      updates.map(({ asset, name, version }, index) => ({ artifact: artifacts[index], name, version: normalizeVersion(displayVersion(version)), hash: asset.sha256 ?? "", install_type: PLUGIN_INSTALL_TYPE.UPDATE })),
+      updates.map(({ asset, name, version }, index) => ({ artifact: artifacts[index], name, version: normalizeVersion(displayVersion(version)), hash: asset.sha256 ?? "", install_type: installType })),
     );
   } finally {
     done();

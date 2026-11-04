@@ -23,6 +23,8 @@ DEFAULT_DOWNLOAD_DIR = "/home/deck/Downloads"
 PLUGIN_DOWNLOAD_DIR = f"{DEFAULT_DOWNLOAD_DIR}/deckyhub"
 # owner/name, where neither part is only dots: the frontend puts this straight into
 # api.github.com/repos/<repo>/releases with the user's token, so "../.." must not pass.
+# Written by the Desktop Mode installer (installer/install-deckyhub.sh) in the settings folder.
+PENDING_INSTALLS_FILE = "pending-installs.json"
 REPOSITORY_NAME = re.compile(r"(?!\.+/)[A-Za-z0-9_.-]+/(?!\.+$)[A-Za-z0-9_.-]+")
 # A GitHub token: classic (ghp_ and kin) or fine-grained (github_pat_).
 GITHUB_TOKEN = re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{60,})\b")
@@ -494,6 +496,31 @@ class Plugin:
 
     async def get_settings(self):
         return self.settings
+
+    async def get_pending_installs(self):
+        """The plugins the Desktop Mode installer's checklist saved for DeckyHub to install
+        (pending-installs.json in the settings folder): repositories the registry list
+        has loaded, in the registry's spelling. Nothing else gets through, and it never raises."""
+        try:
+            saved = json.loads((Path(decky.DECKY_PLUGIN_SETTINGS_DIR) / PENDING_INSTALLS_FILE).read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return []
+        listed = {app["repo"].casefold(): app["repo"] for app in getattr(self, "apps", [])}
+        repos: list[str] = []
+        for repo in saved if isinstance(saved, list) else []:
+            match = listed.get(repo.casefold()) if isinstance(repo, str) and REPOSITORY_NAME.fullmatch(repo) else None
+            if match and match not in repos:
+                repos.append(match)
+        return repos
+
+    async def clear_pending_installs(self):
+        try:
+            (Path(decky.DECKY_PLUGIN_SETTINGS_DIR) / PENDING_INSTALLS_FILE).unlink()
+        except FileNotFoundError:
+            pass
+        except OSError as error:
+            decky.logger.warning("Could not remove %s: %s", PENDING_INSTALLS_FILE, error)
+        return {"cleared": True}
 
     async def get_deckyhub_info(self):
         try:

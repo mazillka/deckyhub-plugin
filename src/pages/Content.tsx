@@ -22,6 +22,7 @@ import { Card, useSwapAnimation } from "../components/Card";
 import { useLayout } from "../components/LayoutToggle";
 import { useApps } from "../hooks/useApps";
 import { RateLimitBanner } from "../components/RateLimitBanner";
+import { offerPendingInstalls } from "../components/PendingInstalls";
 import { Welcome } from "../components/Welcome";
 
 
@@ -31,6 +32,10 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const view: View = fullPage ?? "updates";
   const { apps, setApps, loading, loadError, checked, listedCount, installedCount, columnsPerRow, repoPreferences, setRepoPreferences, hiddenButtons, registryChannel, load } = useApps(view);
   const [downloading, setDownloading] = useState(false);
+  // Opening DeckyHub's Quick Access tab offers the plugins picked in the Desktop Mode installer.
+  useEffect(() => {
+    if (!fullPage) void offerPendingInstalls(t);
+  }, [fullPage]);
   const [query, setQuery] = useState("");
   const [installedFilter, setInstalledFilter] = useState("All");
   // "" means every category.

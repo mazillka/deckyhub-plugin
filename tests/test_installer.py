@@ -2,16 +2,20 @@
 local files, systemctl records its calls, and the home folder is a temporary one
 (DECKYHUB_USER_HOME). Needs root or passwordless sudo (GitHub's runners have it)."""
 import hashlib
+import json
 import os
 import shutil
 import stat
 import subprocess
 import tempfile
+import sys
 import unittest
 import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "installer"))
+from build_installer import fill, starter_lines  # noqa: E402  (what release.yml fills the installer in with)
 SCRIPT = ROOT / "installer" / "install-deckyhub.sh"
 DESKTOP = ROOT / "installer" / "Install-DeckyHub.desktop"
 TAG = "v9.9.9"
@@ -64,10 +68,12 @@ class InstallerTests(unittest.TestCase):
             archive.writestr("DeckyHub/dist/index.js", "// new")
         self.sha256 = hashlib.sha256((self.fixtures / "DeckyHub.zip").read_bytes()).hexdigest()
 
-    def run_installer(self, sha256=None, extra_args=()):
+    def run_installer(self, sha256=None, extra_args=(), picks=None):
         script = self.dir / "install-deckyhub.sh"
-        script.write_text(SCRIPT.read_text().replace("@TAG@", TAG).replace("@SHA256@", sha256 or self.sha256))
+        script.write_text(fill(SCRIPT.read_text(), TAG, sha256 or self.sha256))
         env = {"PATH": f"{self.bin}:/usr/bin:/bin", "FIXTURES": str(self.fixtures), "DECKYHUB_USER_HOME": str(self.home), "HOME": str(self.home)}
+        if picks is not None:
+            env["DECKYHUB_PICKS"] = picks
         command = ["env", *[f"{key}={value}" for key, value in env.items()], "bash", str(script), *extra_args]
         return subprocess.run(command if os.geteuid() == 0 else ["sudo", "-n", *command], capture_output=True, text=True, timeout=60)
 
@@ -77,9 +83,14 @@ class InstallerTests(unittest.TestCase):
     def test_installs_decky_loader_first_when_it_is_missing(self):
         result = self.run_installer()
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("Decky Loader installed", result.stdout)
-        self.assertIn("DeckyHub", result.stdout)
-        self.assertIn("installed", result.stdout)
+        self.assertIn("All done!", result.stdout)
+        self.assertIn("✓ Decky Loader installed", result.stdout)
+        self.assertIn(f"✓ DeckyHub {TAG} installed (file checked)", result.stdout)
+        self.assertIn("✓ Decky Loader restarted", result.stdout)
+        self.assertIn("choose DeckyHub", result.stdout)
+        # Every step is announced, numbered: password, Decky Loader, download, install, restart.
+        for number, text in ((2, "Installing Decky Loader"), (3, "Downloading DeckyHub"), (4, "Installing DeckyHub"), (5, "Restarting Decky Loader")):
+            self.assertIn(f"Step {number} of 5: {text}", result.stdout)
         self.assertTrue((self.home / "homebrew" / "services" / "PluginLoader").exists())
         self.assertEqual(self.plugin("dist/index.js").read_text(), "// new")
         self.assertIn("restart plugin_loader", (self.fixtures / "systemctl.log").read_text())
@@ -93,7 +104,12 @@ class InstallerTests(unittest.TestCase):
         self.plugin("stale.txt").write_text("from the old version")
         result = self.run_installer()
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("DeckyHub updated to", result.stdout)
+        self.assertIn(f"✓ DeckyHub updated to {TAG} (file checked)", result.stdout)
+        self.assertNotIn("✓ Decky Loader installed", result.stdout)
+        # Decky Loader is checked first, DeckyHub only after it.
+        self.assertIn("Step 2 of 5: Checking that Decky Loader is installed", result.stdout)
+        self.assertIn("Step 5 of 5: Restarting Decky Loader", result.stdout)
+        self.assertIn("✓ Decky Loader was already installed", result.stdout)
         self.assertNotIn("install_release.sh", (self.fixtures / "curl.log").read_text())
         self.assertEqual(self.plugin("dist/index.js").read_text(), "// new")
         self.assertFalse(self.plugin("stale.txt").exists())
@@ -102,6 +118,126 @@ class InstallerTests(unittest.TestCase):
         result = self.run_installer()
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn(TAG, result.stdout)
+
+    def test_the_same_version_is_reinstalled_not_updated(self):
+        (self.home / "homebrew" / "services").mkdir(parents=True)
+        (self.home / "homebrew" / "services" / "PluginLoader").touch()
+        self.plugin("dist").mkdir(parents=True)
+        self.plugin("package.json").write_text('{"name": "deckyhub", "version": "%s"}' % TAG.lstrip("v"))
+        result = self.run_installer()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(f"✓ DeckyHub {TAG} reinstalled (file checked)", result.stdout)
+        self.assertNotIn("updated to", result.stdout)
+
+    def test_the_intro_names_install_update_and_reinstall(self):
+        text = SCRIPT.read_text()
+        for word in ('verb="Install"', 'verb="Update"', 'verb="Reinstall"'):
+            self.assertIn(word, text)
+
+    def pending_file(self):
+        return self.home / "homebrew" / "settings" / "DeckyHub" / "pending-installs.json"
+
+    def test_picked_plugins_are_saved_for_deckyhub_before_it_restarts(self):
+        result = self.run_installer(picks="mako-decky,css-loader,not-in-the-list")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(self.pending_file().read_text()), ["eugeniosegala/MAKO", "DeckThemes/SDH-CssLoader"])
+        self.assertIn("✓ 2 optional plugin(s) chosen", result.stdout)
+        self.assertIn("You install them at your own risk", result.stdout)
+        self.assertIn("it isn't responsible for anything they do to your Deck or your data", result.stdout)
+        # The installer itself downloads nothing but Decky Loader and DeckyHub.
+        self.assertNotIn("MAKO", (self.fixtures / "curl.log").read_text())
+
+    def test_the_terminal_gets_no_markup_tags(self):
+        result = self.run_installer(picks="mako-decky")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        for tag in ("<b>", "</b>", "<span", "</span>"):
+            self.assertNotIn(tag, result.stdout)
+        self.assertIn("All done!", result.stdout)
+        failed = self.run_installer(sha256="0" * 64)
+        self.assertNotIn("<", failed.stderr)
+
+    def test_without_picks_nothing_is_saved(self):
+        for picks in (None, ""):
+            result = self.run_installer(picks=picks)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertFalse(self.pending_file().exists())
+            self.assertNotIn("optional plugin", result.stdout)
+
+    def test_each_plugin_gets_its_own_dialog_with_links_and_skip_as_the_default(self):
+        text = SCRIPT.read_text()
+        picker = text.split("choose_plugins()")[1].split("# Not root yet")[0]
+        # Nothing is added unless the user chooses Add: Skip has the focus.
+        self.assertEqual(picker.count("--default-cancel"), 2)
+        self.assertIn('--ok-label="Add this plugin" --cancel-label="Skip"', picker)
+        self.assertNotIn("TRUE", picker)
+        self.assertNotIn("--checklist", picker)
+        # Links are clickable in a dialog's text: the plugin's repository and its DeckyHub page.
+        self.assertIn('<a href=\\"https://github.com/${repo}\\">github.com/${repo}</a>', picker)
+        self.assertIn('<a href=\\"https://deckyhub.com/plugins/${id}.html\\">deckyhub.com/plugins/${id}.html</a>', picker)
+        self.assertIn("Plugin ${i} of ${total}", picker)
+        # Icons: each card gets its category's, or a warning triangle when its notes have a warning.
+        self.assertIn('--icon="$icon"', picker)
+        self.assertIn("icon=dialog-warning", picker)
+        self.assertIn("--icon=package-x-generic", picker)
+        self.assertIn("<b>Decky Loader and DeckyHub are installed either way.</b>", picker)
+        self.assertLess(picker.index("${NOTES_EXPLAINED}"), picker.index("${RESPONSIBILITY}"))
+        for phrase in ("You install them at your own risk", "it isn't responsible for anything they do", "You install it at your own risk: DeckyHub isn't responsible for what it does", "AI-assisted", "Runs as root", "Warning: ", "look at its page on deckyhub.com (details and security scans) and at its author's GitHub page (both are linked on each plugin's card)",
+                       "What the notes mean:", "GitHub stars and downloads", "Latest version: ${versions[i - 1]:-unknown}", "Version: ${TAG}", "newest release today", "the audit found nothing", "the notes couldn't be loaded", "changes system startup", "has hidden code"):
+            self.assertIn(phrase, text)
+
+    def test_the_release_fills_in_every_placeholder_and_the_hand_picked_list(self):
+        filled = fill(SCRIPT.read_text(), TAG, self.sha256)
+        self.assertNotIn("@TAG@", filled)
+        self.assertNotIn("@SHA256@", filled)
+        self.assertNotIn("@STARTER_PLUGINS@", filled)
+        starter = [line.strip().strip("'").split("|")[0] for line in starter_lines().splitlines()]
+        self.assertEqual(starter, ["decky-lsfg-vk", "mako-decky", "decky-multiframegen", "decky-framegen", "css-loader", "protondb-decky"])
+        # id|name|repo|what it does|release tag to follow|category: MAKO follows its plugin releases only.
+        lines = [line.strip().strip("'").split("|") for line in starter_lines().splitlines()]
+        self.assertTrue(all(len(fields) == 6 for fields in lines))
+        # Grouped by category: each category's plugins sit together.
+        categories = [fields[5] for fields in lines]
+        self.assertEqual(categories, ["Frame Generation"] * 4 + ["Customization", "Game Libraries"])
+        self.assertEqual({fields[0]: fields[4] for fields in lines if fields[4]}, {"mako-decky": "plugin-v"})
+
+    def test_the_starter_list_refuses_characters_that_could_break_the_shell(self):
+        bad = self.dir / "bad.json"
+        bad.write_text(json.dumps({"plugins": [{"id": "x", "name": "X", "repo": "o/x", "description": "$(touch /tmp/pwned)"}]}))
+        with self.assertRaises(SystemExit):
+            starter_lines(bad)
+
+    def test_the_finish_message_says_nothing_was_collected(self):
+        result = self.run_installer()
+        self.assertIn("Nothing about you or your Deck was collected or sent", result.stdout)
+        self.assertIn("temporary files are removed", result.stdout)
+
+    def test_a_decky_loader_that_cant_restart_is_not_a_failure(self):
+        (self.bin / "systemctl").write_text('#!/bin/bash\necho "$*" >> "$FIXTURES/systemctl.log"\nexit 1\n')
+        result = self.run_installer()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.plugin("dist/index.js").read_text(), "// new")
+        self.assertIn("Decky Loader couldn't restart by itself. Restart your Steam Deck", result.stdout)
+        self.assertNotIn("✓ Decky Loader restarted", result.stdout)
+
+    def test_errors_show_real_line_breaks_in_a_terminal(self):
+        result = self.run_installer(sha256="0" * 64)
+        self.assertNotIn("\\n", result.stderr)
+        self.assertIn("This is usually a Wi-Fi hiccup", result.stderr)
+
+    def test_the_intro_lists_the_steps_and_says_no_information_is_used(self):
+        text = SCRIPT.read_text()
+        self.assertIn("Here's what will happen:", text)
+        self.assertIn("This will download and install Decky Loader and DeckyHub", text)
+        self.assertIn("Decky Loader is already installed, so it's only checked.", text)
+        self.assertIn("Why a password?", text)
+        self.assertIn("You can also install DeckyHub without this installer", text)
+        self.assertIn("#option-2-manual-zip", text)
+        self.assertLess(text.index("Decky Loader comes first"), text.index("Only then is DeckyHub"))
+        self.assertIn("not your Steam password", text)
+        self.assertIn("nothing about you or your Deck is collected, saved or sent anywhere", text)
+        self.assertIn("is never stored", text)
+        self.assertIn("no guarantee", text)
+        self.assertEqual(subprocess.run(["bash", "-n", str(SCRIPT)], capture_output=True, text=True).returncode, 0)
 
     def test_update_only_skips_decky_loader(self):
         """--update-only installs DeckyHub even when Decky Loader is absent."""
@@ -121,7 +257,7 @@ class InstallerTests(unittest.TestCase):
         self.plugin("dist/index.js").write_text("// old")
         result = self.run_installer(sha256="0" * 64)
         self.assertEqual(result.returncode, 1)
-        self.assertIn("doesn't match the expected checksum", result.stderr)
+        self.assertIn("its checksum doesn't match", result.stderr)
         self.assertEqual(self.plugin("dist/index.js").read_text(), "// old")
         self.assertFalse((self.fixtures / "systemctl.log").exists())
 
