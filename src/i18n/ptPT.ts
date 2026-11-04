@@ -59,6 +59,7 @@ export const ptPT: Record<MessageKey, string> = {
   "details.about": "Sobre",
   "details.whatsNew": "Novidades da {version}",
   "appcard.repository": "Repositório",
+  "appcard.deckyhubPage": "Página no DeckyHub",
   "appcard.channel": "Canal: {channel}",
   "appcard.channelStable": "Estável",
   "appcard.channelPrerelease": "Pré-lançamento",
