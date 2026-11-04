@@ -113,6 +113,21 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn(TAG, result.stdout)
 
+    def test_the_same_version_is_reinstalled_not_updated(self):
+        (self.home / "homebrew" / "services").mkdir(parents=True)
+        (self.home / "homebrew" / "services" / "PluginLoader").touch()
+        self.plugin("dist").mkdir(parents=True)
+        self.plugin("package.json").write_text('{"name": "deckyhub", "version": "%s"}' % TAG.lstrip("v"))
+        result = self.run_installer()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(f"✓ DeckyHub {TAG} reinstalled (file checked)", result.stdout)
+        self.assertNotIn("updated to", result.stdout)
+
+    def test_the_intro_names_install_update_and_reinstall(self):
+        text = SCRIPT.read_text()
+        for word in ('verb="Install"', 'verb="Update"', 'verb="Reinstall"'):
+            self.assertIn(word, text)
+
     def test_the_finish_message_says_nothing_was_collected(self):
         result = self.run_installer()
         self.assertIn("Nothing about you or your Deck was collected or sent", result.stdout)

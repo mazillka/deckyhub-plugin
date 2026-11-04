@@ -47,6 +47,9 @@ warn() { if has_zenity; then zen --title="$TITLE" --width=480 --icon=dialog-warn
 fail() { if has_zenity; then zen --title="$TITLE" --width=480 --icon=dialog-error --error --text="$1"; else printf 'Error: %b
 ' "$1" >&2; fi; exit 1; }
 
+# The version of the DeckyHub in folder $1 (from its package.json), or nothing.
+installed_version() { sed -n 's/.*"version": *"\([^"]*\)".*/\1/p' "$1/package.json" 2> /dev/null | head -1; }
+
 # Not root yet: say what's going to happen, check GitHub is reachable, then get the admin
 # password and run this script again as root.
 if (( EUID != 0 )); then
@@ -59,7 +62,12 @@ if (( EUID != 0 )); then
         fail "--update-only needs Decky Loader, and it isn't installed on this Deck yet.\n\nRun the installer without --update-only to install both."
     fi
 
-    verb="Install"; (( HAS_DECKYHUB )) && verb="Update"
+    # Install, Update (another version is there) or Reinstall (this very version is).
+    verb="Install"
+    if (( HAS_DECKYHUB )); then
+        verb="Update"
+        [ "$(installed_version "${HOMEBREW_CHECK}/plugins/DeckyHub")" = "${TAG#v}" ] && verb="Reinstall"
+    fi
     steps=""; n=1
     add_step() { steps+="  ${n}. $1\n"; n=$((n + 1)); }
     add_step "You type your Deck's admin password."
@@ -184,6 +192,7 @@ install_all() {
             echo "Couldn't replace your current DeckyHub.\n\nClose anything that might be using it, then try again." > "$STATUS_FILE"; return
         fi
         echo "update" > "${WORK}/had-deckyhub"
+        [ "$(installed_version "$staging/previous")" = "${TAG#v}" ] && echo "same" > "${WORK}/same-version"
     fi
     if ! mv -T "$staging/new" "$target"; then
         if [ -f "${WORK}/had-deckyhub" ] && ! mv -T "$staging/previous" "$target"; then
@@ -214,7 +223,9 @@ INSTALL_STATUS=$(cat "$STATUS_FILE" 2> /dev/null)
 # What was done, then what to do next.
 done_text=""
 if [ -f "${WORK}/installed-decky" ]; then done_text+="✓ Decky Loader installed\n"; else done_text+="✓ Decky Loader was already installed\n"; fi
-if [ -f "${WORK}/had-deckyhub" ]; then
+if [ -f "${WORK}/same-version" ]; then
+    done_text+="✓ DeckyHub ${TAG} reinstalled (file checked)\n"
+elif [ -f "${WORK}/had-deckyhub" ]; then
     done_text+="✓ DeckyHub updated to ${TAG} (file checked)\n"
 else
     done_text+="✓ DeckyHub ${TAG} installed (file checked)\n"
