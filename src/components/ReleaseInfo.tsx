@@ -12,10 +12,11 @@ export function plainNotes(notes = "") {
     notes = notes.replace(/!\[[^\]]*\]\([^)]*\)|<[^>]*>/g, "");
   }
   return notes
-    .replace(/^#{1,6}\s*/gm, "")
+    .replace(/\r\n?/g, "\n")
+    .replace(/^#{1,6}[ \t]*/gm, "")
     .replace(/\*\*|__/g, "")
     .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
-    .replace(/^\s*[-*]\s+/gm, "• ")
+    .replace(/^[ \t]*[-*][ \t]+/gm, "• ")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
@@ -26,7 +27,8 @@ export function textSections(text: string, limit = 300): string[] {
   while (text.length > limit) {
     const space = text.lastIndexOf(" ", limit);
     const newline = text.lastIndexOf("\n", limit);
-    const end = Math.max(space, newline);
+    // Cut at a line end when one is near, so a section doesn't end on a lone bullet.
+    const end = newline > limit / 2 ? newline : Math.max(space, newline);
     const cut = end > 0 ? end + 1 : limit;
     parts.push(text.slice(0, cut));
     text = text.slice(cut);
