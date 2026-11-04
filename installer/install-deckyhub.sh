@@ -85,9 +85,9 @@ if (( EUID != 0 )); then
         why="Why a password? Installing and restarting Decky Loader are changes to the Deck itself, and the Deck only allows that with the admin password. Decky Loader's own installer asks for the same one."
     fi
     if (( HAS_DECKY )); then
-        headline="This will ${verb,,} DeckyHub ${TAG} on your Steam Deck.\nDecky Loader is already installed, so it's only checked."
+        headline="This will download and ${verb,,} DeckyHub ${TAG} on your Steam Deck.\nDecky Loader is already installed, so it's only checked."
     else
-        headline="This will install Decky Loader and DeckyHub ${TAG} on your Steam Deck."
+        headline="This will download and install Decky Loader and DeckyHub ${TAG} on your Steam Deck."
     fi
     intro_text="${headline}\n\nHere's what will happen:\n${steps}\n${why}\n\n${PRIVACY}\n\n${WARRANTY}"
 
