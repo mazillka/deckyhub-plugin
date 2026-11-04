@@ -166,6 +166,9 @@ class InstallerTests(unittest.TestCase):
         self.assertLess(picker.index("${NOTES_EXPLAINED}"), picker.index("${RESPONSIBILITY}"))
         self.assertLess(picker.index("${RESPONSIBILITY}"), picker.index("--column=Pick"))
         self.assertIn("Required: ", picker)
+        # Each plugin's cell ends with where its source lives.
+        self.assertEqual(picker.count('"github.com/'), 3)
+        self.assertIn('"github.com/${repo}"', picker)
         # Names are links in the text, so the table has no page or stars columns of its own.
         self.assertNotIn("Details and security scans\"", picker)
         self.assertNotIn("--column=\"Stars and downloads\"", picker)

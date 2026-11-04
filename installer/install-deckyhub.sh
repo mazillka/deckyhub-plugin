@@ -158,12 +158,12 @@ choose_plugins() {
     # A list cell can't hold a link, but the dialog's text can: every plugin's name links to its
     # page on deckyhub.com (details and security scans), grouped like the table.
     links="Click a plugin's name to read its page on deckyhub.com (details and security scans), or GitHub to look at its author and source code:\n  Required: <a href=\"https://decky.xyz\">Decky Loader</a> (<a href=\"https://github.com/SteamDeckHomebrew/decky-loader\">GitHub</a>) · <a href=\"https://deckyhub.com\">DeckyHub</a> (<a href=\"https://github.com/mazillka/deckyhub-plugin\">GitHub</a>)"
-    rows+=(TRUE "decky-loader" "Decky Loader"$'\n'"The add-on system DeckyHub runs in"$'\n'"Version: ${decky_version}" "Required" "$decky_note")
-    rows+=(TRUE "deckyhub" "DeckyHub"$'\n'"Finds, installs and updates plugins from Gaming Mode"$'\n'"Version: ${TAG}${hub_installed:+ (now ${hub_installed})}" "Required" "$hub_note")
+    rows+=(TRUE "decky-loader" "Decky Loader"$'\n'"The add-on system DeckyHub runs in"$'\n'"Version: ${decky_version}"$'\n'"github.com/SteamDeckHomebrew/decky-loader" "Required" "$decky_note")
+    rows+=(TRUE "deckyhub" "DeckyHub"$'\n'"Finds, installs and updates plugins from Gaming Mode"$'\n'"Version: ${TAG}${hub_installed:+ (now ${hub_installed})}"$'\n'"github.com/mazillka/deckyhub-plugin" "Required" "$hub_note")
     for entry in "${STARTER_PLUGINS[@]}"; do
         IFS='|' read -r id name repo what tag category <<< "$entry"
         IFS=$'\t' read -r note popularity <<< "${notes[i]:-Not checked}"
-        rows+=(FALSE "$id" "${name}"$'\n'"${what}"$'\n'"Latest version: ${versions[i]:-unknown}" "$category" "${note:-Not checked}${popularity:+$'\n'$popularity}")
+        rows+=(FALSE "$id" "${name}"$'\n'"${what}"$'\n'"Latest version: ${versions[i]:-unknown}"$'\n'"github.com/${repo}" "$category" "${note:-Not checked}${popularity:+$'\n'$popularity}")
         if [ "$category" != "$last_category" ]; then links+="\n  ${category}: "; last_category="$category"; sep=""; fi
         links+="${sep}<a href=\"https://deckyhub.com/plugins/${id}.html\">${name}</a> (<a href=\"https://github.com/${repo}\">GitHub</a>)"
         sep=" · "
