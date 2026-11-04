@@ -169,11 +169,12 @@ class InstallerTests(unittest.TestCase):
         # One block per plugin, no table: its repository and its notes are in the same cell.
         self.assertIn(" · github.com/${repo}", picker)
         self.assertIn("--hide-header", picker)
-        # Names are links in the text, so the list has no page, category or stars columns.
+        # A plain list: no page, category or stars columns, and no link block above it.
+        self.assertNotIn("links+=", picker)
         self.assertNotIn("Details and security scans\"", picker)
         self.assertNotIn("--column=\"Stars and downloads\"", picker)
         self.assertEqual(picker.count("--column="), 3)  # pick, hidden id, plugin
-        for phrase in ("You are responsible for what you install", "AI-assisted", "Runs as root", "Warning: ", r'<a href=\"https://deckyhub.com/plugins/${id}.html\">${name}</a>', "Click a plugin's name", "look at its DeckyHub page and its author's GitHub page before you install it", '(<a href=\"https://github.com/${repo}\">GitHub</a>)',
+        for phrase in ("You are responsible for what you install", "AI-assisted", "Runs as root", "Warning: ", "look at its page on deckyhub.com (details and security scans) and at its author's GitHub page (the address under its name)", 
                        "What the notes mean:", "grouped by category", "GitHub stars and downloads", "Latest version: ${versions[i]:-unknown}", "Version: ${TAG}", "newest release today", "No warnings: the audit found nothing", "Not checked: the notes couldn't be loaded", "changes system startup", "has hidden code"):
             self.assertIn(phrase, text)
 
