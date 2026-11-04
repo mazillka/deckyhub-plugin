@@ -120,7 +120,7 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
   );
 }
 
-export type SettingsTab = "general" | "github" | "downloads" | "repositories" | "troubleshoot" | "about";
+type SettingsTab = "general" | "github" | "downloads" | "repositories" | "troubleshoot" | "about";
 // The tab Settings opens on next, for links into a particular one (the rate-limit
 // banner's Open Settings goes to GitHub Access).
 let nextTab: SettingsTab = "general";

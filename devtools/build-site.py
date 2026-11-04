@@ -31,6 +31,7 @@ import markdown
 from PIL import Image
 
 import plugin_pages
+from plugin_pages import nice_date
 
 ROOT = Path(__file__).resolve().parent.parent
 REGISTRY_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/refs/heads/main/registry/apps.json"
@@ -70,10 +71,6 @@ def notes_html(body: str | None) -> str:
     parser.feed(markdown.markdown((body or "").replace("\r\n", "\n"), extensions=["sane_lists"]))
     parser.close()
     return "".join(parser.out)
-
-
-def nice_date(iso: str | None) -> str:
-    return plugin_pages.nice_date(iso)
 
 
 def fetch_releases() -> list[dict]:
@@ -149,6 +146,8 @@ for placeholder in ("<!-- structured-data -->", "<!-- latest -->"):
 page = page.replace("<!-- catalog -->", cards).replace("<!-- structured-data -->", structured_data(page, latest))
 if latest:
     page = page.replace("<!-- latest -->", f'Latest release: <a href="releases.html#{escape(latest["tag_name"])}">{escape(latest["tag_name"])}</a>, {nice_date(latest.get("published_at"))} · <a href="releases.html">Release notes</a>')
+readme = (ROOT / "README.md").read_text(encoding="utf-8")
+page = re.sub(r"<!-- steps: (.+?) -->", lambda match: plugin_pages.readme_steps(readme, match.group(1)), page)
 index.write_text(page, encoding="utf-8")
 
 notes = out / "releases.html"

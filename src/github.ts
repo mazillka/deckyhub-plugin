@@ -84,7 +84,7 @@ export async function githubCoreQuota(): Promise<{ limit: number; remaining: num
 export const registryUrlForRepo = (repo: string) => `https://raw.githubusercontent.com/${repo.trim()}/HEAD/registry/apps.json`;
 
 // Same rule as REPOSITORY_NAME in main.py: neither part may be only dots.
-export const REPOSITORY_PATTERN = /^(?!\.+\/)[A-Za-z0-9_.-]+\/(?!\.+$)[A-Za-z0-9_.-]+$/;
+const REPOSITORY_PATTERN = /^(?!\.+\/)[A-Za-z0-9_.-]+\/(?!\.+$)[A-Za-z0-9_.-]+$/;
 
 export const isRepositoryName = (value: string) => REPOSITORY_PATTERN.test(value.trim());
 

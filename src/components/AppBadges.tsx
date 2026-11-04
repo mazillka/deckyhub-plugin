@@ -64,7 +64,7 @@ export const AiBadge = ({ t, files }: { t: TFunc; files?: string[] }) => (
 // The virus scans' verdict on the release the card installs (the registry's scans.json):
 // the worse of ClamAV's and YARA's, also shown in Discover's legend. Nothing until the ZIP
 // has a report; Manage has the full report.
-export type ScanBadgeKind = "clean" | "infected" | "partial";
+type ScanBadgeKind = "clean" | "infected" | "partial";
 export const SCAN_BADGES: ScanBadgeKind[] = ["clean", "infected", "partial"];
 const SCAN_COLORS: Record<ScanBadgeKind, string> = { clean: "#6bcb6b", infected: "#ff8a8a", partial: "#ffb35c" };
 const scanSummary = (scan: VirusScan, virusTotal?: App["virusTotal"], metaDefender?: App["metaDefender"]) => {

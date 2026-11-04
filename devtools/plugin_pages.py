@@ -20,8 +20,17 @@ REGISTRY_RAW = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/"
 STATS_URL = REGISTRY_RAW + "release-index/stats.json"
 SCANS_URL = REGISTRY_RAW + "virus-scans/plugins.json"
 METADEFENDER_URL = REGISTRY_RAW + "metadefender-reports/reports.json"
-# The catalog script's WARNINGS (id: [label, hint]) live in the registry's page.
-WARNINGS_PAGE_URL = REGISTRY_RAW + "refs/heads/main/docs/index.html"
+# What the audit's warnings are called and mean (id: (label, hint)); the app and the installer say the same.
+WARNINGS = {
+    "blocked": ("Blocked by audit", "The audit found malware or a broken archive. Not recommended for installation."),
+    "private-data": ("Reads private data", "Its code reads Steam login data, SSH keys or secrets from the environment."),
+    "persistence": ("Changes system startup", "It edits shell profiles, preloads libraries, loads kernel modules or adds device rules, which keep working outside Decky."),
+    "not-in-source": ("Code not in its repo", "The release ZIP has scripts or programs that aren't in its GitHub source, so you can't read what they do."),
+    "obfuscated": ("Hidden code", "It contains encoded or packed code that's hard to read."),
+    "no-tls-check": ("Skips HTTPS checks", "It turns off certificate checks, so what it downloads could be tampered with."),
+    "runs-downloads": ("Runs downloaded scripts", "It downloads a script and runs it straight away."),
+    "vulnerable": ("Known vulnerabilities", "It bundles libraries with published security flaws."),
+}
 
 SCAN_LABELS = {"clean": ("No threats", "clean"), "infected": ("Threat found", "stale"), "partial": ("Not fully scanned", "warn")}
 SCAN_RESULTS = {"clean": "no threats found", "infected": "threat found", "incomplete": "only partly scanned", "error": "couldn't be scanned"}
@@ -60,13 +69,6 @@ def fetch_json(url: str, key: str) -> dict:
         return (json.loads(text).get(key) or {}) if text else {}
     except (ValueError, AttributeError):
         return {}
-
-
-def warning_labels(page: str | None) -> dict[str, tuple[str, str]]:
-    if not page or "const WARNINGS = {" not in page:
-        return {}
-    block = page.split("const WARNINGS = {", 1)[1].split("};", 1)[0]
-    return {key: (label, hint) for key, label, hint in re.findall(r'^\s*"([\w-]+)": \["([^"]+)", "([^"]+)"\]', block, re.M)}
 
 
 def compact(number: int) -> str:
@@ -251,11 +253,27 @@ def plugin_page(shell: dict[str, str], app: dict, stats: dict, scans: dict, warn
     return page(shell, title, summary, f"plugins/{app['id']}.html", body, [trail, json_ld(data)])
 
 
+def inline_markdown(text: str) -> str:
+    """**bold**, `code` and [links](url) from the README, as HTML (everything else is text)."""
+    text = escape(text, quote=False)
+    text = re.sub(r"`([^`]+)`", r"<code>\1</code>", text)
+    text = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", text)
+    return re.sub(r"\[([^\]]+)\]\(([^)\s]+)\)", lambda match: f'<a href="{escape(match.group(2))}">{match.group(1)}</a>', text)
+
+
+def readme_steps(readme: str, heading: str) -> str:
+    """The numbered steps under a README heading as <li> items (inline markdown rendered), so the
+    website says what the README says."""
+    section = re.split(r"\n#{2,4} ", readme.replace("\r\n", "\n").split(heading, 1)[1], 1)[0]
+    steps = re.findall(r"^\d+\. (.+)$", section, re.M)
+    return "\n".join(f"<li>{inline_markdown(step)}</li>" for step in steps)
+
+
 def write_pages(out, apps: list[dict], releases_page: str) -> list[tuple[str, str]]:
     """Writes plugins/<id>.html for every plugin; returns (url, lastmod) for the sitemap."""
     shell = shell_of(releases_page)
     stats, scans, reports = fetch_json(STATS_URL, "plugins"), fetch_json(SCANS_URL, "plugins"), fetch_json(METADEFENDER_URL, "reports")
-    warnings = warning_labels(fetch(WARNINGS_PAGE_URL))
+    warnings = WARNINGS
     (out / "plugins").mkdir(exist_ok=True)
     today = time.strftime("%Y-%m-%d", time.gmtime())
     urls = []

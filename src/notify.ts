@@ -2,7 +2,7 @@ import { tr } from "./translate";
 import { type App } from "./types";
 import { toaster } from "@decky/api";
 
-export const UPDATE_NOTICE_KEY = "deckyhub-update-notice";
+const UPDATE_NOTICE_KEY = "deckyhub-update-notice";
 
 // True the first time `value` is seen under `key`, so a toast shows once per
 // update. Without storage it's always true: the toast just repeats next time.
@@ -27,7 +27,7 @@ export function notifyUpdates(apps: App[]) {
 // How many plugins have an update, for the dot on DeckyHub's Quick Access icon.
 let updateCount = 0;
 const updateCountListeners = new Set<() => void>();
-export function setUpdateCount(count: number) {
+function setUpdateCount(count: number) {
   updateCount = count;
   updateCountListeners.forEach((listener) => listener());
 }

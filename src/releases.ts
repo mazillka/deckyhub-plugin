@@ -14,14 +14,14 @@ import { createRawCache } from "./rawCache";
 // to check (Refresh, Check for Updates).
 export const CACHE_TTL = 30 * 60 * 1000;
 // A transient outage should not hide registry data for the full successful-cache TTL.
-export const FAILED_RAW_JSON_TTL = 30_000;
+const FAILED_RAW_JSON_TTL = 30_000;
 
 // fetchReleases' localStorage envelope: when it was fetched (for CACHE_TTL)
 // and the data. Only successful results are ever written, so a failure never
 // "poisons" it. No ETag re-check: If-None-Match is a header, see githubHeaders().
-export type CacheEntry<T> = { at: number; data: T };
+type CacheEntry<T> = { at: number; data: T };
 
-export function readCache<T>(key: string): CacheEntry<T> | null {
+function readCache<T>(key: string): CacheEntry<T> | null {
   try {
     return JSON.parse(localStorage.getItem(key) || "null");
   } catch {
@@ -29,20 +29,20 @@ export function readCache<T>(key: string): CacheEntry<T> | null {
   }
 }
 
-export const RELEASES_CACHE_PREFIX = "deckyhub-releases:";
+const RELEASES_CACHE_PREFIX = "deckyhub-releases:";
 
 // A repo nobody has looked at for a week (or one since removed) loses its entry.
-export const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
+const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
-export let cachePruned = false;
+let cachePruned = false;
 
-export function pruneReleaseCache() {
+function pruneReleaseCache() {
   for (const key of Object.keys(localStorage)) {
     if (key.startsWith(RELEASES_CACHE_PREFIX) && !(Date.now() - (readCache(key)?.at ?? 0) < CACHE_MAX_AGE)) localStorage.removeItem(key);
   }
 }
 
-export function writeCache(key: string, data: unknown): void {
+function writeCache(key: string, data: unknown): void {
   const value = JSON.stringify({ at: Date.now(), data });
   try {
     // Once per session, so entries for repos no longer listed don't pile up.
@@ -57,7 +57,7 @@ export function writeCache(key: string, data: unknown): void {
   }
 }
 
-export function matchingAssets(app: App, assets: Asset[]): Asset[] {
+function matchingAssets(app: App, assets: Asset[]): Asset[] {
   const include = app.asset.include.map((word) => word.toLowerCase());
   const exclude = app.asset.exclude.map((word) => word.toLowerCase());
   return assets.filter((asset) => {
@@ -75,7 +75,7 @@ export function matchingAssets(app: App, assets: Asset[]): Asset[] {
 export type Release = { tag: string; prerelease: boolean; publishedAt: string | null; url: string; notes?: string; assets: Asset[] };
 
 // Lookups for the same repo that overlap share one request.
-export const inFlight = new Map<string, Promise<Release[]>>();
+const inFlight = new Map<string, Promise<Release[]>>();
 
 export function fetchReleases(repo: string, force: boolean): Promise<Release[]> {
   const key = `${repo}:${force}`;
@@ -111,7 +111,7 @@ const indexUrls = (file: string) => [...(registryChannel === "prerelease" ? [`${
 // An index this old means its job stopped publishing; ask GitHub instead. Generous on
 // purpose: GitHub skips scheduled runs for hours at a time, and a list of 300+ plugins
 // can't be asked of the API at 60 requests an hour, so a day-old index beats none.
-export const RELEASE_INDEX_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
+const RELEASE_INDEX_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
 // One of the release index's files, downloaded once and shared by every caller for
 // CACHE_TTL. A forced refresh downloads it again, unless one started in the last
@@ -119,7 +119,7 @@ export const RELEASE_INDEX_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 // downloads the other branch's. `pick` turns the file into what callers get, and its
 // fallback stands in for a missing or broken file, which moves on to the next URL.
 // `urlsOf` picks where the file lives: the channel's release index by default.
-export function cachedRawJson<T>(file: string, pick: (data: any) => T, fallback: T, urlsOf: (file: string) => string[] = indexUrls) {
+function cachedRawJson<T>(file: string, pick: (data: any) => T, fallback: T, urlsOf: (file: string) => string[] = indexUrls) {
   const cached = createRawCache((urls) => firstRawJson(urls, pick, fallback), CACHE_TTL, FAILED_RAW_JSON_TTL);
   return async (force = false) => {
     // A failed settings read is retried on the next call rather than kept.
@@ -144,7 +144,7 @@ async function firstRawJson<T>(urls: string[], pick: (data: any) => T, fallback:
   return { value: fallback, failed: true };
 }
 
-export const fetchReleaseIndex = cachedRawJson<Record<string, unknown[]> | null>(
+const fetchReleaseIndex = cachedRawJson<Record<string, unknown[]> | null>(
   "releases.json",
   (index) => (Date.now() - Date.parse(index.generatedAt) < RELEASE_INDEX_MAX_AGE ? index.releases : null),
   null,
@@ -231,9 +231,9 @@ export async function metaDefenderReportOf(asset: Asset) {
   return { state: "complete" as const, flagged, total, dataId: typeof dataId === "string" && /^[A-Za-z0-9_-]+$/.test(dataId) ? dataId : undefined };
 }
 
-export const DECKYHUB_REPO = "mazillka/deckyhub-plugin";
+const DECKYHUB_REPO = "mazillka/deckyhub-plugin";
 
-export async function requestReleases(repo: string, force: boolean): Promise<Release[]> {
+async function requestReleases(repo: string, force: boolean): Promise<Release[]> {
   const cacheKey = `${RELEASES_CACHE_PREFIX}${repo}`;
   const cached = readCache<Release[]>(cacheKey);
   if (cached && !force && Date.now() - cached.at < CACHE_TTL) return cached.data;
@@ -289,7 +289,7 @@ export async function requestReleases(repo: string, force: boolean): Promise<Rel
 }
 
 // A failed lookup becomes an empty list plus the error, for the caller to show.
-export function listOrError<T>(items: Promise<T[]>): Promise<{ items: T[]; error?: string }> {
+function listOrError<T>(items: Promise<T[]>): Promise<{ items: T[]; error?: string }> {
   return items.then((items) => ({ items }), (error) => {
     log(`Release lookup failed: ${error}`);
     return { items: [], error: String(error) };

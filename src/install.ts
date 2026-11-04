@@ -52,7 +52,7 @@ export const getDeckyBackend = () => window.DeckyBackend ?? window.opener?.Decky
 
 // Set by this copy's onDismount (src/index.tsx). Each load of DeckyHub is a
 // fresh module, so after a self-update only the old copy still sees false.
-export let unloaded = false;
+let unloaded = false;
 
 export const markUnloaded = () => {
   unloaded = true;
@@ -62,7 +62,7 @@ export const markUnloaded = () => {
 // Decky Loader reloads DeckyHub itself once its update is installed. If this
 // old copy is still mounted after Decky's own 15 s load timeout, that reload
 // didn't happen, so ask Decky's plugin loader for the new copy directly.
-export function reloadIfStillOld() {
+function reloadIfStillOld() {
   window.setTimeout(() => {
     if (unloaded) return;
     log("DeckyHub was not reloaded after its update; asking Decky Loader to load the new version");
@@ -82,7 +82,7 @@ export function reloadIfStillOld() {
 // version while it's still being installed, and the installer then stops that
 // copy seconds into its startup. Unifideck hangs there, and Decky grew to 9.6 GB
 // and froze the Deck. A fresh install keeps the watcher off throughout.
-export const FRESH_INSTALL_PLUGINS = ["Unifideck"];
+const FRESH_INSTALL_PLUGINS = ["Unifideck"];
 
 export const needsFreshInstall = (pluginName: string, installType: number) => installType !== PLUGIN_INSTALL_TYPE.INSTALL && FRESH_INSTALL_PLUGINS.includes(pluginName);
 
@@ -98,7 +98,7 @@ export async function localZip(asset: Asset, repo: string, handedOver?: Promise<
 }
 
 // A promise and the function that settles it, for localZip's handedOver.
-export function handOff() {
+function handOff() {
   let done = () => {};
   const handedOver = new Promise<void>((resolve) => (done = resolve));
   return { handedOver, done };
@@ -162,7 +162,7 @@ export const isInstalling = (name: string) => installingNow.has(name);
 // so deckyhub.log shows where a stuck install stopped. Decky's progress events
 // carry no plugin name, so all of them are logged while this one is watched.
 // Decky shows no notice when an install finishes, so this toasts one.
-export function traceDeckyInstall(pluginName: string, version?: string) {
+function traceDeckyInstall(pluginName: string, version?: string) {
   const backend = getDeckyBackend();
   if (!backend) return;
   const started = Date.now();
@@ -220,7 +220,7 @@ export function uninstallDeckyPlugin(pluginName: string) {
   return callDeckyLoader("utilities/uninstall_plugin", pluginName);
 }
 
-export function callDeckyLoader(route: string, ...args: unknown[]) {
+function callDeckyLoader(route: string, ...args: unknown[]) {
   const backend = getDeckyBackend();
   log(`Decky Loader ${route} ${JSON.stringify(args)}${backend ? "" : " (loader unavailable)"}`);
   if (!backend) return Promise.reject(new Error(tr("error.loaderUnavailable")));

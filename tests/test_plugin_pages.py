@@ -43,6 +43,19 @@ class PluginPageTests(unittest.TestCase):
     def test_an_unscanned_plugin_says_so(self):
         self.assertIn("Not scanned yet", self.page())
 
+    def test_the_website_install_steps_come_from_the_readme(self):
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        option_1 = plugin_pages.readme_steps(readme, "### Option 1")
+        option_2 = plugin_pages.readme_steps(readme, "### Option 2")
+        self.assertGreaterEqual(option_1.count("<li>"), 6)
+        self.assertIn("<code>Install-DeckyHub.desktop</code>", option_1)
+        self.assertIn('<a href="https://github.com/mazillka/deckyhub-plugin/releases/latest/download/Install-DeckyHub.desktop">', option_1)
+        self.assertIn("<strong>Execute</strong>", option_1)
+        self.assertGreaterEqual(option_2.count("<li>"), 3)
+        self.assertNotIn("Install-DeckyHub.desktop", option_2)  # each option has its own steps
+
+    def test_inline_markdown_escapes_html(self):
+        self.assertEqual(plugin_pages.inline_markdown("a <b> & **c**"), "a &lt;b&gt; &amp; <strong>c</strong>")
 
 if __name__ == "__main__":
     unittest.main()
