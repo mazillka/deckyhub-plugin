@@ -134,6 +134,8 @@ class InstallerTests(unittest.TestCase):
     def test_the_intro_lists_the_steps_and_says_no_information_is_used(self):
         text = SCRIPT.read_text()
         self.assertIn("Here's what will happen:", text)
+        self.assertIn("This will install Decky Loader and DeckyHub", text)
+        self.assertIn("Decky Loader is already installed, so it's only checked.", text)
         self.assertIn("Why a password?", text)
         self.assertLess(text.index("Decky Loader comes first"), text.index("Only then is DeckyHub"))
         self.assertIn("not your Steam password", text)

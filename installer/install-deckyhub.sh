@@ -64,7 +64,7 @@ if (( EUID != 0 )); then
     add_step() { steps+="  ${n}. $1\n"; n=$((n + 1)); }
     add_step "You type your Deck's admin password."
     if (( HAS_DECKY )); then
-        add_step "Decky Loader comes first. It's the add-on system DeckyHub runs in. We check that it's installed. It is, so nothing needs installing."
+        add_step "Decky Loader comes first. It's the add-on system DeckyHub runs in. We only check that it's installed. It is, so nothing is installed or changed here."
     else
         add_step "Decky Loader comes first. It's the add-on system DeckyHub runs in, and it isn't installed yet, so it's installed now."
     fi
@@ -76,7 +76,12 @@ if (( EUID != 0 )); then
     else
         why="Why a password? Installing and restarting Decky Loader are changes to the Deck itself, and the Deck only allows that with the admin password. Decky Loader's own installer asks for the same one."
     fi
-    intro_text="This will ${verb,,} DeckyHub ${TAG} on your Steam Deck.\n\nHere's what will happen:\n${steps}\n${why}\n\n${PRIVACY}\n\n${WARRANTY}"
+    if (( HAS_DECKY )); then
+        headline="This will ${verb,,} DeckyHub ${TAG} on your Steam Deck.\nDecky Loader is already installed, so it's only checked."
+    else
+        headline="This will install Decky Loader and DeckyHub ${TAG} on your Steam Deck."
+    fi
+    intro_text="${headline}\n\nHere's what will happen:\n${steps}\n${why}\n\n${PRIVACY}\n\n${WARRANTY}"
 
     if has_zenity; then
         zen --title="$TITLE" --width=560 --icon=system-software-install --question --ok-label="${verb}" --cancel-label="Cancel" --text="$intro_text" || exit 0
