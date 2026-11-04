@@ -12,6 +12,7 @@ DeckyHub is in production: an update must keep existing users' settings, caches,
 - `main` holds stable releases only. It changes only through a PR from `develop` when cutting a stable `vX.Y.Z`; never branch from it or target it with feature work.
 - Pre-release tags (`vX.Y.Z-rc.N`) are cut from `develop`; stable tags from `main`. Details in [CONTRIBUTING.md](CONTRIBUTING.md#releases).
 - Any change to the website, its plugin pages, robots.txt, sitemap or llms.txt: the [seo-and-ai skill](.agents/skills/seo-and-ai/SKILL.md) keeps it optimized for search engines and AI assistants (`devtools/audit-site.py` checks it).
+- Cleaning up or adding tests: the [test-hygiene skill](.agents/skills/test-hygiene/SKILL.md) finds fake tests (they can't fail, test a mock or copy the source) and duplicates, and shows how to remove them without losing coverage.
 - Starting work, merging, the back-merge after a stable release and cleaning up old branches: the [branches skill](.agents/skills/branches/SKILL.md).
 
 ## Steam Deck UI
