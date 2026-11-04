@@ -667,6 +667,42 @@ test("Discover's Then by breaks Sort's ties, and A to Z breaks the rest", async 
   await expect.poll(unifideckFirst).toBe(true);
 });
 
+test("Installed lists only installed plugins and handles missing badge data", async ({ page }) => {
+  const removePlugin = seedPlugin("e2e-mako", "MAKO - Frame Generation", "1.0.0");
+  try {
+    await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", "c".repeat(64))]);
+    await page.goto("/?preview=/deckyhub/installed&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    await expect(app.getByRole("heading", { name: "MAKO Decky" })).toBeVisible();
+    await expect(app.getByRole("heading", { name: "Unifideck", exact: true })).toHaveCount(0);
+    await expect(app.getByRole("button", { name: "Manage", exact: true })).toHaveCount(1);
+  } finally {
+    removePlugin();
+  }
+  await page.reload();
+  await expect(mock(page).getByText("No installed plugins found.")).toBeVisible();
+});
+
+test("Installed shows Discover's stats and security badges", async ({ page }) => {
+  const removePlugin = seedPlugin("e2e-mako", "MAKO - Frame Generation", "1.0.0");
+  const sha = "c".repeat(64);
+  const url = "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/mako-decky.zip";
+  const scannedAt = new Date().toISOString();
+  try {
+    await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", sha)]);
+    await page.route(PLUGIN_STATS_URL, (route) => route.fulfill({ json: { generatedAt: scannedAt, plugins: { "eugeniosegala/mako": { downloads: 73981, stars: 680, updated: "2024-01-01T00:00:00Z", root: true } } } }));
+    await mockVirusScans(page, { [url]: { sha256: sha, result: "clean", scannedAt, yara: { result: "infected", found: ["ELASTIC_Linux_Trojan_Test"], scannedAt } } });
+    await page.goto("/?preview=/deckyhub/installed&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    const card = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+    for (const text of ["↓ 74K", "★ 680", "Runs as root", "Threat found · 1/2"]) await expect(card.getByText(text, { exact: true })).toBeVisible();
+    await card.getByRole("button", { name: "Manage", exact: true }).click();
+    await expect(app.locator(".steam-modal .deckyhub-scan-yara")).toContainText("Threat found: ELASTIC_Linux_Trojan_Test");
+  } finally {
+    removePlugin();
+  }
+});
+
 test("The Manage window shows the plugin's description, details and a Repository button", async ({ page }) => {
   await page.route(PLUGIN_STATS_URL, (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), plugins: { "eugeniosegala/mako": { downloads: 73981, stars: 680, updated: "2024-01-01T00:00:00Z", root: true } } } }));
   const app = mock(page);
@@ -680,6 +716,29 @@ test("The Manage window shows the plugin's description, details and a Repository
   await expect(app.locator(".steam-modal").getByText("eugeniosegala/MAKO", { exact: true })).toBeVisible();
   await expect(app.locator(".steam-modal .deckyhub-details-notes")).toBeVisible();
   await expect(app.locator(".steam-modal").getByRole("button", { name: "Repository" })).toBeVisible();
+});
+
+test("Plugin details offers focus stops through long release notes", async ({ page }) => {
+  await mockMakoReleases(page, [{ ...makoRelease("plugin-v2.0.0", "c".repeat(64)), body: "Release information for players. ".repeat(60) }]);
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  await browseAll(page, "MAKO");
+  const app = mock(page);
+  await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
+  const details = app.locator(".steam-modal .deckyhub-details");
+  await expect(details.locator(".deckyhub-details-description [tabindex='0']")).toHaveCount(1);
+  const notes = details.locator(".deckyhub-details-notes [tabindex='0']");
+  await expect.poll(() => notes.count()).toBeGreaterThan(1);
+  await notes.first().focus();
+  await page.keyboard.press("ArrowDown");
+  await expect(notes.nth(1)).toBeFocused();
+  const install = details.getByRole("button", { name: /Install/ }).first();
+  await install.press("y");
+  const full = app.locator(".steam-modal").last();
+  const fullNotes = full.locator("[data-focusable][tabindex='0']");
+  await expect.poll(() => fullNotes.count()).toBeGreaterThan(2);
+  await fullNotes.first().focus();
+  await page.keyboard.press("ArrowDown");
+  await expect(fullNotes.nth(1)).toBeFocused();
 });
 
 test("The Manage window shows the selected ZIP's ClamAV and YARA reports, and the full report on request", async ({ page }) => {
@@ -759,6 +818,10 @@ test("Plugin Details lets users review ClamAV and YARA reports", async ({ page }
   const report = app.locator(".steam-modal").last();
   await expect(report.getByText("ClamAV: No threats found", { exact: true })).toBeVisible();
   await expect(report.getByText("YARA: Threat found: ELASTIC_Linux_Trojan_Test", { exact: true })).toBeVisible();
+  const stops = report.locator("[data-focusable][tabindex='0']");
+  await stops.first().focus();
+  await page.keyboard.press("ArrowDown");
+  await expect(stops.nth(1)).toBeFocused();
 });
 
 test("The Manage window says when ClamAV found something, and never calls an unscanned ZIP clean", async ({ page }) => {

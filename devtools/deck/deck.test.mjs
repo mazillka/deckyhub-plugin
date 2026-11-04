@@ -10,7 +10,7 @@ import { connect, goTo, resetFocus, sleep, TARGETS, waitFor } from "./cdp.mjs";
 import { BUTTON, explore, press } from "./navigation.mjs";
 
 const TAB_ID = 0x444855; // src/components/QuickAccessTab.tsx
-const PAGES = ["discover", "updates", "search", "settings", "repositories"];
+const PAGES = ["discover", "installed", "updates", "search", "settings", "repositories"];
 const shots = new URL("./screenshots/", import.meta.url);
 // What a player can't read or reach under a root: see audit.js.
 const AUDIT = readFileSync(new URL("./audit.js", import.meta.url), "utf8");

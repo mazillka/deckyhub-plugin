@@ -37,8 +37,10 @@ export default function DevShell() {
       if (!(["Up", "Down", "Left", "Right"] as string[]).includes(direction)) return;
       const current = document.activeElement as HTMLElement;
       if (current instanceof HTMLInputElement || current instanceof HTMLSelectElement || current instanceof HTMLTextAreaElement) return;
-      const targets = Array.from(document.querySelectorAll<HTMLElement>(
-        ".steam-screen button:not(:disabled), .steam-screen a[href], .steam-screen input:not(:disabled):not([type=hidden]), .steam-screen select:not(:disabled), .steam-screen textarea:not(:disabled), .steam-screen [role=button]:not([aria-disabled=true]), .steam-screen [onclick], .steam-screen [tabindex]:not([tabindex='-1'])",
+      const scope = Array.from(document.querySelectorAll<HTMLElement>(".steam-modal")).at(-1) ?? document.querySelector<HTMLElement>(".steam-screen");
+      if (!scope) return;
+      const targets = Array.from(scope.querySelectorAll<HTMLElement>(
+        "button:not(:disabled), a[href], input:not(:disabled):not([type=hidden]), select:not(:disabled), textarea:not(:disabled), [role=button]:not([aria-disabled=true]), [onclick], [tabindex]:not([tabindex='-1'])",
       )).filter((target) => target.getClientRects().length).map((target) => {
         if (target.tabIndex < 0) target.tabIndex = 0;
         return target;

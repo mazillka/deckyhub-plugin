@@ -37,13 +37,13 @@ export function useApps(view: View) {
     const run = ++loadRun.current;
     if (!loaded.current) setLoading(true);
     try {
-      // Downloads, stars and virus scan badges only matter for Discover's cards and sorting.
-      const discover = view === "discover";
+      // Discover and Installed both show stats and security badges on their cards.
+      const showBadges = view !== "updates";
       const [appData, settings, stats, scans] = await Promise.all([
         getApps(),
         getSettings(),
-        discover ? fetchPluginStats(force) : Promise.resolve<Record<string, PluginStats>>({}),
-        discover ? fetchVirusScans(force) : Promise.resolve<Record<string, VirusScan>>({}),
+        showBadges ? fetchPluginStats(force) : Promise.resolve<Record<string, PluginStats>>({}),
+        showBadges ? fetchVirusScans(force) : Promise.resolve<Record<string, VirusScan>>({}),
       ]);
       const local = appData.apps;
       setListedCount(local.length);
@@ -79,8 +79,8 @@ export function useApps(view: View) {
           const index = next++;
           const app = await hydrate(tracked[index], force, preferences[tracked[index].repo]);
           // The report for the ZIP this card installs, once its release is known.
-          hydrated[index] = discover ? { ...app, scan: scanFor(scans, app.assets[0]) } : app;
-          if (discover && app.assets[0]) {
+          hydrated[index] = showBadges ? { ...app, scan: scanFor(scans, app.assets[0]) } : app;
+          if (showBadges && app.assets[0]) {
             const report = await virusTotalReportOf(app.assets[0]).catch(() => null);
             hydrated[index] = { ...hydrated[index], virusTotal: report };
           }
