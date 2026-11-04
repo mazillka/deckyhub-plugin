@@ -7,7 +7,7 @@ export const DECK = process.env.DECK ?? "steamdeck:8081";
 export const TARGETS = { shared: "SharedJSContext", main: "Steam Big Picture Mode", quickAccess: "QuickAccess_uid2" };
 
 export async function connect(title) {
-  const targets = await (await fetch(`http://${DECK}/json`, { signal: AbortSignal.timeout(5000) })).json();
+  const targets = await (await fetch(`http://${DECK}/json`, { signal: AbortSignal.timeout(15000) })).json();
   const target = targets.find((candidate) => candidate.title === title);
   if (!target) throw new Error(`No "${title}" page on ${DECK}; is the Deck in Gaming Mode with Decky Loader?`);
   const ws = new WebSocket(target.webSocketDebuggerUrl);
