@@ -321,9 +321,9 @@ def by_downloads(apps: list[dict], data: dict) -> list[dict]:
     return sorted(apps, key=lambda app: -((data["stats"].get(app["repo"].casefold()) or {}).get("downloads") or 0))
 
 
-def popular_cards(apps: list[dict], data: dict, count: int = 12) -> str:
+def popular_cards(apps: list[dict], data: dict, count: int = 12, prefix: str = "plugins/") -> str:
     """The home page's short list: the most downloaded plugins, linking to their pages."""
-    return "\n".join(card(app, data, "plugins/") for app in by_downloads(apps, data)[:count])
+    return "\n".join(card(app, data, prefix) for app in by_downloads(apps, data)[:count])
 
 
 FILTER_JS = """(function(){var q=document.getElementById("q"),cards=[].slice.call(document.querySelectorAll("#list .app")),chips=[].slice.call(document.querySelectorAll(".chips button")),count=document.getElementById("count"),cat="";
