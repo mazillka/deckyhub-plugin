@@ -24,6 +24,7 @@ export function useApps(view: View) {
   const [checked, setChecked] = useState(0);
   // Every listed plugin, for the Quick Access menu's Discover button (its own list is installed ones only).
   const [listedCount, setListedCount] = useState(0);
+  const [installedCount, setInstalledCount] = useState(0);
 
   // Bumped per load() so a slower, older load can't overwrite a newer one.
   const loadRun = useRef(0);
@@ -46,12 +47,13 @@ export function useApps(view: View) {
       ]);
       const local = appData.apps;
       setListedCount(local.length);
+      setInstalledCount(local.filter((app) => app.installedVersion).length);
       const preferences = settings.repoSettings || {};
       setRepoPreferences(preferences);
       setColumnsPerRow(settings.columnsPerRow);
       setHiddenButtons(settings.hiddenButtons ?? []);
       setRegistryChannel(settings.registryChannel === "prerelease" ? "prerelease" : "stable");
-      const tracked = (view === "updates" ? local.filter((app) => app.installedVersion) : local).map((app) => {
+      const tracked = (view !== "discover" ? local.filter((app) => app.installedVersion) : local).map((app) => {
         const stat = stats[app.repo.toLowerCase()];
         return stat ? { ...app, stats: stat } : app;
       });
@@ -63,7 +65,7 @@ export function useApps(view: View) {
       setLoadError(null);
       // Discover shows every card straight away and fills each in as its
       // release arrives; Updates waits, since it lists only apps with an update.
-      if (view === "discover") {
+      if (view !== "updates") {
         loaded.current = true;
         setLoading(false);
       }
@@ -131,5 +133,5 @@ export function useApps(view: View) {
     };
   }, []);
 
-  return { apps, setApps, loading, loadError, checked, listedCount, columnsPerRow, repoPreferences, setRepoPreferences, hiddenButtons, registryChannel, load };
+  return { apps, setApps, loading, loadError, checked, listedCount, installedCount, columnsPerRow, repoPreferences, setRepoPreferences, hiddenButtons, registryChannel, load };
 }

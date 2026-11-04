@@ -19,6 +19,7 @@ export const pl: Record<MessageKey, string> = {
   "discover.grid": "Siatka",
   "discover.list": "Lista",
   "view.discoverEmpty": "Brak dostępnych repozytoriów.",
+  "view.installedEmpty": "Nie znaleziono zainstalowanych wtyczek.",
   "view.searchDescription": "Szukaj wtyczek Decky na GitHubie. Zainstaluj od razu albo dodaj, by śledzić aktualizacje.",
   "view.searchTitle": "Szukaj i instaluj",
   "search.warning": "Wyniki wyszukiwania pochodzą prosto z GitHuba. Nikt ich nie sprawdził: ani DeckyHub, ani sklep Decky. Wtyczka może zrobić na Twoim Decku wszystko, więc instaluj tylko wtyczki od autorów, którym ufasz.",

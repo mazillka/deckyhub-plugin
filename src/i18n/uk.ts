@@ -19,6 +19,7 @@ export const uk: Record<MessageKey, string> = {
   "discover.grid": "Сітка",
   "discover.list": "Список",
   "view.discoverEmpty": "Немає доступних репозиторіїв.",
+  "view.installedEmpty": "Встановлених плагінів не знайдено.",
   "view.searchDescription": "Шукайте плагіни Decky на GitHub. Встановіть одразу або додайте, щоб стежити за оновленнями.",
   "view.searchTitle": "Пошук і встановлення",
   "search.warning": "Результати пошуку надходять просто з GitHub. Їх ніхто не перевіряв: ні DeckyHub, ні магазин Decky. Плагін може зробити на вашому Deck будь-що, тож встановлюйте лише плагіни авторів, яким довіряєте.",

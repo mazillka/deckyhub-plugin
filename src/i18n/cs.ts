@@ -19,6 +19,7 @@ export const cs: Record<MessageKey, string> = {
   "discover.grid": "Mřížka",
   "discover.list": "Seznam",
   "view.discoverEmpty": "Nejsou k dispozici žádné repozitáře.",
+  "view.installedEmpty": "Nebyly nalezeny žádné nainstalované pluginy.",
   "view.searchDescription": "Hledejte pluginy pro Decky na GitHubu. Nainstalujte je hned, nebo je přidejte a sledujte jejich aktualizace.",
   "view.searchTitle": "Hledat a instalovat",
   "search.warning": "Výsledky hledání pocházejí přímo z GitHubu. Nikdo je nezkontroloval: ani DeckyHub, ani obchod Decky. Plugin může na vašem Decku udělat cokoli, proto instalujte jen pluginy od autorů, kterým důvěřujete.",

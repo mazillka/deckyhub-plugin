@@ -29,7 +29,7 @@ import { Welcome } from "../components/Welcome";
 export function Content({ fullPage }: { fullPage?: View }) {
   const t = useT();
   const view: View = fullPage ?? "updates";
-  const { apps, setApps, loading, loadError, checked, listedCount, columnsPerRow, repoPreferences, setRepoPreferences, hiddenButtons, registryChannel, load } = useApps(view);
+  const { apps, setApps, loading, loadError, checked, listedCount, installedCount, columnsPerRow, repoPreferences, setRepoPreferences, hiddenButtons, registryChannel, load } = useApps(view);
   const [downloading, setDownloading] = useState(false);
   const [query, setQuery] = useState("");
   const [installedFilter, setInstalledFilter] = useState("All");
@@ -49,7 +49,9 @@ export function Content({ fullPage }: { fullPage?: View }) {
 
   const info = view === "updates"
     ? { title: t("nav.updates"), description: t("view.updatesDescription"), empty: t("view.updatesEmpty") }
-    : { title: t("nav.discover"), description: t("view.discoverDescription"), empty: t("view.discoverEmpty") };
+    : view === "installed"
+      ? { title: t("filter.installed"), description: undefined, empty: t("view.installedEmpty") }
+      : { title: t("nav.discover"), description: t("view.discoverDescription"), empty: t("view.discoverEmpty") };
 
 
   // Opening a category, or going back, replaces what had focus: hand it to the
@@ -132,7 +134,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
     .filter((app) =>
       view === "updates"
         ? app.updateAvailable === true
-        : matchesFilters(app),
+        : view === "installed" ? Boolean(app.installedVersion) : matchesFilters(app),
     )
     // Apps with an update first; Updates keeps registry order otherwise, Discover follows the Sort
     // dropdown. The registry only ever appends (custom repos come after it), so "Recently added" is
@@ -222,7 +224,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
             badge={
               <>
                 {view === "updates" ? updateCount > 0 && <span className="deckyhub-update-count" title={t("toast.updatesAvailable", { count: updateCount })} style={countBadgeStyle}>{updateCount}</span>
-                  : totalDownloads > 0 && <span className="deckyhub-total-downloads" title={t("view.totalDownloads", { count: totalDownloads.toLocaleString() })} style={{ color: "#8b9aa7", fontSize: "max(12px, 0.7em)", fontWeight: 400 }}>{t("view.totalDownloads", { count: compactNumber(totalDownloads) })}</span>}
+                  : view === "discover" && totalDownloads > 0 && <span className="deckyhub-total-downloads" title={t("view.totalDownloads", { count: totalDownloads.toLocaleString() })} style={{ color: "#8b9aa7", fontSize: "max(12px, 0.7em)", fontWeight: 400 }}>{t("view.totalDownloads", { count: compactNumber(totalDownloads) })}</span>}
                 {/* Settings > Repositories chose the registry's develop list: say so, so a plugin
                     that's only being tested isn't a surprise. */}
                 {registryChannel === "prerelease" && <span className="deckyhub-registry-channel" style={{ ...pillStyle, marginLeft: 8, whiteSpace: "nowrap", color: "#ffa94d", background: "#ffa94d22", borderColor: "#ffa94d66", verticalAlign: "middle" }}>{t("view.prereleaseRegistry")}</span>}
@@ -270,7 +272,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
     <div ref={quickAccessRef}>
       <RateLimitBanner stacked />
       {/* Loads installed apps the same way the Updates page does, for its Updates count. */}
-      <QuickAccessNav updateCount={updateCount} listedCount={listedCount} />
+      <QuickAccessNav updateCount={updateCount} listedCount={listedCount} installedCount={installedCount} />
     </div>
   );
 }

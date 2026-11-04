@@ -19,6 +19,7 @@ export const it: Record<MessageKey, string> = {
   "discover.grid": "Griglia",
   "discover.list": "Elenco",
   "view.discoverEmpty": "Nessun repository disponibile.",
+  "view.installedEmpty": "Nessun plugin installato trovato.",
   "view.searchDescription": "Cerca plugin Decky su GitHub. Installane uno subito o aggiungilo per seguirne gli aggiornamenti.",
   "view.searchTitle": "Cerca e installa",
   "search.warning": "I risultati della ricerca arrivano direttamente da GitHub. Nessuno li ha verificati: né DeckyHub né lo store di Decky. Un plugin può fare qualsiasi cosa sul tuo Deck, quindi installa solo plugin di autori di cui ti fidi.",

@@ -1,6 +1,6 @@
 import { DialogButtonPrimary as Button } from "@decky/ui";
 import type { ReactNode } from "react";
-import { FaArrowCircleUp, FaArrowLeft, FaArrowUp, FaCompass, FaExternalLinkAlt, FaSync } from "react-icons/fa";
+import { FaArrowCircleUp, FaArrowLeft, FaArrowUp, FaCompass, FaPlug, FaExternalLinkAlt, FaSync } from "react-icons/fa";
 import { openExternalWeb } from "../external";
 import { useT } from "../i18n";
 import type { View } from "../types";
@@ -50,7 +50,7 @@ export function ContentHeader({
   return (
     <KeepInView>
       <PageHeader
-        icon={view === "updates" ? <FaArrowCircleUp /> : <FaCompass />}
+        icon={view === "updates" ? <FaArrowCircleUp /> : view === "installed" ? <FaPlug /> : <FaCompass />}
         title={title}
         badge={badge}
         description={description}
