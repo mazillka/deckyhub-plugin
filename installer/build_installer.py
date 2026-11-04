@@ -17,9 +17,11 @@ def starter_lines(path: Path = HERE / "starter-plugins.json") -> str:
     lines = []
     for plugin in json.loads(path.read_text(encoding="utf-8"))["plugins"]:
         fields = [plugin[key] for key in ("id", "name", "repo", "description")]
-        if not all(SAFE.fullmatch(field) for field in fields):
+        tag = plugin.get("tag", "")  # which releases to follow; empty: all
+        category = plugin["category"]
+        if not all(SAFE.fullmatch(field) for field in [*fields, category]) or (tag and not SAFE.fullmatch(tag)):
             raise SystemExit(f"starter-plugins.json: unsafe characters in {plugin.get('id')}")
-        lines.append("    '" + "|".join(fields) + "'")
+        lines.append("    '" + "|".join([*fields, tag, category]) + "'")
     return "\n".join(lines)
 
 

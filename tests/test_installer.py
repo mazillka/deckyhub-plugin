@@ -162,9 +162,12 @@ class InstallerTests(unittest.TestCase):
         self.assertIn('rows+=(TRUE "decky-loader"', picker)
         self.assertIn('rows+=(TRUE "deckyhub"', picker)
         self.assertIn("<b>Decky Loader and DeckyHub are installed either way.</b>", picker)
+        # The notice sits right above the table, after the explanation of the notes.
+        self.assertLess(picker.index("${NOTES_EXPLAINED}"), picker.index("${RESPONSIBILITY}"))
+        self.assertLess(picker.index("${RESPONSIBILITY}"), picker.index("--column=Pick"))
         self.assertIn("Required: ", picker)
         for phrase in ("You are responsible for what you install", "AI-assisted", "Runs as root", "Warning: ", "deckyhub.com/plugins/${id}.html", "Details and security scans",
-                       "What the notes mean:", "No warnings: the audit found nothing", "Not checked: the notes couldn't be loaded", "changes system startup", "has hidden code"):
+                       "What the notes mean:", "Stars and downloads", "grouped by category", "GitHub stars and downloads", "Latest version: ${versions[i]:-unknown}", "Version: ${TAG}", "newest release today", "No warnings: the audit found nothing", "Not checked: the notes couldn't be loaded", "changes system startup", "has hidden code"):
             self.assertIn(phrase, text)
 
     def test_the_release_fills_in_every_placeholder_and_the_hand_picked_list(self):
@@ -174,6 +177,13 @@ class InstallerTests(unittest.TestCase):
         self.assertNotIn("@STARTER_PLUGINS@", filled)
         starter = [line.strip().strip("'").split("|")[0] for line in starter_lines().splitlines()]
         self.assertEqual(starter, ["decky-lsfg-vk", "mako-decky", "decky-multiframegen", "decky-framegen", "css-loader", "protondb-decky"])
+        # id|name|repo|what it does|release tag to follow|category: MAKO follows its plugin releases only.
+        lines = [line.strip().strip("'").split("|") for line in starter_lines().splitlines()]
+        self.assertTrue(all(len(fields) == 6 for fields in lines))
+        # Grouped by category: each category's plugins sit together.
+        categories = [fields[5] for fields in lines]
+        self.assertEqual(categories, ["Frame Generation"] * 4 + ["Customization", "Game Libraries"])
+        self.assertEqual({fields[0]: fields[4] for fields in lines if fields[4]}, {"mako-decky": "plugin-v"})
 
     def test_the_starter_list_refuses_characters_that_could_break_the_shell(self):
         bad = self.dir / "bad.json"

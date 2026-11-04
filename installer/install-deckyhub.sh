@@ -37,8 +37,9 @@ TEMP_PASSWORD="DeckyHub!"
 UPDATE_ONLY=0
 PLUGINS_ARG=""
 STATS_URL="https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/stats.json"
+RELEASES_URL="https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/releases.json"
 
-# Optional plugins (id|name|repo|what it does). release.yml fills this in from
+# Optional plugins (id|name|repo|what it does|release tag to follow|category), grouped by category. release.yml fills this in from
 # installer/starter-plugins.json (build_installer.py).
 STARTER_PLUGINS=(
 @STARTER_PLUGINS@
@@ -52,7 +53,7 @@ done
 PRIVACY="Your privacy: nothing about you or your Deck is collected, saved or sent anywhere. Your password is used only on this Deck, right now, and is never stored. The installer only downloads files from GitHub."
 OTHER_WAY="You can also install DeckyHub without this installer: download its ZIP and add it in Decky's settings (no password needed). Steps: https://github.com/mazillka/deckyhub-plugin#option-2-manual-zip"
 RESPONSIBILITY="You are responsible for what you install. These plugins are made by other people. DeckyHub doesn't make, review or vouch for them, and they run on your Deck. Read each plugin's notes first."
-NOTES_EXPLAINED="What the notes mean:\n  AI-assisted: its code was probably written with AI help. That says nothing about its quality or safety.\n  Runs as root: it has full access to your Deck. Many plugins need that, so add it only if you trust its author.\n  Warning: an audit found something. For example it changes system startup (it edits shell profiles or loads modules that keep working after you remove it), has hidden code (encoded or packed, hard to read), reads private data, runs scripts it downloads, skips HTTPS checks, has code that isn't in its repository, or has known vulnerabilities.\n  No warnings: the audit found nothing. That isn't proof of safety.\n  Not checked: the notes couldn't be loaded (no connection)."
+NOTES_EXPLAINED="What the notes mean:\n  AI-assisted: its code was probably written with AI help. That says nothing about its quality or safety.\n  Runs as root: it has full access to your Deck. Many plugins need that, so add it only if you trust its author.\n  Warning: an audit found something. For example it changes system startup (it edits shell profiles or loads modules that keep working after you remove it), has hidden code (encoded or packed, hard to read), reads private data, runs scripts it downloads, skips HTTPS checks, has code that isn't in its repository, or has known vulnerabilities.\n  No warnings: the audit found nothing. That isn't proof of safety.\n  Not checked: the notes couldn't be loaded (no connection).\n  ★ and ↓: GitHub stars and downloads. More people using a plugin doesn't make it safer.\n\nLatest version is the newest release today. DeckyHub installs the newest one when you confirm."
 WARRANTY="DeckyHub is a free community project. It comes as it is, with no guarantee."
 
 # Dialogs when zenity is there (SteamOS has it), plain text in the terminal otherwise. Texts
@@ -69,12 +70,13 @@ fail() { if has_zenity; then zen --title="$TITLE" --width=480 --icon=dialog-erro
 # The version of the DeckyHub in folder $1 (from its package.json), or nothing.
 installed_version() { sed -n 's/.*"version": *"\([^"]*\)".*/\1/p' "$1/package.json" 2> /dev/null | head -1; }
 
-# One line per optional plugin, in order: what the registry's stats say about it (AI help,
-# root, audit warnings). Prints nothing when the stats can't be read.
+# One line per optional plugin, in order: "notes<TAB>popularity", from the registry's stats
+# (AI help, root, audit warnings; GitHub stars and downloads). Prints nothing when the stats
+# can't be read.
 plugin_notes() {
     local repos=() entry repo
     for entry in "${STARTER_PLUGINS[@]}"; do
-        IFS='|' read -r _ _ repo _ <<< "$entry"
+        IFS='|' read -r _ _ repo _ _ _ <<< "$entry"
         repos+=("$repo")
     done
     curl -fsSL --connect-timeout 15 --max-time 30 "$STATS_URL" 2> /dev/null | python3 -c '
@@ -83,13 +85,23 @@ labels = {"blocked": "Blocked by audit", "private-data": "Reads private data", "
           "not-in-source": "Code not in its repo", "obfuscated": "Hidden code", "no-tls-check": "Skips HTTPS checks",
           "runs-downloads": "Runs downloaded scripts", "vulnerable": "Known vulnerabilities"}
 try:
-    plugins = json.load(sys.stdin)["plugins"]
+    plugins = json.loads(sys.stdin.buffer.read())["plugins"]
 except Exception:
     sys.exit(1)
+sys.stdout.reconfigure(encoding="utf-8")  # ★ and ↓, whatever the locale
+
+
+def compact(number):
+    for size, suffix in ((1000000, "M"), (1000, "K")):
+        if number >= size:
+            return ("%.1f" % (number / size)).rstrip("0").rstrip(".") + suffix
+    return str(number)
+
+
 for repo in sys.argv[1:]:
     stats = plugins.get(repo.casefold())
     if stats is None:
-        print("Not checked")
+        print("Not checked\t")
         continue
     notes = []
     if stats.get("ai"):
@@ -97,8 +109,36 @@ for repo in sys.argv[1:]:
     if stats.get("root"):
         notes.append("Runs as root")
     notes += ["Warning: " + labels.get(key, key) for key in stats.get("warnings") or []]
-    print("; ".join(notes) or "No warnings")
+    popularity = " · ".join(
+        label + compact(stats[key]) for label, key in (("★ ", "stars"), ("↓ ", "downloads")) if isinstance(stats.get(key), int))
+    print("; ".join(notes) or "No warnings", popularity, sep="\t")
 ' "${repos[@]}" 2> /dev/null || true
+}
+
+# The newest stable release of each optional plugin, in order ("unknown" when it can't be read).
+plugin_versions() {
+    local args=() entry repo tag
+    for entry in "${STARTER_PLUGINS[@]}"; do
+        IFS='|' read -r _ _ repo _ tag _ <<< "$entry"
+        args+=("${repo}|${tag}")
+    done
+    curl -fsSL --connect-timeout 15 --max-time 90 "$RELEASES_URL" 2> /dev/null | python3 -c '
+import json, re, sys
+try:
+    releases = json.loads(sys.stdin.buffer.read())["releases"]
+except Exception:
+    sys.exit(1)
+for arg in sys.argv[1:]:
+    repo, _, tag = arg.partition("|")
+    version = "unknown"
+    for release in releases.get(repo.casefold(), []):
+        if release.get("draft") or release.get("prerelease") or tag not in release.get("tag_name", ""):
+            continue
+        match = re.search(r"\d+(?:\.\d+)+[\w.+-]*", release["tag_name"])
+        version = match.group(0) if match else release["tag_name"]
+        break
+    print(version)
+' "${args[@]}" 2> /dev/null || true
 }
 
 # Sets PICKS to the chosen plugin ids (comma separated, maybe none).
@@ -106,21 +146,27 @@ choose_plugins() {
     PICKS=""
     if [ -n "$PLUGINS_ARG" ]; then PICKS="$PLUGINS_ARG"; return 0; fi
     (( ${#STARTER_PLUGINS[@]} )) && has_zenity || return 0
-    local notes=() rows=() i=0 entry id name repo what decky_note hub_note
+    local notes=() versions=() rows=() i=0 entry id name repo what tag category note popularity decky_note hub_note decky_version hub_installed
     mapfile -t notes < <(plugin_notes)
+    mapfile -t versions < <(plugin_versions)
+    # Decky Loader writes its version next to its service; DeckyHub's is in its package.json.
+    decky_version="the newest release, chosen by Decky's own installer"
+    [ -s "${HOMEBREW_CHECK}/services/.loader.version" ] && decky_version="$(head -n 1 "${HOMEBREW_CHECK}/services/.loader.version") (installed)"
+    hub_installed="$(installed_version "${HOMEBREW_CHECK}/plugins/DeckyHub")"
     if (( HAS_DECKY )); then decky_note="Required: already installed, only checked"; else decky_note="Required: installed first"; fi
     case "$verb" in Update) hub_note="Required: will be updated" ;; Reinstall) hub_note="Required: will be reinstalled" ;; *) hub_note="Required: will be installed" ;; esac
-    rows+=(TRUE "decky-loader" "Decky Loader"$'\n'"The add-on system DeckyHub runs in" "$decky_note" "decky.xyz")
-    rows+=(TRUE "deckyhub" "DeckyHub"$'\n'"Finds, installs and updates plugins from Gaming Mode" "$hub_note" "deckyhub.com")
+    rows+=(TRUE "decky-loader" "Decky Loader"$'\n'"The add-on system DeckyHub runs in"$'\n'"Version: ${decky_version}" "Required" "$decky_note" "" "decky.xyz")
+    rows+=(TRUE "deckyhub" "DeckyHub"$'\n'"Finds, installs and updates plugins from Gaming Mode"$'\n'"Version: ${TAG}${hub_installed:+ (now ${hub_installed})}" "Required" "$hub_note" "" "deckyhub.com")
     for entry in "${STARTER_PLUGINS[@]}"; do
-        IFS='|' read -r id name repo what <<< "$entry"
-        rows+=(FALSE "$id" "${name}"$'\n'"${what}" "${notes[i]:-Not checked}" "deckyhub.com/plugins/${id}.html")
+        IFS='|' read -r id name repo what tag category <<< "$entry"
+        IFS=$'\t' read -r note popularity <<< "${notes[i]:-Not checked}"
+        rows+=(FALSE "$id" "${name}"$'\n'"${what}"$'\n'"Latest version: ${versions[i]:-unknown}" "$category" "${note:-Not checked}" "$popularity" "deckyhub.com/plugins/${id}.html")
         i=$((i + 1))
     done
-    PICKS=$(zen --title="$TITLE" --width=860 --height=720 --list --checklist --hide-column=2 --print-column=2 --separator=',' \
+    PICKS=$(zen --title="$TITLE" --width=1060 --height=720 --list --checklist --hide-column=2 --print-column=2 --separator=',' \
         --ok-label="Continue" --cancel-label="Skip" \
-        --text="<b>Optional plugins</b>\n\n<b>Decky Loader and DeckyHub are installed either way.</b> They're the first two rows, and they stay installed even if you untick them. Tick any other plugins you'd like to add, or skip this: you can always add plugins later from DeckyHub.\n\nThis installer doesn't install them. DeckyHub asks you to confirm each one the first time you open it. Every plugin has a page with its details and security scans on deckyhub.com (last column).\n\n${RESPONSIBILITY}\n\n${NOTES_EXPLAINED}" \
-        --column=Pick --column=ID --column=Plugin --column=Notes --column="Details and security scans" "${rows[@]}") || PICKS=""
+        --text="<b>Optional plugins</b>\n\n<b>Decky Loader and DeckyHub are installed either way.</b> They're the first two rows, and they stay installed even if you untick them. Tick any other plugins you'd like to add, or skip this: you can always add plugins later from DeckyHub.\n\nThis installer doesn't install them. DeckyHub asks you to confirm each one the first time you open it. Plugins are grouped by category, and every plugin has a page with its details and security scans on deckyhub.com (last column).\n\n${NOTES_EXPLAINED}\n\n${RESPONSIBILITY}" \
+        --column=Pick --column=ID --column=Plugin --column=Category --column=Notes --column="Stars and downloads" --column="Details and security scans" "${rows[@]}") || PICKS=""
 }
 
 # Not root yet: say what's going to happen, check GitHub is reachable, then get the admin
@@ -288,7 +334,7 @@ install_all() {
         IFS=',' read -ra wanted <<< "$DECKYHUB_PICKS"
         for want in "${wanted[@]}"; do
             for entry in "${STARTER_PLUGINS[@]}"; do
-                IFS='|' read -r id name repo what <<< "$entry"
+                IFS='|' read -r id name repo what tag category <<< "$entry"
                 [ "$id" = "$want" ] && { picked+=("$repo"); echo "$name" >> "${WORK}/picked-names"; }
             done
         done

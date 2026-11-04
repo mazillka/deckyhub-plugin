@@ -3,6 +3,7 @@ import { ConfirmModal, showModal } from "@decky/ui";
 import { clearPendingInstalls, getApps, getPendingInstalls } from "../api";
 import type { TFunc } from "../i18n/en";
 import { fetchPluginStats } from "../releases";
+import { displayVersion } from "../version";
 import type { App } from "../types";
 import { hydrate, installAction, PLUGIN_INSTALL_TYPE, updateDeckyPlugins } from "../utils";
 import { AppBadges } from "./AppBadges";
@@ -17,17 +18,19 @@ async function pendingApps(): Promise<App[]> {
   const repos = await getPendingInstalls().catch(() => [] as string[]);
   if (!repos.length) return [];
   const [{ apps }, stats] = await Promise.all([getApps(), fetchPluginStats(false).catch(() => ({}))]);
-  return repos
+  const wanted = repos
     .map((repo) => apps.find((app) => app.repo.toLowerCase() === repo.toLowerCase()))
     .filter((app): app is App => Boolean(app) && !app?.installedVersion)
     .map((app) => ({ ...app, stats: (stats as Record<string, App["stats"]>)[app.repo.toLowerCase()] }));
+  // Each one's newest stable release, so the list says which version it would install.
+  return Promise.all(wanted.map((app) => hydrate(app, false).catch(() => app)));
 }
 
 // Fetches each plugin's newest stable release and installs them in one batch.
 async function installPending(t: TFunc, apps: App[]) {
   const updates: { asset: NonNullable<App["assets"][number]>; repo: string; name: string; version: string }[] = [];
-  for (const app of apps) {
-    const hydrated = await hydrate(app, false);
+  for (const hydrated of apps) {
+    const app = hydrated;
     const tag = hydrated.latestVersion;
     const action = tag ? installAction(hydrated, { tag, assets: hydrated.assets }) : null;
     if (tag && action && hydrated.assets[0]) updates.push({ asset: hydrated.assets[0], repo: app.repo, name: action.name, version: tag });
@@ -60,7 +63,7 @@ export async function offerPendingInstalls(t: TFunc) {
           <ul style={{ paddingLeft: 18 }}>
             {apps.map((app) => (
               <li key={app.id} style={{ margin: "6px 0" }}>
-                <strong>{app.name}</strong> <AppBadges app={app} t={t} />
+                <strong>{app.name}</strong> {app.latestVersion ? displayVersion(app.latestVersion) : ""} <AppBadges app={app} t={t} />
               </li>
             ))}
           </ul>
