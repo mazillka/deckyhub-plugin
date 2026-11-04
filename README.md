@@ -98,8 +98,8 @@ Installs [Decky Loader](https://decky.xyz/) too if your Deck doesn't have it yet
 1. Switch to Desktop Mode (**Steam** → **Power** → **Switch to Desktop**).
 2. Download [`Install-DeckyHub.desktop`](https://github.com/mazillka/deckyhub-plugin/releases/latest/download/Install-DeckyHub.desktop).
 3. Open your **Downloads** folder, double-click the file and choose **Execute** (or **Continue**) when asked.
-4. Review what the installer will do and choose **Continue**. Enter your admin password when asked. If you've never set one, the installer offers a temporary one and removes it when it's done, like Decky Loader's own installer.
-5. Follow the progress window until the installer confirms it has finished. If it reports an error, follow the instructions in the message.
+4. Read the overview, which lists every step and says that the installer doesn't collect, store or send any information, then choose **Install** (or **Update**). The installer checks that GitHub is reachable, then asks for your admin password. If you've never set one, the installer offers a temporary one and removes it when it's done, like Decky Loader's own installer.
+5. Follow the progress window ("Step 3 of 5: …") until the finish message lists what was done and what to do next. If it reports an error, follow the instructions in the message.
 6. Return to Gaming Mode and pick DeckyHub's four-square icon in the Quick Access Menu.
 
 What it does: if Decky Loader isn't installed, it runs [Decky Loader's official installer](https://github.com/SteamDeckHomebrew/decky-installer) first. Then it downloads that release's `DeckyHub-v*.zip` from GitHub, checks its SHA-256 against the one the installer was made with (and stops if they differ), puts it in Decky's plugins folder and restarts Decky. The script is [`installer/install-deckyhub.sh`](installer/install-deckyhub.sh); each release attaches it filled in with its own version and checksum.

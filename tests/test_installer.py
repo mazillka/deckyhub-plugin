@@ -77,9 +77,14 @@ class InstallerTests(unittest.TestCase):
     def test_installs_decky_loader_first_when_it_is_missing(self):
         result = self.run_installer()
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("Decky Loader installed", result.stdout)
-        self.assertIn("DeckyHub", result.stdout)
-        self.assertIn("installed", result.stdout)
+        self.assertIn("Installation complete", result.stdout)
+        self.assertIn("✓ Decky Loader installed", result.stdout)
+        self.assertIn(f"✓ DeckyHub {TAG} installed (checksum verified)", result.stdout)
+        self.assertIn("✓ Decky Loader restarted", result.stdout)
+        self.assertIn("pick DeckyHub's tab", result.stdout)
+        # Every step is announced, numbered: password, Decky Loader, download, install, restart.
+        for number, text in ((2, "Installing Decky Loader"), (3, "Downloading DeckyHub"), (4, "Installing DeckyHub"), (5, "Restarting Decky Loader")):
+            self.assertIn(f"Step {number} of 5: {text}", result.stdout)
         self.assertTrue((self.home / "homebrew" / "services" / "PluginLoader").exists())
         self.assertEqual(self.plugin("dist/index.js").read_text(), "// new")
         self.assertIn("restart plugin_loader", (self.fixtures / "systemctl.log").read_text())
@@ -93,7 +98,9 @@ class InstallerTests(unittest.TestCase):
         self.plugin("stale.txt").write_text("from the old version")
         result = self.run_installer()
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("DeckyHub updated to", result.stdout)
+        self.assertIn(f"✓ DeckyHub updated to {TAG} (checksum verified)", result.stdout)
+        self.assertNotIn("✓ Decky Loader installed", result.stdout)
+        self.assertIn("Step 4 of 4: Restarting Decky Loader", result.stdout)
         self.assertNotIn("install_release.sh", (self.fixtures / "curl.log").read_text())
         self.assertEqual(self.plugin("dist/index.js").read_text(), "// new")
         self.assertFalse(self.plugin("stale.txt").exists())
@@ -102,6 +109,32 @@ class InstallerTests(unittest.TestCase):
         result = self.run_installer()
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn(TAG, result.stdout)
+
+    def test_the_finish_message_says_nothing_was_collected(self):
+        result = self.run_installer()
+        self.assertIn("Nothing about you or your Deck was collected or sent", result.stdout)
+        self.assertIn("temporary files are removed", result.stdout)
+
+    def test_a_decky_loader_that_cant_restart_is_not_a_failure(self):
+        (self.bin / "systemctl").write_text('#!/bin/bash\necho "$*" >> "$FIXTURES/systemctl.log"\nexit 1\n')
+        result = self.run_installer()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.plugin("dist/index.js").read_text(), "// new")
+        self.assertIn("Decky Loader couldn't restart on its own. Restart your Steam Deck", result.stdout)
+        self.assertNotIn("✓ Decky Loader restarted", result.stdout)
+
+    def test_errors_show_real_line_breaks_in_a_terminal(self):
+        result = self.run_installer(sha256="0" * 64)
+        self.assertNotIn("\\n", result.stderr)
+        self.assertIn("This could be a network issue", result.stderr)
+
+    def test_the_intro_lists_the_steps_and_says_no_information_is_used(self):
+        text = SCRIPT.read_text()
+        self.assertIn("What will happen:", text)
+        self.assertIn("doesn't collect, store or send any information about you or your Deck", text)
+        self.assertIn("never saved or shared", text)
+        self.assertIn("without warranty", text)
+        self.assertEqual(subprocess.run(["bash", "-n", str(SCRIPT)], capture_output=True, text=True).returncode, 0)
 
     def test_update_only_skips_decky_loader(self):
         """--update-only installs DeckyHub even when Decky Loader is absent."""
