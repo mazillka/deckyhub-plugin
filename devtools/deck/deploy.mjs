@@ -3,6 +3,8 @@
 //   DECK=192.168.1.209:8081 node devtools/deck/deploy.mjs
 // The ZIP's version gets a "-dev.<time>" suffix so the Deck shows which build runs
 // (or DECKYHUB_VERSION=3.0.0-rc.13 for one without).
+// DECKYHUB_ZIP=<path> installs a published release ZIP exactly as it is, without building
+// (DECKYHUB_VERSION must then be the version inside it): "test the real ZIP".
 import { execSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { createSocket } from "node:dgram";
@@ -15,19 +17,23 @@ import { connect, DECK, goTo, resetFocus, sleep, TARGETS, waitFor } from "./cdp.
 
 const root = new URL("../../", import.meta.url).pathname.replace(/^\/(\w:)/, "$1");
 // Rollup through Node itself: pnpm's shell shim isn't on every PATH.
-execSync(`"${process.execPath}" node_modules/rollup/dist/bin/rollup -c`, { cwd: root, stdio: "inherit" });
+const published = process.env.DECKYHUB_ZIP;
+if (published && !process.env.DECKYHUB_VERSION) throw new Error("Set DECKYHUB_VERSION to the version inside DECKYHUB_ZIP");
+if (!published) execSync(`"${process.execPath}" node_modules/rollup/dist/bin/rollup -c`, { cwd: root, stdio: "inherit" });
 
 const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
 // DECKYHUB_VERSION sets it exactly (say, for screenshots that shouldn't show "-dev").
 const version = process.env.DECKYHUB_VERSION ?? `${pkg.version}-dev.${new Date().toISOString().replace(/\D/g, "").slice(4, 12)}`;
 const stage = join(tmpdir(), "deckyhub-deck-deploy");
-rmSync(stage, { recursive: true, force: true });
-mkdirSync(join(stage, "DeckyHub", "dist"), { recursive: true });
-cpSync(join(root, "dist", "index.js"), join(stage, "DeckyHub", "dist", "index.js"));
-for (const file of ["LICENSE.md", "main.py", "plugin.json"]) cpSync(join(root, file), join(stage, "DeckyHub", file));
-writeFileSync(join(stage, "DeckyHub", "package.json"), JSON.stringify({ ...pkg, version }, null, 2));
-execSync(`python -c "import shutil; shutil.make_archive('DeckyHub', 'zip', '.', 'DeckyHub')"`, { cwd: stage });
-const zip = readFileSync(join(stage, "DeckyHub.zip"));
+if (!published) {
+  rmSync(stage, { recursive: true, force: true });
+  mkdirSync(join(stage, "DeckyHub", "dist"), { recursive: true });
+  cpSync(join(root, "dist", "index.js"), join(stage, "DeckyHub", "dist", "index.js"));
+  for (const file of ["LICENSE.md", "main.py", "plugin.json"]) cpSync(join(root, file), join(stage, "DeckyHub", file));
+  writeFileSync(join(stage, "DeckyHub", "package.json"), JSON.stringify({ ...pkg, version }, null, 2));
+  execSync(`python -c "import shutil; shutil.make_archive('DeckyHub', 'zip', '.', 'DeckyHub')"`, { cwd: stage });
+}
+const zip = readFileSync(published ?? join(stage, "DeckyHub.zip"));
 const sha256 = createHash("sha256").update(zip).digest("hex");
 
 // This computer's address on the Deck's network: the one a socket to it would use.
