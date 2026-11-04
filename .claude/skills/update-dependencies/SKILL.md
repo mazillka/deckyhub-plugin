@@ -1,6 +1,6 @@
 ---
 name: update-dependencies
-description: Bring every DeckyHub dependency up to date in one PR - the root pnpm packages, the decky-mock npm packages and the SHA-pinned GitHub Actions. Use when asked to update, upgrade or bump packages or dependencies, when a Dependabot PR needs folding in or fails CI, or at the start of a work session to check nothing is behind.
+description: Bring every DeckyHub dependency up to date in one PR - the root pnpm packages, the decky-mock npm packages and the SHA-pinned GitHub Actions. Use when asked to update, upgrade or bump packages or dependencies, when a Dependabot PR needs folding in or fails CI.
 ---
 
 # Keeping DeckyHub's dependencies current

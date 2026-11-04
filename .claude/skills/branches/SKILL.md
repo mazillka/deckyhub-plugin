@@ -10,7 +10,7 @@ description: DeckyHub's branch strategy - which branch work starts from and merg
 | `main` | Stable releases only; the default branch. Stable tags `vX.Y.Z` go here. | Release PRs from `develop` |
 | `develop` | Where all work lands. Pre-release tags `vX.Y.Z-rc.N` go here. | Squashed topic PRs, and the back-merge from `main` |
 | `<topic>` | One topic each, short kebab-case (`fork-badge`, `settings-tabs`); add an ISO date only to make a name unique. | You |
-| `.claude/worktrees/*` | Other Claude sessions' worktrees, each on its own topic branch. | Their sessions |
+| `.claude/worktrees/*` | Other agent sessions' worktrees, each on its own topic branch. | Their sessions |
 
 Both `main` and `develop` are protected by rulesets (`protect-main`, `protect-develop`): no direct pushes, no deletion, and a PR must pass `test`, `review` and both `analyze` checks. `.githooks/pre-commit` blocks local commits on `main`, `develop` and `staging`; turn it on once per checkout with `git config core.hooksPath .githooks`.
 

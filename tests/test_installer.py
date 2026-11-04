@@ -31,6 +31,7 @@ echo "$url" >> "$FIXTURES/curl.log"
 case "$url" in
   *decky-installer*install_release.sh) cp "$FIXTURES/install_release.sh" "$out" ;;
   *DeckyHub-*.zip) cp "$FIXTURES/DeckyHub.zip" "$out" ;;
+  github.com) : ;;
   *) exit 22 ;;
 esac
 """
@@ -63,11 +64,11 @@ class InstallerTests(unittest.TestCase):
             archive.writestr("DeckyHub/dist/index.js", "// new")
         self.sha256 = hashlib.sha256((self.fixtures / "DeckyHub.zip").read_bytes()).hexdigest()
 
-    def run_installer(self, sha256=None):
+    def run_installer(self, sha256=None, extra_args=()):
         script = self.dir / "install-deckyhub.sh"
         script.write_text(SCRIPT.read_text().replace("@TAG@", TAG).replace("@SHA256@", sha256 or self.sha256))
         env = {"PATH": f"{self.bin}:/usr/bin:/bin", "FIXTURES": str(self.fixtures), "DECKYHUB_USER_HOME": str(self.home), "HOME": str(self.home)}
-        command = ["env", *[f"{key}={value}" for key, value in env.items()], "bash", str(script)]
+        command = ["env", *[f"{key}={value}" for key, value in env.items()], "bash", str(script), *extra_args]
         return subprocess.run(command if os.geteuid() == 0 else ["sudo", "-n", *command], capture_output=True, text=True, timeout=60)
 
     def plugin(self, path):
@@ -76,7 +77,9 @@ class InstallerTests(unittest.TestCase):
     def test_installs_decky_loader_first_when_it_is_missing(self):
         result = self.run_installer()
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn(f"Decky Loader and DeckyHub {TAG} are installed", result.stdout)
+        self.assertIn("Decky Loader installed", result.stdout)
+        self.assertIn("DeckyHub", result.stdout)
+        self.assertIn("installed", result.stdout)
         self.assertTrue((self.home / "homebrew" / "services" / "PluginLoader").exists())
         self.assertEqual(self.plugin("dist/index.js").read_text(), "// new")
         self.assertIn("restart plugin_loader", (self.fixtures / "systemctl.log").read_text())
@@ -90,10 +93,26 @@ class InstallerTests(unittest.TestCase):
         self.plugin("stale.txt").write_text("from the old version")
         result = self.run_installer()
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn(f"DeckyHub is updated to {TAG}", result.stdout)
+        self.assertIn("DeckyHub updated to", result.stdout)
         self.assertNotIn("install_release.sh", (self.fixtures / "curl.log").read_text())
         self.assertEqual(self.plugin("dist/index.js").read_text(), "// new")
         self.assertFalse(self.plugin("stale.txt").exists())
+
+    def test_success_message_includes_release_tag(self):
+        result = self.run_installer()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(TAG, result.stdout)
+
+    def test_update_only_skips_decky_loader(self):
+        """--update-only installs DeckyHub even when Decky Loader is absent."""
+        result = self.run_installer(extra_args=("--update-only",))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        # Decky Loader installer was NOT downloaded.
+        curl_log = (self.fixtures / "curl.log").read_text()
+        self.assertNotIn("install_release.sh", curl_log)
+        # DeckyHub ZIP was downloaded and installed.
+        self.assertIn(f"releases/download/{TAG}/DeckyHub-{TAG}.zip", curl_log)
+        self.assertEqual(self.plugin("dist/index.js").read_text(), "// new")
 
     def test_a_zip_other_than_the_releases_is_refused_and_nothing_changes(self):
         (self.home / "homebrew" / "services").mkdir(parents=True)
@@ -102,7 +121,7 @@ class InstallerTests(unittest.TestCase):
         self.plugin("dist/index.js").write_text("// old")
         result = self.run_installer(sha256="0" * 64)
         self.assertEqual(result.returncode, 1)
-        self.assertIn("isn't the one this installer was made for", result.stderr)
+        self.assertIn("doesn't match the expected checksum", result.stderr)
         self.assertEqual(self.plugin("dist/index.js").read_text(), "// old")
         self.assertFalse((self.fixtures / "systemctl.log").exists())
 
@@ -111,7 +130,7 @@ class DesktopFileTests(unittest.TestCase):
     def test_the_launcher_runs_its_own_releases_installer(self):
         text = DESKTOP.read_text()
         self.assertTrue(text.startswith("#!/usr/bin/env xdg-open\n[Desktop Entry]\n"))
-        self.assertIn("Terminal=true", text)
+        self.assertIn("Terminal=false", text)
         self.assertIn("https://github.com/mazillka/deckyhub-plugin/releases/download/@TAG@/install-deckyhub.sh", text)
         self.assertIn("@TAG@", SCRIPT.read_text())
         self.assertIn("@SHA256@", SCRIPT.read_text())
