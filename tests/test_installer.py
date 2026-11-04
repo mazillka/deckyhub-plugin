@@ -239,17 +239,6 @@ class InstallerTests(unittest.TestCase):
         self.assertIn("no guarantee", text)
         self.assertEqual(subprocess.run(["bash", "-n", str(SCRIPT)], capture_output=True, text=True).returncode, 0)
 
-    def test_update_only_skips_decky_loader(self):
-        """--update-only installs DeckyHub even when Decky Loader is absent."""
-        result = self.run_installer(extra_args=("--update-only",))
-        self.assertEqual(result.returncode, 0, result.stderr)
-        # Decky Loader installer was NOT downloaded.
-        curl_log = (self.fixtures / "curl.log").read_text()
-        self.assertNotIn("install_release.sh", curl_log)
-        # DeckyHub ZIP was downloaded and installed.
-        self.assertIn(f"releases/download/{TAG}/DeckyHub-{TAG}.zip", curl_log)
-        self.assertEqual(self.plugin("dist/index.js").read_text(), "// new")
-
     def test_a_zip_other_than_the_releases_is_refused_and_nothing_changes(self):
         (self.home / "homebrew" / "services").mkdir(parents=True)
         (self.home / "homebrew" / "services" / "PluginLoader").touch()

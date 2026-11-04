@@ -15,8 +15,6 @@
 # and a Deck without one can get a temporary password that's removed again at the end.
 #
 # Options:
-#   --update-only   Skip Decky Loader installation; only install/update DeckyHub.
-#                   Needs Decky Loader to be installed already.
 #   --plugins=a,b   Pick optional plugins by id without the checklist (see STARTER_PLUGINS).
 #
 # Optional plugins: a checklist (nothing ticked) offers a few hand-picked plugins with notes
@@ -34,7 +32,6 @@ ZIP_URL="https://github.com/${REPO}/releases/download/${TAG}/DeckyHub-${TAG}.zip
 DECKY_INSTALLER_URL="https://github.com/SteamDeckHomebrew/decky-installer/releases/latest/download/install_release.sh"
 TITLE="DeckyHub Installer"
 TEMP_PASSWORD="DeckyHub!"
-UPDATE_ONLY=0
 PLUGINS_ARG=""
 STATS_URL="https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/stats.json"
 RELEASES_URL="https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/releases.json"
@@ -46,7 +43,6 @@ STARTER_PLUGINS=(
 )
 
 for arg in "$@"; do
-    [ "$arg" = "--update-only" ] && UPDATE_ONLY=1
     case "$arg" in --plugins=*) PLUGINS_ARG="${arg#--plugins=}" ;; esac
 done
 
@@ -186,10 +182,6 @@ if (( EUID != 0 )); then
     [ -f "${HOMEBREW_CHECK}/services/PluginLoader" ] && HAS_DECKY=1
     [ -d "${HOMEBREW_CHECK}/plugins/DeckyHub" ] && HAS_DECKYHUB=1
 
-    if (( UPDATE_ONLY && ! HAS_DECKY )); then
-        fail "--update-only needs Decky Loader, and it isn't installed on this Deck yet.\n\nRun the installer without --update-only to install both."
-    fi
-
     # Install, Update (another version is there) or Reinstall (this very version is).
     verb="Install"
     if (( HAS_DECKYHUB )); then
@@ -274,7 +266,7 @@ STATUS_FILE="${WORK}/status"
 LOG="${WORK}/install.log"
 
 NEED_DECKY=0
-(( ! UPDATE_ONLY )) && [ ! -f "${HOMEBREW}/services/PluginLoader" ] && NEED_DECKY=1
+[ ! -f "${HOMEBREW}/services/PluginLoader" ] && NEED_DECKY=1
 # The password was step 1; then Decky Loader (checked, or installed if missing), and only
 # after that DeckyHub: download, install and restart.
 STEP=1; STEPS_TOTAL=5

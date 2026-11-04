@@ -4,13 +4,13 @@ import { log } from "./log";
 // TriggerSimpleHapticEvent(controller, 2 = both pads, 1 = Tick, intensity 1, gain 0),
 // on the Deck's built-in controller (type 4) only. Played as focus moves within
 // DeckyHub (Motion in index.tsx), unless Display Settings turns it off.
-export let hapticsOn = true;
+let hapticsOn = true;
 
-export let deckController: number | undefined;
+let deckController: number | undefined;
 
-export let controllerList: { unregister: () => void } | null = null;
+let controllerList: { unregister: () => void } | null = null;
 
-export let lastTick = 0;
+let lastTick = 0;
 
 export const setHaptics = (on: boolean) => {
   hapticsOn = on;

@@ -2,7 +2,7 @@
 // the Quick Access panel include it (Motion in index.tsx), and so does every modal,
 // since modals open in Steam's main window, which may not hold a route.
 // Everything that moves is skipped when the system asks for less motion.
-export const MOTION_CSS = `
+const MOTION_CSS = `
   /* The card or row holding the D-pad's focus gets a ring, so it's easy to spot from the couch.
      Steam marks the focused element with .gpfocus; the browser (and the dev mock) with :focus. */
   .deckyhub-focus-ring { outline: 0 solid transparent; outline-offset: 2px; }
