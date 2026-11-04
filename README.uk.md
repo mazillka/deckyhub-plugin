@@ -38,6 +38,10 @@
 <td align="center"><img src="screenshots/search.jpg" width="260" alt="DeckyHub шукає плагіни Decky на GitHub"><br><sub><b>Пошук</b></sub></td>
 <td align="center"><img src="screenshots/settings.jpg" width="260" alt="Налаштування DeckyHub у вкладках: «Загальні», GitHub, «Завантаження», «Репозиторії», «Журнали» та «Про програму»"><br><sub><b>Налаштування</b></sub></td>
 </tr>
+<tr>
+<td align="center"><img src="screenshots/discover.jpg" width="260" alt="Екран «Огляд» DeckyHub із категоріями та популярними плагінами, кожен зі значком перевірки на віруси"><br><sub><b>Огляд</b></sub></td>
+<td align="center"><img src="screenshots/scan-report.jpg" width="260" alt="Звіт DeckyHub про перевірку плагіна на віруси: результати ClamAV, YARA і VirusTotal, файл і його SHA-256"><br><sub><b>Звіт про перевірку на віруси</b></sub></td>
+</tr>
 </table>
 
 </div>
