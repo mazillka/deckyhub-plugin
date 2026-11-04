@@ -279,12 +279,12 @@ jobs:
         env:
           INSTALLED: ${{ steps.install.outcome }}
         run: |
-          zip="Install-DeckyHub.desktop"
+          zip="install-deckyhub.sh"
           # Not named DeckyHub-*: the self-update and the registry's asset filter look for that.
           report="ClamAV-desktop-${GITHUB_REF_NAME}.txt"
           status=0
           if [[ "$INSTALLED" == success ]]; then
-            clamscan --stdout --max-filesize=2048M --max-scansize=4095M --alert-exceeds-max=yes "$zip" > scan.log 2>&1 || status=$?
+            clamscan --stdout --max-filesize=2048M --max-scansize=4095M --alert-exceeds-max=yes Install-DeckyHub.desktop "$zip" > scan.log 2>&1 || status=$?
           else
             echo "ClamAV couldn't be installed or couldn't download its virus signatures, so the Desktop installer wasn't scanned." > scan.log
             status=2
@@ -330,7 +330,7 @@ jobs:
         env:
           VT_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
         run: |
-          zip="Install-DeckyHub.desktop"
+          zip="install-deckyhub.sh"
           sha=$(sha256sum "$zip" | cut -d' ' -f1)
           url="https://www.virustotal.com/gui/file/${sha}"
           echo "url=$url" >> "$GITHUB_OUTPUT"
@@ -384,7 +384,7 @@ jobs:
         env:
           MD_API_KEY: ${{ secrets.METADEFENDER_API_KEY }}
         run: |
-          zip="Install-DeckyHub.desktop"
+          zip="install-deckyhub.sh"
           if [[ -z "$MD_API_KEY" ]]; then
             echo "::notice::METADEFENDER_API_KEY isn't set, so the Desktop installer wasn't uploaded to MetaDefender."
             echo "result=skipped" >> "$GITHUB_OUTPUT"
@@ -492,7 +492,7 @@ jobs:
           md_line=""
           [[ -n "$md" ]] && md_line="- **MetaDefender:** $md"$'\n'
           # Kept as the last section when the notes are rewritten (AGENTS.md's Release section).
-          notes="## Security checks"$'\n\n'"- **Virus scan:** $scan"$'\n'"$vt_line""$md_line""- **Desktop installer:** ClamAV: $desktop_scan VirusTotal: $desktop_vt. MetaDefender: $desktop_md."$'\n'"- **Code analysis:** GitHub [CodeQL](https://github.com/${GITHUB_REPOSITORY}/actions/workflows/codeql.yml) checks the Python and TypeScript code on every change."
+          notes="## Security checks"$'\n\n'"- **Virus scan:** $scan"$'\n'"$vt_line""$md_line""- **Desktop installer (\`install-deckyhub.sh\` and its \`.desktop\` launcher):** ClamAV: $desktop_scan VirusTotal: $desktop_vt. MetaDefender: $desktop_md."$'\n'"- **Code analysis:** GitHub [CodeQL](https://github.com/${GITHUB_REPOSITORY}/actions/workflows/codeql.yml) checks the Python and TypeScript code on every change."
           gh release create "$GITHUB_REF_NAME" "${files[@]}" --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes --notes "$notes" "${prerelease[@]}"
         env:
           GH_TOKEN: ${{ github.token }}

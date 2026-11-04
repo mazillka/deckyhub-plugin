@@ -974,7 +974,7 @@ test("DeckyHub's update window shows its release's ClamAV report and how release
   await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
   const scan = app.locator(".steam-modal .deckyhub-virus-scan");
   await expect(scan.getByText("ClamAV: No threats found")).toBeVisible();
-  await expect(scan.getByText(/scanned with ClamAV before it's published.*GitHub CodeQL/)).toBeVisible();
+  await expect(scan.getByText(/scanned with ClamAV, VirusTotal and MetaDefender before it's published.*GitHub CodeQL/)).toBeVisible();
 });
 
 test("Discover cards show the ClamAV verdict for the release they install, and the badge notice explains it", async ({ page }) => {

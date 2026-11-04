@@ -148,7 +148,7 @@ export const tr: Record<MessageKey, string> = {
   "scan.copyFailed": "Bağlantı kopyalanamadı",
   "scan.pasteIntoVirusTotal": "VirusTotal sayfasındaki URL kutusuna yapıştır ve taramayı başlat.",
   "scan.scanLinkHint": "Bağlantıyı VirusTotal'da tara, ZIP'in indirme bağlantısını kopyalar ve VirusTotal'ın URL tarama sayfasını açar: bağlantıyı oraya yapıştır. VirusTotal çoğunlukla bağlantının kendisini değerlendirir, bu yüzden ZIP'in içini denetlemeyebilir.",
-  "scan.deckyhubChecks": "Her DeckyHub sürümü yayımlanmadan önce ClamAV ile taranır ve kodu her değişiklikte GitHub CodeQL ile denetlenir.",
+  "scan.deckyhubChecks": "Her DeckyHub sürümü yayımlanmadan önce ClamAV, VirusTotal ve MetaDefender ile taranır ve kodu her değişiklikte GitHub CodeQL ile denetlenir. Rapor, her tarayıcının sürümünü ve tarihini gösterir.",
 
   "dl.downloading": "{filename} indiriliyor",
   "dl.preparing": "İndirme hazırlanıyor…",

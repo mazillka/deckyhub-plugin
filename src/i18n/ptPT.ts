@@ -149,7 +149,7 @@ export const ptPT: Record<MessageKey, string> = {
   "scan.copyFailed": "Não foi possível copiar a ligação",
   "scan.pasteIntoVirusTotal": "Cole-a no campo de URL da página do VirusTotal e inicie a verificação.",
   "scan.scanLinkHint": "Verificar ligação no VirusTotal copia a ligação de transferência do ZIP e abre a página de verificação de URL do VirusTotal: cole lá a ligação. O VirusTotal avalia sobretudo a própria ligação, por isso pode não verificar o conteúdo do ZIP.",
-  "scan.deckyhubChecks": "Cada versão do DeckyHub é verificada com o ClamAV antes de ser publicada, e o seu código é verificado pelo GitHub CodeQL a cada alteração.",
+  "scan.deckyhubChecks": "Cada versão do DeckyHub é verificada com ClamAV, VirusTotal e MetaDefender antes de ser publicada, e o seu código é verificado pelo GitHub CodeQL a cada alteração. O relatório mostra a versão e a data de cada analisador.",
 
   "dl.downloading": "A transferir {filename}",
   "dl.preparing": "A preparar a transferência…",
