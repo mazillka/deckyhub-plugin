@@ -19,6 +19,7 @@ export const nl: Record<MessageKey, string> = {
   "discover.grid": "Raster",
   "discover.list": "Lijst",
   "view.discoverEmpty": "Er zijn geen repository's beschikbaar.",
+  "view.installedEmpty": "Geen geïnstalleerde plugins gevonden.",
   "view.searchDescription": "Zoek op GitHub naar Decky-plugins. Installeer er meteen een, of voeg hem toe om zijn updates te volgen.",
   "view.searchTitle": "Zoeken en installeren",
   "search.warning": "Zoekresultaten komen rechtstreeks van GitHub. Niemand heeft ze gecontroleerd: niet DeckyHub, niet de Decky-store. Een plugin kan alles doen op je Deck, dus installeer alleen plugins van makers die je vertrouwt.",

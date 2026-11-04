@@ -18,6 +18,7 @@ export const en = {
   "discover.grid": "Grid",
   "discover.list": "List",
   "view.discoverEmpty": "No repositories are available.",
+  "view.installedEmpty": "No installed plugins found.",
   "view.searchDescription": "Search GitHub for Decky plugins. Install one straight away, or add it to track its updates.",
   "view.searchTitle": "Search & Install",
   "search.warning": "Search results come straight from GitHub. Nobody has reviewed them: not DeckyHub, not the Decky store. A plugin can do anything on your Deck, so only install plugins from authors you trust.",

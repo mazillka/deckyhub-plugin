@@ -20,6 +20,7 @@ export const zhTW: Record<MessageKey, string> = {
   "discover.grid": "格狀",
   "discover.list": "清單",
   "view.discoverEmpty": "沒有可用的儲存庫。",
+  "view.installedEmpty": "找不到已安裝的外掛。",
   "view.searchDescription": "在 GitHub 上搜尋 Decky 插件。可直接安裝，或加入以追蹤更新。",
   "view.searchTitle": "搜尋與安裝",
   "search.warning": "搜尋結果直接來自 GitHub，未經任何審核：DeckyHub 和 Decky 商店都沒有審核過。插件可以在你的 Deck 上做任何事，請只安裝你信任的作者的插件。",

@@ -19,6 +19,7 @@ export const ko: Record<MessageKey, string> = {
   "discover.grid": "격자",
   "discover.list": "목록",
   "view.discoverEmpty": "사용할 수 있는 저장소가 없습니다.",
+  "view.installedEmpty": "설치된 플러그인이 없습니다.",
   "view.searchDescription": "GitHub에서 Decky 플러그인을 검색하세요. 바로 설치하거나 추가해서 업데이트를 추적할 수 있습니다.",
   "view.searchTitle": "검색 및 설치",
   "search.warning": "검색 결과는 GitHub에서 바로 가져옵니다. DeckyHub도, Decky 스토어도 검토하지 않았습니다. 플러그인은 Deck에서 무엇이든 할 수 있으니 신뢰하는 제작자의 플러그인만 설치하세요.",

@@ -19,6 +19,7 @@ export const ja: Record<MessageKey, string> = {
   "discover.grid": "グリッド",
   "discover.list": "リスト",
   "view.discoverEmpty": "利用できるリポジトリがありません。",
+  "view.installedEmpty": "インストール済みのプラグインが見つかりません。",
   "view.searchDescription": "GitHub で Decky プラグインを検索します。すぐにインストールするか、追加して更新を追跡できます。",
   "view.searchTitle": "検索とインストール",
   "search.warning": "検索結果は GitHub から直接取得されます。DeckyHub も Decky ストアも審査していません。プラグインは Deck 上で何でもできるため、信頼できる作者のプラグインだけをインストールしてください。",

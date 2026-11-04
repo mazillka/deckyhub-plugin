@@ -61,7 +61,7 @@ export type DeckyHubReleaseOption = { tag: string; prerelease: boolean; publishe
 
 export type AppReleaseOption = { tag: string; prerelease: boolean; publishedAt: string | null; url: string; notes?: string; assets: Asset[] };
 
-export type View = "updates" | "discover";
+export type View = "updates" | "discover" | "installed";
 
 export type SearchRepo = { full_name: string; description?: string; stargazers_count?: number };
 

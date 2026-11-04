@@ -36,6 +36,7 @@ function Motion({ children }: { children: ReactNode }) {
 const ROUTES: Record<string, () => ReactNode> = {
   "/deckyhub/updates": () => <Content fullPage="updates" />,
   "/deckyhub/discover": () => <Content fullPage="discover" />,
+  "/deckyhub/installed": () => <Content fullPage="installed" />,
   "/deckyhub/search": () => <SearchPage />,
   "/deckyhub/settings": () => <SettingsPage />,
   // Repositories is a Settings tab; its old route opens Settings there.

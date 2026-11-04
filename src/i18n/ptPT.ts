@@ -20,6 +20,7 @@ export const ptPT: Record<MessageKey, string> = {
   "discover.grid": "Grelha",
   "discover.list": "Lista",
   "view.discoverEmpty": "Nenhum repositório disponível.",
+  "view.installedEmpty": "Não foram encontrados plugins instalados.",
   "view.searchDescription": "Pesquise plugins do Decky no GitHub. Instale um de imediato ou adicione-o para acompanhar as atualizações.",
   "view.searchTitle": "Pesquisar e instalar",
   "search.warning": "Os resultados vêm diretamente do GitHub. Ninguém os reviu: nem o DeckyHub, nem a loja do Decky. Um plugin pode fazer qualquer coisa no seu Deck, por isso instale apenas plugins de autores em quem confia.",

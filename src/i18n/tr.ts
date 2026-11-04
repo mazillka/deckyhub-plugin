@@ -19,6 +19,7 @@ export const tr: Record<MessageKey, string> = {
   "discover.grid": "Izgara",
   "discover.list": "Liste",
   "view.discoverEmpty": "Kullanılabilir depo yok.",
+  "view.installedEmpty": "Yüklü eklenti bulunamadı.",
   "view.searchDescription": "GitHub'da Decky eklentileri ara. Hemen yükle ya da güncellemelerini takip etmek için ekle.",
   "view.searchTitle": "Ara ve yükle",
   "search.warning": "Arama sonuçları doğrudan GitHub'dan gelir. Hiç kimse onları incelemedi: ne DeckyHub ne de Decky mağazası. Bir eklenti Deck'inde her şeyi yapabilir, bu yüzden yalnızca güvendiğin yazarların eklentilerini yükle.",
