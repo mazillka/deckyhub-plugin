@@ -77,11 +77,11 @@ class InstallerTests(unittest.TestCase):
     def test_installs_decky_loader_first_when_it_is_missing(self):
         result = self.run_installer()
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("Installation complete", result.stdout)
+        self.assertIn("All done!", result.stdout)
         self.assertIn("✓ Decky Loader installed", result.stdout)
-        self.assertIn(f"✓ DeckyHub {TAG} installed (checksum verified)", result.stdout)
+        self.assertIn(f"✓ DeckyHub {TAG} installed (file checked)", result.stdout)
         self.assertIn("✓ Decky Loader restarted", result.stdout)
-        self.assertIn("pick DeckyHub's tab", result.stdout)
+        self.assertIn("choose DeckyHub", result.stdout)
         # Every step is announced, numbered: password, Decky Loader, download, install, restart.
         for number, text in ((2, "Installing Decky Loader"), (3, "Downloading DeckyHub"), (4, "Installing DeckyHub"), (5, "Restarting Decky Loader")):
             self.assertIn(f"Step {number} of 5: {text}", result.stdout)
@@ -98,9 +98,12 @@ class InstallerTests(unittest.TestCase):
         self.plugin("stale.txt").write_text("from the old version")
         result = self.run_installer()
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn(f"✓ DeckyHub updated to {TAG} (checksum verified)", result.stdout)
+        self.assertIn(f"✓ DeckyHub updated to {TAG} (file checked)", result.stdout)
         self.assertNotIn("✓ Decky Loader installed", result.stdout)
-        self.assertIn("Step 4 of 4: Restarting Decky Loader", result.stdout)
+        # Decky Loader is checked first, DeckyHub only after it.
+        self.assertIn("Step 2 of 5: Checking that Decky Loader is installed", result.stdout)
+        self.assertIn("Step 5 of 5: Restarting Decky Loader", result.stdout)
+        self.assertIn("✓ Decky Loader was already installed", result.stdout)
         self.assertNotIn("install_release.sh", (self.fixtures / "curl.log").read_text())
         self.assertEqual(self.plugin("dist/index.js").read_text(), "// new")
         self.assertFalse(self.plugin("stale.txt").exists())
@@ -120,20 +123,23 @@ class InstallerTests(unittest.TestCase):
         result = self.run_installer()
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.plugin("dist/index.js").read_text(), "// new")
-        self.assertIn("Decky Loader couldn't restart on its own. Restart your Steam Deck", result.stdout)
+        self.assertIn("Decky Loader couldn't restart by itself. Restart your Steam Deck", result.stdout)
         self.assertNotIn("✓ Decky Loader restarted", result.stdout)
 
     def test_errors_show_real_line_breaks_in_a_terminal(self):
         result = self.run_installer(sha256="0" * 64)
         self.assertNotIn("\\n", result.stderr)
-        self.assertIn("This could be a network issue", result.stderr)
+        self.assertIn("This is usually a Wi-Fi hiccup", result.stderr)
 
     def test_the_intro_lists_the_steps_and_says_no_information_is_used(self):
         text = SCRIPT.read_text()
-        self.assertIn("What will happen:", text)
-        self.assertIn("doesn't collect, store or send any information about you or your Deck", text)
-        self.assertIn("never saved or shared", text)
-        self.assertIn("without warranty", text)
+        self.assertIn("Here's what will happen:", text)
+        self.assertIn("Why a password?", text)
+        self.assertLess(text.index("Decky Loader comes first"), text.index("Only then is DeckyHub"))
+        self.assertIn("not your Steam password", text)
+        self.assertIn("nothing about you or your Deck is collected, saved or sent anywhere", text)
+        self.assertIn("is never stored", text)
+        self.assertIn("no guarantee", text)
         self.assertEqual(subprocess.run(["bash", "-n", str(SCRIPT)], capture_output=True, text=True).returncode, 0)
 
     def test_update_only_skips_decky_loader(self):
@@ -154,7 +160,7 @@ class InstallerTests(unittest.TestCase):
         self.plugin("dist/index.js").write_text("// old")
         result = self.run_installer(sha256="0" * 64)
         self.assertEqual(result.returncode, 1)
-        self.assertIn("doesn't match the expected checksum", result.stderr)
+        self.assertIn("its checksum doesn't match", result.stderr)
         self.assertEqual(self.plugin("dist/index.js").read_text(), "// old")
         self.assertFalse((self.fixtures / "systemctl.log").exists())
 
