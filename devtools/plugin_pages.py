@@ -15,6 +15,8 @@ import time
 import urllib.request
 from html import escape
 
+import site_shell
+
 SITE = "https://deckyhub.com/"
 REGISTRY_RAW = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/"
 STATS_URL = REGISTRY_RAW + "release-index/stats.json"
@@ -36,7 +38,15 @@ SCAN_LABELS = {"clean": ("No threats", "clean"), "infected": ("Threat found", "s
 SCAN_RESULTS = {"clean": "no threats found", "infected": "threat found", "incomplete": "only partly scanned", "error": "couldn't be scanned"}
 
 EXTRA_STYLE = """
-.skip{position:absolute;left:-9999px;top:8px;z-index:20;background:#fff;color:#10151f;padding:8px 14px;border-radius:6px;font-weight:600;text-decoration:none}.skip:focus{left:8px}
+.app{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;text-decoration:none;color:var(--text);display:flex;flex-direction:column;gap:2px}
+.app:hover{border-color:var(--accent2)}.app small{color:var(--accent2);font-size:.75rem;text-transform:uppercase;letter-spacing:.05em}
+.app p{margin:4px 0 0;color:var(--muted);font-size:.9rem;flex:1}.app .meta{color:var(--dim);font-size:.82rem;margin-top:8px}
+.app .flags{display:flex;flex-wrap:wrap;gap:4px 8px;font-size:.78rem;margin-top:4px}.flag-ai{color:#b79cff}.flag-warn{color:var(--warn)}.flag-bad{color:#ff8a8a}.flag-ok{color:#6bcb6b}
+.app[hidden]{display:none}
+.catalog{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.filters{display:grid;gap:12px;margin:18px 0 8px}.filters input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:1rem}
+.chips{display:flex;flex-wrap:wrap;gap:8px}.chips button{padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:.9rem;cursor:pointer}
+.chips button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
 .crumbs{color:var(--dim);font-size:.9rem;margin:28px 0 6px}.crumbs a{color:var(--dim)}
 .plugin h1{margin-top:0}.plugin h2{font-size:1.25rem;margin:32px 0 10px}
 .lead{font-size:1.15rem;color:var(--muted);margin:0 0 18px}
@@ -164,17 +174,15 @@ def security_scans(scans: dict, reports: dict) -> str:
 
 
 def shell_of(releases_page: str) -> dict[str, str]:
-    """The style, navigation and footer of docs/releases.html, so the plugin pages match the site."""
-    style = re.search(r"<style>(.*?)</style>", releases_page, re.S)
-    nav = re.search(r'<nav class="site-nav".*?</nav>', releases_page, re.S)
-    footer = re.search(r"<footer>.*?</footer>", releases_page, re.S)
-    if not (style and nav and footer):
-        raise SystemExit("docs/releases.html is missing its style, navigation or footer")
-    # The footer's "./" is the site root from releases.html, but it'd be /plugins/ from a plugin page.
-    return {"style": style.group(1) + EXTRA_STYLE, "nav": nav.group(0), "footer": footer.group(0).replace('href="./"', 'href="/"')}
+    """The style of docs/releases.html (with the shared menu style filled in) and the shared footer,
+    so the plugin pages match the site."""
+    style = re.search(r"<style>(.*?)</style>", site_shell.apply(releases_page), re.S)
+    if not style:
+        raise SystemExit("docs/releases.html is missing its style")
+    return {"style": style.group(1) + EXTRA_STYLE, "footer": site_shell.FOOTER}
 
 
-def page(shell: dict[str, str], title: str, description: str, path: str, body: str, data: list[str]) -> str:
+def page(shell: dict[str, str], title: str, description: str, path: str, body: str, data: list[str], current: str = "plugins") -> str:
     url = SITE + path
     return f"""<!doctype html>
 <html lang="en">
@@ -193,7 +201,7 @@ def page(shell: dict[str, str], title: str, description: str, path: str, body: s
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
-{shell["nav"]}
+{site_shell.nav(current)}
 <main id="main"><div class="wrap plugin">
 {body}
 </div></main>
@@ -215,7 +223,7 @@ def plugin_page(shell: dict[str, str], app: dict, stats: dict, scans: dict, warn
         facts.append(f'<li><strong>{nice_date(stats["updated"])}</strong>Latest release</li>')
     badges = badges_of(stats, scans, warnings)
     related = [other for other in others if other["id"] != app["id"]][:6]
-    crumbs = f'<p class="crumbs"><a href="/">DeckyHub</a> › <a href="/#catalog">Plugins</a> › {escape(name)}</p>'
+    crumbs = f'<p class="crumbs"><a href="/">DeckyHub</a> › <a href="/plugins/">Plugins</a> › {escape(name)}</p>'
     body = f"""{crumbs}
 <h1>{escape(name)}</h1>
 <p class="lead">{escape(description)}</p>
@@ -269,14 +277,100 @@ def readme_steps(readme: str, heading: str) -> str:
     return "\n".join(f"<li>{inline_markdown(step)}</li>" for step in steps)
 
 
-def write_pages(out, apps: list[dict], releases_page: str) -> list[tuple[str, str]]:
-    """Writes plugins/<id>.html for every plugin; returns (url, lastmod) for the sitemap."""
+def slug(text: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
+
+
+def load_data() -> dict:
+    """What the pages are built from: stats, scans, MetaDefender reports and the audit warnings' labels."""
+    return {"stats": fetch_json(STATS_URL, "plugins"), "scans": fetch_json(SCANS_URL, "plugins"), "reports": fetch_json(METADEFENDER_URL, "reports"),
+            "warnings": WARNINGS}
+
+
+def flags_of(stats: dict, scans: dict) -> str:
+    """Small markers on a card: AI help, root, audit warnings, and the virus scan's verdict."""
+    flags = []
+    if stats.get("ai"):
+        flags.append('<span class="flag-ai">✦ AI</span>')
+    if stats.get("root"):
+        flags.append('<span class="flag-warn">⚠ Root</span>')
+    if stats.get("warnings"):
+        flags.append('<span class="flag-warn">⚠ Warning</span>')
+    channel = scans.get("stable") or {}
+    if channel.get("clamav"):
+        kind = scan_kind(channel)
+        flags.append({"clean": '<span class="flag-ok">✓ Scanned</span>', "infected": '<span class="flag-bad">✖ Threat found</span>',
+                      "partial": '<span class="flag-warn">⚠ Not fully scanned</span>'}[kind])
+    return "".join(flags)
+
+
+def card(app: dict, data: dict, prefix: str = "/plugins/") -> str:
+    key = app["repo"].casefold()
+    stats, scans = data["stats"].get(key) or {}, data["scans"].get(key) or {}
+    meta = " · ".join(part for part in (
+        f'↓ {compact(stats["downloads"])}' if stats.get("downloads") is not None else "",
+        f'★ {compact(stats["stars"])}' if stats.get("stars") is not None else "") if part)
+    description = app.get("description") or ""
+    text = escape(f'{app["name"]} {description} {app["category"]} {app["repo"]}'.lower())
+    return (f'<a class="app" href="{prefix}{escape(app["id"])}.html" data-text="{text}" data-cat="{slug(app["category"])}">'
+            f'<small>{escape(app["category"])}</small><strong>{escape(app["name"])}</strong><p>{escape(description)}</p>'
+            f'<span class="meta">{meta}</span><span class="flags">{flags_of(stats, scans)}</span></a>')
+
+
+def by_downloads(apps: list[dict], data: dict) -> list[dict]:
+    return sorted(apps, key=lambda app: -((data["stats"].get(app["repo"].casefold()) or {}).get("downloads") or 0))
+
+
+def popular_cards(apps: list[dict], data: dict, count: int = 12) -> str:
+    """The home page's short list: the most downloaded plugins, linking to their pages."""
+    return "\n".join(card(app, data, "plugins/") for app in by_downloads(apps, data)[:count])
+
+
+FILTER_JS = """(function(){var q=document.getElementById("q"),cards=[].slice.call(document.querySelectorAll("#list .app")),chips=[].slice.call(document.querySelectorAll(".chips button")),count=document.getElementById("count"),cat="";
+function run(){var t=q.value.trim().toLowerCase(),n=0;cards.forEach(function(c){var ok=(!cat||c.dataset.cat===cat)&&(!t||c.dataset.text.indexOf(t)>-1);c.hidden=!ok;if(ok)n++});count.textContent=n+" of "+cards.length+" plugins";chips.forEach(function(b){b.setAttribute("aria-pressed",String((b.dataset.cat||"")===cat))})}
+function fromHash(){var m=/^#cat=([a-z0-9-]+)/.exec(location.hash);cat=m?m[1]:"";run()}
+chips.forEach(function(b){b.addEventListener("click",function(){cat=b.dataset.cat||"";history.replaceState(null,"",cat?"#cat="+cat:location.pathname);run()})});
+q.addEventListener("input",run);window.addEventListener("hashchange",fromHash);fromHash()})();"""
+
+
+def catalog_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
+    """plugins/index.html: every plugin, most downloaded first, with a search box and category chips.
+    Without JavaScript the whole list is simply shown."""
+    ordered = by_downloads(apps, data)
+    categories: dict[str, int] = {}
+    for app in apps:
+        categories[app["category"]] = categories.get(app["category"], 0) + 1
+    chips = f'<button type="button" data-cat="" aria-pressed="true">All {len(apps)}</button>' + "".join(
+        f'<button type="button" data-cat="{slug(name)}" aria-pressed="false">{escape(name)} {count}</button>'
+        for name, count in sorted(categories.items(), key=lambda item: (-item[1], item[0])))
+    body = f"""<p class="crumbs"><a href="/">DeckyHub</a> › Plugins</p>
+<h1>Steam Deck plugins</h1>
+<p class="lead">{len(apps)} Decky Loader plugins, most downloaded first. Install any of them from Gaming Mode with <a href="/">DeckyHub</a>, which also checks them for updates.</p>
+<div class="filters"><input id="q" type="search" placeholder="Search plugins" aria-label="Search plugins" autocomplete="off"><div class="chips" role="group" aria-label="Categories">{chips}</div></div>
+<p class="note" id="count" aria-live="polite">{len(apps)} plugins</p>
+<div class="catalog" id="list">
+{chr(10).join(card(app, data) for app in ordered)}
+</div>
+<p class="note">Every plugin belongs to its authors. DeckyHub doesn't make, review or vouch for them, and a plugin's page shows its notes (AI help, root, audit warnings) and security scans. Missing one? <a href="{site_shell.REGISTRY}">Add a plugin</a>.</p>
+<script>{FILTER_JS}</script>"""
+    listing = json_ld({"@type": "CollectionPage", "name": "Steam Deck plugins", "url": f"{SITE}plugins/",
+                       "mainEntity": {"@type": "ItemList", "numberOfItems": len(apps), "itemListElement": [
+                           {"@type": "ListItem", "position": index + 1, "url": f"{SITE}plugins/{app['id']}.html", "name": app["name"]} for index, app in enumerate(ordered[:100])]}})
+    trail = json_ld({"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "DeckyHub", "item": SITE}, {"@type": "ListItem", "position": 2, "name": "Plugins"}]})
+    hundreds = len(apps) // 100 * 100
+    return page(shell, f"Steam Deck plugins: {hundreds}+ Decky Loader plugins | DeckyHub",
+                f"Browse {len(apps)} Decky Loader plugins for Steam Deck, with downloads, stars and security scans. Install and update them from Gaming Mode with DeckyHub.",
+                "plugins/", body, [trail, listing])
+
+
+def write_pages(out, apps: list[dict], releases_page: str, data: dict) -> list[tuple[str, str]]:
+    """Writes plugins/index.html and plugins/<id>.html for every plugin; returns (url, lastmod) for the sitemap."""
     shell = shell_of(releases_page)
-    stats, scans, reports = fetch_json(STATS_URL, "plugins"), fetch_json(SCANS_URL, "plugins"), fetch_json(METADEFENDER_URL, "reports")
-    warnings = WARNINGS
+    stats, scans, reports, warnings = data["stats"], data["scans"], data["reports"], data["warnings"]
     (out / "plugins").mkdir(exist_ok=True)
     today = time.strftime("%Y-%m-%d", time.gmtime())
-    urls = []
+    (out / "plugins" / "index.html").write_text(catalog_page(shell, apps, data), encoding="utf-8")
+    urls = [(f"{SITE}plugins/", today)]
     for app in apps:
         key = app["repo"].casefold()
         others = [other for other in apps if other["category"] == app["category"]]

@@ -74,7 +74,9 @@ if not preview:
         rel = path.relative_to(out).as_posix()
         if rel.endswith("404.html") or rel == "index.html":
             continue
-        if f"/{rel}</loc>" not in sitemap:
+        # A folder's index.html is listed as the folder: /plugins/ for plugins/index.html.
+        url = rel[: -len("index.html")] if rel.endswith("/index.html") else rel
+        if f"/{url}</loc>" not in sitemap:
             problems.append(f"{rel}: missing from sitemap.xml")
     for name in ("robots.txt", "llms.txt"):
         if not (out / name).exists():
