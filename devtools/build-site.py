@@ -5,10 +5,16 @@ so crawlers see it without JavaScript, and makes WebP screenshots plus a JPEG
 link-preview image (screenshots/hero.jpg) from screenshots/. It also renders
 DeckyHub's GitHub releases into releases.html (the release notes page), fills
 index.html's latest-release line and structured data (schema.org JSON-LD,
-with the FAQ taken from the page's own <details>), and writes sitemap.xml.
+with the FAQ taken from the page's own <details>), writes a page per plugin
+(plugins/<id>.html, see plugin_pages.py) and sitemap.xml.
 Needs Pillow and Markdown (CI-only, not plugin dependencies). GITHUB_TOKEN, if
 set, is sent with the releases request; without the releases (GitHub down),
 the site still builds and the release notes page links to GitHub.
+
+`--preview /develop/` builds the same site as a preview under that path (pages.yml puts
+the develop branch there): every link into the site points inside the preview, search
+engines are told to stay away (noindex, no canonical link, no sitemap) and a banner says
+it isn't the live site.
 """
 import json
 import os
@@ -23,6 +29,8 @@ from pathlib import Path
 
 import markdown
 from PIL import Image
+
+import plugin_pages
 
 ROOT = Path(__file__).resolve().parent.parent
 REGISTRY_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/refs/heads/main/registry/apps.json"
@@ -65,7 +73,7 @@ def notes_html(body: str | None) -> str:
 
 
 def nice_date(iso: str | None) -> str:
-    return time.strftime("%B %-d, %Y", time.strptime(iso[:10], "%Y-%m-%d")) if iso else ""
+    return plugin_pages.nice_date(iso)
 
 
 def fetch_releases() -> list[dict]:
@@ -118,13 +126,14 @@ def structured_data(page: str, latest: dict | None) -> str:
     return '<script type="application/ld+json">' + data + "</script>"
 
 
-out = Path(sys.argv[1] if len(sys.argv) > 1 else "_site")
+out = Path(sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("--") else "_site")
+PREVIEW = sys.argv[sys.argv.index("--preview") + 1] if "--preview" in sys.argv else None
 
 shutil.copytree(ROOT / "docs", out, dirs_exist_ok=True)
 with urllib.request.urlopen(REGISTRY_URL) as response:
     apps = json.load(response)["apps"]
 cards = "\n".join(
-    f'<a class="app" href="https://github.com/{escape(a["repo"])}"><small>{escape(a["category"])}</small>'
+    f'<a class="app" href="plugins/{escape(a["id"])}.html"><small>{escape(a["category"])}</small>'
     f'<strong>{escape(a["name"])}</strong><p>{escape(a.get("description", ""))}</p><code>{escape(a["repo"])}</code></a>'
     for a in apps
 )
@@ -148,12 +157,19 @@ if "<!-- releases -->" not in notes_page:
     sys.exit("docs/releases.html is missing the <!-- releases --> placeholder")
 notes.write_text(notes_page.replace("<!-- releases -->", release_articles(releases)), encoding="utf-8")
 
+plugin_urls = plugin_pages.write_pages(out, apps, (ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
+llms = out / "llms.txt"
+if llms.exists():
+    llms.write_text(llms.read_text(encoding="utf-8").rstrip("\n") + "\n\n## Plugin pages\n\n" + "".join(
+        f"- [{a['name']}]({SITE}plugins/{a['id']}.html): {a.get('description') or ''} (github.com/{a['repo']})\n" for a in sorted(apps, key=lambda a: a["name"].casefold())), encoding="utf-8")
+
 today = time.strftime("%Y-%m-%d", time.gmtime())
 newest = (releases[0].get("published_at") or "")[:10] if releases else today
 (out / "sitemap.xml").write_text(
     '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     f"<url><loc>{SITE}</loc><lastmod>{today}</lastmod></url>\n"
-    f"<url><loc>{SITE}releases.html</loc><lastmod>{newest}</lastmod></url>\n</urlset>\n",
+    f"<url><loc>{SITE}releases.html</loc><lastmod>{newest}</lastmod></url>\n"
+    + "".join(f"<url><loc>{escape(url)}</loc><lastmod>{date}</lastmod></url>\n" for url, date in plugin_urls) + "</urlset>\n",
     encoding="utf-8",
 )
 
@@ -167,3 +183,18 @@ for shot in (ROOT / "screenshots").glob("*.jpg"):
 shutil.copy(ROOT / "promo" / "deckyhub.gif", img / "deckyhub.gif")
 # The promo hero (16:9) suits link previews better than a bare screenshot.
 shutil.copy(ROOT / "screenshots" / "hero.jpg", img / "og.jpg")
+
+
+if PREVIEW:
+    base = "/" + PREVIEW.strip("/") + "/"
+    banner = ('<div style="background:#e8b54a;color:#10151f;text-align:center;padding:6px 12px;font:600 14px system-ui,sans-serif">'
+              f'Preview build from the develop branch, not the live site. <a href="{SITE}" style="color:#10151f">Go to deckyhub.com</a></div>')
+    for sitemap in ("sitemap.xml", "robots.txt"):
+        (out / sitemap).unlink(missing_ok=True)
+    for html_file in out.rglob("*.html"):
+        text = html_file.read_text(encoding="utf-8")
+        text = text.replace(SITE, base).replace('href="/', f'href="{base}').replace('src="/', f'src="{base}')
+        text = re.sub(r'<link rel="canonical"[^>]*>|<meta property="og:url"[^>]*>', "", text)
+        text = text.replace("<head>", '<head>\n<meta name="robots" content="noindex,nofollow">', 1)
+        text = re.sub(r"(<body[^>]*>)", lambda match: match.group(1) + "\n" + banner.replace(f'href="{base}"', f'href="{SITE}"'), text, count=1)
+        html_file.write_text(text, encoding="utf-8")
