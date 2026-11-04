@@ -22,6 +22,15 @@ LINKS = [
     ("contribute", "Contribute", REGISTRY),
 ]
 
+# The same menu in Ukrainian for deckyhub.com/uk/. Plugin pages and release notes stay English.
+LINKS_UK = [
+    ("home", "Головна", SITE + "uk/"),
+    ("plugins", "Плагіни", SITE + "plugins/"),
+    ("install", "Встановлення", SITE + "uk/#install"),
+    ("releases", "Нотатки до релізів", SITE + "releases.html"),
+    ("contribute", "Долучитися", REGISTRY),
+]
+
 NAV_STYLE = """nav.site-nav{position:sticky;top:0;z-index:5;background:rgba(16,21,31,.94);backdrop-filter:blur(8px);border-bottom:1px solid #2e405a}
 nav.site-nav .site-nav-inner{max-width:1100px;margin:auto;padding:0 20px;display:flex;align-items:center;gap:24px;min-height:56px}
 nav.site-nav .site-brand{flex:none;color:#eef4ff;font-weight:700;text-decoration:none}
@@ -43,15 +52,28 @@ FOOTER = (
 )
 
 
-def nav(current: str | None = None) -> str:
+FOOTER_UK = (
+    '<footer><div class="wrap">\n'
+    f'<div>DeckyHub має відкритий код за ліцензією GPL-3.0-or-later · <a href="{REPO}">Код</a> · <a href="{SITE}releases.html">Нотатки до релізів</a> · '
+    f'<a href="{REPO}/issues">Повідомити про проблему</a> · <a href="{REPO}/releases.atom">Стрічка релізів</a></div>\n'
+    "<div><strong>Відмова від відповідальності:</strong> Не пов'язаний із Valve чи проєктом Decky Loader. Інформація про плагіни надходить із публічних "
+    "репозиторіїв GitHub, а кожен плагін належить його авторам; DeckyHub не перевіряє, не володіє й не схвалює їх. Плагіни встановлюються на ваш "
+    "власний ризик, тож перегляньте репозиторій плагіна перед встановленням.</div>\n"
+    "</div></footer>"
+)
+
+
+def nav(current: str | None = None, lang: str = "en", switch: tuple[str, str, str] | None = None) -> str:
+    """switch: (label, address, hreflang) of the same page in the other language, last in the menu."""
+    uk = lang == "uk"
     links = "".join(
-        f'<a href="{address}"' + (' aria-current="page"' if key == current else "") + f">{label}</a>" for key, label, address in LINKS
-    )
-    return (f'<nav class="site-nav" aria-label="Main navigation"><div class="site-nav-inner"><a class="site-brand" href="{SITE}">DeckyHub</a>'
+        f'<a href="{address}"' + (' aria-current="page"' if key == current else "") + f">{label}</a>" for key, label, address in (LINKS_UK if uk else LINKS)
+    ) + (f'<a href="{switch[1]}" hreflang="{switch[2]}" lang="{switch[2]}">{switch[0]}</a>' if switch else "")
+    return (f'<nav class="site-nav" aria-label="{"Головна навігація" if uk else "Main navigation"}"><div class="site-nav-inner"><a class="site-brand" href="{SITE + "uk/" if uk else SITE}">DeckyHub</a>'
             f'<div class="site-links">{links}</div></div></nav>')
 
 
-def apply(page: str) -> str:
-    """The page with its shell placeholders filled in."""
-    page = re.sub(r"<!-- site-nav(?::\s*(\w+))? -->", lambda match: nav(match.group(1)), page)
-    return page.replace("<!-- site-footer -->", FOOTER).replace("/* site-nav-style */", NAV_STYLE)
+def apply(page: str, lang: str = "en", switch: tuple[str, str, str] | None = None) -> str:
+    """The page with its shell placeholders filled in (in Ukrainian for lang="uk")."""
+    page = re.sub(r"<!-- site-nav(?::\s*(\w+))? -->", lambda match: nav(match.group(1), lang, switch), page)
+    return page.replace("<!-- site-footer -->", FOOTER_UK if lang == "uk" else FOOTER).replace("/* site-nav-style */", NAV_STYLE)

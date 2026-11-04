@@ -99,17 +99,28 @@ def release_articles(releases: list[dict]) -> str:
     )
 
 
-def structured_data(page: str, latest: dict | None) -> str:
+MONTHS_UK = ["січня", "лютого", "березня", "квітня", "травня", "червня", "липня", "серпня", "вересня", "жовтня", "листопада", "грудня"]
+
+
+def nice_date_uk(iso: str | None) -> str:
+    if not iso:
+        return ""
+    day = time.strptime(iso[:10], "%Y-%m-%d")
+    return f"{day.tm_mday} {MONTHS_UK[day.tm_mon - 1]} {day.tm_year}"
+
+
+def structured_data(page: str, latest: dict | None, uk: bool = False) -> str:
     """schema.org JSON-LD: the site, DeckyHub itself and the page's FAQ, as visible."""
     faq = [
         {"@type": "Question", "name": re.sub(r"<[^>]+>", "", question).strip(), "acceptedAnswer": {"@type": "Answer", "text": re.sub(r"<[^>]+>", "", answer).strip()}}
         for question, answer in re.findall(r"<details><summary>(.*?)</summary><p>(.*?)</p></details>", page, re.S)
     ]
     app = {
-        "@type": "SoftwareApplication", "name": "DeckyHub", "url": SITE,
+        "@type": "SoftwareApplication", "name": "DeckyHub", "url": SITE + "uk/" if uk else SITE, "inLanguage": "uk" if uk else "en",
         "applicationCategory": "UtilitiesApplication", "applicationSubCategory": "Decky Loader plugin", "operatingSystem": "SteamOS",
-        "description": "A Decky Loader plugin store for Steam Deck: find, install and update 500+ Decky Loader plugins from Gaming Mode, including plugins not on the official Decky store.",
-        "downloadUrl": f"{REPO_URL}/releases/latest", "installUrl": f"{SITE}#install", "releaseNotes": f"{SITE}releases.html",
+        "description": ("Магазин плагінів Decky Loader для Steam Deck: знаходьте, встановлюйте й оновлюйте 500+ плагінів Decky Loader в ігровому режимі, зокрема тих, яких немає в офіційному магазині Decky."
+                        if uk else "A Decky Loader plugin store for Steam Deck: find, install and update 500+ Decky Loader plugins from Gaming Mode, including plugins not on the official Decky store."),
+        "downloadUrl": f"{REPO_URL}/releases/latest", "installUrl": f"{SITE}uk/#install" if uk else f"{SITE}#install", "releaseNotes": f"{SITE}releases.html",
         "image": f"{SITE}img/og.jpg", "screenshot": [f"{SITE}img/{name}.webp" for name in ("discover", "updates", "manage", "menu")],
         "license": "https://www.gnu.org/licenses/gpl-3.0.html", "isAccessibleForFree": True,
         "author": {"@type": "Person", "name": "mazillka", "url": "https://github.com/mazillka"}, "sameAs": [REPO_URL],
@@ -145,7 +156,18 @@ if latest:
     page = page.replace("<!-- latest -->", f'Latest release: <a href="releases.html#{escape(latest["tag_name"])}">{escape(latest["tag_name"])}</a>, {nice_date(latest.get("published_at"))} · <a href="releases.html">Release notes</a>')
 readme = (ROOT / "README.md").read_text(encoding="utf-8")
 page = re.sub(r"<!-- steps: (.+?) -->", lambda match: plugin_pages.readme_steps(readme, match.group(1)), page)
-index.write_text(site_shell.apply(page), encoding="utf-8")
+index.write_text(site_shell.apply(page, switch=("Українська", SITE + "uk/", "uk")), encoding="utf-8")
+
+# deckyhub.com/uk/: the home page in Ukrainian, filled in the same way (its steps from README.uk.md).
+uk_index = out / "uk" / "index.html"
+uk_page = uk_index.read_text(encoding="utf-8")
+if latest:
+    uk_page = uk_page.replace("<!-- latest -->", f'Останній реліз: <a href="../releases.html#{escape(latest["tag_name"])}">{escape(latest["tag_name"])}</a>, {nice_date_uk(latest.get("published_at"))} · <a href="../releases.html">Нотатки до релізів</a>')
+uk_page = uk_page.replace("<!-- popular -->", plugin_pages.popular_cards(apps, data, prefix="../plugins/")).replace("<!-- plugin-count -->", str(len(apps)))
+uk_page = uk_page.replace("<!-- structured-data -->", structured_data(uk_page, latest, uk=True))
+readme_uk = (ROOT / "README.uk.md").read_text(encoding="utf-8")
+uk_page = re.sub(r"<!-- steps: (.+?) -->", lambda match: plugin_pages.readme_steps(readme_uk, match.group(1)), uk_page)
+uk_index.write_text(site_shell.apply(uk_page, "uk", ("English", SITE, "en")), encoding="utf-8")
 
 notes = out / "releases.html"
 notes_page = notes.read_text(encoding="utf-8")
@@ -164,6 +186,7 @@ newest = (releases[0].get("published_at") or "")[:10] if releases else today
 (out / "sitemap.xml").write_text(
     '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     f"<url><loc>{SITE}</loc><lastmod>{today}</lastmod></url>\n"
+    f"<url><loc>{SITE}uk/</loc><lastmod>{today}</lastmod></url>\n"
     f"<url><loc>{SITE}releases.html</loc><lastmod>{newest}</lastmod></url>\n"
     + "".join(f"<url><loc>{escape(url)}</loc><lastmod>{date}</lastmod></url>\n" for url, date in plugin_urls) + "</urlset>\n",
     encoding="utf-8",
