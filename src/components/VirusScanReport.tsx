@@ -35,6 +35,17 @@ const VIRUSTOTAL_URL_SCAN = "https://www.virustotal.com/gui/home/url";
 // The document a button press came from (Steam's main window for a Manage window).
 const pageOf = (event?: { currentTarget?: EventTarget | null }) => (event?.currentTarget as Node | null | undefined)?.ownerDocument ?? document;
 
+// One scanner's line in the Manage window's box: shield and verdict on the left, when it
+// ran on the right, wrapping under it on a narrow window.
+function Row({ color, label, when, className }: { color: string; label: string; when?: string; className?: string }) {
+  return (
+    <div className={className} style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "baseline", columnGap: 12 }}>
+      <span style={{ color, fontWeight: 600, overflowWrap: "anywhere" }}><FaShieldAlt /> {label}</span>
+      {when && <small style={{ color: MUTED, whiteSpace: "nowrap" }}>{when}</small>}
+    </div>
+  );
+}
+
 // The full report for one ZIP, in its own window over the Manage window.
 type VirusTotalReport = NonNullable<Awaited<ReturnType<typeof virusTotalReportOf>>>;
 
@@ -46,7 +57,7 @@ function VirusTotalResult({ t, report }: { t: TFunc; report: VirusTotalReport })
   return (
     <div style={{ display: "grid", gap: 2 }}>
       <strong style={{ color: report.flagged ? COLORS.infected : COLORS.clean }}>
-        {t("scan.virusTotalResult", { flagged: report.flagged, total: report.total })}
+        <FaShieldAlt /> {t("scan.virusTotalResult", { flagged: report.flagged, total: report.total })}
       </strong>
       {report.scannedAt !== undefined && <small style={{ color: MUTED }}>
         {t("scan.scannedAt", { date: new Date(report.scannedAt * 1000).toLocaleString() })}
@@ -72,7 +83,7 @@ function ScanReportModal({ t, asset, scan, virusTotal, metaDefender, showExterna
             const { name, verdict } = scanner;
             return (
               <Focusable key={name} flow-children="down" style={{ display: "grid", gap: 4 }}>
-                <Focusable onActivate={() => {}} onFocus={keepInView}><strong style={{ color: verdict ? COLORS[verdict.result] : MUTED }}>{line(t, scanner)}</strong></Focusable>
+                <Focusable onActivate={() => {}} onFocus={keepInView}><strong style={{ color: verdict ? COLORS[verdict.result] : MUTED }}><FaShieldAlt /> {line(t, scanner)}</strong></Focusable>
                 {verdict?.result === "incomplete" && verdict.found?.length ? <Focusable onActivate={() => {}} onFocus={keepInView}>{t("scan.found", { names: verdict.found.join(", ") })}</Focusable> : null}
                 {verdict?.reason && <Focusable onActivate={() => {}} onFocus={keepInView}>{t("scan.reason", { reason: verdict.reason })}</Focusable>}
                 {verdict?.engine && <Focusable onActivate={() => {}} onFocus={keepInView}>{name === "YARA" ? t("scan.rules", { engine: verdict.engine, rules: verdict.signatures || "—" }) : t("scan.engine", { engine: verdict.engine, signatures: verdict.signatures || "—" })}</Focusable>}
@@ -81,9 +92,9 @@ function ScanReportModal({ t, asset, scan, virusTotal, metaDefender, showExterna
             );
           })}
           <Focusable onActivate={() => {}} onFocus={keepInView}>{t("scan.file", { file: asset.name })}</Focusable>
-          {hash && <Focusable onActivate={() => {}} onFocus={keepInView}>{t("scan.sha256", { hash })}</Focusable>}
+          {hash && <Focusable onActivate={() => {}} onFocus={keepInView}><small style={{ fontFamily: "monospace", color: MUTED }}>{t("scan.sha256", { hash })}</small></Focusable>}
           {virusTotal && <Focusable onActivate={() => {}} onFocus={keepInView}><VirusTotalResult t={t} report={virusTotal} /></Focusable>}
-          {metaDefender && <Focusable onActivate={() => {}} onFocus={keepInView}>{t("scan.metaDefenderResult", { flagged: metaDefender.flagged, total: metaDefender.total })}</Focusable>}
+          {metaDefender && <Focusable onActivate={() => {}} onFocus={keepInView}><strong style={{ color: metaDefender.flagged ? COLORS.infected : COLORS.clean }}><FaShieldAlt /> {t("scan.metaDefenderResult", { flagged: metaDefender.flagged, total: metaDefender.total })}</strong></Focusable>}
           {showExternalActions && hash && <Button onClick={() => {
             closeModal?.();
             closeParent?.();
@@ -174,18 +185,17 @@ export function VirusScanReport({
           {scan.unverifiedMatch && <strong style={{ color: COLORS.incomplete }}>{t("scan.unverifiedDetail")}</strong>}
           {!scan.unverifiedMatch && scannersOf(scan).map((scanner) => (
             <div key={scanner.name} className={`deckyhub-scan-${scanner.name.toLowerCase()}`} style={{ display: "grid", gap: 2 }}>
-              <span style={{ color: scanner.verdict ? COLORS[scanner.verdict.result] : MUTED, fontWeight: 600, overflowWrap: "anywhere" }}>
-                <FaShieldAlt /> {line(t, scanner)}
-              </span>
+              <Row color={scanner.verdict ? COLORS[scanner.verdict.result] : MUTED} label={line(t, scanner)} when={scanner.verdict?.scannedAt ? timeAgo(Date.parse(scanner.verdict.scannedAt)) : undefined} />
               {scanner.verdict?.reason && <small style={{ color: MUTED, overflowWrap: "anywhere" }}>{scanner.verdict.reason}</small>}
-              {scanner.verdict?.scannedAt && <small style={{ color: MUTED }}>{t("scan.scannedWhen", { when: timeAgo(Date.parse(scanner.verdict.scannedAt)) })}</small>}
             </div>
           ))}
           {!scan.unverifiedMatch && scannersOf(scan).some(({ verdict }) => verdict && verdict.result !== "clean") && <small style={{ color: MUTED }}>{t("scan.yourChoice")}</small>}
         </>
       )}
-      {virusTotal && <VirusTotalResult t={t} report={virusTotal} />}
-      {metaDefender && <small>{t("scan.metaDefenderResult", { flagged: metaDefender.flagged, total: metaDefender.total })}</small>}
+      {virusTotal && (virusTotal.state === "complete"
+        ? <Row color={virusTotal.flagged ? COLORS.infected : COLORS.clean} label={t("scan.virusTotalResult", { flagged: virusTotal.flagged, total: virusTotal.total })} when={virusTotal.scannedAt !== undefined ? timeAgo(virusTotal.scannedAt * 1000) : undefined} />
+        : <VirusTotalResult t={t} report={virusTotal} />)}
+      {metaDefender && <Row color={metaDefender.flagged ? COLORS.infected : COLORS.clean} label={t("scan.metaDefenderResult", { flagged: metaDefender.flagged, total: metaDefender.total })} />}
       {(report || virusTotal || metaDefender || (showExternalActions && sha256) || (showZipActions && link)) && (
         <Focusable flow-children="right" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
           {(report || virusTotal || metaDefender || (showExternalActions && sha256)) && (
