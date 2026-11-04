@@ -8,8 +8,8 @@ import { displayVersion } from "../version";
 import { plainNotes, showReleaseInfo, textSections } from "./ReleaseInfo";
 import { keepInView } from "./KeepInView";
 
-// How much of the release notes the window shows; Y on the main button opens them in full.
-const NOTES_PREVIEW = 700;
+// How much of the release notes the window shows (nearly always all of it); Y on the main button opens them in full.
+const NOTES_PREVIEW = 6000;
 export const sectionTitleStyle = { margin: 0, color: "#9fb0bf", fontSize: 13, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" as const };
 
 // The wide details window both a plugin's Manage window and DeckyHub's own update
