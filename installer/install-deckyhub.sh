@@ -56,7 +56,13 @@ WARRANTY="DeckyHub is a free community project. It comes as it is, with no guara
 # Dialogs when zenity is there (SteamOS has it), plain text in the terminal otherwise. Texts
 # use \n for line breaks: zenity understands it, the terminal gets printf %b.
 has_zenity() { command -v zenity > /dev/null && [ -n "${DISPLAY}${WAYLAND_DISPLAY}" ]; }
-zen() { zenity 2> >(grep -v 'Gtk' >&2) --window-icon=system-software-install "$@"; }
+# As root (after the password) the dialogs still run as the Deck's user: zenity as root crashes while it draws a dialog's icon
+# (GTK's sandboxed image loader fails), so the progress bar showed but the "All done!" message never did.
+zen() {
+    local as=()
+    [ "$EUID" = 0 ] && [ -n "$SUDO_USER" ] && [ -z "$DECKYHUB_USER_HOME" ] && as=(sudo -u "$SUDO_USER" -E)
+    "${as[@]}" zenity 2> >(grep -v 'Gtk' >&2) --window-icon=system-software-install "$@"
+}
 # Texts use Pango markup (bold, colors, sizes) in zenity; the terminal gets them without the tags.
 plain() { printf '%b\n' "$1" | sed -e 's/<[^>]*>//g'; }
 say() { if has_zenity; then zen --title="$TITLE" --width=480 --icon-name=dialog-information --info --text="$1"; else plain "$1"; fi; }
