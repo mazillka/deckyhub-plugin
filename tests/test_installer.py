@@ -213,7 +213,7 @@ echo "PICKS=$PICKS"
 
     def test_each_card_gets_its_categorys_icon(self):
         _, dialogs = self.run_picker()
-        icons = {re.search(r"<b>([^<]+)</b>", text).group(1): re.search(r"--icon=(\S+)", arguments).group(1) for _, arguments, text in dialogs[1:]}
+        icons = {re.search(r"<b>([^<]+)</b>", text).group(1): re.search(r"--icon-name=(\S+)", arguments).group(1) for _, arguments, text in dialogs[1:]}
         self.assertEqual(icons["MAKO Decky"], "video-display")
         self.assertEqual(icons["CSS Loader"], "preferences-desktop-theme")
         self.assertEqual(icons["ProtonDB Badges"], "applications-games")
