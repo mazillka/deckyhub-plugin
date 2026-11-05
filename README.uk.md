@@ -300,6 +300,8 @@ DeckyHub не має облікових записів, аналітики чи 
 
 ## Ліцензія
 
+Copyright © 2026 Andrii Shevchuk-Yuhanets ([mazillka](https://github.com/mazillka)).
+
 GPL-3.0-or-later — див. [LICENSE.md](LICENSE.md).
 
 ## Допомога
