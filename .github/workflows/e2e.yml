@@ -13,6 +13,8 @@ jobs:
   e2e:
     name: e2e (${{ matrix.shard }}/4)
     runs-on: ubuntu-latest
+    # A shard takes about 2 minutes; a hang fails it instead of holding CI for hours.
+    timeout-minutes: 20
     strategy:
       # Every shard's result counts: a failing one mustn't hide another's.
       fail-fast: false
@@ -42,12 +44,16 @@ jobs:
           key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
       - name: Install Chromium
         working-directory: devtools/decky-mock
+        # apt once hung for 9 minutes on one shard while the others took seconds: give each
+        # try 4 minutes and try once more.
         run: |
-          if [[ "${{ steps.browsers.outputs.cache-hit }}" == "true" ]]; then
-            npx playwright install-deps chromium
-          else
-            npx playwright install --with-deps chromium
-          fi
+          if [[ "${{ steps.browsers.outputs.cache-hit }}" == "true" ]]; then install=(npx playwright install-deps chromium)
+          else install=(npx playwright install --with-deps chromium); fi
+          for attempt in 1 2; do
+            timeout 240 "${install[@]}" && exit 0
+            echo "::warning::Installing Chromium failed or hung (try $attempt)"
+          done
+          exit 1
       - name: Run shard ${{ matrix.shard }} of 4
         working-directory: devtools/decky-mock
         run: npx playwright test --shard=${{ matrix.shard }}/4
