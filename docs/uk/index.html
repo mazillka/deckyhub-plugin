@@ -52,7 +52,7 @@ figure{margin:0}figcaption{color:var(--muted);margin-top:10px;font-size:.92rem}
 ol.steps{counter-reset:s;list-style:none;padding:0;display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
 ol.steps li{counter-increment:s;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;color:var(--muted)}
 ol.steps li::before{content:counter(s);display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;margin-bottom:10px}
-ol.steps strong{color:var(--text)}
+ol.steps strong{color:var(--text)}ol.steps code{overflow-wrap:anywhere}
 code{background:#0f1724;border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.88em}
 .catalog{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
 .app{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;text-decoration:none;color:var(--text);display:block}
@@ -112,12 +112,18 @@ footer .wrap{display:grid;gap:10px}
 
 <section id="install"><div class="wrap">
 <h2>Встановлення за хвилину</h2>
-<p class="sub">Два способи: <strong>інсталятор для робочого столу</strong> (найпростіший; він також встановить Decky Loader, якщо потрібно, і попросить пароль адміністратора) або <strong>ZIP вручну</strong> (без пароля; Decky Loader має бути вже встановлений).</p>
+<p class="sub">Два способи: <strong>інсталятор для робочого столу</strong> (найпростіший: один файл налаштує Decky Loader, якщо потрібно, і DeckyHub; він попросить пароль адміністратора) або <strong>ZIP вручну</strong> (без пароля; Decky Loader має бути вже встановлений).</p>
 <h3>Варіант 1: інсталятор для робочого столу (рекомендовано)</h3>
-<p class="sub">Спершу він перевіряє <a href="https://decky.xyz/">Decky Loader</a> і встановлює його, якщо його немає, а потім встановлює DeckyHub.</p>
+<p class="sub">Один файл встановлює <strong>і Decky Loader, і DeckyHub</strong>: спершу перевіряє <a href="https://decky.xyz/">Decky Loader</a> і встановлює його, якщо його немає, а потім встановлює DeckyHub. Менше кроків і команд, ніж при окремому встановленні Decky Loader.</p>
 <ol class="steps">
 <!-- steps: ### Варіант 1 -->
 </ol>
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(420px,100%),1fr));margin-top:16px">
+<figure><div class="shot"><img src="../img/installer-overview.webp" srcset="../img/installer-overview-640.webp 640w, ../img/installer-overview.webp 1280w" sizes="(max-width:900px) 100vw, 420px" width="1280" height="800" alt="Огляд інсталятора: усі кроки, навіщо потрібен пароль адміністратора і що відбувається з вашими даними" loading="lazy"></div><figcaption>Огляд</figcaption></figure>
+<figure><div class="shot"><img src="../img/installer-card.webp" srcset="../img/installer-card-640.webp 640w, ../img/installer-card.webp 1280w" sizes="(max-width:900px) 100vw, 420px" width="1280" height="800" alt="Картка одного необов'язкового плагіна: версія, примітки, зірки, посилання на GitHub і сторінку DeckyHub, «Пропустити» за замовчуванням" loading="lazy"></div><figcaption>Картка плагіна</figcaption></figure>
+<figure><div class="shot"><img src="../img/installer-password.webp" srcset="../img/installer-password-640.webp 640w, ../img/installer-password.webp 1280w" sizes="(max-width:900px) 100vw, 420px" width="1280" height="800" alt="Запит пароля адміністратора: він використовується лише на цьому Deck, зараз, і не зберігається" loading="lazy"></div><figcaption>Пароль</figcaption></figure>
+<figure><div class="shot"><img src="../img/installer-done.webp" srcset="../img/installer-done-640.webp 640w, ../img/installer-done.webp 1280w" sizes="(max-width:900px) 100vw, 420px" width="1280" height="800" alt="Повідомлення «All done!» в кінці: що встановлено і що робити далі" loading="lazy"></div><figcaption>Готово</figcaption></figure>
+</div>
 <h3>Варіант 2: ZIP вручну</h3>
 <p class="sub">Потрібен встановлений Decky Loader.</p>
 <ol class="steps">
