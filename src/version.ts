@@ -38,12 +38,26 @@ function comparePrerelease(target: string | null, current: string | null): numbe
   return Math.sign(a.length - b.length);
 }
 
+// Some plugins tag "v0.45" while their plugin.json says "0.4.5" (Decky
+// LocalSend): the same digits grouped differently. Read as numbers 45 > 4 would
+// report an update forever, so equal digits with a different grouping count as
+// the same version. Only when one side is a lone two-digit-or-longer group
+// and the other is all single digits ("1.10" vs "1.1.0" stays ambiguous, so it
+// needs a trailing zero: those never match).
+function sameDigitsRegrouped(a: number[], b: number[]) {
+  if (a.length === b.length) return false;
+  const [short, long] = a.length < b.length ? [a, b] : [b, a];
+  if (!short.some((n) => n > 9) || long.some((n) => n > 9)) return false;
+  return short.join("") === long.join("") && short[short.length - 1] !== 0 && long[long.length - 1] !== 0;
+}
+
 // 1 / -1 / 0 as target is newer / older / the same as current, or null when
 // either has no version number. Used for DeckyHub itself and every tracked
 // app, so pre-release suffixes count everywhere (rc.1 → rc.2 → final).
 export function compareVersions(target: string, current: string): number | null {
   const a = parseVersion(target), b = parseVersion(current);
   if (!a || !b) return null;
+  if (sameDigitsRegrouped(a.release, b.release)) return comparePrerelease(a.prerelease, b.prerelease);
   for (let i = 0; i < Math.max(a.release.length, b.release.length); i++) {
     const diff = (a.release[i] || 0) - (b.release[i] || 0);
     if (diff) return Math.sign(diff);

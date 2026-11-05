@@ -9,6 +9,14 @@ test("release numbers compare numerically, not as text", () => {
   assert.equal(compareVersions("plugin-v1.2.3", "1.2.4"), -1);
 });
 
+test("the same digits grouped differently are the same version", () => {
+  assert.equal(compareVersions("v0.45", "0.4.5"), 0);
+  assert.equal(compareVersions("0.4.5", "v0.45"), 0);
+  assert.equal(compareVersions("v0.46", "0.4.5"), 1);
+  assert.equal(compareVersions("1.10.0", "1.1.0"), 1);
+  assert.equal(compareVersions("1.10", "1.1.0"), 1);
+});
+
 test("a final release outranks its own pre-releases", () => {
   assert.equal(compareVersions("1.0.3", "1.0.3-rc.9"), 1);
   assert.equal(compareVersions("1.0.3-rc.9", "1.0.3"), -1);
