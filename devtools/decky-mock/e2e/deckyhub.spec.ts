@@ -726,7 +726,8 @@ test("MetaDefender reports are used only for the selected ZIP hash", async ({ pa
   const card = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
   await expect(card.getByText("No threats · 2/2", { exact: true })).toBeVisible();
   await card.getByRole("button", { name: "Manage", exact: true }).click();
-  await expect(app.locator(".steam-modal").getByText(/MetaDefender:/)).toHaveCount(0);
+  await expect(app.locator(".steam-modal").getByText(/MetaDefender: \d+ of/)).toHaveCount(0);
+  await expect(app.locator(".steam-modal").getByText("MetaDefender: Not scanned yet").first()).toBeVisible();
 });
 
 test("The Manage window shows the plugin's description, details and a Repository button", async ({ page }) => {
@@ -841,7 +842,7 @@ test("Plugin Details keeps an unscanned ZIP inside DeckyHub", async ({ page }) =
   await browseAll(page, "MAKO");
   await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
   const scan = app.locator(".steam-modal .deckyhub-virus-scan");
-  await expect(scan.getByText("Not scanned yet", { exact: false })).toBeVisible();
+  await expect(scan.getByText(/^Not scanned yet. New releases/)).toBeVisible();
   await expect(scan.getByRole("button", { name: "VirusTotal", exact: true })).toHaveCount(0);
   await scan.getByRole("button", { name: "Scan report", exact: true }).click();
   await expect(app.locator(".steam-modal").getByRole("button", { name: "VirusTotal", exact: true })).toBeVisible();
@@ -889,7 +890,7 @@ test("The Manage window says when ClamAV found something, and never calls an uns
   await browseAll(page, "MAKO");
   await manage.click();
   const scan = app.locator(".steam-modal .deckyhub-virus-scan");
-  await expect(scan.getByText("Not scanned yet", { exact: false })).toBeVisible();
+  await expect(scan.getByText(/^Not scanned yet. New releases/)).toBeVisible();
   await expect(scan.getByText("No threats found", { exact: false })).toHaveCount(0);
 });
 
@@ -958,6 +959,25 @@ test("VirusTotal pending and error reports are shown separately", async ({ page 
   await expect(modal.getByText("VirusTotal: Scan pending")).toBeVisible();
   await modal.getByLabel("Version").selectOption("plugin-v1.0.0");
   await expect(modal.getByText("VirusTotal: Couldn't be scanned")).toBeVisible();
+});
+
+test("A ZIP the registry has no report for says Not scanned yet, not pending", async ({ page }) => {
+  // The registry scans only each plugin's newest ZIPs, so an older version may never get a report.
+  const first = "c".repeat(64), second = "d".repeat(64);
+  await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", first, "02"), makoRelease("plugin-v1.0.0", second, "01")]);
+  await mockVirusScans(page, {});
+  await page.route("https://raw.githubusercontent.com/mazillka/deckyhub-registry/virustotal-reports/reports.json", (route) => route.fulfill({ json: { reports: { [first]: { state: "pending" } } } }));
+  await page.route(METADEFENDER_URL, (route) => route.fulfill({ json: { reports: { [first]: { state: "waiting" } } } }));
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
+  await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
+  const modal = app.locator(".steam-modal .deckyhub-details");
+  await expect(modal.getByText("VirusTotal: Scan pending")).toBeVisible();
+  await expect(modal.getByText("MetaDefender: Scan pending")).toBeVisible();
+  await modal.getByLabel("Version").selectOption("plugin-v1.0.0");
+  await expect(modal.getByText("VirusTotal: Not scanned yet")).toBeVisible();
+  await expect(modal.getByText("MetaDefender: Not scanned yet")).toBeVisible();
 });
 
 test("Unavailable scan data and unsupported VirusTotal ZIPs are distinct", async ({ page }) => {

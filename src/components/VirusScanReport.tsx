@@ -52,7 +52,7 @@ type VirusTotalReport = NonNullable<Awaited<ReturnType<typeof virusTotalReportOf
 
 function VirusTotalResult({ t, report }: { t: TFunc; report: VirusTotalReport }) {
   if (report.state !== "complete") {
-    const verdict = report.state === "pending" ? t("scan.waiting") : report.state === "unsupported" ? t("scan.unsupported") : report.state === "unavailable" ? t("scan.unavailable") : t("scan.error");
+    const verdict = report.state === "none" ? t("scan.pending") : report.state === "pending" ? t("scan.waiting") : report.state === "unsupported" ? t("scan.unsupported") : report.state === "unavailable" ? t("scan.unavailable") : t("scan.error");
     return <small style={{ color: MUTED }}>{t("scan.verdict", { scanner: "VirusTotal", verdict })}</small>;
   }
   return (
@@ -66,6 +66,9 @@ function VirusTotalResult({ t, report }: { t: TFunc; report: VirusTotalReport })
     </div>
   );
 }
+
+const MetaDefenderPending = ({ t, state }: { t: TFunc; state: "none" | "pending" | "error" | "unavailable" }) =>
+  <small style={{ color: MUTED }}>{t("scan.verdict", { scanner: "MetaDefender", verdict: t(({ none: "scan.pending", pending: "scan.waiting", error: "scan.error", unavailable: "scan.unavailable" } as const)[state]) })}</small>;
 
 function ScanReportModal({ t, asset, scan, virusTotal, metaDefender, showExternalGuidance, showExternalActions, closeParent, closeModal }: {
   t: TFunc; asset: Asset; scan: VirusScan | null; virusTotal: VirusTotalReport | null; metaDefender: Awaited<ReturnType<typeof metaDefenderReportOf>>;
@@ -95,7 +98,9 @@ function ScanReportModal({ t, asset, scan, virusTotal, metaDefender, showExterna
           <Focusable onActivate={() => {}} onFocus={keepInView}>{t("scan.file", { file: asset.name })}</Focusable>
           {hash && <Focusable onActivate={() => {}} onFocus={keepInView}><small style={{ fontFamily: "monospace", color: MUTED }}>{t("scan.sha256", { hash })}</small></Focusable>}
           {virusTotal && <Focusable onActivate={() => {}} onFocus={keepInView}><VirusTotalResult t={t} report={virusTotal} /></Focusable>}
-          {metaDefender && <Focusable onActivate={() => {}} onFocus={keepInView}><strong style={{ color: metaDefender.flagged ? COLORS.infected : COLORS.clean }}><FaShieldAlt /> {t("scan.metaDefenderResult", { flagged: metaDefender.flagged, total: metaDefender.total })}</strong></Focusable>}
+          {metaDefender && <Focusable onActivate={() => {}} onFocus={keepInView}>{metaDefender.state === "complete"
+            ? <strong style={{ color: metaDefender.flagged ? COLORS.infected : COLORS.clean }}><FaShieldAlt /> {t("scan.metaDefenderResult", { flagged: metaDefender.flagged, total: metaDefender.total })}</strong>
+            : <MetaDefenderPending t={t} state={metaDefender.state} />}</Focusable>}
           {showExternalActions && hash && <Button onClick={() => {
             closeModal?.();
             closeParent?.();
@@ -203,7 +208,9 @@ export function VirusScanReport({
       {virusTotal && (virusTotal.state === "complete"
         ? <Row color={virusTotal.flagged ? COLORS.infected : COLORS.clean} label={t("scan.virusTotalResult", { flagged: virusTotal.flagged, total: virusTotal.total })} when={virusTotal.scannedAt !== undefined ? timeAgo(virusTotal.scannedAt * 1000) : undefined} />
         : <VirusTotalResult t={t} report={virusTotal} />)}
-      {metaDefender && <Row color={metaDefender.flagged ? COLORS.infected : COLORS.clean} label={t("scan.metaDefenderResult", { flagged: metaDefender.flagged, total: metaDefender.total })} />}
+      {metaDefender && (metaDefender.state === "complete"
+        ? <Row color={metaDefender.flagged ? COLORS.infected : COLORS.clean} label={t("scan.metaDefenderResult", { flagged: metaDefender.flagged, total: metaDefender.total })} />
+        : <MetaDefenderPending t={t} state={metaDefender.state} />)}
       {report && <small style={{ color: MUTED }}>{t("scan.safetyWarning")}</small>}
       {(report || virusTotal || metaDefender || (showExternalActions && sha256) || (showZipActions && link)) && (
         <Focusable flow-children="right" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
