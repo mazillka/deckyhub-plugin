@@ -112,10 +112,16 @@ function bridgeCall(page: Page, route: string, ...args: unknown[]) {
 
 // A run interrupted mid-test can leave a seeded plugin behind, which would
 // show as installed to every later test; clear them before starting.
-test.beforeAll(() => {
+test.beforeAll(async ({ request }) => {
   const plugins = new URL("../.dev-data/plugins/", import.meta.url);
   mkdirSync(plugins, { recursive: true });
   for (const dir of readdirSync(plugins)) if (dir.startsWith("e2e-")) rmSync(new URL(`${dir}/`, plugins), { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  // A fresh bridge (each CI shard) is still downloading the official list when its first
+  // test starts, whichever test that is: wait for it once, so no test sees an empty registry.
+  await expect.poll(async () => {
+    const response = await request.post(BRIDGE_URL, { data: { route: "get_apps", args: [] }, headers: { Origin: "http://127.0.0.1:5183" } });
+    return response.ok() ? ((await response.json()).result?.apps ?? []).length : 0;
+  }, { timeout: 60_000 }).toBeGreaterThan(0);
 });
 
 test.beforeEach(async ({ page }) => {

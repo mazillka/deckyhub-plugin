@@ -32,12 +32,6 @@ jobs:
           pnpm run build
           pnpm run test:frontend
           python3 -m unittest discover -s tests
-      - name: Run browser E2E tests
-        run: |
-          npm ci --prefix devtools/decky-mock
-          cd devtools/decky-mock
-          npx playwright install --with-deps chromium
-          npm run test:e2e
       - name: Package Decky plugin
         run: |
           # Decky loads only dist/index.js; the source map would be ~85% of the ZIP.
@@ -76,6 +70,11 @@ jobs:
             install-deckyhub.sh
           if-no-files-found: error
 
+  # The browser tests, in parallel shards beside the build (e2e.yml, the same as CI's).
+  # publish waits for them: a release never goes out with a failing test.
+  e2e:
+    uses: ./.github/workflows/e2e.yml
+
   # Each file is scanned by scan.yml (ClamAV, VirusTotal, MetaDefender); never stops the release.
   # The code itself is checked by CodeQL (codeql.yml) on every push and PR.
   scan:
@@ -103,10 +102,12 @@ jobs:
       vt-interval: 60
       vt-polls: 15
 
+  # Goes out once the ZIP's own scans are back. The Desktop installer's scans take
+  # minutes longer (VirusTotal polls), so desktop-scan-notes fills in their line after.
   publish:
-    needs: [build, scan, scan-desktop]
+    needs: [build, e2e, scan]
     # The scan never holds a release back, even if its job broke: the notes say so.
-    if: ${{ !cancelled() && needs.build.result == 'success' }}
+    if: ${{ !cancelled() && needs.build.result == 'success' && needs.e2e.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -120,10 +121,6 @@ jobs:
         continue-on-error: true
         with:
           name: clamav-report
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        continue-on-error: true
-        with:
-          name: clamav-desktop-report
       - name: Create GitHub Release
         run: |
           prerelease=()
@@ -136,23 +133,6 @@ jobs:
             files+=("$report")
             link=" ([scan report](https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/${report}))"
           fi
-          desktop_report="ClamAV-desktop-${GITHUB_REF_NAME}.txt"
-          desktop_link=""
-          if [[ -f "$desktop_report" ]]; then
-            files+=("$desktop_report")
-            desktop_link=" ([scan report](https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/${desktop_report}))"
-          fi
-          case "$DESKTOP_RESULT" in
-            clean) desktop_scan="No threats found$desktop_link." ;;
-            infected) desktop_scan="Flagged: ${DESKTOP_FOUND}$desktop_link." ;;
-            *) desktop_scan="Scan unavailable$desktop_link." ;;
-          esac
-          desktop_vt="${DESKTOP_VT_RESULT:-unavailable}"
-          [[ -n "$DESKTOP_VT_DETECTIONS" ]] && desktop_vt+=" (${DESKTOP_VT_DETECTIONS})"
-          [[ -n "$DESKTOP_VT_URL" ]] && desktop_vt+=" — [report]($DESKTOP_VT_URL)"
-          desktop_md="${DESKTOP_MD_RESULT:-unavailable}"
-          [[ -n "$DESKTOP_MD_DETECTIONS" ]] && desktop_md+=" (${DESKTOP_MD_DETECTIONS})"
-          [[ -n "$DESKTOP_MD_URL" ]] && desktop_md+=" — [report]($DESKTOP_MD_URL)"
           case "$RESULT" in
             clean) scan="ClamAV found no threats in \`$zip\`$link." ;;
             infected) scan="ClamAV flagged \`$zip\`: ${FOUND}$link. It may be a false positive; read the report before you install." ;;
@@ -176,7 +156,7 @@ jobs:
           md_line=""
           [[ -n "$md" ]] && md_line="- **MetaDefender:** $md"$'\n'
           # Kept as the last section when the notes are rewritten (AGENTS.md's Release section).
-          notes="## Security checks"$'\n\n'"- **Virus scan:** $scan"$'\n'"$vt_line""$md_line""- **Desktop installer (\`install-deckyhub.sh\` and its \`.desktop\` launcher):** ClamAV: $desktop_scan VirusTotal: $desktop_vt. MetaDefender: $desktop_md."$'\n'"- **Code analysis:** GitHub [CodeQL](https://github.com/${GITHUB_REPOSITORY}/actions/workflows/codeql.yml) checks the Python and TypeScript code on every change."
+          notes="## Security checks"$'\n\n'"- **Virus scan:** $scan"$'\n'"$vt_line""$md_line""- **Desktop installer (\`install-deckyhub.sh\` and its \`.desktop\` launcher):** scans still running; this line is filled in a few minutes after the release."$'\n'"- **Code analysis:** GitHub [CodeQL](https://github.com/${GITHUB_REPOSITORY}/actions/workflows/codeql.yml) checks the Python and TypeScript code on every change."
           gh release create "$GITHUB_REF_NAME" "${files[@]}" --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes --notes "$notes" "${prerelease[@]}"
         env:
           GH_TOKEN: ${{ github.token }}
@@ -188,14 +168,6 @@ jobs:
           MD_RESULT: ${{ needs.scan.outputs.md-result }}
           MD_DETECTIONS: ${{ needs.scan.outputs.md-detections }}
           MD_URL: ${{ needs.scan.outputs.md-url }}
-          DESKTOP_RESULT: ${{ needs.scan-desktop.outputs.result }}
-          DESKTOP_FOUND: ${{ needs.scan-desktop.outputs.found }}
-          DESKTOP_VT_RESULT: ${{ needs.scan-desktop.outputs.vt-result }}
-          DESKTOP_VT_DETECTIONS: ${{ needs.scan-desktop.outputs.vt-detections }}
-          DESKTOP_VT_URL: ${{ needs.scan-desktop.outputs.vt-url }}
-          DESKTOP_MD_RESULT: ${{ needs.scan-desktop.outputs.md-result }}
-          DESKTOP_MD_DETECTIONS: ${{ needs.scan-desktop.outputs.md-detections }}
-          DESKTOP_MD_URL: ${{ needs.scan-desktop.outputs.md-url }}
       # shields.io endpoint JSON for the README's and the website's VirusTotal and
       # MetaDefender badges, on the orphan `badges` branch. Stable releases only, like the
       # Release badge next to them; a scan that was skipped or failed keeps the old badge.
@@ -235,3 +207,58 @@ jobs:
         run: gh workflow run pages.yml --ref main --repo "$GITHUB_REPOSITORY"
         env:
           GH_TOKEN: ${{ github.token }}
+
+  # The Desktop installer's line in the notes' Security checks, once its scans are back,
+  # plus its ClamAV report beside the other files. Only that one line changes, so notes
+  # rewritten by hand in the meantime keep everything else.
+  desktop-scan-notes:
+    needs: [publish, scan-desktop]
+    if: ${{ !cancelled() && needs.publish.result == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        continue-on-error: true
+        with:
+          name: clamav-desktop-report
+      - name: Fill in the Desktop installer's scans
+        run: |
+          desktop_report="ClamAV-desktop-${GITHUB_REF_NAME}.txt"
+          desktop_link=""
+          if [[ -f "$desktop_report" ]]; then
+            gh release upload "$GITHUB_REF_NAME" "$desktop_report" --repo "$GITHUB_REPOSITORY" --clobber
+            desktop_link=" ([scan report](https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/${desktop_report}))"
+          fi
+          case "$DESKTOP_RESULT" in
+            clean) desktop_scan="No threats found$desktop_link." ;;
+            infected) desktop_scan="Flagged: ${DESKTOP_FOUND}$desktop_link." ;;
+            *) desktop_scan="Scan unavailable$desktop_link." ;;
+          esac
+          desktop_vt="${DESKTOP_VT_RESULT:-unavailable}"
+          [[ -n "$DESKTOP_VT_DETECTIONS" ]] && desktop_vt+=" (${DESKTOP_VT_DETECTIONS})"
+          [[ -n "$DESKTOP_VT_URL" ]] && desktop_vt+=" — [report]($DESKTOP_VT_URL)"
+          desktop_md="${DESKTOP_MD_RESULT:-unavailable}"
+          [[ -n "$DESKTOP_MD_DETECTIONS" ]] && desktop_md+=" (${DESKTOP_MD_DETECTIONS})"
+          [[ -n "$DESKTOP_MD_URL" ]] && desktop_md+=" — [report]($DESKTOP_MD_URL)"
+          export LINE="- **Desktop installer (\`install-deckyhub.sh\` and its \`.desktop\` launcher):** ClamAV: $desktop_scan VirusTotal: $desktop_vt. MetaDefender: $desktop_md."
+          gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --json body --jq .body > notes.md
+          python3 - <<'PY'
+          import os, re
+          notes = open("notes.md", encoding="utf-8").read()
+          line = os.environ["LINE"]
+          new, count = re.subn(r"^- \*\*Desktop installer .*$", lambda _: line, notes, count=1, flags=re.M)
+          # Notes rewritten without the line: add it to the end of Security checks (the last section).
+          open("notes.md", "w", encoding="utf-8").write(new if count else notes.rstrip("\n") + "\n" + line + "\n")
+          PY
+          gh release edit "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --notes-file notes.md
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DESKTOP_RESULT: ${{ needs.scan-desktop.outputs.result }}
+          DESKTOP_FOUND: ${{ needs.scan-desktop.outputs.found }}
+          DESKTOP_VT_RESULT: ${{ needs.scan-desktop.outputs.vt-result }}
+          DESKTOP_VT_DETECTIONS: ${{ needs.scan-desktop.outputs.vt-detections }}
+          DESKTOP_VT_URL: ${{ needs.scan-desktop.outputs.vt-url }}
+          DESKTOP_MD_RESULT: ${{ needs.scan-desktop.outputs.md-result }}
+          DESKTOP_MD_DETECTIONS: ${{ needs.scan-desktop.outputs.md-detections }}
+          DESKTOP_MD_URL: ${{ needs.scan-desktop.outputs.md-url }}
