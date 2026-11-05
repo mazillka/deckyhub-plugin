@@ -392,6 +392,13 @@ class PluginStatusTests(unittest.TestCase):
             self.assertEqual(result, {"channel": "prerelease"})
             self.assertEqual(plugin.settings["repoSettings"]["owner/repo"], result)
 
+    def test_repo_settings_keep_a_skipped_version_and_drop_a_bad_one(self):
+        from main import _coerce_repo_settings
+        self.assertEqual(_coerce_repo_settings({"channel": "stable", "skipVersion": " v0.45 "}), {"channel": "stable", "skipVersion": "v0.45"})
+        # Settings saved before Skip this version existed, or with a junk value, have none.
+        for values in ({"channel": "stable"}, {"skipVersion": ""}, {"skipVersion": 45}, {"skipVersion": "v" * 201}):
+            self.assertNotIn("skipVersion", _coerce_repo_settings(values))
+
     def test_save_repo_settings_rejects_invalid_repo(self):
         plugin = Plugin()
         plugin.settings = {"repoSettings": {}}

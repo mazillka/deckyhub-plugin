@@ -51,6 +51,12 @@ export function compareVersions(target: string, current: string): number | null 
   return comparePrerelease(a.prerelease, b.prerelease);
 }
 
+// The version a release installs as: the registry's release index reads it from the
+// release's ZIP (pluginVersion) for each channel's newest release, because some plugins
+// tag v0.45 while calling themselves 0.4.5, which would look like an update forever.
+// Everywhere else (older releases, repos the index lacks) the tag is all there is.
+export const releaseVersion = (release: { tag: string; pluginVersion?: string }) => release.pluginVersion || release.tag;
+
 // The stable channel sees only stable releases; the pre-release channel sees
 // everything, so a stable release newer than the last pre-release still
 // reaches people on pre-releases.

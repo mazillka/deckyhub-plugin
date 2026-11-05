@@ -146,7 +146,9 @@ test("Quick Access navigation opens Discover", async ({ page }) => {
     app.getByRole("button", { name: "Settings", exact: true }).boundingBox(),
   ]);
   expect(settings!.y - (discover!.y + discover!.height)).toBeGreaterThanOrEqual(6);
-  // The button counts every plugin Discover lists.
+  // The button counts every plugin Discover lists. On a fresh bridge (CI) the official
+  // list is still downloading when this first test starts, so wait for it.
+  await expect.poll(async () => (await bridgeCall(page, "get_apps")).result.apps.length, { timeout: 30_000 }).toBeGreaterThan(0);
   const listed = (await bridgeCall(page, "get_apps")).result.apps.length;
   await expect(app.getByRole("button", { name: "Discover", exact: true }).locator(".deckyhub-discover-count")).toHaveText(String(listed));
   await app.getByRole("button", { name: "Discover", exact: true }).click();
@@ -1770,6 +1772,77 @@ test("Unifideck updates by uninstalling first and installing fresh, after a warn
     ]);
   } finally {
     rmSync(pluginDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  }
+});
+
+test("A release whose ZIP calls itself the installed version isn't an update, whatever its tag says", async ({ page }) => {
+  // LocalSend's case: tag v0.45, plugin 0.4.5. The registry's release index reads the
+  // ZIP's own version into pluginVersion; the card and Manage window compare with that.
+  const pluginDir = new URL("../.dev-data/plugins/e2e-mako-mismatch/", import.meta.url);
+  mkdirSync(pluginDir, { recursive: true });
+  writeFileSync(new URL("plugin.json", pluginDir), JSON.stringify({ name: "MAKO - Frame Generation", version: "1.2.3" }));
+  await mockMakoReleases(page, [{ ...makoRelease("plugin-v1.3.0", "b".repeat(64)), pluginVersion: "1.2.3" }]);
+
+  try {
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+    await expect(makoCard.getByText("Latest: v1.3.0", { exact: true })).toBeVisible();
+    await expect(makoCard.getByRole("button", { name: /^Update to v/ })).toHaveCount(0);
+    await makoCard.getByRole("button", { name: "Manage", exact: true }).click();
+    const modal = app.locator(".steam-modal");
+    await expect(modal.getByRole("button", { name: "Reinstall v1.3.0", exact: true })).toBeVisible();
+    await expect(modal.getByLabel("Version")).toContainText("v1.3.0 (installed)");
+  } finally {
+    rmSync(pluginDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  }
+});
+
+test("Skip this version hides one release's update until the user stops skipping it", async ({ page }) => {
+  const pluginDir = new URL("../.dev-data/plugins/e2e-mako-skip/", import.meta.url);
+  mkdirSync(pluginDir, { recursive: true });
+  writeFileSync(new URL("plugin.json", pluginDir), JSON.stringify({ name: "MAKO - Frame Generation", version: "1.0.0" }));
+  await mockMakoReleases(page, [makoRelease("plugin-v1.3.0", "b".repeat(64))]);
+
+  try {
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+    await expect(makoCard.getByRole("button", { name: "Update to v1.3.0", exact: true })).toBeVisible();
+    await makoCard.getByRole("button", { name: "Manage", exact: true }).click();
+    const modal = app.locator(".steam-modal");
+    await modal.getByRole("button", { name: "Skip v1.3.0", exact: true }).click();
+    await expect(modal.getByRole("button", { name: "Stop skipping v1.3.0", exact: true })).toBeVisible();
+    await expect.poll(async () => (await bridgeCall(page, "get_settings")).result.repoSettings["eugeniosegala/MAKO"]).toEqual({ channel: "stable", skipVersion: "plugin-v1.3.0" });
+    await modal.getByRole("button", { name: "Close", exact: true }).click();
+    await expect(makoCard.getByRole("button", { name: /^Update to v/ })).toHaveCount(0);
+    await expect(makoCard.getByText("Up To Date", { exact: true })).toBeVisible();
+
+    await makoCard.getByRole("button", { name: "Manage", exact: true }).click();
+    await modal.getByRole("button", { name: "Stop skipping v1.3.0", exact: true }).click();
+    await modal.getByRole("button", { name: "Close", exact: true }).click();
+    await expect(makoCard.getByRole("button", { name: "Update to v1.3.0", exact: true })).toBeVisible();
+  } finally {
+    await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "stable" });
+    rmSync(pluginDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  }
+});
+
+test("A plugin's known issues from the registry are listed in its Manage window, each opening its report", async ({ page }) => {
+  // dev-server.py's fixture registry lists one, so no real registry data is needed.
+  await page.route("https://api.github.com/repos/example/fixture-app/releases**", (route) =>
+    route.fulfill({ json: [{ tag_name: "v1.0.0", prerelease: false, draft: false, published_at: "2026-01-01T00:00:00Z", html_url: "https://github.com/example/fixture-app/releases/tag/v1.0.0", assets: [{ name: "fixture.zip", browser_download_url: "https://github.com/example/fixture-app/releases/download/v1.0.0/fixture.zip", size: 1024 }] }] }),
+  );
+  try {
+    await bridgeCall(page, "add_custom_registry", "https://registry.test/good.json");
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    await app.getByRole("heading", { name: "Fixture App" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
+    const modal = app.locator(".steam-modal");
+    await expect(modal.getByText("Known issues with this plugin", { exact: true })).toBeVisible();
+    await expect(modal.getByRole("button", { name: "Update can stall at 95%", exact: true })).toBeVisible();
+  } finally {
+    await bridgeCall(page, "remove_custom_registry", "https://registry.test/good.json");
   }
 });
 
