@@ -349,10 +349,14 @@ export const Navigation = {
   NavigateToExternalWeb: (url: string) => window.open(url, "_blank"),
 };
 
+import { expectReturn } from "../../src/browseState";
+
 export const staticClasses = { Title: "decky-mock-title" };
 
 // No Steam windows here: openExternalWeb() just opens the link (a new tab, above).
 export const Router = { WindowStore: undefined };
+// The mock has no Steam history, so openExternalWeb() never expects a page to come back; E2E marks one itself.
+(window as unknown as { __expectBrowseReturn: () => void }).__expectBrowseReturn = expectReturn;
 
 // Steam's Tabs: a tab bar (L1 / R1, here "[" and "]", switch tabs) over the active
 // tab's content, which scrolls on its own under the bar.

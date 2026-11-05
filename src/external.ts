@@ -1,4 +1,5 @@
 import { Navigation, Router } from "@decky/ui";
+import { expectReturn, returned } from "./browseState";
 
 // Steam's history for its main window, which @decky/ui doesn't type.
 type MainWindowHistory = { location: { pathname: string }; listen: (listener: (location: { pathname: string }) => void) => () => void };
@@ -47,9 +48,13 @@ export function openExternalWeb(url: string) {
   const path = history?.location.pathname;
   Navigation.NavigateToExternalWeb(url);
   if (!page || !history || !path) return;
+  // Only Steam's browser brings the page back (and says so below); without it nothing would clear this.
+  expectReturn();
   const stop = history.listen((location) => {
     if (location.pathname !== path) return;
     stop();
+    // The page has re-mounted by now; a later visit starts fresh.
+    setTimeout(returned, 3000);
     setTimeout(() => {
       if (page.querySelector(".deckyhub-motion .gpfocus")) return;
       const target = (control && find(page, control)) || page.querySelector<HTMLElement>(".deckyhub-motion button, .deckyhub-motion .DialogButton");

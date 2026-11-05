@@ -11,11 +11,17 @@ const BATCH = 30;
 // Discover's and Updates' plugins as a grid of cards or a list of rows, built a batch
 // at a time: 300+ cards at once made opening the list slow. Scrolling, or moving the
 // D-pad (which scrolls the focused card into view), near the end adds the next batch.
-export function AppList({ apps, layout, columns, renderCard }: { apps: App[]; layout: Layout; columns: number; renderCard: (app: App, layout?: "row") => ReactNode }) {
-  const [count, setCount] = useState(BATCH);
+export function AppList({ apps, layout, columns, renderCard, initialCount = BATCH, onCount }: { apps: App[]; layout: Layout; columns: number; renderCard: (app: App, layout?: "row") => ReactNode; initialCount?: number; onCount?: (count: number) => void }) {
+  const [count, setCount] = useState(Math.max(BATCH, initialCount));
   const end = useRef<HTMLDivElement>(null);
   // A new filter or category starts from the first batch again.
-  useEffect(() => setCount(BATCH), [apps.length]);
+  const length = useRef(apps.length);
+  useEffect(() => {
+    if (length.current === apps.length) return;
+    length.current = apps.length;
+    setCount(BATCH);
+  }, [apps.length]);
+  useEffect(() => onCount?.(count), [count]);
   useEffect(() => {
     if (count >= apps.length || !end.current) return;
     const observer = new IntersectionObserver((entries) => entries.some((entry) => entry.isIntersecting) && setCount((current) => current + BATCH), { rootMargin: "800px" });
