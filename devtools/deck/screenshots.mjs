@@ -65,6 +65,9 @@ try {
   await page("updates");
   await shot("updates");
 
+  await page("installed");
+  await shot("installed");
+
   await page("search");
   await main.eval(`(() => { const i = document.querySelector(".deckyhub-motion input"); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set.call(i, "frame generation"); i.dispatchEvent(new Event("input", { bubbles: true })); return true; })()`);
   await click("Search", ".deckyhub-motion");
