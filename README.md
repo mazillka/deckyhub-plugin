@@ -54,7 +54,7 @@ Tired of tabbing out to Desktop Mode, hunting through GitHub releases, and manua
 
 > **A note on how this is made.** Most of DeckyHub's code was written with the help of AI tools (Claude and Codex). That doesn't mean it ships untested — every release is verified on real hardware before it goes out. I'm telling you this upfront so you know exactly what you're installing and how it got built.
 
-**Contents:** [Why you'll like it](#why-youll-like-it) · [What it does](#what-it-does) · [The plugin list](#the-plugin-list) · [Requirements](#requirements) · [Installing](#installing-deckyhub) · [Using DeckyHub](#using-deckyhub) · [Uninstalling](#uninstalling-deckyhub) · [Troubleshooting](#troubleshooting) · [Privacy](#privacy) · [Disclaimer](#disclaimer) · [Getting help](#getting-help)
+**Contents:** [Why you'll like it](#why-youll-like-it) · [What it does](#what-it-does) · [The plugin list](#the-plugin-list) · [Requirements](#requirements) · [Installing](#installing-deckyhub) · [Using DeckyHub](#using-deckyhub) · [Uninstalling](#uninstalling-deckyhub) · [Troubleshooting](#troubleshooting) · [Quality](#how-deckyhub-controls-quality) · [Privacy](#privacy) · [Disclaimer](#disclaimer) · [Getting help](#getting-help)
 
 ## Why you'll like it
 
@@ -300,6 +300,27 @@ Files DeckyHub saved to Downloads aren't removed: release ZIPs in `/home/deck/Do
 - **Anything else.** Open an issue (see [Getting help](#getting-help)) and attach the ZIP from **Export Logs**.
 
 Downloads only ever happen over HTTPS.
+
+## How DeckyHub controls quality
+
+DeckyHub installs software on your Deck, so every change, every release and every listed plugin goes through checks before it reaches you. All of it is open, in this repository and in [mazillka/deckyhub-registry](https://github.com/mazillka/deckyhub-registry).
+
+**Every change, before it's merged.** `develop` and `main` are protected: nothing is pushed to them directly, and a pull request merges only when all of these pass:
+
+| Check | What it covers |
+| --- | --- |
+| Backend tests (Python's built-in `unittest`) | Downloads, SHA-256 checks, HTTPS-only redirects, the settings file, registry parsing, and the Desktop installer run as root against stand-ins |
+| Frontend unit tests | Version comparison, release-notes cleanup, the cache, and every language's placeholders |
+| Browser tests (140+ Playwright tests in four parallel shards) | DeckyHub's real UI in a Gaming Mode mock: browsing, installing, updating, virus scan reports, Skip this version, known issues, Settings and controller focus |
+| Type check | The whole TypeScript frontend (`tsc`) |
+| [CodeQL](https://github.com/mazillka/deckyhub-plugin/actions/workflows/codeql.yml) | GitHub's security analysis of the Python and TypeScript code |
+| Dependency review and Dependabot | Dependencies with known vulnerabilities are flagged, and security updates arrive as pull requests |
+
+**Every release.** Pre-releases (`-rc`) come first, and a stable release is a reviewed pull request from `develop` into `main`. The release workflow refuses a tag that doesn't match `package.json`, runs every test again and builds the ZIP with a read-only token. The ZIP and the Desktop installer are scanned with ClamAV, VirusTotal and MetaDefender before they're published, and the verdicts go into the release notes and the badges at the top of this page. Before a stable release, it's tried on a real Steam Deck: `devtools/deck/` deploys the build over Steam's debugger, drives Gaming Mode with the D-pad and takes screenshots.
+
+**Every listed plugin.** Each change to the plugin list is checked against GitHub: the release and its ZIP exist, entries don't clash, and the version inside the ZIP matches the release tag. Each plugin's newest ZIPs are scanned with ClamAV and YARA a few times a day and looked up on VirusTotal and MetaDefender by SHA-256, and [Decky Extended Plugins' audit](https://decky-extended-plugins.beallio.com/audit) warnings show on its card. Every plugin's results are on its page on [deckyhub.com](https://deckyhub.com/plugins/), and [Known issues](https://deckyhub.com/plugins/known-issues.html) lists every plugin with a finding. Scans and warnings inform and never block: a clean scan isn't proof of safety.
+
+**Safe by design.** Nothing installs without your tap: Install, Update and Uninstall go through Decky Loader's own installer. Downloads are HTTPS only, from the selected repository's GitHub releases, with SHA-256 checked whenever GitHub publishes one. The backend uses only Python's standard library, so no third-party packages run on your Deck.
 
 ## Privacy
 
