@@ -274,7 +274,9 @@ def readme_steps(readme: str, heading: str) -> str:
     website says what the README says."""
     section = re.split(r"\n#{2,4} ", readme.replace("\r\n", "\n").split(heading, 1)[1], 1)[0]
     steps = re.findall(r"^\d+\. (.+)$", section, re.M)
-    return "\n".join(f"<li>{inline_markdown(step)}</li>" for step in steps)
+    # A long command stands on its own line, selectable in one tap, instead of getting lost mid-sentence.
+    long_command = lambda html: re.sub(r"<code>([^<]{60,})</code>", r'<code class="cmd">\1</code>', html)
+    return "\n".join(f"<li>{long_command(inline_markdown(step))}</li>" for step in steps)
 
 
 def slug(text: str) -> str:
