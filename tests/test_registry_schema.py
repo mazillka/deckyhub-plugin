@@ -56,6 +56,8 @@ class RegistrySchemaV1Tests(unittest.TestCase):
                 for issue in app.get("knownIssues", []):
                     self.assertEqual(set(issue), {"title", "url"})
                     self.assertTrue(issue["title"] and issue["url"].startswith("https://"))
+                    # DeckyHub cuts longer titles off (_known_issues in main.py).
+                    self.assertLessEqual(len(issue["title"]), 200, "knownIssues title over 200 characters")
                 self.assertTrue(_string_list(app["asset"]["include"]) and _string_list(app["asset"]["exclude"]))
 
     def test_ids_and_repos_are_unique(self):
