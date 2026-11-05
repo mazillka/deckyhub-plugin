@@ -9,6 +9,7 @@ import { connect, resetFocus, sleep, TARGETS, waitFor } from "./cdp.mjs";
 
 const out = new URL(`file:///${(process.argv[2] ?? new URL("./screenshots/readme/", import.meta.url).pathname).replace(/^\//, "").replace(/\/?$/, "/")}`);
 mkdirSync(out, { recursive: true });
+const SCAN_SEARCH = process.env.SCAN_SEARCH ?? "lsfg", SCAN_NAME = process.env.SCAN_NAME ?? "LSFG-VK";
 const TAB_ID = 0x444855; // src/components/QuickAccessTab.tsx
 const shared = await connect(TARGETS.shared);
 const main = await connect(TARGETS.main);
@@ -46,10 +47,10 @@ try {
   await sleep(2500);
   await shot("all-plugins");
 
-  // Manage of the first plugin with scans: Decky LSFG-VK, found through the search box.
-  await main.eval(`(() => { const i = document.querySelector(".deckyhub-motion input"); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set.call(i, "lsfg"); i.dispatchEvent(new Event("input", { bubbles: true })); return true; })()`);
+  // Manage of a plugin with scans: Decky LSFG-VK, found through the search box (SCAN_SEARCH / SCAN_NAME pick another, for a plugin the registry scanned most recently).
+  await main.eval(`(() => { const i = document.querySelector(".deckyhub-motion input"); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set.call(i, ${JSON.stringify(SCAN_SEARCH)}); i.dispatchEvent(new Event("input", { bubbles: true })); return true; })()`);
   await sleep(2500);
-  await main.eval(`(() => { const h = [...document.querySelectorAll(".deckyhub-motion h3")].find((x) => /LSFG-VK/i.test(x.textContent)); let card = h; const isM = (b) => b.textContent.trim() === "Manage" || b.getAttribute("aria-label") === "Manage"; while (card && ![...card.querySelectorAll("button, .DialogButton")].some(isM)) card = card.parentElement; [...card.querySelectorAll("button, .DialogButton")].find(isM).click(); return true; })()`);
+  await main.eval(`(() => { const h = [...document.querySelectorAll(".deckyhub-motion h3")].find((x) => new RegExp(${JSON.stringify(SCAN_NAME)}, "i").test(x.textContent)); let card = h; const isM = (b) => b.textContent.trim() === "Manage" || b.getAttribute("aria-label") === "Manage"; while (card && ![...card.querySelectorAll("button, .DialogButton")].some(isM)) card = card.parentElement; [...card.querySelectorAll("button, .DialogButton")].find(isM).click(); return true; })()`);
   await waitFor(main, `!!document.querySelector(".deckyhub-details") && !!document.querySelector(".deckyhub-virus-scan .deckyhub-scan-clamav")`, 30000);
   await sleep(2500);
   await shot("manage");
@@ -64,6 +65,9 @@ try {
 
   await page("updates");
   await shot("updates");
+
+  await page("installed");
+  await shot("installed");
 
   await page("search");
   await main.eval(`(() => { const i = document.querySelector(".deckyhub-motion input"); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set.call(i, "frame generation"); i.dispatchEvent(new Event("input", { bubbles: true })); return true; })()`);

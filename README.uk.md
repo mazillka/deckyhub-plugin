@@ -41,6 +41,7 @@
 <tr>
 <td align="center"><img src="screenshots/discover.jpg" width="260" alt="Екран «Огляд» DeckyHub із категоріями та популярними плагінами, кожен зі значком перевірки на віруси"><br><sub><b>Огляд</b></sub></td>
 <td align="center"><img src="screenshots/scan-report.jpg" width="260" alt="Звіт DeckyHub про перевірку плагіна на віруси: результати ClamAV, YARA і VirusTotal, файл і його SHA-256"><br><sub><b>Звіт про перевірку на віруси</b></sub></td>
+<td align="center"><img src="screenshots/installed.jpg" width="260" alt="Сторінка «Встановлені» в DeckyHub: ваші плагіни з кількістю завантажень, зірками та значками безпеки"><br><sub><b>Встановлені</b></sub></td>
 </tr>
 </table>
 
