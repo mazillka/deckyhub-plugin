@@ -300,6 +300,8 @@ Not affiliated with Valve or the Decky Loader project. DeckyHub is a discovery a
 
 ## License
 
+Copyright © 2026 Andrii Shevchuk-Yuhanets ([mazillka](https://github.com/mazillka)).
+
 GPL-3.0-or-later — see [LICENSE.md](LICENSE.md).
 
 ## Getting help
