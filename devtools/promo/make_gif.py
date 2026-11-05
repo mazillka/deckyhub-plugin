@@ -7,7 +7,7 @@ from PIL import Image
 root = Path(__file__).resolve().parent.parent.parent
 SIZE = (800, 500)
 # (screenshot, how long it stays, in ms)
-SCENES = [("menu", 2200), ("discover", 1800), ("all-plugins", 1600), ("manage", 2600), ("scan-report", 2600), ("updates", 1500), ("search", 1900), ("settings", 1800)]
+SCENES = [("menu", 2200), ("discover", 1800), ("all-plugins", 1600), ("manage", 2600), ("scan-report", 2600), ("updates", 1500), ("installed", 1600), ("search", 1900), ("settings", 1800)]
 FADE_STEPS, FADE_MS = 2, 90
 
 shots = [Image.open(root / "screenshots" / f"{name}.jpg").convert("RGB").resize(SIZE, Image.LANCZOS) for name, _ in SCENES]
