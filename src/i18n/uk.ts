@@ -69,7 +69,7 @@ export const uk: Record<MessageKey, string> = {
   "appcard.stars": "{count} зірок на GitHub",
   "appcard.runsAsRoot": "Працює від root",
   "appcard.runsAsRootHint": "Його бекенд працює від root і має повний доступ до системи. Встановлюйте, лише якщо довіряєте автору.",
-  "appcard.knownIssues": "Відомі проблеми",
+  "appcard.knownIssues": "Відомі проблеми цього плагіна",
   "appcard.skipVersion": "Пропустити {version}",
   "appcard.unskipVersion": "Не пропускати {version}",
   "appcard.fork": "Форк",

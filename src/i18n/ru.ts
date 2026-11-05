@@ -69,7 +69,7 @@ export const ru: Record<MessageKey, string> = {
   "appcard.stars": "{count} звёзд на GitHub",
   "appcard.runsAsRoot": "Работает от root",
   "appcard.runsAsRootHint": "Его бэкенд работает от root и имеет полный доступ к системе. Устанавливайте, только если доверяете автору.",
-  "appcard.knownIssues": "Известные проблемы",
+  "appcard.knownIssues": "Известные проблемы этого плагина",
   "appcard.skipVersion": "Пропустить {version}",
   "appcard.unskipVersion": "Не пропускать {version}",
   "appcard.fork": "Форк",

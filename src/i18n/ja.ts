@@ -69,7 +69,7 @@ export const ja: Record<MessageKey, string> = {
   "appcard.stars": "GitHub スター {count}",
   "appcard.runsAsRoot": "root で実行",
   "appcard.runsAsRootHint": "バックエンドが root で実行され、システム全体にアクセスできます。信頼できる作者のものだけをインストールしてください。",
-  "appcard.knownIssues": "既知の問題",
+  "appcard.knownIssues": "このプラグインの既知の問題",
   "appcard.skipVersion": "{version} をスキップ",
   "appcard.unskipVersion": "{version} のスキップを解除",
   "appcard.fork": "フォーク",

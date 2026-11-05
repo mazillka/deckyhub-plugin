@@ -69,7 +69,7 @@ export const nl: Record<MessageKey, string> = {
   "appcard.stars": "{count} GitHub-sterren",
   "appcard.runsAsRoot": "Draait als root",
   "appcard.runsAsRootHint": "De backend draait als root, met volledige toegang tot het systeem. Installeer alleen als je de maker vertrouwt.",
-  "appcard.knownIssues": "Bekende problemen",
+  "appcard.knownIssues": "Bekende problemen met deze plugin",
   "appcard.skipVersion": "{version} overslaan",
   "appcard.unskipVersion": "{version} niet meer overslaan",
   "appcard.fork": "Fork",

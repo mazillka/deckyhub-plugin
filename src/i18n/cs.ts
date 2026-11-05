@@ -69,7 +69,7 @@ export const cs: Record<MessageKey, string> = {
   "appcard.stars": "Hvězdičky na GitHubu: {count}",
   "appcard.runsAsRoot": "Běží jako root",
   "appcard.runsAsRootHint": "Jeho backend běží jako root s plným přístupem k systému. Instalujte jen tehdy, pokud autorovi důvěřujete.",
-  "appcard.knownIssues": "Známé problémy",
+  "appcard.knownIssues": "Známé problémy tohoto pluginu",
   "appcard.skipVersion": "Přeskočit {version}",
   "appcard.unskipVersion": "Nepřeskakovat {version}",
   "appcard.fork": "Fork",

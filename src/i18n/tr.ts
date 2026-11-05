@@ -69,7 +69,7 @@ export const tr: Record<MessageKey, string> = {
   "appcard.stars": "{count} GitHub yıldızı",
   "appcard.runsAsRoot": "Root olarak çalışır",
   "appcard.runsAsRootHint": "Arka ucu root olarak, sisteme tam erişimle çalışır. Yalnızca yazara güveniyorsan yükle.",
-  "appcard.knownIssues": "Bilinen sorunlar",
+  "appcard.knownIssues": "Bu eklentinin bilinen sorunları",
   "appcard.skipVersion": "{version} sürümünü atla",
   "appcard.unskipVersion": "{version} sürümünü atlama",
   "appcard.fork": "Fork",

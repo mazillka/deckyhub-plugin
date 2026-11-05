@@ -5,8 +5,9 @@ import type { TFunc } from "../i18n/en";
 import { modalButtonStyle } from "../utils";
 import { sectionTitleStyle } from "./DetailsWindow";
 
-// A plugin's known issues from the registry, in its Manage window: problems that affect
-// it in DeckyHub (titles in English, like registry descriptions), each opening its report.
+// A plugin's known issues from the registry, in its Manage window: problems with the plugin
+// itself, like a release tag that doesn't match its version or a Decky Loader bug it hits
+// (titles in English, like registry descriptions), each opening its report.
 export function KnownIssues({ t, issues, closeModal }: { t: TFunc; issues: { title: string; url: string }[]; closeModal?: () => void }) {
   return (
     <div style={{ display: "grid", gap: 6 }}>

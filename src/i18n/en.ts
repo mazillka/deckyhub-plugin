@@ -68,7 +68,7 @@ export const en = {
   "appcard.stars": "{count} GitHub stars",
   "appcard.runsAsRoot": "Runs as root",
   "appcard.runsAsRootHint": "Its backend runs as root, with full access to the system. Install only if you trust the author.",
-  "appcard.knownIssues": "Known issues",
+  "appcard.knownIssues": "Known issues with this plugin",
   "appcard.skipVersion": "Skip {version}",
   "appcard.unskipVersion": "Stop skipping {version}",
   "appcard.fork": "Fork",

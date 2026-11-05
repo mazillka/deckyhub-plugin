@@ -196,7 +196,7 @@ def parse_registry(payload: object) -> list[dict]:
 
 
 def _known_issues(value: object) -> list[dict]:
-    """An entry's knownIssues, problems that affect the plugin in DeckyHub, shown in its
+    """An entry's knownIssues, known problems with the plugin itself, shown in its
     Manage window: each a {title, url} with an HTTPS link. A malformed one is dropped,
     not the whole entry."""
     if not isinstance(value, list):

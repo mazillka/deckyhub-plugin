@@ -69,7 +69,7 @@ export const pl: Record<MessageKey, string> = {
   "appcard.stars": "Gwiazdki na GitHubie: {count}",
   "appcard.runsAsRoot": "Działa jako root",
   "appcard.runsAsRootHint": "Jej backend działa jako root, z pełnym dostępem do systemu. Instaluj tylko, jeśli ufasz autorowi.",
-  "appcard.knownIssues": "Znane problemy",
+  "appcard.knownIssues": "Znane problemy tej wtyczki",
   "appcard.skipVersion": "Pomiń {version}",
   "appcard.unskipVersion": "Nie pomijaj {version}",
   "appcard.fork": "Fork",

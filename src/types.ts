@@ -11,7 +11,7 @@ export type App = {
   // From the official registry (not a custom repository or registry): it has a page on deckyhub.com.
   official?: boolean;
   releaseTagInclude?: string;
-  // From the registry: problems that affect this plugin in DeckyHub, with a link to the report.
+  // From the registry: known problems with this plugin itself, each with a link to its report.
   knownIssues?: { title: string; url: string }[];
   asset: { include: string[]; exclude: string[] };
   installedVersion?: string | null;

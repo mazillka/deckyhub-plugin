@@ -70,7 +70,7 @@ export const zhTW: Record<MessageKey, string> = {
   "appcard.stars": "{count} 個 GitHub 星號",
   "appcard.runsAsRoot": "以 root 執行",
   "appcard.runsAsRootHint": "其後端以 root 執行，可完整存取系統。僅在信任作者時安裝。",
-  "appcard.knownIssues": "已知問題",
+  "appcard.knownIssues": "此插件的已知問題",
   "appcard.skipVersion": "略過 {version}",
   "appcard.unskipVersion": "取消略過 {version}",
   "appcard.fork": "分支",

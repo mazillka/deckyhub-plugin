@@ -1813,7 +1813,7 @@ test("A plugin's known issues from the registry are listed in its Manage window,
     const app = mock(page);
     await app.getByRole("heading", { name: "Fixture App" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
     const modal = app.locator(".steam-modal");
-    await expect(modal.getByText("Known issues", { exact: true })).toBeVisible();
+    await expect(modal.getByText("Known issues with this plugin", { exact: true })).toBeVisible();
     await expect(modal.getByRole("button", { name: "Update can stall at 95%", exact: true })).toBeVisible();
   } finally {
     await bridgeCall(page, "remove_custom_registry", "https://registry.test/good.json");

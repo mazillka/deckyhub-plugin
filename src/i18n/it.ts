@@ -69,7 +69,7 @@ export const it: Record<MessageKey, string> = {
   "appcard.stars": "{count} stelle su GitHub",
   "appcard.runsAsRoot": "Eseguito come root",
   "appcard.runsAsRootHint": "Il suo backend gira come root, con pieno accesso al sistema. Installalo solo se ti fidi dell'autore.",
-  "appcard.knownIssues": "Problemi noti",
+  "appcard.knownIssues": "Problemi noti di questo plugin",
   "appcard.skipVersion": "Salta {version}",
   "appcard.unskipVersion": "Non saltare più {version}",
   "appcard.fork": "Fork",

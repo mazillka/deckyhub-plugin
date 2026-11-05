@@ -69,7 +69,7 @@ export const ko: Record<MessageKey, string> = {
   "appcard.stars": "GitHub 스타 {count}개",
   "appcard.runsAsRoot": "루트 권한으로 실행",
   "appcard.runsAsRootHint": "백엔드가 루트 권한으로 실행되어 시스템 전체에 접근할 수 있습니다. 제작자를 신뢰할 때만 설치하세요.",
-  "appcard.knownIssues": "알려진 문제",
+  "appcard.knownIssues": "이 플러그인의 알려진 문제",
   "appcard.skipVersion": "{version} 건너뛰기",
   "appcard.unskipVersion": "{version} 건너뛰기 해제",
   "appcard.fork": "포크",
