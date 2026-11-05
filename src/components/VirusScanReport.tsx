@@ -67,9 +67,6 @@ function VirusTotalResult({ t, report }: { t: TFunc; report: VirusTotalReport })
   );
 }
 
-const MetaDefenderPending = ({ t, state }: { t: TFunc; state: "pending" | "error" }) =>
-  <small style={{ color: MUTED }}>{t("scan.verdict", { scanner: "MetaDefender", verdict: t(state === "pending" ? "scan.waiting" : "scan.error") })}</small>;
-
 function ScanReportModal({ t, asset, scan, virusTotal, metaDefender, showExternalGuidance, showExternalActions, closeParent, closeModal }: {
   t: TFunc; asset: Asset; scan: VirusScan | null; virusTotal: VirusTotalReport | null; metaDefender: Awaited<ReturnType<typeof metaDefenderReportOf>>;
   showExternalGuidance: boolean; showExternalActions: boolean; closeParent?: () => void; closeModal?: () => void;
@@ -98,9 +95,7 @@ function ScanReportModal({ t, asset, scan, virusTotal, metaDefender, showExterna
           <Focusable onActivate={() => {}} onFocus={keepInView}>{t("scan.file", { file: asset.name })}</Focusable>
           {hash && <Focusable onActivate={() => {}} onFocus={keepInView}><small style={{ fontFamily: "monospace", color: MUTED }}>{t("scan.sha256", { hash })}</small></Focusable>}
           {virusTotal && <Focusable onActivate={() => {}} onFocus={keepInView}><VirusTotalResult t={t} report={virusTotal} /></Focusable>}
-          {metaDefender && <Focusable onActivate={() => {}} onFocus={keepInView}>{metaDefender.state === "complete"
-            ? <strong style={{ color: metaDefender.flagged ? COLORS.infected : COLORS.clean }}><FaShieldAlt /> {t("scan.metaDefenderResult", { flagged: metaDefender.flagged, total: metaDefender.total })}</strong>
-            : <MetaDefenderPending t={t} state={metaDefender.state} />}</Focusable>}
+          {metaDefender && <Focusable onActivate={() => {}} onFocus={keepInView}><strong style={{ color: metaDefender.flagged ? COLORS.infected : COLORS.clean }}><FaShieldAlt /> {t("scan.metaDefenderResult", { flagged: metaDefender.flagged, total: metaDefender.total })}</strong></Focusable>}
           {showExternalActions && hash && <Button onClick={() => {
             closeModal?.();
             closeParent?.();
@@ -208,9 +203,7 @@ export function VirusScanReport({
       {virusTotal && (virusTotal.state === "complete"
         ? <Row color={virusTotal.flagged ? COLORS.infected : COLORS.clean} label={t("scan.virusTotalResult", { flagged: virusTotal.flagged, total: virusTotal.total })} when={virusTotal.scannedAt !== undefined ? timeAgo(virusTotal.scannedAt * 1000) : undefined} />
         : <VirusTotalResult t={t} report={virusTotal} />)}
-      {metaDefender && (metaDefender.state === "complete"
-        ? <Row color={metaDefender.flagged ? COLORS.infected : COLORS.clean} label={t("scan.metaDefenderResult", { flagged: metaDefender.flagged, total: metaDefender.total })} />
-        : <MetaDefenderPending t={t} state={metaDefender.state} />)}
+      {metaDefender && <Row color={metaDefender.flagged ? COLORS.infected : COLORS.clean} label={t("scan.metaDefenderResult", { flagged: metaDefender.flagged, total: metaDefender.total })} />}
       {report && <small style={{ color: MUTED }}>{t("scan.safetyWarning")}</small>}
       {(report || virusTotal || metaDefender || (showExternalActions && sha256) || (showZipActions && link)) && (
         <Focusable flow-children="right" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>

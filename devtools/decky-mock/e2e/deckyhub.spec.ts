@@ -726,8 +726,7 @@ test("MetaDefender reports are used only for the selected ZIP hash", async ({ pa
   const card = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
   await expect(card.getByText("No threats · 2/2", { exact: true })).toBeVisible();
   await card.getByRole("button", { name: "Manage", exact: true }).click();
-  await expect(app.locator(".steam-modal").getByText(/MetaDefender: \d+ of/)).toHaveCount(0);
-  await expect(app.locator(".steam-modal").getByText("MetaDefender: Scan pending").first()).toBeVisible();
+  await expect(app.locator(".steam-modal").getByText(/MetaDefender:/)).toHaveCount(0);
 });
 
 test("The Manage window shows the plugin's description, details and a Repository button", async ({ page }) => {

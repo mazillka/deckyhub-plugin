@@ -12,9 +12,9 @@ SHA = "c" * 64
 
 
 class PluginPageTests(unittest.TestCase):
-    def page(self, stats=None, scans=None, reports=None, vt=None):
+    def page(self, stats=None, scans=None, reports=None):
         shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
-        return plugin_pages.plugin_page(shell, APP, stats or {}, scans or {}, {}, [APP], reports, vt)
+        return plugin_pages.plugin_page(shell, APP, stats or {}, scans or {}, {}, [APP], reports)
 
     def test_a_long_repository_name_gets_a_full_width_tile_that_wraps(self):
         page = self.page()
@@ -43,26 +43,6 @@ class PluginPageTests(unittest.TestCase):
         page = self.page(scans=scans, reports={SHA: {"state": "complete", "flagged": 0, "total": 21, "dataId": "abc123"}})
         for text in ("Security scans", "No threats found", f'href="https://www.virustotal.com/gui/file/{SHA}"', "0 of 21 engines flagged this file", "https://metadefender.opswat.com/results/file/abc123/regular/overview"):
             self.assertIn(text, page)
-
-    def test_scans_show_virustotal_results_and_pending_metadefender(self):
-        scans = {"stable": {"tag": "v1.0.0", "file": "x.zip", "sha256": SHA, "clamav": {"result": "clean"}, "yara": {"result": "clean"}}}
-        vt = {SHA: {"state": "complete", "stats": {"malicious": 2, "suspicious": 1, "harmless": 0, "undetected": 57}, "scannedAt": 1793181436}}
-        page = self.page(scans=scans, reports={SHA: {"state": "pending"}}, vt=vt)
-        for text in ("3 of 60 engines flagged this file", "<tr><td>MetaDefender</td><td>Scan pending</td>"):
-            self.assertIn(text, page)
-        self.assertIn("Threat found", page)  # the badge counts VirusTotal, not just ClamAV and YARA
-        self.assertIn("✖ Threat found", plugin_pages.flags_of({}, scans, {}, vt))
-
-    def test_known_issues_lists_flagged_and_warned_plugins_only(self):
-        shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
-        clean = {**APP, "id": "clean-one", "name": "Clean One", "repo": "a/clean"}
-        data = {"stats": {APP["repo"].casefold(): {"warnings": ["private-data"]}}, "warnings": plugin_pages.WARNINGS,
-                "scans": {APP["repo"].casefold(): {"stable": {"sha256": SHA, "clamav": {"result": "clean"}, "yara": {"result": "clean"}}}},
-                "reports": {}, "vt": {SHA: {"state": "complete", "stats": {"malicious": 1, "suspicious": 0, "harmless": 0, "undetected": 9}}}}
-        page = plugin_pages.issues_page(shell, [APP, clean], data)
-        for text in ('id="infected"', 'id="private-data"', f'href="/plugins/{APP["id"]}.html"', "1 of 2 Decky Loader plugins"):
-            self.assertIn(text, page)
-        self.assertNotIn("Clean One", page)
 
     def test_an_unscanned_plugin_says_so(self):
         self.assertIn("Not scanned yet", self.page())
