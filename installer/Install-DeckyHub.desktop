@@ -1,0 +1,10 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Name=Install DeckyHub
+Comment=Installs DeckyHub (and Decky Loader if needed) on this Steam Deck
+Exec=sh -c 'work=$(mktemp -d) || exit 1; if command -v zenity >/dev/null 2>&1; then (curl -fsSL --connect-timeout 60 -o "$work/install.sh" https://github.com/mazillka/deckyhub-plugin/releases/download/@TAG@/install-deckyhub.sh && touch "$work/downloaded"; echo 100) | zenity --progress --pulsate --auto-close --no-cancel --title="DeckyHub Installer" --text="Getting the installer ready…" 2>/dev/null; else curl -fsSL --connect-timeout 60 -o "$work/install.sh" https://github.com/mazillka/deckyhub-plugin/releases/download/@TAG@/install-deckyhub.sh && touch "$work/downloaded"; fi; if test -f "$work/downloaded"; then bash "$work/install.sh"; else zenity --error --title="DeckyHub Installer" --text="Could not get the installer. Check that your Deck is connected to Wi-Fi, then try again." 2>/dev/null || echo "Could not get the installer." >&2; fi; rm -rf "$work"'
+Icon=steamdeck-gaming-return
+Terminal=false
+Type=Application
+StartupNotify=false
+Categories=System;

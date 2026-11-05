@@ -1,13 +1,13 @@
 # Contributing to DeckyHub
 
-This covers building, testing, and releasing DeckyHub. For what the plugin does as a user, see [README.md](README.md).
+This covers building, testing, and releasing DeckyHub. For what the plugin does as a user, see [README.md](README.md). Everyone taking part in issues and pull requests follows the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Repository layout
 
 - `main.py` and `plugin.json` stay at the repository root because Decky Loader reads them from the plugin package.
 - `main.py` is the backend; `src/` contains the Decky React UI.
 - DeckyHub's plugin list lives in [mazillka/deckyhub-registry](https://github.com/mazillka/deckyhub-registry), not here; `tests/` covers the Python backend, plus the frontend's version logic and translations (`*.test.ts`).
-- `docs/` is the static GitHub Pages site: the promo page (`index.html`) and a `404.html`. The registry editor lives in [mazillka/deckyhub-registry](https://github.com/mazillka/deckyhub-registry)'s `docs/`. It remains separate from the runtime UI. `devtools/build-site.py` assembles it at deploy time: it downloads the registry's `apps.json` and writes the catalog into `index.html` and generates WebP screenshots and the link-preview JPEG from `screenshots/` (needs Pillow; CI-only). Preview locally with `python devtools/build-site.py _site` and serve `_site/`. Keep `docs/sitemap.xml` in sync when adding a page.
+- `docs/` is the static GitHub Pages site: the promo page (`index.html`), the release notes page and a `404.html`; the build adds a page for every listed plugin (`plugins/<id>.html`, from `devtools/plugin_pages.py`) with its details and security scans. A preview of `develop` is published at <https://deckyhub.com/develop/> after every push to it (see `preview-site.yml`), so check site changes there before releasing. The registry editor lives in [mazillka/deckyhub-registry](https://github.com/mazillka/deckyhub-registry)'s `docs/`. It remains separate from the runtime UI. `devtools/build-site.py` assembles it at deploy time: it downloads the registry's `apps.json` and writes the catalog into `index.html` and generates WebP screenshots and the link-preview JPEG from `screenshots/` (needs Pillow; CI-only). Preview locally with `python devtools/build-site.py _site` and serve `_site/`. Keep `docs/sitemap.xml` in sync when adding a page.
 
 ## Build
 
@@ -36,6 +36,8 @@ The build produces `dist/index.js`. Decky Loader requires `plugin.json`, `main.p
 
 For development, rebuild the frontend after every change to `src/`, then reload the plugin. The backend uses only Python's standard library and needs no pip install.
 
+For installer changes, run `python3 -m unittest tests.test_installer` on Linux with root or passwordless sudo. Before release, also try the Desktop Mode launcher on a Deck: review the introduction, password prompt, progress and completion message in both cases (Decky Loader missing, and already installed), the Install, Update and Reinstall wording, and that each dialog's icon shows. To change the optional plugins, edit `installer/starter-plugins.json` (ids from the registry, plain characters only) and check the plugin cards on a Deck: Skip is the default, notes and both links show and open, and DeckyHub offers the picks after the restart. The automated tests use stand-ins and do not exercise the real desktop dialogs or Decky Loader installer.
+
 ## Local browser preview
 
 `devtools/decky-mock/` is a standalone tool for iterating on `src/` in a regular browser instead of a Steam Deck — it swaps `@decky/ui`/`@decky/api` for plain stand-ins and bridges backend calls to a real, running `main.py`. It's for exercising layout and logic only, not for visual QA, since the real `@decky/ui` components are scraped from Steam's own webpack bundle at runtime and can't be replicated outside it. See [devtools/decky-mock/README.md](devtools/decky-mock/README.md) for setup and known limitations.
@@ -56,7 +58,7 @@ After each stable release lands on `main`, open a pull request from `main` into 
 
 The repository's `.githooks/pre-commit` hook blocks commits on `develop`, `main` and `staging`. Activate it once per checkout with `git config core.hooksPath .githooks`; protected branches on GitHub should enforce the same rule remotely.
 
-To release, bump `version` in `package.json` (the backend reads it at runtime; there is no second copy), then push a `v*` Git tag. The tag starts the GitHub Actions release workflow. It fails unless the tag is `v` plus the `package.json` version. It installs the locked packages, typechecks, builds, runs the frontend and backend tests and the browser E2E suite in `devtools/decky-mock/`, and packages the Decky plugin with a read-only token; a separate publish job then attaches `DeckyHub-v*.zip` to the GitHub release. Release-notes conventions are in the Release section of [AGENTS.md](AGENTS.md).
+To release, bump `version` in `package.json` (the backend reads it at runtime; there is no second copy), then push a `v*` Git tag. The tag starts the GitHub Actions release workflow. It fails unless the tag is `v` plus the `package.json` version. It installs the locked packages, typechecks, builds, runs the frontend and backend tests and the browser E2E suite in `devtools/decky-mock/`, and packages the Decky plugin with a read-only token; the `scan` and `scan-desktop` jobs call the reusable [`scan.yml`](.github/workflows/scan.yml) once for the ZIP and once for the Desktop installer (`install-deckyhub.sh` and its `.desktop` launcher); each run scans the file with ClamAV, uploads it to VirusTotal (skipped unless the `VIRUSTOTAL_API_KEY` repository secret is set) and to OPSWAT MetaDefender Cloud (`METADEFENDER_API_KEY`), and puts its verdicts and report links into the release notes, never stopping the release; for stable releases, publish also refreshes the README's and website's VirusTotal/MetaDefender badges on the `badges` branch; a separate publish job then attaches `DeckyHub-v*.zip`, its `ClamAV-scan-v*.txt` and `ClamAV-desktop-v*.txt` reports, the same ZIP as `DeckyHub.zip` and the Desktop Mode installer (`Install-DeckyHub.desktop` and `install-deckyhub.sh`, from `installer/`) to the GitHub release. Release-notes conventions are in the Release section of [AGENTS.md](AGENTS.md).
 
 ## Security boundaries
 

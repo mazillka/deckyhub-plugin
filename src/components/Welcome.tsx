@@ -5,7 +5,7 @@ import { useT } from "../i18n";
 import { compactButtonStyle } from "../utils";
 import { Card, IconNote } from "./Card";
 
-export const WELCOME_KEY = "deckyhub-welcome";
+const WELCOME_KEY = "deckyhub-welcome";
 
 const seen = () => {
   try {

@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import type { TFunc } from "../i18n/en";
-import type { App } from "../types";
+import { FaShieldAlt } from "react-icons/fa";
+import type { App, VirusScan } from "../types";
 import { compactNumber, timeAgo } from "../utils";
 
 export const pillStyle = { display: "inline-block", marginRight: 6, padding: "1px 8px", border: "1px solid", borderRadius: 999, fontSize: "max(12px, 0.78em)", fontWeight: 600 };
@@ -50,14 +51,56 @@ export const ForkBadge = ({ t, repo }: { t: TFunc; repo?: string }) => (
   <span title={repo ? t("appcard.forkOf", { repo }) : t("appcard.forkHint")} style={{ ...pillStyle, color: "#b8c7d3", background: "#b8c7d322", borderColor: "#b8c7d366" }}>{t("appcard.fork")}</span>
 );
 
-// Runs as root / Fork / audit warnings / No release in a year, shared by the card and its Manage window.
+// The AI badge: the plugin's repository has files that set it up for AI coding assistants
+// (the registry's stats.json lists them), so it's likely developed with AI help. Also shown
+// in Discover's legend, which says what it does and doesn't mean.
+const AI_COLOR = "#c49bff";
+export const AiBadge = ({ t, files }: { t: TFunc; files?: string[] }) => (
+  <span className="deckyhub-ai-badge" title={files?.length ? t("appcard.aiFiles", { files: files.join(", ") }) : t("appcard.aiHint")} style={{ ...pillStyle, color: AI_COLOR, background: `${AI_COLOR}22`, borderColor: `${AI_COLOR}66` }}>
+    {t("appcard.ai")}
+  </span>
+);
+
+// The virus scans' verdict on the release the card installs (the registry's scans.json):
+// the worse of ClamAV's and YARA's, also shown in Discover's legend. Nothing until the ZIP
+// has a report; Manage has the full report.
+type ScanBadgeKind = "clean" | "infected" | "partial";
+export const SCAN_BADGES: ScanBadgeKind[] = ["clean", "infected", "partial"];
+const SCAN_COLORS: Record<ScanBadgeKind, string> = { clean: "#6bcb6b", infected: "#ff8a8a", partial: "#ffb35c" };
+const scanSummary = (scan: VirusScan, virusTotal?: App["virusTotal"], metaDefender?: App["metaDefender"]) => {
+  const results = [scan.result, scan.yara?.result].filter((result): result is NonNullable<typeof result> => result != null);
+  if (virusTotal?.state === "complete" && virusTotal.flagged !== undefined) {
+    results.push(virusTotal.flagged ? "infected" : "clean");
+  }
+  if (metaDefender?.state === "complete" && metaDefender.flagged !== undefined) {
+    results.push(metaDefender.flagged ? "infected" : "clean");
+  }
+  const passed = results.filter((result) => result === "clean").length;
+  const kind: ScanBadgeKind = results.includes("infected") ? "infected" : scan.yara && passed === results.length ? "clean" : "partial";
+  return { kind, count: `${passed}/${results.length}` };
+};
+
+export const ScanBadge = ({ t, kind, count }: { t: TFunc; kind: ScanBadgeKind; count?: string }) => {
+  const color = SCAN_COLORS[kind];
+  return (
+    <span className={`deckyhub-scan-badge deckyhub-scan-${kind}`} title={t(`appcard.scan.${kind}.hint`)} style={{ ...pillStyle, whiteSpace: "nowrap", color, background: `${color}22`, borderColor: `${color}66` }}>
+      <FaShieldAlt /> {t(`appcard.scan.${kind}`)}{count && ` · ${count}`}
+    </span>
+  );
+};
+
+// Runs as root / Fork / AI / audit warnings / virus scan / No release in a year, shared by the card and its Manage window.
 export function AppBadges({ app, t }: { app: App; t: TFunc }) {
   const released = releasedAt(app);
   return (
     <>
       {app.stats?.root && <RootBadge t={t} />}
       {app.stats?.fork && <ForkBadge t={t} repo={app.stats.fork} />}
+      {app.stats?.ai?.length ? <AiBadge t={t} files={app.stats.ai} /> : null}
       <AuditWarnings app={app} t={t} />
+      {app.scan && (app.scan.unverifiedMatch
+        ? <small style={{ color: SCAN_COLORS.partial }}>{t("scan.unverifiedMatch")}</small>
+        : <ScanBadge t={t} {...scanSummary(app.scan, app.virusTotal, app.metaDefender)} />)}
       {isStale(released) && <span title={new Date(released).toLocaleDateString()} style={{ ...pillStyle, color: "#ff8a8a", background: "#ff8a8a22", borderColor: "#ff8a8a66" }}>{t("appcard.noReleaseInYear")}</span>}
     </>
   );

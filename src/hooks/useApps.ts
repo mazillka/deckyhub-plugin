@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { getApps, getSettings, REGISTRY_UPDATED } from "../api";
-import type { App, HideableButton, PluginStats, RepoPreference, UpdateChannel, View } from "../types";
-import { DEFAULT_COLUMNS_PER_ROW, fetchPluginStats, getDeckyBackend, hydrate, log, notifyUpdates } from "../utils";
+import type { App, HideableButton, PluginStats, RepoPreference, UpdateChannel, View, VirusScan } from "../types";
+import { DEFAULT_COLUMNS_PER_ROW, fetchPluginStats, fetchVirusScans, getDeckyBackend, hydrate, log, notifyUpdates, scanFor } from "../utils";
+import { metaDefenderReportOf, virusTotalReportOf } from "../releases";
 
 // ponytail: fixed pool of 8 GitHub requests in flight; lower it if the registry grows
 // big enough to trip GitHub's secondary (burst) rate limit.
@@ -23,6 +24,7 @@ export function useApps(view: View) {
   const [checked, setChecked] = useState(0);
   // Every listed plugin, for the Quick Access menu's Discover button (its own list is installed ones only).
   const [listedCount, setListedCount] = useState(0);
+  const [installedCount, setInstalledCount] = useState(0);
 
   // Bumped per load() so a slower, older load can't overwrite a newer one.
   const loadRun = useRef(0);
@@ -35,16 +37,23 @@ export function useApps(view: View) {
     const run = ++loadRun.current;
     if (!loaded.current) setLoading(true);
     try {
-      // Downloads and stars only matter for Discover's cards and sorting.
-      const [appData, settings, stats] = await Promise.all([getApps(), getSettings(), view === "discover" ? fetchPluginStats(force) : Promise.resolve<Record<string, PluginStats>>({})]);
+      // Discover and Installed both show stats and security badges on their cards.
+      const showBadges = view !== "updates";
+      const [appData, settings, stats, scans] = await Promise.all([
+        getApps(),
+        getSettings(),
+        showBadges ? fetchPluginStats(force) : Promise.resolve<Record<string, PluginStats>>({}),
+        showBadges ? fetchVirusScans(force) : Promise.resolve<Record<string, VirusScan>>({}),
+      ]);
       const local = appData.apps;
       setListedCount(local.length);
+      setInstalledCount(local.filter((app) => app.installedVersion).length);
       const preferences = settings.repoSettings || {};
       setRepoPreferences(preferences);
       setColumnsPerRow(settings.columnsPerRow);
       setHiddenButtons(settings.hiddenButtons ?? []);
       setRegistryChannel(settings.registryChannel === "prerelease" ? "prerelease" : "stable");
-      const tracked = (view === "updates" ? local.filter((app) => app.installedVersion) : local).map((app) => {
+      const tracked = (view !== "discover" ? local.filter((app) => app.installedVersion) : local).map((app) => {
         const stat = stats[app.repo.toLowerCase()];
         return stat ? { ...app, stats: stat } : app;
       });
@@ -56,7 +65,7 @@ export function useApps(view: View) {
       setLoadError(null);
       // Discover shows every card straight away and fills each in as its
       // release arrives; Updates waits, since it lists only apps with an update.
-      if (view === "discover") {
+      if (view !== "updates") {
         loaded.current = true;
         setLoading(false);
       }
@@ -68,7 +77,16 @@ export function useApps(view: View) {
       const worker = async () => {
         while (next < tracked.length) {
           const index = next++;
-          hydrated[index] = await hydrate(tracked[index], force, preferences[tracked[index].repo]);
+          const app = await hydrate(tracked[index], force, preferences[tracked[index].repo]);
+          // The report for the ZIP this card installs, once its release is known.
+          hydrated[index] = showBadges ? { ...app, scan: scanFor(scans, app.assets[0]) } : app;
+          if (showBadges && app.assets[0]) {
+            const [virusTotal, metaDefender] = await Promise.all([
+              virusTotalReportOf(app.assets[0]).catch(() => null),
+              metaDefenderReportOf(app.assets[0]).catch(() => null),
+            ]);
+            hydrated[index] = { ...hydrated[index], virusTotal, metaDefender };
+          }
           // A newer load took over: stop, rather than check the rest for nothing.
           if (run !== loadRun.current) return;
           setApps((current) => current.map((app) => (app.id === hydrated[index].id ? hydrated[index] : app)));
@@ -118,5 +136,5 @@ export function useApps(view: View) {
     };
   }, []);
 
-  return { apps, setApps, loading, loadError, checked, listedCount, columnsPerRow, repoPreferences, setRepoPreferences, hiddenButtons, registryChannel, load };
+  return { apps, setApps, loading, loadError, checked, listedCount, installedCount, columnsPerRow, repoPreferences, setRepoPreferences, hiddenButtons, registryChannel, load };
 }

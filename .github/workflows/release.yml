@@ -52,25 +52,186 @@ jobs:
           unzip -Z1 "DeckyHub-${GITHUB_REF_NAME}.zip" | grep -Fx "DeckyHub/dist/index.js"
           if unzip -Z1 "DeckyHub-${GITHUB_REF_NAME}.zip" | grep -F ".map"; then echo "source map in the ZIP"; exit 1; fi
           sha256sum "DeckyHub-${GITHUB_REF_NAME}.zip"
+      # The same ZIP under a fixed name, for one link that always gets the newest stable
+      # release (releases/latest/download/DeckyHub.zip, for Decky's Install Plugin from
+      # URL), and the Desktop Mode installer, filled in with this release's tag and the
+      # ZIP's SHA-256 so it installs exactly this ZIP. None of the names start "DeckyHub-"
+      # (the self-update's pattern) or contain "deckyhub-" (the registry's filter).
+      - name: Add the fixed-name ZIP and the Desktop Mode installer
+        run: |
+          zip="DeckyHub-${GITHUB_REF_NAME}.zip"
+          sha=$(sha256sum "$zip" | cut -d' ' -f1)
+          cp "$zip" DeckyHub.zip
+          python3 installer/build_installer.py "${GITHUB_REF_NAME}" "${sha}" > install-deckyhub.sh
+          sed -e "s/@TAG@/${GITHUB_REF_NAME}/g" installer/Install-DeckyHub.desktop > Install-DeckyHub.desktop
+          if grep -n "@TAG@\|@SHA256@\|@STARTER_PLUGINS@" install-deckyhub.sh Install-DeckyHub.desktop; then echo "placeholder left in the installer"; exit 1; fi
+          bash -n install-deckyhub.sh
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-zip
-          path: DeckyHub-${{ github.ref_name }}.zip
+          path: |
+            DeckyHub-${{ github.ref_name }}.zip
+            DeckyHub.zip
+            Install-DeckyHub.desktop
+            install-deckyhub.sh
           if-no-files-found: error
 
-  publish:
+  # Each file is scanned by scan.yml (ClamAV, VirusTotal, MetaDefender); never stops the release.
+  # The code itself is checked by CodeQL (codeql.yml) on every push and PR.
+  scan:
     needs: build
+    uses: ./.github/workflows/scan.yml
+    secrets: inherit
+    with:
+      clamav-files: DeckyHub-${{ github.ref_name }}.zip
+      file: DeckyHub-${{ github.ref_name }}.zip
+      report: ClamAV-scan-${{ github.ref_name }}.txt
+      artifact: clamav-report
+      what: release ZIP
+
+  scan-desktop:
+    needs: build
+    uses: ./.github/workflows/scan.yml
+    secrets: inherit
+    with:
+      clamav-files: Install-DeckyHub.desktop install-deckyhub.sh
+      file: install-deckyhub.sh
+      report: ClamAV-desktop-${{ github.ref_name }}.txt
+      artifact: clamav-desktop-report
+      what: Desktop installer
+      vt-delay: 30
+      vt-interval: 60
+      vt-polls: 15
+
+  publish:
+    needs: [build, scan, scan-desktop]
+    # The scan never holds a release back, even if its job broke: the notes say so.
+    if: ${{ !cancelled() && needs.build.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      # To rebuild the website (pages.yml) for the release notes page.
+      actions: write
     steps:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: release-zip
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        continue-on-error: true
+        with:
+          name: clamav-report
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        continue-on-error: true
+        with:
+          name: clamav-desktop-report
       - name: Create GitHub Release
         run: |
           prerelease=()
           [[ "$GITHUB_REF_NAME" == *-* ]] && prerelease=(--prerelease)
-          gh release create "$GITHUB_REF_NAME" "DeckyHub-${GITHUB_REF_NAME}.zip" --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes "${prerelease[@]}"
+          zip="DeckyHub-${GITHUB_REF_NAME}.zip"
+          report="ClamAV-scan-${GITHUB_REF_NAME}.txt"
+          files=("$zip" DeckyHub.zip Install-DeckyHub.desktop install-deckyhub.sh)
+          link=""
+          if [[ -f "$report" ]]; then
+            files+=("$report")
+            link=" ([scan report](https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/${report}))"
+          fi
+          desktop_report="ClamAV-desktop-${GITHUB_REF_NAME}.txt"
+          desktop_link=""
+          if [[ -f "$desktop_report" ]]; then
+            files+=("$desktop_report")
+            desktop_link=" ([scan report](https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/${desktop_report}))"
+          fi
+          case "$DESKTOP_RESULT" in
+            clean) desktop_scan="No threats found$desktop_link." ;;
+            infected) desktop_scan="Flagged: ${DESKTOP_FOUND}$desktop_link." ;;
+            *) desktop_scan="Scan unavailable$desktop_link." ;;
+          esac
+          desktop_vt="${DESKTOP_VT_RESULT:-unavailable}"
+          [[ -n "$DESKTOP_VT_DETECTIONS" ]] && desktop_vt+=" (${DESKTOP_VT_DETECTIONS})"
+          [[ -n "$DESKTOP_VT_URL" ]] && desktop_vt+=" — [report]($DESKTOP_VT_URL)"
+          desktop_md="${DESKTOP_MD_RESULT:-unavailable}"
+          [[ -n "$DESKTOP_MD_DETECTIONS" ]] && desktop_md+=" (${DESKTOP_MD_DETECTIONS})"
+          [[ -n "$DESKTOP_MD_URL" ]] && desktop_md+=" — [report]($DESKTOP_MD_URL)"
+          case "$RESULT" in
+            clean) scan="ClamAV found no threats in \`$zip\`$link." ;;
+            infected) scan="ClamAV flagged \`$zip\`: ${FOUND}$link. It may be a false positive; read the report before you install." ;;
+            error) scan="ClamAV couldn't scan \`$zip\`$link." ;;
+            *) scan="The ClamAV scan didn't run for this release." ;;
+          esac
+          case "$VT_RESULT" in
+            clean) vt="No engine flagged \`$zip\` (${VT_DETECTIONS}) — [VirusTotal report]($VT_URL)." ;;
+            flagged) vt="${VT_DETECTIONS} engines flagged \`$zip\` — [VirusTotal report]($VT_URL). Single detections are often false positives; read the report before you install." ;;
+            pending) vt="VirusTotal hadn't finished when this release was published — [see its report]($VT_URL)." ;;
+            *) vt="" ;;
+          esac
+          vt_line=""
+          [[ -n "$vt" ]] && vt_line="- **VirusTotal:** $vt"$'\n'
+          case "$MD_RESULT" in
+            clean) md="No engine flagged \`$zip\` (${MD_DETECTIONS}) — [MetaDefender report]($MD_URL)." ;;
+            flagged) md="${MD_DETECTIONS} engines flagged \`$zip\` — [MetaDefender report]($MD_URL). Single detections are often false positives; read the report before you install." ;;
+            pending) md="MetaDefender hadn't finished when this release was published — [see its report]($MD_URL)." ;;
+            *) md="" ;;
+          esac
+          md_line=""
+          [[ -n "$md" ]] && md_line="- **MetaDefender:** $md"$'\n'
+          # Kept as the last section when the notes are rewritten (AGENTS.md's Release section).
+          notes="## Security checks"$'\n\n'"- **Virus scan:** $scan"$'\n'"$vt_line""$md_line""- **Desktop installer (\`install-deckyhub.sh\` and its \`.desktop\` launcher):** ClamAV: $desktop_scan VirusTotal: $desktop_vt. MetaDefender: $desktop_md."$'\n'"- **Code analysis:** GitHub [CodeQL](https://github.com/${GITHUB_REPOSITORY}/actions/workflows/codeql.yml) checks the Python and TypeScript code on every change."
+          gh release create "$GITHUB_REF_NAME" "${files[@]}" --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes --notes "$notes" "${prerelease[@]}"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESULT: ${{ needs.scan.outputs.result }}
+          FOUND: ${{ needs.scan.outputs.found }}
+          VT_RESULT: ${{ needs.scan.outputs.vt-result }}
+          VT_DETECTIONS: ${{ needs.scan.outputs.vt-detections }}
+          VT_URL: ${{ needs.scan.outputs.vt-url }}
+          MD_RESULT: ${{ needs.scan.outputs.md-result }}
+          MD_DETECTIONS: ${{ needs.scan.outputs.md-detections }}
+          MD_URL: ${{ needs.scan.outputs.md-url }}
+          DESKTOP_RESULT: ${{ needs.scan-desktop.outputs.result }}
+          DESKTOP_FOUND: ${{ needs.scan-desktop.outputs.found }}
+          DESKTOP_VT_RESULT: ${{ needs.scan-desktop.outputs.vt-result }}
+          DESKTOP_VT_DETECTIONS: ${{ needs.scan-desktop.outputs.vt-detections }}
+          DESKTOP_VT_URL: ${{ needs.scan-desktop.outputs.vt-url }}
+          DESKTOP_MD_RESULT: ${{ needs.scan-desktop.outputs.md-result }}
+          DESKTOP_MD_DETECTIONS: ${{ needs.scan-desktop.outputs.md-detections }}
+          DESKTOP_MD_URL: ${{ needs.scan-desktop.outputs.md-url }}
+      # shields.io endpoint JSON for the README's and the website's VirusTotal and
+      # MetaDefender badges, on the orphan `badges` branch. Stable releases only, like the
+      # Release badge next to them; a scan that was skipped or failed keeps the old badge.
+      - name: Update the scan badges
+        if: ${{ !contains(github.ref_name, '-') }}
+        continue-on-error: true
+        run: |
+          badge() { # file label result detections
+            local color message
+            case "$3" in
+              clean) color=brightgreen; message="no threats ($4, ${GITHUB_REF_NAME})" ;;
+              flagged) color=orange; message="$4 flagged (${GITHUB_REF_NAME})" ;;
+              pending) color=lightgrey; message="pending (${GITHUB_REF_NAME})" ;;
+              *) return 0 ;;
+            esac
+            jq -nc --arg label "$2" --arg message "$message" --arg color "$color" '{schemaVersion: 1, label: $label, message: $message, color: $color}' > "$1"
+          }
+          remote="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git clone -q --depth 1 --branch badges "$remote" badges; then cd badges
+          else mkdir badges && cd badges && git init -q -b badges; fi
+          badge virustotal.json VirusTotal "$VT_RESULT" "$VT_DETECTIONS"
+          badge metadefender.json MetaDefender "$MD_RESULT" "$MD_DETECTIONS"
+          git add -A
+          git diff --cached --quiet && exit 0
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "Scan badges for ${GITHUB_REF_NAME}"
+          git push -q "$remote" HEAD:badges
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VT_RESULT: ${{ needs.scan.outputs.vt-result }}
+          VT_DETECTIONS: ${{ needs.scan.outputs.vt-detections }}
+          MD_RESULT: ${{ needs.scan.outputs.md-result }}
+          MD_DETECTIONS: ${{ needs.scan.outputs.md-detections }}
+      # The website's release notes page lists this release on the next build; start it
+      # now, from main (the website is always main's). Never fails the release.
+      - name: Rebuild the website
+        continue-on-error: true
+        run: gh workflow run pages.yml --ref main --repo "$GITHUB_REPOSITORY"
         env:
           GH_TOKEN: ${{ github.token }}

@@ -8,6 +8,8 @@ export type App = {
   description?: string;
   repo: string;
   category: string;
+  // From the official registry (not a custom repository or registry): it has a page on deckyhub.com.
+  official?: boolean;
   releaseTagInclude?: string;
   asset: { include: string[]; exclude: string[] };
   installedVersion?: string | null;
@@ -22,6 +24,10 @@ export type App = {
   updateAvailable?: boolean | null;
   // From the registry's stats.json (fetchPluginStats); absent for repos it doesn't list.
   stats?: PluginStats;
+  // The virus scan report for the ZIP the card installs (Discover only; null: not scanned yet).
+  scan?: VirusScan | null;
+  virusTotal?: { state: string; flagged?: number; total?: number } | null;
+  metaDefender?: { state: string; flagged?: number; total?: number } | null;
   error?: string | null;
   channel?: UpdateChannel;
 };
@@ -29,8 +35,19 @@ export type App = {
 // A plugin's line in the registry's stats.json: all-time downloads, GitHub stars,
 // when the release Discover shows came out, whether its plugin.json asks for root, and
 // what Decky Extended Plugins' audit warns about in it (and in a newer pre-release, if any),
-// and for a fork, the owner/name of the repo it was forked from.
-export type PluginStats = { downloads?: number; stars?: number | null; updated?: string | null; root?: boolean | null; fork?: string; warnings?: string[]; prereleaseWarnings?: string[] };
+// for a fork, the owner/name of the repo it was forked from, and the AI coding assistant
+// files (CLAUDE.md, AGENTS.md, .cursorrules...) in its repository, if any.
+export type PluginStats = { downloads?: number; stars?: number | null; updated?: string | null; root?: boolean | null; fork?: string; ai?: string[]; warnings?: string[]; prereleaseWarnings?: string[] };
+
+// One scanner's verdict on a plugin ZIP. found lists what it matched (infected), or for
+// ClamAV the size limit it hit (incomplete); reason says why a scan failed (error) or,
+// for YARA, which files it couldn't look at (incomplete), in English from the registry.
+export type ScanVerdict = { result: "clean" | "infected" | "incomplete" | "error"; found?: string[]; reason?: string; engine?: string; signatures?: string; scannedAt?: string };
+
+// One plugin ZIP's line in the registry's scans.json (fetchVirusScans): ClamAV's verdict
+// at the top (all DeckyHub releases read it), YARA's under yara (absent until YARA has
+// scanned the ZIP, and in reports from before the registry ran YARA).
+export type VirusScan = ScanVerdict & { sha256?: string; yara?: ScanVerdict; unverifiedMatch?: boolean };
 
 // Manage-window buttons that Display Settings can hide.
 export type HideableButton = "downloadZip" | "install" | "update" | "releasePage";
@@ -47,7 +64,7 @@ export type DeckyHubReleaseOption = { tag: string; prerelease: boolean; publishe
 
 export type AppReleaseOption = { tag: string; prerelease: boolean; publishedAt: string | null; url: string; notes?: string; assets: Asset[] };
 
-export type View = "updates" | "discover";
+export type View = "updates" | "discover" | "installed";
 
 export type SearchRepo = { full_name: string; description?: string; stargazers_count?: number };
 

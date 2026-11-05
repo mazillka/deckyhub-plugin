@@ -538,13 +538,20 @@ class CustomRegistryTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as home, patch.object(main.decky, "emit", emit, create=True):
             plugin = self.plugin(home)
-            plugin.apps = parse_registry(payload("owner/official"))
+            plugin.apps = [{**app, "official": True} for app in parse_registry(payload("owner/official"))]  # as _load_registry marks them
             with patch.object(main, "fetch_remote_registry", fake_fetch({REMOTE_REGISTRY_URL: payload("owner/official")})):
                 asyncio.run(plugin._refresh_registry_in_background())
             self.assertEqual(events, [])
             with patch.object(main, "fetch_remote_registry", fake_fetch({REMOTE_REGISTRY_URL: payload("owner/official", "owner/new")})):
                 asyncio.run(plugin._refresh_registry_in_background())
             self.assertEqual(events, ["registry_updated"])
+
+    def test_only_the_official_registry_apps_are_marked_official(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = self.plugin(home, [CUSTOM_URL])
+            with patch.object(main, "fetch_remote_registry", fake_fetch({REMOTE_REGISTRY_URL: payload("owner/official"), CUSTOM_URL: payload("owner/custom")})):
+                apps = plugin._load_registry()
+            self.assertEqual({app["repo"]: app.get("official", False) for app in apps}, {"owner/official": True, "owner/custom": False})
 
     def test_cache_writes_leave_no_temp_files(self):
         with tempfile.TemporaryDirectory() as home:

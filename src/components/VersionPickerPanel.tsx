@@ -1,7 +1,7 @@
 import { DialogButtonPrimary as Button, Focusable } from "@decky/ui";
 import { openExternalWeb } from "../external";
 import { useEffect, useRef, useState } from "react";
-import { FaExternalLinkAlt, FaGithub, FaSync } from "react-icons/fa";
+import { FaExternalLinkAlt, FaGithub, FaGlobe, FaSync } from "react-icons/fa";
 import type { TFunc } from "../i18n/en";
 import type { UpdateChannel } from "../types";
 import { modalButtonStyle } from "../utils";
@@ -41,7 +41,7 @@ export function useReleasePicker<T extends { tag: string; prerelease: boolean }>
 // The Release Page + Check for Updates row both version pickers end with.
 const actionButtonStyle = { ...modalButtonStyle, width: "auto", flex: "1 1 auto", whiteSpace: "nowrap" as const };
 
-export function ReleaseActions({ t, url, repoUrl, hideReleasePage, checking, disabled, onCheck, closeModal }: { t: TFunc; url?: string; repoUrl?: string; hideReleasePage: boolean; checking: boolean; disabled: boolean; onCheck: () => void; closeModal?: () => void }) {
+export function ReleaseActions({ t, url, repoUrl, pageUrl, hideReleasePage, checking, disabled, onCheck, closeModal }: { t: TFunc; url?: string; repoUrl?: string; pageUrl?: string; hideReleasePage: boolean; checking: boolean; disabled: boolean; onCheck: () => void; closeModal?: () => void }) {
   // Close first: Steam's browser otherwise opens underneath this modal.
   const open = (target: string) => {
     closeModal?.();
@@ -58,6 +58,11 @@ export function ReleaseActions({ t, url, repoUrl, hideReleasePage, checking, dis
       {repoUrl && (
         <Button style={actionButtonStyle} onClick={() => open(repoUrl)}>
           <FaGithub /> {t("appcard.repository")}
+        </Button>
+      )}
+      {pageUrl && (
+        <Button style={actionButtonStyle} onClick={() => open(pageUrl)}>
+          <FaGlobe /> {t("appcard.deckyhubPage")}
         </Button>
       )}
       <Button style={actionButtonStyle} disabled={disabled} onClick={onCheck}>

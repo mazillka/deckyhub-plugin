@@ -3,6 +3,9 @@ import type { Asset, App, Settings, Download, DeckyHubInfo, RepoPreference } fro
 
 export const getApps = callable<[], { apps: App[] }>("get_apps");
 export const getSettings = callable<[], Settings>("get_settings");
+// Plugins picked in the Desktop Mode installer, waiting for DeckyHub to install them.
+export const getPendingInstalls = callable<[], string[]>("get_pending_installs");
+export const clearPendingInstalls = callable<[], { cleared: boolean }>("clear_pending_installs");
 export const saveSettings = callable<[settings: Settings], Settings>("save_settings");
 export const downloadAsset = callable<[asset: Asset, repo?: string], { jobId?: string; error?: string }>("download_asset");
 export const stageInstall = callable<[asset: Asset, repo: string, jobId: string], { path?: string; error?: string }>("stage_install");

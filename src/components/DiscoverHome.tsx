@@ -9,7 +9,7 @@ import { FocusableGrid } from "./FocusableGrid";
 import { keepInView } from "./KeepInView";
 
 // Discover's home shelves, each the top of the list in one order, with See all for the rest.
-export const SHELVES = [["popular", "downloads"], ["recent", "updated"], ["new", "added"]] as const;
+const SHELVES = [["popular", "downloads"], ["recent", "updated"], ["new", "added"]] as const;
 
 // One line each, all the same height, as wide as their text (equal fifths cut
 // "Frame Generation" short on a Deck); "…" only if a row truly can't fit.

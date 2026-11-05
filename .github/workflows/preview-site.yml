@@ -1,0 +1,21 @@
+name: Preview website
+
+# Publishes a preview of the develop branch at https://deckyhub.com/develop/. GitHub Pages
+# serves one site per repository and only deploys from main, so this starts pages.yml from
+# main, which builds main for the live site and develop for the preview, in one deployment.
+on:
+  push:
+    branches: [develop]
+    paths: [docs/**, screenshots/**, promo/deckyhub.gif, devtools/build-site.py, devtools/plugin_pages.py, .github/workflows/preview-site.yml]
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main
+        env:
+          GH_TOKEN: ${{ github.token }}

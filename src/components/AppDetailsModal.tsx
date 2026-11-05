@@ -12,6 +12,7 @@ import { displayVersion } from "../version";
 import { AppBadges, AppMonogram, AppStats } from "./AppBadges";
 import { showReleaseInfo } from "./ReleaseInfo";
 import { DetailsWindow } from "./DetailsWindow";
+import { VirusScanReport } from "./VirusScanReport";
 import { ReleaseActions, useReleasePicker } from "./VersionPickerPanel";
 
 // The window's main action, taller than the rest.
@@ -72,7 +73,7 @@ export function AppDetailsModal({
     void startPluginInstall(t, app.name, app.repo, release.assets[0], release.tag, action, installLabel, () => {
       closeModal?.();
       Navigation.NavigateBack();
-    });
+    }, [...(app.stats?.warnings ?? []), ...(app.channel === "prerelease" ? app.stats?.prereleaseWarnings ?? [] : [])]);
 
   // Installed Decky plugins can be removed through Decky Loader — never
   // DeckyHub itself from here. The loader doesn't confirm, so we do.
@@ -153,6 +154,7 @@ export function AppDetailsModal({
           </>
         )
       }
+      scan={<VirusScanReport key={JSON.stringify([selectedRelease?.assets[0]?.url, selectedRelease?.assets[0]?.sha256])} t={t} asset={selectedRelease?.assets[0]} version={selectedRelease?.tag} closeModal={closeModal} showZipActions={false} />}
       channel={channel}
       onChannelChange={changeChannel}
       versionOptions={versionOptions}
@@ -163,7 +165,7 @@ export function AppDetailsModal({
       isEmpty={!loading && !fetchError && releases.length === 0}
       footer={
         <>
-          <ReleaseActions t={t} url={selectedRelease?.url} repoUrl={`https://github.com/${app.repo}`} hideReleasePage={hiddenButtons.includes("releasePage")} checking={loading} disabled={loading} onCheck={() => void load(true)} closeModal={closeModal} />
+          <ReleaseActions t={t} url={selectedRelease?.url} repoUrl={`https://github.com/${app.repo}`} pageUrl={app.official ? `https://deckyhub.com/plugins/${encodeURIComponent(app.id)}.html` : undefined} hideReleasePage={hiddenButtons.includes("releasePage")} checking={loading} disabled={loading} onCheck={() => void load(true)} closeModal={closeModal} />
           {canUninstall && (
             <Button style={{ ...modalButtonStyle, color: "#ff6b6b" }} onClick={confirmUninstall}>
               <FaTrash /> {t("appcard.uninstall")}

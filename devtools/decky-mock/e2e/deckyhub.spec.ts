@@ -31,9 +31,13 @@ const makoRelease = (tag: string, sha256: string, day = "01") => ({
   assets: [{ name: "mako-decky.zip", browser_download_url: `https://github.com/eugeniosegala/MAKO/releases/download/${tag}/mako-decky.zip`, size: 1024, digest: `sha256:${sha256}` }],
 });
 const RELEASE_INDEX_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/releases.json";
+const METADEFENDER_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/metadefender-reports/reports.json";
 const PLUGIN_STATS_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/stats.json";
 // What the DeckyHub window's Registry Channel: Pre-release reads instead (the registry's develop branch).
 const PRERELEASE_STATS_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index-develop/stats.json";
+// The registry's ClamAV reports, keyed by download URL (both Registry channels read this one).
+const VIRUS_SCANS_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/virus-scans/scans.json";
+const mockVirusScans = (page: Page, files: Record<string, unknown>) => page.route(VIRUS_SCANS_URL, (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), files } }));
 const mockMakoReleases = (page: Page, releases: unknown[]) =>
   page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases**", (route) => route.fulfill({ json: releases }));
 
@@ -122,6 +126,8 @@ test.beforeEach(async ({ page }) => {
   // No release index unless a test serves one, so release lookups use the API stubs.
   await page.route(RELEASE_INDEX_URL, (route) => route.fulfill({ status: 404, body: "404: Not Found" }));
   await page.route(PLUGIN_STATS_URL, (route) => route.fulfill({ status: 404, body: "404: Not Found" }));
+  await page.route(VIRUS_SCANS_URL, (route) => route.fulfill({ status: 404, body: "404: Not Found" }));
+  await page.route(METADEFENDER_URL, (route) => route.fulfill({ status: 404, body: "404: Not Found" }));
   // Search keeps only repos with a Decky plugin.json; every stubbed result has one.
   await page.route("https://raw.githubusercontent.com/**/plugin.json", (route) => route.fulfill({ json: { name: "Test plugin" } }));
   await page.goto("/?bridge=http://127.0.0.1:8643");
@@ -663,6 +669,60 @@ test("Discover's Then by breaks Sort's ties, and A to Z breaks the rest", async 
   await expect.poll(unifideckFirst).toBe(true);
 });
 
+test("Installed lists only installed plugins and handles missing badge data", async ({ page }) => {
+  const removePlugin = seedPlugin("e2e-mako", "MAKO - Frame Generation", "1.0.0");
+  try {
+    await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", "c".repeat(64))]);
+    await page.goto("/?preview=/deckyhub/installed&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    await expect(app.getByRole("heading", { name: "MAKO Decky" })).toBeVisible();
+    await expect(app.getByRole("heading", { name: "Unifideck", exact: true })).toHaveCount(0);
+    await expect(app.getByRole("button", { name: "Manage", exact: true })).toHaveCount(1);
+  } finally {
+    removePlugin();
+  }
+  await page.reload();
+  await expect(mock(page).getByText("No installed plugins found.")).toBeVisible();
+});
+
+test("Installed shows Discover's stats and security badges", async ({ page }) => {
+  const removePlugin = seedPlugin("e2e-mako", "MAKO - Frame Generation", "1.0.0");
+  const sha = "c".repeat(64);
+  const url = "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/mako-decky.zip";
+  const scannedAt = new Date().toISOString();
+  try {
+    await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", sha)]);
+    await page.route(PLUGIN_STATS_URL, (route) => route.fulfill({ json: { generatedAt: scannedAt, plugins: { "eugeniosegala/mako": { downloads: 73981, stars: 680, updated: "2024-01-01T00:00:00Z", root: true } } } }));
+    await mockVirusScans(page, { [url]: { sha256: sha, result: "clean", scannedAt, yara: { result: "infected", found: ["ELASTIC_Linux_Trojan_Test"], scannedAt } } });
+    await page.route(METADEFENDER_URL, (route) => route.fulfill({ json: { reports: { [sha]: { state: "complete", flagged: 1, total: 20, dataId: "abc123" } } } }));
+    await page.goto("/?preview=/deckyhub/installed&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    const card = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+    for (const text of ["↓ 74K", "★ 680", "Runs as root", "Threat found · 1/3"]) await expect(card.getByText(text, { exact: true })).toBeVisible();
+    await card.getByRole("button", { name: "Manage", exact: true }).click();
+    await expect(app.locator(".steam-modal .deckyhub-scan-yara")).toContainText("Threat found: ELASTIC_Linux_Trojan_Test");
+    await expect(app.locator(".steam-modal").getByText("MetaDefender: 1 of 20 engines flagged this ZIP")).toBeVisible();
+  } finally {
+    removePlugin();
+  }
+});
+
+test("MetaDefender reports are used only for the selected ZIP hash", async ({ page }) => {
+  const sha = "c".repeat(64);
+  const url = "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/mako-decky.zip";
+  const scannedAt = new Date().toISOString();
+  await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", sha)]);
+  await mockVirusScans(page, { [url]: { sha256: sha, result: "clean", scannedAt, yara: { result: "clean", scannedAt } } });
+  await page.route(METADEFENDER_URL, (route) => route.fulfill({ json: { reports: { ["d".repeat(64)]: { state: "complete", flagged: 1, total: 20 } } } }));
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  await browseAll(page, "MAKO");
+  const app = mock(page);
+  const card = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+  await expect(card.getByText("No threats · 2/2", { exact: true })).toBeVisible();
+  await card.getByRole("button", { name: "Manage", exact: true }).click();
+  await expect(app.locator(".steam-modal").getByText(/MetaDefender:/)).toHaveCount(0);
+});
+
 test("The Manage window shows the plugin's description, details and a Repository button", async ({ page }) => {
   await page.route(PLUGIN_STATS_URL, (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), plugins: { "eugeniosegala/mako": { downloads: 73981, stars: 680, updated: "2024-01-01T00:00:00Z", root: true } } } }));
   const app = mock(page);
@@ -676,11 +736,276 @@ test("The Manage window shows the plugin's description, details and a Repository
   await expect(app.locator(".steam-modal").getByText("eugeniosegala/MAKO", { exact: true })).toBeVisible();
   await expect(app.locator(".steam-modal .deckyhub-details-notes")).toBeVisible();
   await expect(app.locator(".steam-modal").getByRole("button", { name: "Repository" })).toBeVisible();
+  // A plugin the official registry lists has a page on registry.deckyhub.com.
+  await expect(app.locator(".steam-modal").getByRole("button", { name: "DeckyHub page" })).toBeVisible();
+});
+
+test("Plugin details offers focus stops through long release notes", async ({ page }) => {
+  await mockMakoReleases(page, [{ ...makoRelease("plugin-v2.0.0", "c".repeat(64)), body: "Release information for players. ".repeat(60) }]);
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  await browseAll(page, "MAKO");
+  const app = mock(page);
+  await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
+  const details = app.locator(".steam-modal .deckyhub-details");
+  await expect(details.locator(".deckyhub-details-description [tabindex='0']")).toHaveCount(1);
+  const notes = details.locator(".deckyhub-details-notes [tabindex='0']");
+  await expect.poll(() => notes.count()).toBeGreaterThan(1);
+  await notes.first().focus();
+  await page.keyboard.press("ArrowDown");
+  await expect(notes.nth(1)).toBeFocused();
+  const install = details.getByRole("button", { name: /Install/ }).first();
+  await install.press("y");
+  const full = app.locator(".steam-modal").last();
+  const fullNotes = full.locator("[data-focusable][tabindex='0']");
+  await expect.poll(() => fullNotes.count()).toBeGreaterThan(2);
+  await fullNotes.first().focus();
+  await page.keyboard.press("ArrowDown");
+  await expect(fullNotes.nth(1)).toBeFocused();
+});
+
+test("The Manage window shows the selected ZIP's ClamAV and YARA reports, and the full report on request", async ({ page }) => {
+  const sha = "c".repeat(64);
+  await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", sha)]);
+  const scannedAt = new Date().toISOString();
+  await mockVirusScans(page, { "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/mako-decky.zip": { sha256: sha, result: "clean", engine: "ClamAV 1.4.3", signatures: "27806", scannedAt, yara: { result: "clean", engine: "YARA 4.5.0", signatures: "YARA Forge core 2026-11-01", scannedAt } } });
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
+  await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
+  const scan = app.locator(".steam-modal .deckyhub-virus-scan");
+  await expect(scan.locator(".deckyhub-scan-clamav")).toContainText("ClamAV: No threats found");
+  await expect(scan.locator(".deckyhub-scan-clamav")).toContainText("today");
+  await expect(scan.locator(".deckyhub-scan-yara")).toContainText("YARA: No threats found");
+  await expect(scan.locator(".deckyhub-scan-yara")).toContainText("today");
+  await scan.getByRole("button", { name: "Scan report", exact: true }).click();
+  const report = app.locator(".steam-modal").filter({ hasText: "Virus scan report" });
+  for (const text of ["File: mako-decky.zip", `SHA-256: ${sha}`, "Scanner: ClamAV 1.4.3, signatures 27806", "Scanner: YARA 4.5.0, rules YARA Forge core 2026-11-01"]) await expect(report.getByText(text, { exact: true })).toBeVisible();
+});
+
+test("YARA's verdict counts too, and a report from before YARA says it hasn't scanned the ZIP", async ({ page }) => {
+  const url = "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/mako-decky.zip";
+  await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", "c".repeat(64))]);
+  const scannedAt = new Date().toISOString();
+  await mockVirusScans(page, { [url]: { sha256: "c".repeat(64), result: "clean", scannedAt, yara: { result: "infected", found: ["ELASTIC_Linux_Trojan_Test"], scannedAt } } });
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
+  const mako = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+  await expect(mako.getByText("Threat found · 1/2", { exact: true })).toBeVisible();
+  await mako.getByRole("button", { name: "Manage", exact: true }).click();
+  const scan = app.locator(".steam-modal .deckyhub-virus-scan");
+  await expect(scan.locator(".deckyhub-scan-yara")).toContainText("YARA: Threat found: ELASTIC_Linux_Trojan_Test");
+  await expect(scan.getByText(/decide for yourself/)).toBeVisible();
+
+  await page.unroute(VIRUS_SCANS_URL);
+  await mockVirusScans(page, { [url]: { sha256: "c".repeat(64), result: "clean", scannedAt } });
+  await page.reload();
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
+  await expect(mako.getByText("Not fully scanned · 1/1", { exact: true })).toBeVisible();
+  await mako.getByRole("button", { name: "Manage", exact: true }).click();
+  await expect(scan.locator(".deckyhub-scan-clamav")).toContainText("ClamAV: No threats found");
+  await expect(scan.locator(".deckyhub-scan-yara")).toContainText("YARA: Not scanned yet");
+});
+
+test("Plugin Details keeps an unscanned ZIP inside DeckyHub", async ({ page }) => {
+  const sha = "C".repeat(64);
+  await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", sha)]);
+  await mockVirusScans(page, {});
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
+  await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
+  const scan = app.locator(".steam-modal .deckyhub-virus-scan");
+  await expect(scan.getByText("Not scanned yet", { exact: false })).toBeVisible();
+  await expect(scan.getByRole("button", { name: "VirusTotal", exact: true })).toHaveCount(0);
+  await scan.getByRole("button", { name: "Scan report", exact: true }).click();
+  await expect(app.locator(".steam-modal").getByRole("button", { name: "VirusTotal", exact: true })).toBeVisible();
+  await expect(scan.getByRole("button", { name: "Copy ZIP link", exact: true })).toHaveCount(0);
+  await expect(scan.getByRole("button", { name: "Scan link on VirusTotal", exact: true })).toHaveCount(0);
+});
+
+test("Plugin Details lets users review ClamAV and YARA reports", async ({ page }) => {
+  const zip = "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/mako-decky.zip";
+  await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", "c".repeat(64))]);
+  const scannedAt = new Date().toISOString();
+  await mockVirusScans(page, { [zip]: { sha256: "c".repeat(64), result: "clean", scannedAt, yara: { result: "infected", found: ["ELASTIC_Linux_Trojan_Test"], scannedAt } } });
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
+  const manage = app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true });
+  await manage.click();
+  const scan = app.locator(".steam-modal .deckyhub-virus-scan");
+  await scan.getByRole("button", { name: "Scan report", exact: true }).click();
+  const report = app.locator(".steam-modal").last();
+  await expect(report.getByText("ClamAV: No threats found", { exact: true })).toBeVisible();
+  await expect(report.getByText("YARA: Threat found: ELASTIC_Linux_Trojan_Test", { exact: true })).toBeVisible();
+  const stops = report.locator("[data-focusable][tabindex='0']");
+  await stops.first().focus();
+  await page.keyboard.press("ArrowDown");
+  await expect(stops.nth(1)).toBeFocused();
+});
+
+test("The Manage window says when ClamAV found something, and never calls an unscanned ZIP clean", async ({ page }) => {
+  const url = "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/mako-decky.zip";
+  await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", "c".repeat(64))]);
+  await mockVirusScans(page, { [url]: { sha256: "c".repeat(64), result: "infected", found: ["Unix.Trojan.Test-1"], scannedAt: new Date().toISOString() } });
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
+  const manage = app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true });
+  await manage.click();
+  await expect(app.locator(".steam-modal .deckyhub-virus-scan").getByText("ClamAV: Threat found: Unix.Trojan.Test-1")).toBeVisible();
+
+  // A report for a ZIP since replaced under the same name (another SHA-256) doesn't count.
+  await page.unroute(VIRUS_SCANS_URL);
+  await mockVirusScans(page, { [url]: { sha256: "d".repeat(64), result: "clean", scannedAt: new Date().toISOString() } });
+  await page.reload();
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
+  await manage.click();
+  const scan = app.locator(".steam-modal .deckyhub-virus-scan");
+  await expect(scan.getByText("Not scanned yet", { exact: false })).toBeVisible();
+  await expect(scan.getByText("No threats found", { exact: false })).toHaveCount(0);
+});
+
+test("An unverified scan does not present a clean verdict as belonging to the selected ZIP", async ({ page }) => {
+  const url = "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/mako-decky.zip";
+  const release = makoRelease("plugin-v2.0.0", "c".repeat(64));
+  release.assets[0].digest = "";
+  await mockMakoReleases(page, [release]);
+  await mockVirusScans(page, { [url]: { sha256: "d".repeat(64), result: "clean" } });
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
+  await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
+  const scan = app.locator(".steam-modal .deckyhub-virus-scan");
+  await expect(scan.getByText("This report may describe a different ZIP; the match is unverified.")).toBeVisible();
+  await expect(scan.getByText("No threats found", { exact: false })).toHaveCount(0);
+  await scan.getByRole("button", { name: "Scan report" }).click();
+  const report = app.locator(".steam-modal").last();
+  await expect(report.getByText("This report may describe a different ZIP; the match is unverified.")).toBeVisible();
+});
+
+test("A delayed VirusTotal response follows the selected release", async ({ page }) => {
+  const first = "c".repeat(64), second = "d".repeat(64);
+  await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", first, "02"), makoRelease("plugin-v1.0.0", second, "01")]);
+  await mockVirusScans(page, {});
+  let releaseReport!: () => void;
+  const gate = new Promise<void>((resolve) => { releaseReport = resolve; });
+  let requestStarted!: () => void;
+  const started = new Promise<void>((resolve) => { requestStarted = resolve; });
+  await page.route("https://raw.githubusercontent.com/mazillka/deckyhub-registry/virustotal-reports/reports.json", async (route) => {
+    requestStarted();
+    await gate;
+    await route.fulfill({ json: { reports: {
+      [first]: { state: "complete", stats: { malicious: 5, suspicious: 0, harmless: 0, undetected: 10 } },
+      [second]: { state: "complete", stats: { malicious: 1, suspicious: 0, harmless: 0, undetected: 10 } },
+    } } });
+  });
+  try {
+    const app = mock(page);
+    await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+    await browseAll(page, "MAKO");
+    await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
+    await started;
+    const modal = app.locator(".steam-modal .deckyhub-details");
+    await modal.getByLabel("Version").selectOption("plugin-v1.0.0");
+    releaseReport();
+    await expect(modal.getByText("VirusTotal: 1 of 11 engines flagged this ZIP")).toBeVisible();
+    await expect(modal.getByText("VirusTotal: 5 of 15 engines flagged this ZIP")).toHaveCount(0);
+  } finally {
+    releaseReport();
+  }
+});
+
+test("VirusTotal pending and error reports are shown separately", async ({ page }) => {
+  const first = "c".repeat(64), second = "d".repeat(64);
+  await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", first, "02"), makoRelease("plugin-v1.0.0", second, "01")]);
+  await mockVirusScans(page, {});
+  await page.route("https://raw.githubusercontent.com/mazillka/deckyhub-registry/virustotal-reports/reports.json", (route) => route.fulfill({ json: { reports: {
+    [first]: { state: "pending" }, [second]: { state: "error" },
+  } } }));
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
+  await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
+  const modal = app.locator(".steam-modal .deckyhub-details");
+  await expect(modal.getByText("VirusTotal: Scan pending")).toBeVisible();
+  await modal.getByLabel("Version").selectOption("plugin-v1.0.0");
+  await expect(modal.getByText("VirusTotal: Couldn't be scanned")).toBeVisible();
+});
+
+test("Unavailable scan data and unsupported VirusTotal ZIPs are distinct", async ({ page }) => {
+  const sha = "c".repeat(64);
+  await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", sha)]);
+  await page.route(VIRUS_SCANS_URL, (route) => route.fulfill({ status: 503 }));
+  await page.route("https://raw.githubusercontent.com/mazillka/deckyhub-registry/virustotal-reports/reports.json", (route) => route.fulfill({ json: { reports: { [sha]: { state: "unsupported" } } } }));
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
+  await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
+  const scan = app.locator(".steam-modal .deckyhub-virus-scan");
+  await expect(scan.getByText("Report unavailable", { exact: true })).toBeVisible();
+  await expect(scan.getByText("VirusTotal: ZIP is too large for VirusTotal")).toBeVisible();
+});
+
+test("A failed scan shows why, and Install stays the user's choice", async ({ page }) => {
+  const url = "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/mako-decky.zip";
+  await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", "c".repeat(64))]);
+  await mockVirusScans(page, { [url]: { sha256: "c".repeat(64), result: "error", reason: "Couldn't download it: HTTP Error 404", scannedAt: new Date().toISOString() } });
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
+  await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
+  const scan = app.locator(".steam-modal .deckyhub-virus-scan");
+  await expect(scan.getByText("ClamAV: Couldn't be scanned")).toBeVisible();
+  await expect(scan.getByText("Couldn't download it: HTTP Error 404")).toBeVisible();
+  await expect(scan.getByText(/decide for yourself/)).toBeVisible();
+  // The scan informs; it never takes the Install button away.
+  await expect(app.locator(".steam-modal").getByRole("button", { name: /Install/ }).first()).toBeEnabled();
+  await scan.getByRole("button", { name: "Scan report", exact: true }).click();
+  await expect(app.locator(".steam-modal").filter({ hasText: "Virus scan report" }).getByText("Reason: Couldn't download it: HTTP Error 404", { exact: true })).toBeVisible();
+});
+
+test("DeckyHub's update window shows its release's ClamAV report and how releases are checked", async ({ page }) => {
+  await mockDeckyHubReleases(page, [deckyHubRelease("v9.9.9", { sha: "b" })]);
+  await mockVirusScans(page, { [deckyHubZipUrl("v9.9.9")]: { sha256: "b".repeat(64), result: "clean", scannedAt: new Date().toISOString() } });
+  await page.goto("/?bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+  const scan = app.locator(".steam-modal .deckyhub-virus-scan");
+  await expect(scan.getByText("ClamAV: No threats found")).toBeVisible();
+  await expect(scan.getByText(/scanned with ClamAV, VirusTotal and MetaDefender before it's published.*GitHub CodeQL/)).toBeVisible();
+});
+
+test("Discover cards show the ClamAV verdict for the release they install, and the badge notice explains it", async ({ page }) => {
+  const url = "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/mako-decky.zip";
+  await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", "c".repeat(64))]);
+  await mockVirusScans(page, { [url]: { sha256: "c".repeat(64), result: "infected", found: ["Unix.Trojan.Test-1"], scannedAt: new Date().toISOString() } });
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page);
+  await app.getByRole("button", { name: "Grid", exact: true }).click();
+  await app.getByLabel("Search").fill("MAKO");
+  const mako = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+  await expect(mako.getByText("Threat found · 0/1", { exact: true })).toBeVisible();
+  await app.getByLabel("Search").fill("Unifideck");
+  // No report yet: no badge, rather than a guess.
+  await expect(app.getByRole("heading", { name: "Unifideck" }).locator("..").locator(".deckyhub-scan-badge")).toHaveCount(0);
+
+  await app.locator(".deckyhub-badge-notice").getByRole("button", { name: "More", exact: true }).click();
+  const legend = app.locator(".deckyhub-scan-legend");
+  for (const [badge, meaning] of [
+    ["No threats", "isn't proof of safety"],
+    ["Threat found", "decide for yourself"],
+    ["Not fully scanned", "Manage says why"],
+  ]) await expect(legend.getByText(badge, { exact: true }).locator("..")).toContainText(meaning);
 });
 
 test("Discover shows the registry's audit warnings next to Runs as root and explains each one", async ({ page }) => {
   await page.route(PLUGIN_STATS_URL, (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), plugins: {
-    "eugeniosegala/mako": { downloads: 73981, stars: 680, updated: new Date().toISOString(), root: true, fork: "original/mako", warnings: ["private-data", "not-in-source", "some-future-warning"] },
+    "eugeniosegala/mako": { downloads: 73981, stars: 680, updated: new Date().toISOString(), root: true, fork: "original/mako", ai: ["AGENTS.md", "CLAUDE.md"], warnings: ["private-data", "not-in-source", "some-future-warning"] },
     // A newer pre-release's warnings show only to people on the pre-release channel.
     "mubaraknumann/unifideck": { downloads: 110541, stars: 1410, updated: new Date().toISOString(), root: false, prereleaseWarnings: ["blocked"] },
   } } }));
@@ -695,6 +1020,10 @@ test("Discover shows the registry's audit warnings next to Runs as root and expl
   // A fork the registry lists says so, and what it's a fork of.
   await expect(mako.getByText("Fork", { exact: true })).toHaveAttribute("title", "Fork of original/mako");
   await expect(unifideck.getByText("Fork", { exact: true })).toHaveCount(0);
+  // A repository set up for AI coding assistants gets the AI badge, naming the files.
+  await expect(mako.locator(".deckyhub-ai-badge")).toHaveText("AI");
+  await expect(mako.locator(".deckyhub-ai-badge")).toHaveAttribute("title", /instructions for AI coding assistants \(AGENTS\.md, CLAUDE\.md\)/);
+  await expect(unifideck.locator(".deckyhub-ai-badge")).toHaveCount(0);
   // A warning this release doesn't know yet (the registry adds them first) shows nothing.
   await expect(mako.getByText("some-future-warning")).toHaveCount(0);
   await expect(unifideck.getByText("Blocked by audit")).toHaveCount(0);
@@ -706,6 +1035,7 @@ test("Discover shows the registry's audit warnings next to Runs as root and expl
   await expect(legend).toContainText("Decky Extended Plugins' automated audit");
   await expect(legend.getByRole("button", { name: "Open Decky Extended Plugins audit" })).toBeVisible();
   await expect(app.locator(".deckyhub-fork-legend")).toContainText("carries a plugin on after its original stopped");
+  await expect(app.locator(".deckyhub-ai-legend")).toContainText("no badge doesn't mean no AI was used");
   for (const [badge, meaning] of [
     ["Blocked by audit", "Not recommended for installation."],
     ["Reads private data", "Steam login data"],
@@ -1069,6 +1399,7 @@ test("Menu on an Install button opens the plugin's GitHub page", async ({ page, 
   await popup.close();
 
   // In the Manage window, which closes first so the page isn't opened underneath it.
+  await browseAll(page, "MAKO");
   await card.getByRole("button", { name: "Manage", exact: true }).click();
   const modalInstall = app.locator(".steam-modal").getByRole("button", { name: /^Install/ }).first();
   await modalInstall.focus();
@@ -2210,8 +2541,12 @@ test("Quick Access lists its pages in order, showing Updates only while there ar
     await expect(nav.nth(0).locator("span")).toHaveText("1");
     await expect(nav.nth(0)).toContainText("Updates");
     await expect(nav.nth(1)).toHaveText(/^\s*Discover\d+$/);
-    await expect(nav.nth(2)).toHaveText("Search");
-    await expect(nav.nth(3)).toHaveText("Settings");
+    await expect(nav.nth(2)).toHaveText(/^\s*Installed1$/);
+    await expect(nav.nth(3)).toHaveText("Search");
+    await expect(nav.nth(4)).toHaveText("Settings");
+    await nav.nth(2).click();
+    await expect(app.getByRole("heading", { name: "Installed", exact: true })).toBeVisible();
+    await expect(app.getByRole("heading", { name: "MAKO Decky" })).toBeVisible();
     await expect(app.getByText("Browse", { exact: true })).toHaveCount(0);
   } finally {
     removePlugin();

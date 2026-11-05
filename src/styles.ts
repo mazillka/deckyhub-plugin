@@ -39,7 +39,7 @@ export const surfaceStyle = {
   boxSizing: "border-box" as const,
 };
 
-export const COMPACT_SIZES: Record<string, string> = {
+const COMPACT_SIZES: Record<string, string> = {
   "--dh-button-height": "28px",
   "--dh-button-padding": "2px 10px",
   "--dh-button-gap": "4px",

@@ -37,6 +37,7 @@ It builds, serves the ZIP from this computer and confirms Decky's install dialog
 ## 3. Look and test
 
 - Screenshots: `(await main.screenshot())` from a `connect(TARGETS.main)` page, written to a scratch folder. Open a page with `goTo(shared, "/deckyhub/discover")` (no extra back history) and wait for `.deckyhub-motion` before reading the DOM.
+- **Drive the Deck with the D-pad, always.** Move and press with `press(shared, BUTTON.DOWN | UP | LEFT | RIGHT | OK | BACK)` from `navigation.mjs` (it sends the same virtual button clicks the controller does), and open every page, window and menu that way: Down until the control you want has focus, then OK, and BACK to leave. Don't `.click()` a button or `scrollIntoView()` through `eval`: a window can look fine and still be unreachable with the controller (the release notes in the details window were, with 0 of their sections reachable, while clicks worked). `eval` is for reading state after the D-pad has done the work (which element has focus, what is on screen). Every new test, and every manual check of a UI change, follows this; the older tests that click are being moved over. A test that opens a window closes it with BACK before it asserts, so a failure doesn't leave it open and hang the next run (the first call then times out after 5 s).
 - Read state with `main.eval(...)` (DOM queries, counts, text) rather than judging only by screenshots.
 - Before calling it done, run the suite (about 9 minutes; read-only, it puts the Deck back where it was):
 

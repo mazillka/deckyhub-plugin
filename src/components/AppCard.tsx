@@ -92,7 +92,7 @@ export function AppCard({
             onMenuActionDescription={t("appcard.repository")}
             onClick={() => {
               setInstalling(true);
-              void startPluginInstall(t, app.name, app.repo, app.assets[0], app.latestVersion!, install, quickLabel, leavePage).finally(() => setInstalling(false));
+              void startPluginInstall(t, app.name, app.repo, app.assets[0], app.latestVersion!, install, quickLabel, leavePage, [...(app.stats?.warnings ?? []), ...(app.channel === "prerelease" ? app.stats?.prereleaseWarnings ?? [] : [])]).finally(() => setInstalling(false));
             }}
           >
             {/* A row's Latest line names the version, so its button can say just Update / Install
@@ -130,31 +130,33 @@ export function AppCard({
   if (row)
     return (
       // The name is a direct child here too, so a row's buttons are found from its heading.
-      <div className="deckyhub-app-row deckyhub-focus-ring" style={{ ...surfaceStyle, display: "grid", gridTemplateColumns: "40px minmax(0, 1.5fr) minmax(0, 1.5fr) 230px", gridTemplateRows: "auto auto", alignItems: "center", columnGap: 12, rowGap: 2, padding: "8px 12px" }}>
-        <AppMonogram app={app} style={{ gridRow: "1 / 3", width: 40, height: 40, fontSize: "0.85em" }} />
-        {/* Name, with the description under it. */}
+      // Name and its release / stats on the left, badges beside them, and under both the
+      // description on up to two lines: one line beside the name showed ~35 characters on a
+      // Deck, too little to tell what a plugin does without opening it.
+      <div className="deckyhub-app-row deckyhub-focus-ring" style={{ ...surfaceStyle, display: "grid", gridTemplateColumns: "40px minmax(0, 1.5fr) minmax(0, 1.5fr) 230px", gridTemplateRows: "auto auto auto", alignItems: "center", columnGap: 12, rowGap: 2, padding: "8px 12px" }}>
+        <AppMonogram app={app} style={{ gridRow: "1 / 4", width: 40, height: 40, fontSize: "0.85em" }} />
         <h3 style={{ ...cardTitleStyle, gridColumn: 2, gridRow: 1 }}>{app.name}</h3>
-        {/* An update's row says what it brings instead of what the plugin is. */}
-        {!app.error && notes ? (
-          <small className="deckyhub-card-notes" style={{ gridColumn: 2, gridRow: 2, color: "#d8e6f0", ...ellipsis }}>
-            <strong style={{ color: "#f0c33c" }}>{t("details.whatsNew", { version: `v${latest}` })}:</strong> {notes}
-          </small>
-        ) : (
-          <small style={{ gridColumn: 2, gridRow: 2, color: "#b8c7d3", ...ellipsis }}>{app.error || app.description}</small>
-        )}
-        {/* Status and badges, then the stats on one line under them. */}
-        <div style={{ gridColumn: 3, gridRow: 1, display: "flex", flexWrap: "wrap", alignItems: "center", gap: "2px 10px" }}>
-          {statusPill}
-          {channelPill}
-          <AppBadges app={app} t={t} />
-        </div>
         {/* The release an Install / Update gives, then the stats. */}
-        <div style={{ gridColumn: 3, gridRow: 2, display: "flex", gap: 10, minWidth: 0, overflow: "hidden", whiteSpace: "nowrap", color: "#8b9aa7", fontSize: "max(12px, 0.8em)" }}>
+        <div style={{ gridColumn: 2, gridRow: 2, display: "flex", gap: 10, minWidth: 0, overflow: "hidden", whiteSpace: "nowrap", color: "#8b9aa7", fontSize: "max(12px, 0.8em)" }}>
           {/* A long version ("v2025.10.27-dddf365") gives way with "…"; the counts always show. */}
           <span style={{ ...ellipsis, color: "#c3cfd9" }}>{t("settings.latestVersion", { version: app.latestVersion ? displayVersion(app.latestVersion) : app.error ? "—" : t("settings.checkingUpdate") })}</span>
           <AppStats app={app} t={t} noUpdated />
         </div>
-        <div style={{ gridColumn: 4, gridRow: "1 / 3" }}>{actions}</div>
+        {/* Status and badges. */}
+        <div style={{ gridColumn: 3, gridRow: "1 / 3", display: "flex", flexWrap: "wrap", alignItems: "center", alignContent: "center", gap: "2px 10px" }}>
+          {statusPill}
+          {channelPill}
+          <AppBadges app={app} t={t} />
+        </div>
+        {/* What the plugin is, or for an update what it brings, across both columns. */}
+        {!app.error && notes ? (
+          <small className="deckyhub-card-notes deckyhub-row-description" style={{ ...cardDescriptionStyle, gridColumn: "2 / 4", gridRow: 3, color: "#d8e6f0" }}>
+            <strong style={{ color: "#f0c33c" }}>{t("details.whatsNew", { version: `v${latest}` })}:</strong> {notes}
+          </small>
+        ) : (
+          <small className="deckyhub-row-description" style={{ ...cardDescriptionStyle, gridColumn: "2 / 4", gridRow: 3, color: "#b8c7d3" }}>{app.error || app.description}</small>
+        )}
+        <div style={{ gridColumn: 4, gridRow: "1 / 4" }}>{actions}</div>
       </div>
     );
   return (

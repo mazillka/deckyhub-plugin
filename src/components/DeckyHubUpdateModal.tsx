@@ -13,6 +13,7 @@ import { iconTileStyle } from "./Card";
 import { showDownloadModal } from "./DownloadProgress";
 import { primaryButtonStyle } from "./AppDetailsModal";
 import { DetailsWindow } from "./DetailsWindow";
+import { VirusScanReport } from "./VirusScanReport";
 import { ReleaseActions, useReleasePicker } from "./VersionPickerPanel";
 
 const PLUGIN_NAME = "DeckyHub";
@@ -150,6 +151,7 @@ export function DeckyHubUpdateModal({
           </>
         )
       }
+      scan={<VirusScanReport t={t} asset={selectedRelease?.asset} version={selectedRelease?.tag} note={t("scan.deckyhubChecks")} closeModal={closeModal} showZipActions={false} />}
       channel={channel}
       onChannelChange={(next) => void changeChannel(next)}
       versionOptions={versionOptions}

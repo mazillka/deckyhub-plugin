@@ -326,17 +326,17 @@ class PluginStatusTests(unittest.TestCase):
             self.assertTrue(asyncio.run(plugin.remove_custom_repo("owner/repo"))["removed"])
             self.assertEqual(plugin.settings, {"customRepos": [], "repoSettings": {}})
 
-    def test_download_asset_drops_finished_jobs(self):
+    def test_download_asset_retains_recent_jobs_and_prunes_old_ones(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = Plugin()
             plugin.settings = {"overwriteExisting": True}
-            plugin.downloads = {"old": {"state": "complete"}, "running": {"state": "downloading", "repo": "owner/other", "url": "x"}}
+            plugin.downloads = {"old": {"state": "complete", "finished_at": 699}, "recent": {"state": "complete", "finished_at": 900}, "running": {"state": "downloading", "repo": "owner/other", "url": "x"}}
             plugin.download_queue = asyncio.Queue()
 
-            with patch("main.PLUGIN_DOWNLOAD_DIR", home):
+            with patch("main.PLUGIN_DOWNLOAD_DIR", home), patch("main.time.monotonic", return_value=1000):
                 result = asyncio.run(plugin.download_asset({"name": "a.zip", "url": "https://github.com/owner/repo/releases/download/v1/a.zip"}, "owner/repo"))
 
-            self.assertEqual(set(plugin.downloads), {"running", result["jobId"]})
+            self.assertEqual(set(plugin.downloads), {"recent", "running", result["jobId"]})
 
     def test_custom_repository_export_and_import(self):
         with tempfile.TemporaryDirectory() as home:
@@ -523,6 +523,37 @@ class PluginStatusTests(unittest.TestCase):
             self.assertEqual(second["jobId"], first["jobId"])
             self.assertEqual(len(plugin.downloads), 1)
 
+    def test_queued_downloads_with_the_same_filename_reserve_distinct_paths(self):
+        with tempfile.TemporaryDirectory() as home, patch("main.PLUGIN_DOWNLOAD_DIR", home):
+            plugin = Plugin()
+            plugin.settings = {"overwriteExisting": False}
+            plugin.downloads = {}
+            plugin.download_queue = asyncio.Queue()
+            first = {"name": "asset.zip", "url": "https://github.com/owner/repo/releases/download/v1/asset.zip"}
+            second = {"name": "asset.zip", "url": "https://github.com/owner/repo/releases/download/v2/asset.zip"}
+            one = asyncio.run(plugin.download_asset(first, "owner/repo"))
+            two = asyncio.run(plugin.download_asset(second, "owner/repo"))
+            self.assertEqual(plugin.downloads[one["jobId"]]["filename"], "asset.zip")
+            self.assertEqual(plugin.downloads[two["jobId"]]["filename"], "asset (1).zip")
+
+    def test_cancelling_an_active_download_removes_partial_file(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.downloads = {"job": {"state": "queued", "received": 0, "total": 0}}
+            plugin.cancelled = set()
+            target = Path(home) / "asset.zip"
+
+            def interrupted(job_id, asset, temp):
+                temp.write_bytes(b"partial")
+                self.assertTrue(asyncio.run(plugin.cancel_download(job_id))["ok"])
+                raise InterruptedError("Download cancelled")
+
+            with patch.object(plugin, "_download_with_urllib", side_effect=interrupted):
+                plugin._download("job", {"url": "https://example.com/asset.zip"}, target)
+            self.assertEqual(plugin.downloads["job"]["state"], "cancelled")
+            self.assertFalse(target.exists())
+            self.assertFalse(target.with_name(target.name + ".part").exists())
+
     def test_stage_install_downloads_a_verified_zip_for_decky_to_read(self):
         with tempfile.TemporaryDirectory() as home, patch.object(sys.modules["decky"], "DECKY_PLUGIN_RUNTIME_DIR", home, create=True):
             plugin = Plugin()
@@ -579,6 +610,11 @@ class PluginStatusTests(unittest.TestCase):
 
             with patch.object(plugin, "_download_with_urllib", side_effect=lambda job_id, asset, temp: temp.write_bytes(b"data")) as download:
                 self.assertEqual(asyncio.run(plugin.stage_install(asset, "other/repo")), {"error": "Only GitHub release assets for the selected repository can be downloaded"})
+                download.assert_not_called()
+                # A URL that starts right but climbs out of the repository's releases is refused too.
+                for url in ("https://github.com/owner/repo/releases/download/../../../other/repo/releases/download/v1/a.zip",
+                            "https://github.com/owner/repo/releases/download/v1/./../a.zip", "https://github.com/owner/repo/releases/download/v1\\a.zip"):
+                    self.assertEqual(asyncio.run(plugin.stage_install({**asset, "url": url}, "owner/repo")), {"error": "Only GitHub release assets for the selected repository can be downloaded"})
                 download.assert_not_called()
                 self.assertIn("SHA256", asyncio.run(plugin.stage_install(asset, "owner/repo"))["error"])
 

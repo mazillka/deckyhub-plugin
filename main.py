@@ -23,6 +23,8 @@ DEFAULT_DOWNLOAD_DIR = "/home/deck/Downloads"
 PLUGIN_DOWNLOAD_DIR = f"{DEFAULT_DOWNLOAD_DIR}/deckyhub"
 # owner/name, where neither part is only dots: the frontend puts this straight into
 # api.github.com/repos/<repo>/releases with the user's token, so "../.." must not pass.
+# Written by the Desktop Mode installer (installer/install-deckyhub.sh) in the settings folder.
+PENDING_INSTALLS_FILE = "pending-installs.json"
 REPOSITORY_NAME = re.compile(r"(?!\.+/)[A-Za-z0-9_.-]+/(?!\.+$)[A-Za-z0-9_.-]+")
 # A GitHub token: classic (ghp_ and kin) or fine-grained (github_pat_).
 GITHUB_TOKEN = re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{60,})\b")
@@ -338,6 +340,8 @@ class Plugin:
         # the detect rules or asset filters of an entry from the official registry,
         # nor reuse its id (the frontend matches cards by id), nor claim its detect
         # names (an Update would install this repo's release over that plugin).
+        # Marked official: only these have a page on deckyhub.com (the frontend links to it).
+        apps = [{**app, "official": True} for app in apps]
         seen = {app["repo"].casefold() for app in apps}
         seen_ids = {app["id"] for app in apps}
         seen_names = {"deckyhub"}.union(*map(_detect_names, apps))
@@ -492,6 +496,31 @@ class Plugin:
 
     async def get_settings(self):
         return self.settings
+
+    async def get_pending_installs(self):
+        """The plugins the Desktop Mode installer's checklist saved for DeckyHub to install
+        (pending-installs.json in the settings folder): repositories the registry list
+        has loaded, in the registry's spelling. Nothing else gets through, and it never raises."""
+        try:
+            saved = json.loads((Path(decky.DECKY_PLUGIN_SETTINGS_DIR) / PENDING_INSTALLS_FILE).read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return []
+        listed = {app["repo"].casefold(): app["repo"] for app in getattr(self, "apps", [])}
+        repos: list[str] = []
+        for repo in saved if isinstance(saved, list) else []:
+            match = listed.get(repo.casefold()) if isinstance(repo, str) and REPOSITORY_NAME.fullmatch(repo) else None
+            if match and match not in repos:
+                repos.append(match)
+        return repos
+
+    async def clear_pending_installs(self):
+        try:
+            (Path(decky.DECKY_PLUGIN_SETTINGS_DIR) / PENDING_INSTALLS_FILE).unlink()
+        except FileNotFoundError:
+            pass
+        except OSError as error:
+            decky.logger.warning("Could not remove %s: %s", PENDING_INSTALLS_FILE, error)
+        return {"cleared": True}
 
     async def get_deckyhub_info(self):
         try:
@@ -728,11 +757,11 @@ class Plugin:
             target_dir = Path(PLUGIN_DOWNLOAD_DIR)
             target_dir.mkdir(parents=True, exist_ok=True)
             target = target_dir / name
-            if target.exists() and not self.settings.get("overwriteExisting"):
-                target = self._next_name(target)
-            # Finished jobs are only read by their own progress window, which stops
-            # polling once it has seen the final state, so drop them here.
-            self.downloads = {key: job for key, job in self.downloads.items() if job["state"] in ACTIVE_DOWNLOAD_STATES}
+            reserved = {Path(job["path"]) for job in self.downloads.values()
+                        if job["state"] in ACTIVE_DOWNLOAD_STATES and job.get("path")}
+            if not self.settings.get("overwriteExisting") and (target.exists() or target in reserved):
+                target = self._next_name(target, reserved)
+            self._prune_downloads()
             job_id = f"{name}-{time.monotonic_ns()}"
             self.downloads[job_id] = {"state": "queued", "filename": target.name, "received": 0, "total": asset.get("size") or 0, "path": str(target), "error": None, "repo": repo, "url": asset["url"]}
             self.download_queue.put_nowait((job_id, asset, target))
@@ -786,6 +815,9 @@ class Plugin:
         prefix = f"https://github.com/{repo}/releases/download/" if isinstance(repo, str) and REPOSITORY_NAME.fullmatch(repo) else ""
         if not isinstance(asset, dict) or not prefix or not isinstance(asset.get("url"), str) or not asset["url"].startswith(prefix):
             raise ValueError("Only GitHub release assets for the selected repository can be downloaded")
+        # No "." or ".." segments (or backslashes): the URL has to stay under the repository's releases.
+        if "\\" in asset["url"] or any(part in (".", "..") for part in asset["url"][len(prefix):].split("?")[0].split("/")):
+            raise ValueError("Only GitHub release assets for the selected repository can be downloaded")
         name = Path(asset.get("name", "download")).name
         if not name or name in (".", ".."):
             raise ValueError("Invalid asset filename")
@@ -798,11 +830,12 @@ class Plugin:
                 await asyncio.to_thread(self._download, job_id, asset, target)
             finally:
                 self.download_queue.task_done()
+                self._prune_downloads()
 
-    def _next_name(self, target: Path) -> Path:
+    def _next_name(self, target: Path, reserved: set[Path] | frozenset[Path] = frozenset()) -> Path:
         for number in range(1, 1000):
             candidate = target.with_name(f"{target.stem} ({number}){target.suffix}")
-            if not candidate.exists():
+            if candidate not in reserved and not candidate.exists():
                 return candidate
         raise RuntimeError("Too many files with this name")
 
@@ -833,6 +866,7 @@ class Plugin:
             decky.logger.error("Download of %s failed: %s", asset["url"], error)
             temp.unlink(missing_ok=True)
         finally:
+            job["finished_at"] = time.monotonic()
             self.cancelled.discard(job_id)
 
     def _download_with_urllib(self, job_id: str, asset: dict, temp: Path):
@@ -870,7 +904,18 @@ class Plugin:
             raise RuntimeError((process.stderr.read() or "curl download failed").strip())
         job["received"] = temp.stat().st_size
 
+    def _prune_downloads(self):
+        cutoff = time.monotonic() - 300
+        finished = sorted(
+            ((job["finished_at"], key) for key, job in self.downloads.items() if "finished_at" in job),
+            reverse=True,
+        )
+        for index, (finished_at, key) in enumerate(finished):
+            if index >= 100 or finished_at < cutoff:
+                self.downloads.pop(key, None)
+
     async def get_download(self, job_id: str):
+        self._prune_downloads()
         return self.downloads.get(job_id, {"state": "missing"})
 
     async def cancel_download(self, job_id: str):

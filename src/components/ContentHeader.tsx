@@ -1,11 +1,11 @@
 import { DialogButtonPrimary as Button } from "@decky/ui";
 import type { ReactNode } from "react";
-import { FaArrowCircleUp, FaArrowLeft, FaArrowUp, FaCompass, FaExternalLinkAlt, FaSync } from "react-icons/fa";
+import { FaArrowCircleUp, FaArrowLeft, FaArrowUp, FaCompass, FaPlug, FaExternalLinkAlt, FaSync } from "react-icons/fa";
 import { openExternalWeb } from "../external";
 import { useT } from "../i18n";
 import type { View } from "../types";
 import { compactButtonStyle, infoNoticeStyle } from "../utils";
-import { AUDIT_WARNINGS, ForkBadge, RootBadge, WarningBadge } from "./AppBadges";
+import { AiBadge, AUDIT_WARNINGS, ForkBadge, RootBadge, SCAN_BADGES, ScanBadge, WarningBadge } from "./AppBadges";
 import { PageHeader } from "./Card";
 import { KeepInView } from "./KeepInView";
 import { LayoutToggle, type Layout } from "./LayoutToggle";
@@ -50,7 +50,7 @@ export function ContentHeader({
   return (
     <KeepInView>
       <PageHeader
-        icon={view === "updates" ? <FaArrowCircleUp /> : <FaCompass />}
+        icon={view === "updates" ? <FaArrowCircleUp /> : view === "installed" ? <FaPlug /> : <FaCompass />}
         title={title}
         badge={badge}
         description={description}
@@ -99,6 +99,18 @@ export function ContentHeader({
             <div className="deckyhub-fork-legend" style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <ForkBadge t={t} />
               <span>{t("appcard.forkHint")}</span>
+            </div>
+            <div className="deckyhub-ai-legend" style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <AiBadge t={t} />
+              <span>{t("appcard.aiHint")}</span>
+            </div>
+            <div className="deckyhub-scan-legend" style={{ display: "grid", gap: 6 }}>
+              {SCAN_BADGES.map((kind) => (
+                <div key={kind} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  <ScanBadge t={t} kind={kind} />
+                  <span>{t(`appcard.scan.${kind}.hint`)}</span>
+                </div>
+              ))}
             </div>
             <div className="deckyhub-warning-legend" style={{ display: "grid", gap: 6 }}>
               <span>{t("appcard.warningsIntro")}</span>

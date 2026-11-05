@@ -8,3 +8,4 @@ export * from "./notify";
 export * from "./install";
 export * from "./github";
 export * from "./releases";
+export * from "./clipboard";

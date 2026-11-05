@@ -44,7 +44,7 @@
   for (const group of rows.values()) {
     for (let i = 1; i < group.length; i++) {
       const [a, b] = [group[i - 1].getBoundingClientRect(), group[i].getBoundingClientRect()];
-      const sameRow = a.top < b.bottom && b.top < a.bottom;
+      const sameRow = a.top < b.bottom - 1 && b.top < a.bottom - 1; // stacked blocks that touch (sub-pixel) aren't a row
       if (sameRow && (Math.abs(a.top - b.top) > 2 || Math.abs(a.height - b.height) > 2)) problems.push(`misaligned: ${name(group[i - 1])} / ${name(group[i])}`);
     }
   }
