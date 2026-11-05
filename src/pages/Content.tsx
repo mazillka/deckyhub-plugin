@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { FaSync } from "react-icons/fa";
 import { downloadAsset } from "../api";
 import { useT } from "../i18n";
-import type { App, Asset, UpdateChannel, View } from "../types";
+import type { App, Asset, RepoPreference, View } from "../types";
 import { compactButtonStyle, compactNumber, hydrate, installAction, needsFreshInstall, PLUGIN_INSTALL_TYPE, updateDeckyPlugins } from "../utils";
 import { AppCard } from "../components/AppCard";
 import { pillStyle } from "../components/AppBadges";
@@ -117,12 +117,11 @@ export function Content({ fullPage }: { fullPage?: View }) {
 
   // AppDetailsModal persists the change itself (saveRepoSettings); this keeps
   // the card's preference in sync and re-checks that one card's latest release
-  // for the new channel (from the release cache), so its status and quick
-  // Update button follow the channel without a full reload.
-  const changeAppChannel = (repo: string, channel: UpdateChannel) => {
-    const preference = { channel };
+  // for the new channel or skipped version (from the release cache), so its status
+  // and quick Update button follow without a full reload.
+  const changeAppPreference = (repo: string, preference: RepoPreference) => {
     setRepoPreferences((current) => ({ ...current, [repo]: preference }));
-    setApps((current) => current.map((app) => (app.repo === repo ? { ...app, channel } : app)));
+    setApps((current) => current.map((app) => (app.repo === repo ? { ...app, channel: preference.channel } : app)));
     const app = apps.find((item) => item.repo === repo);
     if (app) void hydrate(app, false, preference).then((next) => setApps((current) => current.map((item) => (item.id === next.id ? next : item))));
   };
@@ -208,7 +207,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
       downloadDisabled={downloading}
       hiddenButtons={hiddenButtons}
       onDownload={(asset) => startDownload(asset, app.repo)}
-      onChannelChange={changeAppChannel}
+      onPreferenceChange={changeAppPreference}
       onUninstalled={() => void load()}
     />
   );

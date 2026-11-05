@@ -2,7 +2,7 @@ import { toaster } from "@decky/api";
 import { openExternalWeb } from "../external";
 import { DialogButtonPrimary as Button, ConfirmModal, Navigation, showModal } from "@decky/ui";
 import { useState } from "react";
-import { FaArrowDown, FaArrowUp, FaFileArchive, FaPlus, FaRedo, FaTimes, FaTrash } from "react-icons/fa";
+import { FaArrowDown, FaArrowUp, FaEye, FaEyeSlash, FaFileArchive, FaPlus, FaRedo, FaTimes, FaTrash } from "react-icons/fa";
 import { saveRepoSettings } from "../api";
 import type { TFunc } from "../i18n/en";
 import type { App, AppReleaseOption, Asset, HideableButton, RepoPreference, UpdateChannel } from "../types";
@@ -13,6 +13,7 @@ import { AppBadges, AppMonogram, AppStats } from "./AppBadges";
 import { showReleaseInfo } from "./ReleaseInfo";
 import { DetailsWindow } from "./DetailsWindow";
 import { VirusScanReport } from "./VirusScanReport";
+import { KnownIssues } from "./KnownIssues";
 import { ReleaseActions, useReleasePicker } from "./VersionPickerPanel";
 
 // The window's main action, taller than the rest.
@@ -28,7 +29,7 @@ export function AppDetailsModal({
   downloadDisabled,
   hiddenButtons,
   onDownload,
-  onChannelChange,
+  onPreferenceChange,
   onUninstalled,
   closeModal,
 }: {
@@ -38,11 +39,12 @@ export function AppDetailsModal({
   downloadDisabled?: boolean;
   hiddenButtons: HideableButton[];
   onDownload: (asset: Asset) => Promise<void>;
-  onChannelChange: (channel: UpdateChannel) => void;
+  onPreferenceChange: (preference: RepoPreference) => void;
   onUninstalled: () => void;
   closeModal?: () => void;
 }) {
-  const [channel, setChannel] = useState<UpdateChannel>(initialPreference.channel);
+  const [preference, setPreference] = useState<RepoPreference>(initialPreference);
+  const channel = preference.channel;
   const { items: releases, selectedTag, setSelectedTag, loading, error: fetchError, load, selected: selectedRelease } = useReleasePicker((force) => listAppReleases(app, force), channel);
   // Every action but Check for Updates and Download ZIP closes this window.
   // This modal was rendered once by showModal(), so the downloadDisabled prop
@@ -53,11 +55,23 @@ export function AppDetailsModal({
     void onDownload(asset).finally(() => setDownloading(false));
   };
 
+  const changePreference = (next: RepoPreference) => {
+    setPreference(next);
+    onPreferenceChange(next);
+    void saveRepoSettings(app.repo, next);
+  };
   const changeChannel = (next: UpdateChannel) => {
-    setChannel(next);
-    onChannelChange(next);
     setSelectedTag("");
-    void saveRepoSettings(app.repo, { ...initialPreference, channel: next });
+    changePreference({ ...preference, channel: next });
+  };
+  // Skip this version: the card's newest release stops counting as an update (a plugin
+  // whose release never changes its own version, say) until a newer one comes out.
+  const latest = app.channel === channel ? app.latestVersion : null;
+  const skipped = Boolean(latest && preference.skipVersion === latest);
+  const canSkip = Boolean(latest && (skipped || app.updateAvailable || initialPreference.skipVersion === latest));
+  const toggleSkip = () => {
+    const { skipVersion: _, ...rest } = preference;
+    changePreference(skipped ? rest : { ...rest, skipVersion: latest! });
   };
 
   const versionOptions = buildVersionOptions(releases, app.installedVersion, t);
@@ -154,7 +168,14 @@ export function AppDetailsModal({
           </>
         )
       }
-      scan={<VirusScanReport key={JSON.stringify([selectedRelease?.assets[0]?.url, selectedRelease?.assets[0]?.sha256])} t={t} asset={selectedRelease?.assets[0]} version={selectedRelease?.tag} closeModal={closeModal} showZipActions={false} />}
+      // Known issues sit above the scan report, not in the header: the header is one focus
+      // target, so the D-pad can't reach a link inside it (seen on a Deck).
+      scan={
+        <>
+          {app.knownIssues?.length ? <KnownIssues t={t} issues={app.knownIssues} closeModal={closeModal} /> : null}
+          <VirusScanReport key={JSON.stringify([selectedRelease?.assets[0]?.url, selectedRelease?.assets[0]?.sha256])} t={t} asset={selectedRelease?.assets[0]} version={selectedRelease?.tag} closeModal={closeModal} showZipActions={false} />
+        </>
+      }
       channel={channel}
       onChannelChange={changeChannel}
       versionOptions={versionOptions}
@@ -166,6 +187,11 @@ export function AppDetailsModal({
       footer={
         <>
           <ReleaseActions t={t} url={selectedRelease?.url} repoUrl={`https://github.com/${app.repo}`} pageUrl={app.official ? `https://deckyhub.com/plugins/${encodeURIComponent(app.id)}.html` : undefined} hideReleasePage={hiddenButtons.includes("releasePage")} checking={loading} disabled={loading} onCheck={() => void load(true)} closeModal={closeModal} />
+          {canSkip && (
+            <Button style={modalButtonStyle} onClick={toggleSkip}>
+              {skipped ? <FaEye /> : <FaEyeSlash />} {t(skipped ? "appcard.unskipVersion" : "appcard.skipVersion", { version: displayVersion(latest!) })}
+            </Button>
+          )}
           {canUninstall && (
             <Button style={{ ...modalButtonStyle, color: "#ff6b6b" }} onClick={confirmUninstall}>
               <FaTrash /> {t("appcard.uninstall")}

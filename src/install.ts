@@ -5,16 +5,16 @@ import { type TFunc } from "./i18n/en";
 import { log } from "./log";
 import { tr } from "./translate";
 import { type App, type Asset } from "./types";
-import { compareVersions, displayVersion, normalizeVersion } from "./version";
+import { compareVersions, displayVersion, normalizeVersion, releaseVersion } from "./version";
 import { toaster } from "@decky/api";
 
 // Shared by both version pickers: label each release with "v" plus
 // an "(installed)"/"(latest)" suffix — items[0] is the newest since every
 // release-list fetch above sorts by publish date before returning.
-export function buildVersionOptions<T extends { tag: string }>(items: T[], installedVersion: string | null | undefined, t: TFunc): { data: string; label: string }[] {
+export function buildVersionOptions<T extends { tag: string; pluginVersion?: string }>(items: T[], installedVersion: string | null | undefined, t: TFunc): { data: string; label: string }[] {
   return items.map((item) => {
-    const version = normalizeVersion(item.tag);
-    const isInstalled = Boolean(installedVersion) && version === normalizeVersion(installedVersion!);
+    const cmp = installedVersion ? compareVersions(releaseVersion(item), installedVersion) : null;
+    const isInstalled = Boolean(installedVersion) && (cmp === null ? normalizeVersion(item.tag) === normalizeVersion(installedVersion!) : cmp === 0);
     const isLatest = items[0]?.tag === item.tag;
     const suffix = isInstalled ? ` (${t("settings.installedLabel")})` : isLatest ? ` (${t("settings.latestLabel")})` : "";
     return { data: item.tag, label: `${displayVersion(item.tag)}${suffix}` };
@@ -237,9 +237,9 @@ function callDeckyLoader(route: string, ...args: unknown[]) {
 // uses the detection rule's first name (the plugin's manifest name).
 // Releases without a GitHub checksum (assets uploaded before mid-2025) can
 // still be installed; Decky Loader skips verification for an empty hash.
-export function installAction(app: App, release: { tag: string; assets: Asset[] }): { type: 0 | 1 | 2 | 3; name: string } | null {
+export function installAction(app: App, release: { tag: string; pluginVersion?: string; assets: Asset[] }): { type: 0 | 1 | 2 | 3; name: string } | null {
   if (!release.assets[0]) return null;
-  if (app.pluginName) return { type: resolveDeckyHubInstallType(release.tag, app.installedVersion ?? ""), name: app.pluginName };
+  if (app.pluginName) return { type: resolveDeckyHubInstallType(releaseVersion(release), app.installedVersion ?? ""), name: app.pluginName };
   if (!app.installedVersion && app.detect?.type === "decky-plugin") return { type: PLUGIN_INSTALL_TYPE.INSTALL, name: app.detect.names?.[0] ?? app.name };
   return null;
 }

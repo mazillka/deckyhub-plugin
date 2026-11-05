@@ -20,7 +20,7 @@ REGISTRY = os.environ.get("DECKYHUB_REGISTRY")
 # - anything else (renaming, retyping, removing, new required meaning) -> bump
 #   schemaVersion instead, so older versions reject it and keep their own list.
 REQUIRED = {"id": str, "name": str, "repo": str, "category": str, "detect": dict, "asset": dict}
-OPTIONAL = {"description": str, "releaseTagInclude": str}
+OPTIONAL = {"description": str, "releaseTagInclude": str, "knownIssues": list}
 
 
 def _string_list(value) -> bool:
@@ -53,6 +53,9 @@ class RegistrySchemaV1Tests(unittest.TestCase):
                 self.assertEqual(app["detect"]["type"], "decky-plugin")
                 self.assertTrue(app["detect"]["names"] and _string_list(app["detect"]["names"]))
                 self.assertEqual(set(app["asset"]), {"include", "exclude"})
+                for issue in app.get("knownIssues", []):
+                    self.assertEqual(set(issue), {"title", "url"})
+                    self.assertTrue(issue["title"] and issue["url"].startswith("https://"))
                 self.assertTrue(_string_list(app["asset"]["include"]) and _string_list(app["asset"]["exclude"]))
 
     def test_ids_and_repos_are_unique(self):

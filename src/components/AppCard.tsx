@@ -3,7 +3,7 @@ import { openExternalWeb, rememberOpener } from "../external";
 import { useState, useSyncExternalStore } from "react";
 import { FaArrowUp, FaCog, FaPlus } from "react-icons/fa";
 import { useT } from "../i18n";
-import type { App, Asset, HideableButton, RepoPreference, UpdateChannel } from "../types";
+import type { App, Asset, HideableButton, RepoPreference } from "../types";
 import { compactButtonStyle, cardDescriptionStyle, ellipsis, installAction, isInstalling, PLUGIN_INSTALL_TYPE, statusKey, statusColor, subscribeInstalling, surfaceStyle, visuallyHidden } from "../utils";
 import { displayVersion } from "../version";
 import { AppDetailsModal } from "./AppDetailsModal";
@@ -36,7 +36,7 @@ export function AppCard({
   downloadDisabled,
   hiddenButtons,
   onDownload,
-  onChannelChange,
+  onPreferenceChange,
   onUninstalled,
   layout = "card",
 }: {
@@ -45,7 +45,7 @@ export function AppCard({
   downloadDisabled?: boolean;
   hiddenButtons: HideableButton[];
   onDownload: (asset: Asset) => Promise<void>;
-  onChannelChange: (repo: string, channel: UpdateChannel) => void;
+  onPreferenceChange: (repo: string, preference: RepoPreference) => void;
   onUninstalled: () => void;
   // "row": one line of Discover's list view.
   layout?: "card" | "row";
@@ -115,7 +115,7 @@ export function AppCard({
                 downloadDisabled={downloadDisabled}
                 hiddenButtons={hiddenButtons}
                 onDownload={onDownload}
-                onChannelChange={(channel) => onChannelChange(app.repo, channel)}
+                onPreferenceChange={(next) => onPreferenceChange(app.repo, next)}
                 onUninstalled={onUninstalled}
               />
             );

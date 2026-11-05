@@ -44,6 +44,19 @@ class RemoteRegistryTests(unittest.TestCase):
         self.assertEqual([app["repo"] for app in apps], ["owner/demo"])
         self.assertEqual(json.loads(text), VALID)
 
+    def test_known_issues_keep_only_titled_https_links(self):
+        app = {**VALID["apps"][0], "knownIssues": [
+            {"title": " Update stalls at 95% ", "url": "https://github.com/o/a/issues/1"},
+            {"title": "no link", "url": "http://example.com"},
+            {"title": "", "url": "https://example.com"},
+            "junk",
+        ]}
+        apps = registry.parse_registry({"schemaVersion": 1, "apps": [app, {**app, "id": "b", "repo": "o/b", "knownIssues": "junk"}]})
+        self.assertEqual(apps[0]["knownIssues"], [{"title": "Update stalls at 95%", "url": "https://github.com/o/a/issues/1"}])
+        # A malformed list leaves the plugin listed, without issues.
+        self.assertEqual(apps[1]["knownIssues"], [])
+        self.assertNotIn("knownIssues", registry.parse_registry(VALID)[0])
+
     def test_rejects_oversized_payload(self):
         body = b" " * (registry.MAX_REMOTE_REGISTRY_BYTES + 10)
         with mock.patch.object(registry._OPENER, "open", return_value=FakeResponse(body)):

@@ -11,6 +11,8 @@ export type App = {
   // From the official registry (not a custom repository or registry): it has a page on deckyhub.com.
   official?: boolean;
   releaseTagInclude?: string;
+  // From the registry: problems that affect this plugin in DeckyHub, with a link to the report.
+  knownIssues?: { title: string; url: string }[];
   asset: { include: string[]; exclude: string[] };
   installedVersion?: string | null;
   detect?: { type: string; names?: string[] };
@@ -62,11 +64,12 @@ export type DeckyHubRelease = { version?: string; asset?: Asset; publishedAt?: s
 
 export type DeckyHubReleaseOption = { tag: string; prerelease: boolean; publishedAt: string | null; asset?: Asset; url: string; notes?: string };
 
-export type AppReleaseOption = { tag: string; prerelease: boolean; publishedAt: string | null; url: string; notes?: string; assets: Asset[] };
+export type AppReleaseOption = { tag: string; pluginVersion?: string; prerelease: boolean; publishedAt: string | null; url: string; notes?: string; assets: Asset[] };
 
 export type View = "updates" | "discover" | "installed";
 
 export type SearchRepo = { full_name: string; description?: string; stargazers_count?: number };
 
 
-export type RepoPreference = { channel: "stable" | "prerelease" };
+// skipVersion: a release tag the user chose to skip; that release stops counting as an update.
+export type RepoPreference = { channel: "stable" | "prerelease"; skipVersion?: string };
