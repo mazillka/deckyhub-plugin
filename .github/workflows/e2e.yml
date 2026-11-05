@@ -44,13 +44,16 @@ jobs:
           key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
       - name: Install Chromium
         working-directory: devtools/decky-mock
-        # apt once hung for 9 minutes on one shard while the others took seconds: give each
-        # try 4 minutes and try once more.
+        # The Ubuntu mirror sometimes stalls mid-download (one shard hung for 9+ minutes
+        # while the others took seconds). apt itself then retries, drops a connection that
+        # sends nothing for 20 s, and waits for the lock if a try that timed out left an
+        # apt-get running.
         run: |
+          printf '%s\n' 'Acquire::Retries "5";' 'Acquire::http::Timeout "20";' 'DPkg::Lock::Timeout "300";' | sudo tee /etc/apt/apt.conf.d/99deckyhub-ci > /dev/null
           if [[ "${{ steps.browsers.outputs.cache-hit }}" == "true" ]]; then install=(npx playwright install-deps chromium)
           else install=(npx playwright install --with-deps chromium); fi
           for attempt in 1 2; do
-            timeout 240 "${install[@]}" && exit 0
+            timeout 300 "${install[@]}" && exit 0
             echo "::warning::Installing Chromium failed or hung (try $attempt)"
           done
           exit 1

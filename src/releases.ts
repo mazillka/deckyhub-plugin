@@ -200,6 +200,8 @@ export async function virusTotalReportOf(asset: Asset) {
   const reports = await fetchVirusTotalReports();
   if (reports === null) return { state: "unavailable" as const };
   const report = reports[hash] as { state?: string; stats?: Record<string, unknown>; scannedAt?: unknown } | undefined;
+  // Not in the index yet: the registry queues every ZIP it offers, so it's on its way.
+  if (!report) return { state: "pending" as const };
   if (report?.state === "pending" || report?.state === "waiting") return { state: "pending" as const };
   if (report?.state === "error") return { state: "error" as const };
   if (report?.state === "unsupported") return { state: "unsupported" as const };
@@ -225,6 +227,9 @@ export async function metaDefenderReportOf(asset: Asset) {
   const reports = await fetchMetaDefenderReports();
   if (!reports) return null;
   const report = reports[hash] as { state?: string; flagged?: unknown; total?: unknown; dataId?: unknown } | undefined;
+  if (!report) return { state: "pending" as const };
+  if (report?.state === "pending" || report?.state === "waiting") return { state: "pending" as const };
+  if (report?.state === "error") return { state: "error" as const };
   if (report?.state !== "complete") return null;
   const { flagged, total, dataId } = report;
   if (typeof flagged !== "number" || !Number.isSafeInteger(flagged) || flagged < 0 || typeof total !== "number" || !Number.isSafeInteger(total) || total <= 0 || flagged > total) return null;
