@@ -112,10 +112,16 @@ function bridgeCall(page: Page, route: string, ...args: unknown[]) {
 
 // A run interrupted mid-test can leave a seeded plugin behind, which would
 // show as installed to every later test; clear them before starting.
-test.beforeAll(() => {
+test.beforeAll(async ({ request }) => {
   const plugins = new URL("../.dev-data/plugins/", import.meta.url);
   mkdirSync(plugins, { recursive: true });
   for (const dir of readdirSync(plugins)) if (dir.startsWith("e2e-")) rmSync(new URL(`${dir}/`, plugins), { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  // A fresh bridge (each CI shard) is still downloading the official list when its first
+  // test starts, whichever test that is: wait for it once, so no test sees an empty registry.
+  await expect.poll(async () => {
+    const response = await request.post(BRIDGE_URL, { data: { route: "get_apps", args: [] }, headers: { Origin: "http://127.0.0.1:5183" } });
+    return response.ok() ? ((await response.json()).result?.apps ?? []).length : 0;
+  }, { timeout: 60_000 }).toBeGreaterThan(0);
 });
 
 test.beforeEach(async ({ page }) => {
@@ -140,7 +146,9 @@ test("Quick Access navigation opens Discover", async ({ page }) => {
     app.getByRole("button", { name: "Settings", exact: true }).boundingBox(),
   ]);
   expect(settings!.y - (discover!.y + discover!.height)).toBeGreaterThanOrEqual(6);
-  // The button counts every plugin Discover lists.
+  // The button counts every plugin Discover lists. On a fresh bridge (CI) the official
+  // list is still downloading when this first test starts, so wait for it.
+  await expect.poll(async () => (await bridgeCall(page, "get_apps")).result.apps.length, { timeout: 30_000 }).toBeGreaterThan(0);
   const listed = (await bridgeCall(page, "get_apps")).result.apps.length;
   await expect(app.getByRole("button", { name: "Discover", exact: true }).locator(".deckyhub-discover-count")).toHaveText(String(listed));
   await app.getByRole("button", { name: "Discover", exact: true }).click();
@@ -720,7 +728,8 @@ test("MetaDefender reports are used only for the selected ZIP hash", async ({ pa
   const card = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
   await expect(card.getByText("No threats · 2/2", { exact: true })).toBeVisible();
   await card.getByRole("button", { name: "Manage", exact: true }).click();
-  await expect(app.locator(".steam-modal").getByText(/MetaDefender:/)).toHaveCount(0);
+  await expect(app.locator(".steam-modal").getByText(/MetaDefender: \d+ of/)).toHaveCount(0);
+  await expect(app.locator(".steam-modal").getByText("MetaDefender: Not scanned yet").first()).toBeVisible();
 });
 
 test("The Manage window shows the plugin's description, details and a Repository button", async ({ page }) => {
@@ -835,7 +844,7 @@ test("Plugin Details keeps an unscanned ZIP inside DeckyHub", async ({ page }) =
   await browseAll(page, "MAKO");
   await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
   const scan = app.locator(".steam-modal .deckyhub-virus-scan");
-  await expect(scan.getByText("Not scanned yet", { exact: false })).toBeVisible();
+  await expect(scan.getByText(/^Not scanned yet. New releases/)).toBeVisible();
   await expect(scan.getByRole("button", { name: "VirusTotal", exact: true })).toHaveCount(0);
   await scan.getByRole("button", { name: "Scan report", exact: true }).click();
   await expect(app.locator(".steam-modal").getByRole("button", { name: "VirusTotal", exact: true })).toBeVisible();
@@ -883,7 +892,7 @@ test("The Manage window says when ClamAV found something, and never calls an uns
   await browseAll(page, "MAKO");
   await manage.click();
   const scan = app.locator(".steam-modal .deckyhub-virus-scan");
-  await expect(scan.getByText("Not scanned yet", { exact: false })).toBeVisible();
+  await expect(scan.getByText(/^Not scanned yet. New releases/)).toBeVisible();
   await expect(scan.getByText("No threats found", { exact: false })).toHaveCount(0);
 });
 
@@ -952,6 +961,25 @@ test("VirusTotal pending and error reports are shown separately", async ({ page 
   await expect(modal.getByText("VirusTotal: Scan pending")).toBeVisible();
   await modal.getByLabel("Version").selectOption("plugin-v1.0.0");
   await expect(modal.getByText("VirusTotal: Couldn't be scanned")).toBeVisible();
+});
+
+test("A ZIP the registry has no report for says Not scanned yet, not pending", async ({ page }) => {
+  // The registry scans only each plugin's newest ZIPs, so an older version may never get a report.
+  const first = "c".repeat(64), second = "d".repeat(64);
+  await mockMakoReleases(page, [makoRelease("plugin-v2.0.0", first, "02"), makoRelease("plugin-v1.0.0", second, "01")]);
+  await mockVirusScans(page, {});
+  await page.route("https://raw.githubusercontent.com/mazillka/deckyhub-registry/virustotal-reports/reports.json", (route) => route.fulfill({ json: { reports: { [first]: { state: "pending" } } } }));
+  await page.route(METADEFENDER_URL, (route) => route.fulfill({ json: { reports: { [first]: { state: "waiting" } } } }));
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
+  await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
+  const modal = app.locator(".steam-modal .deckyhub-details");
+  await expect(modal.getByText("VirusTotal: Scan pending")).toBeVisible();
+  await expect(modal.getByText("MetaDefender: Scan pending")).toBeVisible();
+  await modal.getByLabel("Version").selectOption("plugin-v1.0.0");
+  await expect(modal.getByText("VirusTotal: Not scanned yet")).toBeVisible();
+  await expect(modal.getByText("MetaDefender: Not scanned yet")).toBeVisible();
 });
 
 test("Unavailable scan data and unsupported VirusTotal ZIPs are distinct", async ({ page }) => {
@@ -1744,6 +1772,77 @@ test("Unifideck updates by uninstalling first and installing fresh, after a warn
     ]);
   } finally {
     rmSync(pluginDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  }
+});
+
+test("A release whose ZIP calls itself the installed version isn't an update, whatever its tag says", async ({ page }) => {
+  // LocalSend's case: tag v0.45, plugin 0.4.5. The registry's release index reads the
+  // ZIP's own version into pluginVersion; the card and Manage window compare with that.
+  const pluginDir = new URL("../.dev-data/plugins/e2e-mako-mismatch/", import.meta.url);
+  mkdirSync(pluginDir, { recursive: true });
+  writeFileSync(new URL("plugin.json", pluginDir), JSON.stringify({ name: "MAKO - Frame Generation", version: "1.2.3" }));
+  await mockMakoReleases(page, [{ ...makoRelease("plugin-v1.3.0", "b".repeat(64)), pluginVersion: "1.2.3" }]);
+
+  try {
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+    await expect(makoCard.getByText("Latest: v1.3.0", { exact: true })).toBeVisible();
+    await expect(makoCard.getByRole("button", { name: /^Update to v/ })).toHaveCount(0);
+    await makoCard.getByRole("button", { name: "Manage", exact: true }).click();
+    const modal = app.locator(".steam-modal");
+    await expect(modal.getByRole("button", { name: "Reinstall v1.3.0", exact: true })).toBeVisible();
+    await expect(modal.getByLabel("Version")).toContainText("v1.3.0 (installed)");
+  } finally {
+    rmSync(pluginDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  }
+});
+
+test("Skip this version hides one release's update until the user stops skipping it", async ({ page }) => {
+  const pluginDir = new URL("../.dev-data/plugins/e2e-mako-skip/", import.meta.url);
+  mkdirSync(pluginDir, { recursive: true });
+  writeFileSync(new URL("plugin.json", pluginDir), JSON.stringify({ name: "MAKO - Frame Generation", version: "1.0.0" }));
+  await mockMakoReleases(page, [makoRelease("plugin-v1.3.0", "b".repeat(64))]);
+
+  try {
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+    await expect(makoCard.getByRole("button", { name: "Update to v1.3.0", exact: true })).toBeVisible();
+    await makoCard.getByRole("button", { name: "Manage", exact: true }).click();
+    const modal = app.locator(".steam-modal");
+    await modal.getByRole("button", { name: "Skip v1.3.0", exact: true }).click();
+    await expect(modal.getByRole("button", { name: "Stop skipping v1.3.0", exact: true })).toBeVisible();
+    await expect.poll(async () => (await bridgeCall(page, "get_settings")).result.repoSettings["eugeniosegala/MAKO"]).toEqual({ channel: "stable", skipVersion: "plugin-v1.3.0" });
+    await modal.getByRole("button", { name: "Close", exact: true }).click();
+    await expect(makoCard.getByRole("button", { name: /^Update to v/ })).toHaveCount(0);
+    await expect(makoCard.getByText("Up To Date", { exact: true })).toBeVisible();
+
+    await makoCard.getByRole("button", { name: "Manage", exact: true }).click();
+    await modal.getByRole("button", { name: "Stop skipping v1.3.0", exact: true }).click();
+    await modal.getByRole("button", { name: "Close", exact: true }).click();
+    await expect(makoCard.getByRole("button", { name: "Update to v1.3.0", exact: true })).toBeVisible();
+  } finally {
+    await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "stable" });
+    rmSync(pluginDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  }
+});
+
+test("A plugin's known issues from the registry are listed in its Manage window, each opening its report", async ({ page }) => {
+  // dev-server.py's fixture registry lists one, so no real registry data is needed.
+  await page.route("https://api.github.com/repos/example/fixture-app/releases**", (route) =>
+    route.fulfill({ json: [{ tag_name: "v1.0.0", prerelease: false, draft: false, published_at: "2026-01-01T00:00:00Z", html_url: "https://github.com/example/fixture-app/releases/tag/v1.0.0", assets: [{ name: "fixture.zip", browser_download_url: "https://github.com/example/fixture-app/releases/download/v1.0.0/fixture.zip", size: 1024 }] }] }),
+  );
+  try {
+    await bridgeCall(page, "add_custom_registry", "https://registry.test/good.json");
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    await app.getByRole("heading", { name: "Fixture App" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
+    const modal = app.locator(".steam-modal");
+    await expect(modal.getByText("Known issues with this plugin", { exact: true })).toBeVisible();
+    await expect(modal.getByRole("button", { name: "Update can stall at 95%", exact: true })).toBeVisible();
+  } finally {
+    await bridgeCall(page, "remove_custom_registry", "https://registry.test/good.json");
   }
 });
 

@@ -143,7 +143,13 @@ def _coerce_settings(settings: dict) -> dict:
 
 def _coerce_repo_settings(values) -> dict:
     values = values if isinstance(values, dict) else {}
-    return {"channel": "prerelease" if values.get("channel") == "prerelease" else "stable"}
+    item = {"channel": "prerelease" if values.get("channel") == "prerelease" else "stable"}
+    # The release tag the user chose to skip (Manage -> Skip this version); it stops
+    # counting as an update until a newer release comes out.
+    skip = values.get("skipVersion")
+    if isinstance(skip, str) and skip.strip() and len(skip) <= 200:
+        item["skipVersion"] = skip.strip()
+    return item
 
 
 REQUIRED_FIELDS = {"id", "name", "repo", "category", "asset"}
@@ -186,7 +192,17 @@ def parse_registry(payload: object) -> list[dict]:
     """Validate the portable registry format and ignore malformed records."""
     if not isinstance(payload, dict) or payload.get("schemaVersion") != 1 or not isinstance(payload.get("apps"), list):
         raise ValueError("Unsupported registry format")
-    return [app for app in payload["apps"] if _valid_app(app)]
+    return [{**app, "knownIssues": _known_issues(app["knownIssues"])} if "knownIssues" in app else app for app in payload["apps"] if _valid_app(app)]
+
+
+def _known_issues(value: object) -> list[dict]:
+    """An entry's knownIssues, known problems with the plugin itself, shown in its
+    Manage window: each a {title, url} with an HTTPS link. A malformed one is dropped,
+    not the whole entry."""
+    if not isinstance(value, list):
+        return []
+    return [{"title": issue["title"].strip()[:200], "url": issue["url"]} for issue in value[:10]
+            if isinstance(issue, dict) and isinstance(issue.get("title"), str) and issue["title"].strip() and isinstance(issue.get("url"), str) and issue["url"].startswith("https://")]
 
 
 # DeckyHub's plugin list lives in its own repository.
@@ -655,6 +671,10 @@ class Plugin:
         if source.suffix.lower() != ".json" or not source.is_relative_to(deck_home):
             decky.logger.error("Refused to import %s: not a JSON file inside /home/deck", source)
             raise ValueError("Choose a JSON file inside /home/deck")
+        # Read on Decky's event loop, so a huge file picked by mistake would stall every call.
+        if source.is_file() and source.stat().st_size > MAX_REMOTE_REGISTRY_BYTES:
+            decky.logger.error("Refused to import %s: larger than %d bytes", source, MAX_REMOTE_REGISTRY_BYTES)
+            raise ValueError("Invalid repository export")
         try:
             payload = json.loads(source.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as error:

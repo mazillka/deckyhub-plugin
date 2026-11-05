@@ -9,12 +9,37 @@ on:
 permissions:
   contents: read
 
+# A newer push to the same PR cancels the run it replaces; pushes to main and develop
+# always finish.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-  test:
+  # A PR that only touches the website's docs/, promo/ or Markdown skips the browser tests.
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      e2e: ${{ steps.diff.outputs.e2e }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - id: diff
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" != "pull_request" ]]; then echo "e2e=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          others=$(git diff --name-only "$BASE...$HEAD" | grep -vE '^(docs|promo)/|\.md$' || true)
+          echo "e2e=$([[ -n "$others" ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "Files beyond docs/, promo/ and Markdown: ${others:-none}"
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+
+  unit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
         with:
           version: 11
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -27,8 +52,23 @@ jobs:
           pnpm run build
           pnpm run test:frontend
           python3 -m unittest discover -s tests
+
+  e2e:
+    needs: changes
+    if: needs.changes.outputs.e2e == 'true'
+    uses: ./.github/workflows/e2e.yml
+
+  # The check the main and develop rulesets require. It passes when the unit tests passed
+  # and the browser tests passed or were skipped for a docs-only change.
+  test:
+    needs: [changes, unit, e2e]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
       - run: |
-          npm ci --prefix devtools/decky-mock
-          cd devtools/decky-mock
-          npx playwright install --with-deps chromium
-          npm run test:e2e
+          echo "changes=$CHANGES unit=$UNIT e2e=$E2E"
+          [[ "$CHANGES" == success && "$UNIT" == success && ( "$E2E" == success || "$E2E" == skipped ) ]]
+        env:
+          CHANGES: ${{ needs.changes.result }}
+          UNIT: ${{ needs.unit.result }}
+          E2E: ${{ needs.e2e.result }}

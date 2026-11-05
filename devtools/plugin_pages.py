@@ -20,8 +20,10 @@ import site_shell
 SITE = "https://deckyhub.com/"
 REGISTRY_RAW = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/"
 STATS_URL = REGISTRY_RAW + "release-index/stats.json"
+RELEASES_URL = REGISTRY_RAW + "release-index/releases.json"
 SCANS_URL = REGISTRY_RAW + "virus-scans/plugins.json"
 METADEFENDER_URL = REGISTRY_RAW + "metadefender-reports/reports.json"
+VIRUSTOTAL_URL = REGISTRY_RAW + "virustotal-reports/reports.json"
 # What the audit's warnings are called and mean (id: (label, hint)); the app and the installer say the same.
 WARNINGS = {
     "blocked": ("Blocked by audit", "The audit found malware or a broken archive. Not recommended for installation."),
@@ -36,6 +38,8 @@ WARNINGS = {
 
 SCAN_LABELS = {"clean": ("No threats", "clean"), "infected": ("Threat found", "stale"), "partial": ("Not fully scanned", "warn")}
 SCAN_RESULTS = {"clean": "no threats found", "infected": "threat found", "incomplete": "only partly scanned", "error": "couldn't be scanned"}
+# What a VirusTotal or MetaDefender report says before it has a result; the app says the same.
+EXTERNAL_STATUS = {"pending": "Scan pending", "waiting": "Scan pending", "error": "Couldn't be scanned", "unsupported": "Too large for VirusTotal"}
 
 EXTRA_STYLE = """
 .app{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;text-decoration:none;color:var(--text);display:flex;flex-direction:column;gap:2px}
@@ -95,8 +99,32 @@ def nice_date(iso: str | None) -> str:
     return time.strftime("%B ", day) + f"{day.tm_mday}, {day.tm_year}"  # %-d isn't portable
 
 
-def scan_kind(channel: dict) -> str:
+def vt_result(vt_reports: dict | None, sha: str) -> tuple[int, int] | None:
+    """(flagged, total) from VirusTotal's finished report on this SHA-256, as the app counts it."""
+    vt = (vt_reports or {}).get(sha.lower()) or {}
+    counts = [(vt.get("stats") or {}).get(key) for key in ("malicious", "suspicious", "harmless", "undetected")]
+    if vt.get("state") == "complete" and all(isinstance(n, int) and n >= 0 for n in counts) and sum(counts):
+        return counts[0] + counts[1], sum(counts)
+    return None
+
+
+def md_result(reports: dict | None, sha: str) -> tuple[int, int] | None:
+    """(flagged, total) from MetaDefender's finished report on this SHA-256."""
+    report = (reports or {}).get(sha.lower()) or {}
+    flagged, total = report.get("flagged"), report.get("total")
+    if report.get("state") == "complete" and isinstance(flagged, int) and isinstance(total, int) and 0 <= flagged <= total and total:
+        return flagged, total
+    return None
+
+
+def external_results(channel: dict, reports: dict | None, vt_reports: dict | None) -> list[tuple[str, int, int]]:
+    sha = channel.get("sha256") or ""
+    return [(name, *result) for name, result in (("VirusTotal", vt_result(vt_reports, sha)), ("MetaDefender", md_result(reports, sha))) if result]
+
+
+def scan_kind(channel: dict, reports: dict | None = None, vt_reports: dict | None = None) -> str:
     results = [scan["result"] for scan in (channel.get("clamav"), channel.get("yara")) if scan]
+    results += ["infected" if flagged else "clean" for _, flagged, _ in external_results(channel, reports, vt_reports)]
     return "infected" if "infected" in results else "partial" if any(result != "clean" for result in results) else "clean"
 
 
@@ -112,7 +140,7 @@ def json_ld(data: dict) -> str:
     return '<script type="application/ld+json">' + json.dumps({"@context": "https://schema.org", **data}, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c") + "</script>"
 
 
-def badges_of(stats: dict, scans: dict, warnings: dict) -> list[str]:
+def badges_of(stats: dict, scans: dict, warnings: dict, reports: dict | None = None, vt_reports: dict | None = None) -> list[str]:
     items = []
     if stats.get("root"):
         items.append('<li><span class="badge root">Runs as root</span> Its plugin.json asks Decky Loader to run its backend as root, with full access to the Deck. Many plugins need that for real reasons; install it only if you trust the author.</li>')
@@ -127,16 +155,17 @@ def badges_of(stats: dict, scans: dict, warnings: dict) -> list[str]:
     for channel, prefix in ((scans.get("stable"), ""), (scans.get("prerelease"), "Pre-release: ")):
         if not channel or not channel.get("clamav"):
             continue
-        kind = scan_kind(channel)
+        kind = scan_kind(channel, reports, vt_reports)
         if prefix and (scans.get("stable") or {}).get("clamav") and kind == "clean":
             continue
         label, css = SCAN_LABELS[kind]
         results = "; ".join(f"{name}: {SCAN_RESULTS.get(scan['result'], scan['result'])}" + (f" ({', '.join(scan['found'])})" if scan.get("found") else "") for name, scan in (("ClamAV", channel.get("clamav")), ("YARA", channel.get("yara"))) if scan)
+        results += "".join(f"; {name}: {flagged} of {total} engines flagged it" for name, flagged, total in external_results(channel, reports, vt_reports))
         items.append(f'<li><span class="badge {css}">{escape(prefix + label)}</span> Virus scan of <code>{escape(channel.get("file", ""))}</code> ({escape(channel.get("tag", ""))}): {escape(results)}. A clean scan isn\'t proof of safety.</li>')
     return items
 
 
-def security_scans(scans: dict, reports: dict) -> str:
+def security_scans(scans: dict, reports: dict, vt_reports: dict | None = None) -> str:
     """One table per scanned ZIP (the stable release's, and a pre-release's if it's another file):
     ClamAV and YARA from the registry's own scans, VirusTotal looked up by SHA-256 (nothing is
     uploaded), MetaDefender from its published report once it has one."""
@@ -158,14 +187,22 @@ def security_scans(scans: dict, reports: dict) -> str:
             result = SCAN_RESULTS.get(scan["result"], scan["result"]) + (f" ({', '.join(scan['found'])})" if scan.get("found") else "")
             rows.append(f"<tr><td>{name}</td><td>{escape(result[:1].upper() + result[1:])}</td><td>{escape(when(scan))}</td></tr>")
         if valid:
-            rows.append(f'<tr><td>VirusTotal</td><td><a href="https://www.virustotal.com/gui/file/{sha.lower()}">Look this file up</a> (by its SHA-256, nothing is uploaded)</td><td></td></tr>')
+            vt_link = f'<a href="https://www.virustotal.com/gui/file/{sha.lower()}">report</a>'
+            vt = (vt_reports or {}).get(sha.lower()) or {}
+            if found := vt_result(vt_reports, sha):
+                scanned = nice_date(time.strftime("%Y-%m-%d", time.gmtime(vt["scannedAt"]))) if isinstance(vt.get("scannedAt"), int) else ""
+                rows.append(f"<tr><td>VirusTotal</td><td>{found[0]} of {found[1]} engines flagged this file ({vt_link})</td><td>{escape(scanned)}</td></tr>")
+            else:
+                status = EXTERNAL_STATUS.get(vt.get("state"), "No report yet")
+                rows.append(f"<tr><td>VirusTotal</td><td>{status} ({vt_link}, looked up by its SHA-256, nothing is uploaded)</td><td></td></tr>")
             report = (reports or {}).get(sha.lower()) or {}
-            if report.get("state") == "complete" and isinstance(report.get("flagged"), int) and isinstance(report.get("total"), int):
+            if md_result(reports, sha):
                 data_id = report.get("dataId")
                 link = f' (<a href="https://metadefender.opswat.com/results/file/{escape(data_id)}/regular/overview">report</a>)' if isinstance(data_id, str) and re.fullmatch(r"[A-Za-z0-9_-]+", data_id) else ""
                 rows.append(f"<tr><td>MetaDefender</td><td>{report['flagged']} of {report['total']} engines flagged this file{link}</td><td></td></tr>")
             else:
-                rows.append("<tr><td>MetaDefender</td><td>No report yet</td><td></td></tr>")
+                status = EXTERNAL_STATUS.get(report.get("state"), "No report yet")
+                rows.append(f"<tr><td>MetaDefender</td><td>{status}</td><td></td></tr>")
         detail = f'{escape(prefix)}: <code>{escape(channel.get("file", ""))}</code> ({escape(channel.get("tag", ""))})' + (f"<br><small>SHA-256 <code>{sha.lower()}</code></small>" if valid else "")
         tables.append(f'<table class="scans"><caption>{detail}</caption><thead><tr><th>Scanner</th><th>Result</th><th>Scanned</th></tr></thead><tbody>{"".join(rows)}</tbody></table>')
     if not tables:
@@ -211,7 +248,7 @@ def page(shell: dict[str, str], title: str, description: str, path: str, body: s
 """
 
 
-def plugin_page(shell: dict[str, str], app: dict, stats: dict, scans: dict, warnings: dict, others: list[dict], reports: dict | None = None) -> str:
+def plugin_page(shell: dict[str, str], app: dict, stats: dict, scans: dict, warnings: dict, others: list[dict], reports: dict | None = None, vt_reports: dict | None = None) -> str:
     name, repo, category, description = app["name"], app["repo"], app["category"], app.get("description") or ""
     repo_url = f"https://github.com/{repo}"
     facts = [f"<li><strong>{escape(category)}</strong>Category</li>"]
@@ -221,7 +258,7 @@ def plugin_page(shell: dict[str, str], app: dict, stats: dict, scans: dict, warn
         facts.append(f'<li><strong>{compact(stats["stars"])}</strong>GitHub stars</li>')
     if stats.get("updated"):
         facts.append(f'<li><strong>{nice_date(stats["updated"])}</strong>Latest release</li>')
-    badges = badges_of(stats, scans, warnings)
+    badges = badges_of(stats, scans, warnings, reports, vt_reports)
     related = [other for other in others if other["id"] != app["id"]][:6]
     crumbs = f'<p class="crumbs"><a href="/">DeckyHub</a> › <a href="/plugins/">Plugins</a> › {escape(name)}</p>'
     body = f"""{crumbs}
@@ -235,7 +272,7 @@ def plugin_page(shell: dict[str, str], app: dict, stats: dict, scans: dict, warn
 {"<ul class='badges'>" + "".join(badges) + "</ul>" if badges else "<p>No badges: it doesn't run as root, and no audit warnings or virus scan findings are known for it.</p>"}
 <h2>Security scans</h2>
 <p>Every ZIP DeckyHub offers is scanned with ClamAV and with YARA rules (YARA Forge's core set), and the same scans are shown in the app. VirusTotal and MetaDefender results are matched by the file's SHA-256, so the file itself is never uploaded.</p>
-{security_scans(scans, reports or {})}
+{security_scans(scans, reports or {}, vt_reports)}
 <p class="note">DeckyHub doesn't make, review or vouch for {escape(name)}; it installs at your own risk. A clean scan isn't proof of safety. Check its repository before installing.</p>
 {f'<h2>More {escape(category)} plugins</h2><ul class="list">' + "".join(f'<li><a href="/plugins/{escape(other["id"])}.html">{escape(other["name"])}<small>{escape(other.get("description") or "")}</small></a></li>' for other in related) + "</ul>" if related else ""}"""
     data = {
@@ -285,11 +322,11 @@ def slug(text: str) -> str:
 
 def load_data() -> dict:
     """What the pages are built from: stats, scans, MetaDefender reports and the audit warnings' labels."""
-    return {"stats": fetch_json(STATS_URL, "plugins"), "scans": fetch_json(SCANS_URL, "plugins"), "reports": fetch_json(METADEFENDER_URL, "reports"),
+    return {"stats": fetch_json(STATS_URL, "plugins"), "scans": fetch_json(SCANS_URL, "plugins"), "reports": fetch_json(METADEFENDER_URL, "reports"), "vt": fetch_json(VIRUSTOTAL_URL, "reports"), "releases": fetch_json(RELEASES_URL, "releases"),
             "warnings": WARNINGS}
 
 
-def flags_of(stats: dict, scans: dict) -> str:
+def flags_of(stats: dict, scans: dict, reports: dict | None = None, vt_reports: dict | None = None) -> str:
     """Small markers on a card: AI help, root, audit warnings, and the virus scan's verdict."""
     flags = []
     if stats.get("ai"):
@@ -300,7 +337,7 @@ def flags_of(stats: dict, scans: dict) -> str:
         flags.append('<span class="flag-warn">⚠ Warning</span>')
     channel = scans.get("stable") or {}
     if channel.get("clamav"):
-        kind = scan_kind(channel)
+        kind = scan_kind(channel, reports, vt_reports)
         flags.append({"clean": '<span class="flag-ok">✓ Scanned</span>', "infected": '<span class="flag-bad">✖ Threat found</span>',
                       "partial": '<span class="flag-warn">⚠ Not fully scanned</span>'}[kind])
     return "".join(flags)
@@ -316,7 +353,7 @@ def card(app: dict, data: dict, prefix: str = "/plugins/") -> str:
     text = escape(f'{app["name"]} {description} {app["category"]} {app["repo"]}'.lower())
     return (f'<a class="app" href="{prefix}{escape(app["id"])}.html" data-text="{text}" data-cat="{slug(app["category"])}">'
             f'<small>{escape(app["category"])}</small><strong>{escape(app["name"])}</strong><p>{escape(description)}</p>'
-            f'<span class="meta">{meta}</span><span class="flags">{flags_of(stats, scans)}</span></a>')
+            f'<span class="meta">{meta}</span><span class="flags">{flags_of(stats, scans, data.get("reports"), data.get("vt"))}</span></a>')
 
 
 def by_downloads(apps: list[dict], data: dict) -> list[dict]:
@@ -353,7 +390,7 @@ def catalog_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
 <div class="catalog" id="list">
 {chr(10).join(card(app, data) for app in ordered)}
 </div>
-<p class="note">Every plugin belongs to its authors. DeckyHub doesn't make, review or vouch for them, and a plugin's page shows its notes (AI help, root, audit warnings) and security scans. Missing one? <a href="{site_shell.REGISTRY}">Add a plugin</a>.</p>
+<p class="note">Every plugin belongs to its authors. DeckyHub doesn't make, review or vouch for them, and a plugin's page shows its notes (AI help, root, audit warnings) and security scans; <a href="/plugins/known-issues.html">Known issues</a> lists every plugin with a warning. Missing one? <a href="{site_shell.REGISTRY}">Add a plugin</a>.</p>
 <script>{FILTER_JS}</script>"""
     listing = json_ld({"@type": "CollectionPage", "name": "Steam Deck plugins", "url": f"{SITE}plugins/",
                        "mainEntity": {"@type": "ItemList", "numberOfItems": len(apps), "itemListElement": [
@@ -365,6 +402,64 @@ def catalog_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
                 "plugins/", body, [trail, listing])
 
 
+def version_number(text: str) -> str:
+    """The version in a tag or version string, as the app's displayVersion() reads it: "Release-0.7.6" -> "0.7.6"."""
+    match = re.search(r"(\d+(?:\.\d+)+)(-[0-9A-Za-z.-]+)?", text)
+    return match.group(0) if match else text.strip().removeprefix("v").removeprefix("V")
+
+
+def version_mismatch(releases: list) -> tuple[str, str] | None:
+    """(tag, ZIP version) when the newest stable release's tag and the version its ZIP installs as
+    (pluginVersion, which the registry's release index reads from the ZIP) differ."""
+    release = next((item for item in releases if isinstance(item, dict) and not item.get("draft") and not item.get("prerelease")), None)
+    tag, inside = (release or {}).get("tag_name"), (release or {}).get("pluginVersion")
+    if isinstance(tag, str) and isinstance(inside, str) and inside and version_number(tag) != version_number(inside):
+        return tag, inside
+    return None
+
+
+def issues_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
+    """plugins/known-issues.html: every plugin with a scan finding or an audit warning, grouped by issue."""
+    groups: dict[str, list[str]] = {}
+    listed: set[str] = set()
+    for app in by_downloads(apps, data):
+        key = app["repo"].casefold()
+        stats, scans = data["stats"].get(key) or {}, data["scans"].get(key) or {}
+        # The note goes inside the card's link: text after it would spill under the next card.
+        def add(group: str, note: str = "") -> None:
+            items = groups.setdefault(group, [])
+            if note == "Pre-release only" and any(f'/{app["id"]}.html"' in item for item in items):
+                return  # the stable release already has it
+            items.append(f'<a href="/plugins/{escape(app["id"])}.html">{escape(app["name"])}' + (f"<small>{escape(note)}</small>" if note else "") + "</a>")
+            listed.add(app["id"])
+        for channel, note in ((scans.get("stable"), ""), (scans.get("prerelease"), "Pre-release only")):
+            if channel and channel.get("clamav") and (kind := scan_kind(channel, data.get("reports"), data.get("vt"))) != "clean":
+                add(kind, note)
+        stable = stats.get("warnings") or []
+        for warning in [*stable, *(w for w in stats.get("prereleaseWarnings") or [] if w not in stable)]:
+            add(warning, "" if warning in stable else "Pre-release only")
+        if mismatch := version_mismatch((data.get("releases") or {}).get(key) or []):
+            add("version-mismatch", f"Tagged {mismatch[0]}, its ZIP says {mismatch[1]}")
+    issues = [(kind, *SCAN_LABELS[kind], "A virus scanner (ClamAV, YARA, VirusTotal or MetaDefender) flagged its ZIP." if kind == "infected" else "Not every scanner could finish on its ZIP.") for kind in ("infected", "partial")]
+    issues += [(key, label, "stale" if key == "blocked" else "warn", hint) for key, (label, hint) in WARNINGS.items()]
+    issues.append(("version-mismatch", "Version mismatch", "warn", "Its newest release is tagged with one version, but the plugin in its ZIP reports another, so an update check that reads the tag can offer the same update again after you install it."))
+    sections = "".join(
+        f'<h2 id="{key}"><span class="badge {css}">{escape(label)}</span> {len(groups[key])}</h2><p>{escape(hint)}</p><ul class="list">'
+        + "".join(f"<li>{item}</li>" for item in groups[key]) + "</ul>"
+        for key, label, css, hint in issues if groups.get(key))
+    flagged = len(listed)
+    body = f"""<p class="crumbs"><a href="/">DeckyHub</a> › <a href="/plugins/">Plugins</a> › Known issues</p>
+<h1>Known plugin issues</h1>
+<p class="lead">{flagged} of {len(apps)} Decky Loader plugins have a virus scan finding, a warning from <a href="https://decky-extended-plugins.beallio.com/audit">Decky Extended Plugins' audit</a> or a version mismatch. DeckyHub shows the scan and audit notes in the app before you install; they inform and never block.</p>
+<p class="note">A warning isn't proof a plugin is harmful, and no warning isn't proof it's safe. Open a plugin's page for its scans, and check its repository before installing. Updated daily.</p>
+{sections or "<p>No known issues right now.</p>"}"""
+    trail = json_ld({"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "DeckyHub", "item": SITE},
+                     {"@type": "ListItem", "position": 2, "name": "Plugins", "item": f"{SITE}plugins/"}, {"@type": "ListItem", "position": 3, "name": "Known issues"}]})
+    return page(shell, "Known Steam Deck plugin issues and warnings | DeckyHub",
+                f"{flagged} Decky Loader plugins with virus scan findings or audit warnings, such as code not in its repo or reading private data. Check before you install.",
+                "plugins/known-issues.html", body, [trail])
+
+
 def write_pages(out, apps: list[dict], releases_page: str, data: dict) -> list[tuple[str, str]]:
     """Writes plugins/index.html and plugins/<id>.html for every plugin; returns (url, lastmod) for the sitemap."""
     shell = shell_of(releases_page)
@@ -372,11 +467,12 @@ def write_pages(out, apps: list[dict], releases_page: str, data: dict) -> list[t
     (out / "plugins").mkdir(exist_ok=True)
     today = time.strftime("%Y-%m-%d", time.gmtime())
     (out / "plugins" / "index.html").write_text(catalog_page(shell, apps, data), encoding="utf-8")
-    urls = [(f"{SITE}plugins/", today)]
+    (out / "plugins" / "known-issues.html").write_text(issues_page(shell, apps, data), encoding="utf-8")
+    urls = [(f"{SITE}plugins/", today), (f"{SITE}plugins/known-issues.html", today)]
     for app in apps:
         key = app["repo"].casefold()
         others = [other for other in apps if other["category"] == app["category"]]
         (out / "plugins" / f"{app['id']}.html").write_text(
-            plugin_page(shell, app, stats.get(key) or {}, scans.get(key) or {}, warnings, others, reports), encoding="utf-8")
+            plugin_page(shell, app, stats.get(key) or {}, scans.get(key) or {}, warnings, others, reports, data.get("vt")), encoding="utf-8")
         urls.append((f"{SITE}plugins/{app['id']}.html", ((stats.get(key) or {}).get("updated") or today)[:10]))
     return urls

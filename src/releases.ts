@@ -1,7 +1,7 @@
 import { log } from "./log";
 import { tr } from "./translate";
 import { type App, type AppReleaseOption, type Asset, type DeckyHubRelease, type DeckyHubReleaseOption, type PluginStats, type RepoPreference, type UpdateChannel, type VirusScan } from "./types";
-import { compareVersions, inChannel } from "./version";
+import { compareVersions, inChannel, releaseVersion } from "./version";
 import { fetchNoCors } from "@decky/api";
 import { getSettings } from "./api";
 import { githubFetch, githubHeaders, githubResponseError, githubToken } from "./github";
@@ -72,7 +72,7 @@ function matchingAssets(app: App, assets: Asset[]): Asset[] {
 // tag/asset filters on top, so a changed filter never serves stale results.
 // GitHub's list endpoint isn't reliably sorted newest-first (a just-published
 // release has been seen mid-array), so sort by published date here.
-export type Release = { tag: string; prerelease: boolean; publishedAt: string | null; url: string; notes?: string; assets: Asset[] };
+export type Release = { tag: string; pluginVersion?: string; prerelease: boolean; publishedAt: string | null; url: string; notes?: string; assets: Asset[] };
 
 // Lookups for the same repo that overlap share one request.
 const inFlight = new Map<string, Promise<Release[]>>();
@@ -200,10 +200,13 @@ export async function virusTotalReportOf(asset: Asset) {
   const reports = await fetchVirusTotalReports();
   if (reports === null) return { state: "unavailable" as const };
   const report = reports[hash] as { state?: string; stats?: Record<string, unknown>; scannedAt?: unknown } | undefined;
-  if (report?.state === "pending" || report?.state === "waiting") return { state: "pending" as const };
-  if (report?.state === "error") return { state: "error" as const };
-  if (report?.state === "unsupported") return { state: "unsupported" as const };
-  if (report?.state !== "complete" || !report.stats) return null;
+  // The registry scans only each listed plugin's newest ZIPs: an older version or an
+  // added repository's ZIP has no entry, and may never get one.
+  if (!report) return { state: "none" as const };
+  if (report.state === "pending" || report.state === "waiting") return { state: "pending" as const };
+  if (report.state === "error") return { state: "error" as const };
+  if (report.state === "unsupported") return { state: "unsupported" as const };
+  if (report.state !== "complete" || !report.stats) return null;
   const { malicious, suspicious, harmless, undetected } = report.stats;
   const count = (value: unknown): value is number => typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
   if (!count(malicious) || !count(suspicious) || !count(harmless) || !count(undetected)) return null;
@@ -223,9 +226,12 @@ export async function metaDefenderReportOf(asset: Asset) {
   const hash = asset.sha256?.toLowerCase();
   if (!hash || !/^[0-9a-f]{64}$/.test(hash)) return null;
   const reports = await fetchMetaDefenderReports();
-  if (!reports) return null;
+  if (!reports) return { state: "unavailable" as const };
   const report = reports[hash] as { state?: string; flagged?: unknown; total?: unknown; dataId?: unknown } | undefined;
-  if (report?.state !== "complete") return null;
+  if (!report) return { state: "none" as const };
+  if (report.state === "pending" || report.state === "waiting") return { state: "pending" as const };
+  if (report.state === "error") return { state: "error" as const };
+  if (report.state !== "complete") return null;
   const { flagged, total, dataId } = report;
   if (typeof flagged !== "number" || !Number.isSafeInteger(flagged) || flagged < 0 || typeof total !== "number" || !Number.isSafeInteger(total) || total <= 0 || flagged > total) return null;
   return { state: "complete" as const, flagged, total, dataId: typeof dataId === "string" && /^[A-Za-z0-9_-]+$/.test(dataId) ? dataId : undefined };
@@ -268,6 +274,8 @@ async function requestReleases(repo: string, force: boolean): Promise<Release[]>
     .filter((item: any) => !item.draft)
     .map((item: any) => ({
       tag: String(item.tag_name || item.name),
+      // Only in the registry's release index (see releaseVersion()).
+      pluginVersion: typeof item.pluginVersion === "string" && item.pluginVersion ? item.pluginVersion : undefined,
       prerelease: Boolean(item.prerelease),
       publishedAt: item.published_at || null,
       url: item.html_url || `https://github.com/${repo}/releases`,
@@ -332,7 +340,7 @@ export async function hydrate(app: App, force: boolean, preference?: RepoPrefere
   const { items, error } = await listAppReleases(app, force);
   const release = items.find((item) => inChannel(item, channel));
   if (!release) return { ...app, channel, error: error ?? tr("release.noMatch") };
-  const cmp = app.installedVersion ? compareVersions(release.tag, app.installedVersion) : null;
+  const cmp = app.installedVersion ? compareVersions(releaseVersion(release), app.installedVersion) : null;
   return {
     ...app,
     channel,
@@ -341,6 +349,7 @@ export async function hydrate(app: App, force: boolean, preference?: RepoPrefere
     releaseUrl: release.url,
     releaseNotes: release.notes,
     assets: release.assets,
-    updateAvailable: cmp === null ? null : cmp > 0,
+    // A skipped release counts as up to date until a newer one comes out.
+    updateAvailable: cmp === null ? null : cmp > 0 && preference?.skipVersion !== release.tag,
   };
 }

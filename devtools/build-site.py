@@ -189,7 +189,7 @@ notes.write_text(site_shell.apply(notes_page.replace("<!-- releases -->", releas
 plugin_urls = plugin_pages.write_pages(out, apps, (ROOT / "docs" / "releases.html").read_text(encoding="utf-8"), data)
 llms = out / "llms.txt"
 if llms.exists():
-    llms.write_text(llms.read_text(encoding="utf-8").rstrip("\n") + "\n\n## Plugins\n\n- [All plugins](" + SITE + "plugins/): every plugin, most downloaded first, with search and categories.\n" + "".join(
+    llms.write_text(llms.read_text(encoding="utf-8").rstrip("\n") + "\n\n## Plugins\n\n- [All plugins](" + SITE + "plugins/): every plugin, most downloaded first, with search and categories.\n- [Known issues](" + SITE + "plugins/known-issues.html): plugins with virus scan findings or audit warnings.\n" + "".join(
         f"- [{a['name']}]({SITE}plugins/{a['id']}.html): {a.get('description') or ''} (github.com/{a['repo']})\n" for a in sorted(apps, key=lambda a: a["name"].casefold())), encoding="utf-8")
 
 today = time.strftime("%Y-%m-%d", time.gmtime())
