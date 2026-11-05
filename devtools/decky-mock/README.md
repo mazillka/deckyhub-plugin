@@ -27,6 +27,8 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
+The tests run one at a time: they share the bridge's `settings.json` and `.dev-data/plugins`. CI splits them over four parallel jobs instead (`--shard=N/4` in `.github/workflows/e2e.yml`), each with its own bridge, so a test mustn't rely on one that ran before it. To try a shard locally: `npx playwright test --shard=2/4`.
+
 ![Discover page in the dev-mock, at Steam Deck density](screenshot.png)
 
 ## Known limitations
