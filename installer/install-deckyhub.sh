@@ -60,9 +60,9 @@ has_zenity() { command -v zenity > /dev/null && [ -n "${DISPLAY}${WAYLAND_DISPLA
 zen() { zenity 2> >(grep -v 'Gtk' >&2) --window-icon=system-software-install "$@"; }
 # Texts use Pango markup (bold, colors, sizes) in zenity; the terminal gets them without the tags.
 plain() { printf '%b\n' "$1" | sed -e 's/<[^>]*>//g'; }
-say() { if has_zenity; then zen --title="$TITLE" --width=480 --icon=dialog-information --info --text="$1"; else plain "$1"; fi; }
-warn() { if has_zenity; then zen --title="$TITLE" --width=480 --icon=dialog-warning --warning --text="$1"; else plain "$1"; fi; }
-fail() { if has_zenity; then zen --title="$TITLE" --width=480 --icon=dialog-error --error --text="$1"; else plain "Error: $1" >&2; fi; exit 1; }
+say() { if has_zenity; then zen --title="$TITLE" --width=480 --icon-name=dialog-information --info --text="$1"; else plain "$1"; fi; }
+warn() { if has_zenity; then zen --title="$TITLE" --width=480 --icon-name=dialog-warning --warning --text="$1"; else plain "$1"; fi; }
+fail() { if has_zenity; then zen --title="$TITLE" --width=480 --icon-name=dialog-error --error --text="$1"; else plain "Error: $1" >&2; fi; exit 1; }
 
 # The version of the DeckyHub in folder $1 (from its package.json), or nothing.
 installed_version() { sed -n 's/.*"version": *"\([^"]*\)".*/\1/p' "$1/package.json" 2> /dev/null | head -1; }
@@ -155,7 +155,7 @@ choose_plugins() {
     if (( HAS_DECKY )); then decky_line="already installed, only checked"; else decky_line="installed first"; fi
     case "$verb" in Update) hub_line="will be updated" ;; Reinstall) hub_line="will be reinstalled" ;; *) hub_line="will be installed" ;; esac
 
-    zen --title="$TITLE" --width=640 --icon=package-x-generic --question --ok-label="Show the plugins" --cancel-label="Skip this" --default-cancel \
+    zen --title="$TITLE" --width=640 --icon-name=package-x-generic --question --ok-label="Show the plugins" --cancel-label="Skip this" --default-cancel \
         --text="<span size='x-large'><b>Optional plugins</b></span>\n\n<b>Decky Loader and DeckyHub are installed either way.</b>\n  ${OK_MARK} <b>Decky Loader</b> (Required): ${decky_line}. Version: ${decky_version}. <a href=\"https://github.com/SteamDeckHomebrew/decky-loader\">github.com/SteamDeckHomebrew/decky-loader</a>\n  ${OK_MARK} <b>DeckyHub</b> (Required): ${hub_line}. Version: ${TAG}${hub_installed:+ (now ${hub_installed})}. <a href=\"https://github.com/mazillka/deckyhub-plugin\">github.com/mazillka/deckyhub-plugin</a>\n\nNext you'll see ${total} optional plugins, one at a time. Choose Add or Skip for each, or skip this: you can always add plugins later from DeckyHub.\n\nThis installer doesn't install them. DeckyHub asks you to confirm each one the first time you open it.\n\n${NOTES_EXPLAINED}\n\n${RESPONSIBILITY}" || return 0
 
     for entry in "${STARTER_PLUGINS[@]}"; do
@@ -165,7 +165,7 @@ choose_plugins() {
         # An icon for the category, or a warning triangle when the notes have something to say.
         case "$category" in "Frame Generation") icon=video-display ;; Customization) icon=preferences-desktop-theme ;; "Game Libraries") icon=applications-games ;; *) icon=package-x-generic ;; esac
         case "$note" in *Warning*|*"Runs as root"*) icon=dialog-warning ;; esac
-        if zen --title="$TITLE" --width=640 --icon="$icon" --question --ok-label="Add this plugin" --cancel-label="Skip" --default-cancel \
+        if zen --title="$TITLE" --width=640 --icon-name="$icon" --question --ok-label="Add this plugin" --cancel-label="Skip" --default-cancel \
             --text="<span foreground='${C_DIM}'>Plugin ${i} of ${total}</span>\n\n<span size='large'><b>${name}</b></span>  <span foreground='${C_DIM}'>(${category})</span>\n${what}\n\nLatest version: ${versions[i - 1]:-unknown}\n${note:-Not checked}${popularity:+ · $popularity}\n\nLook at it before you decide:\n  GitHub: <a href=\"https://github.com/${repo}\">github.com/${repo}</a>\n  DeckyHub page (details and security scans): <a href=\"https://deckyhub.com/plugins/${id}.html\">deckyhub.com/plugins/${id}.html</a>\n\nYou install it at your own risk: DeckyHub isn't responsible for what it does. Nothing is added unless you choose Add."; then
             picks+=("$id")
         fi
@@ -213,7 +213,7 @@ if (( EUID != 0 )); then
     intro_text="${headline}\n\nHere's what will happen:\n${steps}\n${extras}${why}\n\n${PRIVACY}\n\n${OTHER_WAY}\n\n${WARRANTY}"
 
     if has_zenity; then
-        zen --title="$TITLE" --width=560 --icon=system-software-install --question --ok-label="${verb}" --cancel-label="Cancel" --text="$intro_text" || exit 0
+        zen --title="$TITLE" --width=560 --icon-name=system-software-install --question --ok-label="${verb}" --cancel-label="Cancel" --text="$intro_text" || { [ $? -eq 1 ] && exit 0; echo "Could not show the installer's dialog." >&2; exit 1; }
     else
         plain "$intro_text"
         if [ -t 0 ]; then
@@ -235,7 +235,7 @@ if (( EUID != 0 )); then
         # A random password, not a fixed one anyone could guess while it's set. It's shown here, so
         # it can still be removed if the run is ever cut off (sudo passwd -d, with this password).
         TEMP_PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 12)
-        if has_zenity && zen --title="$TITLE" --width=480 --icon=dialog-password --question \
+        if has_zenity && zen --title="$TITLE" --width=480 --icon-name=dialog-password --question \
             --text="Your Deck doesn't have an admin password yet.\n\nThe installer can set a temporary one (${TEMP_PASSWORD}), use it, and remove it again when it's done. Decky Loader's own installer does the same.\n\nIf the installer is ever cut off, the password stays until you remove it: open Konsole and type  sudo passwd -d ${USER}  with this password.\n\nContinue?"; then
             yes "$TEMP_PASSWORD" | passwd "$USER" > /dev/null || fail "Couldn't set a temporary password.\n\nOpen Konsole, type passwd and press Enter to set your own, then start the installer again."
             trap 'echo "$TEMP_PASSWORD" | sudo -S -k passwd -d "$USER" > /dev/null' EXIT
@@ -246,10 +246,10 @@ if (( EUID != 0 )); then
         fi
     elif has_zenity; then
         while true; do
-            PASS=$(zen --title="$TITLE" --width=480 --icon=dialog-password --entry --hide-text \
+            PASS=$(zen --title="$TITLE" --width=480 --icon-name=dialog-password --entry --hide-text \
                 --text="Type your Deck's admin password.\n\nThis is the password you set for Desktop Mode, not your Steam password. It's used only on this Deck, right now, and isn't saved.") || exit 1
             echo "$PASS" | sudo -S -k true 2> /dev/null && break
-            zen --title="$TITLE" --width=300 --icon=dialog-warning --warning --text="That password isn't right. Try again."
+            zen --title="$TITLE" --width=300 --icon-name=dialog-warning --warning --text="That password isn't right. Try again."
         done
     else
         sudo -v || exit 1
