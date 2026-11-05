@@ -36,7 +36,7 @@ import site_shell
 
 ROOT = Path(__file__).resolve().parent.parent
 REGISTRY_URL = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/refs/heads/main/registry/apps.json"
-RELEASES_URL = "https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=30"
+RELEASES_URL = "https://api.github.com/repos/mazillka/deckyhub-plugin/releases?per_page=100"
 SITE = "https://deckyhub.com/"
 REPO_URL = "https://github.com/mazillka/deckyhub-plugin"
 
@@ -68,10 +68,20 @@ class SafeHtml(HTMLParser):
 
 
 def notes_html(body: str | None) -> str:
-    parser = SafeHtml()
-    parser.feed(markdown.markdown((body or "").replace("\r\n", "\n"), extensions=["sane_lists"]))
-    parser.close()
-    return "".join(parser.out)
+    """A release's notes as safe HTML. GitHub's auto-generated "What's Changed" / "New Contributors" lists and the
+    "Full Changelog" link aren't for readers and are dropped; the "Security checks" section (last in the notes) sits
+    in a collapsed block, so what's new comes first."""
+    text = (body or "").replace("\r\n", "\n")
+    text = re.sub(r"^#+ *(What's Changed|New Contributors)[ \t]*$.*?(?=^#+ |\Z)", "", text, flags=re.M | re.S)
+    text = re.sub(r"^\**Full Changelog\**:.*$", "", text, flags=re.M)
+    text, _, security = text.partition("\n## Security checks")
+    parts = []
+    for markup in (text, security):
+        parser = SafeHtml()
+        parser.feed(markdown.markdown(markup.strip(), extensions=["sane_lists"]))
+        parser.close()
+        parts.append("".join(parser.out))
+    return parts[0] + (f"<details><summary>Security checks</summary>{parts[1]}</details>" if parts[1] else "")
 
 
 def fetch_releases() -> list[dict]:
@@ -87,15 +97,16 @@ def fetch_releases() -> list[dict]:
 
 
 def release_articles(releases: list[dict]) -> str:
+    """Stable releases only (a pre-release's notes are for testers), newest first; one with no notes of its own is left out."""
     if not releases:
         return f'<p class="sub">The release notes couldn\'t be loaded. See <a href="{REPO_URL}/releases">DeckyHub\'s releases on GitHub</a>.</p>'
     return "\n".join(
         f'<article class="release" id="{escape(release["tag_name"])}"><h2><a href="{escape(release["html_url"])}">{escape(release.get("name") or release["tag_name"])}</a>'
-        + ('<span class="pre">Pre-release</span>' if release.get("prerelease") else "")
         + f'<time datetime="{escape(release.get("published_at") or "")}">{nice_date(release.get("published_at"))}</time></h2>'
-        + notes_html(release.get("body"))
+        + notes
         + "</article>"
         for release in releases
+        if not release.get("prerelease") and (notes := notes_html(release.get("body")))
     )
 
 
