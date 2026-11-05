@@ -140,7 +140,9 @@ test("Quick Access navigation opens Discover", async ({ page }) => {
     app.getByRole("button", { name: "Settings", exact: true }).boundingBox(),
   ]);
   expect(settings!.y - (discover!.y + discover!.height)).toBeGreaterThanOrEqual(6);
-  // The button counts every plugin Discover lists.
+  // The button counts every plugin Discover lists. On a fresh bridge (CI) the official
+  // list is still downloading when this first test starts, so wait for it.
+  await expect.poll(async () => (await bridgeCall(page, "get_apps")).result.apps.length, { timeout: 30_000 }).toBeGreaterThan(0);
   const listed = (await bridgeCall(page, "get_apps")).result.apps.length;
   await expect(app.getByRole("button", { name: "Discover", exact: true }).locator(".deckyhub-discover-count")).toHaveText(String(listed));
   await app.getByRole("button", { name: "Discover", exact: true }).click();
