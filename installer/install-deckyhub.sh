@@ -51,13 +51,18 @@ OK_MARK="<span foreground='${C_OK}'>✓</span>"; WARN_MARK="<span foreground='${
 PRIVACY="<b>Your privacy:</b> nothing about you or your Deck is collected, saved or sent anywhere. Your password is used only on this Deck, right now, and is never stored. The installer only downloads files from GitHub."
 OTHER_WAY="You can also install DeckyHub without this installer: download its ZIP and add it in Decky's settings (no password needed). Steps: https://github.com/mazillka/deckyhub-plugin#option-2-manual-zip"
 RESPONSIBILITY="${WARN_MARK} These plugins are made by other people. DeckyHub doesn't make, review or vouch for them, and it isn't responsible for anything they do to your Deck or your data. <b>You install them at your own risk.</b> Before you do, read each plugin's notes and look at its page on deckyhub.com (details and security scans) and at its author's GitHub page (both are linked on each plugin's card)."
-NOTES_EXPLAINED="<b>What the notes mean:</b>\n  <span foreground='${C_AI}'>✦ <b>AI-assisted:</b></span> its code was probably written with AI help. That says nothing about its quality or safety.\n  <span foreground='${C_WARN}'>⚠ <b>Runs as root:</b></span> it has full access to your Deck. Many plugins need that, so add it only if you trust its author.\n  <span foreground='${C_WARN}'>⚠ <b>Warning:</b></span> an audit found something. For example it changes system startup (it edits shell profiles or loads modules that keep working after you remove it), has hidden code (encoded or packed, hard to read), reads private data, runs scripts it downloads, skips HTTPS checks, has code that isn't in its repository, or has known vulnerabilities.\n  <span foreground='${C_OK}'>✓ <b>No warnings:</b></span> the audit found nothing. That isn't proof of safety.\n  <b>Not checked:</b> the notes couldn't be loaded (no connection).\n  <b>★ and ↓ (after the notes):</b> GitHub stars and downloads. More people using a plugin doesn't make it safer.\n\nLatest version is the newest release today. DeckyHub installs the newest one when you confirm."
 WARRANTY="DeckyHub is a free community project. It comes as it is, with no guarantee."
 
 # Dialogs when zenity is there (SteamOS has it), plain text in the terminal otherwise. Texts
 # use \n for line breaks: zenity understands it, the terminal gets printf %b.
 has_zenity() { command -v zenity > /dev/null && [ -n "${DISPLAY}${WAYLAND_DISPLAY}" ]; }
-zen() { zenity 2> >(grep -v 'Gtk' >&2) --window-icon=system-software-install "$@"; }
+# As root (after the password) the dialogs still run as the Deck's user: zenity as root crashes while it draws a dialog's icon
+# (GTK's sandboxed image loader fails), so the progress bar showed but the "All done!" message never did.
+zen() {
+    local as=()
+    [ "$EUID" = 0 ] && [ -n "$SUDO_USER" ] && [ -z "$DECKYHUB_USER_HOME" ] && as=(sudo -u "$SUDO_USER" -E)
+    "${as[@]}" zenity 2> >(grep -v 'Gtk' >&2) --window-icon=system-software-install "$@"
+}
 # Texts use Pango markup (bold, colors, sizes) in zenity; the terminal gets them without the tags.
 plain() { printf '%b\n' "$1" | sed -e 's/<[^>]*>//g'; }
 say() { if has_zenity; then zen --title="$TITLE" --width=480 --icon-name=dialog-information --info --text="$1"; else plain "$1"; fi; }
@@ -156,7 +161,7 @@ choose_plugins() {
     case "$verb" in Update) hub_line="will be updated" ;; Reinstall) hub_line="will be reinstalled" ;; *) hub_line="will be installed" ;; esac
 
     zen --title="$TITLE" --width=640 --icon-name=package-x-generic --question --ok-label="Show the plugins" --cancel-label="Skip this" --default-cancel \
-        --text="<span size='x-large'><b>Optional plugins</b></span>\n\n<b>Decky Loader and DeckyHub are installed either way.</b>\n  ${OK_MARK} <b>Decky Loader</b> (Required): ${decky_line}. Version: ${decky_version}. <a href=\"https://github.com/SteamDeckHomebrew/decky-loader\">github.com/SteamDeckHomebrew/decky-loader</a>\n  ${OK_MARK} <b>DeckyHub</b> (Required): ${hub_line}. Version: ${TAG}${hub_installed:+ (now ${hub_installed})}. <a href=\"https://github.com/mazillka/deckyhub-plugin\">github.com/mazillka/deckyhub-plugin</a>\n\nNext you'll see ${total} optional plugins, one at a time. Choose Add or Skip for each, or skip this: you can always add plugins later from DeckyHub.\n\nThis installer doesn't install them. DeckyHub asks you to confirm each one the first time you open it.\n\n${NOTES_EXPLAINED}\n\n${RESPONSIBILITY}" || return 0
+        --text="<span size='x-large'><b>Optional plugins</b></span>\n\n<b>Decky Loader and DeckyHub are installed either way.</b>\n  ${OK_MARK} <b>Decky Loader</b> (Required): ${decky_line}. Version: ${decky_version}. <a href=\"https://github.com/SteamDeckHomebrew/decky-loader\">github.com/SteamDeckHomebrew/decky-loader</a>\n  ${OK_MARK} <b>DeckyHub</b> (Required): ${hub_line}. Version: ${TAG}${hub_installed:+ (now ${hub_installed})}. <a href=\"https://github.com/mazillka/deckyhub-plugin\">github.com/mazillka/deckyhub-plugin</a>\n\nNext you'll see ${total} optional plugins, one at a time. Choose Add or Skip for each, or skip this: you can always add plugins later from DeckyHub.\n\nThis installer doesn't install them. DeckyHub asks you to confirm each one the first time you open it." || return 0
 
     for entry in "${STARTER_PLUGINS[@]}"; do
         IFS='|' read -r id name repo what tag category <<< "$entry"
@@ -166,7 +171,7 @@ choose_plugins() {
         case "$category" in "Frame Generation") icon=video-display ;; Customization) icon=preferences-desktop-theme ;; "Game Libraries") icon=applications-games ;; *) icon=package-x-generic ;; esac
         case "$note" in *Warning*|*"Runs as root"*) icon=dialog-warning ;; esac
         if zen --title="$TITLE" --width=640 --icon-name="$icon" --question --ok-label="Add this plugin" --cancel-label="Skip" --default-cancel \
-            --text="<span foreground='${C_DIM}'>Plugin ${i} of ${total}</span>\n\n<span size='large'><b>${name}</b></span>  <span foreground='${C_DIM}'>(${category})</span>\n${what}\n\nLatest version: ${versions[i - 1]:-unknown}\n${note:-Not checked}${popularity:+ · $popularity}\n\nLook at it before you decide:\n  GitHub: <a href=\"https://github.com/${repo}\">github.com/${repo}</a>\n  DeckyHub page (details and security scans): <a href=\"https://deckyhub.com/plugins/${id}.html\">deckyhub.com/plugins/${id}.html</a>\n\nYou install it at your own risk: DeckyHub isn't responsible for what it does. Nothing is added unless you choose Add."; then
+            --text="<span foreground='${C_DIM}'>Plugin ${i} of ${total}</span>\n\n<span size='large'><b>${name}</b></span>  <span foreground='${C_DIM}'>(${category})</span>\n${what}\n\nLatest version: ${versions[i - 1]:-unknown}\n${note:-Not checked}${popularity:+ · $popularity}\n\nLook at it before you decide:\n  GitHub: <a href=\"https://github.com/${repo}\">github.com/${repo}</a>\n  DeckyHub page (details and security scans): <a href=\"https://deckyhub.com/plugins/${id}.html\">deckyhub.com/plugins/${id}.html</a>\n\nYou install it at your own risk: DeckyHub isn't responsible for what it does. A clean audit isn't proof of safety. Nothing is added unless you choose Add."; then
             picks+=("$id")
         fi
     done

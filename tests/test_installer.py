@@ -168,7 +168,7 @@ class InstallerTests(unittest.TestCase):
             return re.search(pattern, text, re.M | re.S).group(0)
 
         parts = [one(r"^C_OK=.*\nOK_MARK=[^\n]*$"), one(r"^STARTER_PLUGINS=\(\n.*?^\)"), one(r"^PLUGINS_ARG=[^\n]*$"), one(r"^STATS_URL=[^\n]*$"),
-                 one(r"^RELEASES_URL=[^\n]*$"), one(r"^RESPONSIBILITY=[^\n]*$"), one(r"^NOTES_EXPLAINED=[^\n]*$"), one(r"^installed_version\(\)[^\n]*$"),
+                 one(r"^RELEASES_URL=[^\n]*$"), one(r"^RESPONSIBILITY=[^\n]*$"), one(r"^installed_version\(\)[^\n]*$"),
                  one(r"^plugin_notes\(\) \{\n.*?^\}"), one(r"^plugin_versions\(\) \{\n.*?^\}"), one(r"^choose_plugins\(\) \{\n.*?^\}")]
         log = self.dir / "dialogs.bin"
         harness = self.dir / "picker.sh"
@@ -203,13 +203,14 @@ echo "PICKS=$PICKS"
         for _, arguments, _ in dialogs:
             self.assertIn("--default-cancel", arguments)
         overview = dialogs[0][2]
-        self.assertIn("You install them at your own risk", overview)
-        self.assertLess(overview.index("What the notes mean"), overview.index("You install them at your own risk"))  # the notice sits last
+        # The whole dialog has to fit a Deck's 800 px screen (zenity grows a dialog to its text and never scrolls it): about 15 lines.
+        self.assertLessEqual(len(re.sub(r"<[^>]*>", "", overview).split("\\n")), 15)
         mako = next(text for _, _, text in dialogs if "<b>MAKO Decky</b>" in text)
         self.assertIn("Plugin 2 of 6", mako)
         self.assertIn('<a href="https://github.com/eugeniosegala/MAKO">', mako)
         self.assertIn('<a href="https://deckyhub.com/plugins/mako-decky.html">', mako)
         self.assertIn("You install it at your own risk", mako)
+        self.assertIn("A clean audit isn't proof of safety", mako)
 
     def test_each_card_gets_its_categorys_icon(self):
         _, dialogs = self.run_picker()
