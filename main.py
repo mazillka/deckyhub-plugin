@@ -655,6 +655,10 @@ class Plugin:
         if source.suffix.lower() != ".json" or not source.is_relative_to(deck_home):
             decky.logger.error("Refused to import %s: not a JSON file inside /home/deck", source)
             raise ValueError("Choose a JSON file inside /home/deck")
+        # Read on Decky's event loop, so a huge file picked by mistake would stall every call.
+        if source.is_file() and source.stat().st_size > MAX_REMOTE_REGISTRY_BYTES:
+            decky.logger.error("Refused to import %s: larger than %d bytes", source, MAX_REMOTE_REGISTRY_BYTES)
+            raise ValueError("Invalid repository export")
         try:
             payload = json.loads(source.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as error:

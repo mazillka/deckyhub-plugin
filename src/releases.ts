@@ -200,10 +200,13 @@ export async function virusTotalReportOf(asset: Asset) {
   const reports = await fetchVirusTotalReports();
   if (reports === null) return { state: "unavailable" as const };
   const report = reports[hash] as { state?: string; stats?: Record<string, unknown>; scannedAt?: unknown } | undefined;
-  if (report?.state === "pending" || report?.state === "waiting") return { state: "pending" as const };
-  if (report?.state === "error") return { state: "error" as const };
-  if (report?.state === "unsupported") return { state: "unsupported" as const };
-  if (report?.state !== "complete" || !report.stats) return null;
+  // The registry scans only each listed plugin's newest ZIPs: an older version or an
+  // added repository's ZIP has no entry, and may never get one.
+  if (!report) return { state: "none" as const };
+  if (report.state === "pending" || report.state === "waiting") return { state: "pending" as const };
+  if (report.state === "error") return { state: "error" as const };
+  if (report.state === "unsupported") return { state: "unsupported" as const };
+  if (report.state !== "complete" || !report.stats) return null;
   const { malicious, suspicious, harmless, undetected } = report.stats;
   const count = (value: unknown): value is number => typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
   if (!count(malicious) || !count(suspicious) || !count(harmless) || !count(undetected)) return null;
@@ -223,9 +226,12 @@ export async function metaDefenderReportOf(asset: Asset) {
   const hash = asset.sha256?.toLowerCase();
   if (!hash || !/^[0-9a-f]{64}$/.test(hash)) return null;
   const reports = await fetchMetaDefenderReports();
-  if (!reports) return null;
+  if (!reports) return { state: "unavailable" as const };
   const report = reports[hash] as { state?: string; flagged?: unknown; total?: unknown; dataId?: unknown } | undefined;
-  if (report?.state !== "complete") return null;
+  if (!report) return { state: "none" as const };
+  if (report.state === "pending" || report.state === "waiting") return { state: "pending" as const };
+  if (report.state === "error") return { state: "error" as const };
+  if (report.state !== "complete") return null;
   const { flagged, total, dataId } = report;
   if (typeof flagged !== "number" || !Number.isSafeInteger(flagged) || flagged < 0 || typeof total !== "number" || !Number.isSafeInteger(total) || total <= 0 || flagged > total) return null;
   return { state: "complete" as const, flagged, total, dataId: typeof dataId === "string" && /^[A-Za-z0-9_-]+$/.test(dataId) ? dataId : undefined };

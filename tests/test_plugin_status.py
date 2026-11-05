@@ -443,6 +443,24 @@ class PluginStatusTests(unittest.TestCase):
             with zipfile.ZipFile(first) as archive:
                 self.assertEqual(archive.read("2026-09-26.log"), b"hello")
 
+    def test_import_rejects_a_huge_file_without_reading_it(self):
+        with tempfile.TemporaryDirectory() as home:
+            original_download_dir = main.DEFAULT_DOWNLOAD_DIR
+            main.DEFAULT_DOWNLOAD_DIR = str(Path(home) / "Downloads")
+            try:
+                plugin = Plugin()
+                plugin.apps = []
+                plugin.settings = {"customRepos": []}
+                source = Path(home) / "Downloads" / "repos.json"
+                source.parent.mkdir(parents=True, exist_ok=True)
+                with open(source, "wb") as file:
+                    file.truncate(main.MAX_REMOTE_REGISTRY_BYTES + 1)
+
+                with patch.object(Path, "read_text", side_effect=AssertionError("read a huge file")), self.assertRaises(ValueError):
+                    asyncio.run(plugin.import_custom_repos(str(source)))
+            finally:
+                main.DEFAULT_DOWNLOAD_DIR = original_download_dir
+
     def test_import_rejects_non_json_file(self):
         with tempfile.TemporaryDirectory() as home:
             original_download_dir = main.DEFAULT_DOWNLOAD_DIR
