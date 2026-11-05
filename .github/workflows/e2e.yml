@@ -1,0 +1,53 @@
+name: Browser E2E
+
+# The decky-mock Playwright suite, split over parallel jobs. Each shard starts its own
+# bridge and data folder, so tests never share state across jobs; inside a job they
+# run one at a time (playwright.config.ts). Called by ci.yml and release.yml.
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: e2e (${{ matrix.shard }}/4)
+    runs-on: ubuntu-latest
+    strategy:
+      # Every shard's result counts: a failing one mustn't hide another's.
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          version: 11
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+      # src/ resolves react and react-icons from the root node_modules; the mock has its own.
+      - run: |
+          pnpm install --frozen-lockfile
+          npm ci --prefix devtools/decky-mock
+      - name: Playwright version
+        id: playwright
+        run: echo "version=$(node -p "require('./devtools/decky-mock/package-lock.json').packages['node_modules/@playwright/test'].version")" >> "$GITHUB_OUTPUT"
+      # The browser download is cached; the system libraries it needs come from apt each time.
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        id: browsers
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+      - name: Install Chromium
+        working-directory: devtools/decky-mock
+        run: |
+          if [[ "${{ steps.browsers.outputs.cache-hit }}" == "true" ]]; then
+            npx playwright install-deps chromium
+          else
+            npx playwright install --with-deps chromium
+          fi
+      - name: Run shard ${{ matrix.shard }} of 4
+        working-directory: devtools/decky-mock
+        run: npx playwright test --shard=${{ matrix.shard }}/4
