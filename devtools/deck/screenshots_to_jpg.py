@@ -8,7 +8,7 @@ from PIL import Image
 src = Path(sys.argv[1])
 out = Path(__file__).resolve().parent.parent.parent / "screenshots"
 SIZE = (1280, 800)
-for name in ("discover", "all-plugins", "manage", "updates", "search", "settings", "scan-report"):
+for name in ("discover", "all-plugins", "manage", "updates", "installed", "search", "settings", "scan-report"):
     Image.open(src / f"{name}.png").convert("RGB").resize(SIZE, Image.LANCZOS).save(out / f"{name}.jpg", quality=88)
 
 menu = Image.open(src / "menu-background.png").convert("RGB").resize(SIZE, Image.LANCZOS)

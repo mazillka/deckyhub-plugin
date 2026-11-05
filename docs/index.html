@@ -52,7 +52,7 @@ figure{margin:0}figcaption{color:var(--muted);margin-top:10px;font-size:.92rem}
 ol.steps{counter-reset:s;list-style:none;padding:0;display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
 ol.steps li{counter-increment:s;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;color:var(--muted)}
 ol.steps li::before{content:counter(s);display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;margin-bottom:10px}
-ol.steps strong{color:var(--text)}
+ol.steps strong{color:var(--text)}ol.steps code{overflow-wrap:anywhere}
 code{background:#0f1724;border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.88em}
 .catalog{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
 .app{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;text-decoration:none;color:var(--text);display:block}
@@ -112,12 +112,18 @@ footer .wrap{display:grid;gap:10px}
 
 <section id="install"><div class="wrap">
 <h2>Install in a minute</h2>
-<p class="sub">Two ways: the <strong>Desktop installer</strong> (easiest; it also installs Decky Loader if needed and asks for your admin password) or a <strong>manual ZIP</strong> (no password; Decky Loader must already be installed).</p>
+<p class="sub">Two ways: the <strong>Desktop installer</strong> (easiest: one download sets up Decky Loader if needed and DeckyHub; it asks for your admin password) or a <strong>manual ZIP</strong> (no password; Decky Loader must already be installed).</p>
 <h3>Option 1: Desktop installer (recommended)</h3>
-<p class="sub">It checks for <a href="https://decky.xyz/">Decky Loader</a> first and installs it if it's missing, then installs DeckyHub.</p>
+<p class="sub">One file installs <strong>both Decky Loader and DeckyHub</strong>: it checks for <a href="https://decky.xyz/">Decky Loader</a> first and installs it if it's missing, then installs DeckyHub. Fewer steps and commands than installing Decky Loader on its own.</p>
 <ol class="steps">
 <!-- steps: ### Option 1 -->
 </ol>
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(420px,100%),1fr));margin-top:16px">
+<figure><div class="shot"><img src="img/installer-overview.webp" srcset="img/installer-overview-640.webp 640w, img/installer-overview.webp 1280w" sizes="(max-width:900px) 100vw, 420px" width="1280" height="800" alt="The installer's overview: every step, why the admin password is needed, what it does with your data" loading="lazy"></div><figcaption>Overview</figcaption></figure>
+<figure><div class="shot"><img src="img/installer-card.webp" srcset="img/installer-card-640.webp 640w, img/installer-card.webp 1280w" sizes="(max-width:900px) 100vw, 420px" width="1280" height="800" alt="One optional plugin's card: version, notes, stars, links to GitHub and its DeckyHub page, and Skip as the default" loading="lazy"></div><figcaption>A plugin's card</figcaption></figure>
+<figure><div class="shot"><img src="img/installer-password.webp" srcset="img/installer-password-640.webp 640w, img/installer-password.webp 1280w" sizes="(max-width:900px) 100vw, 420px" width="1280" height="800" alt="The admin password prompt: used only on this Deck, right now, and never saved" loading="lazy"></div><figcaption>Password</figcaption></figure>
+<figure><div class="shot"><img src="img/installer-done.webp" srcset="img/installer-done-640.webp 640w, img/installer-done.webp 1280w" sizes="(max-width:900px) 100vw, 420px" width="1280" height="800" alt="The installer's All done! message: what was installed and what to do next" loading="lazy"></div><figcaption>All done</figcaption></figure>
+</div>
 <h3>Option 2: Manual ZIP</h3>
 <p class="sub">Requires Decky Loader to be installed.</p>
 <ol class="steps">
