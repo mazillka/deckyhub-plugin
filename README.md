@@ -104,12 +104,13 @@ There are two ways to install DeckyHub. Pick one:
 | Decky Loader | Checked, and installed if it's missing | Must already be installed |
 | Admin password | Needed | Not needed |
 | What you do | Download one file and follow the steps it shows | Download the ZIP and add it in Decky's developer settings, or paste a link |
+| Decky Loader setup | None: Decky Loader and DeckyHub are set up in one go | You install Decky Loader first |
 
 Afterward, DeckyHub can install and update plugins from Gaming Mode.
 
 ### Option 1: Desktop installer (recommended)
 
-Checks for [Decky Loader](https://decky.xyz/) first and installs it if your Deck doesn't have it yet. Prefer not to use it? [Option 2](#option-2-manual-zip) needs no password.
+One download sets up **both Decky Loader and DeckyHub**: it checks for [Decky Loader](https://decky.xyz/) first and installs it if your Deck doesn't have it yet, then installs DeckyHub. That saves you installing Decky Loader separately, and the extra steps and commands that takes. Prefer not to use it? [Option 2](#option-2-manual-zip) needs no password.
 
 1. Switch to Desktop Mode (**Steam** → **Power** → **Switch to Desktop**).
 2. Download [`Install-DeckyHub.desktop`](https://github.com/mazillka/deckyhub-plugin/releases/latest/download/Install-DeckyHub.desktop).
