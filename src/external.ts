@@ -46,9 +46,10 @@ export function openExternalWeb(url: string) {
   const focused = pageFocus();
   const control = focused ? describe(focused) : opener;
   const path = history?.location.pathname;
-  expectReturn();
   Navigation.NavigateToExternalWeb(url);
   if (!page || !history || !path) return;
+  // Only Steam's browser brings the page back (and says so below); without it nothing would clear this.
+  expectReturn();
   const stop = history.listen((location) => {
     if (location.pathname !== path) return;
     stop();

@@ -746,6 +746,7 @@ test("Discover comes back as it was after a page opens in Steam's browser", asyn
   await browseAll(page, "MAKO");
   await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
   await app.locator(".steam-modal").getByRole("button", { name: "Repository" }).click();
+  await page.frames().find((candidate) => candidate !== page.mainFrame())!.evaluate(() => (window as unknown as { __expectBrowseReturn: () => void }).__expectBrowseReturn());
   // Steam's browser re-mounts the page on the way back: leave it and return.
   await app.getByRole("button", { name: "/deckyhub/settings" }).click();
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
