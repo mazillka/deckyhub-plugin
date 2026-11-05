@@ -13,6 +13,8 @@ jobs:
   e2e:
     name: e2e (${{ matrix.shard }}/4)
     runs-on: ubuntu-latest
+    # A shard takes about 2 minutes; a hang fails it instead of holding CI for hours.
+    timeout-minutes: 20
     strategy:
       # Every shard's result counts: a failing one mustn't hide another's.
       fail-fast: false
@@ -20,7 +22,7 @@ jobs:
         shard: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
         with:
           version: 11
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -42,12 +44,19 @@ jobs:
           key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
       - name: Install Chromium
         working-directory: devtools/decky-mock
+        # The Ubuntu mirror sometimes stalls mid-download (one shard hung for 9+ minutes
+        # while the others took seconds). apt itself then retries, drops a connection that
+        # sends nothing for 20 s, and waits for the lock if a try that timed out left an
+        # apt-get running.
         run: |
-          if [[ "${{ steps.browsers.outputs.cache-hit }}" == "true" ]]; then
-            npx playwright install-deps chromium
-          else
-            npx playwright install --with-deps chromium
-          fi
+          printf '%s\n' 'Acquire::Retries "5";' 'Acquire::http::Timeout "20";' 'DPkg::Lock::Timeout "300";' | sudo tee /etc/apt/apt.conf.d/99deckyhub-ci > /dev/null
+          if [[ "${{ steps.browsers.outputs.cache-hit }}" == "true" ]]; then install=(npx playwright install-deps chromium)
+          else install=(npx playwright install --with-deps chromium); fi
+          for attempt in 1 2; do
+            timeout 300 "${install[@]}" && exit 0
+            echo "::warning::Installing Chromium failed or hung (try $attempt)"
+          done
+          exit 1
       - name: Run shard ${{ matrix.shard }} of 4
         working-directory: devtools/decky-mock
         run: npx playwright test --shard=${{ matrix.shard }}/4
