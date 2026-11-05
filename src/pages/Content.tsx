@@ -20,6 +20,7 @@ import { countBadgeStyle, QuickAccessNav } from "../components/QuickAccessNav";
 import { compareBy, type SortOrder } from "../sorting";
 import { Card, useSwapAnimation } from "../components/Card";
 import { useLayout } from "../components/LayoutToggle";
+import { restoreBrowse, returned, saveBrowse } from "../browseState";
 import { useApps } from "../hooks/useApps";
 import { RateLimitBanner } from "../components/RateLimitBanner";
 import { offerPendingInstalls } from "../components/PendingInstalls";
@@ -36,15 +37,18 @@ export function Content({ fullPage }: { fullPage?: View }) {
   useEffect(() => {
     if (!fullPage) void offerPendingInstalls(t);
   }, [fullPage]);
-  const [query, setQuery] = useState("");
-  const [installedFilter, setInstalledFilter] = useState("All");
+  // Back from Steam's browser the page is mounted again: pick up where it was.
+  const [restored] = useState(() => (fullPage ? restoreBrowse(view) : undefined));
+  useEffect(returned, []);
+  const [query, setQuery] = useState(restored?.query ?? "");
+  const [installedFilter, setInstalledFilter] = useState(restored?.installedFilter ?? "All");
   // "" means every category.
-  const [categoryFilter, setCategoryFilter] = useState("");
-  const [sortOrder, setSortOrder] = useState<SortOrder>("az");
+  const [categoryFilter, setCategoryFilter] = useState(restored?.categoryFilter ?? "");
+  const [sortOrder, setSortOrder] = useState<SortOrder>((restored?.sortOrder as SortOrder) ?? "az");
   // Breaks Sort's ties (many plugins share 0 stars or downloads); A to Z breaks any left.
-  const [thenBy, setThenBy] = useState<SortOrder>("az");
+  const [thenBy, setThenBy] = useState<SortOrder>((restored?.thenBy as SortOrder) ?? "az");
   // Discover opens on its shelves; a category chip or See all browses the whole list, a page at a time.
-  const [browsing, setBrowsing] = useState(false);
+  const [browsing, setBrowsing] = useState(restored?.browsing ?? false);
   const [layout, setLayout] = useLayout();
   const [updatingAll, setUpdatingAll] = useState(false);
   const quickAccessRef = useRef<HTMLDivElement>(null);
@@ -61,6 +65,24 @@ export function Content({ fullPage }: { fullPage?: View }) {
 
   // Opening a category, or going back, replaces what had focus: hand it to the
   // Back button or the first chip, so the D-pad doesn't start from nowhere.
+  useEffect(() => {
+    if (fullPage) saveBrowse(view, { browsing, query, installedFilter, categoryFilter, sortOrder, thenBy });
+  }, [browsing, query, installedFilter, categoryFilter, sortOrder, thenBy]);
+  // The page scrolls inside its own box: keep its position as it moves, put it back once the list is up.
+  const scroller = () => {
+    let box: HTMLElement | null = pageRef.current;
+    while (box && getComputedStyle(box).overflowY !== "auto") box = box.parentElement;
+    return box;
+  };
+  useEffect(() => {
+    const box = fullPage && !loading ? scroller() : null;
+    if (!box) return;
+    if (restored?.scroll) requestAnimationFrame(() => box.scrollTo({ top: restored.scroll }));
+    const onScroll = () => saveBrowse(view, { scroll: box.scrollTop });
+    box.addEventListener("scroll", onScroll);
+    return () => box.removeEventListener("scroll", onScroll);
+  }, [loading]);
+
   const switchedView = useRef(false);
   useEffect(() => {
     if (!switchedView.current) {
@@ -251,7 +273,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
             // B goes back to the shelves while browsing; elsewhere it leaves the page as usual.
             <Focusable flow-children="down" onCancelButton={browsing ? () => setBrowsing(false) : undefined} onCancelActionDescription={browsing ? t("nav.discover") : undefined}>
               {discoverFilters}
-              <AppList apps={visibleApps} layout={layout} columns={columnsPerRow} renderCard={renderCard} />
+              <AppList apps={visibleApps} layout={layout} columns={columnsPerRow} renderCard={renderCard} initialCount={restored?.count} onCount={(count) => saveBrowse(view, { count })} />
             </Focusable>
           )}
           </div>

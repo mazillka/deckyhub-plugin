@@ -740,6 +740,23 @@ test("The Manage window shows the plugin's description, details and a Repository
   await expect(app.locator(".steam-modal").getByRole("button", { name: "DeckyHub page" })).toBeVisible();
 });
 
+test("Discover comes back as it was after a page opens in Steam's browser", async ({ page }) => {
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
+  await app.getByRole("heading", { name: "MAKO Decky" }).locator("..").getByRole("button", { name: "Manage", exact: true }).click();
+  await app.locator(".steam-modal").getByRole("button", { name: "Repository" }).click();
+  // Steam's browser re-mounts the page on the way back: leave it and return.
+  await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await expect(app.getByLabel("Search")).toHaveValue("MAKO");
+  await expect(app.getByRole("heading", { name: "All plugins" })).toBeVisible();
+  // Leaving any other way opens Discover on its shelves again.
+  await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await expect(app.getByRole("button", { name: /^All plugins/ })).toBeVisible();
+});
+
 test("Plugin details offers focus stops through long release notes", async ({ page }) => {
   await mockMakoReleases(page, [{ ...makoRelease("plugin-v2.0.0", "c".repeat(64)), body: "Release information for players. ".repeat(60) }]);
   await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
