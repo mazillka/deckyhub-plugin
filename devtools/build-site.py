@@ -3,10 +3,11 @@
 Copies docs/, writes mazillka/deckyhub-registry's catalog into index.html
 so crawlers see it without JavaScript, and makes WebP screenshots plus a JPEG
 link-preview image (screenshots/hero.jpg) from screenshots/. It also renders
-DeckyHub's GitHub releases into releases.html (the release notes page), fills
+DeckyHub's GitHub releases into releases.html (the release notes page), fills in help.html and about.html, fills
 index.html's latest-release line and structured data (schema.org JSON-LD,
 with the FAQ taken from the page's own <details>), writes a page per plugin
-(plugins/<id>.html, see plugin_pages.py) and sitemap.xml.
+(plugins/<id>.html, see plugin_pages.py), fills in the contributor pages
+(contribute/ and uk/contribute/: how to add a plugin, and the registry editor) and writes sitemap.xml.
 Needs Pillow and Markdown (CI-only, not plugin dependencies). GITHUB_TOKEN, if
 set, is sent with the releases request; without the releases (GitHub down),
 the site still builds and the release notes page links to GitHub.
@@ -120,12 +121,22 @@ def nice_date_uk(iso: str | None) -> str:
     return f"{day.tm_mday} {MONTHS_UK[day.tm_mon - 1]} {day.tm_year}"
 
 
-def structured_data(page: str, latest: dict | None, uk: bool = False) -> str:
-    """schema.org JSON-LD: the site, DeckyHub itself and the page's FAQ, as visible."""
-    faq = [
+def faq_items(page: str) -> list[dict]:
+    """schema.org Questions from the page's own <details><summary>question</summary><p>answer</p></details>."""
+    return [
         {"@type": "Question", "name": re.sub(r"<[^>]+>", "", question).strip(), "acceptedAnswer": {"@type": "Answer", "text": re.sub(r"<[^>]+>", "", answer).strip()}}
         for question, answer in re.findall(r"<details><summary>(.*?)</summary><p>(.*?)</p></details>", page, re.S)
     ]
+
+
+def json_ld(data: dict) -> str:
+    # No "<" at all inside the script element, so nothing in the page's text can end it.
+    return '<script type="application/ld+json">' + json.dumps({"@context": "https://schema.org", **data}, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c") + "</script>"
+
+
+def structured_data(page: str, latest: dict | None, uk: bool = False) -> str:
+    """schema.org JSON-LD: the site, DeckyHub itself and the page's FAQ, as visible."""
+    faq = faq_items(page)
     app = {
         "@type": "SoftwareApplication", "name": "DeckyHub", "url": SITE + "uk/" if uk else SITE, "inLanguage": "uk" if uk else "en",
         "applicationCategory": "UtilitiesApplication", "applicationSubCategory": "Decky Loader plugin", "operatingSystem": "SteamOS",
@@ -141,9 +152,7 @@ def structured_data(page: str, latest: dict | None, uk: bool = False) -> str:
         app["softwareVersion"] = latest["tag_name"].removeprefix("v")
         app["dateModified"] = latest.get("published_at")
     graph = [{"@type": "WebSite", "name": "DeckyHub", "url": SITE}, app] + ([{"@type": "FAQPage", "mainEntity": faq}] if faq else [])
-    # No "<" at all inside the script element, so nothing in the page's text can end it.
-    data = json.dumps({"@context": "https://schema.org", "@graph": graph}, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
-    return '<script type="application/ld+json">' + data + "</script>"
+    return json_ld({"@graph": graph})
 
 
 out = Path(sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("--") else "_site")
@@ -186,6 +195,23 @@ if "<!-- releases -->" not in notes_page:
     sys.exit("docs/releases.html is missing the <!-- releases --> placeholder")
 notes.write_text(site_shell.apply(notes_page.replace("<!-- releases -->", release_articles(releases))), encoding="utf-8")
 
+# deckyhub.com/contribute/: how to add a plugin and the registry editor (moved here from registry.deckyhub.com), each with a Ukrainian twin.
+CONTRIBUTE = ["contribute/", "contribute/editor.html", "uk/contribute/", "uk/contribute/editor.html"]
+for name in ("index.html", "editor.html"):
+    path = "" if name == "index.html" else name
+    for lang, folder, switch in (("en", "contribute", ("Українська", f"{SITE}uk/contribute/{path}", "uk")), ("uk", "uk/contribute", ("English", f"{SITE}contribute/{path}", "en"))):
+        page_file = out / folder / name
+        page_file.write_text(site_shell.apply(page_file.read_text(encoding="utf-8").replace("<!-- plugin-count -->", str(len(apps))), lang, switch), encoding="utf-8")
+
+# help.html (its questions also as FAQ structured data) and about.html: static pages with the shared menu and footer.
+help_page = out / "help.html"
+help_text = help_page.read_text(encoding="utf-8")
+if "<!-- structured-data -->" not in help_text:
+    sys.exit("docs/help.html is missing the <!-- structured-data --> placeholder")
+help_page.write_text(site_shell.apply(help_text.replace("<!-- structured-data -->", json_ld({"@type": "FAQPage", "url": f"{SITE}help.html", "mainEntity": faq_items(help_text)}))), encoding="utf-8")
+about_page = out / "about.html"
+about_page.write_text(site_shell.apply(about_page.read_text(encoding="utf-8")), encoding="utf-8")
+
 plugin_urls = plugin_pages.write_pages(out, apps, (ROOT / "docs" / "releases.html").read_text(encoding="utf-8"), data)
 llms = out / "llms.txt"
 if llms.exists():
@@ -199,6 +225,9 @@ newest = (releases[0].get("published_at") or "")[:10] if releases else today
     f"<url><loc>{SITE}</loc><lastmod>{today}</lastmod></url>\n"
     f"<url><loc>{SITE}uk/</loc><lastmod>{today}</lastmod></url>\n"
     f"<url><loc>{SITE}releases.html</loc><lastmod>{newest}</lastmod></url>\n"
+    f"<url><loc>{SITE}help.html</loc><lastmod>{today}</lastmod></url>\n"
+    f"<url><loc>{SITE}about.html</loc><lastmod>{today}</lastmod></url>\n"
+    + "".join(f"<url><loc>{SITE}{path}</loc><lastmod>{today}</lastmod></url>\n" for path in CONTRIBUTE)
     + "".join(f"<url><loc>{escape(url)}</loc><lastmod>{date}</lastmod></url>\n" for url, date in plugin_urls) + "</urlset>\n",
     encoding="utf-8",
 )
@@ -223,7 +252,10 @@ if PREVIEW:
         (out / sitemap).unlink(missing_ok=True)
     for html_file in out.rglob("*.html"):
         text = html_file.read_text(encoding="utf-8")
-        text = text.replace(SITE, base).replace('href="/', f'href="{base}').replace('src="/', f'src="{base}')
+        # Root-relative links first: done after SITE they'd get the preview path twice (/develop/develop/).
+        text = text.replace('href="/', f'href="{base}').replace('src="/', f'src="{base}').replace(SITE, base)
+        if f'"{base}{base.lstrip("/")}' in text:
+            sys.exit(f"{html_file}: a link got the preview path twice")
         text = re.sub(r'<link rel="canonical"[^>]*>|<meta property="og:url"[^>]*>', "", text)
         text = text.replace("<head>", '<head>\n<meta name="robots" content="noindex,nofollow">', 1)
         text = re.sub(r"(<body[^>]*>)", lambda match: match.group(1) + "\n" + banner.replace(f'href="{base}"', f'href="{SITE}"'), text, count=1)

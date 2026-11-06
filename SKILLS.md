@@ -86,7 +86,7 @@ Every change that alters what a user sees or does updates the docs in the same P
 
 - One topic per PR (PRs are squash-merged, see CONTRIBUTING.md); the PR must typecheck.
 - Push a `v*` tag only after all checks pass.
-- Cut a release only when the plugin ZIP changes (`plugin.json`, `main.py`, `src/`, `package.json`). Docs- or website-only changes ship by merging to `main`; a release with no plugin change still pings every user with an update toast.
+- Cut a release only when the plugin ZIP changes (`plugin.json`, `main.py`, `src/`, `package.json`). Docs-, website- or `devtools/`-only changes ship by merging to `main`, with no version bump; a release with no plugin change still pings every user with an update toast.
 - If the release workflow fails after the tag is pushed, fix it and bump to the next rc; never move a published tag.
 - Changes to install/download/uninstall behavior also update README, `CONTRIBUTING.md` and `AGENTS.md`, which describe that policy.
 - Release steps: [CONTRIBUTING.md](CONTRIBUTING.md#releases). Release notes (every release, pre-releases too): the Release section of [AGENTS.md](AGENTS.md#release).

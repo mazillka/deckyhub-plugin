@@ -42,22 +42,24 @@ header p.lead{font-size:1.2rem;color:var(--muted);max-width:640px;margin:0 auto 
 .hero-shot{margin:48px auto 0;max-width:900px;border-radius:14px;overflow:hidden;border:1px solid var(--line);box-shadow:0 30px 80px rgba(0,0,0,.55)}
 section{padding:72px 0;border-top:1px solid #1c2738}
 h2{font-size:clamp(1.6rem,4vw,2.2rem);margin:0 0 10px;letter-spacing:-.01em}
-.sub{color:var(--muted);max-width:680px;margin:0 0 36px}
+.sub{color:var(--muted);margin:0 0 36px}
 .grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px}
 .card h3{margin:0 0 8px;font-size:1.1rem}.card p{margin:0;color:var(--muted)}
 .card .ico{font-size:1.6rem;margin-bottom:10px}
 figure{margin:0}figcaption{color:var(--muted);margin-top:10px;font-size:.92rem}
 .shot{border-radius:12px;overflow:hidden;border:1px solid var(--line);aspect-ratio:16/10;background:#0b0f16}
-ol.steps{counter-reset:s;list-style:none;padding:0;display:grid;gap:10px;max-width:760px}
+ol.steps{counter-reset:s;list-style:none;padding:0;display:grid;gap:10px}
 ol.steps li{counter-increment:s;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 20px 16px 64px;position:relative;color:var(--text);line-height:1.6;font-size:1.02rem}
 ol.steps li::before{content:counter(s);display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;position:absolute;left:18px;top:16px}
-ol.steps code.cmd{display:block;margin:8px 0 0;padding:10px 12px;background:#0b1220;border-radius:8px;user-select:all;overflow-wrap:anywhere}ol.steps button.copy{margin-top:6px;padding:6px 14px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);font:inherit;cursor:pointer}ol.steps button.copy:hover{border-color:var(--accent)}ol.steps strong{color:var(--text)}ol.steps code{overflow-wrap:anywhere}
+code.cmd{display:block;margin:8px 0 0;padding:10px 12px;background:#0b1220;border-radius:8px;user-select:all;overflow-wrap:anywhere}button.copy{margin-top:6px;padding:6px 14px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);font:inherit;cursor:pointer}button.copy:hover{border-color:var(--accent)}ol.steps strong{color:var(--text)}ol.steps code{overflow-wrap:anywhere}
+ol.steps li>p{margin:0 0 10px}ol.steps .choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:12px}ol.steps .choices>div{background:#0f1724;border:1px solid var(--line);border-radius:10px;padding:12px 14px;min-width:0}
 code{background:#0f1724;border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.88em}
 .catalog{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
 .app{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;text-decoration:none;color:var(--text);display:block}
 .app:hover{border-color:var(--accent2)}.app small{display:block;color:var(--accent2);font-size:.78rem;text-transform:uppercase;letter-spacing:.05em}
 .app p{margin:6px 0 0;color:var(--muted);font-size:.92rem}.app code{font-size:.78rem;color:var(--dim);border:0;background:none;padding:0}
+.app .meta{display:block;color:var(--dim);font-size:.82rem;margin-top:8px}.app .flags{display:flex;flex-wrap:wrap;gap:4px 8px;font-size:.78rem;margin-top:4px}.flag-ai{color:#b79cff}.flag-bad{color:#ff8a8a}.flag-ok{color:#6bcb6b}.flag-warn{color:var(--warn)}
 .latest{margin:14px 0 0;color:var(--dim);font-size:.9rem}.latest:empty{display:none}
 
 details{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin-bottom:10px}
@@ -78,8 +80,7 @@ footer .wrap{display:grid;gap:10px}
 <h1>Your Steam Deck's plugin hub, <br>right inside Gaming Mode.</h1>
 <p class="lead">Discover, download and update Decky Loader plugins with your controller. No Desktop Mode, no hunting through GitHub releases, no zip juggling.</p>
 <div class="cta">
-<a class="btn" href="https://github.com/mazillka/deckyhub-plugin/releases/latest">Download DeckyHub</a>
-<a class="btn ghost" href="#install">How to install</a>
+<a class="btn" href="#install">Download and install</a>
 </div>
 <p class="latest"><!-- latest --></p>
 <div class="badges" aria-label="Virus scans of the latest release"><a href="https://github.com/mazillka/deckyhub-registry#how-it-works"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmazillka%2Fdeckyhub-registry%2Fvirus-scans%2Fbadges%2Fmazillka%2Fdeckyhub-plugin%2Fclamav.json" alt="ClamAV scan of the latest release" width="170" height="20" loading="lazy"></a><a href="https://github.com/mazillka/deckyhub-registry#how-it-works"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmazillka%2Fdeckyhub-registry%2Fvirus-scans%2Fbadges%2Fmazillka%2Fdeckyhub-plugin%2Fyara.json" alt="YARA scan of the latest release" width="156" height="20" loading="lazy"></a><a href="https://github.com/mazillka/deckyhub-plugin/releases/latest"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmazillka%2Fdeckyhub-plugin%2Fbadges%2Fvirustotal.json" alt="VirusTotal scan of the latest release" width="202" height="20" loading="lazy"></a><a href="https://github.com/mazillka/deckyhub-plugin/releases/latest"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmazillka%2Fdeckyhub-plugin%2Fbadges%2Fmetadefender.json" alt="MetaDefender scan of the latest release" width="202" height="20" loading="lazy"></a></div>
@@ -129,14 +130,14 @@ footer .wrap{display:grid;gap:10px}
 <ol class="steps">
 <!-- steps: ### Option 2 -->
 </ol>
-<p class="sub" style="margin-top:20px">Alternatively, choose <strong>Developer → Install Plugin from URL</strong> and enter <code>https://github.com/mazillka/deckyhub-plugin/releases/latest/download/DeckyHub.zip</code>. <a href="https://github.com/mazillka/deckyhub-plugin#installing-deckyhub">Full install guide</a></p>
+<p class="sub" style="margin-top:20px">Alternatively, choose <strong>Developer → Install Plugin from URL</strong> and enter this address (<a href="https://github.com/mazillka/deckyhub-plugin#installing-deckyhub">full install guide</a>):<code class="cmd">https://github.com/mazillka/deckyhub-plugin/releases/latest/download/DeckyHub.zip</code></p>
 </div></section>
 
 <section id="plugins"><div class="wrap">
 <h2>Popular plugins</h2>
 <p class="sub">These show up in Discover the moment you install DeckyHub, and new ones arrive without a DeckyHub update. They're suggested by users or found through the community catalogs <a href="https://decky-extended-plugins.beallio.com/">Decky Extended Plugins</a> and <a href="https://safetzahirovic.github.io/decky-plugins-explorer/">Decky Plugins Explorer</a> or by the registry's own GitHub search, and each one is checked for a working release before it's added. Find anything else with <strong>Search</strong>.</p>
 <div class="catalog"><!-- popular --></div>
-<div class="cta" style="margin-top:24px"><a class="btn" href="plugins/">Browse all <!-- plugin-count --> plugins</a><a class="btn ghost" href="https://registry.deckyhub.com/">Add a plugin or build your own list</a></div>
+<div class="cta" style="margin-top:24px"><a class="btn" href="plugins/">Browse all <!-- plugin-count --> plugins</a><a class="btn ghost" href="contribute/">Add a plugin or build your own list</a></div>
 </div></section>
 
 <section id="quality"><div class="wrap">

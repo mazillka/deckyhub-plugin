@@ -2,7 +2,7 @@
 
 > DeckyHub is a free, open-source plugin store for the Steam Deck. It is a Decky Loader plugin that lets you find, install and update 500+ Decky Loader plugins from Gaming Mode with your controller, including plugins that aren't on the official Decky Loader store, and any other Decky plugin on GitHub.
 
-DeckyHub runs inside Decky Loader on SteamOS (Steam Deck and other SteamOS devices). It lists the plugins in the DeckyHub registry (https://registry.deckyhub.com/), checks your installed plugins for new releases, and installs or updates them through Decky Loader's own installer, which asks you to confirm first. It never installs anything without a tap. It's made by mazillka and licensed GPL-3.0-or-later. Most of its code was written with AI tools (Claude and Codex), and every release is tested on a real Steam Deck.
+DeckyHub runs inside Decky Loader on SteamOS (Steam Deck and other SteamOS devices). It lists the plugins in the DeckyHub registry (https://github.com/mazillka/deckyhub-registry), checks your installed plugins for new releases, and installs or updates them through Decky Loader's own installer, which asks you to confirm first. It never installs anything without a tap. It's made by mazillka and licensed GPL-3.0-or-later. Most of its code was written with AI tools (Claude and Codex), and every release is tested on a real Steam Deck.
 
 ## Key facts
 
@@ -25,8 +25,10 @@ DeckyHub runs inside Decky Loader on SteamOS (Steam Deck and other SteamOS devic
 - [DeckyHub home](https://deckyhub.com/): features, screenshots, install guide and FAQ
 - [DeckyHub home in Ukrainian](https://deckyhub.com/uk/): the same page in Ukrainian (українською)
 - [Release notes](https://deckyhub.com/releases.html): what's new in each version
+- [Help](https://deckyhub.com/help.html): installing, updates, badges, virus scans and troubleshooting, as questions and answers
+- [About](https://deckyhub.com/about.html): who makes DeckyHub, where its plugin list comes from, and how it's built and tested
 - [Full documentation](https://github.com/mazillka/deckyhub-plugin#readme): every screen, settings, troubleshooting, privacy
-- [Plugin catalog](https://registry.deckyhub.com/): every plugin DeckyHub lists, with descriptions, stats and safety badges
-- [Plugin catalog for AI](https://registry.deckyhub.com/llms.txt): the plugin list as plain text
-- [Registry editor](https://registry.deckyhub.com/editor.html): build your own plugin list for DeckyHub
+- [Plugin catalog](https://deckyhub.com/plugins/): every plugin DeckyHub lists, with descriptions, stats and safety badges (each listed below)
+- [Contribute](https://deckyhub.com/contribute/): suggest a plugin, add it yourself, or run your own list (in Ukrainian: https://deckyhub.com/uk/contribute/)
+- [Registry editor](https://deckyhub.com/contribute/editor.html): build your own plugin list for DeckyHub
 - [Report an issue](https://github.com/mazillka/deckyhub-plugin/issues)

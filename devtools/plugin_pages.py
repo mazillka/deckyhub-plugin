@@ -313,7 +313,18 @@ def readme_steps(readme: str, heading: str) -> str:
     steps = re.findall(r"^\d+\. (.+)$", section, re.M)
     # A long command stands on its own line, selectable in one tap, instead of getting lost mid-sentence.
     long_command = lambda html: re.sub(r"<code>([^<]{60,})</code>", r'<code class="cmd">\1</code>', html)
-    return "\n".join(f"<li>{long_command(inline_markdown(step))}</li>" for step in steps)
+    render = lambda text: long_command(inline_markdown(text.strip()))
+
+    # Two invisible markers (HTML comments, hidden on GitHub) turn a step into two alternatives side by side:
+    # "lead <!-- choose --> first way <!-- or --> second way". The lead is optional.
+    def item(step: str) -> str:
+        if "<!-- or -->" not in step:
+            return render(step)
+        lead, _, rest = step.rpartition("<!-- choose -->")
+        choices = "".join(f"<div>{render(part)}</div>" for part in rest.split("<!-- or -->"))
+        return (f"<p>{render(lead)}</p>" if lead.strip() else "") + f'<div class="choices">{choices}</div>'
+
+    return "\n".join(f"<li>{item(step)}</li>" for step in steps)
 
 
 def slug(text: str) -> str:
@@ -385,12 +396,12 @@ def catalog_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
     body = f"""<p class="crumbs"><a href="/">DeckyHub</a> › Plugins</p>
 <h1>Steam Deck plugins</h1>
 <p class="lead">{len(apps)} Decky Loader plugins, most downloaded first. Install any of them from Gaming Mode with <a href="/">DeckyHub</a>, which also checks them for updates.</p>
+<p class="note">Every plugin belongs to its authors. DeckyHub doesn't make, review or vouch for them, and a plugin's page shows its notes (AI help, root, audit warnings) and security scans; <a href="/plugins/known-issues.html">Known issues</a> lists every plugin with a warning. Missing one? <a href="/contribute/">Add a plugin</a>.</p>
 <div class="filters"><input id="q" type="search" placeholder="Search plugins" aria-label="Search plugins" autocomplete="off"><div class="chips" role="group" aria-label="Categories">{chips}</div></div>
 <p class="note" id="count" aria-live="polite">{len(apps)} plugins</p>
 <div class="catalog" id="list">
 {chr(10).join(card(app, data) for app in ordered)}
 </div>
-<p class="note">Every plugin belongs to its authors. DeckyHub doesn't make, review or vouch for them, and a plugin's page shows its notes (AI help, root, audit warnings) and security scans; <a href="/plugins/known-issues.html">Known issues</a> lists every plugin with a warning. Missing one? <a href="{site_shell.REGISTRY}">Add a plugin</a>.</p>
 <script>{FILTER_JS}</script>"""
     listing = json_ld({"@type": "CollectionPage", "name": "Steam Deck plugins", "url": f"{SITE}plugins/",
                        "mainEntity": {"@type": "ItemList", "numberOfItems": len(apps), "itemListElement": [
