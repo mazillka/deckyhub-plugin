@@ -1,7 +1,39 @@
 #!/usr/bin/env xdg-open
 [Desktop Entry]
 Name=Install DeckyHub
+Name[uk]=Встановити DeckyHub
+Name[ru]=Установить DeckyHub
+Name[es]=Instalar DeckyHub
+Name[de]=DeckyHub installieren
+Name[fr]=Installer DeckyHub
+Name[pt_BR]=Instalar o DeckyHub
+Name[pt]=Instalar o DeckyHub
+Name[it]=Installa DeckyHub
+Name[pl]=Zainstaluj DeckyHub
+Name[tr]=DeckyHub'ı yükle
+Name[nl]=DeckyHub installeren
+Name[cs]=Nainstalovat DeckyHub
+Name[ja]=DeckyHub をインストール
+Name[ko]=DeckyHub 설치
+Name[zh_CN]=安装 DeckyHub
+Name[zh_TW]=安裝 DeckyHub
 Comment=Installs DeckyHub (and Decky Loader if needed) on this Steam Deck
+Comment[uk]=Встановлює DeckyHub (і Decky Loader, якщо потрібно) на цей Steam Deck
+Comment[ru]=Устанавливает DeckyHub (и Decky Loader, если нужно) на этот Steam Deck
+Comment[es]=Instala DeckyHub (y Decky Loader si hace falta) en este Steam Deck
+Comment[de]=Installiert DeckyHub (und bei Bedarf Decky Loader) auf diesem Steam Deck
+Comment[fr]=Installe DeckyHub (et Decky Loader si nécessaire) sur ce Steam Deck
+Comment[pt_BR]=Instala o DeckyHub (e o Decky Loader, se necessário) neste Steam Deck
+Comment[pt]=Instala o DeckyHub (e o Decky Loader, se necessário) neste Steam Deck
+Comment[it]=Installa DeckyHub (e Decky Loader se serve) su questo Steam Deck
+Comment[pl]=Instaluje DeckyHub (i w razie potrzeby Decky Loader) na tym Steam Decku
+Comment[tr]=DeckyHub'ı (ve gerekirse Decky Loader'ı) bu Steam Deck'e yükler
+Comment[nl]=Installeert DeckyHub (en zo nodig Decky Loader) op deze Steam Deck
+Comment[cs]=Nainstaluje DeckyHub (a v případě potřeby Decky Loader) na tento Steam Deck
+Comment[ja]=この Steam Deck に DeckyHub (必要なら Decky Loader も) をインストールします
+Comment[ko]=이 Steam Deck에 DeckyHub(필요하면 Decky Loader도)를 설치합니다
+Comment[zh_CN]=在这台 Steam Deck 上安装 DeckyHub（如有需要还会安装 Decky Loader）
+Comment[zh_TW]=在這台 Steam Deck 上安裝 DeckyHub（如有需要也會安裝 Decky Loader）
 Exec=sh -c 'work=$(mktemp -d) || exit 1; if command -v zenity >/dev/null 2>&1; then (curl -fsSL --connect-timeout 60 -o "$work/install.sh" https://github.com/mazillka/deckyhub-plugin/releases/download/@TAG@/install-deckyhub.sh && touch "$work/downloaded"; echo 100) | zenity --progress --pulsate --auto-close --no-cancel --title="DeckyHub Installer" --text="Getting the installer ready…" 2>/dev/null; else curl -fsSL --connect-timeout 60 -o "$work/install.sh" https://github.com/mazillka/deckyhub-plugin/releases/download/@TAG@/install-deckyhub.sh && touch "$work/downloaded"; fi; if test -f "$work/downloaded"; then bash "$work/install.sh"; else zenity --error --title="DeckyHub Installer" --text="Could not get the installer. Check that your Deck is connected to Wi-Fi, then try again." 2>/dev/null || echo "Could not get the installer." >&2; fi; rm -rf "$work"'
 Icon=steamdeck-gaming-return
 Terminal=false
