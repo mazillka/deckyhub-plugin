@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { getApps, getSettings, REGISTRY_UPDATED } from "../api";
 import type { App, HideableButton, PluginStats, RepoPreference, UpdateChannel, View, VirusScan } from "../types";
 import { DEFAULT_COLUMNS_PER_ROW, fetchPluginStats, fetchVirusScans, getDeckyBackend, hydrate, log, notifyUpdates, scanFor } from "../utils";
-import { metaDefenderReportOf, virusTotalReportOf } from "../releases";
+import { installedRisk, metaDefenderReportOf, virusTotalReportOf } from "../releases";
+import { notifyInstalledRisks } from "../notify";
 
 // ponytail: fixed pool of 8 GitHub requests in flight; lower it if the registry grows
 // big enough to trip GitHub's secondary (burst) rate limit.
@@ -77,7 +78,9 @@ export function useApps(view: View) {
       const worker = async () => {
         while (next < tracked.length) {
           const index = next++;
-          const app = await hydrate(tracked[index], force, preferences[tracked[index].repo]);
+          const fresh = await hydrate(tracked[index], force, preferences[tracked[index].repo]);
+          // Every view, Updates too: the installed version's own scan and warnings.
+          const app = { ...fresh, installedRisk: await installedRisk(fresh, force).catch(() => undefined) };
           // The report for the ZIP this card installs, once its release is known.
           hydrated[index] = showBadges ? { ...app, scan: scanFor(scans, app.assets[0]) } : app;
           if (showBadges && app.assets[0]) {
@@ -98,6 +101,7 @@ export function useApps(view: View) {
       loaded.current = true;
       setLoading(false);
       notifyUpdates(hydrated);
+      notifyInstalledRisks(hydrated);
     } catch (error) {
       log(`Loading apps failed: ${error}`);
       setLoadError(String(error));
