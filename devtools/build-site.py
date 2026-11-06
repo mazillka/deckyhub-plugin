@@ -3,7 +3,7 @@
 Copies docs/, writes mazillka/deckyhub-registry's catalog into index.html
 so crawlers see it without JavaScript, and makes WebP screenshots plus a JPEG
 link-preview image (screenshots/hero.jpg) from screenshots/. It also renders
-DeckyHub's GitHub releases into releases.html (the release notes page), fills
+DeckyHub's GitHub releases into releases.html (the release notes page), fills in help.html and about.html, fills
 index.html's latest-release line and structured data (schema.org JSON-LD,
 with the FAQ taken from the page's own <details>), writes a page per plugin
 (plugins/<id>.html, see plugin_pages.py) and sitemap.xml.
@@ -120,12 +120,22 @@ def nice_date_uk(iso: str | None) -> str:
     return f"{day.tm_mday} {MONTHS_UK[day.tm_mon - 1]} {day.tm_year}"
 
 
-def structured_data(page: str, latest: dict | None, uk: bool = False) -> str:
-    """schema.org JSON-LD: the site, DeckyHub itself and the page's FAQ, as visible."""
-    faq = [
+def faq_items(page: str) -> list[dict]:
+    """schema.org Questions from the page's own <details><summary>question</summary><p>answer</p></details>."""
+    return [
         {"@type": "Question", "name": re.sub(r"<[^>]+>", "", question).strip(), "acceptedAnswer": {"@type": "Answer", "text": re.sub(r"<[^>]+>", "", answer).strip()}}
         for question, answer in re.findall(r"<details><summary>(.*?)</summary><p>(.*?)</p></details>", page, re.S)
     ]
+
+
+def json_ld(data: dict) -> str:
+    # No "<" at all inside the script element, so nothing in the page's text can end it.
+    return '<script type="application/ld+json">' + json.dumps({"@context": "https://schema.org", **data}, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c") + "</script>"
+
+
+def structured_data(page: str, latest: dict | None, uk: bool = False) -> str:
+    """schema.org JSON-LD: the site, DeckyHub itself and the page's FAQ, as visible."""
+    faq = faq_items(page)
     app = {
         "@type": "SoftwareApplication", "name": "DeckyHub", "url": SITE + "uk/" if uk else SITE, "inLanguage": "uk" if uk else "en",
         "applicationCategory": "UtilitiesApplication", "applicationSubCategory": "Decky Loader plugin", "operatingSystem": "SteamOS",
@@ -141,9 +151,7 @@ def structured_data(page: str, latest: dict | None, uk: bool = False) -> str:
         app["softwareVersion"] = latest["tag_name"].removeprefix("v")
         app["dateModified"] = latest.get("published_at")
     graph = [{"@type": "WebSite", "name": "DeckyHub", "url": SITE}, app] + ([{"@type": "FAQPage", "mainEntity": faq}] if faq else [])
-    # No "<" at all inside the script element, so nothing in the page's text can end it.
-    data = json.dumps({"@context": "https://schema.org", "@graph": graph}, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
-    return '<script type="application/ld+json">' + data + "</script>"
+    return json_ld({"@graph": graph})
 
 
 out = Path(sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("--") else "_site")
@@ -186,6 +194,15 @@ if "<!-- releases -->" not in notes_page:
     sys.exit("docs/releases.html is missing the <!-- releases --> placeholder")
 notes.write_text(site_shell.apply(notes_page.replace("<!-- releases -->", release_articles(releases))), encoding="utf-8")
 
+# help.html (its questions also as FAQ structured data) and about.html: static pages with the shared menu and footer.
+help_page = out / "help.html"
+help_text = help_page.read_text(encoding="utf-8")
+if "<!-- structured-data -->" not in help_text:
+    sys.exit("docs/help.html is missing the <!-- structured-data --> placeholder")
+help_page.write_text(site_shell.apply(help_text.replace("<!-- structured-data -->", json_ld({"@type": "FAQPage", "url": f"{SITE}help.html", "mainEntity": faq_items(help_text)}))), encoding="utf-8")
+about_page = out / "about.html"
+about_page.write_text(site_shell.apply(about_page.read_text(encoding="utf-8")), encoding="utf-8")
+
 plugin_urls = plugin_pages.write_pages(out, apps, (ROOT / "docs" / "releases.html").read_text(encoding="utf-8"), data)
 llms = out / "llms.txt"
 if llms.exists():
@@ -199,6 +216,8 @@ newest = (releases[0].get("published_at") or "")[:10] if releases else today
     f"<url><loc>{SITE}</loc><lastmod>{today}</lastmod></url>\n"
     f"<url><loc>{SITE}uk/</loc><lastmod>{today}</lastmod></url>\n"
     f"<url><loc>{SITE}releases.html</loc><lastmod>{newest}</lastmod></url>\n"
+    f"<url><loc>{SITE}help.html</loc><lastmod>{today}</lastmod></url>\n"
+    f"<url><loc>{SITE}about.html</loc><lastmod>{today}</lastmod></url>\n"
     + "".join(f"<url><loc>{escape(url)}</loc><lastmod>{date}</lastmod></url>\n" for url, date in plugin_urls) + "</urlset>\n",
     encoding="utf-8",
 )

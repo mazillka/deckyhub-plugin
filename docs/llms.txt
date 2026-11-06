@@ -25,6 +25,8 @@ DeckyHub runs inside Decky Loader on SteamOS (Steam Deck and other SteamOS devic
 - [DeckyHub home](https://deckyhub.com/): features, screenshots, install guide and FAQ
 - [DeckyHub home in Ukrainian](https://deckyhub.com/uk/): the same page in Ukrainian (українською)
 - [Release notes](https://deckyhub.com/releases.html): what's new in each version
+- [Help](https://deckyhub.com/help.html): installing, updates, badges, virus scans and troubleshooting, as questions and answers
+- [About](https://deckyhub.com/about.html): who makes DeckyHub, where its plugin list comes from, and how it's built and tested
 - [Full documentation](https://github.com/mazillka/deckyhub-plugin#readme): every screen, settings, troubleshooting, privacy
 - [Plugin catalog](https://registry.deckyhub.com/): every plugin DeckyHub lists, with descriptions, stats and safety badges
 - [Plugin catalog for AI](https://registry.deckyhub.com/llms.txt): the plugin list as plain text
