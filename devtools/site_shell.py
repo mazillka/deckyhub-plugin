@@ -15,15 +15,19 @@ LINKS = [
     ("plugins", "Plugins", SITE + "plugins/"),
     ("install", "Install", SITE + "#install"),
     ("releases", "Release notes", SITE + "releases.html"),
+    ("help", "Help", SITE + "help.html"),
+    ("about", "About", SITE + "about.html"),
     ("contribute", "Contribute", SITE + "contribute/"),
 ]
 
-# The same menu in Ukrainian for deckyhub.com/uk/. Plugin pages and release notes stay English.
+# The same menu in Ukrainian for deckyhub.com/uk/. Plugin pages, release notes, help and about stay English.
 LINKS_UK = [
     ("home", "Головна", SITE + "uk/"),
     ("plugins", "Плагіни", SITE + "plugins/"),
     ("install", "Встановлення", SITE + "uk/#install"),
     ("releases", "Нотатки до релізів", SITE + "releases.html"),
+    ("help", "Довідка", SITE + "help.html"),
+    ("about", "Про проєкт", SITE + "about.html"),
     ("contribute", "Долучитися", SITE + "uk/contribute/"),
 ]
 
