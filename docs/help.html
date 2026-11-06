@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>DeckyHub help: install, updates, badges and troubleshooting</title>
-<meta name="description" content="Answers for DeckyHub on Steam Deck: installing and uninstalling, updates, GitHub rate limits, what plugin badges, warnings and virus scans mean, and getting help.">
+<meta name="description" content="Answers for DeckyHub: installing and uninstalling, updates, GitHub rate limits, what plugin badges, warnings and virus scans mean, and getting help.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="canonical" href="https://deckyhub.com/help.html">
 <link rel="alternate" hreflang="en" href="https://deckyhub.com/help.html">
@@ -14,7 +14,7 @@
 <meta property="og:site_name" content="DeckyHub">
 <meta property="og:url" content="https://deckyhub.com/help.html">
 <meta property="og:title" content="DeckyHub help">
-<meta property="og:description" content="Install, updates, badges, virus scans and troubleshooting for DeckyHub on Steam Deck.">
+<meta property="og:description" content="Install, updates, badges, virus scans and troubleshooting for DeckyHub.">
 <meta property="og:image" content="https://deckyhub.com/img/og.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <!-- structured-data -->
@@ -55,9 +55,9 @@ footer{padding:36px 0;border-top:1px solid var(--line);color:var(--dim);font-siz
 </header>
 
 <h2 id="install">Installing and uninstalling</h2>
-<details><summary>What do I need?</summary><p>A Steam Deck, or another SteamOS device, with Decky Loader 3.x, and an internet connection that can reach GitHub. No GitHub account is needed.</p></details>
-<details><summary>How do I install DeckyHub?</summary><p>The easiest way is the Desktop Mode installer: download Install-DeckyHub.desktop from the latest release, double-click it, choose Execute and enter your Deck's admin password. It installs Decky Loader first if it's missing. Already in Gaming Mode with Decky Loader? Turn on Developer mode in Decky's settings and use Install Plugin from URL. The <a href="/#install">install guide</a> has every step.</p></details>
-<details><summary>Does DeckyHub install anything on its own?</summary><p>Never. Install, Update and Uninstall go through Decky Loader's own installer, which asks you to confirm first. Download ZIP only saves a file to <code>/home/deck/Downloads/deckyhub</code>.</p></details>
+<details><summary>What do I need?</summary><p>Any device with Decky Loader 3.x, and an internet connection that can reach GitHub. No GitHub account is needed.</p></details>
+<details><summary>How do I install DeckyHub?</summary><p>The easiest way is the Desktop Mode installer: download Install-DeckyHub.desktop from the latest release, double-click it, choose Execute and enter your device's admin password. It installs Decky Loader first if it's missing. Already in Gaming Mode with Decky Loader? Turn on Developer mode in Decky's settings and use Install Plugin from URL. The <a href="/#install">install guide</a> has every step.</p></details>
+<details><summary>Does DeckyHub install anything on its own?</summary><p>Never. Install, Update and Uninstall go through Decky Loader's own installer, which asks you to confirm first. Download ZIP only saves a file to <code>~/Downloads/deckyhub</code>.</p></details>
 <details><summary>How do I uninstall DeckyHub?</summary><p>In Decky's settings (the gear icon), open Plugins, open the menu next to DeckyHub and choose Uninstall. Decky removes DeckyHub with its settings and cached lists. Plugins you installed with it stay installed, and so do the files it saved to Downloads.</p></details>
 
 <h2 id="updates">Updates</h2>
@@ -73,10 +73,10 @@ footer{padding:36px 0;border-top:1px solid var(--line);color:var(--dim);font-siz
 <details><summary>Does DeckyHub review the plugins it lists?</summary><p>A person reviews every addition to the plugin list, but not for safety. Every plugin belongs to its own authors, and DeckyHub doesn't own or endorse them. Plugins found through Search aren't reviewed at all, so install only from authors you trust.</p></details>
 
 <h2 id="problems">Troubleshooting</h2>
-<details><summary>I hit a GitHub rate limit. What now?</summary><p>Browsing DeckyHub's list doesn't count toward it, but Search and repositories you added yourself ask GitHub, which allows 60 requests an hour without a login. The message says how long to wait. To raise the limit to 5,000, add a personal access token (no scopes needed) in Settings, GitHub. It stays on your Deck and is only sent to api.github.com.</p></details>
+<details><summary>I hit a GitHub rate limit. What now?</summary><p>Browsing DeckyHub's list doesn't count toward it, but Search and repositories you added yourself ask GitHub, which allows 60 requests an hour without a login. The message says how long to wait. To raise the limit to 5,000, add a personal access token (no scopes needed) in Settings, GitHub. It stays on your device and is only sent to api.github.com.</p></details>
 <details><summary>Discover is empty after installing. Why?</summary><p>DeckyHub needs to reach GitHub once to download the plugin list. After that it works offline from the last copy.</p></details>
 <details><summary>Install or Update doesn't work. What can I do?</summary><p>Older Decky Loader builds may not support one-tap installs. Update Decky Loader, or use Download ZIP and install the file from Decky's Developer settings.</p></details>
-<details><summary>Does DeckyHub collect any data?</summary><p>No. It has no account, analytics or telemetry and sends nothing to its author. It only connects to GitHub, plus any custom registry you add. Your settings, token and logs stay on your Deck.</p></details>
+<details><summary>Does DeckyHub collect any data?</summary><p>No. It has no account, analytics or telemetry and sends nothing to its author. It only connects to GitHub, plus any custom registry you add. Your settings, token and logs stay on your device.</p></details>
 
 <h2 id="contact">Getting help</h2>
 <details><summary>How do I report a bug or suggest an idea?</summary><p>Open an issue on <a href="https://github.com/mazillka/deckyhub-plugin/issues">GitHub</a> and describe what happened. Attaching the ZIP from Settings, Logs, Export Logs helps. It's saved to your Downloads folder and never sent anywhere on its own.</p></details>

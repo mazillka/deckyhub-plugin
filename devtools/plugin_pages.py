@@ -143,7 +143,7 @@ def json_ld(data: dict) -> str:
 def badges_of(stats: dict, scans: dict, warnings: dict, reports: dict | None = None, vt_reports: dict | None = None) -> list[str]:
     items = []
     if stats.get("root"):
-        items.append('<li><span class="badge root">Runs as root</span> Its plugin.json asks Decky Loader to run its backend as root, with full access to the Deck. Many plugins need that for real reasons; install it only if you trust the author.</li>')
+        items.append('<li><span class="badge root">Runs as root</span> Its plugin.json asks Decky Loader to run its backend as root, with full access to the device. Many plugins need that for real reasons; install it only if you trust the author.</li>')
     if stats.get("fork"):
         items.append(f'<li><span class="badge fork">Fork</span> A fork of <a href="https://github.com/{escape(stats["fork"])}">{escape(stats["fork"])}</a> that carries the plugin on after its original stopped.</li>')
     if stats.get("ai"):
@@ -266,7 +266,7 @@ def plugin_page(shell: dict[str, str], app: dict, stats: dict, scans: dict, warn
 <p class="lead">{escape(description)}</p>
 <p><a class="btn" href="/#install">Install with DeckyHub</a><a class="btn ghost" href="{escape(repo_url)}">Source on GitHub</a></p>
 <ul class="facts">{"".join(facts)}<li class="wide"><strong><a href="{escape(repo_url)}">{escape(repo)}</a></strong>Repository</li></ul>
-<h2>Install {escape(name)} on Steam Deck</h2>
+<h2>Install {escape(name)}</h2>
 <p>{escape(name)} is a <a href="https://decky.xyz/">Decky Loader</a> plugin. With <a href="/">DeckyHub</a> installed, open DeckyHub's <strong>Discover</strong> tab in Gaming Mode, search for <strong>{escape(name)}</strong> and press <strong>Install</strong>. DeckyHub hands the release to Decky Loader's own installer and checks its SHA-256 whenever GitHub publishes one. You can also download the ZIP from its <a href="{escape(repo_url)}/releases">releases</a> and install it by hand from Decky's developer settings.</p>
 <h2>Safety information</h2>
 {"<ul class='badges'>" + "".join(badges) + "</ul>" if badges else "<p>No badges: it doesn't run as root, and no audit warnings or virus scan findings are known for it.</p>"}
@@ -288,12 +288,12 @@ def plugin_page(shell: dict[str, str], app: dict, stats: dict, scans: dict, warn
         {"@type": "ListItem", "position": 1, "name": "DeckyHub", "item": SITE},
         {"@type": "ListItem", "position": 2, "name": name}]})
     # Search results show about 60 characters of a title and 155 of a description.
-    title = f"{name}: Decky plugin for Steam Deck | DeckyHub"
+    title = f"{name}: Decky Loader plugin | DeckyHub"
     if len(title) > 70:
         title = f"{fit(name, 40)} | DeckyHub"
-    tail = " A Decky Loader plugin for Steam Deck; install it from Gaming Mode with DeckyHub."
+    tail = " A Decky Loader plugin; install it from Gaming Mode with DeckyHub."
     cut = fit(description.rstrip("."), 155 - len(tail))
-    summary = cut + ("" if cut.endswith("…") else ".") + tail if description else f"{name}, a {category} Decky Loader plugin for Steam Deck. Install and update it from Gaming Mode with DeckyHub."
+    summary = cut + ("" if cut.endswith("…") else ".") + tail if description else f"{name}, a {category} Decky Loader plugin. Install and update it from Gaming Mode with DeckyHub."
     summary = fit(summary, 160)
     return page(shell, title, summary, f"plugins/{app['id']}.html", body, [trail, json_ld(data)])
 
@@ -394,7 +394,7 @@ def catalog_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
         f'<button type="button" data-cat="{slug(name)}" aria-pressed="false">{escape(name)} {count}</button>'
         for name, count in sorted(categories.items(), key=lambda item: (-item[1], item[0])))
     body = f"""<p class="crumbs"><a href="/">DeckyHub</a> › Plugins</p>
-<h1>Steam Deck plugins</h1>
+<h1>Decky plugins</h1>
 <p class="lead">{len(apps)} Decky Loader plugins, most downloaded first. Install any of them from Gaming Mode with <a href="/">DeckyHub</a>, which also checks them for updates.</p>
 <p class="note">Every plugin belongs to its authors. DeckyHub doesn't make, review or vouch for them, and a plugin's page shows its notes (AI help, root, audit warnings) and security scans; <a href="/plugins/known-issues.html">Known issues</a> lists every plugin with a warning. Missing one? <a href="/contribute/">Add a plugin</a>.</p>
 <div class="filters"><input id="q" type="search" placeholder="Search plugins" aria-label="Search plugins" autocomplete="off"><div class="chips" role="group" aria-label="Categories">{chips}</div></div>
@@ -403,13 +403,13 @@ def catalog_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
 {chr(10).join(card(app, data) for app in ordered)}
 </div>
 <script>{FILTER_JS}</script>"""
-    listing = json_ld({"@type": "CollectionPage", "name": "Steam Deck plugins", "url": f"{SITE}plugins/",
+    listing = json_ld({"@type": "CollectionPage", "name": "Decky plugins", "url": f"{SITE}plugins/",
                        "mainEntity": {"@type": "ItemList", "numberOfItems": len(apps), "itemListElement": [
                            {"@type": "ListItem", "position": index + 1, "url": f"{SITE}plugins/{app['id']}.html", "name": app["name"]} for index, app in enumerate(ordered[:100])]}})
     trail = json_ld({"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "DeckyHub", "item": SITE}, {"@type": "ListItem", "position": 2, "name": "Plugins"}]})
     hundreds = len(apps) // 100 * 100
-    return page(shell, f"Steam Deck plugins: {hundreds}+ Decky Loader plugins | DeckyHub",
-                f"Browse {len(apps)} Decky Loader plugins for Steam Deck, with downloads, stars and security scans. Install and update them from Gaming Mode with DeckyHub.",
+    return page(shell, f"Decky plugins: {hundreds}+ Decky Loader plugins | DeckyHub",
+                f"Browse {len(apps)} Decky Loader plugins, with downloads, stars and security scans. Install and update them from Gaming Mode with DeckyHub.",
                 "plugins/", body, [trail, listing])
 
 
@@ -466,7 +466,7 @@ def issues_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
 {sections or "<p>No known issues right now.</p>"}"""
     trail = json_ld({"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "DeckyHub", "item": SITE},
                      {"@type": "ListItem", "position": 2, "name": "Plugins", "item": f"{SITE}plugins/"}, {"@type": "ListItem", "position": 3, "name": "Known issues"}]})
-    return page(shell, "Known Steam Deck plugin issues and warnings | DeckyHub",
+    return page(shell, "Known Decky plugin issues and warnings | DeckyHub",
                 f"{flagged} Decky Loader plugins with virus scan findings or audit warnings, such as code not in its repo or reading private data. Check before you install.",
                 "plugins/known-issues.html", body, [trail])
 

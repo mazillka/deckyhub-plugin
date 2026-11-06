@@ -19,7 +19,8 @@ from urllib.request import HTTPRedirectHandler, HTTPSHandler, Request, build_ope
 import decky
 
 PLUGIN_DIR = str(Path(__file__).resolve().parent)
-DEFAULT_DOWNLOAD_DIR = "/home/deck/Downloads"
+# Decky sets DECKY_USER_HOME to the user it runs for, which isn't "deck" on every device.
+DEFAULT_DOWNLOAD_DIR = str(Path(getattr(decky, "DECKY_USER_HOME", "/home/deck")) / "Downloads")
 PLUGIN_DOWNLOAD_DIR = f"{DEFAULT_DOWNLOAD_DIR}/deckyhub"
 # owner/name, where neither part is only dots: the frontend puts this straight into
 # api.github.com/repos/<repo>/releases with the user's token, so "../.." must not pass.
@@ -540,9 +541,11 @@ class Plugin:
 
     async def get_deckyhub_info(self):
         try:
-            return {"version": str(json.loads((Path(PLUGIN_DIR) / "package.json").read_text(encoding="utf-8"))["version"])}
+            version = str(json.loads((Path(PLUGIN_DIR) / "package.json").read_text(encoding="utf-8"))["version"])
         except (KeyError, OSError, json.JSONDecodeError):
-            return {"version": "unknown"}
+            version = "unknown"
+        # The file pickers open here; it depends on the device's user.
+        return {"version": version, "downloadDir": DEFAULT_DOWNLOAD_DIR}
 
     async def save_settings(self, settings: dict):
         channel = getattr(self, "settings", {}).get("registryChannel")
@@ -650,14 +653,14 @@ class Plugin:
         return {"path": str(await asyncio.to_thread(export))}
 
     async def read_token_file(self, path: str):
-        """A GitHub token from a small text file the user picked in /home/deck (typing
-        one on the Deck's keyboard is painful). Returns it for the token field; Save
+        """A GitHub token from a small text file the user picked in their home folder (typing
+        one on an on-screen keyboard is painful). Returns it for the token field; Save
         stores it. Never logs the file's contents."""
         source = Path(path).resolve()
-        deck_home = Path(DEFAULT_DOWNLOAD_DIR).parent.resolve()
-        if not source.is_relative_to(deck_home) or not source.is_file() or source.stat().st_size > 4096:
-            decky.logger.error("Refused to read a token from %s: not a small file inside /home/deck", source)
-            raise ValueError("Choose a small text file inside /home/deck")
+        user_home = Path(DEFAULT_DOWNLOAD_DIR).parent.resolve()
+        if not source.is_relative_to(user_home) or not source.is_file() or source.stat().st_size > 4096:
+            decky.logger.error("Refused to read a token from %s: not a small file inside %s", source, user_home)
+            raise ValueError("Choose a small text file inside your home folder")
         match = GITHUB_TOKEN.search(source.read_text(encoding="utf-8", errors="replace"))
         if not match:
             decky.logger.info("No GitHub token in %s", source)
@@ -667,10 +670,10 @@ class Plugin:
 
     async def import_custom_repos(self, path: str):
         source = Path(path).resolve()
-        deck_home = Path(DEFAULT_DOWNLOAD_DIR).parent.resolve()
-        if source.suffix.lower() != ".json" or not source.is_relative_to(deck_home):
-            decky.logger.error("Refused to import %s: not a JSON file inside /home/deck", source)
-            raise ValueError("Choose a JSON file inside /home/deck")
+        user_home = Path(DEFAULT_DOWNLOAD_DIR).parent.resolve()
+        if source.suffix.lower() != ".json" or not source.is_relative_to(user_home):
+            decky.logger.error("Refused to import %s: not a JSON file inside %s", source, user_home)
+            raise ValueError("Choose a JSON file inside your home folder")
         # Read on Decky's event loop, so a huge file picked by mistake would stall every call.
         if source.is_file() and source.stat().st_size > MAX_REMOTE_REGISTRY_BYTES:
             decky.logger.error("Refused to import %s: larger than %d bytes", source, MAX_REMOTE_REGISTRY_BYTES)

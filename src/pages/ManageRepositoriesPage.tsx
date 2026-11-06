@@ -5,7 +5,7 @@ import { CustomRegistriesSection, CustomReposSection } from "../components/Repos
 import { RateLimitBanner } from "../components/RateLimitBanner";
 import { useEffect, useState } from "react";
 import { FaListUl } from "react-icons/fa";
-import { addCustomRegistry, exportCustomRepos, getSettings, importCustomRepos, REGISTRY_UPDATED, refreshRegistry, removeCustomRegistry, removeCustomRepo } from "../api";
+import { addCustomRegistry, exportCustomRepos, getDeckyHubInfo, getSettings, importCustomRepos, REGISTRY_UPDATED, refreshRegistry, removeCustomRegistry, removeCustomRepo } from "../api";
 import { useT } from "../i18n";
 import type { MessageKey } from "../i18n/en";
 import { isRepositoryName, log, registryUrlForRepo } from "../utils";
@@ -44,7 +44,7 @@ export function ManageRepositoriesPage({ embedded }: { embedded?: boolean }) {
     refreshRepos();
   }, []);
 
-  // Backend refusals (e.g. a file outside /home/deck) come back as errors
+  // Backend refusals (e.g. a file outside the home folder) come back as errors
   // carrying their reason; show it instead of failing silently.
   const showError = (error: unknown) => {
     log(`Repository action failed: ${error}`);
@@ -141,7 +141,7 @@ export function ManageRepositoriesPage({ embedded }: { embedded?: boolean }) {
   const importList = async () => {
     let file: { realpath: string };
     try {
-      file = await openFilePicker(FileSelectionType.FILE, "/home/deck/Downloads", true, false, undefined, ["json"]);
+      file = await openFilePicker(FileSelectionType.FILE, (await getDeckyHubInfo()).downloadDir, true, false, undefined, ["json"]);
     } catch {
       return; // Picker closed without a file.
     }

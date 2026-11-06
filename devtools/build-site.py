@@ -140,8 +140,8 @@ def structured_data(page: str, latest: dict | None, uk: bool = False) -> str:
     app = {
         "@type": "SoftwareApplication", "name": "DeckyHub", "url": SITE + "uk/" if uk else SITE, "inLanguage": "uk" if uk else "en",
         "applicationCategory": "UtilitiesApplication", "applicationSubCategory": "Decky Loader plugin", "operatingSystem": "SteamOS",
-        "description": ("Магазин плагінів Decky Loader для Steam Deck: знаходьте, встановлюйте й оновлюйте 500+ плагінів Decky Loader в ігровому режимі, зокрема тих, яких немає в офіційному магазині Decky."
-                        if uk else "A Decky Loader plugin store for Steam Deck: find, install and update 500+ Decky Loader plugins from Gaming Mode, including plugins not on the official Decky store."),
+        "description": ("Магазин плагінів Decky Loader: знаходьте, встановлюйте й оновлюйте 500+ плагінів Decky Loader в ігровому режимі, зокрема тих, яких немає в офіційному магазині Decky."
+                        if uk else "A Decky Loader plugin store: find, install and update 500+ Decky Loader plugins from Gaming Mode, including plugins not on the official Decky store."),
         "downloadUrl": f"{REPO_URL}/releases/latest", "installUrl": f"{SITE}uk/#install" if uk else f"{SITE}#install", "releaseNotes": f"{SITE}releases.html",
         "image": f"{SITE}img/og.jpg", "screenshot": [f"{SITE}img/{name}.webp" for name in ("discover", "updates", "manage", "menu")],
         "license": "https://www.gnu.org/licenses/gpl-3.0.html", "isAccessibleForFree": True,
