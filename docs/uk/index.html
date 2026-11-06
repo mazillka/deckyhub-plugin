@@ -42,23 +42,24 @@ header p.lead{font-size:1.2rem;color:var(--muted);max-width:640px;margin:0 auto 
 .hero-shot{margin:48px auto 0;max-width:900px;border-radius:14px;overflow:hidden;border:1px solid var(--line);box-shadow:0 30px 80px rgba(0,0,0,.55)}
 section{padding:72px 0;border-top:1px solid #1c2738}
 h2{font-size:clamp(1.6rem,4vw,2.2rem);margin:0 0 10px;letter-spacing:-.01em}
-.sub{color:var(--muted);max-width:680px;margin:0 0 36px}
+.sub{color:var(--muted);margin:0 0 36px}
 .grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px}
 .card h3{margin:0 0 8px;font-size:1.1rem}.card p{margin:0;color:var(--muted)}
 .card .ico{font-size:1.6rem;margin-bottom:10px}
 figure{margin:0}figcaption{color:var(--muted);margin-top:10px;font-size:.92rem}
 .shot{border-radius:12px;overflow:hidden;border:1px solid var(--line);aspect-ratio:16/10;background:#0b0f16}
-ol.steps{counter-reset:s;list-style:none;padding:0;display:grid;gap:10px;max-width:760px}
+ol.steps{counter-reset:s;list-style:none;padding:0;display:grid;gap:10px}
 ol.steps li{counter-increment:s;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 20px 16px 64px;position:relative;color:var(--text);line-height:1.6;font-size:1.02rem}
 ol.steps li::before{content:counter(s);display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;position:absolute;left:18px;top:16px}
-ol.steps code.cmd{display:block;margin:8px 0 0;padding:10px 12px;background:#0b1220;border-radius:8px;user-select:all;overflow-wrap:anywhere}ol.steps button.copy{margin-top:6px;padding:6px 14px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);font:inherit;cursor:pointer}ol.steps button.copy:hover{border-color:var(--accent)}ol.steps strong{color:var(--text)}ol.steps code{overflow-wrap:anywhere}
+code.cmd{display:block;margin:8px 0 0;padding:10px 12px;background:#0b1220;border-radius:8px;user-select:all;overflow-wrap:anywhere}button.copy{margin-top:6px;padding:6px 14px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);font:inherit;cursor:pointer}button.copy:hover{border-color:var(--accent)}ol.steps strong{color:var(--text)}ol.steps code{overflow-wrap:anywhere}
 ol.steps li>p{margin:0 0 10px}ol.steps .choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:12px}ol.steps .choices>div{background:#0f1724;border:1px solid var(--line);border-radius:10px;padding:12px 14px;min-width:0}
 code{background:#0f1724;border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.88em}
 .catalog{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
 .app{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;text-decoration:none;color:var(--text);display:block}
 .app:hover{border-color:var(--accent2)}.app small{display:block;color:var(--accent2);font-size:.78rem;text-transform:uppercase;letter-spacing:.05em}
 .app p{margin:6px 0 0;color:var(--muted);font-size:.92rem}.app code{font-size:.78rem;color:var(--dim);border:0;background:none;padding:0}
+.app .meta{display:block;color:var(--dim);font-size:.82rem;margin-top:8px}.app .flags{display:flex;flex-wrap:wrap;gap:4px 8px;font-size:.78rem;margin-top:4px}.flag-ai{color:#b79cff}.flag-bad{color:#ff8a8a}.flag-ok{color:#6bcb6b}.flag-warn{color:var(--warn)}
 .latest{margin:14px 0 0;color:var(--dim);font-size:.9rem}.latest:empty{display:none}
 
 details{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin-bottom:10px}
@@ -130,7 +131,7 @@ footer .wrap{display:grid;gap:10px}
 <ol class="steps">
 <!-- steps: ### Варіант 2 -->
 </ol>
-<p class="sub" style="margin-top:20px">Також можна обрати <strong>Розробник → Встановити плагін за URL</strong> і ввести <code>https://github.com/mazillka/deckyhub-plugin/releases/latest/download/DeckyHub.zip</code>. <a href="https://github.com/mazillka/deckyhub-plugin/blob/main/README.uk.md#встановлення-deckyhub">Повна інструкція зі встановлення</a></p>
+<p class="sub" style="margin-top:20px">Також можна обрати <strong>Розробник → Встановити плагін за URL</strong> і ввести цю адресу (<a href="https://github.com/mazillka/deckyhub-plugin/blob/main/README.uk.md#встановлення-deckyhub">повна інструкція зі встановлення</a>):<code class="cmd">https://github.com/mazillka/deckyhub-plugin/releases/latest/download/DeckyHub.zip</code></p>
 </div></section>
 
 <section id="plugins"><div class="wrap">
