@@ -27,8 +27,8 @@ const summary = (t: TFunc, name: string, verdict: ScanVerdict) =>
 
 const line = (t: TFunc, { name, verdict }: Scanner) => t("scan.verdict", { scanner: name, verdict: verdict ? summary(t, name, verdict) : t("scan.pending") });
 
-// VirusTotal's page for a file, found by its SHA-256. Nothing is uploaded: VirusTotal
-// only has a result if someone sent it the same file before, else it says it's unknown.
+// VirusTotal's page for a file, found by its SHA-256. The app uploads nothing; the registry sends
+// VirusTotal the ZIPs it hasn't seen, so until it has, the page says the file is unknown.
 const virusTotalUrl = (sha256: string) => `https://www.virustotal.com/gui/file/${sha256.toLowerCase()}`;
 // VirusTotal's URL scan page. It can't be handed the link, so Scan Link copies it first
 // and the user pastes it there.
