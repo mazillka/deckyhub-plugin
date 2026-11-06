@@ -1,5 +1,5 @@
 # deckyhub.com: everything here is public and meant to be found, by search engines
-# and by AI assistants that answer questions about Steam Deck plugins.
+# and by AI assistants that answer questions about Decky plugins.
 User-agent: *
 Allow: /
 # The develop branch's preview build (see .github/workflows/pages.yml).

@@ -6,7 +6,7 @@
 
 ## Testing
 
-<!-- How you checked it: commands run, and the Steam Deck or browser preview if the UI changed. Screenshots for UI changes. -->
+<!-- How you checked it: commands run, and real hardware or the browser preview if the UI changed. Screenshots for UI changes. -->
 
 - [ ] `pnpm run typecheck`, `pnpm run test:frontend` and `pnpm run test:backend` pass
 - [ ] New or changed user-facing text is translated into every locale (`src/i18n/`)

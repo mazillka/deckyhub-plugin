@@ -8,11 +8,11 @@
 # needed and what it does with your information (nothing: no data is collected, stored or
 # sent; the only requests go to GitHub). At the end a message says what was done and what to
 # do next. Keep every text short and simple: the people reading it just want DeckyHub on
-# their Deck.
+# their device.
 #
 # The password handling follows Decky's own installer (SteamDeckHomebrew/decky-installer,
 # gui/user_install_script.sh), so it feels the same: a dialog asks for the admin password,
-# and a Deck without one can get a temporary password that's removed again at the end.
+# and a device without one can get a temporary password that's removed again at the end.
 #
 # Options:
 #   --plugins=a,b   Pick optional plugins by id without the checklist (see STARTER_PLUGINS).
@@ -74,7 +74,7 @@ WARRANTY="$(t warranty)"
 # Dialogs when zenity is there (SteamOS has it), plain text in the terminal otherwise. Texts
 # use \n for line breaks: zenity understands it, the terminal gets printf %b.
 has_zenity() { command -v zenity > /dev/null && [ -n "${DISPLAY}${WAYLAND_DISPLAY}" ]; }
-# As root (after the password) the dialogs still run as the Deck's user: zenity as root crashes while it draws a dialog's icon
+# As root (after the password) the dialogs still run as the device's user: zenity as root crashes while it draws a dialog's icon
 # (GTK's sandboxed image loader fails), so the progress bar showed but the "All done!" message never did.
 zen() {
     local as=()
@@ -378,7 +378,7 @@ install_all() {
     fi
 
     step 90 "$(t progress.restarting)"
-    # Installed either way; if Decky can't restart, the finish message says to restart the Deck.
+    # Installed either way; if Decky can't restart, the finish message says to restart the device.
     systemctl restart plugin_loader >> "$LOG" 2>&1 || echo "no-restart" > "${WORK}/no-restart"
     echo "ok" > "$STATUS_FILE"
     echo "100"; echo "# $(t progress.done)"

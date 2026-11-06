@@ -140,7 +140,7 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(json.loads(self.pending_file().read_text()), ["eugeniosegala/MAKO", "DeckThemes/SDH-CssLoader"])
         self.assertIn("✓ 2 optional plugin(s) chosen", result.stdout)
         self.assertIn("You install them at your own risk", result.stdout)
-        self.assertIn("it isn't responsible for anything they do to your Deck or your data", result.stdout)
+        self.assertIn("it isn't responsible for anything they do to your device or your data", result.stdout)
         # The installer itself downloads nothing but Decky Loader and DeckyHub.
         self.assertNotIn("MAKO", (self.fixtures / "curl.log").read_text())
 
@@ -249,7 +249,7 @@ echo "PICKS=$PICKS"
 
     def test_the_finish_message_says_nothing_was_collected(self):
         result = self.run_installer()
-        self.assertIn("Nothing about you or your Deck was collected or sent", result.stdout)
+        self.assertIn("Nothing about you or your device was collected or sent", result.stdout)
         self.assertIn("temporary files are removed", result.stdout)
 
     def test_a_decky_loader_that_cant_restart_is_not_a_failure(self):
@@ -257,7 +257,7 @@ echo "PICKS=$PICKS"
         result = self.run_installer()
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.plugin("dist/index.js").read_text(), "// new")
-        self.assertIn("Decky Loader couldn't restart by itself. Restart your Steam Deck", result.stdout)
+        self.assertIn("Decky Loader couldn't restart by itself. Restart your device", result.stdout)
         self.assertNotIn("✓ Decky Loader restarted", result.stdout)
 
     def test_errors_show_real_line_breaks_in_a_terminal(self):
@@ -296,7 +296,7 @@ echo "PICKS=$PICKS"
         self.assertIn("Why a password?", text)
         self.assertIn("You can also install DeckyHub without this installer", text)
         self.assertIn("not your Steam password", text)
-        self.assertIn("nothing about you or your Deck is collected, saved or sent anywhere", text)
+        self.assertIn("nothing about you or your device is collected, saved or sent anywhere", text)
         self.assertIn("is never stored", text)
         self.assertIn("no guarantee", text)
         self.assertEqual(subprocess.run(["bash", "-n", str(SCRIPT)], capture_output=True, text=True).returncode, 0)

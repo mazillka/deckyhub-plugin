@@ -2,8 +2,8 @@ import { useQuickAccessVisible } from "@decky/api";
 import { Focusable, NavEntryPositionPreferences, staticClasses } from "@decky/ui";
 import { useSyncExternalStore, type ReactNode } from "react";
 import { getApps, getSettings } from "../api";
-import { getUpdateCount, notifyUpdates, subscribeUpdateCount } from "../notify";
-import { hydrate } from "../releases";
+import { getUpdateCount, notifyInstalledRisks, notifyUpdates, subscribeUpdateCount } from "../notify";
+import { hydrate, installedRisk } from "../releases";
 import { DeckyHubIcon } from "./DeckyHubIcon";
 
 // DeckyHub's own icon in Steam's Quick Access tab strip (beside notifications,
@@ -48,7 +48,12 @@ async function checkUpdates() {
   try {
     const [{ apps }, settings] = await Promise.all([getApps(), getSettings()]);
     const preferences = settings.repoSettings || {};
-    notifyUpdates(await Promise.all(apps.filter((app) => app.installedVersion).map((app) => hydrate(app, false, preferences[app.repo]))));
+    const installed = await Promise.all(apps.filter((app) => app.installedVersion).map(async (app) => {
+      const hydrated = await hydrate(app, false, preferences[app.repo]);
+      return { ...hydrated, installedRisk: await installedRisk(hydrated).catch(() => undefined) };
+    }));
+    notifyUpdates(installed);
+    notifyInstalledRisks(installed);
   } catch {
     // Offline or rate-limited: the next check, or the panel's own, sets the dot.
   }

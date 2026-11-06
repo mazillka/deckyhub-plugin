@@ -3,7 +3,7 @@ import { openExternalWeb } from "../external";
 import { FileSelectionType, openFilePicker, toaster } from "@decky/api";
 import { useState } from "react";
 import { FaExternalLinkAlt, FaFileExport, FaFileImport, FaFolderOpen, FaInfoCircle, FaLock, FaSave } from "react-icons/fa";
-import { exportLogs, readTokenFile } from "../api";
+import { exportLogs, getDeckyHubInfo, readTokenFile } from "../api";
 import { LOCALES, useT } from "../i18n";
 import type { MessageKey } from "../i18n/en";
 import type { HideableButton, Settings } from "../types";
@@ -30,7 +30,7 @@ const openTokenPage = () => openExternalWeb("https://github.com/settings/tokens"
 async function loadToken(t: ReturnType<typeof useT>, onTokenDraft: (token: string) => void) {
   let file;
   try {
-    file = await openFilePicker(FileSelectionType.FILE, "/home/deck/Downloads", true, false, undefined, ["txt"]);
+    file = await openFilePicker(FileSelectionType.FILE, (await getDeckyHubInfo()).downloadDir, true, false, undefined, ["txt"]);
   } catch {
     return; // Picker closed without a file.
   }

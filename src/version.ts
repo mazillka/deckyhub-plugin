@@ -57,6 +57,17 @@ export function compareVersions(target: string, current: string): number | null 
 // Everywhere else (older releases, repos the index lacks) the tag is all there is.
 export const releaseVersion = (release: { tag: string; pluginVersion?: string }) => release.pluginVersion || release.tag;
 
+// The release (newest first) the installed version came from, and which audit in the
+// registry's stats.json covers it: "stable" for the newest stable release (warnings),
+// "prerelease" for a newer pre-release (prereleaseWarnings), none for anything older.
+export function installedRelease<T extends { tag: string; pluginVersion?: string; prerelease: boolean }>(items: T[], installedVersion: string | null | undefined): { release: T; audit?: "stable" | "prerelease" } | undefined {
+  if (!installedVersion) return undefined;
+  const release = items.find((item) => compareVersions(releaseVersion(item), installedVersion) === 0 || normalizeVersion(releaseVersion(item)) === normalizeVersion(installedVersion));
+  if (!release) return undefined;
+  const audit = release === items.find((item) => !item.prerelease) ? "stable" : release === items[0] && release.prerelease ? "prerelease" : undefined;
+  return { release, audit };
+}
+
 // The stable channel sees only stable releases; the pre-release channel sees
 // everything, so a stable release newer than the last pre-release still
 // reaches people on pre-releases.

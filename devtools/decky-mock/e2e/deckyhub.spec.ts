@@ -278,7 +278,7 @@ test("Cleanup shows only when the downloads folder has files, and clearing requi
   await page.goto("/?bridge=http://127.0.0.1:8643");
   await app.locator(".qam-content").getByRole("button", { name: "Empty Folder", exact: true }).click();
 
-  await expect(app.getByText("Permanently remove all files in /home/deck/Downloads/deckyhub?")).toBeVisible();
+  await expect(app.getByText("Permanently remove all files in ~/Downloads/deckyhub?")).toBeVisible();
   // The two actions stack full-width, each on its own line.
   const modal = app.locator(".steam-modal");
   const [confirm, cancel] = await Promise.all([
