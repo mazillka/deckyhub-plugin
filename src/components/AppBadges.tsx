@@ -1,7 +1,8 @@
 import type { CSSProperties } from "react";
 import type { TFunc } from "../i18n/en";
 import { FaShieldAlt } from "react-icons/fa";
-import type { App, VirusScan } from "../types";
+import { AUDIT_WARNINGS, isAuditWarning, type App, type AuditWarning, type VirusScan } from "../types";
+import { installedRiskReasons } from "../notify";
 import { compactNumber, timeAgo } from "../utils";
 
 export const pillStyle = { display: "inline-block", marginRight: 6, padding: "1px 8px", border: "1px solid", borderRadius: 999, fontSize: "max(12px, 0.78em)", fontWeight: 600 };
@@ -16,11 +17,7 @@ export const RootBadge = ({ t }: { t: TFunc }) => (
   <span title={t("appcard.runsAsRootHint")} style={{ ...pillStyle, color: "#ffb35c", background: "#ffb35c22", borderColor: "#ffb35c66" }}>{t("appcard.runsAsRoot")}</span>
 );
 
-// Warnings from Decky Extended Plugins' audit (the registry's build_release_index.py picks
-// them), explained in Discover's legend. Blocked is red; the rest look like Runs as root.
-export const AUDIT_WARNINGS = ["blocked", "private-data", "persistence", "not-in-source", "obfuscated", "no-tls-check", "runs-downloads", "vulnerable"] as const;
-type AuditWarning = (typeof AUDIT_WARNINGS)[number];
-const isAuditWarning = (key: string): key is AuditWarning => (AUDIT_WARNINGS as readonly string[]).includes(key);
+export { AUDIT_WARNINGS };
 
 export const WarningBadge = ({ t, warning, prerelease }: { t: TFunc; warning: AuditWarning; prerelease?: boolean }) => {
   const color = warning === "blocked" ? "#ff8a8a" : "#ffb35c";
@@ -89,11 +86,23 @@ export const ScanBadge = ({ t, kind, count }: { t: TFunc; kind: ScanBadgeKind; c
   );
 };
 
-// Runs as root / Fork / AI / audit warnings / virus scan / No release in a year, shared by the card and its Manage window.
+// The other badges describe the release the card would install; this one, first, the installed version when that's another one.
+const InstalledRiskBadge = ({ t, risk }: { t: TFunc; risk: NonNullable<App["installedRisk"]> }) => {
+  const reasons = installedRiskReasons(t, risk);
+  return reasons ? (
+    <span title={t("appcard.installedFlagged.hint", { reasons })} style={{ ...pillStyle, whiteSpace: "nowrap", color: "#ff8a8a", background: "#ff8a8a22", borderColor: "#ff8a8a66" }}>
+      <FaShieldAlt /> {t("appcard.installedFlagged")}
+    </span>
+  ) : null;
+};
+
+// Installed version flagged / Runs as root / Fork / AI / audit warnings / virus scan / No release in a year, shared by the card and its Manage window.
 export function AppBadges({ app, t }: { app: App; t: TFunc }) {
   const released = releasedAt(app);
   return (
     <>
+      {/* Installed the card's own release: its badges already describe it. */}
+      {app.installedRisk && app.installedAssets?.[0]?.url !== app.assets[0]?.url && <InstalledRiskBadge t={t} risk={app.installedRisk} />}
       {app.stats?.root && <RootBadge t={t} />}
       {app.stats?.fork && <ForkBadge t={t} repo={app.stats.fork} />}
       {app.stats?.ai?.length ? <AiBadge t={t} files={app.stats.ai} /> : null}

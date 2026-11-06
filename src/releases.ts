@@ -1,7 +1,7 @@
 import { log } from "./log";
 import { tr } from "./translate";
 import { type App, type AppReleaseOption, type Asset, type DeckyHubRelease, type DeckyHubReleaseOption, type PluginStats, type RepoPreference, type UpdateChannel, type VirusScan } from "./types";
-import { compareVersions, inChannel, releaseVersion } from "./version";
+import { compareVersions, inChannel, installedRelease, releaseVersion } from "./version";
 import { fetchNoCors } from "@decky/api";
 import { getSettings } from "./api";
 import { githubFetch, githubHeaders, githubResponseError, githubToken } from "./github";
@@ -333,6 +333,25 @@ export function listAppReleases(app: App, force = false): Promise<{ items: AppRe
     .filter((release) => release.assets.length > 0)));
 }
 
+// What flagged the version a hydrated app has installed (not the one its card would
+// install): a threat from any of the four virus scans, and the registry audit's warnings
+// when they cover that release. Undefined when nothing did, or its ZIP isn't known.
+export async function installedRisk(app: App, force = false): Promise<App["installedRisk"]> {
+  const asset = app.installedAssets?.[0];
+  if (!asset) return undefined;
+  const [scans, stats, virusTotal, metaDefender] = await Promise.all([
+    fetchVirusScans(force),
+    fetchPluginStats(force),
+    virusTotalReportOf(asset).catch(() => null),
+    metaDefenderReportOf(asset).catch(() => null),
+  ]);
+  const scan = scanFor(scans, asset);
+  const threat = scan?.result === "infected" || scan?.yara?.result === "infected" || !!(virusTotal && "flagged" in virusTotal && virusTotal.flagged) || !!(metaDefender && "flagged" in metaDefender && metaDefender.flagged);
+  const stat = stats[app.repo.toLowerCase()];
+  const warnings = (app.installedAudit === "stable" ? stat?.warnings : app.installedAudit === "prerelease" ? stat?.prereleaseWarnings : undefined) ?? [];
+  return threat || warnings.length ? { threat, warnings } : undefined;
+}
+
 // Fills in a card's latest release for its channel and whether it's newer
 // than what's installed.
 export async function hydrate(app: App, force: boolean, preference?: RepoPreference): Promise<App> {
@@ -341,9 +360,12 @@ export async function hydrate(app: App, force: boolean, preference?: RepoPrefere
   const release = items.find((item) => inChannel(item, channel));
   if (!release) return { ...app, channel, error: error ?? tr("release.noMatch") };
   const cmp = app.installedVersion ? compareVersions(releaseVersion(release), app.installedVersion) : null;
+  const installed = installedRelease(items, app.installedVersion);
   return {
     ...app,
     channel,
+    installedAssets: installed?.release.assets,
+    installedAudit: installed?.audit,
     latestVersion: release.tag,
     publishedAt: release.publishedAt,
     releaseUrl: release.url,

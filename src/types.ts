@@ -32,6 +32,12 @@ export type App = {
   metaDefender?: { state: string; flagged?: number; total?: number } | null;
   error?: string | null;
   channel?: UpdateChannel;
+  // The installed version's release, when it's among the recent ones (hydrate), and the
+  // stats.json audit that covers it (see installedRelease).
+  installedAssets?: Asset[];
+  installedAudit?: "stable" | "prerelease";
+  // What flagged the installed version itself (installedRisk): any virus scan, audit warnings.
+  installedRisk?: { threat: boolean; warnings: string[] };
 };
 
 // A plugin's line in the registry's stats.json: all-time downloads, GitHub stars,
@@ -40,6 +46,12 @@ export type App = {
 // for a fork, the owner/name of the repo it was forked from, and the AI coding assistant
 // files (CLAUDE.md, AGENTS.md, .cursorrules...) in its repository, if any.
 export type PluginStats = { downloads?: number; stars?: number | null; updated?: string | null; root?: boolean | null; fork?: string; ai?: string[]; warnings?: string[]; prereleaseWarnings?: string[] };
+
+// Warnings from Decky Extended Plugins' audit (the registry's build_release_index.py picks
+// them), explained in Discover's legend. Blocked is red; the rest look like Runs as root.
+export const AUDIT_WARNINGS = ["blocked", "private-data", "persistence", "not-in-source", "obfuscated", "no-tls-check", "runs-downloads", "vulnerable"] as const;
+export type AuditWarning = (typeof AUDIT_WARNINGS)[number];
+export const isAuditWarning = (key: string): key is AuditWarning => (AUDIT_WARNINGS as readonly string[]).includes(key);
 
 // One scanner's verdict on a plugin ZIP. found lists what it matched (infected), or for
 // ClamAV the size limit it hit (incomplete); reason says why a scan failed (error) or,
