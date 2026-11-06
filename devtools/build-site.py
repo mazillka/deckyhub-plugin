@@ -252,7 +252,10 @@ if PREVIEW:
         (out / sitemap).unlink(missing_ok=True)
     for html_file in out.rglob("*.html"):
         text = html_file.read_text(encoding="utf-8")
-        text = text.replace(SITE, base).replace('href="/', f'href="{base}').replace('src="/', f'src="{base}')
+        # Root-relative links first: done after SITE they'd get the preview path twice (/develop/develop/).
+        text = text.replace('href="/', f'href="{base}').replace('src="/', f'src="{base}').replace(SITE, base)
+        if f'"{base}{base.lstrip("/")}' in text:
+            sys.exit(f"{html_file}: a link got the preview path twice")
         text = re.sub(r'<link rel="canonical"[^>]*>|<meta property="og:url"[^>]*>', "", text)
         text = text.replace("<head>", '<head>\n<meta name="robots" content="noindex,nofollow">', 1)
         text = re.sub(r"(<body[^>]*>)", lambda match: match.group(1) + "\n" + banner.replace(f'href="{base}"', f'href="{SITE}"'), text, count=1)
