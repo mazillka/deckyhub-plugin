@@ -1,16 +1,12 @@
-"""The menu, the footer and the menu's style that deckyhub.com and registry.deckyhub.com share.
+"""The menu, the footer and the menu's style every deckyhub.com page shares.
 
 Pages hold placeholders instead of their own copies: `<!-- site-nav: plugins -->` (the name says
 which menu entry is the current page), `<!-- site-footer -->` and, inside a <style> block,
 `/* site-nav-style */`. build-site.py and plugin_pages.py fill them in with apply().
-
-mazillka/deckyhub-registry keeps a verbatim copy of this file (scripts/site_shell.py) so its pages
-look the same. Change both together.
 """
 import re
 
 SITE = "https://deckyhub.com/"
-REGISTRY = "https://registry.deckyhub.com/"
 REPO = "https://github.com/mazillka/deckyhub-plugin"
 
 # key, label, address
@@ -19,16 +15,20 @@ LINKS = [
     ("plugins", "Plugins", SITE + "plugins/"),
     ("install", "Install", SITE + "#install"),
     ("releases", "Release notes", SITE + "releases.html"),
-    ("contribute", "Contribute", REGISTRY),
+    ("help", "Help", SITE + "help.html"),
+    ("about", "About", SITE + "about.html"),
+    ("contribute", "Contribute", SITE + "contribute/"),
 ]
 
-# The same menu in Ukrainian for deckyhub.com/uk/. Plugin pages and release notes stay English.
+# The same menu in Ukrainian for deckyhub.com/uk/. Plugin pages, release notes, help and about stay English.
 LINKS_UK = [
     ("home", "Головна", SITE + "uk/"),
     ("plugins", "Плагіни", SITE + "plugins/"),
     ("install", "Встановлення", SITE + "uk/#install"),
     ("releases", "Нотатки до релізів", SITE + "releases.html"),
-    ("contribute", "Долучитися", REGISTRY),
+    ("help", "Довідка", SITE + "help.html"),
+    ("about", "Про проєкт", SITE + "about.html"),
+    ("contribute", "Долучитися", SITE + "uk/contribute/"),
 ]
 
 NAV_STYLE = """nav.site-nav{position:sticky;top:0;z-index:5;background:rgba(16,21,31,.94);backdrop-filter:blur(8px);border-bottom:1px solid #2e405a}

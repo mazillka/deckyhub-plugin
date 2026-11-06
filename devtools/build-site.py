@@ -6,7 +6,8 @@ link-preview image (screenshots/hero.jpg) from screenshots/. It also renders
 DeckyHub's GitHub releases into releases.html (the release notes page), fills in help.html and about.html, fills
 index.html's latest-release line and structured data (schema.org JSON-LD,
 with the FAQ taken from the page's own <details>), writes a page per plugin
-(plugins/<id>.html, see plugin_pages.py) and sitemap.xml.
+(plugins/<id>.html, see plugin_pages.py), fills in the contributor pages
+(contribute/ and uk/contribute/: how to add a plugin, and the registry editor) and writes sitemap.xml.
 Needs Pillow and Markdown (CI-only, not plugin dependencies). GITHUB_TOKEN, if
 set, is sent with the releases request; without the releases (GitHub down),
 the site still builds and the release notes page links to GitHub.
@@ -194,6 +195,14 @@ if "<!-- releases -->" not in notes_page:
     sys.exit("docs/releases.html is missing the <!-- releases --> placeholder")
 notes.write_text(site_shell.apply(notes_page.replace("<!-- releases -->", release_articles(releases))), encoding="utf-8")
 
+# deckyhub.com/contribute/: how to add a plugin and the registry editor (moved here from registry.deckyhub.com), each with a Ukrainian twin.
+CONTRIBUTE = ["contribute/", "contribute/editor.html", "uk/contribute/", "uk/contribute/editor.html"]
+for name in ("index.html", "editor.html"):
+    path = "" if name == "index.html" else name
+    for lang, folder, switch in (("en", "contribute", ("Українська", f"{SITE}uk/contribute/{path}", "uk")), ("uk", "uk/contribute", ("English", f"{SITE}contribute/{path}", "en"))):
+        page_file = out / folder / name
+        page_file.write_text(site_shell.apply(page_file.read_text(encoding="utf-8").replace("<!-- plugin-count -->", str(len(apps))), lang, switch), encoding="utf-8")
+
 # help.html (its questions also as FAQ structured data) and about.html: static pages with the shared menu and footer.
 help_page = out / "help.html"
 help_text = help_page.read_text(encoding="utf-8")
@@ -218,6 +227,7 @@ newest = (releases[0].get("published_at") or "")[:10] if releases else today
     f"<url><loc>{SITE}releases.html</loc><lastmod>{newest}</lastmod></url>\n"
     f"<url><loc>{SITE}help.html</loc><lastmod>{today}</lastmod></url>\n"
     f"<url><loc>{SITE}about.html</loc><lastmod>{today}</lastmod></url>\n"
+    + "".join(f"<url><loc>{SITE}{path}</loc><lastmod>{today}</lastmod></url>\n" for path in CONTRIBUTE)
     + "".join(f"<url><loc>{escape(url)}</loc><lastmod>{date}</lastmod></url>\n" for url, date in plugin_urls) + "</urlset>\n",
     encoding="utf-8",
 )
