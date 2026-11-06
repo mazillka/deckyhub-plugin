@@ -43,6 +43,19 @@ Run a single backend test: `python -m unittest tests.test_plugin_status.PluginSt
 
 `DevShell.tsx`'s "Preview" nav has standalone buttons (alongside the real routes) to open the download-progress and download-complete modals directly via the real `showDownloadModal()`, without triggering an actual download — `dev-server.py` seeds a fixed, never-completing `"preview-job"` entry in `plugin.downloads` at startup so the modal's real polling has a stable state to render instead of erroring on an unknown job id.
 
+## Branches and releases
+
+The `branches` skill has the shared branch strategy; this repo adds:
+
+- Rulesets `protect-main` and `protect-develop` require `test`, `review` and both `analyze` checks. `.githooks/pre-commit` also blocks commits on `staging`.
+- GitHub deletes a topic branch when its PR merges. `.claude/worktrees/*` are other agent sessions' worktrees, each on its own topic branch.
+- Workflow-owned: the orphan `badges` branch (written by `release.yml`); never commit to or delete it.
+- What users install is the plugin ZIP: `plugin.json`, `main.py`, `src/`, `package.json`. Only changes there get a version bump and release. Registry changes (`mazillka/deckyhub-registry`) need none; when DeckyHub must change to read new registry data, the `deckyhub-registry` skill covers the order.
+- `pages.yml` deploys the website from `main`, so site changes go live once shipped to `main`, without a release.
+- **Pre-release:** bump `version` in `package.json` to `X.Y.Z-rc.N` in a PR to `develop` (`chore: version X.Y.Z-rc.N`), then tag that commit on `develop` with `vX.Y.Z-rc.N`.
+- **Stable:** the `develop` → `main` PR is titled `release: X.Y.Z`; tag the squashed commit on `main` with `vX.Y.Z`. The back-merge is titled `chore: merge main back into develop (X.Y.Z)`.
+- Changes users already depend on (settings, caches, asset names, tags) need the `compatibility` skill first.
+
 ## Release
 
 Release steps (version bump, `v*` tag, and the back-merge of `main` into `develop` with a merge commit after each stable release) are in [CONTRIBUTING.md](CONTRIBUTING.md#releases). The tag triggers `.github/workflows/release.yml`. Its `build` job (read-only token) checks the tag matches `package.json`'s version, installs, typechecks, builds, runs the frontend and backend tests (the browser E2E tests run beside it in `e2e.yml`'s four shards, and `publish` waits for them), and zips `plugin.json` + `main.py` + `dist/index.js` (no source map) + `package.json` + `LICENSE.md`, and hands `DeckyHub-vX.Y.Z.zip` to the `publish` job, the only one with `contents: write`, which attaches it to a GitHub release.
