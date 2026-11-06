@@ -152,7 +152,7 @@ export const fr: Record<MessageKey, string> = {
   "scan.unverifiedDetail": "Ce rapport peut concerner un autre ZIP ; la correspondance n’est pas vérifiée.",
   "scan.virusTotalResult": "VirusTotal : {flagged} moteurs sur {total} ont signalé ce ZIP",
   "scan.metaDefenderResult": "MetaDefender : {flagged} moteurs sur {total} ont signalé ce ZIP",
-  "scan.virusTotalHint": "VirusTotal s'ouvre dans le navigateur de Steam et recherche ce ZIP par son SHA-256. Rien n'est envoyé : il n'a de résultats que si quelqu'un lui a déjà soumis le même fichier.",
+  "scan.virusTotalHint": "VirusTotal s'ouvre dans le navigateur de Steam et recherche ce ZIP par son SHA-256. Rien n'est envoyé depuis votre appareil. Le registre de DeckyHub envoie à VirusTotal les ZIP de plugins qu'il ne connaît pas encore, donc une nouvelle version peut mettre un moment à avoir des résultats.",
   "scan.copyLink": "Copier le lien du ZIP",
   "scan.scanLink": "Analyser le lien sur VirusTotal",
   "scan.copied": "Lien du ZIP copié",
