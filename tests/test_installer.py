@@ -16,7 +16,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "installer"))
-from build_installer import fill, starter_lines  # noqa: E402  (what release.yml fills the installer in with)
+from build_installer import LANGUAGES, fill, messages, starter_lines  # noqa: E402  (what release.yml fills the installer in with)
 SCRIPT = ROOT / "installer" / "install-deckyhub.sh"
 DESKTOP = ROOT / "installer" / "Install-DeckyHub.desktop"
 TAG = "v9.9.9"
@@ -69,12 +69,13 @@ class InstallerTests(unittest.TestCase):
             archive.writestr("DeckyHub/dist/index.js", "// new")
         self.sha256 = hashlib.sha256((self.fixtures / "DeckyHub.zip").read_bytes()).hexdigest()
 
-    def run_installer(self, sha256=None, extra_args=(), picks=None):
+    def run_installer(self, sha256=None, extra_args=(), picks=None, locale=None):
         script = self.dir / "install-deckyhub.sh"
         script.write_text(fill(SCRIPT.read_text(), TAG, sha256 or self.sha256))
         env = {"PATH": f"{self.bin}:/usr/bin:/bin", "FIXTURES": str(self.fixtures), "DECKYHUB_USER_HOME": str(self.home), "HOME": str(self.home)}
         if picks is not None:
             env["DECKYHUB_PICKS"] = picks
+        env.update(locale or {})
         command = ["env", *[f"{key}={value}" for key, value in env.items()], "bash", str(script), *extra_args]
         return subprocess.run(command if os.geteuid() == 0 else ["sudo", "-n", *command], capture_output=True, text=True, timeout=60)
 
@@ -167,7 +168,7 @@ class InstallerTests(unittest.TestCase):
         def one(pattern):
             return re.search(pattern, text, re.M | re.S).group(0)
 
-        parts = [one(r"^C_OK=.*\nOK_MARK=[^\n]*$"), one(r"^STARTER_PLUGINS=\(\n.*?^\)"), one(r"^PLUGINS_ARG=[^\n]*$"), one(r"^STATS_URL=[^\n]*$"),
+        parts = [one(r"^C_OK=.*\nOK_MARK=[^\n]*$"), one(r"^STARTER_PLUGINS=\(\n.*?^\)"), one(r"^INSTALLER_LANG=.*?^TITLE=[^\n]*$"), one(r"^PLUGINS_ARG=[^\n]*$"), one(r"^STATS_URL=[^\n]*$"),
                  one(r"^RELEASES_URL=[^\n]*$"), one(r"^RESPONSIBILITY=[^\n]*$"), one(r"^installed_version\(\)[^\n]*$"),
                  one(r"^plugin_notes\(\) \{\n.*?^\}"), one(r"^plugin_versions\(\) \{\n.*?^\}"), one(r"^choose_plugins\(\) \{\n.*?^\}")]
         log = self.dir / "dialogs.bin"
@@ -264,19 +265,36 @@ echo "PICKS=$PICKS"
         self.assertNotIn("\\n", result.stderr)
         self.assertIn("This is usually a Wi-Fi hiccup", result.stderr)
 
+    def test_a_system_language_gets_its_texts_and_an_unknown_one_english(self):
+        result = self.run_installer(locale={"LANG": "uk_UA.UTF-8"})
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Готово!", result.stdout)
+        self.assertIn("Крок 3 з 5: Завантажуємо і перевіряємо DeckyHub", result.stdout)
+        self.assertIn(f"✓ DeckyHub {TAG} встановлено (файл перевірено)", result.stdout)
+        self.assertNotIn("All done!", result.stdout)
+        # LC_ALL wins over LANG, and pt_PT is European Portuguese, not Brazilian.
+        result = self.run_installer(locale={"LANG": "de_DE.UTF-8", "LC_ALL": "pt_PT.UTF-8"})
+        self.assertIn("Está feito!", result.stdout)
+        for locale in ({"LANG": "eo_XX.UTF-8"}, {"LANG": "C.UTF-8"}, {}):
+            result = self.run_installer(locale=locale)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("All done!", result.stdout)
+            self.assertIn("Step 5 of 5: Restarting Decky Loader", result.stdout)
+
     def test_the_intro_lists_the_steps_and_says_no_information_is_used(self):
         # A source check on purpose: this is the text a user reads before agreeing to anything, and
         # the intro runs only as a normal user with a screen, which these tests don't have.
-        text = SCRIPT.read_text()
+        script = SCRIPT.read_text()
         for verb in ('verb="Install"', 'verb="Update"', 'verb="Reinstall"'):
-            self.assertIn(verb, text)
+            self.assertIn(verb, script)
+        self.assertIn("#option-2-manual-zip", script)
+        self.assertLess(script.index("t intro.stepDeckyInstall"), script.index("t intro.stepDownload"))
+        text = "\n".join(messages("en").values())
         self.assertIn("Here's what will happen:", text)
         self.assertIn("This will download and install Decky Loader and DeckyHub", text)
         self.assertIn("Decky Loader is already installed, so it's only checked.", text)
         self.assertIn("Why a password?", text)
         self.assertIn("You can also install DeckyHub without this installer", text)
-        self.assertIn("#option-2-manual-zip", text)
-        self.assertLess(text.index("Decky Loader comes first"), text.index("Only then is DeckyHub"))
         self.assertIn("not your Steam password", text)
         self.assertIn("nothing about you or your device is collected, saved or sent anywhere", text)
         self.assertIn("is never stored", text)
@@ -293,6 +311,34 @@ echo "PICKS=$PICKS"
         self.assertIn("its checksum doesn't match", result.stderr)
         self.assertEqual(self.plugin("dist/index.js").read_text(), "// old")
         self.assertFalse((self.fixtures / "systemctl.log").exists())
+
+
+class TranslationTests(unittest.TestCase):
+    """The installer's texts in every app language (installer/i18n/, plus a few from src/i18n/)."""
+
+    def test_every_language_has_every_text_with_the_same_placeholders_and_valid_markup(self):
+        import xml.etree.ElementTree as ET
+        english = messages("en")
+        for code in LANGUAGES:
+            texts = messages(code)
+            self.assertEqual(list(texts), list(english), code)
+            for key, text in texts.items():
+                self.assertEqual(sorted(re.findall(r"\{\w+\}", text)), sorted(re.findall(r"\{\w+\}", english[key])), f"{code} {key}")
+                # zenity reads Pango markup: tags must pair up and & must be &amp;.
+                ET.fromstring("<t>" + re.sub(r"\{\w+\}", "x", text) + "</t>")
+
+    def test_the_languages_are_the_apps(self):
+        self.assertEqual(sorted(LANGUAGES), sorted(path.stem for path in (ROOT / "src" / "i18n").glob("*.ts")))
+        self.assertEqual(sorted(LANGUAGES), sorted(path.stem for path in (ROOT / "installer" / "i18n").glob("*.json")))
+
+    def test_the_launcher_has_every_languages_name_and_comment(self):
+        text = DESKTOP.read_text(encoding="utf-8")
+        desktop_codes = {"pt": "pt_BR", "ptPT": "pt", "zh": "zh_CN", "zhTW": "zh_TW"}
+        for code in LANGUAGES:
+            suffix = "" if code == "en" else f"[{desktop_codes.get(code, code)}]"
+            texts = messages(code)
+            self.assertIn(f"\nName{suffix}={texts['desktop.name']}\n", text)
+            self.assertIn(f"\nComment{suffix}={texts['desktop.comment']}\n", text)
 
 
 class DesktopFileTests(unittest.TestCase):

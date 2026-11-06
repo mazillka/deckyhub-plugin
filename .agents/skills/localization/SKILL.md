@@ -27,13 +27,23 @@ Whenever you add a key to `en.ts` or change what an English string says, update 
 - Match the tone of the file: informal "you" (tu/du/ty/sen/je) where the existing file does, polite where it does (`ja`, `ko`, `pt-PT` with "o seu").
 - Short labels (buttons, tabs, badges) must stay short; the Deck's panel is narrow.
 
+## The Desktop Mode installer
+
+`installer/install-deckyhub.sh` shows its dialogs in the system's language (`LC_ALL`, `LC_MESSAGES`, then `LANG`; `pt_PT` is `ptPT`, `zh_TW`/`zh_HK`/`zh_MO` are `zhTW`), English otherwise. Its texts live in `installer/i18n/<code>.json` (same codes and file names as `src/i18n/`, `en.json` is the source), and the button and badge labels the app already has (Install, Update, Cancel, AI, Runs as root, the audit warnings) come from `src/i18n/` through `APP_KEYS` in `installer/build_installer.py`, so both say the same. In the script, use `t <key> [name value]...`, never a hard-coded sentence.
+
+- Texts are Pango markup for zenity: keep `<b>`/`<span>` tags paired and write `&` as `&amp;`. A real line break in the JSON becomes `\n` in the dialog; no backslashes otherwise.
+- Keep every `{placeholder}`; URLs, tags and paths are placeholders, not text.
+- `desktop.name` and `desktop.comment` also go into `installer/Install-DeckyHub.desktop` as `Name[xx]=`/`Comment[xx]=` (`pt_BR` for `pt`, `pt` for `ptPT`, `zh_CN`, `zh_TW`).
+- `tests/test_installer.py` checks every language has every key with the same placeholders and valid markup, and that the launcher has every language's lines.
+
 ## Adding a language
 
 1. Create `src/i18n/<file>.ts` translating every key of `en.ts`.
 2. In `src/i18n/index.tsx`: the import, the `Locale` union, a `LOCALES` entry with the language's own name, and `MESSAGES`. Add a `detectLocale()` rule only for a regional variant (like `pt-PT`).
-3. Add the code to `SUPPORTED_LANGUAGES` in `main.py` (otherwise the saved choice resets to auto) and `LANGUAGES` in `devtools/deck/scenarios.mjs`.
-4. Add `[code, "<its word for Language>"]` to the "Newer languages are offered" test in `devtools/decky-mock/e2e/deckyhub.spec.ts`.
-5. Compatibility: an older DeckyHub doesn't know the new code and falls back to auto-detect after a downgrade. That's fine; never rename or reuse an existing code.
+3. The installer: `installer/i18n/<file>.json`, the code in `LANGUAGES` in `installer/build_installer.py`, and its `Name[xx]=`/`Comment[xx]=` lines in `installer/Install-DeckyHub.desktop`.
+4. Add the code to `SUPPORTED_LANGUAGES` in `main.py` (otherwise the saved choice resets to auto) and `LANGUAGES` in `devtools/deck/scenarios.mjs`.
+5. Add `[code, "<its word for Language>"]` to the "Newer languages are offered" test in `devtools/decky-mock/e2e/deckyhub.spec.ts`.
+6. Compatibility: an older DeckyHub doesn't know the new code and falls back to auto-detect after a downgrade. That's fine; never rename or reuse an existing code.
 
 ## Checking
 
