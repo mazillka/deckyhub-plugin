@@ -28,7 +28,7 @@ p.sub{position:absolute;left:${big ? 120 : 72}px;top:${big ? 610 : 415}px;font-s
 </style>
 <div class=brand>${logo}DeckyHub</div>
 <h1>Decky plugins, straight from GitHub.</h1>
-<p class=sub>${big ? `Browse ${count} Steam Deck plugins, then install and update them from their authors' GitHub releases, right in Gaming Mode.` : `Install and update ${count} plugins right on your Steam Deck.`}</p>
+<p class=sub>${big ? `Browse ${count} Decky plugins, then install and update them from their authors' GitHub releases, right in Gaming Mode.` : `Install and update ${count} plugins right on your device.`}</p>
 <div class=pills><span>${count} plugins</span><span>One-tap updates</span>${big ? "<span>Open source</span>" : ""}</div>
 <div class=device><div class=screen><img src="${screen}"><i></i></div></div>`;
 

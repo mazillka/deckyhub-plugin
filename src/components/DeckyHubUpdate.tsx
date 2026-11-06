@@ -20,7 +20,7 @@ const SELF_UPDATE_NOTICE_KEY = "deckyhub-self-update-notice";
 export function DeckyHubUpdate() {
   const t = useT();
   const [channel, setChannel] = useState<UpdateChannel>("stable");
-  const [info, setInfo] = useState<DeckyHubInfo>({ version: "unknown" });
+  const [info, setInfo] = useState<DeckyHubInfo>({ version: "unknown", downloadDir: "" });
   const [release, setRelease] = useState<DeckyHubRelease>({});
   const [hiddenButtons, setHiddenButtons] = useState<HideableButton[]>([]);
 

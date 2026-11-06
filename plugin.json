@@ -5,7 +5,7 @@
   "api_version": 2,
   "publish": {
     "tags": ["github", "updates", "downloads"],
-    "description": "Discover, track, and safely download GitHub releases for Steam Deck tools from Gaming Mode.",
+    "description": "Discover, track, and safely download GitHub releases for Decky plugins from Gaming Mode.",
     "image": ""
   }
 }

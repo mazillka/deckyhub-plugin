@@ -8,11 +8,11 @@
 # needed and what it does with your information (nothing: no data is collected, stored or
 # sent; the only requests go to GitHub). At the end a message says what was done and what to
 # do next. Keep every text short and simple: the people reading it just want DeckyHub on
-# their Deck.
+# their device.
 #
 # The password handling follows Decky's own installer (SteamDeckHomebrew/decky-installer,
 # gui/user_install_script.sh), so it feels the same: a dialog asks for the admin password,
-# and a Deck without one can get a temporary password that's removed again at the end.
+# and a device without one can get a temporary password that's removed again at the end.
 #
 # Options:
 #   --plugins=a,b   Pick optional plugins by id without the checklist (see STARTER_PLUGINS).
@@ -48,15 +48,15 @@ done
 C_OK="#3b9d5a"; C_WARN="#d9822b"; C_AI="#8b5cf6"; C_DIM="#8a98ad"
 OK_MARK="<span foreground='${C_OK}'>✓</span>"; WARN_MARK="<span foreground='${C_WARN}'>⚠</span>"
 
-PRIVACY="<b>Your privacy:</b> nothing about you or your Deck is collected, saved or sent anywhere. Your password is used only on this Deck, right now, and is never stored. The installer only downloads files from GitHub."
+PRIVACY="<b>Your privacy:</b> nothing about you or your device is collected, saved or sent anywhere. Your password is used only on this device, right now, and is never stored. The installer only downloads files from GitHub."
 OTHER_WAY="You can also install DeckyHub without this installer: download its ZIP and add it in Decky's settings (no password needed). Steps: https://github.com/mazillka/deckyhub-plugin#option-2-manual-zip"
-RESPONSIBILITY="${WARN_MARK} These plugins are made by other people. DeckyHub doesn't make, review or vouch for them, and it isn't responsible for anything they do to your Deck or your data. <b>You install them at your own risk.</b> Before you do, read each plugin's notes and look at its page on deckyhub.com (details and security scans) and at its author's GitHub page (both are linked on each plugin's card)."
+RESPONSIBILITY="${WARN_MARK} These plugins are made by other people. DeckyHub doesn't make, review or vouch for them, and it isn't responsible for anything they do to your device or your data. <b>You install them at your own risk.</b> Before you do, read each plugin's notes and look at its page on deckyhub.com (details and security scans) and at its author's GitHub page (both are linked on each plugin's card)."
 WARRANTY="DeckyHub is a free community project. It comes as it is, with no guarantee."
 
 # Dialogs when zenity is there (SteamOS has it), plain text in the terminal otherwise. Texts
 # use \n for line breaks: zenity understands it, the terminal gets printf %b.
 has_zenity() { command -v zenity > /dev/null && [ -n "${DISPLAY}${WAYLAND_DISPLAY}" ]; }
-# As root (after the password) the dialogs still run as the Deck's user: zenity as root crashes while it draws a dialog's icon
+# As root (after the password) the dialogs still run as the device's user: zenity as root crashes while it draws a dialog's icon
 # (GTK's sandboxed image loader fails), so the progress bar showed but the "All done!" message never did.
 zen() {
     local as=()
@@ -194,7 +194,7 @@ if (( EUID != 0 )); then
     fi
     steps=""; n=1
     add_step() { steps+="  ${n}. $1\n"; n=$((n + 1)); }
-    add_step "You type your Deck's admin password."
+    add_step "You type your device's admin password."
     if (( HAS_DECKY )); then
         add_step "<b>Decky Loader comes first.</b> It's the add-on system DeckyHub runs in. We only check that it's installed. It is, so nothing is installed or changed here."
     else
@@ -204,14 +204,14 @@ if (( EUID != 0 )); then
     add_step "DeckyHub is put in its folder. If you already have it, your old copy stays safe until the new one is ready."
     add_step "Decky Loader restarts. This takes a few seconds."
     if (( HAS_DECKY )); then
-        why="<b>Why a password?</b> Restarting Decky Loader is a change to the Deck itself, and the Deck only allows that with the admin password."
+        why="<b>Why a password?</b> Restarting Decky Loader is a change to the device itself, and the device only allows that with the admin password."
     else
-        why="<b>Why a password?</b> Installing and restarting Decky Loader are changes to the Deck itself, and the Deck only allows that with the admin password. Decky Loader's own installer asks for the same one."
+        why="<b>Why a password?</b> Installing and restarting Decky Loader are changes to the device itself, and the device only allows that with the admin password. Decky Loader's own installer asks for the same one."
     fi
     if (( HAS_DECKY )); then
-        headline="<span size='large'><b>This will download and ${verb,,} DeckyHub ${TAG} on your Steam Deck.</b></span>\nDecky Loader is already installed, so it's only checked."
+        headline="<span size='large'><b>This will download and ${verb,,} DeckyHub ${TAG} on your device.</b></span>\nDecky Loader is already installed, so it's only checked."
     else
-        headline="<span size='large'><b>This will download and install Decky Loader and DeckyHub ${TAG} on your Steam Deck.</b></span>"
+        headline="<span size='large'><b>This will download and install Decky Loader and DeckyHub ${TAG} on your device.</b></span>"
     fi
     extras=""
     (( ${#STARTER_PLUGINS[@]} )) && { has_zenity || [ -n "$PLUGINS_ARG" ]; } && extras="Next you can pick optional plugins, such as frame generation or themes. They aren't installed now: DeckyHub asks you to confirm each one later.\n\n"
@@ -229,7 +229,7 @@ if (( EUID != 0 )); then
 
     # Before asking for a password, so nobody types it just to hit an error.
     if ! curl -Is --connect-timeout 30 https://github.com | head -1 | grep -q " 200"; then
-        fail "Can't reach GitHub.\n\nCheck that your Deck is connected to Wi-Fi, then start the installer again."
+        fail "Can't reach GitHub.\n\nCheck that your device is connected to Wi-Fi, then start the installer again."
     fi
 
     choose_plugins
@@ -241,7 +241,7 @@ if (( EUID != 0 )); then
         # it can still be removed if the run is ever cut off (sudo passwd -d, with this password).
         TEMP_PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 12)
         if has_zenity && zen --title="$TITLE" --width=480 --icon-name=dialog-password --question \
-            --text="Your Deck doesn't have an admin password yet.\n\nThe installer can set a temporary one (${TEMP_PASSWORD}), use it, and remove it again when it's done. Decky Loader's own installer does the same.\n\nIf the installer is ever cut off, the password stays until you remove it: open Konsole and type  sudo passwd -d ${USER}  with this password.\n\nContinue?"; then
+            --text="Your device doesn't have an admin password yet.\n\nThe installer can set a temporary one (${TEMP_PASSWORD}), use it, and remove it again when it's done. Decky Loader's own installer does the same.\n\nIf the installer is ever cut off, the password stays until you remove it: open Konsole and type  sudo passwd -d ${USER}  with this password.\n\nContinue?"; then
             yes "$TEMP_PASSWORD" | passwd "$USER" > /dev/null || fail "Couldn't set a temporary password.\n\nOpen Konsole, type passwd and press Enter to set your own, then start the installer again."
             trap 'echo "$TEMP_PASSWORD" | sudo -S -k passwd -d "$USER" > /dev/null' EXIT
             PASS="$TEMP_PASSWORD"
@@ -252,7 +252,7 @@ if (( EUID != 0 )); then
     elif has_zenity; then
         while true; do
             PASS=$(zen --title="$TITLE" --width=480 --icon-name=dialog-password --entry --hide-text \
-                --text="Type your Deck's admin password.\n\nThis is the password you set for Desktop Mode, not your Steam password. It's used only on this Deck, right now, and isn't saved.") || exit 1
+                --text="Type your device's admin password.\n\nThis is the password you set for Desktop Mode, not your Steam password. It's used only on this device, right now, and isn't saved.") || exit 1
             echo "$PASS" | sudo -S -k true 2> /dev/null && break
             zen --title="$TITLE" --width=300 --icon-name=dialog-warning --warning --text="That password isn't right. Try again."
         done
@@ -311,12 +311,12 @@ install_all() {
     target="${HOMEBREW}/plugins/DeckyHub"
     if ! mkdir -p "${HOMEBREW}/plugins" ||
         ! staging=$(mktemp -d "${HOMEBREW}/.deckyhub-install.XXXXXX"); then
-        echo "Couldn't prepare the folder for DeckyHub.\n\nMake sure your Deck has free space, then try again." > "$STATUS_FILE"; return
+        echo "Couldn't prepare the folder for DeckyHub.\n\nMake sure your device has free space, then try again." > "$STATUS_FILE"; return
     fi
     if ! cp -a "${WORK}/unpacked/DeckyHub" "$staging/new" ||
         { [ -n "$SUDO_USER" ] && ! chown -R "$SUDO_USER:" "$staging/new"; }; then
         rm -rf "$staging"
-        echo "Couldn't copy DeckyHub's files.\n\nMake sure your Deck has free space, then try again." > "$STATUS_FILE"; return
+        echo "Couldn't copy DeckyHub's files.\n\nMake sure your device has free space, then try again." > "$STATUS_FILE"; return
     fi
     if [ -e "$target" ] || [ -L "$target" ]; then
         if ! mv -T "$target" "$staging/previous"; then
@@ -331,7 +331,7 @@ install_all() {
             echo "The update failed, and your old DeckyHub couldn't be put back automatically.\nIt's saved here: $staging/previous" > "$STATUS_FILE"; return
         fi
         rm -rf "$staging"
-        echo "Couldn't put DeckyHub's files in place.\n\nMake sure your Deck has free space, then try again." > "$STATUS_FILE"; return
+        echo "Couldn't put DeckyHub's files in place.\n\nMake sure your device has free space, then try again." > "$STATUS_FILE"; return
     fi
     rm -rf "$staging"
 
@@ -357,7 +357,7 @@ install_all() {
     fi
 
     step 90 "Restarting Decky Loader…"
-    # Installed either way; if Decky can't restart, the finish message says to restart the Deck.
+    # Installed either way; if Decky can't restart, the finish message says to restart the device.
     systemctl restart plugin_loader >> "$LOG" 2>&1 || echo "no-restart" > "${WORK}/no-restart"
     echo "ok" > "$STATUS_FILE"
     echo "100"; echo "# Done"
@@ -371,7 +371,7 @@ else
 fi
 
 INSTALL_STATUS=$(cat "$STATUS_FILE" 2> /dev/null)
-[ "$INSTALL_STATUS" = "ok" ] || fail "${INSTALL_STATUS:-The installer stopped unexpectedly.\n\nMake sure your Deck has free space and Wi-Fi, then try again.}"
+[ "$INSTALL_STATUS" = "ok" ] || fail "${INSTALL_STATUS:-The installer stopped unexpectedly.\n\nMake sure your device has free space and Wi-Fi, then try again.}"
 
 # What was done, then what to do next.
 done_text=""
@@ -384,7 +384,7 @@ else
     done_text+="${OK_MARK} DeckyHub ${TAG} installed (file checked)\n"
 fi
 if [ -f "${WORK}/no-restart" ]; then
-    done_text+="${WARN_MARK} Decky Loader couldn't restart by itself. Restart your Steam Deck to start using DeckyHub.\n"
+    done_text+="${WARN_MARK} Decky Loader couldn't restart by itself. Restart your device to start using DeckyHub.\n"
 else
     done_text+="${OK_MARK} Decky Loader restarted\n"
 fi
@@ -396,5 +396,5 @@ cleanup="The installer's temporary files are removed when you close this."
 [ -n "$DECKYHUB_TEMP_PASSWORD" ] && cleanup="The installer's temporary files and the temporary password are removed when you close this."
 next="What now: switch to Gaming Mode, open the Quick Access menu (the ··· button) and choose DeckyHub."
 [ -f "${WORK}/picked-names" ] && next+="\n\n${RESPONSIBILITY}"
-message="<span size='x-large'><b>All done!</b></span>\n\n${done_text}\n${next}\n\nNothing about you or your Deck was collected or sent. ${cleanup}"
+message="<span size='x-large'><b>All done!</b></span>\n\n${done_text}\n${next}\n\nNothing about you or your device was collected or sent. ${cleanup}"
 if [ -f "${WORK}/no-restart" ]; then warn "$message"; else say "$message"; fi

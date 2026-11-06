@@ -70,7 +70,7 @@ export type Settings = { overwriteExisting: boolean; updateChannel: UpdateChanne
 
 export type Download = { state: string; filename?: string; repo?: string; received?: number; total?: number; path?: string; error?: string };
 
-export type DeckyHubInfo = { version: string };
+export type DeckyHubInfo = { version: string; downloadDir: string };
 
 export type DeckyHubRelease = { version?: string; asset?: Asset; publishedAt?: string | null; notes?: string; error?: string };
 
