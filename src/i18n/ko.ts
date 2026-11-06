@@ -152,7 +152,7 @@ export const ko: Record<MessageKey, string> = {
   "scan.unverifiedDetail": "이 보고서는 다른 ZIP에 대한 것일 수 있습니다. 일치 여부는 확인되지 않았습니다.",
   "scan.virusTotalResult": "VirusTotal: 엔진 {total}개 중 {flagged}개가 이 ZIP을 탐지했습니다",
   "scan.metaDefenderResult": "MetaDefender: 엔진 {total}개 중 {flagged}개가 이 ZIP을 탐지했습니다",
-  "scan.virusTotalHint": "VirusTotal이 Steam 브라우저에서 열리고 이 ZIP을 SHA-256으로 찾습니다. 아무것도 업로드되지 않으므로, 누군가 같은 파일을 이전에 보낸 경우에만 결과가 있습니다.",
+  "scan.virusTotalHint": "VirusTotal이 Steam 브라우저에서 열리고 이 ZIP을 SHA-256으로 조회합니다. 기기에서는 아무것도 업로드되지 않습니다. DeckyHub 레지스트리가 VirusTotal에 아직 없는 플러그인 ZIP을 보내므로, 새 릴리스는 결과가 나오기까지 시간이 걸릴 수 있습니다.",
   "scan.copyLink": "ZIP 링크 복사",
   "scan.scanLink": "VirusTotal에서 링크 검사",
   "scan.copied": "ZIP 링크를 복사했습니다",

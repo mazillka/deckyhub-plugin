@@ -167,8 +167,8 @@ def badges_of(stats: dict, scans: dict, warnings: dict, reports: dict | None = N
 
 def security_scans(scans: dict, reports: dict, vt_reports: dict | None = None) -> str:
     """One table per scanned ZIP (the stable release's, and a pre-release's if it's another file):
-    ClamAV and YARA from the registry's own scans, VirusTotal looked up by SHA-256 (nothing is
-    uploaded), MetaDefender from its published report once it has one."""
+    ClamAV and YARA from the registry's own scans, VirusTotal and MetaDefender from the reports
+    the registry publishes (it uploads ZIPs they haven't seen yet)."""
     def when(scan: dict) -> str:
         return nice_date(scan["scannedAt"]) if scan.get("scannedAt") else "date unknown"
 
@@ -194,7 +194,7 @@ def security_scans(scans: dict, reports: dict, vt_reports: dict | None = None) -
                 rows.append(f"<tr><td>VirusTotal</td><td>{found[0]} of {found[1]} engines flagged this file ({vt_link})</td><td>{escape(scanned)}</td></tr>")
             else:
                 status = EXTERNAL_STATUS.get(vt.get("state"), "No report yet")
-                rows.append(f"<tr><td>VirusTotal</td><td>{status} ({vt_link}, looked up by its SHA-256, nothing is uploaded)</td><td></td></tr>")
+                rows.append(f"<tr><td>VirusTotal</td><td>{status} ({vt_link})</td><td></td></tr>")
             report = (reports or {}).get(sha.lower()) or {}
             if md_result(reports, sha):
                 data_id = report.get("dataId")
@@ -271,7 +271,7 @@ def plugin_page(shell: dict[str, str], app: dict, stats: dict, scans: dict, warn
 <h2>Safety information</h2>
 {"<ul class='badges'>" + "".join(badges) + "</ul>" if badges else "<p>No badges: it doesn't run as root, and no audit warnings or virus scan findings are known for it.</p>"}
 <h2>Security scans</h2>
-<p>Every ZIP DeckyHub offers is scanned with ClamAV and with YARA rules (YARA Forge's core set), and the same scans are shown in the app. VirusTotal and MetaDefender results are matched by the file's SHA-256, so the file itself is never uploaded.</p>
+<p>Every ZIP DeckyHub offers is scanned with ClamAV and with YARA rules (YARA Forge's core set), and the same scans are shown in the app. The registry also sends each ZIP to VirusTotal and MetaDefender, uploading it if they haven't seen it yet, and their results are matched by the file's SHA-256.</p>
 {security_scans(scans, reports or {}, vt_reports)}
 <p class="note">DeckyHub doesn't make, review or vouch for {escape(name)}; it installs at your own risk. A clean scan isn't proof of safety. Check its repository before installing.</p>
 {f'<h2>More {escape(category)} plugins</h2><ul class="list">' + "".join(f'<li><a href="/plugins/{escape(other["id"])}.html">{escape(other["name"])}<small>{escape(other.get("description") or "")}</small></a></li>' for other in related) + "</ul>" if related else ""}"""

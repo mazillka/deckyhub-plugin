@@ -152,7 +152,7 @@ export const ja: Record<MessageKey, string> = {
   "scan.unverifiedDetail": "このレポートは別の ZIP の可能性があります。一致は未確認です。",
   "scan.virusTotalResult": "VirusTotal：{total} 件中 {flagged} 件のエンジンがこの ZIP を検出",
   "scan.metaDefenderResult": "MetaDefender：{total} 件中 {flagged} 件のエンジンがこの ZIP を検出",
-  "scan.virusTotalHint": "VirusTotal が Steam のブラウザで開き、この ZIP を SHA-256 で検索します。何もアップロードされないため、同じファイルが以前に送信されている場合にのみ結果が表示されます。",
+  "scan.virusTotalHint": "VirusTotal が Steam のブラウザで開き、この ZIP を SHA-256 で検索します。お使いのデバイスからは何もアップロードされません。DeckyHub のレジストリが VirusTotal にまだ登録されていないプラグインの ZIP を送信するため、新しいリリースでは結果が出るまで時間がかかることがあります。",
   "scan.copyLink": "ZIP のリンクをコピー",
   "scan.scanLink": "VirusTotal でリンクをスキャン",
   "scan.copied": "ZIP のリンクをコピーしました",

@@ -152,7 +152,7 @@ export const uk: Record<MessageKey, string> = {
   "scan.unverifiedDetail": "Звіт може стосуватися іншого ZIP; збіг не підтверджено.",
   "scan.virusTotalResult": "VirusTotal: {flagged} із {total} рушіїв позначили цей ZIP",
   "scan.metaDefenderResult": "MetaDefender: {flagged} із {total} рушіїв позначили цей ZIP",
-  "scan.virusTotalHint": "VirusTotal відкриється в браузері Steam і шукатиме цей ZIP за його SHA-256. Нічого не завантажується, тож результати будуть, лише якщо хтось уже надсилав туди такий самий файл.",
+  "scan.virusTotalHint": "VirusTotal відкриється в браузері Steam і шукатиме цей ZIP за його SHA-256. З вашого пристрою нічого не завантажується. Реєстр DeckyHub сам надсилає на VirusTotal ZIP плагінів, яких там ще немає, тож для нового релізу результати можуть з'явитися не одразу.",
   "scan.copyLink": "Копіювати посилання на ZIP",
   "scan.scanLink": "Перевірити посилання у VirusTotal",
   "scan.copied": "Посилання на ZIP скопійовано",

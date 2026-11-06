@@ -152,7 +152,7 @@ export const cs: Record<MessageKey, string> = {
   "scan.unverifiedDetail": "Hlášení může popisovat jiný ZIP; shoda není ověřena.",
   "scan.virusTotalResult": "VirusTotal: {flagged} z {total} nástrojů označilo tento ZIP",
   "scan.metaDefenderResult": "MetaDefender: {flagged} z {total} nástrojů označilo tento ZIP",
-  "scan.virusTotalHint": "VirusTotal se otevře v prohlížeči Steamu a vyhledá tento ZIP podle jeho SHA-256. Nic se nenahrává, takže výsledky má jen tehdy, když mu někdo stejný soubor už poslal.",
+  "scan.virusTotalHint": "VirusTotal se otevře v prohlížeči Steamu a vyhledá tento ZIP podle jeho SHA-256. Z vašeho zařízení se nic nenahrává. Registr DeckyHub sám posílá do VirusTotalu ZIP pluginů, které tam ještě nejsou, takže výsledky pro nové vydání mohou chvíli trvat.",
   "scan.copyLink": "Kopírovat odkaz na ZIP",
   "scan.scanLink": "Zkontrolovat odkaz ve VirusTotal",
   "scan.copied": "Odkaz na ZIP zkopírován",

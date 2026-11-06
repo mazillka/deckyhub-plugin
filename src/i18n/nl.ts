@@ -152,7 +152,7 @@ export const nl: Record<MessageKey, string> = {
   "scan.unverifiedDetail": "Dit rapport kan bij een andere ZIP horen; de overeenkomst is niet bevestigd.",
   "scan.virusTotalResult": "VirusTotal: {flagged} van {total} engines hebben dit ZIP-bestand gemarkeerd",
   "scan.metaDefenderResult": "MetaDefender: {flagged} van {total} engines hebben dit ZIP-bestand gemarkeerd",
-  "scan.virusTotalHint": "VirusTotal opent in de browser van Steam en zoekt deze ZIP op aan de hand van zijn SHA-256. Er wordt niets geüpload, dus er zijn alleen resultaten als iemand hetzelfde bestand al eens instuurde.",
+  "scan.virusTotalHint": "VirusTotal opent in de browser van Steam en zoekt deze ZIP op aan de hand van de SHA-256. Er wordt niets geüpload vanaf je apparaat. Het register van DeckyHub stuurt VirusTotal de plugin-ZIP's die het nog niet kent, dus bij een nieuwe release kan het even duren voordat er resultaten zijn.",
   "scan.copyLink": "ZIP-link kopiëren",
   "scan.scanLink": "Link scannen op VirusTotal",
   "scan.copied": "ZIP-link gekopieerd",
