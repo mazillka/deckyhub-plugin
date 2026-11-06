@@ -1,6 +1,6 @@
 ---
 name: seo-and-ai
-description: Keep DeckyHub's website (deckyhub.com, its plugin pages, and the registry's pages) optimized for search engines and AI assistants. Use when changing any web page, devtools/build-site.py, devtools/plugin_pages.py, robots.txt, sitemap.xml, llms.txt or structured data, when adding a page, or before a release.
+description: Keep DeckyHub's website (deckyhub.com, its plugin pages and contributor pages) optimized for search engines and AI assistants. Use when changing any web page, devtools/build-site.py, devtools/plugin_pages.py, robots.txt, sitemap.xml, llms.txt or structured data, when adding a page, or before a release.
 ---
 
 # SEO and AI optimization

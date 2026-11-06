@@ -385,7 +385,7 @@ def catalog_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
     body = f"""<p class="crumbs"><a href="/">DeckyHub</a> › Plugins</p>
 <h1>Steam Deck plugins</h1>
 <p class="lead">{len(apps)} Decky Loader plugins, most downloaded first. Install any of them from Gaming Mode with <a href="/">DeckyHub</a>, which also checks them for updates.</p>
-<p class="note">Every plugin belongs to its authors. DeckyHub doesn't make, review or vouch for them, and a plugin's page shows its notes (AI help, root, audit warnings) and security scans; <a href="/plugins/known-issues.html">Known issues</a> lists every plugin with a warning. Missing one? <a href="{site_shell.REGISTRY}">Add a plugin</a>.</p>
+<p class="note">Every plugin belongs to its authors. DeckyHub doesn't make, review or vouch for them, and a plugin's page shows its notes (AI help, root, audit warnings) and security scans; <a href="/plugins/known-issues.html">Known issues</a> lists every plugin with a warning. Missing one? <a href="/contribute/">Add a plugin</a>.</p>
 <div class="filters"><input id="q" type="search" placeholder="Search plugins" aria-label="Search plugins" autocomplete="off"><div class="chips" role="group" aria-label="Categories">{chips}</div></div>
 <p class="note" id="count" aria-live="polite">{len(apps)} plugins</p>
 <div class="catalog" id="list">
