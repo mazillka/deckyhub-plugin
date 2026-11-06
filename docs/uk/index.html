@@ -53,6 +53,7 @@ ol.steps{counter-reset:s;list-style:none;padding:0;display:grid;gap:10px;max-wid
 ol.steps li{counter-increment:s;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 20px 16px 64px;position:relative;color:var(--text);line-height:1.6;font-size:1.02rem}
 ol.steps li::before{content:counter(s);display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;position:absolute;left:18px;top:16px}
 ol.steps code.cmd{display:block;margin:8px 0 0;padding:10px 12px;background:#0b1220;border-radius:8px;user-select:all;overflow-wrap:anywhere}ol.steps button.copy{margin-top:6px;padding:6px 14px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);font:inherit;cursor:pointer}ol.steps button.copy:hover{border-color:var(--accent)}ol.steps strong{color:var(--text)}ol.steps code{overflow-wrap:anywhere}
+ol.steps li>p{margin:0 0 10px}ol.steps .choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:12px}ol.steps .choices>div{background:#0f1724;border:1px solid var(--line);border-radius:10px;padding:12px 14px;min-width:0}
 code{background:#0f1724;border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.88em}
 .catalog{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
 .app{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;text-decoration:none;color:var(--text);display:block}
