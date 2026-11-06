@@ -3,7 +3,7 @@
 Copies docs/, writes mazillka/deckyhub-registry's catalog into index.html
 so crawlers see it without JavaScript, and makes WebP screenshots plus a JPEG
 link-preview image (screenshots/hero.jpg) from screenshots/. It also renders
-DeckyHub's GitHub releases into releases.html (the release notes page), fills in help.html and about.html, fills
+DeckyHub's GitHub releases into releases.html (the release notes page), fills in help.html and about.html (and their Ukrainian twins in uk/), fills
 index.html's latest-release line and structured data (schema.org JSON-LD,
 with the FAQ taken from the page's own <details>), writes a page per plugin
 (plugins/<id>.html, see plugin_pages.py), fills in the contributor pages
@@ -203,14 +203,17 @@ for name in ("index.html", "editor.html"):
         page_file = out / folder / name
         page_file.write_text(site_shell.apply(page_file.read_text(encoding="utf-8").replace("<!-- plugin-count -->", str(len(apps))), lang, switch), encoding="utf-8")
 
-# help.html (its questions also as FAQ structured data) and about.html: static pages with the shared menu and footer.
-help_page = out / "help.html"
-help_text = help_page.read_text(encoding="utf-8")
-if "<!-- structured-data -->" not in help_text:
-    sys.exit("docs/help.html is missing the <!-- structured-data --> placeholder")
-help_page.write_text(site_shell.apply(help_text.replace("<!-- structured-data -->", json_ld({"@type": "FAQPage", "url": f"{SITE}help.html", "mainEntity": faq_items(help_text)}))), encoding="utf-8")
-about_page = out / "about.html"
-about_page.write_text(site_shell.apply(about_page.read_text(encoding="utf-8")), encoding="utf-8")
+# help.html (its questions also as FAQ structured data) and about.html, each with a Ukrainian twin under uk/.
+HELP_ABOUT = ["help.html", "about.html", "uk/help.html", "uk/about.html"]
+for name in ("help.html", "about.html"):
+    for lang, path, switch in (("en", name, ("Українська", f"{SITE}uk/{name}", "uk")), ("uk", f"uk/{name}", ("English", f"{SITE}{name}", "en"))):
+        page_file = out / path
+        text = page_file.read_text(encoding="utf-8")
+        if name == "help.html":
+            if "<!-- structured-data -->" not in text:
+                sys.exit(f"docs/{path} is missing the <!-- structured-data --> placeholder")
+            text = text.replace("<!-- structured-data -->", json_ld({"@type": "FAQPage", "url": f"{SITE}{path}", "inLanguage": lang, "mainEntity": faq_items(text)}))
+        page_file.write_text(site_shell.apply(text, lang, switch), encoding="utf-8")
 
 plugin_urls = plugin_pages.write_pages(out, apps, (ROOT / "docs" / "releases.html").read_text(encoding="utf-8"), data)
 llms = out / "llms.txt"
@@ -225,9 +228,7 @@ newest = (releases[0].get("published_at") or "")[:10] if releases else today
     f"<url><loc>{SITE}</loc><lastmod>{today}</lastmod></url>\n"
     f"<url><loc>{SITE}uk/</loc><lastmod>{today}</lastmod></url>\n"
     f"<url><loc>{SITE}releases.html</loc><lastmod>{newest}</lastmod></url>\n"
-    f"<url><loc>{SITE}help.html</loc><lastmod>{today}</lastmod></url>\n"
-    f"<url><loc>{SITE}about.html</loc><lastmod>{today}</lastmod></url>\n"
-    + "".join(f"<url><loc>{SITE}{path}</loc><lastmod>{today}</lastmod></url>\n" for path in CONTRIBUTE)
+    + "".join(f"<url><loc>{SITE}{path}</loc><lastmod>{today}</lastmod></url>\n" for path in HELP_ABOUT + CONTRIBUTE)
     + "".join(f"<url><loc>{escape(url)}</loc><lastmod>{date}</lastmod></url>\n" for url, date in plugin_urls) + "</urlset>\n",
     encoding="utf-8",
 )
