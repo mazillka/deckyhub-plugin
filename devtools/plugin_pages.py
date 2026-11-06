@@ -313,7 +313,18 @@ def readme_steps(readme: str, heading: str) -> str:
     steps = re.findall(r"^\d+\. (.+)$", section, re.M)
     # A long command stands on its own line, selectable in one tap, instead of getting lost mid-sentence.
     long_command = lambda html: re.sub(r"<code>([^<]{60,})</code>", r'<code class="cmd">\1</code>', html)
-    return "\n".join(f"<li>{long_command(inline_markdown(step))}</li>" for step in steps)
+    render = lambda text: long_command(inline_markdown(text.strip()))
+
+    # Two invisible markers (HTML comments, hidden on GitHub) turn a step into two alternatives side by side:
+    # "lead <!-- choose --> first way <!-- or --> second way". The lead is optional.
+    def item(step: str) -> str:
+        if "<!-- or -->" not in step:
+            return render(step)
+        lead, _, rest = step.rpartition("<!-- choose -->")
+        choices = "".join(f"<div>{render(part)}</div>" for part in rest.split("<!-- or -->"))
+        return (f"<p>{render(lead)}</p>" if lead.strip() else "") + f'<div class="choices">{choices}</div>'
+
+    return "\n".join(f"<li>{item(step)}</li>" for step in steps)
 
 
 def slug(text: str) -> str:

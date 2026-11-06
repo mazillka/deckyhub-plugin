@@ -87,6 +87,14 @@ class PluginPageTests(unittest.TestCase):
         self.assertIn("<strong>Execute</strong>", option_1)
         self.assertGreaterEqual(option_2.count("<li>"), 3)
         self.assertNotIn("Install-DeckyHub.desktop", option_2)  # each option has its own steps
+        self.assertIn('<div class="choices">', option_1)
+        self.assertNotIn("&lt;!--", option_1)
+
+    def test_markers_split_a_step_into_two_choices(self):
+        steps = plugin_pages.readme_steps("### Steps\n1. Put it there. <!-- choose --> **A:** drag. <!-- or --> **B:** run `x`.\n2. Done.\n", "### Steps")
+        self.assertIn('<li><p>Put it there.</p><div class="choices"><div><strong>A:</strong> drag.</div><div><strong>B:</strong> run <code>x</code>.</div></div></li>', steps)
+        self.assertIn("<li>Done.</li>", steps)
+        self.assertIn('<li><div class="choices"><div>a</div><div>b</div></div></li>', plugin_pages.readme_steps("### S\n1. a <!-- or --> b\n", "### S"))
 
     def test_inline_markdown_escapes_html(self):
         self.assertEqual(plugin_pages.inline_markdown("a <b> & **c**"), "a &lt;b&gt; &amp; <strong>c</strong>")
