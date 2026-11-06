@@ -29,7 +29,7 @@ class PluginPageTests(unittest.TestCase):
             self.assertNotRegex(part, r'href="\.?\.?/')
         self.assertIn('<a href="https://deckyhub.com/">Home</a>', page)
         self.assertIn('<a href="https://deckyhub.com/plugins/" aria-current="page">Plugins</a>', page)  # this section is highlighted
-        self.assertIn('<a href="https://registry.deckyhub.com/">Contribute</a>', page)
+        self.assertIn('<a href="https://deckyhub.com/contribute/">Contribute</a>', page)
 
     def test_the_title_and_description_fit_a_search_result(self):
         page = self.page()
