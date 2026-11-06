@@ -241,6 +241,35 @@ for shot in (ROOT / "screenshots").glob("*.jpg"):
     image.resize((640, round(image.height * 640 / image.width)), Image.LANCZOS).save(img / f"{shot.stem}-640.webp", quality=78, method=6)
 # The walkthrough GIF tops the page (with the Discover screenshot for reduced motion).
 shutil.copy(ROOT / "promo" / "deckyhub.gif", img / "deckyhub.gif")
+# The same walkthrough as animated WebP, about a third of the GIF's size; browsers without WebP keep the GIF.
+with Image.open(ROOT / "promo" / "deckyhub.gif") as gif:
+    durations = [gif.seek(i) or gif.info.get("duration", 100) for i in range(gif.n_frames)]
+    gif.save(img / "deckyhub.webp", save_all=True, duration=durations, loop=0, quality=75, method=4)
+
+# Pages without their own structured data get a WebPage with its breadcrumb, from what the page shows.
+for path in ["releases.html", "about.html", "uk/about.html"] + [p + ("index.html" if p.endswith("/") else "") for p in CONTRIBUTE]:
+    page_file = out / path
+    text = page_file.read_text(encoding="utf-8")
+    if "application/ld+json" in text:
+        continue
+    url = re.search(r'<link rel="canonical" href="([^"]+)"', text).group(1)
+    name = re.sub(r"<[^>]+>", "", re.search(r"<h1[^>]*>(.*?)</h1>", text, re.S).group(1)).strip()
+    uk = path.startswith("uk/")
+    home = SITE + "uk/" if uk else SITE
+    text = text.replace("</head>", json_ld({"@type": "WebPage", "name": name, "url": url, "inLanguage": "uk" if uk else "en", "isPartOf": {"@type": "WebSite", "name": "DeckyHub", "url": SITE},
+                                            "breadcrumb": {"@type": "BreadcrumbList", "itemListElement": [
+                                                {"@type": "ListItem", "position": 1, "name": "DeckyHub", "item": home},
+                                                {"@type": "ListItem", "position": 2, "name": name, "item": url}]}}) + "\n</head>", 1)
+    page_file.write_text(text, encoding="utf-8")
+
+# GitHub Pages can't send security headers, so every page carries them as meta tags. Scripts and styles are inline;
+# the only outside requests are shields.io badges and the registry editor's fetch of apps.json.
+CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://img.shields.io; "
+       "connect-src 'self' https://raw.githubusercontent.com; object-src 'none'; base-uri 'self'; form-action 'self'")
+for html_file in out.rglob("*.html"):
+    text = html_file.read_text(encoding="utf-8")
+    text = text.replace("<head>", f'<head>\n<meta http-equiv="Content-Security-Policy" content="{CSP}">\n<meta name="referrer" content="strict-origin-when-cross-origin">', 1)
+    html_file.write_text(text, encoding="utf-8")
 # The promo hero (16:9) suits link previews better than a bare screenshot.
 shutil.copy(ROOT / "screenshots" / "hero.jpg", img / "og.jpg")
 
