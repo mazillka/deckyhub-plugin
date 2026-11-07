@@ -11,7 +11,10 @@ export async function connect(title) {
   const target = targets.find((candidate) => candidate.title === title);
   if (!target) throw new Error(`No "${title}" page on ${DECK}; is the Deck in Gaming Mode with Decky Loader?`);
   const ws = new WebSocket(target.webSocketDebuggerUrl);
-  await new Promise((resolve, reject) => { ws.onopen = resolve; ws.onerror = () => reject(new Error(`Can't connect to ${title}`)); });
+  await new Promise((resolve, reject) => {
+    ws.onopen = resolve;
+    ws.onerror = () => reject(new Error(`Can't connect to ${title}`));
+  });
   let id = 0;
   const pending = new Map();
   const listeners = new Set();
@@ -22,23 +25,32 @@ export async function connect(title) {
       pending.delete(message.id);
     } else if (message.method) listeners.forEach((listener) => listener(message));
   };
-  const send = (method, params = {}, timeout = 15000) => new Promise((resolve, reject) => {
-    const messageId = ++id;
-    const timer = setTimeout(() => { pending.delete(messageId); reject(new Error(`${title}: ${method} timed out`)); }, timeout);
-    pending.set(messageId, (message) => {
-      clearTimeout(timer);
-      if (message.error) reject(new Error(`${title}: ${message.error.message}`));
-      else resolve(message.result);
+  const send = (method, params = {}, timeout = 15000) =>
+    new Promise((resolve, reject) => {
+      const messageId = ++id;
+      const timer = setTimeout(() => {
+        pending.delete(messageId);
+        reject(new Error(`${title}: ${method} timed out`));
+      }, timeout);
+      pending.set(messageId, (message) => {
+        clearTimeout(timer);
+        if (message.error) reject(new Error(`${title}: ${message.error.message}`));
+        else resolve(message.result);
+      });
+      ws.send(JSON.stringify({ id: messageId, method, params }));
     });
-    ws.send(JSON.stringify({ id: messageId, method, params }));
-  });
   return {
     send,
     on: (listener) => listeners.add(listener),
     // Runs an expression (or `(() => ...)()`) in the page and returns its JSON value.
     async eval(expression) {
-      const { result, exceptionDetails } = await send("Runtime.evaluate", { expression, awaitPromise: true, returnByValue: true });
-      if (exceptionDetails) throw new Error(`${title}: ${exceptionDetails.exception?.description ?? exceptionDetails.text}`);
+      const { result, exceptionDetails } = await send("Runtime.evaluate", {
+        expression,
+        awaitPromise: true,
+        returnByValue: true,
+      });
+      if (exceptionDetails)
+        throw new Error(`${title}: ${exceptionDetails.exception?.description ?? exceptionDetails.text}`);
       return result.value;
     },
     // A page that isn't on screen (a closed Quick Access menu) never renders a frame.
@@ -67,7 +79,9 @@ export async function waitFor(page, expression, timeout = 15000) {
 // adding to it: hundreds of test visits otherwise piled up, and B then walked back
 // through them all (seen on a Deck).
 export const goTo = (shared, path) =>
-  shared.eval(`DFL.Navigation.CloseSideMenus?.(); SteamUIStore.WindowStore.GamepadUIMainWindowInstance.m_history.replace(${JSON.stringify(path)}); true`);
+  shared.eval(
+    `DFL.Navigation.CloseSideMenus?.(); SteamUIStore.WindowStore.GamepadUIMainWindowInstance.m_history.replace(${JSON.stringify(path)}); true`,
+  );
 
 // Scripts click Steam's dialogs directly, not with the controller, and a dialog
 // closed that way can leave gamepad focus on its now-invisible element: the D-pad

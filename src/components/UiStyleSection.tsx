@@ -4,6 +4,7 @@ import { useT } from "../i18n";
 import type { UiStyle } from "../types";
 import { changeUiStyle, useUiStyle } from "../uiStyle";
 import { Card } from "./Card";
+import { colors } from "../styles";
 
 // Quick Access' UI Style: Default (the classic look) or Experimental (the redesign).
 // Shown in both, so the Experimental one can always be switched back.
@@ -23,12 +24,16 @@ export function UiStyleSection() {
               { label: t("settings.uiStyleExperimental"), data: "experimental" },
             ]}
             selectedOption={style}
-            onChange={({ data }) => void changeUiStyle(data as UiStyle).catch((error: unknown) => toaster.toast({ title: "DeckyHub", body: String(error) }))}
+            onChange={({ data }) =>
+              void changeUiStyle(data as UiStyle).catch((error: unknown) =>
+                toaster.toast({ title: "DeckyHub", body: String(error) }),
+              )
+            }
           />
         </PanelSectionRow>
         {/* Its own line rather than the dropdown's description, which Quick Access draws under 12px. */}
         <PanelSectionRow>
-          <div style={{ color: "#8b9aa7", fontSize: "max(12px, 0.85em)" }}>{t("settings.uiStyleHint")}</div>
+          <div style={{ color: colors.subtle, fontSize: "max(12px, 0.85em)" }}>{t("settings.uiStyleHint")}</div>
         </PanelSectionRow>
       </PanelSection>
     </Card>

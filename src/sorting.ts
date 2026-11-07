@@ -10,9 +10,14 @@ const releasedAt = (app: App) => Date.parse(app.stats?.updated || app.publishedA
 // appends (custom repos come after it), so "Recently added" is that order reversed.
 // Plugins without stats (added repos) go last when sorting by them.
 export const compareBy = (order: SortOrder, a: App, b: App, apps: App[]) =>
-  order === "downloads" ? (b.stats?.downloads ?? -1) - (a.stats?.downloads ?? -1)
-  : order === "stars" ? (b.stats?.stars ?? -1) - (a.stats?.stars ?? -1)
-  : order === "updated" ? releasedAt(b) - releasedAt(a)
-  : order === "added" ? apps.indexOf(b) - apps.indexOf(a)
-  : order === "za" ? b.name.localeCompare(a.name)
-  : a.name.localeCompare(b.name);
+  order === "downloads"
+    ? (b.stats?.downloads ?? -1) - (a.stats?.downloads ?? -1)
+    : order === "stars"
+      ? (b.stats?.stars ?? -1) - (a.stats?.stars ?? -1)
+      : order === "updated"
+        ? releasedAt(b) - releasedAt(a)
+        : order === "added"
+          ? apps.indexOf(b) - apps.indexOf(a)
+          : order === "za"
+            ? b.name.localeCompare(a.name)
+            : a.name.localeCompare(b.name);

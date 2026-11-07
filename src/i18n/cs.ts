@@ -20,9 +20,11 @@ export const cs: Record<MessageKey, string> = {
   "discover.list": "Seznam",
   "view.discoverEmpty": "Nejsou k dispozici žádné repozitáře.",
   "view.installedEmpty": "Nebyly nalezeny žádné nainstalované pluginy.",
-  "view.searchDescription": "Hledejte pluginy pro Decky na GitHubu. Nainstalujte je hned, nebo je přidejte a sledujte jejich aktualizace.",
+  "view.searchDescription":
+    "Hledejte pluginy pro Decky na GitHubu. Nainstalujte je hned, nebo je přidejte a sledujte jejich aktualizace.",
   "view.searchTitle": "Hledat a instalovat",
-  "search.warning": "Výsledky hledání pocházejí přímo z GitHubu. Nikdo je nezkontroloval: ani DeckyHub, ani obchod Decky. Plugin může na vašem zařízení udělat cokoli, proto instalujte jen pluginy od autorů, kterým důvěřujete.",
+  "search.warning":
+    "Výsledky hledání pocházejí přímo z GitHubu. Nikdo je nezkontroloval: ani DeckyHub, ani obchod Decky. Plugin může na vašem zařízení udělat cokoli, proto instalujte jen pluginy od autorů, kterým důvěřujete.",
   "search.placeholder": "Název pluginu, autor nebo funkce",
 
   "filter.search": "Hledat",
@@ -68,36 +70,46 @@ export const cs: Record<MessageKey, string> = {
   "appcard.downloads": "Stažení: {count}",
   "appcard.stars": "Hvězdičky na GitHubu: {count}",
   "appcard.runsAsRoot": "Běží jako root",
-  "appcard.runsAsRootHint": "Jeho backend běží jako root s plným přístupem k systému. Instalujte jen tehdy, pokud autorovi důvěřujete.",
+  "appcard.runsAsRootHint":
+    "Jeho backend běží jako root s plným přístupem k systému. Instalujte jen tehdy, pokud autorovi důvěřujete.",
   "appcard.knownIssues": "Známé problémy tohoto pluginu",
   "appcard.skipVersion": "Přeskočit {version}",
   "appcard.unskipVersion": "Nepřeskakovat {version}",
   "appcard.fork": "Fork",
-  "appcard.forkHint": "Fork, který pokračuje ve vývoji pluginu poté, co originál skončil. DeckyHub ho uvádí jen, dokud je aktivní verzí.",
+  "appcard.forkHint":
+    "Fork, který pokračuje ve vývoji pluginu poté, co originál skončil. DeckyHub ho uvádí jen, dokud je aktivní verzí.",
   "appcard.forkOf": "Fork {repo}",
   "appcard.ai": "AI",
-  "appcard.aiHint": "Jeho repozitář obsahuje pokyny pro AI asistenty programování, nebo jeho README říká, že je vytvořen s AI, takže byl pravděpodobně vyvinut s pomocí AI. Neříká to nic o kvalitě ani bezpečnosti a chybějící odznak neznamená, že se AI nepoužila.",
+  "appcard.aiHint":
+    "Jeho repozitář obsahuje pokyny pro AI asistenty programování, nebo jeho README říká, že je vytvořen s AI, takže byl pravděpodobně vyvinut s pomocí AI. Neříká to nic o kvalitě ani bezpečnosti a chybějící odznak neznamená, že se AI nepoužila.",
   "appcard.aiFiles": "Pravděpodobně vyvinuto s pomocí AI ({files})",
   "appcard.scan.clean": "Bez hrozeb",
-  "appcard.scan.clean.hint": "Antivirové kontroly nenašly ve verzi, kterou byste nainstalovali, žádné známé hrozby. Odhalí jen známý malware a dají se obejít, takže to není důkaz bezpečnosti. Zpráva z kontroly je ve Spravovat.",
+  "appcard.scan.clean.hint":
+    "Antivirové kontroly nenašly ve verzi, kterou byste nainstalovali, žádné známé hrozby. Odhalí jen známý malware a dají se obejít, takže to není důkaz bezpečnosti. Zpráva z kontroly je ve Spravovat.",
   "appcard.scan.infected": "Nalezena hrozba",
-  "appcard.scan.infected.hint": "Antivirová kontrola označila vydání, které byste instalovali. Může jít o planý poplach: otevřete Spravovat, přečtěte si zprávu a rozhodněte sami.",
+  "appcard.scan.infected.hint":
+    "Antivirová kontrola označila vydání, které byste instalovali. Může jít o planý poplach: otevřete Spravovat, přečtěte si zprávu a rozhodněte sami.",
   "appcard.scan.partial": "Nezkontrolováno celé",
-  "appcard.scan.partial.hint": "Antivirové kontroly nedokázaly úplně zkontrolovat vydání, které byste instalovali. Důvod je ve Spravovat.",
+  "appcard.scan.partial.hint":
+    "Antivirové kontroly nedokázaly úplně zkontrolovat vydání, které byste instalovali. Důvod je ve Spravovat.",
   "appcard.badgesNotice": "Co znamenají štítky u pluginů",
   "appcard.noReleaseInYear": "Rok bez vydání",
   "appcard.installedFlagged": "Nainstalovaná verze označena",
-  "appcard.installedFlagged.hint": "Označeno ve verzi, kterou máte nainstalovanou: {reasons}. Může jít o planý poplach: zkontrolujte plugin a rozhodněte, zda si ho ponecháte.",
-  "appcard.warningsIntro": "Varování pocházejí z automatického auditu Decky Extended Plugins pro vydání, které byste instalovali. Běžné nálezy jako sudo, mount nebo systemctl se nezobrazují. Varování není důkazem škody a absence varování není důkazem bezpečnosti.",
+  "appcard.installedFlagged.hint":
+    "Označeno ve verzi, kterou máte nainstalovanou: {reasons}. Může jít o planý poplach: zkontrolujte plugin a rozhodněte, zda si ho ponecháte.",
+  "appcard.warningsIntro":
+    "Varování pocházejí z automatického auditu Decky Extended Plugins pro vydání, které byste instalovali. Běžné nálezy jako sudo, mount nebo systemctl se nezobrazují. Varování není důkazem škody a absence varování není důkazem bezpečnosti.",
   "appcard.auditLink": "Otevřít audit Decky Extended Plugins",
   "appcard.warning.blocked": "Zablokováno auditem",
   "appcard.warning.blocked.hint": "Audit našel malware nebo poškozený archiv. Instalace se nedoporučuje.",
   "appcard.warning.private-data": "Čte soukromá data",
   "appcard.warning.private-data.hint": "Čte přihlašovací údaje Steamu, klíče SSH nebo tajné údaje z prostředí.",
   "appcard.warning.persistence": "Mění spouštění systému",
-  "appcard.warning.persistence.hint": "Upravuje profily shellu, přednačítá knihovny, načítá moduly jádra nebo přidává pravidla zařízení, která fungují i mimo Decky.",
+  "appcard.warning.persistence.hint":
+    "Upravuje profily shellu, přednačítá knihovny, načítá moduly jádra nebo přidává pravidla zařízení, která fungují i mimo Decky.",
   "appcard.warning.not-in-source": "Kód mimo repozitář",
-  "appcard.warning.not-in-source.hint": "Vydání obsahuje skripty nebo programy, které nejsou ve zdrojovém kódu na GitHubu, takže si nemůžete přečíst, co dělají.",
+  "appcard.warning.not-in-source.hint":
+    "Vydání obsahuje skripty nebo programy, které nejsou ve zdrojovém kódu na GitHubu, takže si nemůžete přečíst, co dělají.",
   "appcard.warning.obfuscated": "Skrytý kód",
   "appcard.warning.obfuscated.hint": "Obsahuje zakódovaný nebo zabalený kód, který je těžké číst.",
   "appcard.warning.no-tls-check": "Přeskakuje kontroly HTTPS",
@@ -110,14 +122,18 @@ export const cs: Record<MessageKey, string> = {
   "appcard.update": "Aktualizovat",
   "appcard.uninstall": "Odinstalovat",
   "appcard.uninstallTitle": "Odinstalovat {name}?",
-  "appcard.uninstallDescription": "Tímto odeberete plugin a jeho nastavení z tohoto zařízení. Později ho můžete nainstalovat znovu.",
+  "appcard.uninstallDescription":
+    "Tímto odeberete plugin a jeho nastavení z tohoto zařízení. Později ho můžete nainstalovat znovu.",
   "appcard.uninstalled": "{name} byl odinstalován.",
-  "appcard.freshInstallDescription": "DeckyHub nejprve odebere nainstalovanou verzi a pak Decky nainstaluje vybranou verzi načisto. Aktualizace na místě může kvůli chybě v Decky Loader zamrazit zařízení. Pokud zrušíte instalační okno Decky, {name} zůstane odinstalován, dokud ho znovu nenainstalujete.",
+  "appcard.freshInstallDescription":
+    "DeckyHub nejprve odebere nainstalovanou verzi a pak Decky nainstaluje vybranou verzi načisto. Aktualizace na místě může kvůli chybě v Decky Loader zamrazit zařízení. Pokud zrušíte instalační okno Decky, {name} zůstane odinstalován, dokud ho znovu nenainstalujete.",
   "appcard.releaseInfo": "Informace o vydání",
   "appcard.noReleaseNotes": "Toto vydání nemá poznámky.",
-  "install.disclaimer": "DeckyHub stahuje vydání pouze z repozitářů jejich autorů na GitHubu. Tyto pluginy nevytváří, nekontroluje ani za ně neručí a nenese odpovědnost za to, co udělají s vaším zařízením nebo daty. Instalujete na vlastní riziko.",
+  "install.disclaimer":
+    "DeckyHub stahuje vydání pouze z repozitářů jejich autorů na GitHubu. Tyto pluginy nevytváří, nekontroluje ani za ně neručí a nenese odpovědnost za to, co udělají s vaším zařízením nebo daty. Instalujete na vlastní riziko.",
   "pending.title": "Nainstalovat vybrané pluginy?",
-  "pending.description": "Tyto pluginy jste vybrali v instalátoru. Decky Loader vás před instalací požádá o další potvrzení.",
+  "pending.description":
+    "Tyto pluginy jste vybrali v instalátoru. Decky Loader vás před instalací požádá o další potvrzení.",
   "pending.install": "Nainstalovat vybrané",
   "pending.toast": "V instalátoru jste vybrali pluginy. Otevřete DeckyHub a nainstalujte je.",
   "pending.skipped": "Nenainstalováno. Najdete je kdykoli v Discover.",
@@ -143,8 +159,10 @@ export const cs: Record<MessageKey, string> = {
   "scan.engine": "Skener: {engine}, signatury {signatures}",
   "scan.rules": "Skener: {engine}, pravidla {rules}",
   "scan.scannedAt": "Zkontrolováno: {date}",
-  "scan.hint": "Registr DeckyHub kontroluje každý nabízený ZIP pluginu antivirem s otevřeným kódem ClamAV a soubory v něm nástrojem YARA s komunitními pravidly YARA Forge, z nichž mnohá jsou psaná pro malware pro Linux.",
-  "scan.safetyWarning": "Kontroly odhalí jen známý malware a malware lze vytvořit tak, aby jimi proklouzl: čistý výsledek nedokazuje, že je plugin bezpečný.",
+  "scan.hint":
+    "Registr DeckyHub kontroluje každý nabízený ZIP pluginu antivirem s otevřeným kódem ClamAV a soubory v něm nástrojem YARA s komunitními pravidly YARA Forge, z nichž mnohá jsou psaná pro malware pro Linux.",
+  "scan.safetyWarning":
+    "Kontroly odhalí jen známý malware a malware lze vytvořit tak, aby jimi proklouzl: čistý výsledek nedokazuje, že je plugin bezpečný.",
   "scan.unverifiedMatch": "Shoda ZIP nebyla ověřena",
   "scan.waiting": "Kontrola čeká",
   "scan.unavailable": "Hlášení není dostupné",
@@ -152,14 +170,17 @@ export const cs: Record<MessageKey, string> = {
   "scan.unverifiedDetail": "Hlášení může popisovat jiný ZIP; shoda není ověřena.",
   "scan.virusTotalResult": "VirusTotal: {flagged} z {total} nástrojů označilo tento ZIP",
   "scan.metaDefenderResult": "MetaDefender: {flagged} z {total} nástrojů označilo tento ZIP",
-  "scan.virusTotalHint": "VirusTotal se otevře v prohlížeči Steamu a vyhledá tento ZIP podle jeho SHA-256. Z vašeho zařízení se nic nenahrává. Registr DeckyHub sám posílá do VirusTotalu ZIP pluginů, které tam ještě nejsou, takže výsledky pro nové vydání mohou chvíli trvat.",
+  "scan.virusTotalHint":
+    "VirusTotal se otevře v prohlížeči Steamu a vyhledá tento ZIP podle jeho SHA-256. Z vašeho zařízení se nic nenahrává. Registr DeckyHub sám posílá do VirusTotalu ZIP pluginů, které tam ještě nejsou, takže výsledky pro nové vydání mohou chvíli trvat.",
   "scan.copyLink": "Kopírovat odkaz na ZIP",
   "scan.scanLink": "Zkontrolovat odkaz ve VirusTotal",
   "scan.copied": "Odkaz na ZIP zkopírován",
   "scan.copyFailed": "Odkaz se nepodařilo zkopírovat",
   "scan.pasteIntoVirusTotal": "Vložte ho do pole URL na stránce VirusTotal a spusťte kontrolu.",
-  "scan.scanLinkHint": "„Zkontrolovat odkaz ve VirusTotal“ zkopíruje odkaz ke stažení ZIP a otevře stránku VirusTotal pro kontrolu URL: vložte tam odkaz. VirusTotal hodnotí hlavně samotný odkaz, takže nemusí zkontrolovat obsah ZIP.",
-  "scan.deckyhubChecks": "Každé vydání DeckyHub je před zveřejněním zkontrolováno ClamAV, VirusTotal a MetaDefender a jeho kód při každé změně kontroluje GitHub CodeQL. Zpráva ukazuje verzi a datum každého skeneru.",
+  "scan.scanLinkHint":
+    "„Zkontrolovat odkaz ve VirusTotal“ zkopíruje odkaz ke stažení ZIP a otevře stránku VirusTotal pro kontrolu URL: vložte tam odkaz. VirusTotal hodnotí hlavně samotný odkaz, takže nemusí zkontrolovat obsah ZIP.",
+  "scan.deckyhubChecks":
+    "Každé vydání DeckyHub je před zveřejněním zkontrolováno ClamAV, VirusTotal a MetaDefender a jeho kód při každé změně kontroluje GitHub CodeQL. Zpráva ukazuje verzi a datum každého skeneru.",
 
   "dl.downloading": "Stahování {filename}",
   "dl.preparing": "Příprava stahování…",
@@ -176,7 +197,8 @@ export const cs: Record<MessageKey, string> = {
   "settings.latestVersion": "Nejnovější: {version}",
   "settings.updateChannel": "Kanál aktualizací",
   "settings.registryChannel": "Kanál registru",
-  "settings.registryChannelHint": "Předběžné vydání ukazuje pluginy a změny, které se ještě testují, než je dostanou všichni. Pokud je nelze načíst, DeckyHub použije stabilní seznam.",
+  "settings.registryChannelHint":
+    "Předběžné vydání ukazuje pluginy a změny, které se ještě testují, než je dostanou všichni. Pokud je nelze načíst, DeckyHub použije stabilní seznam.",
   "settings.stableReleases": "Stabilní vydání",
   "settings.preReleases": "Předběžná vydání",
   "settings.checkUpdate": "Zkontrolovat aktualizace",
@@ -193,7 +215,8 @@ export const cs: Record<MessageKey, string> = {
   "settings.selfUpdateUnavailable": "Automatická aktualizace teď není dostupná — použijte Stáhnout ZIP.",
   "settings.downloadUpdate": "Stáhnout ZIP",
   "settings.downloadSettings": "Nastavení stahování",
-  "settings.whereZipsSaved": "Všechny ZIP soubory vydání se ukládají do ~/Downloads/deckyhub a jejich kontrolní součet SHA-256 se automaticky ověří, pokud ho GitHub poskytuje.",
+  "settings.whereZipsSaved":
+    "Všechny ZIP soubory vydání se ukládají do ~/Downloads/deckyhub a jejich kontrolní součet SHA-256 se automaticky ověří, pokud ho GitHub poskytuje.",
   "settings.overwriteExisting": "Přepsat existující",
   "settings.cleanup": "Úklid",
   "settings.emptyFolder": "Vyprázdnit složku",
@@ -202,9 +225,11 @@ export const cs: Record<MessageKey, string> = {
   "settings.downloadsCleared": "Odstraněné položky ze stažených souborů DeckyHub: {count}.",
   "settings.saveSettings": "Uložit nastavení",
   "settings.githubAccess": "Přístup ke GitHubu",
-  "settings.githubTokenIntro": "Volitelné. Bez tokenu GitHub omezí toto zařízení na 60 požadavků/hod (10/min pro hledání) — při intenzivním používání se snadno vyčerpají. Osobní přístupový token zvýší limit na 5 000/hod (30/min pro hledání).",
+  "settings.githubTokenIntro":
+    "Volitelné. Bez tokenu GitHub omezí toto zařízení na 60 požadavků/hod (10/min pro hledání) — při intenzivním používání se snadno vyčerpají. Osobní přístupový token zvýší limit na 5 000/hod (30/min pro hledání).",
   "settings.githubTokenHowTo": "Vytvořte si ho bez zaškrtnutí jakýchkoli oprávnění na:",
-  "settings.githubTokenNote": "DeckyHub čte jen veřejné repozitáře a vydání. Token je uložen lokálně v tomto nastavení a odesílá se jen na api.github.com.",
+  "settings.githubTokenNote":
+    "DeckyHub čte jen veřejné repozitáře a vydání. Token je uložen lokálně v tomto nastavení a odesílá se jen na api.github.com.",
   "settings.githubToken": "Token GitHub",
   "settings.githubQuota": "Zbývající požadavky na GitHub: {remaining} z {limit} (obnoví se za {minutes} min)",
   "rateLimit.title": "Dosažen limit požadavků GitHubu",
@@ -218,9 +243,11 @@ export const cs: Record<MessageKey, string> = {
   "settings.languageHint": "Překlady kromě angličtiny jsou vytvářeny automaticky a mohou obsahovat chyby.",
   "settings.displaySettings": "Nastavení zobrazení",
   "settings.about": "O aplikaci",
-  "settings.aboutText": "DeckyHub instaluje a aktualizuje pluginy pro Decky přímo z vydání jejich autorů na GitHubu. Je zdarma a s otevřeným zdrojovým kódem.",
+  "settings.aboutText":
+    "DeckyHub instaluje a aktualizuje pluginy pro Decky přímo z vydání jejich autorů na GitHubu. Je zdarma a s otevřeným zdrojovým kódem.",
   "settings.aboutSource": "DeckyHub na GitHubu",
-  "settings.thanks": "Mnoho pluginů v seznamu DeckyHub bylo nalezeno díky dvěma komunitním katalogům. Děkujeme jejich autorům!",
+  "settings.thanks":
+    "Mnoho pluginů v seznamu DeckyHub bylo nalezeno díky dvěma komunitním katalogům. Děkujeme jejich autorům!",
   "settings.catalogBy": "{name} od {author}",
   "settings.layout": "Rozložení",
   "settings.density": "Rozhraní",
@@ -237,7 +264,8 @@ export const cs: Record<MessageKey, string> = {
   "settings.hideButton": "Skrýt „{button}“",
   "settings.troubleshooting": "Řešení potíží",
   "settings.exportLogs": "Exportovat protokoly",
-  "settings.exportLogsNote": "Uloží protokoly DeckyHub jako ZIP do ~/Downloads — přiložte ho k hlášení chyby. Váš token GitHub se nikdy nezaznamenává.",
+  "settings.exportLogsNote":
+    "Uloží protokoly DeckyHub jako ZIP do ~/Downloads — přiložte ho k hlášení chyby. Váš token GitHub se nikdy nezaznamenává.",
 
   "repos.addManage": "Přidat a spravovat",
   "repos.searchGithub": "Hledat na GitHubu",
@@ -310,8 +338,10 @@ export const cs: Record<MessageKey, string> = {
   "toast.installed": "{name} nainstalován.",
   "toast.installedVersion": "{name} {version} nainstalován.",
   "welcome.title": "Vítejte v DeckyHub",
-  "welcome.body": "Instalujte a aktualizujte pluginy pro Decky přímo z vydání jejich autorů na GitHubu. Procházejte je v Objevovat, další najdete v Hledat a v Aktualizacích je udržíte aktuální.",
-  "welcome.safety": "Tyto pluginy nikdo nekontroluje, včetně DeckyHub. Jeho antivirové kontroly odhalí jen známý malware, takže čistý výsledek neznamená, že je plugin bezpečný. Instalujte jen pluginy od autorů, kterým důvěřujete; DeckyHub se vždy před instalací zeptá.",
+  "welcome.body":
+    "Instalujte a aktualizujte pluginy pro Decky přímo z vydání jejich autorů na GitHubu. Procházejte je v Objevovat, další najdete v Hledat a v Aktualizacích je udržíte aktuální.",
+  "welcome.safety":
+    "Tyto pluginy nikdo nekontroluje, včetně DeckyHub. Jeho antivirové kontroly odhalí jen známý malware, takže čistý výsledek neznamená, že je plugin bezpečný. Instalujte jen pluginy od autorů, kterým důvěřujete; DeckyHub se vždy před instalací zeptá.",
   "welcome.gotIt": "Rozumím",
   "settings.tabGeneral": "Obecné",
   "settings.tabDownloads": "Stahování",

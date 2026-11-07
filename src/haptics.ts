@@ -21,9 +21,11 @@ export function hapticTick() {
   // One tick per move: a focus change can fire several focus events at once.
   if (!hapticsOn || !input || Date.now() - lastTick < 40) return;
   try {
-    controllerList ??= input.RegisterForControllerListChanges((controllers: { eControllerType: number; nControllerIndex: number }[]) => {
-      deckController = controllers.find((controller) => controller.eControllerType === 4)?.nControllerIndex;
-    });
+    controllerList ??= input.RegisterForControllerListChanges(
+      (controllers: { eControllerType: number; nControllerIndex: number }[]) => {
+        deckController = controllers.find((controller) => controller.eControllerType === 4)?.nControllerIndex;
+      },
+    );
     if (deckController === undefined) return;
     lastTick = Date.now();
     input.TriggerSimpleHapticEvent(deckController, 2, 1, 1, 0);

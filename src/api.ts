@@ -7,8 +7,12 @@ export const getSettings = callable<[], Settings>("get_settings");
 export const getPendingInstalls = callable<[], string[]>("get_pending_installs");
 export const clearPendingInstalls = callable<[], { cleared: boolean }>("clear_pending_installs");
 export const saveSettings = callable<[settings: Settings], Settings>("save_settings");
-export const downloadAsset = callable<[asset: Asset, repo?: string], { jobId?: string; error?: string }>("download_asset");
-export const stageInstall = callable<[asset: Asset, repo: string, jobId: string], { path?: string; error?: string }>("stage_install");
+export const downloadAsset = callable<[asset: Asset, repo?: string], { jobId?: string; error?: string }>(
+  "download_asset",
+);
+export const stageInstall = callable<[asset: Asset, repo: string, jobId: string], { path?: string; error?: string }>(
+  "stage_install",
+);
 export const getDownload = callable<[jobId: string], Download>("get_download");
 export const cancelDownload = callable<[jobId: string], { ok: boolean }>("cancel_download");
 export const getDeckyHubInfo = callable<[], DeckyHubInfo>("get_deckyhub_info");
@@ -17,8 +21,13 @@ export const removeCustomRepo = callable<[repo: string], { removed: boolean; rep
 export const exportCustomRepos = callable<[], { path: string }>("export_custom_repos");
 export const importCustomRepos = callable<[path: string], { added: string[] }>("import_custom_repos");
 export const readTokenFile = callable<[path: string], { token: string | null }>("read_token_file");
-export const addCustomRegistry = callable<[url: string], { added: boolean; url: string; apps?: number; reason?: string; detail?: string }>("add_custom_registry");
-export const removeCustomRegistry = callable<[url: string], { removed: boolean; url: string }>("remove_custom_registry");
+export const addCustomRegistry = callable<
+  [url: string],
+  { added: boolean; url: string; apps?: number; reason?: string; detail?: string }
+>("add_custom_registry");
+export const removeCustomRegistry = callable<[url: string], { removed: boolean; url: string }>(
+  "remove_custom_registry",
+);
 export const refreshRegistry = callable<[], { apps: number }>("refresh_registry");
 export const exportLogs = callable<[], { path: string }>("export_logs");
 export const logFrontend = callable<[message: string], void>("log_frontend");

@@ -20,9 +20,11 @@ export const it: Record<MessageKey, string> = {
   "discover.list": "Elenco",
   "view.discoverEmpty": "Nessun repository disponibile.",
   "view.installedEmpty": "Nessun plugin installato trovato.",
-  "view.searchDescription": "Cerca plugin Decky su GitHub. Installane uno subito o aggiungilo per seguirne gli aggiornamenti.",
+  "view.searchDescription":
+    "Cerca plugin Decky su GitHub. Installane uno subito o aggiungilo per seguirne gli aggiornamenti.",
   "view.searchTitle": "Cerca e installa",
-  "search.warning": "I risultati della ricerca arrivano direttamente da GitHub. Nessuno li ha verificati: né DeckyHub né lo store di Decky. Un plugin può fare qualsiasi cosa sul tuo dispositivo, quindi installa solo plugin di autori di cui ti fidi.",
+  "search.warning":
+    "I risultati della ricerca arrivano direttamente da GitHub. Nessuno li ha verificati: né DeckyHub né lo store di Decky. Un plugin può fare qualsiasi cosa sul tuo dispositivo, quindi installa solo plugin di autori di cui ti fidi.",
   "search.placeholder": "Nome del plugin, autore o funzione",
 
   "filter.search": "Cerca",
@@ -68,40 +70,51 @@ export const it: Record<MessageKey, string> = {
   "appcard.downloads": "{count} download",
   "appcard.stars": "{count} stelle su GitHub",
   "appcard.runsAsRoot": "Eseguito come root",
-  "appcard.runsAsRootHint": "Il suo backend gira come root, con pieno accesso al sistema. Installalo solo se ti fidi dell'autore.",
+  "appcard.runsAsRootHint":
+    "Il suo backend gira come root, con pieno accesso al sistema. Installalo solo se ti fidi dell'autore.",
   "appcard.knownIssues": "Problemi noti di questo plugin",
   "appcard.skipVersion": "Salta {version}",
   "appcard.unskipVersion": "Non saltare più {version}",
   "appcard.fork": "Fork",
-  "appcard.forkHint": "Un fork che porta avanti un plugin dopo che l'originale si è fermato. DeckyHub lo elenca solo finché è quello attivo.",
+  "appcard.forkHint":
+    "Un fork che porta avanti un plugin dopo che l'originale si è fermato. DeckyHub lo elenca solo finché è quello attivo.",
   "appcard.forkOf": "Fork di {repo}",
   "appcard.ai": "IA",
-  "appcard.aiHint": "Il suo repository contiene istruzioni per assistenti di programmazione IA, o il suo README dice che è fatto con l'IA, quindi probabilmente è sviluppato con l'aiuto dell'IA. Non dice nulla sulla sua qualità o sicurezza, e l'assenza del badge non significa che l'IA non sia stata usata.",
+  "appcard.aiHint":
+    "Il suo repository contiene istruzioni per assistenti di programmazione IA, o il suo README dice che è fatto con l'IA, quindi probabilmente è sviluppato con l'aiuto dell'IA. Non dice nulla sulla sua qualità o sicurezza, e l'assenza del badge non significa che l'IA non sia stata usata.",
   "appcard.aiFiles": "Probabilmente sviluppato con l'aiuto dell'IA ({files})",
   "appcard.scan.clean": "Nessuna minaccia",
-  "appcard.scan.clean.hint": "Le scansioni antivirus non hanno trovato minacce note nella release che installeresti. Rilevano solo malware noto e possono essere aggirate, quindi non è una prova di sicurezza. In Gestisci trovi il report della scansione.",
+  "appcard.scan.clean.hint":
+    "Le scansioni antivirus non hanno trovato minacce note nella release che installeresti. Rilevano solo malware noto e possono essere aggirate, quindi non è una prova di sicurezza. In Gestisci trovi il report della scansione.",
   "appcard.scan.infected": "Minaccia trovata",
-  "appcard.scan.infected.hint": "Una scansione antivirus ha segnalato la release che installeresti. Potrebbe essere un falso positivo: apri Gestisci, leggi il rapporto e decidi tu.",
+  "appcard.scan.infected.hint":
+    "Una scansione antivirus ha segnalato la release che installeresti. Potrebbe essere un falso positivo: apri Gestisci, leggi il rapporto e decidi tu.",
   "appcard.scan.partial": "Scansione incompleta",
-  "appcard.scan.partial.hint": "Le scansioni antivirus non sono riuscite a controllare tutta la release che installeresti. Gestisci spiega il motivo.",
+  "appcard.scan.partial.hint":
+    "Le scansioni antivirus non sono riuscite a controllare tutta la release che installeresti. Gestisci spiega il motivo.",
   "appcard.badgesNotice": "Cosa significano i badge sui plugin",
   "appcard.noReleaseInYear": "Nessuna release da un anno",
   "appcard.installedFlagged": "Versione installata segnalata",
-  "appcard.installedFlagged.hint": "Segnalato nella versione che hai installato: {reasons}. Potrebbe essere un falso positivo: controlla il plugin e decidi se tenerlo.",
-  "appcard.warningsIntro": "Gli avvisi provengono dall'analisi automatica di Decky Extended Plugins sulla release che installeresti. Le segnalazioni di routine come sudo, mount o systemctl non vengono mostrate. Un avviso non prova un danno, e l'assenza di avvisi non prova la sicurezza.",
+  "appcard.installedFlagged.hint":
+    "Segnalato nella versione che hai installato: {reasons}. Potrebbe essere un falso positivo: controlla il plugin e decidi se tenerlo.",
+  "appcard.warningsIntro":
+    "Gli avvisi provengono dall'analisi automatica di Decky Extended Plugins sulla release che installeresti. Le segnalazioni di routine come sudo, mount o systemctl non vengono mostrate. Un avviso non prova un danno, e l'assenza di avvisi non prova la sicurezza.",
   "appcard.auditLink": "Apri l'analisi di Decky Extended Plugins",
   "appcard.warning.blocked": "Bloccato dall'analisi",
   "appcard.warning.blocked.hint": "L'analisi ha trovato malware o un archivio danneggiato. Installazione sconsigliata.",
   "appcard.warning.private-data": "Legge dati privati",
   "appcard.warning.private-data.hint": "Legge i dati di accesso a Steam, le chiavi SSH o segreti dall'ambiente.",
   "appcard.warning.persistence": "Modifica l'avvio del sistema",
-  "appcard.warning.persistence.hint": "Modifica i profili della shell, precarica librerie, carica moduli del kernel o aggiunge regole per i dispositivi, che restano attivi anche fuori da Decky.",
+  "appcard.warning.persistence.hint":
+    "Modifica i profili della shell, precarica librerie, carica moduli del kernel o aggiunge regole per i dispositivi, che restano attivi anche fuori da Decky.",
   "appcard.warning.not-in-source": "Codice assente dal repo",
-  "appcard.warning.not-in-source.hint": "La release contiene script o programmi che non sono nel sorgente su GitHub, quindi non puoi leggere cosa fanno.",
+  "appcard.warning.not-in-source.hint":
+    "La release contiene script o programmi che non sono nel sorgente su GitHub, quindi non puoi leggere cosa fanno.",
   "appcard.warning.obfuscated": "Codice nascosto",
   "appcard.warning.obfuscated.hint": "Contiene codice codificato o compresso difficile da leggere.",
   "appcard.warning.no-tls-check": "Salta i controlli HTTPS",
-  "appcard.warning.no-tls-check.hint": "Disattiva il controllo dei certificati, quindi ciò che scarica potrebbe essere manomesso.",
+  "appcard.warning.no-tls-check.hint":
+    "Disattiva il controllo dei certificati, quindi ciò che scarica potrebbe essere manomesso.",
   "appcard.warning.runs-downloads": "Esegue script scaricati",
   "appcard.warning.runs-downloads.hint": "Scarica uno script e lo esegue subito.",
   "appcard.warning.vulnerable": "Vulnerabilità note",
@@ -110,14 +123,18 @@ export const it: Record<MessageKey, string> = {
   "appcard.update": "Aggiorna",
   "appcard.uninstall": "Disinstalla",
   "appcard.uninstallTitle": "Disinstallare {name}?",
-  "appcard.uninstallDescription": "Rimuove il plugin e le sue impostazioni da questo dispositivo. Potrai installarlo di nuovo più tardi.",
+  "appcard.uninstallDescription":
+    "Rimuove il plugin e le sue impostazioni da questo dispositivo. Potrai installarlo di nuovo più tardi.",
   "appcard.uninstalled": "{name} è stato disinstallato.",
-  "appcard.freshInstallDescription": "DeckyHub rimuove prima la versione installata, poi Decky installa da zero quella selezionata. Aggiornare sul posto può bloccare il dispositivo a causa di un bug di Decky Loader. Se annulli la finestra di installazione di Decky, {name} resta disinstallato finché non lo installi di nuovo.",
+  "appcard.freshInstallDescription":
+    "DeckyHub rimuove prima la versione installata, poi Decky installa da zero quella selezionata. Aggiornare sul posto può bloccare il dispositivo a causa di un bug di Decky Loader. Se annulli la finestra di installazione di Decky, {name} resta disinstallato finché non lo installi di nuovo.",
   "appcard.releaseInfo": "Info sulla release",
   "appcard.noReleaseNotes": "Questa release non ha note.",
-  "install.disclaimer": "DeckyHub scarica le release solo dai repository GitHub dei loro autori. Non crea, non verifica e non garantisce questi plugin e non è responsabile di ciò che fanno al tuo dispositivo o ai tuoi dati. Installi a tuo rischio.",
+  "install.disclaimer":
+    "DeckyHub scarica le release solo dai repository GitHub dei loro autori. Non crea, non verifica e non garantisce questi plugin e non è responsabile di ciò che fanno al tuo dispositivo o ai tuoi dati. Installi a tuo rischio.",
   "pending.title": "Installare i plugin scelti?",
-  "pending.description": "Hai scelto questi plugin nell'installer. Decky Loader chiederà un'altra conferma prima di installarli.",
+  "pending.description":
+    "Hai scelto questi plugin nell'installer. Decky Loader chiederà un'altra conferma prima di installarli.",
   "pending.install": "Installa la selezione",
   "pending.toast": "Hai scelto dei plugin nell'installer. Apri DeckyHub per installarli.",
   "pending.skipped": "Non installati. Puoi trovarli in Discover quando vuoi.",
@@ -143,8 +160,10 @@ export const it: Record<MessageKey, string> = {
   "scan.engine": "Scanner: {engine}, firme {signatures}",
   "scan.rules": "Scanner: {engine}, regole {rules}",
   "scan.scannedAt": "Analizzato: {date}",
-  "scan.hint": "Il registro di DeckyHub analizza ogni ZIP di plugin che offre con ClamAV, un antivirus open source, e i file al suo interno con YARA e le regole della community di YARA Forge, molte scritte per il malware Linux.",
-  "scan.safetyWarning": "Le scansioni rilevano solo malware noto, e un malware può essere creato apposta per sfuggirgli: un risultato pulito non prova che un plugin sia sicuro.",
+  "scan.hint":
+    "Il registro di DeckyHub analizza ogni ZIP di plugin che offre con ClamAV, un antivirus open source, e i file al suo interno con YARA e le regole della community di YARA Forge, molte scritte per il malware Linux.",
+  "scan.safetyWarning":
+    "Le scansioni rilevano solo malware noto, e un malware può essere creato apposta per sfuggirgli: un risultato pulito non prova che un plugin sia sicuro.",
   "scan.unverifiedMatch": "Corrispondenza ZIP non verificata",
   "scan.waiting": "Analisi in attesa",
   "scan.unavailable": "Rapporto non disponibile",
@@ -152,14 +171,17 @@ export const it: Record<MessageKey, string> = {
   "scan.unverifiedDetail": "Il rapporto potrebbe riguardare un altro ZIP; la corrispondenza non è verificata.",
   "scan.virusTotalResult": "VirusTotal: {flagged} motori su {total} hanno segnalato questo ZIP",
   "scan.metaDefenderResult": "MetaDefender: {flagged} motori su {total} hanno segnalato questo ZIP",
-  "scan.virusTotalHint": "VirusTotal si apre nel browser di Steam e cerca questo ZIP tramite il suo SHA-256. Dal tuo dispositivo non viene caricato nulla. Il registro di DeckyHub invia a VirusTotal gli ZIP dei plugin che non conosce ancora, quindi per una nuova versione i risultati possono richiedere un po' di tempo.",
+  "scan.virusTotalHint":
+    "VirusTotal si apre nel browser di Steam e cerca questo ZIP tramite il suo SHA-256. Dal tuo dispositivo non viene caricato nulla. Il registro di DeckyHub invia a VirusTotal gli ZIP dei plugin che non conosce ancora, quindi per una nuova versione i risultati possono richiedere un po' di tempo.",
   "scan.copyLink": "Copia link dello ZIP",
   "scan.scanLink": "Analizza link su VirusTotal",
   "scan.copied": "Link dello ZIP copiato",
   "scan.copyFailed": "Impossibile copiare il link",
   "scan.pasteIntoVirusTotal": "Incollalo nel campo URL della pagina di VirusTotal e avvia l'analisi.",
-  "scan.scanLinkHint": "Analizza link su VirusTotal copia il link di download dello ZIP e apre la pagina di analisi URL di VirusTotal: incolla lì il link. VirusTotal valuta soprattutto il link in sé, quindi potrebbe non controllare il contenuto dello ZIP.",
-  "scan.deckyhubChecks": "Ogni release di DeckyHub viene analizzata con ClamAV, VirusTotal e MetaDefender prima della pubblicazione, e il suo codice viene controllato da GitHub CodeQL a ogni modifica. Il rapporto mostra versione e data di ogni scanner.",
+  "scan.scanLinkHint":
+    "Analizza link su VirusTotal copia il link di download dello ZIP e apre la pagina di analisi URL di VirusTotal: incolla lì il link. VirusTotal valuta soprattutto il link in sé, quindi potrebbe non controllare il contenuto dello ZIP.",
+  "scan.deckyhubChecks":
+    "Ogni release di DeckyHub viene analizzata con ClamAV, VirusTotal e MetaDefender prima della pubblicazione, e il suo codice viene controllato da GitHub CodeQL a ogni modifica. Il rapporto mostra versione e data di ogni scanner.",
 
   "dl.downloading": "Download di {filename}",
   "dl.preparing": "Preparazione del download…",
@@ -176,7 +198,8 @@ export const it: Record<MessageKey, string> = {
   "settings.latestVersion": "Ultima: {version}",
   "settings.updateChannel": "Canale di aggiornamento",
   "settings.registryChannel": "Canale del registro",
-  "settings.registryChannelHint": "Pre-release mostra plugin e modifiche ancora in fase di test prima che arrivino a tutti. Se non si possono caricare, DeckyHub usa l'elenco stabile.",
+  "settings.registryChannelHint":
+    "Pre-release mostra plugin e modifiche ancora in fase di test prima che arrivino a tutti. Se non si possono caricare, DeckyHub usa l'elenco stabile.",
   "settings.stableReleases": "Release stabili",
   "settings.preReleases": "Pre-release",
   "settings.checkUpdate": "Cerca aggiornamenti",
@@ -193,7 +216,8 @@ export const it: Record<MessageKey, string> = {
   "settings.selfUpdateUnavailable": "L'aggiornamento automatico non è disponibile al momento — usa Scarica ZIP.",
   "settings.downloadUpdate": "Scarica ZIP",
   "settings.downloadSettings": "Impostazioni di download",
-  "settings.whereZipsSaved": "Tutti gli ZIP delle release vengono salvati in ~/Downloads/deckyhub, con il checksum SHA-256 verificato automaticamente quando GitHub lo fornisce.",
+  "settings.whereZipsSaved":
+    "Tutti gli ZIP delle release vengono salvati in ~/Downloads/deckyhub, con il checksum SHA-256 verificato automaticamente quando GitHub lo fornisce.",
   "settings.overwriteExisting": "Sovrascrivi esistenti",
   "settings.cleanup": "Pulizia",
   "settings.emptyFolder": "Svuota cartella",
@@ -202,25 +226,31 @@ export const it: Record<MessageKey, string> = {
   "settings.downloadsCleared": "Rimossi {count} elementi dai download di DeckyHub.",
   "settings.saveSettings": "Salva impostazioni",
   "settings.githubAccess": "Accesso a GitHub",
-  "settings.githubTokenIntro": "Facoltativo. Senza token, GitHub limita questo dispositivo a 60 richieste/ora (10/min per la ricerca) — facili da esaurire con un uso intenso. Un token di accesso personale alza il limite a 5.000/ora (30/min per la ricerca).",
+  "settings.githubTokenIntro":
+    "Facoltativo. Senza token, GitHub limita questo dispositivo a 60 richieste/ora (10/min per la ricerca) — facili da esaurire con un uso intenso. Un token di accesso personale alza il limite a 5.000/ora (30/min per la ricerca).",
   "settings.githubTokenHowTo": "Creane uno lasciando deselezionati tutti gli ambiti su:",
-  "settings.githubTokenNote": "DeckyHub legge solo repository e release pubblici. Il token è salvato localmente in queste impostazioni e inviato solo ad api.github.com.",
+  "settings.githubTokenNote":
+    "DeckyHub legge solo repository e release pubblici. Il token è salvato localmente in queste impostazioni e inviato solo ad api.github.com.",
   "settings.githubToken": "Token GitHub",
   "settings.githubQuota": "Richieste GitHub rimaste: {remaining} di {limit} (si azzerano tra {minutes} min)",
   "rateLimit.title": "Limite di richieste GitHub raggiunto",
   "rateLimit.retryIn": "Riprova tra circa {minutes} min.",
   "rateLimit.retryLater": "Riprova più tardi.",
   "rateLimit.openSettings": "Apri impostazioni",
-  "rateLimit.howToAvoid": "Aggiungi un token GitHub nelle Impostazioni per alzare il limite da 60 a 5.000 richieste/ora.",
+  "rateLimit.howToAvoid":
+    "Aggiungi un token GitHub nelle Impostazioni per alzare il limite da 60 a 5.000 richieste/ora.",
   "rateLimit.dismiss": "Ignora",
   "settings.language": "Lingua",
   "settings.autoDetect": "Rilevamento automatico",
-  "settings.languageHint": "Le traduzioni diverse dall'inglese sono generate automaticamente e possono contenere errori.",
+  "settings.languageHint":
+    "Le traduzioni diverse dall'inglese sono generate automaticamente e possono contenere errori.",
   "settings.displaySettings": "Impostazioni di visualizzazione",
   "settings.about": "Informazioni",
-  "settings.aboutText": "DeckyHub installa e aggiorna i plugin Decky direttamente dalle release GitHub dei loro autori. È gratuito e open source.",
+  "settings.aboutText":
+    "DeckyHub installa e aggiorna i plugin Decky direttamente dalle release GitHub dei loro autori. È gratuito e open source.",
   "settings.aboutSource": "DeckyHub su GitHub",
-  "settings.thanks": "Molti plugin nell'elenco di DeckyHub sono stati trovati tramite due cataloghi della community. Grazie ai loro autori!",
+  "settings.thanks":
+    "Molti plugin nell'elenco di DeckyHub sono stati trovati tramite due cataloghi della community. Grazie ai loro autori!",
   "settings.catalogBy": "{name} di {author}",
   "settings.layout": "Layout",
   "settings.density": "Interfaccia",
@@ -237,7 +267,8 @@ export const it: Record<MessageKey, string> = {
   "settings.hideButton": "Nascondi “{button}”",
   "settings.troubleshooting": "Risoluzione problemi",
   "settings.exportLogs": "Esporta log",
-  "settings.exportLogsNote": "Salva i log di DeckyHub come ZIP in ~/Downloads — allegalo a una segnalazione di bug. Il tuo token GitHub non viene mai registrato.",
+  "settings.exportLogsNote":
+    "Salva i log di DeckyHub come ZIP in ~/Downloads — allegalo a una segnalazione di bug. Il tuo token GitHub non viene mai registrato.",
 
   "repos.addManage": "Aggiungi e gestisci",
   "repos.searchGithub": "Cerca su GitHub",
@@ -310,8 +341,10 @@ export const it: Record<MessageKey, string> = {
   "toast.installed": "{name} installato.",
   "toast.installedVersion": "{name} {version} installato.",
   "welcome.title": "Benvenuto in DeckyHub",
-  "welcome.body": "Installa e aggiorna i plugin Decky direttamente dalle release GitHub dei loro autori. Sfogliali qui in Scopri, trovane altri con Cerca e tienili aggiornati in Aggiornamenti.",
-  "welcome.safety": "Nessuno verifica questi plugin, DeckyHub compreso. Le sue scansioni antivirus rilevano solo malware noto, quindi una scansione pulita non significa che un plugin sia sicuro. Installa solo plugin di autori di cui ti fidi; DeckyHub chiede sempre conferma prima di installare qualsiasi cosa.",
+  "welcome.body":
+    "Installa e aggiorna i plugin Decky direttamente dalle release GitHub dei loro autori. Sfogliali qui in Scopri, trovane altri con Cerca e tienili aggiornati in Aggiornamenti.",
+  "welcome.safety":
+    "Nessuno verifica questi plugin, DeckyHub compreso. Le sue scansioni antivirus rilevano solo malware noto, quindi una scansione pulita non significa che un plugin sia sicuro. Installa solo plugin di autori di cui ti fidi; DeckyHub chiede sempre conferma prima di installare qualsiasi cosa.",
   "welcome.gotIt": "Capito",
   "settings.tabGeneral": "Generale",
   "settings.tabDownloads": "Download",

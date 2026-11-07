@@ -6,7 +6,17 @@ import { FaDownload, FaFileArchive, FaTimes } from "react-icons/fa";
 import { downloadAsset, getSettings, saveSettings } from "../api";
 import type { TFunc } from "../i18n/en";
 import type { Asset, DeckyHubInfo, DeckyHubReleaseOption, UpdateChannel, HideableButton } from "../types";
-import { PLUGIN_INSTALL_TYPE, buildVersionOptions, getDeckyBackend, installDeckyPlugin, installTypeLabel, listDeckyHubReleases, modalButtonStyle, resolveDeckyHubInstallType, setRegistryChannel } from "../utils";
+import {
+  PLUGIN_INSTALL_TYPE,
+  buildVersionOptions,
+  getDeckyBackend,
+  installDeckyPlugin,
+  installTypeLabel,
+  listDeckyHubReleases,
+  modalButtonStyle,
+  resolveDeckyHubInstallType,
+  setRegistryChannel,
+} from "../utils";
 import { normalizeVersion } from "../version";
 import { showReleaseInfo } from "./ReleaseInfo";
 import { iconTileStyle } from "./Card";
@@ -23,7 +33,8 @@ const PLUGIN_NAME = "DeckyHub";
 export async function downloadDeckyHubZip(t: TFunc, asset: Asset, onSettled?: () => void): Promise<void> {
   const result = await downloadAsset(asset, "mazillka/deckyhub-plugin");
   if (result.error) throw new Error(result.error);
-  if (result.jobId) showDownloadModal(t, result.jobId, { state: "queued", filename: asset.name, total: asset.size }, onSettled);
+  if (result.jobId)
+    showDownloadModal(t, result.jobId, { state: "queued", filename: asset.name, total: asset.size }, onSettled);
 }
 
 // showModal() mounts onto a separate root from the QAM panel (Decky's own
@@ -51,7 +62,15 @@ export function DeckyHubUpdateModal({
 }) {
   const [channel, setChannel] = useState(initialChannel);
   const [registryChannel, setRegistryChannelState] = useState(initialRegistryChannel);
-  const { items: versions, selectedTag, setSelectedTag, loading: loadingVersions, error: fetchError, load, selected: selectedRelease } = useReleasePicker(listDeckyHubReleases, channel);
+  const {
+    items: versions,
+    selectedTag,
+    setSelectedTag,
+    loading: loadingVersions,
+    error: fetchError,
+    load,
+    selected: selectedRelease,
+  } = useReleasePicker(listDeckyHubReleases, channel);
   const [checking, setChecking] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [selfUpdateError, setSelfUpdateError] = useState<string | null>(null);
@@ -96,9 +115,13 @@ export function DeckyHubUpdateModal({
       return;
     }
     closeModal?.();
-    installDeckyPlugin(release.asset, "mazillka/deckyhub-plugin", PLUGIN_NAME, release.tag, resolveDeckyHubInstallType(release.tag, info.version)).catch((error: unknown) =>
-      toaster.toast({ title: "DeckyHub", body: String(error) }),
-    );
+    installDeckyPlugin(
+      release.asset,
+      "mazillka/deckyhub-plugin",
+      PLUGIN_NAME,
+      release.tag,
+      resolveDeckyHubInstallType(release.tag, info.version),
+    ).catch((error: unknown) => toaster.toast({ title: "DeckyHub", body: String(error) }));
   };
 
   const downloadZip = async (asset: Asset) => {
@@ -114,14 +137,20 @@ export function DeckyHubUpdateModal({
   const versionOptions = buildVersionOptions(versions, info.version, t);
 
   const displayVersion = selectedRelease ? normalizeVersion(selectedRelease.tag) : "";
-  const installType = selectedRelease ? resolveDeckyHubInstallType(selectedRelease.tag, info.version) : PLUGIN_INSTALL_TYPE.UPDATE;
+  const installType = selectedRelease
+    ? resolveDeckyHubInstallType(selectedRelease.tag, info.version)
+    : PLUGIN_INSTALL_TYPE.UPDATE;
   const primaryLabel = installTypeLabel(t, installType, displayVersion);
 
   return (
     <DetailsWindow
       t={t}
       closeModal={closeModal}
-      icon={<div aria-hidden style={{ ...iconTileStyle, width: 72, height: 72, borderRadius: 16, fontSize: 34 }}><DeckyHubIcon /></div>}
+      icon={
+        <div aria-hidden style={{ ...iconTileStyle, width: 72, height: 72, borderRadius: 16, fontSize: 34 }}>
+          <DeckyHubIcon />
+        </div>
+      }
       title={t("settings.deckyhubUpdate")}
       aside="mazillka/deckyhub-plugin"
       meta={<span>{t("settings.installedVersion", { version: `v${info.version}` })}</span>}
@@ -135,23 +164,42 @@ export function DeckyHubUpdateModal({
                 style={primaryButtonStyle}
                 disabled={busy || !selectedRelease.asset}
                 onClick={() => void selfUpdate(selectedRelease)}
-                onSecondaryButton={() => showReleaseInfo(t, `DeckyHub v${displayVersion}`, selectedRelease.publishedAt, selectedRelease.notes)}
+                onSecondaryButton={() =>
+                  showReleaseInfo(t, `DeckyHub v${displayVersion}`, selectedRelease.publishedAt, selectedRelease.notes)
+                }
                 onSecondaryActionDescription={t("appcard.releaseInfo")}
-                onOptionsButton={hiddenButtons.includes("downloadZip") || busy || !selectedRelease.asset ? undefined : () => void downloadZip(selectedRelease.asset!)}
+                onOptionsButton={
+                  hiddenButtons.includes("downloadZip") || busy || !selectedRelease.asset
+                    ? undefined
+                    : () => void downloadZip(selectedRelease.asset!)
+                }
                 onOptionsActionDescription={t("settings.downloadUpdate")}
               >
                 <FaDownload /> {primaryLabel}
               </Button>
             )}
             {!hiddenButtons.includes("downloadZip") && (
-              <Button style={modalButtonStyle} disabled={busy || !selectedRelease.asset} onClick={() => void downloadZip(selectedRelease.asset!)}>
+              <Button
+                style={modalButtonStyle}
+                disabled={busy || !selectedRelease.asset}
+                onClick={() => void downloadZip(selectedRelease.asset!)}
+              >
                 <FaFileArchive /> {t("settings.downloadUpdate")}
               </Button>
             )}
           </>
         )
       }
-      scan={<VirusScanReport t={t} asset={selectedRelease?.asset} version={selectedRelease?.tag} note={t("scan.deckyhubChecks")} closeModal={closeModal} showZipActions={false} />}
+      scan={
+        <VirusScanReport
+          t={t}
+          asset={selectedRelease?.asset}
+          version={selectedRelease?.tag}
+          note={t("scan.deckyhubChecks")}
+          closeModal={closeModal}
+          showZipActions={false}
+        />
+      }
       channel={channel}
       onChannelChange={(next) => void changeChannel(next)}
       versionOptions={versionOptions}
@@ -162,18 +210,31 @@ export function DeckyHubUpdateModal({
       isEmpty={!loadingVersions && !fetchError && versions.length === 0}
       footer={
         <>
-          <div style={{ display: "grid", gap: 4, padding: "8px 12px", background: "rgba(0, 0, 0, 0.2)", borderRadius: 10 }}>
+          <div
+            style={{ display: "grid", gap: 4, padding: "8px 12px", background: "rgba(0, 0, 0, 0.2)", borderRadius: 10 }}
+          >
             <DropdownItem
               layout="below"
               bottomSeparator="none"
               label={t("settings.registryChannel")}
               description={t("settings.registryChannelHint")}
-              rgOptions={[{ label: t("appcard.channelStable"), data: "stable" }, { label: t("appcard.channelPrerelease"), data: "prerelease" }]}
+              rgOptions={[
+                { label: t("appcard.channelStable"), data: "stable" },
+                { label: t("appcard.channelPrerelease"), data: "prerelease" },
+              ]}
               selectedOption={registryChannel}
               onChange={({ data }) => changeRegistryChannel(data as UpdateChannel)}
             />
           </div>
-          <ReleaseActions t={t} url={selectedRelease?.url} hideReleasePage={hiddenButtons.includes("releasePage")} checking={checking} disabled={busy} onCheck={() => void refresh()} closeModal={closeModal} />
+          <ReleaseActions
+            t={t}
+            url={selectedRelease?.url}
+            hideReleasePage={hiddenButtons.includes("releasePage")}
+            checking={checking}
+            disabled={busy}
+            onCheck={() => void refresh()}
+            closeModal={closeModal}
+          />
           <Button style={modalButtonStyle} onClick={closeModal}>
             <FaTimes /> {t("settings.close")}
           </Button>

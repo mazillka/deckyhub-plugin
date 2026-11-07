@@ -144,5 +144,11 @@ export function HeaderNotices() {
       />
     </>
   );
-  return experimental ? <Focusable flow-children="right" className="dh-exp-notices">{notices}</Focusable> : notices;
+  return experimental ? (
+    <Focusable flow-children="right" className="dh-exp-notices">
+      {notices}
+    </Focusable>
+  ) : (
+    notices
+  );
 }

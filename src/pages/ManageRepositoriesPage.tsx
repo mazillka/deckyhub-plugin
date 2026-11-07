@@ -6,7 +6,17 @@ import { CustomRegistriesSection, CustomReposSection } from "../components/Repos
 import { RateLimitBanner } from "../components/RateLimitBanner";
 import { useEffect, useState } from "react";
 import { FaListUl } from "react-icons/fa";
-import { addCustomRegistry, exportCustomRepos, getDeckyHubInfo, getSettings, importCustomRepos, REGISTRY_UPDATED, refreshRegistry, removeCustomRegistry, removeCustomRepo } from "../api";
+import {
+  addCustomRegistry,
+  exportCustomRepos,
+  getDeckyHubInfo,
+  getSettings,
+  importCustomRepos,
+  REGISTRY_UPDATED,
+  refreshRegistry,
+  removeCustomRegistry,
+  removeCustomRepo,
+} from "../api";
 import { useT } from "../i18n";
 import type { MessageKey } from "../i18n/en";
 import { isRepositoryName, log, registryUrlForRepo } from "../utils";
@@ -32,7 +42,6 @@ export function ManageRepositoriesPage({ embedded }: { embedded?: boolean }) {
   const [registries, setRegistries] = useState<string[]>([]);
   const [registryValue, setRegistryValue] = useState("");
   const [registryBusy, setRegistryBusy] = useState(false);
-
 
   const refreshRepos = () => {
     void getSettings().then((settings) => {
@@ -66,7 +75,7 @@ export function ManageRepositoriesPage({ embedded }: { embedded?: boolean }) {
         strOKButtonText={t("repos.removeConfirm")}
         bDestructiveWarning
         onOK={() => void remove(repo).catch(showError)}
-      />
+      />,
     );
 
   const addRegistry = async () => {
@@ -88,7 +97,10 @@ export function ManageRepositoriesPage({ embedded }: { embedded?: boolean }) {
       // Decky's toaster truncates a long body, so the toast stays a short sentence and
       // the technical reason goes to the DeckyHub log instead (see log_frontend).
       if (result.detail) log(`Registry add rejected (${result.reason}) for ${url}: ${result.detail}`);
-      toaster.toast({ title: "DeckyHub", body: key ? t(key, { limit: result.detail ?? "10" }) : t("repos.registryFailed") });
+      toaster.toast({
+        title: "DeckyHub",
+        body: key ? t(key, { limit: result.detail ?? "10" }) : t("repos.registryFailed"),
+      });
     } catch (error) {
       log(`Adding registry failed: ${error}`);
       toaster.toast({ title: "DeckyHub", body: t("repos.registryFailed") });
@@ -116,7 +128,7 @@ export function ManageRepositoriesPage({ embedded }: { embedded?: boolean }) {
         strOKButtonText={t("repos.removeConfirm")}
         bDestructiveWarning
         onOK={() => void removeRegistry(url)}
-      />
+      />,
     );
 
   const reloadRegistries = async () => {
@@ -142,21 +154,36 @@ export function ManageRepositoriesPage({ embedded }: { embedded?: boolean }) {
   const importList = async () => {
     let file: { realpath: string };
     try {
-      file = await openFilePicker(FileSelectionType.FILE, (await getDeckyHubInfo()).downloadDir, true, false, undefined, ["json"]);
+      file = await openFilePicker(
+        FileSelectionType.FILE,
+        (await getDeckyHubInfo()).downloadDir,
+        true,
+        false,
+        undefined,
+        ["json"],
+      );
     } catch {
       return; // Picker closed without a file.
     }
     const result = await importCustomRepos(file.realpath);
     refreshRepos();
     if (result.added.length) window.dispatchEvent(new Event(REGISTRY_UPDATED));
-    toaster.toast({ title: "DeckyHub", body: result.added.length ? t("repos.imported", { repos: result.added.join(", ") }) : t("repos.nothingToImport") });
+    toaster.toast({
+      title: "DeckyHub",
+      body: result.added.length ? t("repos.imported", { repos: result.added.join(", ") }) : t("repos.nothingToImport"),
+    });
   };
 
   return (
     <>
       {!embedded && <RateLimitBanner />}
       {!embedded && <PageHeader icon={<FaListUl />} title={t("nav.repositories")} />}
-      <CustomReposSection repos={customRepos} onExport={() => void exportList().catch(showError)} onImport={() => void importList().catch(showError)} onRemove={confirmRemove} />
+      <CustomReposSection
+        repos={customRepos}
+        onExport={() => void exportList().catch(showError)}
+        onImport={() => void importList().catch(showError)}
+        onRemove={confirmRemove}
+      />
       <CustomRegistriesSection
         registries={registries}
         value={registryValue}

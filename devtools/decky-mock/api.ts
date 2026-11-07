@@ -61,7 +61,13 @@ export const toaster = {
     });
     document.body.appendChild(el);
     const timer = setTimeout(() => el.remove(), 4000);
-    return { data, dismiss: () => { clearTimeout(timer); el.remove(); } };
+    return {
+      data,
+      dismiss: () => {
+        clearTimeout(timer);
+        el.remove();
+      },
+    };
   },
 };
 

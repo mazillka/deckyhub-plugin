@@ -27,7 +27,8 @@ const focused = (root) => `(() => {
   return el.dataset.navId;
 })()`;
 // null once the control has left the page (Steam's tab bar switched tabs under the sweep).
-const label = (id) => `(() => { const el = document.querySelector('[data-nav-id="${id}"]'); if (!el) return null; return (el.getAttribute("aria-label") || el.textContent || el.placeholder || el.tagName).trim().replace(/\\s+/g, " ").slice(0, 40); })()`;
+const label = (id) =>
+  `(() => { const el = document.querySelector('[data-nav-id="${id}"]'); if (!el) return null; return (el.getAttribute("aria-label") || el.textContent || el.placeholder || el.tagName).trim().replace(/\\s+/g, " ").slice(0, 40); })()`;
 
 export async function press(shared, button, wait = 350) {
   await shared.eval(`FocusNavController.DispatchVirtualButtonClick(${button}); true`);
@@ -38,10 +39,16 @@ export async function press(shared, button, wait = 350) {
 // row, crossing each row both ways. It runs twice, once ending each row on its
 // left and once on its right, so a second column is walked down too. Returns the
 // page's controls and the ones the sweeps never focused.
-const OPPOSITE = { [BUTTON.UP]: BUTTON.DOWN, [BUTTON.DOWN]: BUTTON.UP, [BUTTON.LEFT]: BUTTON.RIGHT, [BUTTON.RIGHT]: BUTTON.LEFT };
+const OPPOSITE = {
+  [BUTTON.UP]: BUTTON.DOWN,
+  [BUTTON.DOWN]: BUTTON.UP,
+  [BUTTON.LEFT]: BUTTON.RIGHT,
+  [BUTTON.RIGHT]: BUTTON.LEFT,
+};
 
 export async function explore(shared, main, { maxSteps = 250, trace = false, root = ".deckyhub-motion" } = {}) {
-  const TAG = tag(root), FOCUSED = focused(root);
+  const TAG = tag(root),
+    FOCUSED = focused(root);
   const all = new Set(await main.eval(TAG));
   // Focus lands on the page once it's ready (or, from Quick Access's tab strip,
   // after Right); nudge it until it does.
@@ -59,9 +66,17 @@ export async function explore(shared, main, { maxSteps = 250, trace = false, roo
     await press(shared, button);
     for (const id of await main.eval(TAG)) all.add(id); // scrolling can show more
     const to = await main.eval(FOCUSED);
-    if (trace) console.log(Object.keys(BUTTON).find((key) => BUTTON[key] === button), "->", to && await main.eval(label(to)));
+    if (trace)
+      console.log(
+        Object.keys(BUTTON).find((key) => BUTTON[key] === button),
+        "->",
+        to && (await main.eval(label(to))),
+      );
     // Off the page (Quick Access's tab strip, Steam's menus): step back on.
-    if (!to) { await press(shared, OPPOSITE[button]); return false; }
+    if (!to) {
+      await press(shared, OPPOSITE[button]);
+      return false;
+    }
     reached.add(to);
     const moved = to !== current;
     current = to;
@@ -69,13 +84,13 @@ export async function explore(shared, main, { maxSteps = 250, trace = false, roo
   };
   const sweep = async (first, last) => {
     for (let stuck = 0; stuck < 2 && steps < maxSteps;) {
-      while (steps < maxSteps && await step(first));
-      while (steps < maxSteps && await step(last));
+      while (steps < maxSteps && (await step(first)));
+      while (steps < maxSteps && (await step(last)));
       stuck = (await step(BUTTON.DOWN)) ? 0 : stuck + 1;
     }
   };
   await sweep(BUTTON.RIGHT, BUTTON.LEFT);
-  while (steps < maxSteps && await step(BUTTON.UP)); // back to the top
+  while (steps < maxSteps && (await step(BUTTON.UP))); // back to the top
   await sweep(BUTTON.LEFT, BUTTON.RIGHT);
   const missed = [];
   for (const id of all) {

@@ -8,9 +8,21 @@ const WIDE_MODAL = "deckyhub-wide-modal";
 const WideModalStyle = () => <style>{`.${WIDE_MODAL} .GenericDialogBase { width: 100% !important; }`}</style>;
 
 export const WideConfirmModal = ({ strDescription, ...props }: ConfirmModalProps) => (
-  <ConfirmModal {...props} modalClassName={WIDE_MODAL} strDescription={<><WideModalStyle />{strDescription}</>} />
+  <ConfirmModal
+    {...props}
+    modalClassName={WIDE_MODAL}
+    strDescription={
+      <>
+        <WideModalStyle />
+        {strDescription}
+      </>
+    }
+  />
 );
 
 export const WideModalRoot = ({ children, ...props }: ComponentProps<typeof ModalRoot>) => (
-  <ModalRoot {...props} modalClassName={WIDE_MODAL}><WideModalStyle />{children}</ModalRoot>
+  <ModalRoot {...props} modalClassName={WIDE_MODAL}>
+    <WideModalStyle />
+    {children}
+  </ModalRoot>
 );
