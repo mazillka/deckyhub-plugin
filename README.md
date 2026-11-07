@@ -4,7 +4,7 @@
 
 # DeckyHub
 
-[![Support on Ko-fi](https://img.shields.io/badge/Support_on_Ko--fi-FF5E5B?style=for-the-badge&logo=kofi&logoColor=white)](https://ko-fi.com/mazillka)
+[![Support & Maintenance](https://img.shields.io/badge/Support_%26_Maintenance-FF5E5B?style=for-the-badge&logo=kofi&logoColor=white)](https://ko-fi.com/mazillka)
 
 **Your Decky plugin hub — right inside Gaming Mode.**
 
