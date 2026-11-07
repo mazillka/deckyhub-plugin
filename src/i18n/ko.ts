@@ -92,6 +92,11 @@ export const ko: Record<MessageKey, string> = {
   "appcard.scan.partial.hint": "바이러스 검사가 설치할 릴리스 전체를 확인하지 못했습니다. 이유는 관리에 있습니다.",
   "appcard.badgesNotice": "플러그인 배지의 의미",
   "appcard.noReleaseInYear": "1년 넘게 릴리스 없음",
+  "appcard.prereleaseOnly": "시험판만 있음",
+  "appcard.prereleaseOnlyHint":
+    "안정 릴리스가 없어 DeckyHub가 시험판 릴리스를 제공합니다. 미완성이거나 버그가 있을 수 있습니다.",
+  "appcard.noDescription": "설명 없음",
+  "appcard.noDescriptionHint": "작성자가 무엇을 하는지 설명하지 않았습니다. 설치하기 전에 저장소를 확인하세요.",
   "appcard.installedFlagged": "설치된 버전 경고",
   "appcard.installedFlagged.hint":
     "설치된 버전에서 발견됨: {reasons}. 오탐일 수 있습니다. 플러그인을 확인하고 유지할지 결정하세요.",
@@ -249,6 +254,8 @@ export const ko: Record<MessageKey, string> = {
   "settings.density": "인터페이스",
   "settings.densityDefault": "기본",
   "settings.densityCompact": "간결",
+  "settings.oled": "OLED 블랙",
+  "settings.oledHint": "배경을 완전한 검정으로 바꿔 OLED 화면이 해당 픽셀을 끌 수 있게 합니다.",
   "settings.itemsPerRow": "한 줄당 항목 수",
   "settings.haptics": "탐색할 때 햅틱 피드백",
   "settings.quickAccessTab": "빠른 액세스의 DeckyHub 탭",

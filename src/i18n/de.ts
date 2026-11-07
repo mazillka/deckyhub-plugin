@@ -95,6 +95,12 @@ export const de: Record<MessageKey, string> = {
     "Die Virenscans konnten das Release, das du installieren würdest, nicht vollständig prüfen. Verwalten nennt den Grund.",
   "appcard.badgesNotice": "Was die Abzeichen an Plugins bedeuten",
   "appcard.noReleaseInYear": "Seit einem Jahr kein Release",
+  "appcard.prereleaseOnly": "Nur Vorabversionen",
+  "appcard.prereleaseOnlyHint":
+    "Es gibt kein stabiles Release, daher bietet DeckyHub seine Vorabversionen an, die unfertig oder fehlerhaft sein können.",
+  "appcard.noDescription": "Keine Beschreibung",
+  "appcard.noDescriptionHint":
+    "Der Autor hat nicht angegeben, was es tut. Sieh dir vor der Installation das Repository an.",
   "appcard.installedFlagged": "Installierte Version markiert",
   "appcard.installedFlagged.hint":
     "Markiert in der Version, die du installiert hast: {reasons}. Es kann ein Fehlalarm sein: Prüfe das Plugin und entscheide, ob du es behältst.",
@@ -259,6 +265,8 @@ export const de: Record<MessageKey, string> = {
   "settings.density": "Oberfläche",
   "settings.densityDefault": "Standard",
   "settings.densityCompact": "Kompakt",
+  "settings.oled": "OLED-Schwarz",
+  "settings.oledHint": "Echt schwarze Hintergründe, damit ein OLED-Bildschirm diese Pixel abschalten kann.",
   "settings.itemsPerRow": "Elemente pro Zeile",
   "settings.haptics": "Haptisches Feedback beim Navigieren",
   "settings.quickAccessTab": "DeckyHub-Tab im Schnellzugriff",

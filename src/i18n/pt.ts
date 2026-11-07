@@ -95,6 +95,11 @@ export const pt: Record<MessageKey, string> = {
     "As verificações antivírus não conseguiram checar toda a versão que você instalaria. Gerenciar diz o motivo.",
   "appcard.badgesNotice": "O que significam os selos dos plugins",
   "appcard.noReleaseInYear": "Sem release há um ano",
+  "appcard.prereleaseOnly": "Só pré-lançamentos",
+  "appcard.prereleaseOnlyHint":
+    "Não tem nenhuma versão estável, então o DeckyHub oferece os pré-lançamentos, que podem estar inacabados ou com bugs.",
+  "appcard.noDescription": "Sem descrição",
+  "appcard.noDescriptionHint": "O autor não explicou o que ele faz. Confira o repositório antes de instalar.",
   "appcard.installedFlagged": "Versão instalada sinalizada",
   "appcard.installedFlagged.hint":
     "Sinalizado na versão que você tem instalada: {reasons}. Pode ser um falso positivo: verifique o plugin e decida se vai mantê-lo.",
@@ -255,6 +260,8 @@ export const pt: Record<MessageKey, string> = {
   "settings.density": "Interface",
   "settings.densityDefault": "Padrão",
   "settings.densityCompact": "Compacta",
+  "settings.oled": "Preto OLED",
+  "settings.oledHint": "Fundos em preto puro, para que uma tela OLED possa apagar esses pixels.",
   "settings.itemsPerRow": "Itens por linha",
   "settings.haptics": "Vibração ao navegar",
   "settings.quickAccessTab": "Aba do DeckyHub no Acesso rápido",

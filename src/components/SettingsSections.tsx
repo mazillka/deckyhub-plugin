@@ -244,7 +244,7 @@ export function LanguageSection({ settings, update }: { settings: Settings; upda
   );
 }
 
-// Layout (shared with the Grid / List switches), density, items per row, haptics,
+// Layout (shared with the Grid / List switches), density, OLED black, items per row, haptics,
 // DeckyHub's Quick Access tab,
 // and the Manage-window buttons to hide.
 export function DisplaySection({
@@ -282,6 +282,14 @@ export function DisplaySection({
             ]}
             selectedOption={settings.density}
             onChange={({ data }) => update({ density: data })}
+          />
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <ToggleField
+            label={t("settings.oled")}
+            description={t("settings.oledHint")}
+            checked={settings.oled}
+            onChange={(checked) => update({ oled: checked })}
           />
         </PanelSectionRow>
         <PanelSectionRow>

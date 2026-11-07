@@ -23,6 +23,17 @@ class PluginPageTests(unittest.TestCase):
         shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
         return plugin_pages.plugin_page(shell, APP, stats or {}, scans or {}, {}, [APP], reports, vt)
 
+    def test_pre_release_only_and_no_description_badges(self):
+        shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
+        bare = {**APP, "description": ""}
+        page = plugin_pages.plugin_page(shell, bare, {}, {}, {}, [bare], releases=[{"prerelease": True}])
+        self.assertIn(">Pre-release only</span>", page)
+        self.assertIn(">No description</span>", page)
+        listed = [{"prerelease": True}, {"prerelease": False}]
+        page = plugin_pages.plugin_page(shell, APP, {}, {}, {}, [APP], releases=listed)
+        self.assertNotIn("Pre-release only", page)
+        self.assertNotIn("No description", page)
+
     def test_a_long_repository_name_gets_a_full_width_tile_that_wraps(self):
         page = self.page()
         self.assertIn(

@@ -355,6 +355,7 @@ def plugin_page(
     others: list[dict],
     reports: dict | None = None,
     vt_reports: dict | None = None,
+    releases: list | None = None,
 ) -> str:
     name, repo, category, description = app["name"], app["repo"], app["category"], app.get("description") or ""
     repo_url = f"https://github.com/{repo}"
@@ -366,6 +367,16 @@ def plugin_page(
     if stats.get("updated"):
         facts.append(f"<li><strong>{nice_date(stats['updated'])}</strong>Latest release</li>")
     badges = badges_of(stats, scans, warnings, reports, vt_reports)
+    if prerelease_only(releases or []):
+        badges.insert(
+            0,
+            '<li><span class="badge warn">Pre-release only</span> It has no stable release, so DeckyHub offers its pre-releases, which may be unfinished or buggy.</li>',
+        )
+    if not description.strip():
+        badges.insert(
+            0,
+            '<li><span class="badge warn">No description</span> Its author hasn\'t said what it does. Check its repository before installing.</li>',
+        )
     related = [other for other in others if other["id"] != app["id"]][:6]
     crumbs = f'<p class="crumbs"><a href="/">DeckyHub</a> › <a href="/plugins/">Plugins</a> › {escape(name)}</p>'
     body = f"""{crumbs}
@@ -595,6 +606,12 @@ def catalog_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
     )
 
 
+def prerelease_only(releases: list) -> bool:
+    """True when the release index lists releases for a plugin and none of them is stable, as the app's hydrate() decides."""
+    listed = [item for item in releases if isinstance(item, dict) and not item.get("draft")]
+    return bool(listed) and all(item.get("prerelease") for item in listed)
+
+
 def version_number(text: str) -> str:
     """The version in a tag or version string, as the app's displayVersion() reads it: "Release-0.7.6" -> "0.7.6"."""
     match = re.search(r"(\d+(?:\.\d+)+)(-[0-9A-Za-z.-]+)?", text)
@@ -712,7 +729,15 @@ def write_pages(out, apps: list[dict], releases_page: str, data: dict) -> list[t
         others = [other for other in apps if other["category"] == app["category"]]
         (out / "plugins" / f"{app['id']}.html").write_text(
             plugin_page(
-                shell, app, stats.get(key) or {}, scans.get(key) or {}, warnings, others, reports, data.get("vt")
+                shell,
+                app,
+                stats.get(key) or {},
+                scans.get(key) or {},
+                warnings,
+                others,
+                reports,
+                data.get("vt"),
+                (data.get("releases") or {}).get(key),
             ),
             encoding="utf-8",
         )

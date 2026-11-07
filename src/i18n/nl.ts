@@ -94,6 +94,12 @@ export const nl: Record<MessageKey, string> = {
     "De virusscans konden de release die je zou installeren niet helemaal controleren. Beheren zegt waarom.",
   "appcard.badgesNotice": "Wat de labels bij plugins betekenen",
   "appcard.noReleaseInYear": "Al een jaar geen release",
+  "appcard.prereleaseOnly": "Alleen pre-releases",
+  "appcard.prereleaseOnlyHint":
+    "Er is geen stabiele release, dus DeckyHub biedt de pre-releases aan, die onaf of instabiel kunnen zijn.",
+  "appcard.noDescription": "Geen beschrijving",
+  "appcard.noDescriptionHint":
+    "De maker heeft niet beschreven wat het doet. Bekijk de repository voordat je installeert.",
   "appcard.installedFlagged": "Geïnstalleerde versie gemarkeerd",
   "appcard.installedFlagged.hint":
     "Gemarkeerd in de versie die je hebt geïnstalleerd: {reasons}. Het kan vals alarm zijn: controleer de plugin en beslis of je hem houdt.",
@@ -255,6 +261,8 @@ export const nl: Record<MessageKey, string> = {
   "settings.density": "Interface",
   "settings.densityDefault": "Standaard",
   "settings.densityCompact": "Compact",
+  "settings.oled": "OLED-zwart",
+  "settings.oledHint": "Echt zwarte achtergronden, zodat een OLED-scherm die pixels kan uitschakelen.",
   "settings.itemsPerRow": "Items per rij",
   "settings.haptics": "Haptische feedback bij navigeren",
   "settings.quickAccessTab": "DeckyHub-tabblad in Snelle toegang",

@@ -93,6 +93,19 @@ export const AiBadge = ({ t, files }: { t: TFunc; files?: string[] }) => (
   </span>
 );
 
+// Pre-release only: no stable release, so the card offers pre-releases (hydrate). No description:
+// its author hasn't said what it does. Both also shown in Discover's legend.
+export const PrereleaseOnlyBadge = ({ t }: { t: TFunc }) => (
+  <span title={t("appcard.prereleaseOnlyHint")} style={{ ...pillStyle, whiteSpace: "nowrap", ...tint(colors.caution) }}>
+    {t("appcard.prereleaseOnly")}
+  </span>
+);
+export const NoDescriptionBadge = ({ t }: { t: TFunc }) => (
+  <span title={t("appcard.noDescriptionHint")} style={{ ...pillStyle, whiteSpace: "nowrap", ...tint(colors.caution) }}>
+    {t("appcard.noDescription")}
+  </span>
+);
+
 // The virus scans' verdict on the release the card installs (the registry's scans.json):
 // the worse of ClamAV's and YARA's, also shown in Discover's legend. Nothing until the ZIP
 // has a report; Manage has the full report.
@@ -149,7 +162,7 @@ const InstalledRiskBadge = ({ t, risk }: { t: TFunc; risk: NonNullable<App["inst
   ) : null;
 };
 
-// Installed version flagged / Runs as root / Fork / AI / audit warnings / virus scan / No release in a year, shared by the card and its Manage window.
+// Installed version flagged / Runs as root / Fork / AI / Pre-release only / No description / audit warnings / virus scan / No release in a year, shared by the card and its Manage window.
 export function AppBadges({ app, t }: { app: App; t: TFunc }) {
   const released = releasedAt(app);
   return (
@@ -161,6 +174,8 @@ export function AppBadges({ app, t }: { app: App; t: TFunc }) {
       {app.stats?.root && <RootBadge t={t} />}
       {app.stats?.fork && <ForkBadge t={t} repo={app.stats.fork} />}
       {app.stats?.ai?.length ? <AiBadge t={t} files={app.stats.ai} /> : null}
+      {app.prereleaseOnly && <PrereleaseOnlyBadge t={t} />}
+      {!app.description?.trim() && <NoDescriptionBadge t={t} />}
       <AuditWarnings app={app} t={t} />
       {app.scan &&
         (app.scan.unverifiedMatch ? (

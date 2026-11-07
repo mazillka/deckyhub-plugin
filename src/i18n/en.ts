@@ -92,6 +92,11 @@ export const en = {
   "appcard.scan.partial.hint": "The virus scans couldn't fully check the release you'd install. Manage says why.",
   "appcard.badgesNotice": "What the badges on plugins mean",
   "appcard.noReleaseInYear": "No release in a year",
+  "appcard.prereleaseOnly": "Pre-release only",
+  "appcard.prereleaseOnlyHint":
+    "It has no stable release, so DeckyHub offers its pre-releases, which may be unfinished or buggy.",
+  "appcard.noDescription": "No description",
+  "appcard.noDescriptionHint": "Its author hasn't said what it does. Check its repository before installing.",
   "appcard.installedFlagged": "Installed version flagged",
   "appcard.installedFlagged.hint":
     "Flagged in the version you have installed: {reasons}. It may be a false positive: check the plugin and decide whether to keep it.",
@@ -251,6 +256,8 @@ export const en = {
   "settings.density": "Interface",
   "settings.densityDefault": "Default",
   "settings.densityCompact": "Compact",
+  "settings.oled": "OLED black",
+  "settings.oledHint": "True black backgrounds, so an OLED screen can switch those pixels off.",
   "settings.itemsPerRow": "Items Per Row",
   "settings.haptics": "Haptic feedback when navigating",
   "settings.quickAccessTab": "DeckyHub tab in Quick Access",

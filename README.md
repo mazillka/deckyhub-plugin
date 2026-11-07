@@ -206,6 +206,8 @@ Cards can carry these badges. **More** on the "What the badges on plugins mean" 
 | **No release in a year** | No new release for over a year, so it may be abandoned. |
 | **Fork** | A fork that carries a plugin on after its original stopped. DeckyHub lists it only while it's the active one. |
 | **AI** | Its repository has instructions for AI coding assistants (`CLAUDE.md`, `AGENTS.md`, `.cursorrules`, `.github/copilot-instructions.md` and similar), or its README says it's made with AI ("vibe-coded", "100% AI", "built with Claude Code" and similar), so it's likely developed with AI help. It says nothing about quality or safety, and no badge doesn't mean no AI was used. |
+| **Pre-release only** | It has no stable release, so DeckyHub offers its pre-releases, which may be unfinished, and its Manage window hides the Stable channel. |
+| **No description** | Its author hasn't said what it does. Check its repository before installing. |
 | **No threats** / **Threat found** / **Not fully scanned** | The virus scans of the release you'd install (ClamAV and YARA; the badge shows the worse of the two): nothing found, something flagged (it may be a false positive; open **Manage** for the report and decide), or it couldn't scan all of it (**Manage** says why). No badge until it's been scanned. The registry also looks up each public ZIP on MetaDefender by SHA-256 and uploads it there if it has no report. New, pending, failed, or unsupported scans may not have a result yet. The scans only catch known malware and can be evaded, so a clean scan isn't proof of safety. |
 
 These warnings come from Decky Extended Plugins' automated [security audit](https://decky-extended-plugins.beallio.com/audit) of the release you'd install. Routine findings like `sudo`, `mount` or `systemctl` aren't shown. A warning isn't proof of harm, and no warning isn't proof of safety.
@@ -257,7 +259,7 @@ Settings is split into tabs; **L1** / **R1** switch between them.
 
 | Tab | What's in it |
 | --- | --- |
-| **General** | The language, and the display: **Grid** or **List**, **Default** or **Compact** density, items per row, haptics, whether DeckyHub has its own tab in Quick Access, and which Manage-window buttons to hide. |
+| **General** | The language, and the display: **Grid** or **List**, **Default** or **Compact** density, **OLED black** (true black backgrounds for OLED screens), items per row, haptics, whether DeckyHub has its own tab in Quick Access, and which Manage-window buttons to hide. |
 | **GitHub** | An optional personal access token that raises GitHub's rate limit (see [Troubleshooting](#troubleshooting)). Type it, or load it from a text file in Downloads. |
 | **Downloads** | The download folder and the **Overwrite Existing** toggle (see [Downloads](#downloads)). |
 | **Repositories** | Your tracked repositories, export and import, and **Custom Registries** (see [Repositories](#repositories)). |

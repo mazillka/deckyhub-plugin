@@ -94,6 +94,11 @@ export const ja: Record<MessageKey, string> = {
     "インストールされるリリースをウイルススキャンですべて確認できませんでした。理由は「管理」にあります。",
   "appcard.badgesNotice": "プラグインのバッジの意味",
   "appcard.noReleaseInYear": "1 年以上リリースなし",
+  "appcard.prereleaseOnly": "プレリリースのみ",
+  "appcard.prereleaseOnlyHint":
+    "安定版リリースがないため、DeckyHub はプレリリースを提供します。未完成だったり不具合があったりする可能性があります。",
+  "appcard.noDescription": "説明なし",
+  "appcard.noDescriptionHint": "作者が何をするものか説明していません。インストール前にリポジトリを確認してください。",
   "appcard.installedFlagged": "インストール済みバージョンに警告",
   "appcard.installedFlagged.hint":
     "インストール済みのバージョンで検出: {reasons}。誤検出の可能性もあります。プラグインを確認し、残すかどうか判断してください。",
@@ -253,6 +258,8 @@ export const ja: Record<MessageKey, string> = {
   "settings.density": "インターフェース",
   "settings.densityDefault": "標準",
   "settings.densityCompact": "コンパクト",
+  "settings.oled": "OLED ブラック",
+  "settings.oledHint": "背景を完全な黒にして、OLED 画面がその画素を消灯できるようにします。",
   "settings.itemsPerRow": "1行あたりの項目数",
   "settings.haptics": "移動時の触覚フィードバック",
   "settings.quickAccessTab": "クイックアクセスの DeckyHub タブ",

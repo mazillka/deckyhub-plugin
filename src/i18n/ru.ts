@@ -94,6 +94,11 @@ export const ru: Record<MessageKey, string> = {
     "Антивирусные проверки не смогли полностью проверить релиз, который будет установлен. Причина — в «Управлении».",
   "appcard.badgesNotice": "Что означают значки у плагинов",
   "appcard.noReleaseInYear": "Нет релизов больше года",
+  "appcard.prereleaseOnly": "Только пре-релизы",
+  "appcard.prereleaseOnlyHint":
+    "У него нет стабильного релиза, поэтому DeckyHub предлагает пре-релизы, которые могут быть незавершёнными или с ошибками.",
+  "appcard.noDescription": "Нет описания",
+  "appcard.noDescriptionHint": "Автор не написал, что он делает. Перед установкой загляните в его репозиторий.",
   "appcard.installedFlagged": "Установленная версия отмечена",
   "appcard.installedFlagged.hint":
     "Отмечено в установленной у вас версии: {reasons}. Это может быть ложное срабатывание: проверьте плагин и решите, оставить ли его.",
@@ -252,6 +257,8 @@ export const ru: Record<MessageKey, string> = {
   "settings.density": "Интерфейс",
   "settings.densityDefault": "Стандартный",
   "settings.densityCompact": "Компактный",
+  "settings.oled": "Чёрный для OLED",
+  "settings.oledHint": "Полностью чёрный фон, чтобы OLED-экран мог отключать эти пиксели.",
   "settings.itemsPerRow": "Элементов в строке",
   "settings.haptics": "Тактильный отклик при навигации",
   "settings.quickAccessTab": "Вкладка DeckyHub в быстром доступе",
