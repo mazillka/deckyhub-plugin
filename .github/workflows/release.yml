@@ -38,11 +38,17 @@ jobs:
           mkdir -p release/DeckyHub/dist
           cp dist/index.js release/DeckyHub/dist/
           cp LICENSE.md main.py package.json plugin.json release/DeckyHub/
+          # The backend's modules; Decky Loader puts py_modules/ on sys.path. The tests
+          # above left bytecode caches in it, which don't belong in the ZIP.
+          cp -r py_modules release/DeckyHub/
+          find release -name __pycache__ -prune -exec rm -rf {} +
           (cd release && zip -r "../DeckyHub-${GITHUB_REF_NAME}.zip" DeckyHub)
       - name: Verify release package
         run: |
           unzip -Z1 "DeckyHub-${GITHUB_REF_NAME}.zip" | grep -Fx "DeckyHub/main.py"
           unzip -Z1 "DeckyHub-${GITHUB_REF_NAME}.zip" | grep -Fx "DeckyHub/plugin.json"
+          unzip -Z1 "DeckyHub-${GITHUB_REF_NAME}.zip" | grep -Fx "DeckyHub/py_modules/deckyhub/registry.py"
+          if unzip -Z1 "DeckyHub-${GITHUB_REF_NAME}.zip" | grep -F ".pyc"; then echo "bytecode in the ZIP"; exit 1; fi
           unzip -Z1 "DeckyHub-${GITHUB_REF_NAME}.zip" | grep -Fx "DeckyHub/dist/index.js"
           if unzip -Z1 "DeckyHub-${GITHUB_REF_NAME}.zip" | grep -F ".map"; then echo "source map in the ZIP"; exit 1; fi
           sha256sum "DeckyHub-${GITHUB_REF_NAME}.zip"

@@ -2,6 +2,10 @@
 
 Use these project skills when working in this repository.
 
+## Code quality
+
+Code must be well organized, easy for people to read and review, and follow Decky Loader's plugin conventions. The [code-quality skill](.agents/skills/code-quality/SKILL.md) has the rules and a review checklist; use it when writing, reviewing or refactoring code.
+
 ## Backward compatibility
 
 DeckyHub is in production: an update must keep existing users' settings, caches, self-update path and registry data working, and new behavior is opt-in. Follow the `compatibility` skill before changing any of them.
@@ -58,7 +62,7 @@ Every test must be able to fail when the behavior it names breaks. Delete fake a
 - Fake Decky Loader with `page.addInitScript` setting `window.DeckyBackend` to record calls; seed installed plugins as `.dev-data/plugins/<name>/plugin.json` and remove them in `finally`.
 - Send keys from a locator inside the mock's iframe (`locator.press`); `page.keyboard` goes to the outer page.
 - Wait for async-loaded state (e.g. the saved token appearing) before typing into a field.
-- Restart `dev-server.py` after backend changes — it doesn't reload `main.py`, and a stale bridge shows blank pages.
+- Restart `dev-server.py` after backend changes — it doesn't reload `main.py` or `py_modules/`, and a stale bridge shows blank pages.
 - When timing in the in-app browser pane, use a `MutationObserver`, not `setTimeout` polling: background timers are throttled to ~1 s.
 
 ## Docs and website
@@ -86,7 +90,7 @@ Every change that alters what a user sees or does updates the docs in the same P
 
 - One topic per PR (PRs are squash-merged, see CONTRIBUTING.md); the PR must typecheck.
 - Push a `v*` tag only after all checks pass.
-- Cut a release only when the plugin ZIP changes (`plugin.json`, `main.py`, `src/`, `package.json`). Docs-, website- or `devtools/`-only changes ship by merging to `main`, with no version bump; a release with no plugin change still pings every user with an update toast.
+- Cut a release only when the plugin ZIP changes (`plugin.json`, `main.py`, `py_modules/`, `src/`, `package.json`). Docs-, website- or `devtools/`-only changes ship by merging to `main`, with no version bump; a release with no plugin change still pings every user with an update toast.
 - If the release workflow fails after the tag is pushed, fix it and bump to the next rc; never move a published tag.
 - Changes to install/download/uninstall behavior also update README, `CONTRIBUTING.md` and `AGENTS.md`, which describe that policy.
 - Release steps: [CONTRIBUTING.md](CONTRIBUTING.md#releases). Release notes (every release, pre-releases too): the Release section of [AGENTS.md](AGENTS.md#release).

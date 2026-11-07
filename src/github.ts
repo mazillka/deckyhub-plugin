@@ -44,26 +44,34 @@ export let tokenLoaded: Promise<void> | null = null;
 
 export async function githubFetch(url: string) {
   // A failed settings read is retried on the next call rather than kept.
-  tokenLoaded ??= getSettings().then((settings) => setGithubToken(settings.githubToken || ""), () => {
-    tokenLoaded = null;
-  });
+  tokenLoaded ??= getSettings().then(
+    (settings) => setGithubToken(settings.githubToken || ""),
+    () => {
+      tokenLoaded = null;
+    },
+  );
   await tokenLoaded;
   return fetchNoCors(url, { headers: githubHeaders(), signal: AbortSignal.timeout(15_000) });
 }
 
 export async function githubResponseError(response: Response): Promise<Error> {
-  if (response.status !== 403 && response.status !== 429) return new Error(tr("github.error", { status: response.status }));
+  if (response.status !== 403 && response.status !== 429)
+    return new Error(tr("github.error", { status: response.status }));
   const minutesUntil = (epochSeconds: number) => Math.max(1, Math.ceil((epochSeconds * 1000 - Date.now()) / 60_000));
   const retryAfter = Number(response.headers.get("retry-after"));
   const resetAt = Number(response.headers.get("x-ratelimit-reset"));
   const remaining = response.headers.get("x-ratelimit-remaining");
-  const minutes = Number.isFinite(retryAfter) && retryAfter > 0
-    ? Math.max(1, Math.ceil(retryAfter / 60))
-    : remaining === "0" && Number.isFinite(resetAt) && resetAt > 0
-    ? minutesUntil(resetAt)
-    : null;
+  const minutes =
+    Number.isFinite(retryAfter) && retryAfter > 0
+      ? Math.max(1, Math.ceil(retryAfter / 60))
+      : remaining === "0" && Number.isFinite(resetAt) && resetAt > 0
+        ? minutesUntil(resetAt)
+        : null;
   if (!githubToken) reportRateLimit(minutes);
-  const parts = [`${tr("rateLimit.title")}.`, minutes ? tr("rateLimit.retryIn", { minutes }) : tr("rateLimit.retryLater")];
+  const parts = [
+    `${tr("rateLimit.title")}.`,
+    minutes ? tr("rateLimit.retryIn", { minutes }) : tr("rateLimit.retryLater"),
+  ];
   if (!githubToken) parts.push(tr("rateLimit.howToAvoid"));
   return new Error(parts.join(" "));
 }
@@ -81,9 +89,10 @@ export async function githubCoreQuota(): Promise<{ limit: number; remaining: num
 // (raw.githubusercontent.com resolves HEAD to it), via GitHub's raw-content host.
 // The Manage page takes "owner/repo" and expands it to this, so adding a registry
 // whose source is a GitHub repo is one short field.
-export const registryUrlForRepo = (repo: string) => `https://raw.githubusercontent.com/${repo.trim()}/HEAD/registry/apps.json`;
+export const registryUrlForRepo = (repo: string) =>
+  `https://raw.githubusercontent.com/${repo.trim()}/HEAD/registry/apps.json`;
 
-// Same rule as REPOSITORY_NAME in main.py: neither part may be only dots.
+// Same rule as REPOSITORY_NAME in py_modules/deckyhub/validation.py: neither part may be only dots.
 const REPOSITORY_PATTERN = /^(?!\.+\/)[A-Za-z0-9_.-]+\/(?!\.+$)[A-Za-z0-9_.-]+$/;
 
 export const isRepositoryName = (value: string) => REPOSITORY_PATTERN.test(value.trim());
@@ -109,4 +118,7 @@ export function registryLabel(url: string): string {
 export const manifestName = (repo: string): Promise<string | null> =>
   fetchNoCors(`https://raw.githubusercontent.com/${repo}/HEAD/plugin.json`, { signal: AbortSignal.timeout(10_000) })
     .then((response) => (response.ok ? response.json() : null))
-    .then((manifest) => (typeof manifest?.name === "string" ? manifest.name : null), () => null);
+    .then(
+      (manifest) => (typeof manifest?.name === "string" ? manifest.name : null),
+      () => null,
+    );
