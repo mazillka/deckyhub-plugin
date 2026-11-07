@@ -1,19 +1,27 @@
 import { toaster } from "@decky/api";
-import { ConfirmModal, showModal } from "@decky/ui";
+import { Focusable, showModal } from "@decky/ui";
+import { WideConfirmModal } from "./WideModal";
 import type { TFunc } from "../i18n/en";
-import type { Asset } from "../types";
+import { isAuditWarning, type Asset } from "../types";
+import { keepInView } from "./KeepInView";
 import { getDeckyBackend, installDeckyPlugin, manifestName, needsFreshInstall } from "../utils";
 import { VirusScanReport } from "./VirusScanReport";
-import { AUDIT_WARNINGS, WarningBadge } from "./AppBadges";
+import { WarningBadge } from "./AppBadges";
 
 // Every install, update or reinstall of a third-party plugin first says
 // DeckyHub doesn't vouch for it; resolves true once the user accepts.
 export function confirmPluginInstall(t: TFunc, title: string, okLabel: string, note?: string, asset?: Asset, warnings: string[] = []): Promise<boolean> {
   return new Promise((resolve) =>
     showModal(
-      <ConfirmModal
+      <WideConfirmModal
         strTitle={title}
-        strDescription={<><span style={{ color: "#ff6b6b" }}>{t("install.disclaimer")}</span>{note && <p>{note}</p>}{warnings.filter((warning): warning is (typeof AUDIT_WARNINGS)[number] => (AUDIT_WARNINGS as readonly string[]).includes(warning)).map((warning) => <p key={warning}><WarningBadge t={t} warning={warning} /> {t(`appcard.warning.${warning}.hint`)}</p>)}{asset && <VirusScanReport t={t} asset={asset} showExternalActions={false} />}</>}
+        // Each block is focusable so the D-pad scrolls through all of it, like VirusScanReport.
+        strDescription={<Focusable flow-children="down">
+          <Focusable onActivate={() => {}} onFocus={keepInView}><span style={{ color: "#ff6b6b" }}>{t("install.disclaimer")}</span></Focusable>
+          {note && <Focusable onActivate={() => {}} onFocus={keepInView}><p>{note}</p></Focusable>}
+          {warnings.filter(isAuditWarning).map((warning) => <Focusable key={warning} onActivate={() => {}} onFocus={keepInView}><p><WarningBadge t={t} warning={warning} /> {t(`appcard.warning.${warning}.hint`)}</p></Focusable>)}
+          {asset && <VirusScanReport t={t} asset={asset} showExternalActions={false} />}
+        </Focusable>}
         strOKButtonText={okLabel}
         onOK={() => resolve(true)}
         onCancel={() => resolve(false)}

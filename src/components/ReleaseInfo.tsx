@@ -1,4 +1,5 @@
-import { ConfirmModal, Focusable, showModal } from "@decky/ui";
+import { Focusable, showModal } from "@decky/ui";
+import { WideConfirmModal } from "./WideModal";
 import { useEffect, useRef, type ReactNode } from "react";
 import type { TFunc } from "../i18n/en";
 import { plainNotes, textSections } from "../notes";
@@ -9,7 +10,7 @@ export { plainNotes, textSections };
 // Y on an Install/Update button shows what that release changes before installing it.
 export const showReleaseInfo = (t: TFunc, title: string, publishedAt?: string | null, notes?: string) =>
   showModal(
-    <ConfirmModal
+    <WideConfirmModal
       bAlertDialog
       strTitle={title}
       strDescription={

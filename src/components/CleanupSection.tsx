@@ -1,7 +1,8 @@
 import { usePopClass } from "../uiStyle";
 import { toaster } from "@decky/api";
 import { MotionStyle } from "../motion";
-import { DialogButtonPrimary as Button, ModalRoot, PanelSection, PanelSectionRow, showModal } from "@decky/ui";
+import { DialogButtonPrimary as Button, PanelSection, PanelSectionRow, showModal } from "@decky/ui";
+import { WideModalRoot } from "./WideModal";
 import { useEffect, useState } from "react";
 import { FaExclamationTriangle, FaTimes, FaTrash } from "react-icons/fa";
 import { clearDownloads, listDownloads } from "../api";
@@ -20,7 +21,7 @@ type DownloadEntry = { name: string; directory: boolean };
 function ClearDownloadsModal({ t, downloads, onConfirm, closeModal }: { t: TFunc; downloads: DownloadEntry[]; onConfirm: () => void; closeModal?: () => void }) {
   const popClass = usePopClass();
   return (
-    <ModalRoot closeModal={closeModal}>
+    <WideModalRoot closeModal={closeModal}>
       <MotionStyle />
       <div className={popClass}>
       <div style={{ display: "grid", gap: windowGap }}>
@@ -52,7 +53,7 @@ function ClearDownloadsModal({ t, downloads, onConfirm, closeModal }: { t: TFunc
         </Button>
       </div>
     </div>
-    </ModalRoot>
+    </WideModalRoot>
   );
 }
 

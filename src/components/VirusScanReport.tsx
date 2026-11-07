@@ -1,5 +1,6 @@
 import { toaster } from "@decky/api";
-import { DialogButtonPrimary as Button, ConfirmModal, Focusable, showModal } from "@decky/ui";
+import { DialogButtonPrimary as Button, Focusable, showModal } from "@decky/ui";
+import { WideConfirmModal } from "./WideModal";
 import { useEffect, useState } from "react";
 import { FaCopy, FaExternalLinkAlt, FaShieldAlt } from "react-icons/fa";
 import { openExternalWeb } from "../external";
@@ -76,7 +77,7 @@ function ScanReportModal({ t, asset, scan, virusTotal, metaDefender, showExterna
 }) {
   const hash = [asset.sha256, scan?.unverifiedMatch ? undefined : scan?.sha256].find((value) => value && /^[0-9a-f]{64}$/i.test(value));
   return (
-    <ConfirmModal
+    <WideConfirmModal
       bAlertDialog
       closeModal={closeModal}
       strTitle={t("scan.reportTitle")}

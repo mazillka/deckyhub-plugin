@@ -1,6 +1,7 @@
 import { toaster } from "@decky/api";
 import { openExternalWeb } from "../external";
-import { DialogButtonPrimary as Button, ConfirmModal, Navigation, showModal } from "@decky/ui";
+import { DialogButtonPrimary as Button, Navigation, showModal } from "@decky/ui";
+import { WideConfirmModal } from "./WideModal";
 import { useState } from "react";
 import { FaArrowDown, FaArrowUp, FaEye, FaEyeSlash, FaFileArchive, FaPlus, FaRedo, FaTimes, FaTrash } from "react-icons/fa";
 import { saveRepoSettings } from "../api";
@@ -94,7 +95,7 @@ export function AppDetailsModal({
   const canUninstall = Boolean(app.pluginName && app.pluginName !== "DeckyHub");
   const confirmUninstall = () =>
     showModal(
-      <ConfirmModal
+      <WideConfirmModal
         strTitle={t("appcard.uninstallTitle", { name: app.name })}
         strDescription={t("appcard.uninstallDescription")}
         strOKButtonText={t("appcard.uninstall")}
