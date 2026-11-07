@@ -1,3 +1,4 @@
+import { usePopClass } from "../uiStyle";
 import { DialogButtonPrimary as Button, ModalRoot, ProgressBar, showModal } from "@decky/ui";
 import { MotionStyle } from "../motion";
 import { useEffect, useRef, useState } from "react";
@@ -26,6 +27,7 @@ function DownloadModal({
   until?: Promise<unknown>;
   closeModal?: () => void;
 }) {
+  const popClass = usePopClass();
   const [state, setState] = useState(initial);
   const active = ACTIVE_STATES.includes(state.state);
 
@@ -65,7 +67,7 @@ function DownloadModal({
   return (
     <ModalRoot closeModal={closeModal}>
       <MotionStyle />
-      <div className="deckyhub-pop">
+      <div className={popClass}>
       <div style={{ display: "grid", gap: 14 }}>
           {preparing && (
             <div style={{ display: "grid", gap: 16 }}>

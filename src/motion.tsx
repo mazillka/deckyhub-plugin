@@ -1,3 +1,6 @@
+import { ExperimentalStyle } from "./components/experimental/theme";
+import { useUiStyle } from "./uiStyle";
+
 // DeckyHub's transitions and its D-pad focus ring, as one stylesheet. Each route and
 // the Quick Access panel include it (Motion in index.tsx), and so does every modal,
 // since modals open in Steam's main window, which may not hold a route.
@@ -22,4 +25,13 @@ const MOTION_CSS = `
   }
 `;
 
-export const MotionStyle = () => <style>{MOTION_CSS}</style>;
+// With the Experimental UI Style, its look comes along (see experimental/theme.tsx).
+export function MotionStyle() {
+  const experimental = useUiStyle() === "experimental";
+  return (
+    <>
+      <style>{MOTION_CSS}</style>
+      {experimental && <ExperimentalStyle />}
+    </>
+  );
+}

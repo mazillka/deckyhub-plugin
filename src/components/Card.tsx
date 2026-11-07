@@ -2,6 +2,7 @@ import { Focusable } from "@decky/ui";
 import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import { surfaceStyle } from "../utils";
 import { keepInView } from "./KeepInView";
+import { useUiStyle } from "../uiStyle";
 
 // A short slide-in when what a region shows changes (page, category, layout, results).
 // It animates the region rather than rebuilding it, so D-pad focus stays where it was;
@@ -34,7 +35,7 @@ export function IconNote({ icon, children }: { icon: ReactNode; children: ReactN
 // into view when the D-pad moves focus into it.
 export function Card({ children, accent, style }: { children: ReactNode; accent?: string; style?: CSSProperties }) {
   return (
-    <div onFocus={keepInView} style={{ ...surfaceStyle, marginBottom: "var(--dh-card-gap, 14px)", padding: "var(--dh-card-padding, 4px 14px)", ...(accent && { borderLeft: `3px solid ${accent}` }), ...style }}>
+    <div className="deckyhub-card" onFocus={keepInView} style={{ ...surfaceStyle, marginBottom: "var(--dh-card-gap, 14px)", padding: "var(--dh-card-padding, 4px 14px)", ...(accent && { borderLeft: `3px solid ${accent}` }), ...style }}>
       {children}
     </div>
   );
@@ -57,6 +58,20 @@ export const iconTileStyle = {
 // A page's title row: icon tile, title and description, then any actions.
 // Without actions it's a focus stop of its own, so the D-pad can reach it.
 export function PageHeader({ icon, title, badge, description, actions }: { icon: ReactNode; title: string; badge?: ReactNode; description?: string; actions?: ReactNode }) {
+  // Experimental: the same banner as Updates' and Discover's (ExpHeader).
+  if (useUiStyle() === "experimental")
+    return (
+      <Focusable flow-children="right" onActivate={actions ? undefined : () => {}} onFocus={keepInView} className="dh-exp-hero">
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <h2 className="dh-exp-gradient-text">{title}</h2>
+            {badge}
+          </div>
+          {description && <p>{description}</p>}
+        </div>
+        {actions && <div className="dh-exp-actions">{actions}</div>}
+      </Focusable>
+    );
   return (
     <Focusable flow-children="right" onActivate={actions ? undefined : () => {}} onFocus={keepInView} style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: "var(--dh-card-gap, 14px)" }}>
       <div aria-hidden style={iconTileStyle}>{icon}</div>

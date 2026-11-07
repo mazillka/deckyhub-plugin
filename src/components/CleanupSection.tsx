@@ -1,3 +1,4 @@
+import { usePopClass } from "../uiStyle";
 import { toaster } from "@decky/api";
 import { MotionStyle } from "../motion";
 import { DialogButtonPrimary as Button, ModalRoot, PanelSection, PanelSectionRow, showModal } from "@decky/ui";
@@ -17,10 +18,11 @@ type DownloadEntry = { name: string; directory: boolean };
 // own lines like DeckyHub's other windows. Rendered via showModal(), so it
 // gets `t` as a prop (no I18nProvider there) and closeModal from Decky.
 function ClearDownloadsModal({ t, downloads, onConfirm, closeModal }: { t: TFunc; downloads: DownloadEntry[]; onConfirm: () => void; closeModal?: () => void }) {
+  const popClass = usePopClass();
   return (
     <ModalRoot closeModal={closeModal}>
       <MotionStyle />
-      <div className="deckyhub-pop">
+      <div className={popClass}>
       <div style={{ display: "grid", gap: windowGap }}>
         <strong style={{ fontSize: 16 }}>{t("settings.clearDownloadsTitle")}</strong>
         {/* Deletion can't be undone, so the question reads as a warning. */}

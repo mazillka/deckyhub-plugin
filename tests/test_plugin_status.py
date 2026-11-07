@@ -148,6 +148,15 @@ class PluginStatusTests(unittest.TestCase):
             self.assertIs(asyncio.run(plugin.save_settings({"quickAccessTab": False}))["quickAccessTab"], False)
             self.assertIs(plugin._load_settings()["quickAccessTab"], False)
 
+    def test_ui_style_defaults_for_old_settings_and_keeps_only_known_styles(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.settings_path = Path(home) / "settings.json"
+            plugin.settings_path.write_text(json.dumps({"haptics": False}), encoding="utf-8")
+            self.assertEqual(plugin._load_settings()["uiStyle"], "default")
+            self.assertEqual(asyncio.run(plugin.save_settings({"uiStyle": "experimental"}))["uiStyle"], "experimental")
+            self.assertEqual(asyncio.run(plugin.save_settings({"uiStyle": "neon"}))["uiStyle"], "default")
+
     def test_hidden_buttons_keep_only_known_names(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = Plugin()

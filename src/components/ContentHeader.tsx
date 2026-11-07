@@ -1,4 +1,5 @@
-import { DialogButtonPrimary as Button } from "@decky/ui";
+import { DialogButtonPrimary as Button, Focusable } from "@decky/ui";
+import { useUiStyle } from "../uiStyle";
 import type { ReactNode } from "react";
 import { FaArrowCircleUp, FaArrowLeft, FaArrowUp, FaCompass, FaPlug, FaExternalLinkAlt, FaSync } from "react-icons/fa";
 import { openExternalWeb } from "../external";
@@ -83,6 +84,18 @@ export function ContentHeader({
           </>
         }
       />
+      <HeaderNotices />
+    </KeepInView>
+  );
+}
+
+// The install disclaimer and the badge notice under a page's title, in both UI styles.
+export function HeaderNotices() {
+  const t = useT();
+  // Experimental: the two side by side, so the plugins start higher up.
+  const experimental = useUiStyle() === "experimental";
+  const notices = (
+    <>
       {/* One line each, so plugins show above the fold. The badges get their own notice:
           their tooltips never show on a Deck (no hover), and they aren't part of the warning. */}
       <Notice className="deckyhub-disclaimer" text={t("install.disclaimer")} />
@@ -129,6 +142,7 @@ export function ContentHeader({
           </>
         }
       />
-    </KeepInView>
+    </>
   );
+  return experimental ? <Focusable flow-children="right" className="dh-exp-notices">{notices}</Focusable> : notices;
 }

@@ -6,7 +6,7 @@ import { downloadAsset } from "../api";
 import { useT } from "../i18n";
 import type { App, Asset, RepoPreference, View } from "../types";
 import { compactButtonStyle, compactNumber, hydrate, installAction, needsFreshInstall, PLUGIN_INSTALL_TYPE, updateDeckyPlugins } from "../utils";
-import { AppCard } from "../components/AppCard";
+import { AppCard, type CardLayout } from "../components/AppCard";
 import { pillStyle } from "../components/AppBadges";
 import { confirmPluginInstall } from "../components/InstallFlow";
 import { showDownloadModal } from "../components/DownloadProgress";
@@ -25,6 +25,13 @@ import { useApps } from "../hooks/useApps";
 import { RateLimitBanner } from "../components/RateLimitBanner";
 import { offerPendingInstalls } from "../components/PendingInstalls";
 import { Welcome } from "../components/Welcome";
+import { UiStyleSection } from "../components/UiStyleSection";
+import { ExpAppCard } from "../components/experimental/ExpAppCard";
+import { ExpHeader } from "../components/experimental/ExpHeader";
+import { ExpDiscoverHome } from "../components/experimental/ExpDiscoverHome";
+import { ExpDiscoverFilters } from "../components/experimental/ExpDiscoverFilters";
+import { ExpQuickAccess } from "../components/experimental/ExpQuickAccess";
+import { useUiStyle } from "../uiStyle";
 
 
 
@@ -33,6 +40,11 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const view: View = fullPage ?? "updates";
   const { apps, setApps, loading, loadError, checked, listedCount, installedCount, columnsPerRow, repoPreferences, setRepoPreferences, hiddenButtons, registryChannel, load } = useApps(view);
   const [downloading, setDownloading] = useState(false);
+  // Quick Access' UI Style: Experimental swaps in its own header, cards and panel.
+  const experimental = useUiStyle() === "experimental";
+  const Header = experimental ? ExpHeader : ContentHeader;
+  const Card_ = experimental ? ExpAppCard : AppCard;
+  const Filters = experimental ? ExpDiscoverFilters : DiscoverFilters;
   // Opening DeckyHub's Quick Access tab offers the plugins picked in the Desktop Mode installer.
   useEffect(() => {
     if (!fullPage) void offerPendingInstalls(t);
@@ -138,7 +150,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
     (!category || app.category === category);
   const countWith = (installed: string, category: string) => apps.filter((app) => matchesFilters(app, installed, category)).length;
   const discoverFilters = view === "discover" && browsing && (
-    <DiscoverFilters
+    <Filters
       query={query}
       onQuery={setQuery}
       installed={installedFilter}
@@ -180,7 +192,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const categoryCounts = categories.map((category) => [category, apps.filter((app) => app.category === category).length] as const).sort((a, b) => b[1] - a[1]);
   // A shelf is one row of cards, or in the list view a few rows (it follows the Grid / List choice).
   const shelfSize = layout === "list" ? 4 : columnsPerRow;
-  const shelf = (order: SortOrder) => [...apps].sort((a, b) => compareBy(order, a, b, apps) || compareBy("az", a, b, apps)).slice(0, shelfSize);
+  const shelf = (order: SortOrder, size = shelfSize) => [...apps].sort((a, b) => compareBy(order, a, b, apps) || compareBy("az", a, b, apps)).slice(0, size);
   const updateCount = apps.filter((app) => app.updateAvailable).length;
   // Decky plugins the Updates page can update in one batch (see updateDeckyPlugins).
   const batchUpdates = view === "updates" && !hiddenButtons.includes("update")
@@ -199,8 +211,8 @@ export function Content({ fullPage }: { fullPage?: View }) {
       .finally(() => setUpdatingAll(false));
     Navigation.NavigateBack();
   };
-  const renderCard = (app: App, cardLayout?: "row") => (
-    <AppCard
+  const renderCard = (app: App, cardLayout?: CardLayout) => (
+    <Card_
       app={app}
       layout={cardLayout}
       preference={repoPreferences[app.repo] ?? { channel: "stable" }}
@@ -244,7 +256,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
       )}
       {!loading && !loadError && (
         <>
-          <ContentHeader
+          <Header
             view={view}
             title={browsing ? activeCategory || t("discover.allPlugins") : info.title}
             badge={
@@ -266,7 +278,9 @@ export function Content({ fullPage }: { fullPage?: View }) {
             onUpdateAll={() => void updateAll()}
           />
           <div ref={swapRef}>
-          {home ? (
+          {home && experimental ? (
+            <ExpDiscoverHome total={apps.length} categories={categoryCounts} shelf={shelf} onBrowse={openBrowse} renderCard={renderCard} />
+          ) : home ? (
             <DiscoverHome total={apps.length} categories={categoryCounts} shelf={shelf} onBrowse={openBrowse} renderGrid={(items) => layout === "list" ? <AppList apps={items} layout="list" columns={1} renderCard={renderCard} /> : renderGrid(items)} />
           ) : (
             // B goes back to the shelves while browsing; elsewhere it leaves the page as usual.
@@ -295,10 +309,13 @@ export function Content({ fullPage }: { fullPage?: View }) {
       {page}
     </div>
   ) : (
-    <div ref={quickAccessRef}>
+    <div ref={quickAccessRef} className="deckyhub-qam">
       <RateLimitBanner stacked />
       {/* Loads installed apps the same way the Updates page does, for its Updates count. */}
-      <QuickAccessNav updateCount={updateCount} listedCount={listedCount} installedCount={installedCount} />
+      {experimental
+        ? <ExpQuickAccess updates={apps.filter((app) => app.updateAvailable)} listedCount={listedCount} installedCount={installedCount} />
+        : <QuickAccessNav updateCount={updateCount} listedCount={listedCount} installedCount={installedCount} />}
+      <UiStyleSection />
     </div>
   );
 }

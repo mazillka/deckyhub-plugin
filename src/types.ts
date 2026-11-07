@@ -66,7 +66,10 @@ export type VirusScan = ScanVerdict & { sha256?: string; yara?: ScanVerdict; unv
 // Manage-window buttons that Display Settings can hide.
 export type HideableButton = "downloadZip" | "install" | "update" | "releasePage";
 
-export type Settings = { overwriteExisting: boolean; updateChannel: UpdateChannel; registryChannel: UpdateChannel; language: string; columnsPerRow: 1 | 2 | 3 | 4; githubToken: string; density: "default" | "compact"; haptics: boolean; quickAccessTab: boolean; hiddenButtons: HideableButton[]; repoSettings?: Record<string, RepoPreference>; customRepos?: string[]; customRegistries?: string[] };
+// Quick Access' UI Style: the classic look, or the Experimental redesign.
+export type UiStyle = "default" | "experimental";
+
+export type Settings = { overwriteExisting: boolean; updateChannel: UpdateChannel; registryChannel: UpdateChannel; language: string; columnsPerRow: 1 | 2 | 3 | 4; githubToken: string; density: "default" | "compact"; haptics: boolean; quickAccessTab: boolean; uiStyle: UiStyle; hiddenButtons: HideableButton[]; repoSettings?: Record<string, RepoPreference>; customRepos?: string[]; customRegistries?: string[] };
 
 export type Download = { state: string; filename?: string; repo?: string; received?: number; total?: number; path?: string; error?: string };
 
