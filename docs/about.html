@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>About DeckyHub: who makes it and how it works</title>
+<meta name="description" content="About DeckyHub, the free, open-source Decky Loader plugin store: who makes it, where its plugin list comes from, how it's built and tested, and privacy.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://deckyhub.com/about.html">
+<link rel="alternate" hreflang="en" href="https://deckyhub.com/about.html">
+<link rel="alternate" hreflang="uk" href="https://deckyhub.com/uk/about.html">
+<link rel="alternate" hreflang="x-default" href="https://deckyhub.com/about.html">
+<meta name="theme-color" content="#10151f">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="DeckyHub">
+<meta property="og:url" content="https://deckyhub.com/about.html">
+<meta property="og:title" content="About DeckyHub">
+<meta property="og:description" content="Who makes DeckyHub, where its plugin list comes from, and how it's built and tested.">
+<meta property="og:image" content="https://deckyhub.com/img/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+:root{color-scheme:dark;--bg:#10151f;--panel:#182131;--line:#2e405a;--text:#eef4ff;--muted:#b6c3d4;--dim:#8a9bb2;--accent:#1d75cc;--accent2:#4b9cf0;--warn:#e8b54a}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+a{color:var(--accent2)}
+.wrap{max-width:860px;margin:auto;padding:0 20px}
+header{padding:56px 0 24px}
+h1{font-size:clamp(2rem,5vw,2.8rem);line-height:1.15;margin:0 0 10px;letter-spacing:-.02em}
+h2{font-size:1.35rem;margin:32px 0 10px}
+.sub{color:var(--muted);margin:0}
+main p,main li{color:var(--muted)}main strong{color:var(--text)}
+code{background:#0f1724;border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.88em;overflow-wrap:anywhere}
+footer{padding:36px 0;border-top:1px solid var(--line);color:var(--dim);font-size:.88rem;margin-top:36px}
+
+/* site-nav-style */
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<!-- site-nav: about -->
+<main id="main"><div class="wrap">
+<header>
+<h1>About DeckyHub</h1>
+<p class="sub">DeckyHub is a free, open-source plugin store for Decky Loader. It's a <a href="https://decky.xyz/">Decky Loader</a> plugin that lets you find, install and update Decky plugins from Gaming Mode with your controller, including plugins that aren't on the official Decky store.</p>
+</header>
+
+<h2>Who makes it</h2>
+<p>DeckyHub is made by Andrii Shevchuk-Yuhanets (<a href="https://github.com/mazillka">mazillka</a>) as an independent project. It isn't affiliated with Valve or the Decky Loader project. Its code is on <a href="https://github.com/mazillka/deckyhub-plugin">GitHub</a> under the GPL-3.0-or-later license.</p>
+
+<h2>Where the plugins come from</h2>
+<p>DeckyHub's plugin list lives in <a href="https://github.com/mazillka/deckyhub-registry">mazillka/deckyhub-registry</a>. Plugins are suggested by users or found through two community catalogs, <a href="https://decky-extended-plugins.beallio.com/">Decky Extended Plugins</a> by beallio and <a href="https://safetzahirovic.github.io/decky-plugins-explorer/">Decky Plugins Explorer</a> by SafetZahirovic, plus the registry's own search of GitHub. A person reviews every addition before it's listed. Each listed plugin needs a GitHub release with a plugin ZIP.</p>
+<p>Every plugin belongs to its own authors. DeckyHub doesn't review them for safety, own or endorse them, so each one installs at your own risk. To help you decide, DeckyHub shows the warnings from Decky Extended Plugins' security audit, scans every plugin ZIP with ClamAV and YARA, and links the same file's VirusTotal and MetaDefender results. <a href="/plugins/known-issues.html">Known issues</a> lists every plugin with a warning.</p>
+
+<h2>How it's built</h2>
+<p>Most of DeckyHub's code was written with the help of AI tools (Claude and Codex). Every release is still tested on real hardware before it ships, its code is checked by GitHub CodeQL on every change, and each release ZIP is virus-scanned before it's published. What changed in each version is in the <a href="/releases.html">release notes</a>.</p>
+
+<h2>Privacy</h2>
+<p>DeckyHub has no account, analytics or telemetry, and sends nothing to its author. It only connects to GitHub, plus any custom plugin list you add yourself. Your settings, your optional GitHub token and your logs stay on your device.</p>
+
+<h2>Get involved</h2>
+<ul>
+<li><a href="/contribute/">Suggest a plugin</a> for the list.</li>
+<li><a href="https://github.com/mazillka/deckyhub-plugin/issues">Report a bug or share an idea</a>. The <a href="/help.html">help page</a> may already have the answer.</li>
+<li><a href="https://github.com/mazillka/deckyhub-plugin/blob/main/CONTRIBUTING.md">Contribute code</a> or translations. DeckyHub comes in 17 languages, and corrections are welcome.</li>
+</ul>
+</div></main>
+<!-- site-footer -->
+</body>
+</html>

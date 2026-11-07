@@ -25,9 +25,9 @@ body:
   - type: input
     id: steamos-version
     attributes:
-      label: SteamOS version
-      description: Steam → Settings → System. Say so if it isn't a Steam Deck or SteamOS.
-      placeholder: "3.7.13 Stable"
+      label: Device and OS version
+      description: Your device and its OS version, e.g. from Steam → Settings → System.
+      placeholder: "Device, OS and version"
     validations:
       required: true
   - type: textarea
@@ -51,4 +51,4 @@ body:
     id: logs
     attributes:
       label: Logs
-      description: In DeckyHub, open Settings → Logs and tap Export Logs, then drag the ZIP from /home/deck/Downloads into this box. It lists repository names, file paths and versions; your GitHub token is never logged.
+      description: In DeckyHub, open Settings → Logs and tap Export Logs, then drag the ZIP from ~/Downloads into this box. It lists repository names, file paths and versions; your GitHub token is never logged.
