@@ -145,9 +145,9 @@ def badges_of(stats: dict, scans: dict, warnings: dict, reports: dict | None = N
     if stats.get("root"):
         items.append('<li><span class="badge root">Runs as root</span> Its plugin.json asks Decky Loader to run its backend as root, with full access to the device. Many plugins need that for real reasons; install it only if you trust the author.</li>')
     if stats.get("fork"):
-        items.append(f'<li><span class="badge fork">Fork</span> A fork of <a href="https://github.com/{escape(stats["fork"])}">{escape(stats["fork"])}</a> that carries the plugin on after its original stopped.</li>')
+        items.append(f'<li><span class="badge fork">Fork</span> A fork of <a href="https://github.com/{escape(stats["fork"])}">{escape(stats["fork"].split("/")[1])}</a> by <a href="https://github.com/{escape(stats["fork"].split("/")[0])}">{escape(stats["fork"].split("/")[0])}</a>: its code started as a copy of that project.</li>')
     if stats.get("ai"):
-        items.append(f'<li><span class="badge ai">AI</span> Its repository has instructions for AI coding assistants ({escape(", ".join(stats["ai"]))}), so it\'s likely developed with AI help. That says nothing about its quality or safety.</li>')
+        items.append(f'<li><span class="badge ai">AI</span> Its repository has instructions for AI coding assistants, or its README says it\'s made with AI ({escape(", ".join(stats["ai"]))}), so it\'s likely developed with AI help. That says nothing about its quality or safety.</li>')
     for key, prefix in [*((key, "") for key in stats.get("warnings") or []), *((key, "Pre-release: ") for key in stats.get("prereleaseWarnings") or [] if key not in (stats.get("warnings") or []))]:
         if key in warnings:
             label, hint = warnings[key]
@@ -273,7 +273,7 @@ def plugin_page(shell: dict[str, str], app: dict, stats: dict, scans: dict, warn
 <h2>Security scans</h2>
 <p>Every ZIP DeckyHub offers is scanned with ClamAV and with YARA rules (YARA Forge's core set), and the same scans are shown in the app. The registry also sends each ZIP to VirusTotal and MetaDefender, uploading it if they haven't seen it yet, and their results are matched by the file's SHA-256.</p>
 {security_scans(scans, reports or {}, vt_reports)}
-<p class="note">DeckyHub doesn't make, review or vouch for {escape(name)}; it installs at your own risk. A clean scan isn't proof of safety. Check its repository before installing.</p>
+<p class="note">DeckyHub doesn't make, review or vouch for {escape(name)}; it installs at your own risk. The scans only catch known malware, and malware can be built to get past them, so a clean scan isn't proof of safety. Only the <a href="https://plugins.deckbrew.xyz/">Decky plugin store</a> reviews plugins by hand. Check its repository before installing.</p>
 {f'<h2>More {escape(category)} plugins</h2><ul class="list">' + "".join(f'<li><a href="/plugins/{escape(other["id"])}.html">{escape(other["name"])}<small>{escape(other.get("description") or "")}</small></a></li>' for other in related) + "</ul>" if related else ""}"""
     data = {
         "@type": "SoftwareApplication", "name": name, "description": description, "url": f"{SITE}plugins/{app['id']}.html",
