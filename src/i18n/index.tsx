@@ -1,6 +1,14 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { getSettings } from "../api";
-import { applyDensity, setGithubToken, setHaptics, setRegistryChannel, setTranslator, substitute } from "../utils";
+import {
+  applyDensity,
+  applyOled,
+  setGithubToken,
+  setHaptics,
+  setRegistryChannel,
+  setTranslator,
+  substitute,
+} from "../utils";
 import { setUiStyle } from "../uiStyle";
 import { en, type MessageKey, type TFunc } from "./en";
 import { uk } from "./uk";
@@ -114,6 +122,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         setGithubToken(settings.githubToken || "");
         setRegistryChannel(settings.registryChannel);
         applyDensity(settings.density);
+        applyOled(settings.oled === true);
         setHaptics(settings.haptics !== false);
         setUiStyle(settings.uiStyle);
       });

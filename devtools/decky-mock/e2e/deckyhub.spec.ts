@@ -2652,6 +2652,24 @@ test("Release Page closes the Manage window before opening the page", async ({ p
   await expect(app.locator(".steam-modal")).toHaveCount(0);
 });
 
+test("OLED black turns DeckyHub's pages and cards true black, and off restores them", async ({ page }) => {
+  const app = mock(page);
+  const card = app.locator(".deckyhub-card").first();
+  const look = () =>
+    card.evaluate((el) => getComputedStyle(el).backgroundColor + " " + getComputedStyle(el).backgroundImage);
+  try {
+    await bridgeCall(page, "save_settings", { ...defaultSettings, oled: false });
+    await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+    await expect.poll(look).toContain("linear-gradient");
+    await app.getByRole("checkbox", { name: /OLED black/ }).click();
+    await expect.poll(look).toBe("rgb(0, 0, 0) none");
+    await app.getByRole("checkbox", { name: /OLED black/ }).click();
+    await expect.poll(look).toContain("linear-gradient");
+  } finally {
+    await bridgeCall(page, "save_settings", { ...defaultSettings, oled: false });
+  }
+});
+
 test("Compact interface shrinks DeckyHub's buttons and spacing, Default restores them", async ({ page }) => {
   const app = mock(page);
   const minHeight = (locator: ReturnType<typeof app.locator>) =>
@@ -2950,6 +2968,24 @@ test("A card on the pre-release channel picks a stable release newer than its pr
   } finally {
     await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "stable" });
   }
+});
+
+test("A plugin with only pre-releases offers them on the Stable channel, badged, without a Stable option", async ({
+  page,
+}) => {
+  const beta = makoRelease("plugin-v1.4.0-beta.1", "a".repeat(64), "01");
+  await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases?per_page=20", (route) =>
+    route.fulfill({ json: [{ ...beta, prerelease: true }] }),
+  );
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+  await expect(makoCard.getByText("Latest: v1.4.0-beta.1", { exact: true })).toBeVisible();
+  await expect(makoCard.getByText("Pre-release only", { exact: true })).toBeVisible();
+  await makoCard.getByRole("button", { name: "Manage", exact: true }).click();
+  const channel = app.locator(".steam-modal").getByLabel("Update Channel");
+  await expect(channel).toHaveValue("prerelease");
+  await expect(channel.locator("option")).toHaveText(["Pre-releases"]);
 });
 
 test("A newer pre-release of an installed pre-release counts as an update", async ({ page }) => {
@@ -3390,6 +3426,7 @@ const defaultSettings = {
   columnsPerRow: 3,
   githubToken: "",
   density: "default",
+  oled: false,
   haptics: true,
   hiddenButtons: [],
 };

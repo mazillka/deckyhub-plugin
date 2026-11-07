@@ -165,6 +165,15 @@ class PluginStatusTests(unittest.TestCase):
             self.assertEqual(asyncio.run(plugin.save_settings({"density": "compact"}))["density"], "compact")
             self.assertEqual(asyncio.run(plugin.save_settings({"density": "tiny"}))["density"], "default")
 
+    def test_oled_is_off_unless_set_to_true(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.settings_path = Path(home) / "settings.json"
+
+            self.assertIs(asyncio.run(plugin.save_settings({}))["oled"], False)
+            self.assertIs(asyncio.run(plugin.save_settings({"oled": True}))["oled"], True)
+            self.assertIs(asyncio.run(plugin.save_settings({"oled": "yes"}))["oled"], False)
+
     def test_items_per_row_takes_one_to_four(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = Plugin()

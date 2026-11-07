@@ -73,7 +73,7 @@ export function AppDetailsModal({
   closeModal?: () => void;
 }) {
   const [preference, setPreference] = useState<RepoPreference>(initialPreference);
-  const channel = preference.channel;
+  const channel = app.prereleaseOnly ? "prerelease" : preference.channel;
   const {
     items: releases,
     selectedTag,
@@ -269,6 +269,7 @@ export function AppDetailsModal({
         </>
       }
       channel={channel}
+      prereleaseOnly={app.prereleaseOnly}
       onChannelChange={changeChannel}
       versionOptions={versionOptions}
       selectedTag={selectedTag}

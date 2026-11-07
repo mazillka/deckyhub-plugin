@@ -32,6 +32,8 @@ export type App = {
   metaDefender?: { state: string; flagged?: number; total?: number } | null;
   error?: string | null;
   channel?: UpdateChannel;
+  // No stable release at all: the card follows its pre-releases whatever the saved channel (hydrate).
+  prereleaseOnly?: boolean;
   // The installed version's release, when it's among the recent ones (hydrate), and the
   // stats.json audit that covers it (see installedRelease).
   installedAssets?: Asset[];
@@ -107,6 +109,7 @@ export type Settings = {
   columnsPerRow: 1 | 2 | 3 | 4;
   githubToken: string;
   density: "default" | "compact";
+  oled: boolean;
   haptics: boolean;
   quickAccessTab: boolean;
   uiStyle: UiStyle;

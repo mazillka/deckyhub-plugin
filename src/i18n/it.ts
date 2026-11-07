@@ -94,6 +94,11 @@ export const it: Record<MessageKey, string> = {
     "Le scansioni antivirus non sono riuscite a controllare tutta la release che installeresti. Gestisci spiega il motivo.",
   "appcard.badgesNotice": "Cosa significano i badge sui plugin",
   "appcard.noReleaseInYear": "Nessuna release da un anno",
+  "appcard.prereleaseOnly": "Solo pre-release",
+  "appcard.prereleaseOnlyHint":
+    "Non ha release stabili, quindi DeckyHub offre le sue pre-release, che possono essere incomplete o avere bug.",
+  "appcard.noDescription": "Nessuna descrizione",
+  "appcard.noDescriptionHint": "L'autore non ha spiegato cosa fa. Controlla il repository prima di installarlo.",
   "appcard.installedFlagged": "Versione installata segnalata",
   "appcard.installedFlagged.hint":
     "Segnalato nella versione che hai installato: {reasons}. Potrebbe essere un falso positivo: controlla il plugin e decidi se tenerlo.",
@@ -256,6 +261,8 @@ export const it: Record<MessageKey, string> = {
   "settings.density": "Interfaccia",
   "settings.densityDefault": "Predefinita",
   "settings.densityCompact": "Compatta",
+  "settings.oled": "Nero OLED",
+  "settings.oledHint": "Sfondi nero assoluto, così uno schermo OLED può spegnere quei pixel.",
   "settings.itemsPerRow": "Elementi per riga",
   "settings.haptics": "Feedback aptico durante la navigazione",
   "settings.quickAccessTab": "Scheda DeckyHub nell'Accesso rapido",

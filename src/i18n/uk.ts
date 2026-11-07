@@ -94,6 +94,11 @@ export const uk: Record<MessageKey, string> = {
     "Антивірусні перевірки не змогли повністю перевірити реліз, який буде встановлено. Причина — у «Керувати».",
   "appcard.badgesNotice": "Що означають значки біля плагінів",
   "appcard.noReleaseInYear": "Немає релізів понад рік",
+  "appcard.prereleaseOnly": "Лише пре-релізи",
+  "appcard.prereleaseOnlyHint":
+    "Він не має стабільного релізу, тож DeckyHub пропонує його пре-релізи, які можуть бути незавершеними чи з помилками.",
+  "appcard.noDescription": "Немає опису",
+  "appcard.noDescriptionHint": "Автор не написав, що він робить. Перед встановленням перегляньте його репозиторій.",
   "appcard.installedFlagged": "Встановлену версію позначено",
   "appcard.installedFlagged.hint":
     "Позначено у встановленій у вас версії: {reasons}. Це може бути хибне спрацювання: перевірте плагін і вирішіть, чи залишати його.",
@@ -252,6 +257,8 @@ export const uk: Record<MessageKey, string> = {
   "settings.density": "Інтерфейс",
   "settings.densityDefault": "Стандартний",
   "settings.densityCompact": "Компактний",
+  "settings.oled": "Чорний для OLED",
+  "settings.oledHint": "Повністю чорне тло, щоб OLED-екран міг вимикати ці пікселі.",
   "settings.itemsPerRow": "Елементів у рядку",
   "settings.haptics": "Тактильний відгук під час навігації",
   "settings.quickAccessTab": "Вкладка DeckyHub у швидкому доступі",

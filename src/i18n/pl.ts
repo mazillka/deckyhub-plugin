@@ -93,6 +93,11 @@ export const pl: Record<MessageKey, string> = {
     "Skany antywirusowe nie zdołały w pełni sprawdzić wydania, które zainstalujesz. Powód jest w Zarządzaj.",
   "appcard.badgesNotice": "Co oznaczają plakietki przy wtyczkach",
   "appcard.noReleaseInYear": "Brak wydań od roku",
+  "appcard.prereleaseOnly": "Tylko przedpremierowe",
+  "appcard.prereleaseOnlyHint":
+    "Nie ma stabilnego wydania, więc DeckyHub oferuje wydania przedpremierowe, które mogą być niedokończone lub zawierać błędy.",
+  "appcard.noDescription": "Brak opisu",
+  "appcard.noDescriptionHint": "Autor nie opisał, co robi. Przed instalacją sprawdź jego repozytorium.",
   "appcard.installedFlagged": "Zainstalowana wersja oznaczona",
   "appcard.installedFlagged.hint":
     "Oznaczono w wersji, którą masz zainstalowaną: {reasons}. To może być fałszywy alarm: sprawdź wtyczkę i zdecyduj, czy ją zachować.",
@@ -253,6 +258,8 @@ export const pl: Record<MessageKey, string> = {
   "settings.density": "Interfejs",
   "settings.densityDefault": "Domyślny",
   "settings.densityCompact": "Kompaktowy",
+  "settings.oled": "Czerń OLED",
+  "settings.oledHint": "Czysto czarne tła, aby ekran OLED mógł wyłączyć te piksele.",
   "settings.itemsPerRow": "Elementów w wierszu",
   "settings.haptics": "Wibracje podczas nawigacji",
   "settings.quickAccessTab": "Karta DeckyHub w Szybkim dostępie",

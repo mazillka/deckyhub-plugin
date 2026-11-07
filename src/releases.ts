@@ -444,15 +444,18 @@ export async function installedRisk(app: App, force = false): Promise<App["insta
 // Fills in a card's latest release for its channel and whether it's newer
 // than what's installed.
 export async function hydrate(app: App, force: boolean, preference?: RepoPreference): Promise<App> {
-  const channel: UpdateChannel = preference?.channel ?? "stable";
   const { items, error } = await listAppReleases(app, force);
+  // The saved channel stays as it is, so a first stable release brings the card back to it.
+  const prereleaseOnly = items.length > 0 && items.every((item) => item.prerelease);
+  const channel: UpdateChannel = prereleaseOnly ? "prerelease" : (preference?.channel ?? "stable");
   const release = items.find((item) => inChannel(item, channel));
-  if (!release) return { ...app, channel, error: error ?? tr("release.noMatch") };
+  if (!release) return { ...app, channel, prereleaseOnly, error: error ?? tr("release.noMatch") };
   const cmp = app.installedVersion ? compareVersions(releaseVersion(release), app.installedVersion) : null;
   const installed = installedRelease(items, app.installedVersion);
   return {
     ...app,
     channel,
+    prereleaseOnly,
     installedAssets: installed?.release.assets,
     installedAudit: installed?.audit,
     latestVersion: release.tag,

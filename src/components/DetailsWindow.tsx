@@ -39,6 +39,7 @@ export function DetailsWindow({
   primary,
   scan,
   channel,
+  prereleaseOnly,
   onChannelChange,
   versionOptions,
   selectedTag,
@@ -63,6 +64,8 @@ export function DetailsWindow({
   // The selected ZIP's virus scan report, under About and above the actions.
   scan?: ReactNode;
   channel: UpdateChannel;
+  // No stable release: the channel menu offers only Pre-release.
+  prereleaseOnly?: boolean;
   onChannelChange: (channel: UpdateChannel) => void;
   versionOptions: { data: string; label: string }[];
   selectedTag: string;
@@ -90,6 +93,7 @@ export function DetailsWindow({
                 {...{
                   t,
                   channel,
+                  prereleaseOnly,
                   onChannelChange,
                   versionOptions,
                   selectedTag,
@@ -174,6 +178,7 @@ export function DetailsWindow({
               {...{
                 t,
                 channel,
+                prereleaseOnly,
                 onChannelChange,
                 versionOptions,
                 selectedTag,
@@ -236,6 +241,7 @@ export function DetailsWindow({
 type VersionPickerProps = {
   t: TFunc;
   channel: UpdateChannel;
+  prereleaseOnly?: boolean;
   onChannelChange: (channel: UpdateChannel) => void;
   versionOptions: { data: string; label: string }[];
   selectedTag: string;
@@ -249,6 +255,7 @@ type VersionPickerProps = {
 export function VersionPicker({
   t,
   channel,
+  prereleaseOnly,
   onChannelChange,
   versionOptions,
   selectedTag,
@@ -280,7 +287,7 @@ export function VersionPicker({
             bottomSeparator="none"
             label={t("settings.updateChannel")}
             rgOptions={[
-              { label: t("settings.stableReleases"), data: "stable" },
+              ...(prereleaseOnly ? [] : [{ label: t("settings.stableReleases"), data: "stable" }]),
               { label: t("settings.preReleases"), data: "prerelease" },
             ]}
             selectedOption={channel}

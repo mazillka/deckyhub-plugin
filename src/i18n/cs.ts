@@ -94,6 +94,11 @@ export const cs: Record<MessageKey, string> = {
     "Antivirové kontroly nedokázaly úplně zkontrolovat vydání, které byste instalovali. Důvod je ve Spravovat.",
   "appcard.badgesNotice": "Co znamenají štítky u pluginů",
   "appcard.noReleaseInYear": "Rok bez vydání",
+  "appcard.prereleaseOnly": "Jen předběžná vydání",
+  "appcard.prereleaseOnlyHint":
+    "Nemá žádné stabilní vydání, a tak DeckyHub nabízí jeho předběžná vydání, která mohou být nedokončená nebo chybová.",
+  "appcard.noDescription": "Bez popisu",
+  "appcard.noDescriptionHint": "Autor neuvedl, co dělá. Před instalací si prohlédněte jeho repozitář.",
   "appcard.installedFlagged": "Nainstalovaná verze označena",
   "appcard.installedFlagged.hint":
     "Označeno ve verzi, kterou máte nainstalovanou: {reasons}. Může jít o planý poplach: zkontrolujte plugin a rozhodněte, zda si ho ponecháte.",
@@ -253,6 +258,8 @@ export const cs: Record<MessageKey, string> = {
   "settings.density": "Rozhraní",
   "settings.densityDefault": "Výchozí",
   "settings.densityCompact": "Kompaktní",
+  "settings.oled": "Černá pro OLED",
+  "settings.oledHint": "Pozadí v čistě černé, aby OLED displej mohl tyto pixely vypnout.",
   "settings.itemsPerRow": "Položek na řádek",
   "settings.haptics": "Haptická odezva při navigaci",
   "settings.quickAccessTab": "Karta DeckyHub v Rychlém přístupu",

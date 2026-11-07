@@ -92,6 +92,11 @@ export const tr: Record<MessageKey, string> = {
   "appcard.scan.partial.hint": "Virüs taramaları yükleyeceğin sürümü tamamen denetleyemedi. Nedeni Yönet'te.",
   "appcard.badgesNotice": "Eklentilerdeki rozetlerin anlamı",
   "appcard.noReleaseInYear": "Bir yıldır sürüm yok",
+  "appcard.prereleaseOnly": "Yalnızca ön sürüm",
+  "appcard.prereleaseOnlyHint":
+    "Kararlı sürümü yok, bu yüzden DeckyHub ön sürümlerini sunar; bunlar yarım ya da hatalı olabilir.",
+  "appcard.noDescription": "Açıklama yok",
+  "appcard.noDescriptionHint": "Yazarı ne yaptığını belirtmemiş. Yüklemeden önce deposuna göz atın.",
   "appcard.installedFlagged": "Yüklü sürüm işaretlendi",
   "appcard.installedFlagged.hint":
     "Yüklü sürümünde işaretlendi: {reasons}. Yanlış alarm olabilir: eklentiyi kontrol et ve tutup tutmayacağına karar ver.",
@@ -251,6 +256,8 @@ export const tr: Record<MessageKey, string> = {
   "settings.density": "Arayüz",
   "settings.densityDefault": "Varsayılan",
   "settings.densityCompact": "Sıkı",
+  "settings.oled": "OLED siyahı",
+  "settings.oledHint": "Tam siyah arka planlar; böylece OLED ekran bu pikselleri kapatabilir.",
   "settings.itemsPerRow": "Satır başına öğe",
   "settings.haptics": "Gezinirken dokunsal geri bildirim",
   "settings.quickAccessTab": "Hızlı Erişim'de DeckyHub sekmesi",
