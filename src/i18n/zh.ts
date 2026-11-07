@@ -22,7 +22,8 @@ export const zh: Record<MessageKey, string> = {
   "view.installedEmpty": "未找到已安装的插件。",
   "view.searchDescription": "在 GitHub 上搜索 Decky 插件。可直接安装，或添加以跟踪更新。",
   "view.searchTitle": "搜索与安装",
-  "search.warning": "搜索结果直接来自 GitHub，未经任何审核：DeckyHub 和 Decky 商店都没有审核过。插件可以在你的设备上做任何事，请只安装你信任的作者的插件。",
+  "search.warning":
+    "搜索结果直接来自 GitHub，未经任何审核：DeckyHub 和 Decky 商店都没有审核过。插件可以在你的设备上做任何事，请只安装你信任的作者的插件。",
   "search.placeholder": "插件名称、作者或功能",
 
   "filter.search": "搜索",
@@ -76,10 +77,12 @@ export const zh: Record<MessageKey, string> = {
   "appcard.forkHint": "在原插件停止后继续维护的分支。仅在它仍是活跃分支时由 DeckyHub 列出。",
   "appcard.forkOf": "{repo} 的分支",
   "appcard.ai": "AI",
-  "appcard.aiHint": "它的仓库包含给 AI 编程助手的说明，或者它的 README 说它是用 AI 做的，因此很可能是在 AI 帮助下开发的。这不代表它的质量或安全性，没有这个标记也不代表没用过 AI。",
+  "appcard.aiHint":
+    "它的仓库包含给 AI 编程助手的说明，或者它的 README 说它是用 AI 做的，因此很可能是在 AI 帮助下开发的。这不代表它的质量或安全性，没有这个标记也不代表没用过 AI。",
   "appcard.aiFiles": "很可能在 AI 帮助下开发（{files}）",
   "appcard.scan.clean": "无威胁",
-  "appcard.scan.clean.hint": "病毒扫描在你要安装的版本中没有发现已知威胁。扫描只能发现已知的恶意软件，而且可以被绕过，所以这并不能证明它安全。扫描报告在“管理”中。",
+  "appcard.scan.clean.hint":
+    "病毒扫描在你要安装的版本中没有发现已知威胁。扫描只能发现已知的恶意软件，而且可以被绕过，所以这并不能证明它安全。扫描报告在“管理”中。",
   "appcard.scan.infected": "发现威胁",
   "appcard.scan.infected.hint": "病毒扫描标记了你将安装的版本。这可能是误报：请打开“管理”查看报告后自行决定。",
   "appcard.scan.partial": "未完全扫描",
@@ -88,14 +91,16 @@ export const zh: Record<MessageKey, string> = {
   "appcard.noReleaseInYear": "一年未发布",
   "appcard.installedFlagged": "已安装版本被标记",
   "appcard.installedFlagged.hint": "你安装的版本被标记：{reasons}。这可能是误报：请检查该插件并决定是否保留。",
-  "appcard.warningsIntro": "警告来自 Decky Extended Plugins 对你将安装版本的自动审计。sudo、mount 或 systemctl 等常见发现不会显示。有警告不代表有害，没有警告也不代表安全。",
+  "appcard.warningsIntro":
+    "警告来自 Decky Extended Plugins 对你将安装版本的自动审计。sudo、mount 或 systemctl 等常见发现不会显示。有警告不代表有害，没有警告也不代表安全。",
   "appcard.auditLink": "打开 Decky Extended Plugins 审计",
   "appcard.warning.blocked": "已被审计阻止",
   "appcard.warning.blocked.hint": "审计发现了恶意软件或损坏的压缩包。不建议安装。",
   "appcard.warning.private-data": "读取隐私数据",
   "appcard.warning.private-data.hint": "它会读取 Steam 登录数据、SSH 密钥或环境中的机密。",
   "appcard.warning.persistence": "修改系统启动",
-  "appcard.warning.persistence.hint": "它会修改 shell 配置、预加载库、加载内核模块或添加设备规则，在 Decky 之外也会持续生效。",
+  "appcard.warning.persistence.hint":
+    "它会修改 shell 配置、预加载库、加载内核模块或添加设备规则，在 Decky 之外也会持续生效。",
   "appcard.warning.not-in-source": "代码不在仓库中",
   "appcard.warning.not-in-source.hint": "该版本包含其 GitHub 源码中没有的脚本或程序，你无法查看它们的作用。",
   "appcard.warning.obfuscated": "隐藏代码",
@@ -112,10 +117,12 @@ export const zh: Record<MessageKey, string> = {
   "appcard.uninstallTitle": "卸载 {name}？",
   "appcard.uninstallDescription": "将从此设备移除该插件及其设置。之后可以重新安装。",
   "appcard.uninstalled": "已卸载 {name}。",
-  "appcard.freshInstallDescription": "DeckyHub 会先移除已安装的版本，然后由 Decky 全新安装所选版本。由于 Decky Loader 的一个错误，直接覆盖更新可能导致设备卡死。如果取消 Decky 的安装对话框，{name} 将保持未安装状态，直到你重新安装。",
+  "appcard.freshInstallDescription":
+    "DeckyHub 会先移除已安装的版本，然后由 Decky 全新安装所选版本。由于 Decky Loader 的一个错误，直接覆盖更新可能导致设备卡死。如果取消 Decky 的安装对话框，{name} 将保持未安装状态，直到你重新安装。",
   "appcard.releaseInfo": "版本信息",
   "appcard.noReleaseNotes": "此版本没有说明。",
-  "install.disclaimer": "DeckyHub 仅从作者的 GitHub 仓库获取发布版本，不制作、不审核也不担保这些插件，对它们给你的设备或数据造成的任何影响概不负责。安装风险自负。",
+  "install.disclaimer":
+    "DeckyHub 仅从作者的 GitHub 仓库获取发布版本，不制作、不审核也不担保这些插件，对它们给你的设备或数据造成的任何影响概不负责。安装风险自负。",
   "pending.title": "安装你选择的插件？",
   "pending.description": "这些是你在安装程序中选择的插件。安装前，Decky Loader 会再请你确认一次。",
   "pending.install": "安装所选插件",
@@ -143,7 +150,8 @@ export const zh: Record<MessageKey, string> = {
   "scan.engine": "扫描器：{engine}，特征库 {signatures}",
   "scan.rules": "扫描器：{engine}，规则 {rules}",
   "scan.scannedAt": "扫描时间：{date}",
-  "scan.hint": "DeckyHub 的注册表会用开源杀毒软件 ClamAV 扫描它提供的每个插件 ZIP，并用 YARA 和 YARA Forge 的社区规则（其中许多针对 Linux 恶意软件）扫描其中的文件。",
+  "scan.hint":
+    "DeckyHub 的注册表会用开源杀毒软件 ClamAV 扫描它提供的每个插件 ZIP，并用 YARA 和 YARA Forge 的社区规则（其中许多针对 Linux 恶意软件）扫描其中的文件。",
   "scan.safetyWarning": "扫描只能发现已知的恶意软件，而恶意软件可以被专门做得绕过扫描：结果干净并不能证明插件安全。",
   "scan.unverifiedMatch": "未验证 ZIP 是否匹配",
   "scan.waiting": "等待扫描",
@@ -152,14 +160,17 @@ export const zh: Record<MessageKey, string> = {
   "scan.unverifiedDetail": "此报告可能属于另一个 ZIP；文件匹配尚未确认。",
   "scan.virusTotalResult": "VirusTotal：{total} 个引擎中有 {flagged} 个标记了此 ZIP",
   "scan.metaDefenderResult": "MetaDefender：{total} 个引擎中有 {flagged} 个标记了此 ZIP",
-  "scan.virusTotalHint": "VirusTotal 会在 Steam 浏览器中打开，并按 SHA-256 查找此 ZIP。不会从你的设备上传任何内容。DeckyHub 的插件库会把 VirusTotal 尚未收录的插件 ZIP 发送给它，所以新版本可能需要一段时间才有结果。",
+  "scan.virusTotalHint":
+    "VirusTotal 会在 Steam 浏览器中打开，并按 SHA-256 查找此 ZIP。不会从你的设备上传任何内容。DeckyHub 的插件库会把 VirusTotal 尚未收录的插件 ZIP 发送给它，所以新版本可能需要一段时间才有结果。",
   "scan.copyLink": "复制 ZIP 链接",
   "scan.scanLink": "在 VirusTotal 扫描链接",
   "scan.copied": "已复制 ZIP 链接",
   "scan.copyFailed": "无法复制链接",
   "scan.pasteIntoVirusTotal": "请粘贴到 VirusTotal 页面的 URL 输入框中并开始扫描。",
-  "scan.scanLinkHint": "“在 VirusTotal 扫描链接”会复制 ZIP 的下载链接并打开 VirusTotal 的 URL 扫描页面：请在那里粘贴链接。VirusTotal 主要评估链接本身，因此可能不会检查 ZIP 里的内容。",
-  "scan.deckyhubChecks": "每个 DeckyHub 版本在发布前都会用 ClamAV、VirusTotal 和 MetaDefender 扫描，其代码在每次更改时都会由 GitHub CodeQL 检查。报告会显示每个扫描器的版本和日期。",
+  "scan.scanLinkHint":
+    "“在 VirusTotal 扫描链接”会复制 ZIP 的下载链接并打开 VirusTotal 的 URL 扫描页面：请在那里粘贴链接。VirusTotal 主要评估链接本身，因此可能不会检查 ZIP 里的内容。",
+  "scan.deckyhubChecks":
+    "每个 DeckyHub 版本在发布前都会用 ClamAV、VirusTotal 和 MetaDefender 扫描，其代码在每次更改时都会由 GitHub CodeQL 检查。报告会显示每个扫描器的版本和日期。",
 
   "dl.downloading": "正在下载 {filename}",
   "dl.preparing": "正在准备下载…",
@@ -176,7 +187,8 @@ export const zh: Record<MessageKey, string> = {
   "settings.latestVersion": "最新：{version}",
   "settings.updateChannel": "更新渠道",
   "settings.registryChannel": "注册表通道",
-  "settings.registryChannelHint": "预发布版会在所有人获得之前显示仍在测试的插件和更改。如果无法加载，DeckyHub 会使用稳定版列表。",
+  "settings.registryChannelHint":
+    "预发布版会在所有人获得之前显示仍在测试的插件和更改。如果无法加载，DeckyHub 会使用稳定版列表。",
   "settings.stableReleases": "稳定版",
   "settings.preReleases": "预发布版",
   "settings.checkUpdate": "检查更新",
@@ -193,7 +205,8 @@ export const zh: Record<MessageKey, string> = {
   "settings.selfUpdateUnavailable": "自动更新目前不可用，请改用“下载 ZIP”。",
   "settings.downloadUpdate": "下载 ZIP",
   "settings.downloadSettings": "下载设置",
-  "settings.whereZipsSaved": "所有发行版 ZIP 都会保存到 ~/Downloads/deckyhub，如果 GitHub 提供 SHA-256 校验和，将自动进行校验。",
+  "settings.whereZipsSaved":
+    "所有发行版 ZIP 都会保存到 ~/Downloads/deckyhub，如果 GitHub 提供 SHA-256 校验和，将自动进行校验。",
   "settings.overwriteExisting": "覆盖已有文件",
   "settings.cleanup": "清理",
   "settings.emptyFolder": "清空文件夹",
@@ -202,9 +215,11 @@ export const zh: Record<MessageKey, string> = {
   "settings.downloadsCleared": "已从 DeckyHub 下载中移除 {count} 项。",
   "settings.saveSettings": "保存设置",
   "settings.githubAccess": "GitHub 访问",
-  "settings.githubTokenIntro": "可选。未设置令牌时，GitHub 将此设备限制为每小时 60 次请求(搜索为每分钟 10 次)，使用频繁时很容易用完。添加个人访问令牌可将上限提高到每小时 5000 次(搜索为每分钟 30 次)。",
+  "settings.githubTokenIntro":
+    "可选。未设置令牌时，GitHub 将此设备限制为每小时 60 次请求(搜索为每分钟 10 次)，使用频繁时很容易用完。添加个人访问令牌可将上限提高到每小时 5000 次(搜索为每分钟 30 次)。",
   "settings.githubTokenHowTo": "创建时请保持所有权限未勾选，地址为：",
-  "settings.githubTokenNote": "DeckyHub 只读取公开仓库和发布版本。令牌仅保存在本地设置中，且只会发送给 api.github.com。",
+  "settings.githubTokenNote":
+    "DeckyHub 只读取公开仓库和发布版本。令牌仅保存在本地设置中，且只会发送给 api.github.com。",
   "settings.githubToken": "GitHub 令牌",
   "settings.githubQuota": "GitHub 剩余请求：{remaining} / {limit}(约 {minutes} 分钟后重置)",
   "rateLimit.title": "已达到 GitHub 请求上限",
@@ -237,7 +252,8 @@ export const zh: Record<MessageKey, string> = {
   "settings.hideButton": "隐藏「{button}」",
   "settings.troubleshooting": "故障排除",
   "settings.exportLogs": "导出日志",
-  "settings.exportLogsNote": "将 DeckyHub 的日志以 ZIP 格式保存到 ~/Downloads，可附加到错误报告中。你的 GitHub 令牌永远不会被记录。",
+  "settings.exportLogsNote":
+    "将 DeckyHub 的日志以 ZIP 格式保存到 ~/Downloads，可附加到错误报告中。你的 GitHub 令牌永远不会被记录。",
 
   "repos.addManage": "添加与管理",
   "repos.searchGithub": "搜索 GitHub",
@@ -310,8 +326,10 @@ export const zh: Record<MessageKey, string> = {
   "toast.installed": "已安装 {name}。",
   "toast.installedVersion": "已安装 {name} {version}。",
   "welcome.title": "欢迎使用 DeckyHub",
-  "welcome.body": "直接从作者的 GitHub 发行版安装和更新 Decky 插件。在“发现”中浏览，用“搜索”找到更多，在“更新”中保持最新。",
-  "welcome.safety": "没有人审核这些插件，DeckyHub 也不例外。它的病毒扫描只能发现已知的恶意软件，所以扫描结果干净并不代表插件安全。请只安装你信任的作者的插件；DeckyHub 在安装前总会先询问你。",
+  "welcome.body":
+    "直接从作者的 GitHub 发行版安装和更新 Decky 插件。在“发现”中浏览，用“搜索”找到更多，在“更新”中保持最新。",
+  "welcome.safety":
+    "没有人审核这些插件，DeckyHub 也不例外。它的病毒扫描只能发现已知的恶意软件，所以扫描结果干净并不代表插件安全。请只安装你信任的作者的插件；DeckyHub 在安装前总会先询问你。",
   "welcome.gotIt": "知道了",
   "settings.tabGeneral": "常规",
   "settings.tabDownloads": "下载",

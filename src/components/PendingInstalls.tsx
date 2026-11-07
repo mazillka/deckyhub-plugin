@@ -8,6 +8,7 @@ import { displayVersion } from "../version";
 import type { App } from "../types";
 import { hydrate, installAction, PLUGIN_INSTALL_TYPE, updateDeckyPlugins } from "../utils";
 import { AppBadges } from "./AppBadges";
+import { colors } from "../styles";
 
 // Plugins picked in the Desktop Mode installer's checklist wait in a file until DeckyHub
 // starts. The installer never installs them: this lists them (with their AI and warning
@@ -34,7 +35,8 @@ async function installPending(t: TFunc, apps: App[]) {
     const app = hydrated;
     const tag = hydrated.latestVersion;
     const action = tag ? installAction(hydrated, { tag, assets: hydrated.assets }) : null;
-    if (tag && action && hydrated.assets[0]) updates.push({ asset: hydrated.assets[0], repo: app.repo, name: action.name, version: tag });
+    if (tag && action && hydrated.assets[0])
+      updates.push({ asset: hydrated.assets[0], repo: app.repo, name: action.name, version: tag });
     else toaster.toast({ title: "DeckyHub", body: `${app.name}: ${hydrated.error ?? t("appcard.noMatchingAsset")}` });
   }
   if (updates.length) await updateDeckyPlugins(updates, PLUGIN_INSTALL_TYPE.INSTALL);
@@ -64,17 +66,20 @@ export async function offerPendingInstalls(t: TFunc) {
           <ul style={{ paddingLeft: 18 }}>
             {apps.map((app) => (
               <li key={app.id} style={{ margin: "6px 0" }}>
-                <strong>{app.name}</strong> {app.latestVersion ? displayVersion(app.latestVersion) : ""} <AppBadges app={app} t={t} />
+                <strong>{app.name}</strong> {app.latestVersion ? displayVersion(app.latestVersion) : ""}{" "}
+                <AppBadges app={app} t={t} />
               </li>
             ))}
           </ul>
-          <span style={{ color: "#ff6b6b" }}>{t("install.disclaimer")}</span>
+          <span style={{ color: colors.danger }}>{t("install.disclaimer")}</span>
         </>
       }
       strOKButtonText={t("pending.install")}
       onOK={() => {
         void clearPendingInstalls();
-        void installPending(t, apps).catch((error: unknown) => toaster.toast({ title: "DeckyHub", body: String(error) }));
+        void installPending(t, apps).catch((error: unknown) =>
+          toaster.toast({ title: "DeckyHub", body: String(error) }),
+        );
       }}
       onCancel={() => {
         void clearPendingInstalls();

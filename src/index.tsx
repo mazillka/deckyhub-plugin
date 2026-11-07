@@ -15,14 +15,20 @@ import { useUiStyle } from "./uiStyle";
 import { hapticTick, markUnloaded, pageStyle, tr } from "./utils";
 
 // Steam's history for its main window, which @decky/ui doesn't type.
-type MainWindowHistory = { location: { pathname: string }; replace: (path: string) => void; push: (path: string) => void };
+type MainWindowHistory = {
+  location: { pathname: string };
+  replace: (path: string) => void;
+  push: (path: string) => void;
+};
 
 // B on a page with nothing behind it opens Steam's menu instead of leaving DeckyHub
 // (after a Steam UI reload or a cut-short Deck test run, seen on a Deck). Put Library
 // behind the page then, so B always leaves.
 function BackToLibrary() {
   useEffect(() => {
-    const history = (Router.WindowStore?.GamepadUIMainWindowInstance as unknown as { m_history?: MainWindowHistory } | undefined)?.m_history;
+    const history = (
+      Router.WindowStore?.GamepadUIMainWindowInstance as unknown as { m_history?: MainWindowHistory } | undefined
+    )?.m_history;
     if ((window as { navigation?: { canGoBack?: boolean } }).navigation?.canGoBack !== false || !history) return;
     const path = history.location.pathname;
     history.replace("/library/home");
@@ -35,7 +41,11 @@ function Motion({ children }: { children: ReactNode }) {
   const experimental = useUiStyle() === "experimental";
   // onFocus bubbles (focusin), so every focus move within DeckyHub ticks.
   return (
-    <div className={experimental ? "deckyhub-motion deckyhub-exp" : "deckyhub-motion"} style={{ height: "100%" }} onFocus={hapticTick}>
+    <div
+      className={experimental ? "deckyhub-motion deckyhub-exp" : "deckyhub-motion"}
+      style={{ height: "100%" }}
+      onFocus={hapticTick}
+    >
       <MotionStyle />
       {children}
     </div>
@@ -48,7 +58,12 @@ function PageFrame({ path }: { path: string }) {
   const page = path.split("/").pop() ?? "";
   const initial = page === "repositories" ? "settings" : page;
   if (useUiStyle() !== "experimental") return <>{ROUTES[path]()}</>;
-  return <ExpPageFrame initial={initial} render={(tab) => (tab === initial ? ROUTES[path]() : ROUTES[`/deckyhub/${tab}`]())} />;
+  return (
+    <ExpPageFrame
+      initial={initial}
+      render={(tab) => (tab === initial ? ROUTES[path]() : ROUTES[`/deckyhub/${tab}`]())}
+    />
+  );
 }
 
 const ROUTES: Record<string, () => ReactNode> = {

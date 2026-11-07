@@ -8,7 +8,17 @@ import { Card } from "./Card";
 // each section shows its list and asks for an action.
 
 // Repositories you added: export or import the list, or remove one (after a confirm).
-export function CustomReposSection({ repos, onExport, onImport, onRemove }: { repos: string[]; onExport: () => void; onImport: () => void; onRemove: (repo: string) => void }) {
+export function CustomReposSection({
+  repos,
+  onExport,
+  onImport,
+  onRemove,
+}: {
+  repos: string[];
+  onExport: () => void;
+  onImport: () => void;
+  onRemove: (repo: string) => void;
+}) {
   const t = useT();
   return (
     <Card>
@@ -42,7 +52,23 @@ export function CustomReposSection({ repos, onExport, onImport, onRemove }: { re
 
 // Other people's app lists: add one by owner/repo or URL, download them all again,
 // or remove one (after a confirm).
-export function CustomRegistriesSection({ registries, value, onValue, busy, onAdd, onRefresh, onRemove }: { registries: string[]; value: string; onValue: (value: string) => void; busy: boolean; onAdd: () => void; onRefresh: () => void; onRemove: (url: string) => void }) {
+export function CustomRegistriesSection({
+  registries,
+  value,
+  onValue,
+  busy,
+  onAdd,
+  onRefresh,
+  onRemove,
+}: {
+  registries: string[];
+  value: string;
+  onValue: (value: string) => void;
+  busy: boolean;
+  onAdd: () => void;
+  onRefresh: () => void;
+  onRemove: (url: string) => void;
+}) {
   const t = useT();
   return (
     <Card>
@@ -50,7 +76,11 @@ export function CustomRegistriesSection({ registries, value, onValue, busy, onAd
         <PanelSectionRow>
           <Focusable flow-children="right" style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <TextField label={t("repos.registrySource")} value={value} onChange={(event) => onValue(event.currentTarget.value)} />
+              <TextField
+                label={t("repos.registrySource")}
+                value={value}
+                onChange={(event) => onValue(event.currentTarget.value)}
+              />
             </div>
             <div style={{ flex: "0 0 160px", paddingTop: 24 }}>
               <Button style={compactButtonStyle} onClick={onAdd} disabled={busy}>

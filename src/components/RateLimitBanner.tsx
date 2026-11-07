@@ -5,6 +5,7 @@ import { useT } from "../i18n";
 import { openSettings } from "../pages/SettingsPage";
 import { keepInView } from "./KeepInView";
 import { iconRow, RATE_LIMIT_CHANGED, rateLimit } from "../utils";
+import { colors } from "../styles";
 
 // minWidth 0: Steam's buttons won't otherwise shrink below their label.
 const bannerButton = { ...iconRow, flex: 1, minWidth: 0, minHeight: 32, padding: "4px 10px" };
@@ -33,12 +34,29 @@ export function RateLimitBanner({ stacked = false }: { stacked?: boolean }) {
   const minutes = Math.max(1, Math.ceil(remaining / 60_000));
 
   return (
-    <div className="deckyhub-rate-limit" role="status" onFocus={keepInView} style={{ background: "rgba(240, 195, 60, 0.12)", borderLeft: "3px solid #f0c33c", borderRadius: 6, display: "grid", gap: 6, marginBottom: "var(--dh-card-gap, 14px)", padding: "8px 12px" }}>
-      <strong style={{ color: "#f0c33c" }}>{t("rateLimit.title")}</strong>
+    <div
+      className="deckyhub-rate-limit"
+      role="status"
+      onFocus={keepInView}
+      style={{
+        background: "rgba(240, 195, 60, 0.12)",
+        borderLeft: "3px solid #f0c33c",
+        borderRadius: 6,
+        display: "grid",
+        gap: 6,
+        marginBottom: "var(--dh-card-gap, 14px)",
+        padding: "8px 12px",
+      }}
+    >
+      <strong style={{ color: colors.warning }}>{t("rateLimit.title")}</strong>
       <small>
-        {limit.minutesKnown ? t("rateLimit.retryIn", { minutes }) : t("rateLimit.retryLater")} {t("rateLimit.howToAvoid")}
+        {limit.minutesKnown ? t("rateLimit.retryIn", { minutes }) : t("rateLimit.retryLater")}{" "}
+        {t("rateLimit.howToAvoid")}
       </small>
-      <Focusable flow-children={stacked ? "down" : "right"} style={{ display: "flex", flexDirection: stacked ? "column" : "row", gap: 8 }}>
+      <Focusable
+        flow-children={stacked ? "down" : "right"}
+        style={{ display: "flex", flexDirection: stacked ? "column" : "row", gap: 8 }}
+      >
         <Button style={bannerButton} onClick={() => openSettings("github")}>
           <FaCog /> {t("rateLimit.openSettings")}
         </Button>

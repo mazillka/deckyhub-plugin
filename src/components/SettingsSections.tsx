@@ -1,8 +1,24 @@
-import { DialogButtonPrimary as Button, DropdownItem, Focusable, PanelSection, PanelSectionRow, TextField, ToggleField } from "@decky/ui";
+import {
+  DialogButtonPrimary as Button,
+  DropdownItem,
+  Focusable,
+  PanelSection,
+  PanelSectionRow,
+  TextField,
+  ToggleField,
+} from "@decky/ui";
 import { openExternalWeb } from "../external";
 import { FileSelectionType, openFilePicker, toaster } from "@decky/api";
 import { useState } from "react";
-import { FaExternalLinkAlt, FaFileExport, FaFileImport, FaFolderOpen, FaInfoCircle, FaLock, FaSave } from "react-icons/fa";
+import {
+  FaExternalLinkAlt,
+  FaFileExport,
+  FaFileImport,
+  FaFolderOpen,
+  FaInfoCircle,
+  FaLock,
+  FaSave,
+} from "react-icons/fa";
 import { exportLogs, getDeckyHubInfo, readTokenFile } from "../api";
 import { LOCALES, useT } from "../i18n";
 import type { MessageKey } from "../i18n/en";
@@ -10,6 +26,7 @@ import type { HideableButton, Settings } from "../types";
 import { compactButtonStyle, sectionDividerStyle, type githubCoreQuota } from "../utils";
 import { Card, IconNote } from "./Card";
 import type { Layout } from "./LayoutToggle";
+import { colors } from "../styles";
 
 // The Settings page's sections. The page owns the settings and saves changes
 // (update); each section shows its part and reports what changed.
@@ -30,7 +47,9 @@ const openTokenPage = () => openExternalWeb("https://github.com/settings/tokens"
 async function loadToken(t: ReturnType<typeof useT>, onTokenDraft: (token: string) => void) {
   let file;
   try {
-    file = await openFilePicker(FileSelectionType.FILE, (await getDeckyHubInfo()).downloadDir, true, false, undefined, ["txt"]);
+    file = await openFilePicker(FileSelectionType.FILE, (await getDeckyHubInfo()).downloadDir, true, false, undefined, [
+      "txt",
+    ]);
   } catch {
     return; // Picker closed without a file.
   }
@@ -45,11 +64,28 @@ async function loadToken(t: ReturnType<typeof useT>, onTokenDraft: (token: strin
 
 // What a token is for (one line, Why? for the rest), the requests left this hour,
 // and the token field: typed, or loaded from a file, then saved on its button.
-export function GitHubAccessSection({ quota, tokenDraft, onTokenDraft, savedToken, update }: { quota: Awaited<ReturnType<typeof githubCoreQuota>>; tokenDraft: string; onTokenDraft: (token: string) => void; savedToken: string; update: Update }) {
+export function GitHubAccessSection({
+  quota,
+  tokenDraft,
+  onTokenDraft,
+  savedToken,
+  update,
+}: {
+  quota: Awaited<ReturnType<typeof githubCoreQuota>>;
+  tokenDraft: string;
+  onTokenDraft: (token: string) => void;
+  savedToken: string;
+  update: Update;
+}) {
   const t = useT();
   const [why, setWhy] = useState(false);
   // Same green/yellow/red as the app cards' status colors.
-  const quotaColor = !quota || quota.remaining > quota.limit / 2 ? "#6bcb6b" : quota.remaining > quota.limit / 10 ? "#f0c33c" : "#ff6b6b";
+  const quotaColor =
+    !quota || quota.remaining > quota.limit / 2
+      ? colors.success
+      : quota.remaining > quota.limit / 10
+        ? colors.warning
+        : colors.danger;
   return (
     <Card>
       <PanelSection title={t("settings.githubAccess")}>
@@ -60,7 +96,11 @@ export function GitHubAccessSection({ quota, tokenDraft, onTokenDraft, savedToke
                 <IconNote icon={<FaInfoCircle />}>{t("settings.githubTokenShort")}</IconNote>
               </div>
               <div style={{ flex: "0 0 auto" }}>
-                <Button style={{ ...compactButtonStyle, minHeight: 32, marginBottom: 0, padding: "2px 12px" }} {...({ "aria-expanded": why } as object)} onClick={() => setWhy(!why)}>
+                <Button
+                  style={{ ...compactButtonStyle, minHeight: 32, marginBottom: 0, padding: "2px 12px" }}
+                  {...({ "aria-expanded": why } as object)}
+                  onClick={() => setWhy(!why)}
+                >
                   {why ? t("notice.less") : t("settings.githubTokenWhy")}
                 </Button>
               </div>
@@ -69,8 +109,20 @@ export function GitHubAccessSection({ quota, tokenDraft, onTokenDraft, savedToke
               // Focusable (via onActivate) so the controller can move up onto this
               // text: Steam only scrolls to follow focus.
               <Focusable onActivate={() => {}}>
-                <strong className="deckyhub-github-quota" style={{ display: "block", borderLeft: `3px solid ${quotaColor}`, color: quotaColor, paddingLeft: 10 }}>
-                  {t("settings.githubQuota", { remaining: quota.remaining, limit: quota.limit, minutes: Math.max(1, Math.ceil((quota.reset * 1000 - Date.now()) / 60_000)) })}
+                <strong
+                  className="deckyhub-github-quota"
+                  style={{
+                    display: "block",
+                    borderLeft: `3px solid ${quotaColor}`,
+                    color: quotaColor,
+                    paddingLeft: 10,
+                  }}
+                >
+                  {t("settings.githubQuota", {
+                    remaining: quota.remaining,
+                    limit: quota.limit,
+                    minutes: Math.max(1, Math.ceil((quota.reset * 1000 - Date.now()) / 60_000)),
+                  })}
                 </strong>
               </Focusable>
             )}
@@ -78,9 +130,24 @@ export function GitHubAccessSection({ quota, tokenDraft, onTokenDraft, savedToke
               <>
                 <IconNote icon={<FaInfoCircle />}>{t("settings.githubTokenIntro")}</IconNote>
                 {/* A button (A / tap) that opens the token page in Steam's browser. */}
-                <Focusable className="deckyhub-token-link" onActivate={openTokenPage} onClick={openTokenPage} style={{ borderLeft: "3px solid #1a9fff", cursor: "pointer", paddingLeft: 10 }}>
-                  <div style={{ color: "#8fcef4", fontSize: "max(12px, 0.9em)", marginBottom: 3 }}>{t("settings.githubTokenHowTo")}</div>
-                  <strong style={{ alignItems: "center", color: "#fff", display: "inline-flex", gap: 6, textDecoration: "underline" }}>
+                <Focusable
+                  className="deckyhub-token-link"
+                  onActivate={openTokenPage}
+                  onClick={openTokenPage}
+                  style={{ borderLeft: "3px solid #1a9fff", cursor: "pointer", paddingLeft: 10 }}
+                >
+                  <div style={{ color: colors.accent, fontSize: "max(12px, 0.9em)", marginBottom: 3 }}>
+                    {t("settings.githubTokenHowTo")}
+                  </div>
+                  <strong
+                    style={{
+                      alignItems: "center",
+                      color: colors.text,
+                      display: "inline-flex",
+                      gap: 6,
+                      textDecoration: "underline",
+                    }}
+                  >
                     github.com/settings/tokens <FaExternalLinkAlt size="0.8em" />
                   </strong>
                 </Focusable>
@@ -91,17 +158,30 @@ export function GitHubAccessSection({ quota, tokenDraft, onTokenDraft, savedToke
         </PanelSectionRow>
         <div aria-hidden style={sectionDividerStyle} />
         <PanelSectionRow>
-          <TextField label={t("settings.githubToken")} value={tokenDraft} bIsPassword bShowClearAction onChange={(event) => onTokenDraft(event.currentTarget.value)} />
+          <TextField
+            label={t("settings.githubToken")}
+            value={tokenDraft}
+            bIsPassword
+            bShowClearAction
+            onChange={(event) => onTokenDraft(event.currentTarget.value)}
+          />
         </PanelSectionRow>
         <PanelSectionRow>
           <Focusable flow-children="right" style={{ display: "flex", gap: 8 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <Button style={{ ...compactButtonStyle, marginBottom: 0 }} onClick={() => void loadToken(t, onTokenDraft)}>
+              <Button
+                style={{ ...compactButtonStyle, marginBottom: 0 }}
+                onClick={() => void loadToken(t, onTokenDraft)}
+              >
                 <FaFileImport /> {t("settings.loadTokenFile")}
               </Button>
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <Button style={{ ...compactButtonStyle, marginBottom: 0 }} disabled={tokenDraft.trim() === savedToken} onClick={() => update({ githubToken: tokenDraft.trim() })}>
+              <Button
+                style={{ ...compactButtonStyle, marginBottom: 0 }}
+                disabled={tokenDraft.trim() === savedToken}
+                onClick={() => update({ githubToken: tokenDraft.trim() })}
+              >
                 <FaSave /> {t("settings.saveSettings")}
               </Button>
             </div>
@@ -122,20 +202,25 @@ export function DownloadsSection({ settings, update }: { settings: Settings; upd
           <div style={{ display: "grid", gap: 8 }}>
             <IconNote icon={<FaFolderOpen />}>{t("settings.whereZipsSaved")}</IconNote>
             <div style={{ borderLeft: "3px solid #1a9fff", paddingLeft: 10 }}>
-              <div style={{ color: "#8fcef4", fontSize: "max(12px, 0.9em)", marginBottom: 3 }}>{t("dl.installInDecky")}</div>
-              <strong style={{ color: "#fff" }}>{t("dl.installPath")}</strong>
+              <div style={{ color: colors.accent, fontSize: "max(12px, 0.9em)", marginBottom: 3 }}>
+                {t("dl.installInDecky")}
+              </div>
+              <strong style={{ color: colors.text }}>{t("dl.installPath")}</strong>
             </div>
           </div>
         </PanelSectionRow>
         <div aria-hidden style={sectionDividerStyle} />
         <PanelSectionRow>
-          <ToggleField label={t("settings.overwriteExisting")} checked={settings.overwriteExisting} onChange={(checked) => update({ overwriteExisting: checked })} />
+          <ToggleField
+            label={t("settings.overwriteExisting")}
+            checked={settings.overwriteExisting}
+            onChange={(checked) => update({ overwriteExisting: checked })}
+          />
         </PanelSectionRow>
       </PanelSection>
     </Card>
   );
 }
-
 
 export function LanguageSection({ settings, update }: { settings: Settings; update: Update }) {
   const t = useT();
@@ -146,7 +231,10 @@ export function LanguageSection({ settings, update }: { settings: Settings; upda
           <DropdownItem
             label={t("settings.language")}
             description={t("settings.languageHint")}
-            rgOptions={[{ label: t("settings.autoDetect"), data: "auto" }, ...LOCALES.map((locale) => ({ label: locale.label, data: locale.code }))]}
+            rgOptions={[
+              { label: t("settings.autoDetect"), data: "auto" },
+              ...LOCALES.map((locale) => ({ label: locale.label, data: locale.code })),
+            ]}
             selectedOption={settings.language}
             onChange={({ data }) => update({ language: data })}
           />
@@ -159,7 +247,17 @@ export function LanguageSection({ settings, update }: { settings: Settings; upda
 // Layout (shared with the Grid / List switches), density, items per row, haptics,
 // DeckyHub's Quick Access tab,
 // and the Manage-window buttons to hide.
-export function DisplaySection({ settings, update, layout, onLayout }: { settings: Settings; update: Update; layout: Layout; onLayout: (layout: Layout) => void }) {
+export function DisplaySection({
+  settings,
+  update,
+  layout,
+  onLayout,
+}: {
+  settings: Settings;
+  update: Update;
+  layout: Layout;
+  onLayout: (layout: Layout) => void;
+}) {
   const t = useT();
   return (
     <Card>
@@ -187,20 +285,40 @@ export function DisplaySection({ settings, update, layout, onLayout }: { setting
           />
         </PanelSectionRow>
         <PanelSectionRow>
-          <DropdownItem label={t("settings.itemsPerRow")} rgOptions={[1, 2, 3, 4].map((count) => ({ label: String(count), data: count }))} selectedOption={settings.columnsPerRow} onChange={({ data }) => update({ columnsPerRow: data })} />
+          <DropdownItem
+            label={t("settings.itemsPerRow")}
+            rgOptions={[1, 2, 3, 4].map((count) => ({ label: String(count), data: count }))}
+            selectedOption={settings.columnsPerRow}
+            onChange={({ data }) => update({ columnsPerRow: data })}
+          />
         </PanelSectionRow>
         <PanelSectionRow>
-          <ToggleField label={t("settings.haptics")} checked={settings.haptics} onChange={(checked) => update({ haptics: checked })} />
+          <ToggleField
+            label={t("settings.haptics")}
+            checked={settings.haptics}
+            onChange={(checked) => update({ haptics: checked })}
+          />
         </PanelSectionRow>
         <PanelSectionRow>
-          <ToggleField label={t("settings.quickAccessTab")} description={t("settings.quickAccessTabHint")} checked={settings.quickAccessTab} onChange={(checked) => update({ quickAccessTab: checked })} />
+          <ToggleField
+            label={t("settings.quickAccessTab")}
+            description={t("settings.quickAccessTabHint")}
+            checked={settings.quickAccessTab}
+            onChange={(checked) => update({ quickAccessTab: checked })}
+          />
         </PanelSectionRow>
         {HIDEABLE_BUTTONS.map(([name, label]) => (
           <PanelSectionRow key={name}>
             <ToggleField
               label={t("settings.hideButton", { button: t(label) })}
               checked={settings.hiddenButtons.includes(name)}
-              onChange={(checked) => update({ hiddenButtons: checked ? [...settings.hiddenButtons, name] : settings.hiddenButtons.filter((hidden) => hidden !== name) })}
+              onChange={(checked) =>
+                update({
+                  hiddenButtons: checked
+                    ? [...settings.hiddenButtons, name]
+                    : settings.hiddenButtons.filter((hidden) => hidden !== name),
+                })
+              }
             />
           </PanelSectionRow>
         ))}
@@ -216,12 +334,20 @@ export function TroubleshootingSection() {
     <Card>
       <PanelSection title={t("settings.troubleshooting")}>
         <PanelSectionRow>
-          <Button style={compactButtonStyle} onClick={() => void exportLogs().then(({ path }) => toaster.toast({ title: "DeckyHub", body: t("repos.exportedTo", { path }) }), (error) => toaster.toast({ title: "DeckyHub", body: String(error) }))}>
+          <Button
+            style={compactButtonStyle}
+            onClick={() =>
+              void exportLogs().then(
+                ({ path }) => toaster.toast({ title: "DeckyHub", body: t("repos.exportedTo", { path }) }),
+                (error) => toaster.toast({ title: "DeckyHub", body: String(error) }),
+              )
+            }
+          >
             <FaFileExport /> {t("settings.exportLogs")}
           </Button>
         </PanelSectionRow>
         <PanelSectionRow>
-          <div style={{ color: "#8fcef4", fontSize: "max(12px, 0.85em)" }}>{t("settings.exportLogsNote")}</div>
+          <div style={{ color: colors.accent, fontSize: "max(12px, 0.85em)" }}>{t("settings.exportLogsNote")}</div>
         </PanelSectionRow>
       </PanelSection>
     </Card>

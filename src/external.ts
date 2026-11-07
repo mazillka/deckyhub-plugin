@@ -2,7 +2,10 @@ import { Navigation, Router } from "@decky/ui";
 import { expectReturn, returned } from "./browseState";
 
 // Steam's history for its main window, which @decky/ui doesn't type.
-type MainWindowHistory = { location: { pathname: string }; listen: (listener: (location: { pathname: string }) => void) => () => void };
+type MainWindowHistory = {
+  location: { pathname: string };
+  listen: (listener: (location: { pathname: string }) => void) => () => void;
+};
 // A control to find again: coming back from the browser re-mounts the page, so the
 // element itself is gone (seen on a Deck). Its label and its card's title (the heading
 // each card keeps as a direct child) find the new one.
@@ -15,14 +18,21 @@ const describe = (element: HTMLElement): Control => {
 };
 
 const find = (page: Document, control: Control) => {
-  const heading = control.card ? [...page.querySelectorAll<HTMLElement>(".deckyhub-motion h3")].find((h3) => h3.textContent?.trim() === control.card) : null;
+  const heading = control.card
+    ? [...page.querySelectorAll<HTMLElement>(".deckyhub-motion h3")].find(
+        (h3) => h3.textContent?.trim() === control.card,
+      )
+    : null;
   const scope = heading?.parentElement ?? page.querySelector(".deckyhub-motion");
-  return [...(scope?.querySelectorAll<HTMLElement>("button, .DialogButton") ?? [])].find((button) => button.textContent?.trim() === control.label);
+  return [...(scope?.querySelectorAll<HTMLElement>("button, .DialogButton") ?? [])].find(
+    (button) => button.textContent?.trim() === control.label,
+  );
 };
 
 const mainWindow = () => Router.WindowStore?.GamepadUIMainWindowInstance;
 // The DeckyHub control with controller focus, in Steam's main window.
-const pageFocus = () => mainWindow()?.BrowserWindow?.document.querySelector<HTMLElement>(".deckyhub-motion .gpfocus") ?? null;
+const pageFocus = () =>
+  mainWindow()?.BrowserWindow?.document.querySelector<HTMLElement>(".deckyhub-motion .gpfocus") ?? null;
 
 // The control a window (Manage) was opened from. Closing a window from code, as its
 // Repository button does before opening the browser, doesn't give focus back to it.
@@ -57,7 +67,9 @@ export function openExternalWeb(url: string) {
     setTimeout(returned, 3000);
     setTimeout(() => {
       if (page.querySelector(".deckyhub-motion .gpfocus")) return;
-      const target = (control && find(page, control)) || page.querySelector<HTMLElement>(".deckyhub-motion button, .deckyhub-motion .DialogButton");
+      const target =
+        (control && find(page, control)) ||
+        page.querySelector<HTMLElement>(".deckyhub-motion button, .deckyhub-motion .DialogButton");
       target?.focus();
     }, 300);
   });

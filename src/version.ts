@@ -31,8 +31,16 @@ function comparePrerelease(target: string | null, current: string | null): numbe
   const a = target.toLowerCase().match(/\d+|[a-z]+/g) ?? [];
   const b = current.toLowerCase().match(/\d+|[a-z]+/g) ?? [];
   for (let i = 0; i < Math.min(a.length, b.length); i++) {
-    const aNumber = /^\d/.test(a[i]), bNumber = /^\d/.test(b[i]);
-    const diff = aNumber && bNumber ? Number(a[i]) - Number(b[i]) : aNumber !== bNumber ? (aNumber ? -1 : 1) : a[i].localeCompare(b[i]);
+    const aNumber = /^\d/.test(a[i]),
+      bNumber = /^\d/.test(b[i]);
+    const diff =
+      aNumber && bNumber
+        ? Number(a[i]) - Number(b[i])
+        : aNumber !== bNumber
+          ? aNumber
+            ? -1
+            : 1
+          : a[i].localeCompare(b[i]);
     if (diff) return Math.sign(diff);
   }
   return Math.sign(a.length - b.length);
@@ -42,7 +50,8 @@ function comparePrerelease(target: string | null, current: string | null): numbe
 // either has no version number. Used for DeckyHub itself and every tracked
 // app, so pre-release suffixes count everywhere (rc.1 → rc.2 → final).
 export function compareVersions(target: string, current: string): number | null {
-  const a = parseVersion(target), b = parseVersion(current);
+  const a = parseVersion(target),
+    b = parseVersion(current);
   if (!a || !b) return null;
   for (let i = 0; i < Math.max(a.release.length, b.release.length); i++) {
     const diff = (a.release[i] || 0) - (b.release[i] || 0);
@@ -55,20 +64,34 @@ export function compareVersions(target: string, current: string): number | null 
 // release's ZIP (pluginVersion) for each channel's newest release, because some plugins
 // tag v0.45 while calling themselves 0.4.5, which would look like an update forever.
 // Everywhere else (older releases, repos the index lacks) the tag is all there is.
-export const releaseVersion = (release: { tag: string; pluginVersion?: string }) => release.pluginVersion || release.tag;
+export const releaseVersion = (release: { tag: string; pluginVersion?: string }) =>
+  release.pluginVersion || release.tag;
 
 // The release (newest first) the installed version came from, and which audit in the
 // registry's stats.json covers it: "stable" for the newest stable release (warnings),
 // "prerelease" for a newer pre-release (prereleaseWarnings), none for anything older.
-export function installedRelease<T extends { tag: string; pluginVersion?: string; prerelease: boolean }>(items: T[], installedVersion: string | null | undefined): { release: T; audit?: "stable" | "prerelease" } | undefined {
+export function installedRelease<T extends { tag: string; pluginVersion?: string; prerelease: boolean }>(
+  items: T[],
+  installedVersion: string | null | undefined,
+): { release: T; audit?: "stable" | "prerelease" } | undefined {
   if (!installedVersion) return undefined;
-  const release = items.find((item) => compareVersions(releaseVersion(item), installedVersion) === 0 || normalizeVersion(releaseVersion(item)) === normalizeVersion(installedVersion));
+  const release = items.find(
+    (item) =>
+      compareVersions(releaseVersion(item), installedVersion) === 0 ||
+      normalizeVersion(releaseVersion(item)) === normalizeVersion(installedVersion),
+  );
   if (!release) return undefined;
-  const audit = release === items.find((item) => !item.prerelease) ? "stable" : release === items[0] && release.prerelease ? "prerelease" : undefined;
+  const audit =
+    release === items.find((item) => !item.prerelease)
+      ? "stable"
+      : release === items[0] && release.prerelease
+        ? "prerelease"
+        : undefined;
   return { release, audit };
 }
 
 // The stable channel sees only stable releases; the pre-release channel sees
 // everything, so a stable release newer than the last pre-release still
 // reaches people on pre-releases.
-export const inChannel = (release: { prerelease: boolean }, channel: "stable" | "prerelease") => channel === "prerelease" || !release.prerelease;
+export const inChannel = (release: { prerelease: boolean }, channel: "stable" | "prerelease") =>
+  channel === "prerelease" || !release.prerelease;

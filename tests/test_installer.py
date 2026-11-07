@@ -1,22 +1,24 @@
 """installer/install-deckyhub.sh, run for real as root against stand-ins: curl serves
 local files, systemctl records its calls, and the home folder is a temporary one
 (DECKYHUB_USER_HOME). Needs root or passwordless sudo (GitHub's runners have it)."""
+
 import hashlib
 import json
 import os
 import re
 import shutil
-import stat
 import subprocess
-import tempfile
 import sys
+import tempfile
 import unittest
 import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "installer"))
-from build_installer import LANGUAGES, fill, messages, starter_lines  # noqa: E402  (what release.yml fills the installer in with)
+# What release.yml fills the installer in with.
+from build_installer import LANGUAGES, fill, messages, starter_lines
+
 SCRIPT = ROOT / "installer" / "install-deckyhub.sh"
 DESKTOP = ROOT / "installer" / "Install-DeckyHub.desktop"
 TAG = "v9.9.9"
@@ -52,11 +54,15 @@ def can_be_root() -> bool:
     return os.geteuid() == 0 or subprocess.run(["sudo", "-n", "true"], capture_output=True).returncode == 0
 
 
-@unittest.skipUnless(shutil.which("bash") and shutil.which("unzip") and can_be_root(), "needs bash, unzip and root or passwordless sudo")
+@unittest.skipUnless(
+    shutil.which("bash") and shutil.which("unzip") and can_be_root(), "needs bash, unzip and root or passwordless sudo"
+)
 class InstallerTests(unittest.TestCase):
     def setUp(self):
         self.dir = Path(tempfile.mkdtemp())
-        self.addCleanup(subprocess.run, ["sudo", "-n", "rm", "-rf", str(self.dir)] if os.geteuid() else ["rm", "-rf", str(self.dir)])
+        self.addCleanup(
+            subprocess.run, ["sudo", "-n", "rm", "-rf", str(self.dir)] if os.geteuid() else ["rm", "-rf", str(self.dir)]
+        )
         self.home, self.fixtures, self.bin = self.dir / "home", self.dir / "fixtures", self.dir / "bin"
         for folder in (self.home, self.fixtures, self.bin):
             folder.mkdir()
@@ -72,12 +78,19 @@ class InstallerTests(unittest.TestCase):
     def run_installer(self, sha256=None, extra_args=(), picks=None, locale=None):
         script = self.dir / "install-deckyhub.sh"
         script.write_text(fill(SCRIPT.read_text(), TAG, sha256 or self.sha256))
-        env = {"PATH": f"{self.bin}:/usr/bin:/bin", "FIXTURES": str(self.fixtures), "DECKYHUB_USER_HOME": str(self.home), "HOME": str(self.home)}
+        env = {
+            "PATH": f"{self.bin}:/usr/bin:/bin",
+            "FIXTURES": str(self.fixtures),
+            "DECKYHUB_USER_HOME": str(self.home),
+            "HOME": str(self.home),
+        }
         if picks is not None:
             env["DECKYHUB_PICKS"] = picks
         env.update(locale or {})
         command = ["env", *[f"{key}={value}" for key, value in env.items()], "bash", str(script), *extra_args]
-        return subprocess.run(command if os.geteuid() == 0 else ["sudo", "-n", *command], capture_output=True, text=True, timeout=60)
+        return subprocess.run(
+            command if os.geteuid() == 0 else ["sudo", "-n", *command], capture_output=True, text=True, timeout=60
+        )
 
     def plugin(self, path):
         return self.home / "homebrew" / "plugins" / "DeckyHub" / path
@@ -91,7 +104,12 @@ class InstallerTests(unittest.TestCase):
         self.assertIn("✓ Decky Loader restarted", result.stdout)
         self.assertIn("choose DeckyHub", result.stdout)
         # Every step is announced, numbered: password, Decky Loader, download, install, restart.
-        for number, text in ((2, "Installing Decky Loader"), (3, "Downloading DeckyHub"), (4, "Installing DeckyHub"), (5, "Restarting Decky Loader")):
+        for number, text in (
+            (2, "Installing Decky Loader"),
+            (3, "Downloading DeckyHub"),
+            (4, "Installing DeckyHub"),
+            (5, "Restarting Decky Loader"),
+        ):
             self.assertIn(f"Step {number} of 5: {text}", result.stdout)
         self.assertTrue((self.home / "homebrew" / "services" / "PluginLoader").exists())
         self.assertEqual(self.plugin("dist/index.js").read_text(), "// new")
@@ -137,7 +155,9 @@ class InstallerTests(unittest.TestCase):
     def test_picked_plugins_are_saved_for_deckyhub_before_it_restarts(self):
         result = self.run_installer(picks="mako-decky,css-loader,not-in-the-list")
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(json.loads(self.pending_file().read_text()), ["eugeniosegala/MAKO", "DeckThemes/SDH-CssLoader"])
+        self.assertEqual(
+            json.loads(self.pending_file().read_text()), ["eugeniosegala/MAKO", "DeckThemes/SDH-CssLoader"]
+        )
         self.assertIn("✓ 2 optional plugin(s) chosen", result.stdout)
         self.assertIn("You install them at your own risk", result.stdout)
         self.assertIn("it isn't responsible for anything they do to your device or your data", result.stdout)
@@ -166,14 +186,26 @@ class InstallerTests(unittest.TestCase):
         text = fill(SCRIPT.read_text(), TAG, self.sha256)
 
         def one(pattern):
-            return re.search(pattern, text, re.M | re.S).group(0)
+            return re.search(pattern, text, re.MULTILINE | re.DOTALL).group(0)
 
-        parts = [one(r"^C_OK=.*\nOK_MARK=[^\n]*$"), one(r"^STARTER_PLUGINS=\(\n.*?^\)"), one(r"^INSTALLER_LANG=.*?^TITLE=[^\n]*$"), one(r"^PLUGINS_ARG=[^\n]*$"), one(r"^STATS_URL=[^\n]*$"),
-                 one(r"^RELEASES_URL=[^\n]*$"), one(r"^RESPONSIBILITY=[^\n]*$"), one(r"^installed_version\(\)[^\n]*$"),
-                 one(r"^plugin_notes\(\) \{\n.*?^\}"), one(r"^plugin_versions\(\) \{\n.*?^\}"), one(r"^choose_plugins\(\) \{\n.*?^\}")]
+        parts = [
+            one(r"^C_OK=.*\nOK_MARK=[^\n]*$"),
+            one(r"^STARTER_PLUGINS=\(\n.*?^\)"),
+            one(r"^INSTALLER_LANG=.*?^TITLE=[^\n]*$"),
+            one(r"^PLUGINS_ARG=[^\n]*$"),
+            one(r"^STATS_URL=[^\n]*$"),
+            one(r"^RELEASES_URL=[^\n]*$"),
+            one(r"^RESPONSIBILITY=[^\n]*$"),
+            one(r"^installed_version\(\)[^\n]*$"),
+            one(r"^plugin_notes\(\) \{\n.*?^\}"),
+            one(r"^plugin_versions\(\) \{\n.*?^\}"),
+            one(r"^choose_plugins\(\) \{\n.*?^\}"),
+        ]
         log = self.dir / "dialogs.bin"
         harness = self.dir / "picker.sh"
-        harness.write_text("\n".join(parts) + """
+        harness.write_text(
+            "\n".join(parts)
+            + """
 has_zenity() { return 0; }
 zen() {
     local text="" ok="" a
@@ -188,13 +220,24 @@ zen() {
 HAS_DECKY=1; HOMEBREW_CHECK=/nonexistent; TAG=v9.9.9; verb=Install
 choose_plugins
 echo "PICKS=$PICKS"
-""")
-        env = {"PATH": f"{self.bin}:/usr/bin:/bin", "DIALOGS": str(log), "OVERVIEW": "0" if overview_ok else "1", "ADD": " ".join(name.replace(" ", "_") for name in add)}
-        result = subprocess.run(["env", *[f"{key}={value}" for key, value in env.items()], "bash", str(harness)], capture_output=True, text=True, timeout=60)
+"""
+        )
+        env = {
+            "PATH": f"{self.bin}:/usr/bin:/bin",
+            "DIALOGS": str(log),
+            "OVERVIEW": "0" if overview_ok else "1",
+            "ADD": " ".join(name.replace(" ", "_") for name in add),
+        }
+        result = subprocess.run(
+            ["env", *[f"{key}={value}" for key, value in env.items()], "bash", str(harness)],
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
         self.assertEqual(result.returncode, 0, result.stderr)
-        picks = re.search(r"^PICKS=(.*)$", result.stdout, re.M).group(1)
+        picks = re.search(r"^PICKS=(.*)$", result.stdout, re.MULTILINE).group(1)
         fields = log.read_bytes().decode().split("\0")[:-1] if log.exists() else []
-        return picks, [tuple(fields[index:index + 3]) for index in range(0, len(fields), 3)]
+        return picks, [tuple(fields[index : index + 3]) for index in range(0, len(fields), 3)]
 
     def test_the_picker_shows_the_overview_then_one_card_per_plugin_and_keeps_only_what_was_added(self):
         picks, dialogs = self.run_picker(add=("MAKO Decky", "CSS Loader"))
@@ -215,7 +258,10 @@ echo "PICKS=$PICKS"
 
     def test_each_card_gets_its_categorys_icon(self):
         _, dialogs = self.run_picker()
-        icons = {re.search(r"<b>([^<]+)</b>", text).group(1): re.search(r"--icon-name=(\S+)", arguments).group(1) for _, arguments, text in dialogs[1:]}
+        icons = {
+            re.search(r"<b>([^<]+)</b>", text).group(1): re.search(r"--icon-name=(\S+)", arguments).group(1)
+            for _, arguments, text in dialogs[1:]
+        }
         self.assertEqual(icons["MAKO Decky"], "video-display")
         self.assertEqual(icons["CSS Loader"], "preferences-desktop-theme")
         self.assertEqual(icons["ProtonDB Badges"], "applications-games")
@@ -232,7 +278,10 @@ echo "PICKS=$PICKS"
         self.assertNotIn("@SHA256@", filled)
         self.assertNotIn("@STARTER_PLUGINS@", filled)
         starter = [line.strip().strip("'").split("|")[0] for line in starter_lines().splitlines()]
-        self.assertEqual(starter, ["decky-lsfg-vk", "mako-decky", "decky-multiframegen", "decky-framegen", "css-loader", "protondb-decky"])
+        self.assertEqual(
+            starter,
+            ["decky-lsfg-vk", "mako-decky", "decky-multiframegen", "decky-framegen", "css-loader", "protondb-decky"],
+        )
         # id|name|repo|what it does|release tag to follow|category: MAKO follows its plugin releases only.
         lines = [line.strip().strip("'").split("|") for line in starter_lines().splitlines()]
         self.assertTrue(all(len(fields) == 6 for fields in lines))
@@ -243,7 +292,9 @@ echo "PICKS=$PICKS"
 
     def test_the_starter_list_refuses_characters_that_could_break_the_shell(self):
         bad = self.dir / "bad.json"
-        bad.write_text(json.dumps({"plugins": [{"id": "x", "name": "X", "repo": "o/x", "description": "$(touch /tmp/pwned)"}]}))
+        bad.write_text(
+            json.dumps({"plugins": [{"id": "x", "name": "X", "repo": "o/x", "description": "$(touch /tmp/pwned)"}]})
+        )
         with self.assertRaises(SystemExit):
             starter_lines(bad)
 
@@ -318,12 +369,15 @@ class TranslationTests(unittest.TestCase):
 
     def test_every_language_has_every_text_with_the_same_placeholders_and_valid_markup(self):
         import xml.etree.ElementTree as ET
+
         english = messages("en")
         for code in LANGUAGES:
             texts = messages(code)
             self.assertEqual(list(texts), list(english), code)
             for key, text in texts.items():
-                self.assertEqual(sorted(re.findall(r"\{\w+\}", text)), sorted(re.findall(r"\{\w+\}", english[key])), f"{code} {key}")
+                self.assertEqual(
+                    sorted(re.findall(r"\{\w+\}", text)), sorted(re.findall(r"\{\w+\}", english[key])), f"{code} {key}"
+                )
                 # zenity reads Pango markup: tags must pair up and & must be &amp;.
                 ET.fromstring("<t>" + re.sub(r"\{\w+\}", "x", text) + "</t>")
 
@@ -354,8 +408,9 @@ class DesktopFileTests(unittest.TestCase):
         # Self-update takes /^DeckyHub-.*\\.zip$/ (listDeckyHubReleases), the registry's entry
         # for DeckyHub takes names containing "deckyhub-": the extra files must match neither.
         import re
+
         for name in ("DeckyHub.zip", "Install-DeckyHub.desktop", "install-deckyhub.sh"):
-            self.assertIsNone(re.match(r"^DeckyHub-.*\.zip$", name, re.I), name)
+            self.assertIsNone(re.match(r"^DeckyHub-.*\.zip$", name, re.IGNORECASE), name)
             self.assertNotIn("deckyhub-", name.casefold(), name)
 
 

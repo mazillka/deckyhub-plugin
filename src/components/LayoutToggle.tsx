@@ -31,8 +31,19 @@ export function useLayout() {
 export function LayoutToggle({ layout, onChange }: { layout: Layout; onChange: (layout: Layout) => void }) {
   const t = useT();
   return (
-    <Button style={{ ...compactButtonStyle, marginBottom: 0 }} onClick={() => onChange(layout === "grid" ? "list" : "grid")}>
-      {layout === "grid" ? <><FaList /> {t("discover.list")}</> : <><FaTh /> {t("discover.grid")}</>}
+    <Button
+      style={{ ...compactButtonStyle, marginBottom: 0 }}
+      onClick={() => onChange(layout === "grid" ? "list" : "grid")}
+    >
+      {layout === "grid" ? (
+        <>
+          <FaList /> {t("discover.list")}
+        </>
+      ) : (
+        <>
+          <FaTh /> {t("discover.grid")}
+        </>
+      )}
     </Button>
   );
 }

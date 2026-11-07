@@ -5,7 +5,10 @@ import { toaster } from "@decky/api";
 
 // What flagged the installed version (installedRisk), for its card badge and the toast.
 export const installedRiskReasons = (t: TFunc, risk: NonNullable<App["installedRisk"]>) =>
-  [...(risk.threat ? [t("appcard.scan.infected")] : []), ...risk.warnings.filter(isAuditWarning).map((key) => t(`appcard.warning.${key}`))].join(", ");
+  [
+    ...(risk.threat ? [t("appcard.scan.infected")] : []),
+    ...risk.warnings.filter(isAuditWarning).map((key) => t(`appcard.warning.${key}`)),
+  ].join(", ");
 
 const UPDATE_NOTICE_KEY = "deckyhub-update-notice";
 
@@ -33,7 +36,9 @@ export function notifyInstalledRisks(apps: App[]) {
   if (!flagged.length) return;
   toaster.toast({
     title: tr("toast.installedFlagged", { count: flagged.length }),
-    body: flagged.map((app) => `${app.name} ${app.installedVersion}: ${installedRiskReasons(tr, app.installedRisk!)}`).join("; "),
+    body: flagged
+      .map((app) => `${app.name} ${app.installedVersion}: ${installedRiskReasons(tr, app.installedRisk!)}`)
+      .join("; "),
     critical: true,
   });
 }
@@ -41,9 +46,15 @@ export function notifyInstalledRisks(apps: App[]) {
 export function notifyUpdates(apps: App[]) {
   const updates = apps.filter((app) => app.updateAvailable && app.latestVersion);
   setUpdateCount(updates.length);
-  const notice = updates.map((app) => `${app.repo}:${app.latestVersion}`).sort().join("|");
+  const notice = updates
+    .map((app) => `${app.repo}:${app.latestVersion}`)
+    .sort()
+    .join("|");
   if (!notice || !seenOnce(UPDATE_NOTICE_KEY, notice)) return;
-  toaster.toast({ title: tr("toast.updatesAvailable", { count: updates.length }), body: updates.map((app) => `${app.name} (${app.latestVersion})`).join(", ") });
+  toaster.toast({
+    title: tr("toast.updatesAvailable", { count: updates.length }),
+    body: updates.map((app) => `${app.name} (${app.latestVersion})`).join(", "),
+  });
 }
 
 // How many plugins have an update, for the dot on DeckyHub's Quick Access icon.

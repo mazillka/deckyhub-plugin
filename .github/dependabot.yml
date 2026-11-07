@@ -16,3 +16,8 @@ updates:
     directory: /
     schedule: { interval: weekly }
     target-branch: develop
+  # ruff, the dev-only Python formatter and linter (requirements-dev.txt).
+  - package-ecosystem: pip
+    directory: /
+    schedule: { interval: weekly }
+    target-branch: develop

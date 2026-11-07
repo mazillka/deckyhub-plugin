@@ -5,8 +5,10 @@ import assert from "node:assert/strict";
 import { connect, goTo, resetFocus, sleep, TARGETS, waitFor } from "./cdp.mjs";
 import { BUTTON, press } from "./navigation.mjs";
 
-const shared = await connect(TARGETS.shared), main = await connect(TARGETS.main);
-const state = () => main.eval(`(() => {
+const shared = await connect(TARGETS.shared),
+  main = await connect(TARGETS.main);
+const state = () =>
+  main.eval(`(() => {
   const page = document.querySelector(".deckyhub-motion");
   const box = [...(page?.querySelectorAll("div") ?? [])].find((el) => getComputedStyle(el).overflowY === "auto");
   const f = page?.querySelector(".gpfocus");
@@ -15,8 +17,13 @@ const state = () => main.eval(`(() => {
 const focusedText = async () => (await state()).focus;
 try {
   await goTo(shared, "/deckyhub/discover");
-  await waitFor(main, `!!document.querySelector(".deckyhub-category-chips button, .deckyhub-category-chips .DialogButton")`);
-  await main.eval(`[...document.querySelectorAll(".deckyhub-category-chips button, .deckyhub-category-chips .DialogButton")].find((b) => b.textContent.trim().startsWith("All plugins")).click(); true`);
+  await waitFor(
+    main,
+    `!!document.querySelector(".deckyhub-category-chips button, .deckyhub-category-chips .DialogButton")`,
+  );
+  await main.eval(
+    `[...document.querySelectorAll(".deckyhub-category-chips button, .deckyhub-category-chips .DialogButton")].find((b) => b.textContent.trim().startsWith("All plugins")).click(); true`,
+  );
   await sleep(1500);
   for (let i = 0; i < 40 && (await focusedText()) !== "Manage"; i++) await press(shared, BUTTON.DOWN, 250);
   for (let i = 0; i < 25; i++) await press(shared, BUTTON.DOWN, 250);
@@ -27,12 +34,26 @@ try {
   assert.ok(before.scroll > 300, "page did not scroll");
   await press(shared, 1, 1500); // A: Manage
   // Down the Manage window to a page link (Release page, Repository or DeckyHub page): all open Steam's browser the same way.
-  const link = () => main.eval(`[...document.querySelectorAll(".gpfocus")].map((e) => e.textContent.trim()).find((t) => /^(Release page|Repository|DeckyHub page)$/.test(t)) ?? null`);
+  const link = () =>
+    main.eval(
+      `[...document.querySelectorAll(".gpfocus")].map((e) => e.textContent.trim()).find((t) => /^(Release page|Repository|DeckyHub page)$/.test(t)) ?? null`,
+    );
   for (let i = 0; i < 40 && !(await link()); i++) await press(shared, BUTTON.DOWN, 250);
   assert.ok(await link(), "the D-pad never reached a page link");
   await press(shared, 1, 3000); // A: Repository
-  console.log("targets:", (await (await fetch(`http://${process.env.DECK}/json`)).json()).map((t) => t.title).join(", "));
-  console.log("pages:", await shared.eval(`(() => { const h = window.SteamUIStore?.m_WindowStore?.GamepadUIMainWindowInstance?.m_history; return h?.location.pathname })()`).catch(String), await main.eval(`document.querySelector(".deckyhub-motion") ? "deckyhub page mounted" : "no deckyhub page"`));
+  console.log(
+    "targets:",
+    (await (await fetch(`http://${process.env.DECK}/json`)).json()).map((t) => t.title).join(", "),
+  );
+  console.log(
+    "pages:",
+    await shared
+      .eval(
+        `(() => { const h = window.SteamUIStore?.m_WindowStore?.GamepadUIMainWindowInstance?.m_history; return h?.location.pathname })()`,
+      )
+      .catch(String),
+    await main.eval(`document.querySelector(".deckyhub-motion") ? "deckyhub page mounted" : "no deckyhub page"`),
+  );
   await press(shared, BUTTON.BACK, 3000);
   await waitFor(main, `!!document.querySelector(".deckyhub-motion h3")`);
   await sleep(1500);

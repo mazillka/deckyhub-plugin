@@ -7,7 +7,8 @@ import unittest
 from pathlib import Path
 
 sys.modules.setdefault("decky", types.SimpleNamespace(logger=logging.getLogger("decky-test")))
-from main import parse_registry  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "py_modules"))
+from deckyhub.registry import parse_registry
 
 # The registry lives in mazillka/deckyhub-registry, whose CI points DECKYHUB_REGISTRY
 # at its apps.json; without it (this repo's own CI) the test is skipped.
@@ -44,7 +45,9 @@ class RegistrySchemaV1Tests(unittest.TestCase):
         for app in self.apps:
             with self.subTest(app=app.get("id")):
                 self.assertLessEqual(set(REQUIRED), set(app), "missing required key")
-                self.assertLessEqual(set(app), set(REQUIRED) | set(OPTIONAL), "unknown key - see the note at the top of this file")
+                self.assertLessEqual(
+                    set(app), set(REQUIRED) | set(OPTIONAL), "unknown key - see the note at the top of this file"
+                )
                 for key, kind in {**REQUIRED, **OPTIONAL}.items():
                     if key in app:
                         self.assertIsInstance(app[key], kind, key)
@@ -56,7 +59,7 @@ class RegistrySchemaV1Tests(unittest.TestCase):
                 for issue in app.get("knownIssues", []):
                     self.assertEqual(set(issue), {"title", "url"})
                     self.assertTrue(issue["title"] and issue["url"].startswith("https://"))
-                    # DeckyHub cuts longer titles off (_known_issues in main.py).
+                    # DeckyHub cuts longer titles off (known_issues in py_modules/deckyhub/registry.py).
                     self.assertLessEqual(len(issue["title"]), 200, "knownIssues title over 200 characters")
                 self.assertTrue(_string_list(app["asset"]["include"]) and _string_list(app["asset"]["exclude"]))
 

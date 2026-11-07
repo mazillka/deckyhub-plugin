@@ -1,8 +1,10 @@
 """Turns screenshots.mjs's PNGs into the JPGs of screenshots/ (1280x800):
   python devtools/deck/screenshots_to_jpg.py <png-dir>
 The menu is the main screen behind it with the Quick Access panel (its own window) put on the right."""
+
 import sys
 from pathlib import Path
+
 from PIL import Image
 
 src = Path(sys.argv[1])

@@ -11,7 +11,7 @@ DeckyHub is in production. People update from any older release (or never update
 
 | Surface | Where | Rule |
 | --- | --- | --- |
-| Saved settings | `settings.json` in Decky's settings dir, `_coerce_settings()` / `_load_settings()` in `main.py` | A new key gets a default for files that lack it (old installs); an unknown or invalid value falls back to the default. Never rename a key or change what a value means: an old file would silently lose the user's choice. |
+| Saved settings | `settings.json` in Decky's settings dir, `coerce_settings()` / `_load_settings()` in `py_modules/deckyhub/settings.py` | A new key gets a default for files that lack it (old installs); an unknown or invalid value falls back to the default. Never rename a key or change what a value means: an old file would silently lose the user's choice. |
 | Registry caches | `registry-cache.json` (stable), `registry-cache-prerelease.json`, `registries/<hash>.json` | Keep the names; a new format must still read the old file, or ignore it and fetch again. A broken or empty download never replaces a good cache. |
 | Release cache | `localStorage` keys starting `deckyhub-releases:` (`readCache`/`writeCache` in `src/releases.ts`) | Entries written by an older build must parse or be ignored, never crash a page. |
 | Self-update | `DeckyHub-vX.Y.Z.zip` with a SHA-256 digest on a `vX.Y.Z` / `vX.Y.Z-rc.N` release (`release.yml`), found by `/^DeckyHub-.*\.zip$/` in `listDeckyHubReleases()` | Old releases find updates this way forever: never rename the asset, drop the digest, or change the tag scheme. |
