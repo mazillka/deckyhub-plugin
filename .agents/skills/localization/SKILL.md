@@ -41,7 +41,7 @@ Whenever you add a key to `en.ts` or change what an English string says, update 
 1. Create `src/i18n/<file>.ts` translating every key of `en.ts`.
 2. In `src/i18n/index.tsx`: the import, the `Locale` union, a `LOCALES` entry with the language's own name, and `MESSAGES`. Add a `detectLocale()` rule only for a regional variant (like `pt-PT`).
 3. The installer: `installer/i18n/<file>.json`, the code in `LANGUAGES` in `installer/build_installer.py`, and its `Name[xx]=`/`Comment[xx]=` lines in `installer/Install-DeckyHub.desktop`.
-4. Add the code to `SUPPORTED_LANGUAGES` in `main.py` (otherwise the saved choice resets to auto) and `LANGUAGES` in `devtools/deck/scenarios.mjs`.
+4. Add the code to `SUPPORTED_LANGUAGES` in `py_modules/deckyhub/settings.py` (otherwise the saved choice resets to auto) and `LANGUAGES` in `devtools/deck/scenarios.mjs`.
 5. Add `[code, "<its word for Language>"]` to the "Newer languages are offered" test in `devtools/decky-mock/e2e/deckyhub.spec.ts`.
 6. Compatibility: an older DeckyHub doesn't know the new code and falls back to auto-detect after a downgrade. That's fine; never rename or reuse an existing code.
 
@@ -55,7 +55,7 @@ pnpm typecheck
 pnpm run test:frontend
 ```
 
-Typecheck fails on a missing or extra key. `tests/i18n.test.ts` fails on a dropped or renamed `{placeholder}` and on a language missing from `main.py` or the Deck scenarios.
+Typecheck fails on a missing or extra key. `tests/i18n.test.ts` fails on a dropped or renamed `{placeholder}` and on a language missing from the backend's `SUPPORTED_LANGUAGES` or the Deck scenarios.
 
 To list strings still identical to English (expect a few legitimate ones such as `OK`, `Fork`, `GitHub`, `dl.installPath`):
 

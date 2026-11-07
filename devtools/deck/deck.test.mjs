@@ -23,16 +23,25 @@ let shared, main, quickAccess, startPath;
 const errors = [];
 
 before(async () => {
-  [shared, main, quickAccess] = await Promise.all([connect(TARGETS.shared), connect(TARGETS.main), connect(TARGETS.quickAccess)]);
+  [shared, main, quickAccess] = await Promise.all([
+    connect(TARGETS.shared),
+    connect(TARGETS.main),
+    connect(TARGETS.quickAccess),
+  ]);
   startPath = await shared.eval("location.pathname.slice('/routes'.length)");
   // With the screen off Steam draws nothing and ignores the D-pad; a black frame is a tiny PNG.
   await awake();
   // Decky's plugins run in SharedJSContext: keep its errors that come from DeckyHub.
   await shared.send("Runtime.enable");
   shared.on(({ method, params }) => {
-    const text = method === "Runtime.exceptionThrown" ? params.exceptionDetails.exception?.description ?? params.exceptionDetails.text
-      : method === "Runtime.consoleAPICalled" && params.type === "error" ? params.args.map((arg) => arg.value ?? arg.description).join(" ") : null;
-    if (text && /deckyhub/i.test(text + JSON.stringify(params.stackTrace ?? params.exceptionDetails?.stackTrace ?? ""))) errors.push(text);
+    const text =
+      method === "Runtime.exceptionThrown"
+        ? (params.exceptionDetails.exception?.description ?? params.exceptionDetails.text)
+        : method === "Runtime.consoleAPICalled" && params.type === "error"
+          ? params.args.map((arg) => arg.value ?? arg.description).join(" ")
+          : null;
+    if (text && /deckyhub/i.test(text + JSON.stringify(params.stackTrace ?? params.exceptionDetails?.stackTrace ?? "")))
+      errors.push(text);
   });
 });
 
@@ -46,12 +55,18 @@ const save = async (page, name) => writeFileSync(new URL(`${name}.png`, shots), 
 // Steam doesn't count our virtual presses as activity, so the screen can go off
 // mid-run; with it off Steam ignores the D-pad. Say so instead of failing oddly.
 const SCREEN_OFF = "The Deck's screen is off: wake it (press a button) and keep it awake while testing.";
-const awake = async () => { if ((await main.screenshot()).length < 15000) throw new Error(SCREEN_OFF); };
+const awake = async () => {
+  if ((await main.screenshot()).length < 15000) throw new Error(SCREEN_OFF);
+};
 
 const openPage = async (name) => {
   await awake();
   await goTo(shared, `/deckyhub/${name}`);
-  await waitFor(main, `!!document.querySelector(".deckyhub-motion") && !document.querySelector(".deckyhub-motion .Throbber, .deckyhub-motion [class*=Spinner]")`, 30000);
+  await waitFor(
+    main,
+    `!!document.querySelector(".deckyhub-motion") && !document.querySelector(".deckyhub-motion .Throbber, .deckyhub-motion [class*=Spinner]")`,
+    30000,
+  );
   await sleep(1500);
 };
 
@@ -86,33 +101,49 @@ const layoutProblems = (root) => `(() => {
 })()`;
 
 test("DeckyHub is loaded by Decky", async () => {
-  const plugin = await shared.eval(`JSON.stringify(DeckyPluginLoader.plugins.find((p) => p.name === "DeckyHub") ?? null)`);
+  const plugin = await shared.eval(
+    `JSON.stringify(DeckyPluginLoader.plugins.find((p) => p.name === "DeckyHub") ?? null)`,
+  );
   assert.ok(JSON.parse(plugin), "DeckyHub isn't in Decky's plugin list");
   if (process.env.DECKYHUB_VERSION) assert.equal(JSON.parse(plugin).version, process.env.DECKYHUB_VERSION);
 });
 
 test("Quick Access: DeckyHub's tab has its icon, and a dot exactly while updates wait", async () => {
   await openQuickAccess(TAB_ID);
-  const state = JSON.parse(await waitFor(quickAccess, `(() => {
+  const state = JSON.parse(
+    await waitFor(
+      quickAccess,
+      `(() => {
     const icon = document.querySelector(".deckyhub-tab-icon");
     const buttons = [...document.querySelectorAll("button, .DialogButton")].map((b) => b.textContent.trim());
     return icon && buttons.some((b) => b.startsWith("Discover")) && JSON.stringify({ dot: !!document.querySelector(".deckyhub-tab-dot"), buttons });
-  })()`));
+  })()`,
+    ),
+  );
   await save(quickAccess, "quick-access");
-  for (const label of ["Discover", "Search", "Settings"]) assert.ok(state.buttons.some((b) => b.startsWith(label)), `no ${label} button`);
+  for (const label of ["Discover", "Search", "Settings"])
+    assert.ok(
+      state.buttons.some((b) => b.startsWith(label)),
+      `no ${label} button`,
+    );
   const updates = state.buttons.some((b) => /^Updates\s*\d+/.test(b));
   assert.equal(state.dot, updates, updates ? "updates wait but there's no dot" : "a dot with no updates");
 });
 
 test("Quick Access: the dot sits on the icon's corner, inside the tab button", async () => {
   await openQuickAccess(TAB_ID);
-  const boxes = JSON.parse(await waitFor(quickAccess, `(() => {
+  const boxes = JSON.parse(
+    await waitFor(
+      quickAccess,
+      `(() => {
     const icon = document.querySelector(".deckyhub-tab-icon");
     const dot = document.querySelector(".deckyhub-tab-dot");
     if (!icon) return null;
     const box = (el) => el && el.getBoundingClientRect().toJSON();
     return JSON.stringify({ svg: box(icon.querySelector("svg")), dot: box(dot), tab: box(icon.parentElement) });
-  })()`));
+  })()`,
+    ),
+  );
   if (!boxes.dot) return; // no updates: covered above
   assert.ok(boxes.dot.top >= boxes.tab.top && boxes.dot.right <= boxes.tab.right, "dot clipped by the tab button");
   assert.ok(boxes.dot.bottom > boxes.svg.top && boxes.dot.left < boxes.svg.right, "dot isn't on the icon's corner");
@@ -135,11 +166,13 @@ for (const name of PAGES) {
 
 test("Discover: disclaimer, categories and plugin cards", async () => {
   await openPage("discover");
-  const state = JSON.parse(await main.eval(`JSON.stringify({
+  const state = JSON.parse(
+    await main.eval(`JSON.stringify({
     disclaimer: !!document.querySelector(".deckyhub-disclaimer"),
     chips: document.querySelectorAll(".deckyhub-category-chips button, .deckyhub-category-chips .DialogButton").length,
     cards: document.querySelectorAll(".deckyhub-motion h3").length,
-  })`));
+  })`),
+  );
   assert.ok(state.disclaimer, "no install disclaimer");
   assert.ok(state.chips >= 2, "no category chips");
   assert.ok(state.cards >= 3, "no plugin cards");
@@ -147,40 +180,61 @@ test("Discover: disclaimer, categories and plugin cards", async () => {
 
 test("Discover: category chips are one line each, whole name and count showing", async () => {
   await openPage("discover");
-  const chips = JSON.parse(await main.eval(`JSON.stringify([...document.querySelectorAll(".deckyhub-category-chips button, .deckyhub-category-chips .DialogButton")].map((chip) => {
+  const chips = JSON.parse(
+    await main.eval(`JSON.stringify([...document.querySelectorAll(".deckyhub-category-chips button, .deckyhub-category-chips .DialogButton")].map((chip) => {
     const count = chip.lastElementChild.getBoundingClientRect();
     const name = chip.firstElementChild;
     return { label: chip.textContent.trim(), height: Math.round(chip.getBoundingClientRect().height), countShown: count.right <= chip.getBoundingClientRect().right, nameShown: name.scrollWidth <= name.clientWidth };
-  }))`));
+  }))`),
+  );
   assert.equal(new Set(chips.map((chip) => chip.height)).size, 1, `chip heights differ: ${JSON.stringify(chips)}`);
-  assert.deepEqual(chips.filter((chip) => !chip.countShown || !chip.nameShown), []);
+  assert.deepEqual(
+    chips.filter((chip) => !chip.countShown || !chip.nameShown),
+    [],
+  );
 });
 
 test("Discover: All plugins lists every plugin, and Back returns home", async () => {
   await openPage("discover");
-  await main.eval(`[...document.querySelectorAll(".deckyhub-category-chips button, .deckyhub-category-chips .DialogButton")].find((b) => b.textContent.trim().startsWith("All plugins")).click(); true`);
+  await main.eval(
+    `[...document.querySelectorAll(".deckyhub-category-chips button, .deckyhub-category-chips .DialogButton")].find((b) => b.textContent.trim().startsWith("All plugins")).click(); true`,
+  );
   await waitFor(main, `!!document.querySelector(".deckyhub-back-button")`);
   await sleep(1500);
   await save(main, "discover-all");
-  assert.ok(await main.eval(`document.querySelectorAll(".deckyhub-motion h3").length`) >= 9, "the list has few cards");
+  assert.ok(
+    (await main.eval(`document.querySelectorAll(".deckyhub-motion h3").length`)) >= 9,
+    "the list has few cards",
+  );
   assert.deepEqual(await main.eval(layoutProblems(".deckyhub-motion")), []);
-  await main.eval(`document.querySelector(".deckyhub-back-button button, .deckyhub-back-button .DialogButton").click(); true`);
+  await main.eval(
+    `document.querySelector(".deckyhub-back-button button, .deckyhub-back-button .DialogButton").click(); true`,
+  );
   await waitFor(main, `!!document.querySelector(".deckyhub-category-chips")`);
 });
 
 test("Discover: a plugin's Manage window opens and fits", async () => {
   await openPage("discover");
-  await main.eval(`[...document.querySelectorAll(".deckyhub-motion button, .deckyhub-motion .DialogButton")].find((b) => b.textContent.trim() === "Manage").click(); true`);
+  await main.eval(
+    `[...document.querySelectorAll(".deckyhub-motion button, .deckyhub-motion .DialogButton")].find((b) => b.textContent.trim() === "Manage").click(); true`,
+  );
   await waitFor(main, `!!document.querySelector(".deckyhub-details")`);
   await sleep(1500);
   await save(main, "manage");
   assert.deepEqual(await main.eval(layoutProblems(".deckyhub-details")), []);
-  await main.eval(`[...document.querySelectorAll("button, .DialogButton")].find((b) => b.textContent.trim() === "Close")?.click(); true`);
+  await main.eval(
+    `[...document.querySelectorAll("button, .DialogButton")].find((b) => b.textContent.trim() === "Close")?.click(); true`,
+  );
 });
 
 test("Discover: the D-pad opens a plugin's details and reads its release notes to the end", async () => {
   await openPage("discover");
-  const focused = () => main.eval(`(() => { const a = document.activeElement; const n = document.querySelector(".deckyhub-details-notes"); return JSON.stringify({ text: (a?.getAttribute("aria-label") || a?.textContent || "").trim().slice(0, 40), inNotes: !!(n && n.contains(a)), bottom: a ? Math.round(a.getBoundingClientRect().bottom) : 0, height: innerHeight }); })()`).then(JSON.parse);
+  const focused = () =>
+    main
+      .eval(
+        `(() => { const a = document.activeElement; const n = document.querySelector(".deckyhub-details-notes"); return JSON.stringify({ text: (a?.getAttribute("aria-label") || a?.textContent || "").trim().slice(0, 40), inNotes: !!(n && n.contains(a)), bottom: a ? Math.round(a.getBoundingClientRect().bottom) : 0, height: innerHeight }); })()`,
+      )
+      .then(JSON.parse);
   // Down the page until a Manage button has focus, then A: no clicks, like a player.
   for (let step = 0; step < 60 && (await focused()).text !== "Manage"; step++) await press(shared, BUTTON.DOWN, 250);
   assert.equal((await focused()).text, "Manage", "the D-pad never reached a Manage button");
@@ -188,7 +242,8 @@ test("Discover: the D-pad opens a plugin's details and reads its release notes t
   await waitFor(main, `!!document.querySelector(".deckyhub-details-notes")`);
   await sleep(1000);
   const sections = await main.eval(`document.querySelector(".deckyhub-details-notes").children.length`);
-  let reached = 0, last = null;
+  let reached = 0,
+    last = null;
   for (let step = 0; step < 80 && reached < sections; step++) {
     await press(shared, BUTTON.DOWN, 250);
     const now = await focused();
@@ -204,7 +259,12 @@ test("Discover: the D-pad opens a plugin's details and reads its release notes t
 test("Search: has a search box and a Search button", async () => {
   await openPage("search");
   assert.ok(await main.eval(`!!document.querySelector(".deckyhub-motion input")`), "no search box");
-  assert.ok(await main.eval(`[...document.querySelectorAll(".deckyhub-motion button, .deckyhub-motion .DialogButton")].some((b) => b.textContent.trim() === "Search")`), "no Search button");
+  assert.ok(
+    await main.eval(
+      `[...document.querySelectorAll(".deckyhub-motion button, .deckyhub-motion .DialogButton")].some((b) => b.textContent.trim() === "Search")`,
+    ),
+    "no Search button",
+  );
 });
 
 test("Settings: layout, language and token settings are there", async () => {
@@ -247,7 +307,7 @@ test("Quick Access: the D-pad reaches every control in DeckyHub's panel", async 
 test("Quick Access: Right from DeckyHub's tab moves focus into the panel", async () => {
   await openQuickAccess(TAB_ID);
   const inPanel = `!!document.querySelector(".deckyhub-motion .gpfocus")`;
-  for (let i = 0; i < 4 && await quickAccess.eval(inPanel); i++) await press(shared, BUTTON.LEFT, 600);
+  for (let i = 0; i < 4 && (await quickAccess.eval(inPanel)); i++) await press(shared, BUTTON.LEFT, 600);
   assert.equal(await quickAccess.eval(inPanel), false, "Left never reached the tab strip");
   await press(shared, BUTTON.RIGHT, 600);
   assert.ok(await quickAccess.eval(inPanel), "Right from the tab didn't enter DeckyHub's panel");
@@ -275,10 +335,13 @@ for (const name of PAGES) {
 test("Settings: R1 walks every tab, each one fitting and passing the audit", async () => {
   await openPage("settings");
   await press(shared, BUTTON.DOWN, 600);
-  const seen = [], problems = {};
+  const seen = [],
+    problems = {};
   for (let i = 0; i < 6; i++) {
     // The showing tab's content is marked with its id (SettingsPage.tsx).
-    const tab = await main.eval(`[...document.querySelectorAll("[class^=deckyhub-settings-]")].filter((e) => e.getClientRects().length && e.getBoundingClientRect().width > 0 && /^deckyhub-settings-(general|github|downloads|repositories|troubleshoot|about)$/.test(e.className)).map((e) => e.className)[0] ?? "?"`);
+    const tab = await main.eval(
+      `[...document.querySelectorAll("[class^=deckyhub-settings-]")].filter((e) => e.getClientRects().length && e.getBoundingClientRect().width > 0 && /^deckyhub-settings-(general|github|downloads|repositories|troubleshoot|about)$/.test(e.className)).map((e) => e.className)[0] ?? "?"`,
+    );
     seen.push(tab);
     const found = await audit(main, ".deckyhub-motion");
     if (found.length) problems[tab] = found;
@@ -295,10 +358,16 @@ test("Quick Access: all info visible, aligned and accessible", async () => {
 
 test("Plugin details: every sampled window shows all its info, aligned and accessible, and the D-pad reaches its controls", async () => {
   await openPage("discover");
-  await main.eval(`[...document.querySelectorAll(".deckyhub-category-chips button, .deckyhub-category-chips .DialogButton")][0].click(); true`);
+  await main.eval(
+    `[...document.querySelectorAll(".deckyhub-category-chips button, .deckyhub-category-chips .DialogButton")][0].click(); true`,
+  );
   await waitFor(main, `!!document.querySelector(".deckyhub-back-button")`);
   await sleep(2000);
-  const names = JSON.parse(await main.eval(`JSON.stringify([...document.querySelectorAll(".deckyhub-motion h3")].map((h) => h.textContent.trim()))`));
+  const names = JSON.parse(
+    await main.eval(
+      `JSON.stringify([...document.querySelectorAll(".deckyhub-motion h3")].map((h) => h.textContent.trim()))`,
+    ),
+  );
   const problems = {};
   for (const [index, plugin] of names.entries()) {
     if (index % DETAILS_EVERY) continue;
@@ -318,8 +387,8 @@ test("Plugin details: every sampled window shows all its info, aligned and acces
       found.push(...missed.map((label) => `D-pad never reaches: ${label}`));
       // Steam only scrolls to follow focus: Down alone has to reach the bottom.
       const scroll = `(() => { let el = document.querySelector(".deckyhub-details"); while (el && !(el.scrollHeight > el.clientHeight + 2 && /auto|scroll/.test(getComputedStyle(el).overflowY))) el = el.parentElement; return el ? el.scrollHeight - el.clientHeight - el.scrollTop : 0; })()`;
-      for (let i = 0; i < 20 && await main.eval(scroll) > 2; i++) await press(shared, BUTTON.DOWN, 400);
-      if (await main.eval(scroll) > 2) found.push("Down never scrolls to the bottom of the window");
+      for (let i = 0; i < 20 && (await main.eval(scroll)) > 2; i++) await press(shared, BUTTON.DOWN, 400);
+      if ((await main.eval(scroll)) > 2) found.push("Down never scrolls to the bottom of the window");
     }
     if (found.length) problems[plugin] = found;
     await press(shared, BUTTON.BACK, 1200);

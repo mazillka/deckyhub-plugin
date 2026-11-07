@@ -3,10 +3,12 @@ import ssl
 import sys
 import types
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 sys.modules.setdefault("decky", types.SimpleNamespace(logger=logging.getLogger("decky-test")))
-import main as tls  # noqa: E402 - verifying_ssl_context lives in main.py
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "py_modules"))
+from deckyhub import net as tls
 
 
 class VerifyingContextTests(unittest.TestCase):
@@ -21,7 +23,10 @@ class VerifyingContextTests(unittest.TestCase):
     def test_falls_back_to_a_ca_bundle_when_the_default_trusts_nothing(self):
         # Decky Loader's bundled OpenSSL points at a Debian cert dir that does not
         # exist on SteamOS, so the default context trusts nobody.
-        with patch.object(tls.ssl, "create_default_context") as create, patch.object(tls, "CA_BUNDLE_PATHS", ("/nope/missing.pem", "/etc/ssl/cert.pem")):
+        with (
+            patch.object(tls.ssl, "create_default_context") as create,
+            patch.object(tls, "CA_BUNDLE_PATHS", ("/nope/missing.pem", "/etc/ssl/cert.pem")),
+        ):
             create.return_value.get_ca_certs.side_effect = [[], [{"x": "cert"}]]
             create.return_value.load_verify_locations.side_effect = [FileNotFoundError(), None]
             context = tls.verifying_ssl_context()
@@ -29,7 +34,10 @@ class VerifyingContextTests(unittest.TestCase):
         self.assertIs(context, create.return_value)
 
     def test_skips_missing_bundles_and_tolerates_a_load_error(self):
-        with patch.object(tls.ssl, "create_default_context") as create, patch.object(tls, "CA_BUNDLE_PATHS", ("/a.pem", "/b.pem", "/c.pem")):
+        with (
+            patch.object(tls.ssl, "create_default_context") as create,
+            patch.object(tls, "CA_BUNDLE_PATHS", ("/a.pem", "/b.pem", "/c.pem")),
+        ):
             create.return_value.get_ca_certs.side_effect = [[], [], [], [{"x": "cert"}]]
             create.return_value.load_verify_locations.side_effect = [FileNotFoundError(), ssl.SSLError("bad"), None]
             tls.verifying_ssl_context()
@@ -38,7 +46,10 @@ class VerifyingContextTests(unittest.TestCase):
     def test_returns_the_bare_context_when_no_bundle_helps(self):
         # Still the plain verifying context, just with no roots: better to fail loudly
         # on every fetch than to quietly accept any certificate.
-        with patch.object(tls.ssl, "create_default_context") as create, patch.object(tls, "CA_BUNDLE_PATHS", ("/a.pem", "/b.pem")):
+        with (
+            patch.object(tls.ssl, "create_default_context") as create,
+            patch.object(tls, "CA_BUNDLE_PATHS", ("/a.pem", "/b.pem")),
+        ):
             create.return_value.get_ca_certs.return_value = []
             create.return_value.load_verify_locations.side_effect = [FileNotFoundError(), OSError("denied")]
             context = tls.verifying_ssl_context()

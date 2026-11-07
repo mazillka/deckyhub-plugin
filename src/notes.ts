@@ -4,7 +4,7 @@
 // dashes become bullets), minus images and HTML tags; render markdown if this reads badly.
 // Repeats until nothing changes, so a nested tag like <scr<b>ipt> can't reassemble one.
 export function plainNotes(notes = "") {
-  for (let previous = ""; previous !== notes; ) {
+  for (let previous = ""; previous !== notes;) {
     previous = notes;
     notes = notes.replace(/!\[[^\]]*\]\([^)]*\)|<[^>]*>/g, "");
   }

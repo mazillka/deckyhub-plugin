@@ -18,6 +18,7 @@ import threading
 import types
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.error import HTTPError
 
 MOCK_DIR = Path(__file__).resolve().parent
 REPO_ROOT = MOCK_DIR.parent.parent
@@ -47,22 +48,30 @@ fake_decky.emit = _emit
 sys.modules["decky"] = fake_decky
 
 sys.path.insert(0, str(REPO_ROOT))
-from main import Plugin  # noqa: E402
+sys.path.insert(0, str(REPO_ROOT / "py_modules"))
+from deckyhub import paths, registry
 
-import main  # noqa: E402
+from main import Plugin
 
 # Keep the mock's downloads inside .dev-data instead of a real /home/deck path
 # (which on Windows resolves to <drive>:\home\deck, outside the repo).
-main.DEFAULT_DOWNLOAD_DIR = str(DEV_DATA / "home" / "Downloads")
-main.PLUGIN_DOWNLOAD_DIR = str(DEV_DATA / "downloads")
+paths.DEFAULT_DOWNLOAD_DIR = str(DEV_DATA / "home" / "Downloads")
+paths.PLUGIN_DOWNLOAD_DIR = str(DEV_DATA / "downloads")
 
 # Fixture registries on the reserved .test TLD, so E2E can add one without the
 # network; every other URL, the official list included, goes to the real fetch.
 FIXTURE_REGISTRY_HOST = "https://registry.test/"
-FIXTURE_APP = {"id": "fixture-app", "name": "Fixture App", "repo": "example/fixture-app", "category": "Test", "detect": {"type": "decky-plugin", "names": ["Fixture App"]}, "asset": {"include": [".zip"], "exclude": []},
-               "knownIssues": [{"title": "Update can stall at 95%", "url": "https://github.com/example/fixture-app/issues/1"}]}
+FIXTURE_APP = {
+    "id": "fixture-app",
+    "name": "Fixture App",
+    "repo": "example/fixture-app",
+    "category": "Test",
+    "detect": {"type": "decky-plugin", "names": ["Fixture App"]},
+    "asset": {"include": [".zip"], "exclude": []},
+    "knownIssues": [{"title": "Update can stall at 95%", "url": "https://github.com/example/fixture-app/issues/1"}],
+}
 FIXTURE_REGISTRIES = {"good.json": [FIXTURE_APP], "empty.json": []}
-_real_fetch_registry = main.fetch_remote_registry
+_real_fetch_registry = registry.fetch_remote_registry
 
 
 def _fetch_registry(url, *args, **kwargs):
@@ -70,12 +79,12 @@ def _fetch_registry(url, *args, **kwargs):
         return _real_fetch_registry(url, *args, **kwargs)
     name = url.removeprefix(FIXTURE_REGISTRY_HOST)
     if name not in FIXTURE_REGISTRIES:
-        raise main.HTTPError(url, 404, "Not Found", {}, None)
+        raise HTTPError(url, 404, "Not Found", {}, None)
     text = json.dumps({"schemaVersion": 1, "apps": FIXTURE_REGISTRIES[name]})
-    return main.parse_registry(json.loads(text)), text
+    return registry.parse_registry(json.loads(text)), text
 
 
-main.fetch_remote_registry = _fetch_registry
+registry.fetch_remote_registry = _fetch_registry
 
 loop = asyncio.new_event_loop()
 plugin = Plugin()
@@ -90,6 +99,7 @@ threading.Thread(target=_run_loop, daemon=True, name="decky-mock-loop").start()
 asyncio.run_coroutine_threadsafe(plugin._main(), loop).result()
 print(f"[decky-mock] Plugin ready. Fake DECKY_HOME: {fake_decky.DECKY_HOME}")
 
+
 # Installs first download their ZIP (Plugin.stage_install), but E2E release
 # assets are made up, so check them the same way and hand back a path without
 # the network; tests/test_plugin_status.py covers the real download.
@@ -103,7 +113,14 @@ async def _stage_install(asset, repo=None, job_id=None):
 plugin.stage_install = _stage_install
 
 # Fixed, never-completing job for the DevShell's "Download progress modal" preview button.
-plugin.downloads["preview-job"] = {"state": "downloading", "filename": "Decky-Framegen.zip", "received": 60_100_000, "total": 199_600_000, "path": None, "error": None}
+plugin.downloads["preview-job"] = {
+    "state": "downloading",
+    "filename": "Decky-Framegen.zip",
+    "received": 60_100_000,
+    "total": 199_600_000,
+    "path": None,
+    "error": None,
+}
 
 
 def call_route(route: str, args: list):
@@ -167,7 +184,7 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def log_message(self, format, *args):  # noqa: A002 - matches BaseHTTPRequestHandler's signature
+    def log_message(self, format, *args):  # `format` matches BaseHTTPRequestHandler's signature
         pass
 
 

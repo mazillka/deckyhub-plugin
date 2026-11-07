@@ -20,9 +20,11 @@ export const ja: Record<MessageKey, string> = {
   "discover.list": "リスト",
   "view.discoverEmpty": "利用できるリポジトリがありません。",
   "view.installedEmpty": "インストール済みのプラグインが見つかりません。",
-  "view.searchDescription": "GitHub で Decky プラグインを検索します。すぐにインストールするか、追加して更新を追跡できます。",
+  "view.searchDescription":
+    "GitHub で Decky プラグインを検索します。すぐにインストールするか、追加して更新を追跡できます。",
   "view.searchTitle": "検索とインストール",
-  "search.warning": "検索結果は GitHub から直接取得されます。DeckyHub も Decky ストアも審査していません。プラグインは デバイス上で何でもできるため、信頼できる作者のプラグインだけをインストールしてください。",
+  "search.warning":
+    "検索結果は GitHub から直接取得されます。DeckyHub も Decky ストアも審査していません。プラグインは デバイス上で何でもできるため、信頼できる作者のプラグインだけをインストールしてください。",
   "search.placeholder": "プラグイン名、作者、機能",
 
   "filter.search": "検索",
@@ -68,36 +70,47 @@ export const ja: Record<MessageKey, string> = {
   "appcard.downloads": "{count} ダウンロード",
   "appcard.stars": "GitHub スター {count}",
   "appcard.runsAsRoot": "root で実行",
-  "appcard.runsAsRootHint": "バックエンドが root で実行され、システム全体にアクセスできます。信頼できる作者のものだけをインストールしてください。",
+  "appcard.runsAsRootHint":
+    "バックエンドが root で実行され、システム全体にアクセスできます。信頼できる作者のものだけをインストールしてください。",
   "appcard.knownIssues": "このプラグインの既知の問題",
   "appcard.skipVersion": "{version} をスキップ",
   "appcard.unskipVersion": "{version} のスキップを解除",
   "appcard.fork": "フォーク",
-  "appcard.forkHint": "元のプラグインが止まった後も開発を続けているフォークです。活発なフォークである間だけ DeckyHub に表示されます。",
+  "appcard.forkHint":
+    "元のプラグインが止まった後も開発を続けているフォークです。活発なフォークである間だけ DeckyHub に表示されます。",
   "appcard.forkOf": "{repo} のフォーク",
   "appcard.ai": "AI",
-  "appcard.aiHint": "リポジトリに AI コーディングアシスタント向けの指示があるか、README に AI で作られたと書かれているため、AI の助けを借りて開発された可能性が高いです。品質や安全性については何も示しません。また、バッジがなくても AI が使われていないとは限りません。",
+  "appcard.aiHint":
+    "リポジトリに AI コーディングアシスタント向けの指示があるか、README に AI で作られたと書かれているため、AI の助けを借りて開発された可能性が高いです。品質や安全性については何も示しません。また、バッジがなくても AI が使われていないとは限りません。",
   "appcard.aiFiles": "AI の助けを借りて開発された可能性が高い ({files})",
   "appcard.scan.clean": "脅威なし",
-  "appcard.scan.clean.hint": "インストールするリリースからウイルススキャンで既知の脅威は見つかりませんでした。スキャンは既知のマルウェアしか検出できず、回避されることもあるため、安全の証明にはなりません。スキャンレポートは「管理」で確認できます。",
+  "appcard.scan.clean.hint":
+    "インストールするリリースからウイルススキャンで既知の脅威は見つかりませんでした。スキャンは既知のマルウェアしか検出できず、回避されることもあるため、安全の証明にはなりません。スキャンレポートは「管理」で確認できます。",
   "appcard.scan.infected": "脅威を検出",
-  "appcard.scan.infected.hint": "インストールされるリリースをウイルススキャンが検出しました。誤検出の可能性もあります。「管理」でレポートを確認し、ご自身で判断してください。",
+  "appcard.scan.infected.hint":
+    "インストールされるリリースをウイルススキャンが検出しました。誤検出の可能性もあります。「管理」でレポートを確認し、ご自身で判断してください。",
   "appcard.scan.partial": "一部のみスキャン",
-  "appcard.scan.partial.hint": "インストールされるリリースをウイルススキャンですべて確認できませんでした。理由は「管理」にあります。",
+  "appcard.scan.partial.hint":
+    "インストールされるリリースをウイルススキャンですべて確認できませんでした。理由は「管理」にあります。",
   "appcard.badgesNotice": "プラグインのバッジの意味",
   "appcard.noReleaseInYear": "1 年以上リリースなし",
   "appcard.installedFlagged": "インストール済みバージョンに警告",
-  "appcard.installedFlagged.hint": "インストール済みのバージョンで検出: {reasons}。誤検出の可能性もあります。プラグインを確認し、残すかどうか判断してください。",
-  "appcard.warningsIntro": "警告は、インストールされるリリースに対する Decky Extended Plugins の自動監査によるものです。sudo、mount、systemctl などのよくある検出は表示しません。警告は危険の証拠ではなく、警告がないことも安全の証拠ではありません。",
+  "appcard.installedFlagged.hint":
+    "インストール済みのバージョンで検出: {reasons}。誤検出の可能性もあります。プラグインを確認し、残すかどうか判断してください。",
+  "appcard.warningsIntro":
+    "警告は、インストールされるリリースに対する Decky Extended Plugins の自動監査によるものです。sudo、mount、systemctl などのよくある検出は表示しません。警告は危険の証拠ではなく、警告がないことも安全の証拠ではありません。",
   "appcard.auditLink": "Decky Extended Plugins の監査を開く",
   "appcard.warning.blocked": "監査でブロック",
-  "appcard.warning.blocked.hint": "監査でマルウェアや壊れたアーカイブが見つかりました。インストールはおすすめしません。",
+  "appcard.warning.blocked.hint":
+    "監査でマルウェアや壊れたアーカイブが見つかりました。インストールはおすすめしません。",
   "appcard.warning.private-data": "個人データを読み取る",
   "appcard.warning.private-data.hint": "Steam のログイン情報、SSH 鍵、環境変数の秘密情報を読み取ります。",
   "appcard.warning.persistence": "システム起動を変更",
-  "appcard.warning.persistence.hint": "シェルのプロファイル変更、ライブラリのプリロード、カーネルモジュールの読み込み、デバイスルールの追加を行い、Decky の外でも動作し続けます。",
+  "appcard.warning.persistence.hint":
+    "シェルのプロファイル変更、ライブラリのプリロード、カーネルモジュールの読み込み、デバイスルールの追加を行い、Decky の外でも動作し続けます。",
   "appcard.warning.not-in-source": "リポジトリにないコード",
-  "appcard.warning.not-in-source.hint": "リリースに GitHub のソースにないスクリプトやプログラムが含まれており、何をするか確認できません。",
+  "appcard.warning.not-in-source.hint":
+    "リリースに GitHub のソースにないスクリプトやプログラムが含まれており、何をするか確認できません。",
   "appcard.warning.obfuscated": "隠されたコード",
   "appcard.warning.obfuscated.hint": "読みにくいエンコード済みまたは圧縮されたコードを含みます。",
   "appcard.warning.no-tls-check": "HTTPS 検証を無効化",
@@ -112,10 +125,12 @@ export const ja: Record<MessageKey, string> = {
   "appcard.uninstallTitle": "{name}をアンインストールしますか？",
   "appcard.uninstallDescription": "このプラグインと設定がこのデバイスから削除されます。後で再インストールできます。",
   "appcard.uninstalled": "{name}をアンインストールしました。",
-  "appcard.freshInstallDescription": "DeckyHub はまずインストール済みのバージョンを削除し、その後 Decky が選択したバージョンを新規インストールします。Decky Loader の不具合により、上書き更新では デバイスがフリーズすることがあります。Decky のインストール画面をキャンセルすると、{name} は再インストールするまで削除されたままになります。",
+  "appcard.freshInstallDescription":
+    "DeckyHub はまずインストール済みのバージョンを削除し、その後 Decky が選択したバージョンを新規インストールします。Decky Loader の不具合により、上書き更新では デバイスがフリーズすることがあります。Decky のインストール画面をキャンセルすると、{name} は再インストールするまで削除されたままになります。",
   "appcard.releaseInfo": "リリース情報",
   "appcard.noReleaseNotes": "このリリースにはノートがありません。",
-  "install.disclaimer": "DeckyHub は作者の GitHub リポジトリからリリースを取得するだけです。これらのプラグインの作成・審査・保証は行わず、デバイスやデータに対するプラグインの動作について一切責任を負いません。自己責任でインストールしてください。",
+  "install.disclaimer":
+    "DeckyHub は作者の GitHub リポジトリからリリースを取得するだけです。これらのプラグインの作成・審査・保証は行わず、デバイスやデータに対するプラグインの動作について一切責任を負いません。自己責任でインストールしてください。",
   "pending.title": "選択したプラグインをインストールしますか？",
   "pending.description": "インストーラーで選んだプラグインです。インストール前に、Decky Loader がもう一度確認します。",
   "pending.install": "選択をインストール",
@@ -143,8 +158,10 @@ export const ja: Record<MessageKey, string> = {
   "scan.engine": "スキャナー: {engine}、シグネチャ {signatures}",
   "scan.rules": "スキャナー: {engine}、ルール {rules}",
   "scan.scannedAt": "スキャン日時: {date}",
-  "scan.hint": "DeckyHub のレジストリは、提供するすべてのプラグイン ZIP をオープンソースのウイルス対策ソフト ClamAV で、中のファイルを YARA と YARA Forge のコミュニティルール (多くは Linux マルウェア向け) でスキャンしています。",
-  "scan.safetyWarning": "スキャンは既知のマルウェアしか検出できず、マルウェアはスキャンをすり抜けるように作ることもできます。問題なしでもプラグインが安全という証明にはなりません。",
+  "scan.hint":
+    "DeckyHub のレジストリは、提供するすべてのプラグイン ZIP をオープンソースのウイルス対策ソフト ClamAV で、中のファイルを YARA と YARA Forge のコミュニティルール (多くは Linux マルウェア向け) でスキャンしています。",
+  "scan.safetyWarning":
+    "スキャンは既知のマルウェアしか検出できず、マルウェアはスキャンをすり抜けるように作ることもできます。問題なしでもプラグインが安全という証明にはなりません。",
   "scan.unverifiedMatch": "ZIP の一致は未確認",
   "scan.waiting": "スキャン待ち",
   "scan.unavailable": "レポートを取得できません",
@@ -152,14 +169,17 @@ export const ja: Record<MessageKey, string> = {
   "scan.unverifiedDetail": "このレポートは別の ZIP の可能性があります。一致は未確認です。",
   "scan.virusTotalResult": "VirusTotal：{total} 件中 {flagged} 件のエンジンがこの ZIP を検出",
   "scan.metaDefenderResult": "MetaDefender：{total} 件中 {flagged} 件のエンジンがこの ZIP を検出",
-  "scan.virusTotalHint": "VirusTotal が Steam のブラウザで開き、この ZIP を SHA-256 で検索します。お使いのデバイスからは何もアップロードされません。DeckyHub のレジストリが VirusTotal にまだ登録されていないプラグインの ZIP を送信するため、新しいリリースでは結果が出るまで時間がかかることがあります。",
+  "scan.virusTotalHint":
+    "VirusTotal が Steam のブラウザで開き、この ZIP を SHA-256 で検索します。お使いのデバイスからは何もアップロードされません。DeckyHub のレジストリが VirusTotal にまだ登録されていないプラグインの ZIP を送信するため、新しいリリースでは結果が出るまで時間がかかることがあります。",
   "scan.copyLink": "ZIP のリンクをコピー",
   "scan.scanLink": "VirusTotal でリンクをスキャン",
   "scan.copied": "ZIP のリンクをコピーしました",
   "scan.copyFailed": "リンクをコピーできませんでした",
   "scan.pasteIntoVirusTotal": "VirusTotal のページの URL 欄に貼り付けて、スキャンを開始してください。",
-  "scan.scanLinkHint": "「VirusTotal でリンクをスキャン」は ZIP のダウンロードリンクをコピーし、VirusTotal の URL スキャンページを開きます。そこにリンクを貼り付けてください。VirusTotal は主にリンク自体を評価するため、ZIP の中身は確認されない場合があります。",
-  "scan.deckyhubChecks": "DeckyHub の各リリースは公開前に ClamAV、VirusTotal、MetaDefender でスキャンされ、そのコードは変更のたびに GitHub CodeQL で検査されています。レポートには各スキャナーのバージョンと日付が表示されます。",
+  "scan.scanLinkHint":
+    "「VirusTotal でリンクをスキャン」は ZIP のダウンロードリンクをコピーし、VirusTotal の URL スキャンページを開きます。そこにリンクを貼り付けてください。VirusTotal は主にリンク自体を評価するため、ZIP の中身は確認されない場合があります。",
+  "scan.deckyhubChecks":
+    "DeckyHub の各リリースは公開前に ClamAV、VirusTotal、MetaDefender でスキャンされ、そのコードは変更のたびに GitHub CodeQL で検査されています。レポートには各スキャナーのバージョンと日付が表示されます。",
 
   "dl.downloading": "{filename} をダウンロード中",
   "dl.preparing": "ダウンロードを準備中…",
@@ -176,7 +196,8 @@ export const ja: Record<MessageKey, string> = {
   "settings.latestVersion": "最新: {version}",
   "settings.updateChannel": "更新チャンネル",
   "settings.registryChannel": "レジストリのチャンネル",
-  "settings.registryChannelHint": "プレリリースでは、全員に届く前のテスト中のプラグインや変更が表示されます。読み込めない場合、DeckyHub は安定版のリストを使います。",
+  "settings.registryChannelHint":
+    "プレリリースでは、全員に届く前のテスト中のプラグインや変更が表示されます。読み込めない場合、DeckyHub は安定版のリストを使います。",
   "settings.stableReleases": "安定版リリース",
   "settings.preReleases": "プレリリース",
   "settings.checkUpdate": "アップデートを確認",
@@ -190,10 +211,12 @@ export const ja: Record<MessageKey, string> = {
   "settings.installedLabel": "インストール済み",
   "settings.latestLabel": "最新",
   "settings.noReleasesFound": "このチャンネルのリリースが見つかりません。",
-  "settings.selfUpdateUnavailable": "自動アップデートは現在利用できません。代わりに「ZIPをダウンロード」をご利用ください。",
+  "settings.selfUpdateUnavailable":
+    "自動アップデートは現在利用できません。代わりに「ZIPをダウンロード」をご利用ください。",
   "settings.downloadUpdate": "ZIPをダウンロード",
   "settings.downloadSettings": "ダウンロード設定",
-  "settings.whereZipsSaved": "すべてのリリースZIPは ~/Downloads/deckyhub に保存され、GitHubがSHA-256チェックサムを提供する場合は自動的に検証されます。",
+  "settings.whereZipsSaved":
+    "すべてのリリースZIPは ~/Downloads/deckyhub に保存され、GitHubがSHA-256チェックサムを提供する場合は自動的に検証されます。",
   "settings.overwriteExisting": "既存のファイルを上書き",
   "settings.cleanup": "クリーンアップ",
   "settings.emptyFolder": "フォルダーを空にする",
@@ -202,9 +225,11 @@ export const ja: Record<MessageKey, string> = {
   "settings.downloadsCleared": "DeckyHub のダウンロードから {count} 件削除しました。",
   "settings.saveSettings": "設定を保存",
   "settings.githubAccess": "GitHubアクセス",
-  "settings.githubTokenIntro": "任意設定です。トークンがない場合、GitHubはこの端末を60リクエスト/時間(検索は10回/分)に制限し、頻繁な使用では不足しがちです。個人アクセストークンを追加すると5000リクエスト/時間(検索は30回/分)まで引き上げられます。",
+  "settings.githubTokenIntro":
+    "任意設定です。トークンがない場合、GitHubはこの端末を60リクエスト/時間(検索は10回/分)に制限し、頻繁な使用では不足しがちです。個人アクセストークンを追加すると5000リクエスト/時間(検索は30回/分)まで引き上げられます。",
   "settings.githubTokenHowTo": "権限をすべてチェックしないまま、以下で作成してください:",
-  "settings.githubTokenNote": "DeckyHubは公開リポジトリとリリースを読み取るだけです。トークンはこの設定にローカル保存され、api.github.comにのみ送信されます。",
+  "settings.githubTokenNote":
+    "DeckyHubは公開リポジトリとリリースを読み取るだけです。トークンはこの設定にローカル保存され、api.github.comにのみ送信されます。",
   "settings.githubToken": "GitHubトークン",
   "settings.githubQuota": "GitHubリクエスト残り: {remaining} / {limit}(約{minutes}分後にリセット)",
   "rateLimit.title": "GitHubのリクエスト上限に達しました",
@@ -218,9 +243,11 @@ export const ja: Record<MessageKey, string> = {
   "settings.languageHint": "英語以外の翻訳は自動で作成されているため、誤りが含まれる場合があります。",
   "settings.displaySettings": "表示設定",
   "settings.about": "このプラグインについて",
-  "settings.aboutText": "DeckyHubは、作者のGitHubリリースからDeckyプラグインを直接インストール・更新します。無料のオープンソースです。",
+  "settings.aboutText":
+    "DeckyHubは、作者のGitHubリリースからDeckyプラグインを直接インストール・更新します。無料のオープンソースです。",
   "settings.aboutSource": "GitHubのDeckyHub",
-  "settings.thanks": "DeckyHubのリストの多くのプラグインは、2つのコミュニティカタログを通じて見つかりました。作者の皆さんに感謝します！",
+  "settings.thanks":
+    "DeckyHubのリストの多くのプラグインは、2つのコミュニティカタログを通じて見つかりました。作者の皆さんに感謝します！",
   "settings.catalogBy": "{name}（作者: {author}）",
   "settings.layout": "表示",
   "settings.density": "インターフェース",
@@ -237,7 +264,8 @@ export const ja: Record<MessageKey, string> = {
   "settings.hideButton": "「{button}」を非表示",
   "settings.troubleshooting": "トラブルシューティング",
   "settings.exportLogs": "ログをエクスポート",
-  "settings.exportLogsNote": "DeckyHub のログを ZIP として ~/Downloads に保存します。バグ報告に添付してください。GitHub トークンはログに記録されません。",
+  "settings.exportLogsNote":
+    "DeckyHub のログを ZIP として ~/Downloads に保存します。バグ報告に添付してください。GitHub トークンはログに記録されません。",
 
   "repos.addManage": "追加と管理",
   "repos.searchGithub": "GitHubを検索",
@@ -310,8 +338,10 @@ export const ja: Record<MessageKey, string> = {
   "toast.installed": "{name} をインストールしました。",
   "toast.installedVersion": "{name} {version} をインストールしました。",
   "welcome.title": "DeckyHub へようこそ",
-  "welcome.body": "Decky プラグインを作者の GitHub リリースから直接インストール・更新できます。「探す」で見つけ、「検索」でさらに探し、「更新」で最新に保ちましょう。",
-  "welcome.safety": "これらのプラグインは誰も審査していません（DeckyHub も含みます）。ウイルススキャンは既知のマルウェアしか検出できないため、問題なしでもプラグインが安全とは限りません。信頼できる作者のプラグインだけをインストールしてください。DeckyHub はインストールの前に必ず確認します。",
+  "welcome.body":
+    "Decky プラグインを作者の GitHub リリースから直接インストール・更新できます。「探す」で見つけ、「検索」でさらに探し、「更新」で最新に保ちましょう。",
+  "welcome.safety":
+    "これらのプラグインは誰も審査していません（DeckyHub も含みます）。ウイルススキャンは既知のマルウェアしか検出できないため、問題なしでもプラグインが安全とは限りません。信頼できる作者のプラグインだけをインストールしてください。DeckyHub はインストールの前に必ず確認します。",
   "welcome.gotIt": "OK",
   "settings.tabGeneral": "一般",
   "settings.tabDownloads": "ダウンロード",

@@ -1,5 +1,6 @@
 """The plugins picked in the Desktop Mode installer's checklist (pending-installs.json) are read
 by the backend and only repositories the loaded registry lists get through."""
+
 import asyncio
 import json
 import logging
@@ -10,10 +11,12 @@ import unittest
 from pathlib import Path
 
 sys.modules.setdefault("decky", types.SimpleNamespace(logger=logging.getLogger("decky-test")))
-import main  # noqa: E402
-from main import PENDING_INSTALLS_FILE, Plugin  # noqa: E402
+from main import PENDING_INSTALLS_FILE, Plugin
 
-APPS = [{"id": "mako-decky", "name": "MAKO Decky", "repo": "eugeniosegala/MAKO"}, {"id": "css-loader", "name": "CSS Loader", "repo": "DeckThemes/SDH-CssLoader"}]
+APPS = [
+    {"id": "mako-decky", "name": "MAKO Decky", "repo": "eugeniosegala/MAKO"},
+    {"id": "css-loader", "name": "CSS Loader", "repo": "DeckThemes/SDH-CssLoader"},
+]
 
 
 class PendingInstallsTests(unittest.TestCase):
@@ -27,14 +30,24 @@ class PendingInstallsTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as home:
             plugin = plugin or self.plugin(home)
             if saved is not None:
-                (Path(home) / PENDING_INSTALLS_FILE).write_text(saved if isinstance(saved, str) else json.dumps(saved), encoding="utf-8")
+                (Path(home) / PENDING_INSTALLS_FILE).write_text(
+                    saved if isinstance(saved, str) else json.dumps(saved), encoding="utf-8"
+                )
             return asyncio.run(plugin.get_pending_installs())
 
     def test_listed_repositories_come_back_in_the_registrys_spelling(self):
-        self.assertEqual(self.run_pending(["eugeniosegala/mako", "DeckThemes/SDH-CssLoader"]), ["eugeniosegala/MAKO", "DeckThemes/SDH-CssLoader"])
+        self.assertEqual(
+            self.run_pending(["eugeniosegala/mako", "DeckThemes/SDH-CssLoader"]),
+            ["eugeniosegala/MAKO", "DeckThemes/SDH-CssLoader"],
+        )
 
     def test_anything_the_registry_doesnt_list_is_dropped(self):
-        self.assertEqual(self.run_pending(["evil/not-listed", "../../etc/passwd", 7, None, "eugeniosegala/MAKO", "eugeniosegala/MAKO"]), ["eugeniosegala/MAKO"])
+        self.assertEqual(
+            self.run_pending(
+                ["evil/not-listed", "../../etc/passwd", 7, None, "eugeniosegala/MAKO", "eugeniosegala/MAKO"]
+            ),
+            ["eugeniosegala/MAKO"],
+        )
 
     def test_a_missing_or_broken_file_means_nothing_pending(self):
         self.assertEqual(self.run_pending(None), [])

@@ -1,7 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { getApps, getSettings, REGISTRY_UPDATED } from "../api";
 import type { App, HideableButton, PluginStats, RepoPreference, UpdateChannel, View, VirusScan } from "../types";
-import { DEFAULT_COLUMNS_PER_ROW, fetchPluginStats, fetchVirusScans, getDeckyBackend, hydrate, log, notifyUpdates, scanFor } from "../utils";
+import {
+  DEFAULT_COLUMNS_PER_ROW,
+  fetchPluginStats,
+  fetchVirusScans,
+  getDeckyBackend,
+  hydrate,
+  log,
+  notifyUpdates,
+  scanFor,
+} from "../utils";
 import { installedRisk, metaDefenderReportOf, virusTotalReportOf } from "../releases";
 import { notifyInstalledRisks } from "../notify";
 
@@ -58,12 +67,20 @@ export function useApps(view: View) {
       const tracked = (view !== "discover" ? local.filter((app) => app.installedVersion) : local).map((app) => {
         const stat = stats[app.repo.toLowerCase()];
         // Updates keeps only the audit warnings: no downloads, root, fork or AI badges there.
-        return stat ? { ...app, stats: showBadges ? stat : { warnings: stat.warnings, prereleaseWarnings: stat.prereleaseWarnings } } : app;
+        return stat
+          ? {
+              ...app,
+              stats: showBadges ? stat : { warnings: stat.warnings, prereleaseWarnings: stat.prereleaseWarnings },
+            }
+          : app;
       });
       // A card keeps its last release check until this load's replaces it.
       setApps((current) => {
         const previous = new Map(current.map((app) => [app.id, app]));
-        return tracked.map((app) => { const kept = previous.get(app.id); return kept ? { ...kept, stats: app.stats } : app; });
+        return tracked.map((app) => {
+          const kept = previous.get(app.id);
+          return kept ? { ...kept, stats: app.stats } : app;
+        });
       });
       setLoadError(null);
       // Discover shows every card straight away and fills each in as its
@@ -142,5 +159,19 @@ export function useApps(view: View) {
     };
   }, []);
 
-  return { apps, setApps, loading, loadError, checked, listedCount, installedCount, columnsPerRow, repoPreferences, setRepoPreferences, hiddenButtons, registryChannel, load };
+  return {
+    apps,
+    setApps,
+    loading,
+    loadError,
+    checked,
+    listedCount,
+    installedCount,
+    columnsPerRow,
+    repoPreferences,
+    setRepoPreferences,
+    hiddenButtons,
+    registryChannel,
+    load,
+  };
 }

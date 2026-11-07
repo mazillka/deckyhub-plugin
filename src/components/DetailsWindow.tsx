@@ -10,10 +10,18 @@ import { surfaceStyle } from "../utils";
 import { displayVersion } from "../version";
 import { plainNotes, showReleaseInfo, textSections } from "./ReleaseInfo";
 import { keepInView } from "./KeepInView";
+import { colors } from "../styles";
 
 // How much of the release notes the window shows (nearly always all of it); Y on the main button opens them in full.
 const NOTES_PREVIEW = 6000;
-export const sectionTitleStyle = { margin: 0, color: "#9fb0bf", fontSize: 13, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" as const };
+export const sectionTitleStyle = {
+  margin: 0,
+  color: colors.dim,
+  fontSize: 13,
+  fontWeight: 700,
+  letterSpacing: "0.08em",
+  textTransform: "uppercase" as const,
+};
 
 // The wide details window both a plugin's Manage window and DeckyHub's own update
 // window use: a header (who, what state, how popular), About under it, then the selected
@@ -68,13 +76,31 @@ export function DetailsWindow({
   const popClass = usePopClass();
   const experimental = useUiStyle() === "experimental";
   const notes = plainNotes(release?.notes);
-  const notesPreview = notes.length > NOTES_PREVIEW ? `${notes.slice(0, NOTES_PREVIEW).replace(/\s+\S*$/, "")}…` : notes;
+  const notesPreview =
+    notes.length > NOTES_PREVIEW ? `${notes.slice(0, NOTES_PREVIEW).replace(/\s+\S*$/, "")}…` : notes;
   if (experimental)
     return (
       <WideModalRoot closeModal={closeModal} bAllowFullSize>
         <MotionStyle />
         <div className={popClass}>
-          <ExpDetailsLayout {...{ t, icon, title, aside, meta, description, release, notesPreview, primary, scan, footer }} picker={<VersionPicker {...{ t, channel, onChannelChange, versionOptions, selectedTag, onVersionChange, disabled, error, isEmpty }} />} />
+          <ExpDetailsLayout
+            {...{ t, icon, title, aside, meta, description, release, notesPreview, primary, scan, footer }}
+            picker={
+              <VersionPicker
+                {...{
+                  t,
+                  channel,
+                  onChannelChange,
+                  versionOptions,
+                  selectedTag,
+                  onVersionChange,
+                  disabled,
+                  error,
+                  isEmpty,
+                }}
+              />
+            }
+          />
         </div>
       </WideModalRoot>
     );
@@ -83,14 +109,28 @@ export function DetailsWindow({
       <MotionStyle />
       <div className={popClass}>
         <Focusable flow-children="down" className="deckyhub-details" style={{ display: "grid", gap: 18 }}>
-          <Focusable onActivate={() => {}} onFocus={keepInView} style={{ display: "flex", alignItems: "center", gap: 18 }}>
+          <Focusable
+            onActivate={() => {}}
+            onFocus={keepInView}
+            style={{ display: "flex", alignItems: "center", gap: 18 }}
+          >
             {icon}
             <div style={{ flex: 1, minWidth: 0, display: "grid", gap: 6 }}>
               <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: "2px 12px" }}>
-                <strong style={{ color: "#fff", fontSize: 26, lineHeight: 1.15 }}>{title}</strong>
-                {aside && <span style={{ color: "#9fb0bf", fontSize: 14 }}>{aside}</span>}
+                <strong style={{ color: colors.text, fontSize: 26, lineHeight: 1.15 }}>{title}</strong>
+                {aside && <span style={{ color: colors.dim, fontSize: 14 }}>{aside}</span>}
               </div>
-              <div className="deckyhub-details-meta" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "6px 14px", color: "#c3cfd9", fontSize: 14 }}>
+              <div
+                className="deckyhub-details-meta"
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                  gap: "6px 14px",
+                  color: colors.textSecondary,
+                  fontSize: 14,
+                }}
+              >
                 {meta}
               </div>
             </div>
@@ -102,8 +142,22 @@ export function DetailsWindow({
           {description && (
             <div className="deckyhub-details-about" style={{ display: "grid", gap: 6 }}>
               <h3 style={sectionTitleStyle}>{t("details.about")}</h3>
-              <Focusable flow-children="down" className="deckyhub-details-description" style={{ color: "#e6eef4", fontSize: 16, lineHeight: 1.5, overflowWrap: "anywhere", whiteSpace: "pre-wrap" }}>
-                {textSections(description).map((section, index) => <Focusable key={index} onActivate={() => {}} onFocus={keepInView}>{section}</Focusable>)}
+              <Focusable
+                flow-children="down"
+                className="deckyhub-details-description"
+                style={{
+                  color: "#e6eef4",
+                  fontSize: 16,
+                  lineHeight: 1.5,
+                  overflowWrap: "anywhere",
+                  whiteSpace: "pre-wrap",
+                }}
+              >
+                {textSections(description).map((section, index) => (
+                  <Focusable key={index} onActivate={() => {}} onFocus={keepInView}>
+                    {section}
+                  </Focusable>
+                ))}
               </Focusable>
             </div>
           )}
@@ -116,23 +170,59 @@ export function DetailsWindow({
               layout left them out of reach on a Deck). Each text section is its own stop because Steam only
               scrolls to follow focus. */}
           <Focusable flow-children="down" style={{ display: "grid", gap: 10 }}>
-              <VersionPicker {...{ t, channel, onChannelChange, versionOptions, selectedTag, onVersionChange, disabled, error, isEmpty }} />
+            <VersionPicker
+              {...{
+                t,
+                channel,
+                onChannelChange,
+                versionOptions,
+                selectedTag,
+                onVersionChange,
+                disabled,
+                error,
+                isEmpty,
+              }}
+            />
             {primary}
           </Focusable>
 
-            {release && (
-              <div className="deckyhub-details-section">
-                <h3 style={sectionTitleStyle}>
-                  {t("details.whatsNew", { version: displayVersion(release.tag) })}
-                  {release.publishedAt && <span style={{ marginLeft: 10, fontWeight: 400, letterSpacing: 0, textTransform: "none" }}>{new Date(release.publishedAt).toLocaleDateString()}</span>}
-                </h3>
-                <Focusable flow-children="down" className="deckyhub-details-notes" style={{ ...surfaceStyle, padding: "12px 14px", color: "#c3cfd9", fontSize: 14, lineHeight: 1.5, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
-                  {textSections(notesPreview || t("appcard.noReleaseNotes")).map((section, index) => (
-                    <Focusable key={index} onActivate={() => showReleaseInfo(t, `${title} ${displayVersion(release.tag)}`, release.publishedAt, release.notes)} onFocus={keepInView}>{section}</Focusable>
-                  ))}
-                </Focusable>
-              </div>
-            )}
+          {release && (
+            <div className="deckyhub-details-section">
+              <h3 style={sectionTitleStyle}>
+                {t("details.whatsNew", { version: displayVersion(release.tag) })}
+                {release.publishedAt && (
+                  <span style={{ marginLeft: 10, fontWeight: 400, letterSpacing: 0, textTransform: "none" }}>
+                    {new Date(release.publishedAt).toLocaleDateString()}
+                  </span>
+                )}
+              </h3>
+              <Focusable
+                flow-children="down"
+                className="deckyhub-details-notes"
+                style={{
+                  ...surfaceStyle,
+                  padding: "12px 14px",
+                  color: colors.textSecondary,
+                  fontSize: 14,
+                  lineHeight: 1.5,
+                  whiteSpace: "pre-wrap",
+                  overflowWrap: "anywhere",
+                }}
+              >
+                {textSections(notesPreview || t("appcard.noReleaseNotes")).map((section, index) => (
+                  <Focusable
+                    key={index}
+                    onActivate={() =>
+                      showReleaseInfo(t, `${title} ${displayVersion(release.tag)}`, release.publishedAt, release.notes)
+                    }
+                    onFocus={keepInView}
+                  >
+                    {section}
+                  </Focusable>
+                ))}
+              </Focusable>
+            </div>
+          )}
 
           <Focusable flow-children="down" style={{ display: "grid", gap: 10 }}>
             {footer}
@@ -143,15 +233,47 @@ export function DetailsWindow({
   );
 }
 
-type VersionPickerProps = { t: TFunc; channel: UpdateChannel; onChannelChange: (channel: UpdateChannel) => void; versionOptions: { data: string; label: string }[]; selectedTag: string; onVersionChange: (tag: string) => void; disabled: boolean; error?: string | null; isEmpty: boolean };
+type VersionPickerProps = {
+  t: TFunc;
+  channel: UpdateChannel;
+  onChannelChange: (channel: UpdateChannel) => void;
+  versionOptions: { data: string; label: string }[];
+  selectedTag: string;
+  onVersionChange: (tag: string) => void;
+  disabled: boolean;
+  error?: string | null;
+  isEmpty: boolean;
+};
 
 // The channel and version menus, with what went wrong loading releases; both UI styles' windows use it.
-export function VersionPicker({ t, channel, onChannelChange, versionOptions, selectedTag, onVersionChange, disabled, error, isEmpty }: VersionPickerProps) {
+export function VersionPicker({
+  t,
+  channel,
+  onChannelChange,
+  versionOptions,
+  selectedTag,
+  onVersionChange,
+  disabled,
+  error,
+  isEmpty,
+}: VersionPickerProps) {
   return (
-    <div onFocus={keepInView} style={{ display: "grid", gap: 4, padding: "8px 12px", background: "rgba(0, 0, 0, 0.2)", borderRadius: 10 }}>
+    <div
+      onFocus={keepInView}
+      style={{ display: "grid", gap: 4, padding: "8px 12px", background: "rgba(0, 0, 0, 0.2)", borderRadius: 10 }}
+    >
       <h3 style={sectionTitleStyle}>{t("settings.version")}</h3>
       {/* Channel and version side by side; the version gets more room for long tags. */}
-      <Focusable flow-children="right" className="deckyhub-version-pickers" style={{ display: "grid", gridTemplateColumns: versionOptions.length > 0 ? "minmax(0, 2fr) minmax(0, 3fr)" : "minmax(0, 1fr)", gap: 12, alignItems: "end" }}>
+      <Focusable
+        flow-children="right"
+        className="deckyhub-version-pickers"
+        style={{
+          display: "grid",
+          gridTemplateColumns: versionOptions.length > 0 ? "minmax(0, 2fr) minmax(0, 3fr)" : "minmax(0, 1fr)",
+          gap: 12,
+          alignItems: "end",
+        }}
+      >
         <div style={{ minWidth: 0 }}>
           <DropdownItem
             layout="below"
@@ -168,12 +290,20 @@ export function VersionPicker({ t, channel, onChannelChange, versionOptions, sel
         </div>
         {versionOptions.length > 0 && (
           <div style={{ minWidth: 0 }}>
-            <DropdownItem layout="below" bottomSeparator="none" label={t("settings.version")} rgOptions={versionOptions} selectedOption={selectedTag} disabled={disabled} onChange={({ data }) => onVersionChange(String(data))} />
+            <DropdownItem
+              layout="below"
+              bottomSeparator="none"
+              label={t("settings.version")}
+              rgOptions={versionOptions}
+              selectedOption={selectedTag}
+              disabled={disabled}
+              onChange={({ data }) => onVersionChange(String(data))}
+            />
           </div>
         )}
       </Focusable>
-      {error && <small style={{ color: "#ff6b6b" }}>{error}</small>}
-      {isEmpty && <small style={{ color: "#ff6b6b" }}>{t("settings.noReleasesFound")}</small>}
+      {error && <small style={{ color: colors.danger }}>{error}</small>}
+      {isEmpty && <small style={{ color: colors.danger }}>{t("settings.noReleasesFound")}</small>}
     </div>
   );
 }

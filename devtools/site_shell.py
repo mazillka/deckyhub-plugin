@@ -4,6 +4,7 @@ Pages hold placeholders instead of their own copies: `<!-- site-nav: plugins -->
 which menu entry is the current page), `<!-- site-footer -->` and, inside a <style> block,
 `/* site-nav-style */`. build-site.py and plugin_pages.py fill them in with apply().
 """
+
 import re
 
 SITE = "https://deckyhub.com/"
@@ -68,13 +69,18 @@ def nav(current: str | None = None, lang: str = "en", switch: tuple[str, str, st
     """switch: (label, address, hreflang) of the same page in the other language, last in the menu."""
     uk = lang == "uk"
     links = "".join(
-        f'<a href="{address}"' + (' aria-current="page"' if key == current else "") + f">{label}</a>" for key, label, address in (LINKS_UK if uk else LINKS)
+        f'<a href="{address}"' + (' aria-current="page"' if key == current else "") + f">{label}</a>"
+        for key, label, address in (LINKS_UK if uk else LINKS)
     ) + (f'<a href="{switch[1]}" hreflang="{switch[2]}" lang="{switch[2]}">{switch[0]}</a>' if switch else "")
-    return (f'<nav class="site-nav" aria-label="{"Головна навігація" if uk else "Main navigation"}"><div class="site-nav-inner"><a class="site-brand" href="{SITE + "uk/" if uk else SITE}">DeckyHub</a>'
-            f'<div class="site-links">{links}</div></div></nav>')
+    return (
+        f'<nav class="site-nav" aria-label="{"Головна навігація" if uk else "Main navigation"}"><div class="site-nav-inner"><a class="site-brand" href="{SITE + "uk/" if uk else SITE}">DeckyHub</a>'
+        f'<div class="site-links">{links}</div></div></nav>'
+    )
 
 
 def apply(page: str, lang: str = "en", switch: tuple[str, str, str] | None = None) -> str:
     """The page with its shell placeholders filled in (in Ukrainian for lang="uk")."""
     page = re.sub(r"<!-- site-nav(?::\s*(\w+))? -->", lambda match: nav(match.group(1), lang, switch), page)
-    return page.replace("<!-- site-footer -->", FOOTER_UK if lang == "uk" else FOOTER).replace("/* site-nav-style */", NAV_STYLE)
+    return page.replace("<!-- site-footer -->", FOOTER_UK if lang == "uk" else FOOTER).replace(
+        "/* site-nav-style */", NAV_STYLE
+    )

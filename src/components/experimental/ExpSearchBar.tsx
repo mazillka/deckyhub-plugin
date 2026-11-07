@@ -5,7 +5,25 @@ import { keepInView } from "../KeepInView";
 import { LayoutToggle, type Layout } from "../LayoutToggle";
 
 // Experimental: Search's title and its field as one banner, the field large in the middle.
-export function ExpSearchBar({ query, onQuery, searching, onSearch, onClear, layout, onLayout, error }: { query: string; onQuery: (query: string) => void; searching: boolean; onSearch: () => void; onClear: () => void; layout: Layout; onLayout: (layout: Layout) => void; error?: string | null }) {
+export function ExpSearchBar({
+  query,
+  onQuery,
+  searching,
+  onSearch,
+  onClear,
+  layout,
+  onLayout,
+  error,
+}: {
+  query: string;
+  onQuery: (query: string) => void;
+  searching: boolean;
+  onSearch: () => void;
+  onClear: () => void;
+  layout: Layout;
+  onLayout: (layout: Layout) => void;
+  error?: string | null;
+}) {
   const t = useT();
   return (
     <Focusable flow-children="down" onFocus={keepInView} className="dh-exp-hero dh-exp-search-hero">
@@ -20,16 +38,24 @@ export function ExpSearchBar({ query, onQuery, searching, onSearch, onClear, lay
             placeholder={t("search.placeholder")}
             value={query}
             onChange={(event) => onQuery(event.currentTarget.value)}
-            onKeyDown={(event) => { if (event.key === "Enter" && !searching) onSearch(); }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && !searching) onSearch();
+            }}
           />
         </div>
         <div className="dh-exp-wide" style={{ flex: "0 0 170px" }}>
-          <Button onClick={onSearch} disabled={searching}><FaSearch /> {searching ? t("repos.searching") : t("filter.search")}</Button>
+          <Button onClick={onSearch} disabled={searching}>
+            <FaSearch /> {searching ? t("repos.searching") : t("filter.search")}
+          </Button>
         </div>
         <div style={{ flex: "0 0 56px" }}>
-          <Button aria-label={t("repos.clear")} onClick={onClear}><FaTimes /></Button>
+          <Button aria-label={t("repos.clear")} onClick={onClear}>
+            <FaTimes />
+          </Button>
         </div>
-        <div style={{ flex: "0 0 120px" }}><LayoutToggle layout={layout} onChange={onLayout} /></div>
+        <div style={{ flex: "0 0 120px" }}>
+          <LayoutToggle layout={layout} onChange={onLayout} />
+        </div>
       </Focusable>
       {error && <small style={{ color: "#ff6b6b" }}>{error}</small>}
     </Focusable>

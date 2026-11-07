@@ -1,0 +1,16 @@
+# Python formatting and lint checks: `pnpm run lint` (CI) and `pnpm run format`.
+line-length = 120
+# Decky Loader runs plugins on its bundled Python 3.11.
+target-version = "py311"
+# Other agent sessions' checkouts.
+extend-exclude = [".claude"]
+
+[lint]
+# Pyflakes, pycodestyle's error checks and sorted imports: pinned, so a ruff update
+# doesn't start failing CI with new rules.
+select = ["E4", "E7", "E9", "F", "I"]
+
+[lint.per-file-ignores]
+# Tests and dev tools stub `decky` or extend sys.path before importing the plugin.
+"tests/*" = ["E402"]
+"devtools/**" = ["E402"]

@@ -9,7 +9,10 @@ test("Windows line endings keep every bullet on its own line", () => {
 });
 
 test("markdown, images and tags are reduced to plain text", () => {
-  assert.equal(plainNotes("## Fixed\n**Bold** [link](https://x.test) ![img](a.png) <b>tag</b>"), "Fixed\nBold link  tag");
+  assert.equal(
+    plainNotes("## Fixed\n**Bold** [link](https://x.test) ![img](a.png) <b>tag</b>"),
+    "Fixed\nBold link  tag",
+  );
   assert.ok(!plainNotes("<scr<b>ipt>alert(1)</scr<b>ipt>").includes("<"), "a nested tag can't reassemble");
 });
 
@@ -17,6 +20,9 @@ test("a section is cut at a line end, never right after a bullet", () => {
   const line = "• " + "word ".repeat(40).trim();
   const sections = textSections(`${line}\n${line}\n${line}`, 300);
   assert.ok(sections.length > 1);
-  assert.ok(sections.every((section) => !/•\s*$/.test(section)), JSON.stringify(sections));
+  assert.ok(
+    sections.every((section) => !/•\s*$/.test(section)),
+    JSON.stringify(sections),
+  );
   assert.equal(sections.join(""), `${line}\n${line}\n${line}`);
 });

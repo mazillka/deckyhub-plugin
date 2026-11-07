@@ -11,12 +11,22 @@ import { toaster } from "@decky/api";
 // Shared by both version pickers: label each release with "v" plus
 // an "(installed)"/"(latest)" suffix — items[0] is the newest since every
 // release-list fetch above sorts by publish date before returning.
-export function buildVersionOptions<T extends { tag: string; pluginVersion?: string }>(items: T[], installedVersion: string | null | undefined, t: TFunc): { data: string; label: string }[] {
+export function buildVersionOptions<T extends { tag: string; pluginVersion?: string }>(
+  items: T[],
+  installedVersion: string | null | undefined,
+  t: TFunc,
+): { data: string; label: string }[] {
   return items.map((item) => {
     const cmp = installedVersion ? compareVersions(releaseVersion(item), installedVersion) : null;
-    const isInstalled = Boolean(installedVersion) && (cmp === null ? normalizeVersion(item.tag) === normalizeVersion(installedVersion!) : cmp === 0);
+    const isInstalled =
+      Boolean(installedVersion) &&
+      (cmp === null ? normalizeVersion(item.tag) === normalizeVersion(installedVersion!) : cmp === 0);
     const isLatest = items[0]?.tag === item.tag;
-    const suffix = isInstalled ? ` (${t("settings.installedLabel")})` : isLatest ? ` (${t("settings.latestLabel")})` : "";
+    const suffix = isInstalled
+      ? ` (${t("settings.installedLabel")})`
+      : isLatest
+        ? ` (${t("settings.latestLabel")})`
+        : "";
     return { data: item.tag, label: `${displayVersion(item.tag)}${suffix}` };
   });
 }
@@ -73,7 +83,7 @@ function reloadIfStillOld() {
 // Hands a release ZIP to Decky Loader's own installer — the route the Decky
 // Store uses. The loader shows its native confirm/progress dialog and does the
 // SHA-256 check and install itself. DeckyHub's backend downloads the ZIP first
-// (stage_install in main.py: Decky's own download of a GitHub URL can hang) and
+// (stage_install in py_modules/deckyhub/downloads.py: Decky's own download of a GitHub URL can hang) and
 // Decky reads it as file://.
 //
 // Plugins that are uninstalled first and then installed fresh instead of
@@ -84,7 +94,8 @@ function reloadIfStillOld() {
 // and froze the Deck. A fresh install keeps the watcher off throughout.
 const FRESH_INSTALL_PLUGINS = ["Unifideck"];
 
-export const needsFreshInstall = (pluginName: string, installType: number) => installType !== PLUGIN_INSTALL_TYPE.INSTALL && FRESH_INSTALL_PLUGINS.includes(pluginName);
+export const needsFreshInstall = (pluginName: string, installType: number) =>
+  installType !== PLUGIN_INSTALL_TYPE.INSTALL && FRESH_INSTALL_PLUGINS.includes(pluginName);
 
 // Its progress window stays open, spinning once the ZIP is in, until `handedOver`
 // settles (Decky's dialog is up, or it failed); without one, until it's staged.
@@ -104,7 +115,13 @@ function handOff() {
   return { handedOver, done };
 }
 
-export async function installDeckyPlugin(asset: Asset, repo: string, pluginName: string, version: string, installType: 0 | 1 | 2 | 3) {
+export async function installDeckyPlugin(
+  asset: Asset,
+  repo: string,
+  pluginName: string,
+  version: string,
+  installType: 0 | 1 | 2 | 3,
+) {
   const { handedOver, done } = handOff();
   try {
     // Before any uninstall, so a failed download leaves the plugin as it was.
@@ -115,7 +132,14 @@ export async function installDeckyPlugin(asset: Asset, repo: string, pluginName:
       installType = PLUGIN_INSTALL_TYPE.INSTALL;
     }
     traceDeckyInstall(pluginName, version);
-    const result = await callDeckyLoader("utilities/install_plugin", artifact, pluginName, normalizeVersion(displayVersion(version)), asset.sha256 ?? "", installType);
+    const result = await callDeckyLoader(
+      "utilities/install_plugin",
+      artifact,
+      pluginName,
+      normalizeVersion(displayVersion(version)),
+      asset.sha256 ?? "",
+      installType,
+    );
     log(`Decky Loader install_plugin ${pluginName} accepted, waiting for confirm/progress`);
     return result;
   } finally {
@@ -126,17 +150,27 @@ export async function installDeckyPlugin(asset: Asset, repo: string, pluginName:
 // Several updates (or, with installType INSTALL, new plugins) in one go: Decky Loader shows
 // one confirm dialog listing them all and installs them in order. Fresh-install plugins need their uninstall
 // first, so callers leave them out.
-export async function updateDeckyPlugins(updates: { asset: Asset; repo: string; name: string; version: string }[], installType: 0 | 2 = PLUGIN_INSTALL_TYPE.UPDATE) {
+export async function updateDeckyPlugins(
+  updates: { asset: Asset; repo: string; name: string; version: string }[],
+  installType: 0 | 2 = PLUGIN_INSTALL_TYPE.UPDATE,
+) {
   // One at a time, so a single progress window shows at once; the last one
   // stays up until Decky's dialog is.
   const { handedOver, done } = handOff();
   try {
     const artifacts: string[] = [];
-    for (const [index, { asset, repo }] of updates.entries()) artifacts.push(await localZip(asset, repo, index === updates.length - 1 ? handedOver : undefined));
+    for (const [index, { asset, repo }] of updates.entries())
+      artifacts.push(await localZip(asset, repo, index === updates.length - 1 ? handedOver : undefined));
     for (const { name, version } of updates) traceDeckyInstall(name, version);
     return await callDeckyLoader(
       "utilities/install_plugins",
-      updates.map(({ asset, name, version }, index) => ({ artifact: artifacts[index], name, version: normalizeVersion(displayVersion(version)), hash: asset.sha256 ?? "", install_type: installType })),
+      updates.map(({ asset, name, version }, index) => ({
+        artifact: artifacts[index],
+        name,
+        version: normalizeVersion(displayVersion(version)),
+        hash: asset.sha256 ?? "",
+        install_type: installType,
+      })),
     );
   } finally {
     done();
@@ -173,11 +207,17 @@ function traceDeckyInstall(pluginName: string, version?: string) {
   let idleTimer = 0;
   const armIdle = (stage?: string) => {
     window.clearTimeout(idleTimer);
-    idleTimer = window.setTimeout(() => {
-      log(`Decky install ${pluginName}: no progress after ${elapsed()} — check journalctl -u plugin_loader`);
-      toaster.toast({ title: tr("toast.installStalledTitle", { name: pluginName }), body: tr("toast.installStalledBody") });
-      stop();
-    }, stage?.endsWith("download_remote") ? 120_000 : 45_000);
+    idleTimer = window.setTimeout(
+      () => {
+        log(`Decky install ${pluginName}: no progress after ${elapsed()} — check journalctl -u plugin_loader`);
+        toaster.toast({
+          title: tr("toast.installStalledTitle", { name: pluginName }),
+          body: tr("toast.installStalledBody"),
+        });
+        stop();
+      },
+      stage?.endsWith("download_remote") ? 120_000 : 45_000,
+    );
   };
   const onStart = (name: string) => {
     log(`Decky install start ${name} at ${elapsed()}`);
@@ -202,13 +242,22 @@ function traceDeckyInstall(pluginName: string, version?: string) {
     if (name !== pluginName) return;
     stop();
     if (name === "DeckyHub") reloadIfStillOld();
-    else toaster.toast({ title: "DeckyHub", body: version ? tr("toast.installedVersion", { name, version: displayVersion(version) }) : tr("toast.installed", { name }) });
+    else
+      toaster.toast({
+        title: "DeckyHub",
+        body: version
+          ? tr("toast.installedVersion", { name, version: displayVersion(version) })
+          : tr("toast.installed", { name }),
+      });
   };
   // Backstop: Decky never sends finish after a silent failure.
-  const timer = window.setTimeout(() => {
-    log(`Decky install ${pluginName}: no finish after ${elapsed()} — check journalctl -u plugin_loader`);
-    stop();
-  }, 10 * 60 * 1000);
+  const timer = window.setTimeout(
+    () => {
+      log(`Decky install ${pluginName}: no finish after ${elapsed()} — check journalctl -u plugin_loader`);
+      stop();
+    },
+    10 * 60 * 1000,
+  );
   backend.addEventListener("loader/plugin_download_start", onStart);
   backend.addEventListener("loader/plugin_download_info", onInfo);
   backend.addEventListener("loader/plugin_download_finish", onFinish);
@@ -237,19 +286,32 @@ function callDeckyLoader(route: string, ...args: unknown[]) {
 // uses the detection rule's first name (the plugin's manifest name).
 // Releases without a GitHub checksum (assets uploaded before mid-2025) can
 // still be installed; Decky Loader skips verification for an empty hash.
-export function installAction(app: App, release: { tag: string; pluginVersion?: string; assets: Asset[] }): { type: 0 | 1 | 2 | 3; name: string } | null {
+export function installAction(
+  app: App,
+  release: { tag: string; pluginVersion?: string; assets: Asset[] },
+): { type: 0 | 1 | 2 | 3; name: string } | null {
   if (!release.assets[0]) return null;
-  if (app.pluginName) return { type: resolveDeckyHubInstallType(releaseVersion(release), app.installedVersion ?? ""), name: app.pluginName };
-  if (!app.installedVersion && app.detect?.type === "decky-plugin") return { type: PLUGIN_INSTALL_TYPE.INSTALL, name: app.detect.names?.[0] ?? app.name };
+  if (app.pluginName)
+    return {
+      type: resolveDeckyHubInstallType(releaseVersion(release), app.installedVersion ?? ""),
+      name: app.pluginName,
+    };
+  if (!app.installedVersion && app.detect?.type === "decky-plugin")
+    return { type: PLUGIN_INSTALL_TYPE.INSTALL, name: app.detect.names?.[0] ?? app.name };
   return null;
 }
 
-export function installTypeLabel(t: TFunc, type: number, version: string, updateLabel = t("settings.updateTo", { version })) {
+export function installTypeLabel(
+  t: TFunc,
+  type: number,
+  version: string,
+  updateLabel = t("settings.updateTo", { version }),
+) {
   return type === PLUGIN_INSTALL_TYPE.INSTALL
     ? t("appcard.installVersion", { version })
     : type === PLUGIN_INSTALL_TYPE.REINSTALL
-    ? t("settings.reinstallTo", { version })
-    : type === PLUGIN_INSTALL_TYPE.DOWNGRADE
-    ? t("settings.downgradeTo", { version })
-    : updateLabel;
+      ? t("settings.reinstallTo", { version })
+      : type === PLUGIN_INSTALL_TYPE.DOWNGRADE
+        ? t("settings.downgradeTo", { version })
+        : updateLabel;
 }

@@ -33,7 +33,11 @@ p.sub{position:absolute;left:${big ? 120 : 72}px;top:${big ? 610 : 415}px;font-s
 <div class=device><div class=screen><img src="${screen}"><i></i></div></div>`;
 
 const browser = await chromium.launch();
-for (const [file, w, h, big, type] of [["promo/hero.png", 1920, 1080, true, "png"], ["promo/social.png", 1280, 640, false, "png"], ["screenshots/hero.jpg", 1920, 1080, true, "jpeg"]]) {
+for (const [file, w, h, big, type] of [
+  ["promo/hero.png", 1920, 1080, true, "png"],
+  ["promo/social.png", 1280, 640, false, "png"],
+  ["screenshots/hero.jpg", 1920, 1080, true, "jpeg"],
+]) {
   const page = await browser.newPage({ viewport: { width: w, height: h } });
   await page.setContent(html(w, h, big));
   writeFileSync(new URL(file, root), await page.screenshot({ type, ...(type === "jpeg" ? { quality: 90 } : {}) }));

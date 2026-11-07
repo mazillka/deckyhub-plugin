@@ -8,6 +8,7 @@ import { compactButtonStyle, ellipsis, surfaceStyle } from "../utils";
 import { FocusableGrid } from "./FocusableGrid";
 import { keepInView } from "./KeepInView";
 import type { Layout } from "./LayoutToggle";
+import { colors, tint } from "../styles";
 
 const buttonStyle = { ...compactButtonStyle, marginBottom: 0 };
 
@@ -59,7 +60,11 @@ export function SearchResults({
         </div>
         {!added && (
           <div style={{ flex: "0 0 44px" }}>
-            <Button style={{ ...buttonStyle, padding: 0 }} aria-label={t("repos.add")} onClick={() => onAdd(repo.full_name)}>
+            <Button
+              style={{ ...buttonStyle, padding: 0 }}
+              aria-label={t("repos.add")}
+              onClick={() => onAdd(repo.full_name)}
+            >
               <FaPlus />
             </Button>
           </div>
@@ -73,10 +78,16 @@ export function SearchResults({
     const [owner, name] = repo.full_name.split("/");
     return (
       <>
-        <h3 aria-label={repo.full_name} style={{ margin: 0, color: "#fff", fontSize: "1.05em", ...ellipsis }}>{name}</h3>
-        <small style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, color: "#8b9aa7" }}>
+        <h3 aria-label={repo.full_name} style={{ margin: 0, color: colors.text, fontSize: "1.05em", ...ellipsis }}>
+          {name}
+        </h3>
+        <small style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, color: colors.subtle }}>
           <span style={ellipsis}>{t("search.byOwner", { owner })}</span>
-          {isAdded(repo.full_name) && <span style={{ ...pillStyle, flexShrink: 0, color: "#6bcb6b", background: "#6bcb6b22", borderColor: "#6bcb6b66" }}><FaCheck size="0.8em" /> {t("search.inDeckyHub")}</span>}
+          {isAdded(repo.full_name) && (
+            <span style={{ ...pillStyle, flexShrink: 0, ...tint(colors.success) }}>
+              <FaCheck size="0.8em" /> {t("search.inDeckyHub")}
+            </span>
+          )}
         </small>
       </>
     );
@@ -88,10 +99,29 @@ export function SearchResults({
       {results.map((repo) => (
         // The name is a direct child, so a row's buttons are found from its heading;
         // the description sits under it, like Discover's rows.
-        <Focusable key={repo.full_name} flow-children="right" onFocus={keepInView} className="deckyhub-search-row deckyhub-focus-ring" style={{ ...surfaceStyle, display: "grid", gridTemplateColumns: "minmax(0, 1fr) 70px 220px", gridTemplateRows: "auto auto auto", alignItems: "center", columnGap: 12, rowGap: 2, padding: "8px 12px" }}>
+        <Focusable
+          key={repo.full_name}
+          flow-children="right"
+          onFocus={keepInView}
+          className="deckyhub-search-row deckyhub-focus-ring"
+          style={{
+            ...surfaceStyle,
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 1fr) 70px 220px",
+            gridTemplateRows: "auto auto auto",
+            alignItems: "center",
+            columnGap: 12,
+            rowGap: 2,
+            padding: "8px 12px",
+          }}
+        >
           {title(repo)}
-          <small style={{ gridColumn: 1, gridRow: 3, color: "#b8c7d3", ...ellipsis }}>{repo.description || t("repos.noDescription")}</small>
-          <small style={{ gridColumn: 2, gridRow: "1 / 4", color: "#8b9aa7" }}>★ {repo.stargazers_count ?? 0}</small>
+          <small style={{ gridColumn: 1, gridRow: 3, color: colors.muted, ...ellipsis }}>
+            {repo.description || t("repos.noDescription")}
+          </small>
+          <small style={{ gridColumn: 2, gridRow: "1 / 4", color: colors.subtle }}>
+            ★ {repo.stargazers_count ?? 0}
+          </small>
           <div style={{ gridColumn: 3, gridRow: "1 / 4" }}>{actions(repo)}</div>
         </Focusable>
       ))}
@@ -99,11 +129,14 @@ export function SearchResults({
   ) : (
     <FocusableGrid items={results} columns={2} keyFor={(repo) => repo.full_name}>
       {(repo) => (
-        <div className="deckyhub-focus-ring" style={{ ...surfaceStyle, height: "100%", padding: "var(--dh-card-padding, 4px 14px)" }}>
+        <div
+          className="deckyhub-focus-ring"
+          style={{ ...surfaceStyle, height: "100%", padding: "var(--dh-card-padding, 4px 14px)" }}
+        >
           {/* The heading sits beside the buttons, so they're found from it. */}
           <div style={{ display: "grid", gap: 6, padding: "10px 0" }}>
             {title(repo)}
-            <small style={{ color: "#b8c7d3" }}>
+            <small style={{ color: colors.muted }}>
               {repo.description || t("repos.noDescription")} · ★ {repo.stargazers_count ?? 0}
             </small>
             {actions(repo)}

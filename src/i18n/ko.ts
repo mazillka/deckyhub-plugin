@@ -20,9 +20,11 @@ export const ko: Record<MessageKey, string> = {
   "discover.list": "목록",
   "view.discoverEmpty": "사용할 수 있는 저장소가 없습니다.",
   "view.installedEmpty": "설치된 플러그인이 없습니다.",
-  "view.searchDescription": "GitHub에서 Decky 플러그인을 검색하세요. 바로 설치하거나 추가해서 업데이트를 추적할 수 있습니다.",
+  "view.searchDescription":
+    "GitHub에서 Decky 플러그인을 검색하세요. 바로 설치하거나 추가해서 업데이트를 추적할 수 있습니다.",
   "view.searchTitle": "검색 및 설치",
-  "search.warning": "검색 결과는 GitHub에서 바로 가져옵니다. DeckyHub도, Decky 스토어도 검토하지 않았습니다. 플러그인은 기기에서 무엇이든 할 수 있으니 신뢰하는 제작자의 플러그인만 설치하세요.",
+  "search.warning":
+    "검색 결과는 GitHub에서 바로 가져옵니다. DeckyHub도, Decky 스토어도 검토하지 않았습니다. 플러그인은 기기에서 무엇이든 할 수 있으니 신뢰하는 제작자의 플러그인만 설치하세요.",
   "search.placeholder": "플러그인 이름, 제작자 또는 기능",
 
   "filter.search": "검색",
@@ -68,7 +70,8 @@ export const ko: Record<MessageKey, string> = {
   "appcard.downloads": "다운로드 {count}회",
   "appcard.stars": "GitHub 스타 {count}개",
   "appcard.runsAsRoot": "루트 권한으로 실행",
-  "appcard.runsAsRootHint": "백엔드가 루트 권한으로 실행되어 시스템 전체에 접근할 수 있습니다. 제작자를 신뢰할 때만 설치하세요.",
+  "appcard.runsAsRootHint":
+    "백엔드가 루트 권한으로 실행되어 시스템 전체에 접근할 수 있습니다. 제작자를 신뢰할 때만 설치하세요.",
   "appcard.knownIssues": "이 플러그인의 알려진 문제",
   "appcard.skipVersion": "{version} 건너뛰기",
   "appcard.unskipVersion": "{version} 건너뛰기 해제",
@@ -76,28 +79,35 @@ export const ko: Record<MessageKey, string> = {
   "appcard.forkHint": "원본이 중단된 뒤 플러그인을 이어 가는 포크입니다. 활발한 포크인 동안에만 DeckyHub에 표시됩니다.",
   "appcard.forkOf": "{repo}의 포크",
   "appcard.ai": "AI",
-  "appcard.aiHint": "저장소에 AI 코딩 도우미용 지침이 있거나 README에 AI로 만들었다고 적혀 있어 AI의 도움으로 개발되었을 가능성이 높습니다. 품질이나 안전성에 대해서는 아무것도 알려 주지 않으며, 배지가 없다고 AI를 쓰지 않았다는 뜻은 아닙니다.",
+  "appcard.aiHint":
+    "저장소에 AI 코딩 도우미용 지침이 있거나 README에 AI로 만들었다고 적혀 있어 AI의 도움으로 개발되었을 가능성이 높습니다. 품질이나 안전성에 대해서는 아무것도 알려 주지 않으며, 배지가 없다고 AI를 쓰지 않았다는 뜻은 아닙니다.",
   "appcard.aiFiles": "AI의 도움으로 개발되었을 가능성이 높음 ({files})",
   "appcard.scan.clean": "위협 없음",
-  "appcard.scan.clean.hint": "설치할 릴리스에서 바이러스 검사로 알려진 위협을 찾지 못했습니다. 검사는 알려진 악성 코드만 잡아내고 우회될 수 있으므로 안전을 증명하지 않습니다. 검사 보고서는 관리에서 볼 수 있습니다.",
+  "appcard.scan.clean.hint":
+    "설치할 릴리스에서 바이러스 검사로 알려진 위협을 찾지 못했습니다. 검사는 알려진 악성 코드만 잡아내고 우회될 수 있으므로 안전을 증명하지 않습니다. 검사 보고서는 관리에서 볼 수 있습니다.",
   "appcard.scan.infected": "위협 발견",
-  "appcard.scan.infected.hint": "바이러스 검사가 설치할 릴리스를 표시했습니다. 오탐일 수 있습니다. 관리에서 보고서를 읽고 직접 결정하세요.",
+  "appcard.scan.infected.hint":
+    "바이러스 검사가 설치할 릴리스를 표시했습니다. 오탐일 수 있습니다. 관리에서 보고서를 읽고 직접 결정하세요.",
   "appcard.scan.partial": "일부만 검사됨",
   "appcard.scan.partial.hint": "바이러스 검사가 설치할 릴리스 전체를 확인하지 못했습니다. 이유는 관리에 있습니다.",
   "appcard.badgesNotice": "플러그인 배지의 의미",
   "appcard.noReleaseInYear": "1년 넘게 릴리스 없음",
   "appcard.installedFlagged": "설치된 버전 경고",
-  "appcard.installedFlagged.hint": "설치된 버전에서 발견됨: {reasons}. 오탐일 수 있습니다. 플러그인을 확인하고 유지할지 결정하세요.",
-  "appcard.warningsIntro": "경고는 설치할 릴리스에 대한 Decky Extended Plugins의 자동 감사 결과입니다. sudo, mount, systemctl 같은 일반적인 항목은 표시하지 않습니다. 경고가 위험의 증거는 아니며, 경고가 없다고 안전한 것도 아닙니다.",
+  "appcard.installedFlagged.hint":
+    "설치된 버전에서 발견됨: {reasons}. 오탐일 수 있습니다. 플러그인을 확인하고 유지할지 결정하세요.",
+  "appcard.warningsIntro":
+    "경고는 설치할 릴리스에 대한 Decky Extended Plugins의 자동 감사 결과입니다. sudo, mount, systemctl 같은 일반적인 항목은 표시하지 않습니다. 경고가 위험의 증거는 아니며, 경고가 없다고 안전한 것도 아닙니다.",
   "appcard.auditLink": "Decky Extended Plugins 감사 열기",
   "appcard.warning.blocked": "감사에서 차단됨",
   "appcard.warning.blocked.hint": "감사에서 악성코드나 손상된 압축 파일이 발견되었습니다. 설치를 권장하지 않습니다.",
   "appcard.warning.private-data": "개인 데이터 읽기",
   "appcard.warning.private-data.hint": "Steam 로그인 데이터, SSH 키 또는 환경 변수의 비밀 정보를 읽습니다.",
   "appcard.warning.persistence": "시스템 시작 변경",
-  "appcard.warning.persistence.hint": "셸 프로필 수정, 라이브러리 사전 로드, 커널 모듈 로드, 장치 규칙 추가를 하며 Decky 밖에서도 계속 작동합니다.",
+  "appcard.warning.persistence.hint":
+    "셸 프로필 수정, 라이브러리 사전 로드, 커널 모듈 로드, 장치 규칙 추가를 하며 Decky 밖에서도 계속 작동합니다.",
   "appcard.warning.not-in-source": "저장소에 없는 코드",
-  "appcard.warning.not-in-source.hint": "릴리스에 GitHub 소스에 없는 스크립트나 프로그램이 있어 무엇을 하는지 확인할 수 없습니다.",
+  "appcard.warning.not-in-source.hint":
+    "릴리스에 GitHub 소스에 없는 스크립트나 프로그램이 있어 무엇을 하는지 확인할 수 없습니다.",
   "appcard.warning.obfuscated": "숨겨진 코드",
   "appcard.warning.obfuscated.hint": "읽기 어려운 인코딩되거나 압축된 코드가 있습니다.",
   "appcard.warning.no-tls-check": "HTTPS 검사 건너뜀",
@@ -112,10 +122,12 @@ export const ko: Record<MessageKey, string> = {
   "appcard.uninstallTitle": "{name}을(를) 제거할까요?",
   "appcard.uninstallDescription": "이 기기에서 플러그인과 설정이 삭제됩니다. 나중에 다시 설치할 수 있습니다.",
   "appcard.uninstalled": "{name}을(를) 제거했습니다.",
-  "appcard.freshInstallDescription": "DeckyHub가 설치된 버전을 먼저 제거한 뒤 Decky가 선택한 버전을 새로 설치합니다. Decky Loader 버그 때문에 제자리 업데이트는 기기를 멈추게 할 수 있습니다. Decky의 설치 창에서 취소하면 {name}은(는) 다시 설치할 때까지 제거된 상태로 남습니다.",
+  "appcard.freshInstallDescription":
+    "DeckyHub가 설치된 버전을 먼저 제거한 뒤 Decky가 선택한 버전을 새로 설치합니다. Decky Loader 버그 때문에 제자리 업데이트는 기기를 멈추게 할 수 있습니다. Decky의 설치 창에서 취소하면 {name}은(는) 다시 설치할 때까지 제거된 상태로 남습니다.",
   "appcard.releaseInfo": "릴리스 정보",
   "appcard.noReleaseNotes": "이 릴리스에는 노트가 없습니다.",
-  "install.disclaimer": "DeckyHub는 제작자의 GitHub 저장소에서 릴리스를 가져올 뿐입니다. 이 플러그인을 만들거나 검토하거나 보증하지 않으며, 플러그인이 기기나 데이터에 하는 일에 책임지지 않습니다. 설치는 본인 책임입니다.",
+  "install.disclaimer":
+    "DeckyHub는 제작자의 GitHub 저장소에서 릴리스를 가져올 뿐입니다. 이 플러그인을 만들거나 검토하거나 보증하지 않으며, 플러그인이 기기나 데이터에 하는 일에 책임지지 않습니다. 설치는 본인 책임입니다.",
   "pending.title": "선택한 플러그인을 설치할까요?",
   "pending.description": "설치 프로그램에서 고른 플러그인입니다. 설치 전에 Decky Loader가 한 번 더 확인합니다.",
   "pending.install": "선택 항목 설치",
@@ -143,8 +155,10 @@ export const ko: Record<MessageKey, string> = {
   "scan.engine": "검사기: {engine}, 시그니처 {signatures}",
   "scan.rules": "검사기: {engine}, 규칙 {rules}",
   "scan.scannedAt": "검사 시각: {date}",
-  "scan.hint": "DeckyHub 레지스트리는 제공하는 모든 플러그인 ZIP을 오픈 소스 백신 ClamAV로, 그 안의 파일을 YARA와 YARA Forge 커뮤니티 규칙(상당수가 Linux 악성 코드용)으로 검사합니다.",
-  "scan.safetyWarning": "검사는 알려진 악성 코드만 잡아내며, 악성 코드는 검사를 피하도록 만들 수 있습니다. 깨끗한 결과가 플러그인의 안전을 증명하지는 않습니다.",
+  "scan.hint":
+    "DeckyHub 레지스트리는 제공하는 모든 플러그인 ZIP을 오픈 소스 백신 ClamAV로, 그 안의 파일을 YARA와 YARA Forge 커뮤니티 규칙(상당수가 Linux 악성 코드용)으로 검사합니다.",
+  "scan.safetyWarning":
+    "검사는 알려진 악성 코드만 잡아내며, 악성 코드는 검사를 피하도록 만들 수 있습니다. 깨끗한 결과가 플러그인의 안전을 증명하지는 않습니다.",
   "scan.unverifiedMatch": "ZIP 일치 여부 미확인",
   "scan.waiting": "검사 대기 중",
   "scan.unavailable": "보고서를 사용할 수 없음",
@@ -152,14 +166,17 @@ export const ko: Record<MessageKey, string> = {
   "scan.unverifiedDetail": "이 보고서는 다른 ZIP에 대한 것일 수 있습니다. 일치 여부는 확인되지 않았습니다.",
   "scan.virusTotalResult": "VirusTotal: 엔진 {total}개 중 {flagged}개가 이 ZIP을 탐지했습니다",
   "scan.metaDefenderResult": "MetaDefender: 엔진 {total}개 중 {flagged}개가 이 ZIP을 탐지했습니다",
-  "scan.virusTotalHint": "VirusTotal이 Steam 브라우저에서 열리고 이 ZIP을 SHA-256으로 조회합니다. 기기에서는 아무것도 업로드되지 않습니다. DeckyHub 레지스트리가 VirusTotal에 아직 없는 플러그인 ZIP을 보내므로, 새 릴리스는 결과가 나오기까지 시간이 걸릴 수 있습니다.",
+  "scan.virusTotalHint":
+    "VirusTotal이 Steam 브라우저에서 열리고 이 ZIP을 SHA-256으로 조회합니다. 기기에서는 아무것도 업로드되지 않습니다. DeckyHub 레지스트리가 VirusTotal에 아직 없는 플러그인 ZIP을 보내므로, 새 릴리스는 결과가 나오기까지 시간이 걸릴 수 있습니다.",
   "scan.copyLink": "ZIP 링크 복사",
   "scan.scanLink": "VirusTotal에서 링크 검사",
   "scan.copied": "ZIP 링크를 복사했습니다",
   "scan.copyFailed": "링크를 복사하지 못했습니다",
   "scan.pasteIntoVirusTotal": "VirusTotal 페이지의 URL 칸에 붙여 넣고 검사를 시작하세요.",
-  "scan.scanLinkHint": "VirusTotal에서 링크 검사는 ZIP의 다운로드 링크를 복사하고 VirusTotal의 URL 검사 페이지를 엽니다. 그곳에 링크를 붙여 넣으세요. VirusTotal은 주로 링크 자체를 평가하므로 ZIP 안의 내용은 확인하지 않을 수 있습니다.",
-  "scan.deckyhubChecks": "모든 DeckyHub 릴리스는 게시 전에 ClamAV, VirusTotal, MetaDefender로 검사되며, 코드는 변경될 때마다 GitHub CodeQL로 점검됩니다. 보고서에는 각 검사기의 버전과 날짜가 표시됩니다.",
+  "scan.scanLinkHint":
+    "VirusTotal에서 링크 검사는 ZIP의 다운로드 링크를 복사하고 VirusTotal의 URL 검사 페이지를 엽니다. 그곳에 링크를 붙여 넣으세요. VirusTotal은 주로 링크 자체를 평가하므로 ZIP 안의 내용은 확인하지 않을 수 있습니다.",
+  "scan.deckyhubChecks":
+    "모든 DeckyHub 릴리스는 게시 전에 ClamAV, VirusTotal, MetaDefender로 검사되며, 코드는 변경될 때마다 GitHub CodeQL로 점검됩니다. 보고서에는 각 검사기의 버전과 날짜가 표시됩니다.",
 
   "dl.downloading": "{filename} 다운로드 중",
   "dl.preparing": "다운로드 준비 중…",
@@ -176,7 +193,8 @@ export const ko: Record<MessageKey, string> = {
   "settings.latestVersion": "최신: {version}",
   "settings.updateChannel": "업데이트 채널",
   "settings.registryChannel": "레지스트리 채널",
-  "settings.registryChannelHint": "시험판은 모두에게 제공되기 전에 테스트 중인 플러그인과 변경 사항을 보여 줍니다. 불러올 수 없으면 DeckyHub는 안정 버전 목록을 사용합니다.",
+  "settings.registryChannelHint":
+    "시험판은 모두에게 제공되기 전에 테스트 중인 플러그인과 변경 사항을 보여 줍니다. 불러올 수 없으면 DeckyHub는 안정 버전 목록을 사용합니다.",
   "settings.stableReleases": "안정판 릴리스",
   "settings.preReleases": "시험판 릴리스",
   "settings.checkUpdate": "업데이트 확인",
@@ -193,7 +211,8 @@ export const ko: Record<MessageKey, string> = {
   "settings.selfUpdateUnavailable": "지금은 자동 업데이트를 사용할 수 없습니다. 대신 ZIP 다운로드를 사용하세요.",
   "settings.downloadUpdate": "ZIP 다운로드",
   "settings.downloadSettings": "다운로드 설정",
-  "settings.whereZipsSaved": "모든 릴리스 ZIP은 ~/Downloads/deckyhub에 저장되며, GitHub가 SHA-256 체크섬을 제공하면 자동으로 검증합니다.",
+  "settings.whereZipsSaved":
+    "모든 릴리스 ZIP은 ~/Downloads/deckyhub에 저장되며, GitHub가 SHA-256 체크섬을 제공하면 자동으로 검증합니다.",
   "settings.overwriteExisting": "기존 파일 덮어쓰기",
   "settings.cleanup": "정리",
   "settings.emptyFolder": "폴더 비우기",
@@ -202,9 +221,11 @@ export const ko: Record<MessageKey, string> = {
   "settings.downloadsCleared": "DeckyHub 다운로드에서 항목 {count}개를 삭제했습니다.",
   "settings.saveSettings": "설정 저장",
   "settings.githubAccess": "GitHub 접근",
-  "settings.githubTokenIntro": "선택 사항입니다. 토큰이 없으면 GitHub는 이 기기를 시간당 60회(검색은 분당 10회)로 제한하며, 많이 쓰면 금방 소진됩니다. 개인 액세스 토큰을 쓰면 시간당 5,000회(검색은 분당 30회)로 늘어납니다.",
+  "settings.githubTokenIntro":
+    "선택 사항입니다. 토큰이 없으면 GitHub는 이 기기를 시간당 60회(검색은 분당 10회)로 제한하며, 많이 쓰면 금방 소진됩니다. 개인 액세스 토큰을 쓰면 시간당 5,000회(검색은 분당 30회)로 늘어납니다.",
   "settings.githubTokenHowTo": "모든 권한을 선택하지 않은 채로 여기에서 만드세요:",
-  "settings.githubTokenNote": "DeckyHub는 공개 저장소와 릴리스만 읽습니다. 토큰은 이 설정에 로컬로 저장되며 api.github.com에만 전송됩니다.",
+  "settings.githubTokenNote":
+    "DeckyHub는 공개 저장소와 릴리스만 읽습니다. 토큰은 이 설정에 로컬로 저장되며 api.github.com에만 전송됩니다.",
   "settings.githubToken": "GitHub 토큰",
   "settings.githubQuota": "남은 GitHub 요청: {limit}회 중 {remaining}회 ({minutes}분 후 초기화)",
   "rateLimit.title": "GitHub 요청 한도에 도달했습니다",
@@ -218,9 +239,11 @@ export const ko: Record<MessageKey, string> = {
   "settings.languageHint": "영어 외의 번역은 자동으로 만들어져 오류가 있을 수 있습니다.",
   "settings.displaySettings": "화면 설정",
   "settings.about": "정보",
-  "settings.aboutText": "DeckyHub는 Decky 플러그인을 제작자의 GitHub 릴리스에서 바로 설치하고 업데이트합니다. 무료 오픈 소스입니다.",
+  "settings.aboutText":
+    "DeckyHub는 Decky 플러그인을 제작자의 GitHub 릴리스에서 바로 설치하고 업데이트합니다. 무료 오픈 소스입니다.",
   "settings.aboutSource": "GitHub의 DeckyHub",
-  "settings.thanks": "DeckyHub 목록의 많은 플러그인은 두 커뮤니티 카탈로그를 통해 찾았습니다. 제작자분들께 감사드립니다!",
+  "settings.thanks":
+    "DeckyHub 목록의 많은 플러그인은 두 커뮤니티 카탈로그를 통해 찾았습니다. 제작자분들께 감사드립니다!",
   "settings.catalogBy": "{author}의 {name}",
   "settings.layout": "레이아웃",
   "settings.density": "인터페이스",
@@ -237,7 +260,8 @@ export const ko: Record<MessageKey, string> = {
   "settings.hideButton": "“{button}” 숨기기",
   "settings.troubleshooting": "문제 해결",
   "settings.exportLogs": "로그 내보내기",
-  "settings.exportLogsNote": "DeckyHub 로그를 ~/Downloads에 ZIP으로 저장합니다. 버그 신고에 첨부하세요. GitHub 토큰은 기록되지 않습니다.",
+  "settings.exportLogsNote":
+    "DeckyHub 로그를 ~/Downloads에 ZIP으로 저장합니다. 버그 신고에 첨부하세요. GitHub 토큰은 기록되지 않습니다.",
 
   "repos.addManage": "추가 및 관리",
   "repos.searchGithub": "GitHub 검색",
@@ -310,8 +334,10 @@ export const ko: Record<MessageKey, string> = {
   "toast.installed": "{name}을(를) 설치했습니다.",
   "toast.installedVersion": "{name} {version}을(를) 설치했습니다.",
   "welcome.title": "DeckyHub에 오신 것을 환영합니다",
-  "welcome.body": "Decky 플러그인을 제작자의 GitHub 릴리스에서 바로 설치하고 업데이트하세요. 둘러보기에서 살펴보고, 검색으로 더 찾고, 업데이트에서 최신 상태로 유지하세요.",
-  "welcome.safety": "이 플러그인들은 DeckyHub를 포함해 누구도 검토하지 않습니다. 바이러스 검사는 알려진 악성 코드만 잡아내므로, 검사 결과가 깨끗해도 플러그인이 안전하다는 뜻은 아닙니다. 신뢰하는 제작자의 플러그인만 설치하세요. DeckyHub는 설치 전에 항상 확인합니다.",
+  "welcome.body":
+    "Decky 플러그인을 제작자의 GitHub 릴리스에서 바로 설치하고 업데이트하세요. 둘러보기에서 살펴보고, 검색으로 더 찾고, 업데이트에서 최신 상태로 유지하세요.",
+  "welcome.safety":
+    "이 플러그인들은 DeckyHub를 포함해 누구도 검토하지 않습니다. 바이러스 검사는 알려진 악성 코드만 잡아내므로, 검사 결과가 깨끗해도 플러그인이 안전하다는 뜻은 아닙니다. 신뢰하는 제작자의 플러그인만 설치하세요. DeckyHub는 설치 전에 항상 확인합니다.",
   "welcome.gotIt": "확인",
   "settings.tabGeneral": "일반",
   "settings.tabDownloads": "다운로드",

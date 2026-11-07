@@ -10,6 +10,7 @@ Checks every page for: a unique title (70 characters at most), a unique meta des
 page, and robots.txt, sitemap.xml and llms.txt being there. Preview builds (--preview) are
 noindex on purpose and skip the canonical and sitemap checks.
 """
+
 import collections
 import html
 import re
@@ -24,7 +25,7 @@ preview = (out / "sitemap.xml").exists() is False
 
 
 def first(pattern: str, text: str) -> str | None:
-    match = re.search(pattern, text, re.S)
+    match = re.search(pattern, text, re.DOTALL)
     return html.unescape(match.group(1)).strip() if match else None
 
 
@@ -49,7 +50,7 @@ for path in pages:
     if not not_found and not preview and 'rel="canonical"' not in text:
         problems.append(f"{rel}: no canonical link")
     if not not_found and ('class="skip"' not in text or '<main id="main"' not in text):
-        problems.append(f"{rel}: no skip-to-content link or <main id=\"main\">")
+        problems.append(f'{rel}: no skip-to-content link or <main id="main">')
     for img in re.findall(r"<img[^>]*>", text):
         if "alt=" not in img:
             problems.append(f"{rel}: image without alt: {img[:60]}")

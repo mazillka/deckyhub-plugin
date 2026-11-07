@@ -11,8 +11,18 @@ from unittest.mock import patch
 from urllib.error import URLError
 
 sys.modules.setdefault("decky", types.SimpleNamespace(logger=logging.getLogger("decky-test")))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "py_modules"))
+from deckyhub import registry, settings, validation
+from deckyhub.registry import (
+    LATEST_REGISTRY_RELEASE_URL,
+    PRERELEASE_REGISTRY_URL,
+    REMOTE_REGISTRY_URL,
+    newest_registry_release,
+    parse_registry,
+)
+from deckyhub.validation import validate_registry_url
+
 import main
-from main import LATEST_REGISTRY_RELEASE_URL, PRERELEASE_REGISTRY_URL, REMOTE_REGISTRY_URL, newest_registry_release, parse_registry, validate_registry_url
 from main import Plugin
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -71,7 +81,11 @@ NEWEST_RELEASE_URL = "https://release.test/registry-2026.10.31-2-develop/apps.js
 class CustomRegistryTests(unittest.TestCase):
     def setUp(self):
         # Never ask GitHub's API from a test: the newest pre-release is a fixed link.
-        stub = patch.object(main, "newest_registry_release", lambda prerelease: NEWEST_RELEASE_URL if prerelease else LATEST_REGISTRY_RELEASE_URL)
+        stub = patch.object(
+            registry,
+            "newest_registry_release",
+            lambda prerelease: NEWEST_RELEASE_URL if prerelease else LATEST_REGISTRY_RELEASE_URL,
+        )
         stub.start()
         self.addCleanup(stub.stop)
 
@@ -90,7 +104,12 @@ class CustomRegistryTests(unittest.TestCase):
         sys.modules["decky"].DECKY_PLUGIN_DIR = str(ROOT)
         plugin = Plugin()
         plugin.settings_path = Path(home) / "settings.json"
-        plugin.settings = {**main._coerce_settings({}), "customRepos": [], "customRegistries": list(registries or []), "repoSettings": {}}
+        plugin.settings = {
+            **settings.coerce_settings({}),
+            "customRepos": [],
+            "customRegistries": list(registries or []),
+            "repoSettings": {},
+        }
         # Persist, so _load_settings() sees the same state as the live object.
         plugin.settings_path.write_text(json.dumps(plugin.settings), encoding="utf-8")
         plugin.apps = []  # what _main would have loaded; tests that care set it
@@ -106,7 +125,14 @@ class CustomRegistryTests(unittest.TestCase):
     # validate_registry_url
 
     def test_rejects_non_https_and_non_json_urls(self):
-        for url in ("http://example.com/apps.json", "ftp://example.com/a.json", "https://example.com/apps.txt", "https://example.com/", "not a url", ""):
+        for url in (
+            "http://example.com/apps.json",
+            "ftp://example.com/a.json",
+            "https://example.com/apps.txt",
+            "https://example.com/",
+            "not a url",
+            "",
+        ):
             with self.assertRaises(ValueError):
                 validate_registry_url(url)
 
@@ -122,7 +148,21 @@ class CustomRegistryTests(unittest.TestCase):
     def test_settings_keep_only_valid_unique_registries(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = self.plugin(home)
-            plugin.settings_path.write_text(json.dumps({"customRegistries": [f" {CUSTOM_URL} ", CUSTOM_URL, "http://bad/a.json", "https://example.com/x.txt", OTHER_URL, 42]}), encoding="utf-8")
+            plugin.settings_path.write_text(
+                json.dumps(
+                    {
+                        "customRegistries": [
+                            f" {CUSTOM_URL} ",
+                            CUSTOM_URL,
+                            "http://bad/a.json",
+                            "https://example.com/x.txt",
+                            OTHER_URL,
+                            42,
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
             self.assertEqual(plugin._load_settings()["customRegistries"], [CUSTOM_URL, OTHER_URL])
 
     def test_save_settings_keeps_registries(self):
@@ -134,16 +174,21 @@ class CustomRegistryTests(unittest.TestCase):
     # registry channel
 
     def test_prerelease_registry_reads_develop_into_its_own_cache(self):
-        self.assertEqual(main._coerce_settings({})["registryChannel"], "stable")
-        self.assertEqual(main._coerce_settings({"registryChannel": "nightly"})["registryChannel"], "stable")
+        self.assertEqual(settings.coerce_settings({})["registryChannel"], "stable")
+        self.assertEqual(settings.coerce_settings({"registryChannel": "nightly"})["registryChannel"], "stable")
         with tempfile.TemporaryDirectory() as home:
             plugin = self.plugin(home)
             plugin.settings["registryChannel"] = "prerelease"
-            responses = {PRERELEASE_REGISTRY_URL: payload("owner/testing"), REMOTE_REGISTRY_URL: payload("owner/stable")}
-            with patch.object(main, "fetch_remote_registry", fake_fetch(responses)):
+            responses = {
+                PRERELEASE_REGISTRY_URL: payload("owner/testing"),
+                REMOTE_REGISTRY_URL: payload("owner/stable"),
+            }
+            with patch.object(registry, "fetch_remote_registry", fake_fetch(responses)):
                 self.assertEqual([app["repo"] for app in plugin._load_registry()], ["owner/testing"])
             # Switching back finds the stable list's cache untouched.
-            self.assertNotEqual(plugin._registry_cache_path(PRERELEASE_REGISTRY_URL), plugin._registry_cache_path(REMOTE_REGISTRY_URL))
+            self.assertNotEqual(
+                plugin._registry_cache_path(PRERELEASE_REGISTRY_URL), plugin._registry_cache_path(REMOTE_REGISTRY_URL)
+            )
             self.assertFalse(plugin._registry_cache_path(REMOTE_REGISTRY_URL).exists())
 
     def test_prerelease_registry_falls_back_to_stable_when_develop_cant_be_read(self):
@@ -151,7 +196,7 @@ class CustomRegistryTests(unittest.TestCase):
             plugin = self.plugin(home)
             plugin.settings["registryChannel"] = "prerelease"
             responses = {PRERELEASE_REGISTRY_URL: URLError("404"), REMOTE_REGISTRY_URL: payload("owner/stable")}
-            with patch.object(main, "fetch_remote_registry", fake_fetch(responses)):
+            with patch.object(registry, "fetch_remote_registry", fake_fetch(responses)):
                 self.assertEqual([app["repo"] for app in plugin._load_registry()], ["owner/stable"])
 
     def test_changing_the_registry_channel_reloads_the_list(self):
@@ -163,13 +208,16 @@ class CustomRegistryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as home, patch.object(sys.modules["decky"], "emit", emit, create=True):
             plugin = self.plugin(home)
             plugin.apps = parse_registry(payload("owner/stable"))
-            responses = {PRERELEASE_REGISTRY_URL: payload("owner/testing"), REMOTE_REGISTRY_URL: payload("owner/stable")}
+            responses = {
+                PRERELEASE_REGISTRY_URL: payload("owner/testing"),
+                REMOTE_REGISTRY_URL: payload("owner/stable"),
+            }
 
             async def switch(settings):
                 await plugin.save_settings(settings)
                 await getattr(plugin, "registry_task", asyncio.sleep(0))
 
-            with patch.object(main, "fetch_remote_registry", fake_fetch(responses)):
+            with patch.object(registry, "fetch_remote_registry", fake_fetch(responses)):
                 asyncio.run(switch({**plugin.settings, "language": "de"}))
                 self.assertEqual(events, [])
                 asyncio.run(switch({**plugin.settings, "registryChannel": "prerelease"}))
@@ -181,8 +229,11 @@ class CustomRegistryTests(unittest.TestCase):
     def test_official_registry_reads_its_release_first_into_the_same_cache(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = self.plugin(home)
-            responses = {LATEST_REGISTRY_RELEASE_URL: payload("owner/released"), REMOTE_REGISTRY_URL: payload("owner/branch")}
-            with patch.object(main, "fetch_remote_registry", fake_fetch(responses)):
+            responses = {
+                LATEST_REGISTRY_RELEASE_URL: payload("owner/released"),
+                REMOTE_REGISTRY_URL: payload("owner/branch"),
+            }
+            with patch.object(registry, "fetch_remote_registry", fake_fetch(responses)):
                 self.assertEqual([app["repo"] for app in plugin._load_registry()], ["owner/released"])
             # Same file as before, so an update keeps the cached list and older releases' name.
             cached = json.loads(plugin._registry_cache_path(REMOTE_REGISTRY_URL).read_text(encoding="utf-8"))
@@ -194,13 +245,20 @@ class CustomRegistryTests(unittest.TestCase):
                 plugin = self.plugin(home)
                 plugin.settings["registryChannel"] = "prerelease"
                 responses = {NEWEST_RELEASE_URL: failure, PRERELEASE_REGISTRY_URL: payload("owner/testing")}
-                with patch.object(main, "fetch_remote_registry", fake_fetch(responses)):
+                with patch.object(registry, "fetch_remote_registry", fake_fetch(responses)):
                     self.assertEqual([app["repo"] for app in plugin._load_registry()], ["owner/testing"])
 
     def test_prerelease_takes_the_newest_release_of_all(self):
         def release(tag, published, *, prerelease=False, draft=False, asset="apps.json"):
-            return {"tag_name": tag, "published_at": published, "prerelease": prerelease, "draft": draft,
-                    "assets": [{"name": asset, "browser_download_url": f"https://github.com/r/releases/download/{tag}/{asset}"}]}
+            return {
+                "tag_name": tag,
+                "published_at": published,
+                "prerelease": prerelease,
+                "draft": draft,
+                "assets": [
+                    {"name": asset, "browser_download_url": f"https://github.com/r/releases/download/{tag}/{asset}"}
+                ],
+            }
 
         def newest(releases):
             class Response(io.BytesIO):
@@ -210,16 +268,38 @@ class CustomRegistryTests(unittest.TestCase):
                 def __exit__(self, *args):
                     self.close()
 
-            with patch.object(main._OPENER, "open", lambda request, timeout: Response(json.dumps(releases).encode())):
+            with patch.object(
+                registry.OPENER, "open", lambda request, timeout: Response(json.dumps(releases).encode())
+            ):
                 return newest_registry_release(True)
 
         # Not trusting the API's order; a newer stable one wins; drafts and other files are skipped.
-        self.assertEqual(newest([release("a-develop", "2026-10-01T00:00:00Z", prerelease=True), release("b-develop", "2026-10-03T00:00:00Z", prerelease=True), release("c", "2026-10-02T00:00:00Z")]),
-                         "https://github.com/r/releases/download/b-develop/apps.json")
-        self.assertEqual(newest([release("a-develop", "2026-10-01T00:00:00Z", prerelease=True), release("c", "2026-10-02T00:00:00Z")]),
-                         "https://github.com/r/releases/download/c/apps.json")
-        self.assertEqual(newest([release("d", "2026-10-05T00:00:00Z", draft=True), release("e", "2026-10-04T00:00:00Z", asset="notes.txt"), release("c", "2026-10-02T00:00:00Z")]),
-                         "https://github.com/r/releases/download/c/apps.json")
+        self.assertEqual(
+            newest(
+                [
+                    release("a-develop", "2026-10-01T00:00:00Z", prerelease=True),
+                    release("b-develop", "2026-10-03T00:00:00Z", prerelease=True),
+                    release("c", "2026-10-02T00:00:00Z"),
+                ]
+            ),
+            "https://github.com/r/releases/download/b-develop/apps.json",
+        )
+        self.assertEqual(
+            newest(
+                [release("a-develop", "2026-10-01T00:00:00Z", prerelease=True), release("c", "2026-10-02T00:00:00Z")]
+            ),
+            "https://github.com/r/releases/download/c/apps.json",
+        )
+        self.assertEqual(
+            newest(
+                [
+                    release("d", "2026-10-05T00:00:00Z", draft=True),
+                    release("e", "2026-10-04T00:00:00Z", asset="notes.txt"),
+                    release("c", "2026-10-02T00:00:00Z"),
+                ]
+            ),
+            "https://github.com/r/releases/download/c/apps.json",
+        )
         self.assertIsNone(newest([]))
         # Stable never asks the API.
         self.assertEqual(newest_registry_release(False), LATEST_REGISTRY_RELEASE_URL)
@@ -236,7 +316,7 @@ class CustomRegistryTests(unittest.TestCase):
                 return fetch(url)
 
             plugin.settings["customRegistries"] = [CUSTOM_URL]
-            with patch.object(main, "fetch_remote_registry", counting):
+            with patch.object(registry, "fetch_remote_registry", counting):
                 plugin._fetch_registry(CUSTOM_URL)
             self.assertEqual(calls, [CUSTOM_URL])
 
@@ -246,15 +326,15 @@ class CustomRegistryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as home:
             plugin = self.plugin(home)
             self.seed_cache(plugin, REMOTE_REGISTRY_URL, payload("owner/official"))
-            with patch.object(main, "fetch_remote_registry", fake_fetch({CUSTOM_URL: payload("owner/custom")})):
+            with patch.object(registry, "fetch_remote_registry", fake_fetch({CUSTOM_URL: payload("owner/custom")})):
                 result = asyncio.run(plugin.add_custom_registry(CUSTOM_URL))
             self.assertEqual((result["added"], result["apps"]), (True, 1))
             self.assertEqual([app["repo"] for app in plugin.apps], ["owner/official", "owner/custom"])
             self.assertEqual(plugin._load_settings()["customRegistries"], [CUSTOM_URL])
 
     def test_add_maps_tls_failures_to_ssl_error(self):
-        from urllib.error import URLError
         import ssl
+        from urllib.error import URLError
 
         with tempfile.TemporaryDirectory() as home:
             plugin = self.plugin(home)
@@ -269,9 +349,11 @@ class CustomRegistryTests(unittest.TestCase):
             }
             for error, detail in cases.items():
                 with self.subTest(detail=detail):
-                    with patch.object(main, "fetch_remote_registry", fake_fetch({CUSTOM_URL: error})):
+                    with patch.object(registry, "fetch_remote_registry", fake_fetch({CUSTOM_URL: error})):
                         result = asyncio.run(plugin.add_custom_registry(CUSTOM_URL))
-                    self.assertEqual((result["added"], result["reason"], result["detail"]), (False, "ssl-error", detail))
+                    self.assertEqual(
+                        (result["added"], result["reason"], result["detail"]), (False, "ssl-error", detail)
+                    )
 
     def test_add_downloads_the_new_registry_only_once(self):
         # Adding used to fetch to validate, discard the payload, then re-download it
@@ -285,14 +367,16 @@ class CustomRegistryTests(unittest.TestCase):
                 calls.append(url)
                 return parse_registry(payload("owner/custom")), json.dumps(payload("owner/custom"))
 
-            with patch.object(main, "fetch_remote_registry", counting):
+            with patch.object(registry, "fetch_remote_registry", counting):
                 result = asyncio.run(plugin.add_custom_registry(CUSTOM_URL))
             self.assertTrue(result["added"])
             self.assertEqual(calls.count(CUSTOM_URL), 1)
             # The other sources reload from their caches: adding costs one request.
             self.assertEqual(calls, [CUSTOM_URL])
             # And the payload we already had is cached, so an offline restart still works.
-            self.assertEqual(json.loads(plugin._registry_cache_path(CUSTOM_URL).read_text(encoding="utf-8")), payload("owner/custom"))
+            self.assertEqual(
+                json.loads(plugin._registry_cache_path(CUSTOM_URL).read_text(encoding="utf-8")), payload("owner/custom")
+            )
             self.assertEqual([app["repo"] for app in plugin.apps], ["owner/custom"])
 
     def test_add_reports_an_unloadable_url_without_raising(self):
@@ -302,7 +386,7 @@ class CustomRegistryTests(unittest.TestCase):
         for error, reason in cases.items():
             with self.subTest(reason=reason), tempfile.TemporaryDirectory() as home:
                 plugin = self.plugin(home)
-                with patch.object(main, "fetch_remote_registry", fake_fetch({CUSTOM_URL: error})):
+                with patch.object(registry, "fetch_remote_registry", fake_fetch({CUSTOM_URL: error})):
                     result = asyncio.run(plugin.add_custom_registry(CUSTOM_URL))
                 self.assertEqual((result["added"], result["reason"]), (False, reason))
                 self.assertEqual(plugin._load_settings()["customRegistries"], [])
@@ -313,7 +397,7 @@ class CustomRegistryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as home:
             plugin = self.plugin(home)
             missing = HTTPError(CUSTOM_URL, 404, "Not Found", {}, None)
-            with patch.object(main, "fetch_remote_registry", fake_fetch({CUSTOM_URL: missing})):
+            with patch.object(registry, "fetch_remote_registry", fake_fetch({CUSTOM_URL: missing})):
                 result = asyncio.run(plugin.add_custom_registry(CUSTOM_URL))
             self.assertEqual((result["added"], result["reason"], result["detail"]), (False, "not-found", "HTTP 404"))
 
@@ -323,7 +407,7 @@ class CustomRegistryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as home:
             plugin = self.plugin(home)
             broken = HTTPError(CUSTOM_URL, 503, "Service Unavailable", {}, None)
-            with patch.object(main, "fetch_remote_registry", fake_fetch({CUSTOM_URL: broken})):
+            with patch.object(registry, "fetch_remote_registry", fake_fetch({CUSTOM_URL: broken})):
                 result = asyncio.run(plugin.add_custom_registry(CUSTOM_URL))
             self.assertEqual((result["added"], result["reason"]), (False, "unreachable"))
 
@@ -347,11 +431,11 @@ class CustomRegistryTests(unittest.TestCase):
             plugin = self.plugin(home)
             plugin.apps = parse_registry(payload("owner/official"))
             url = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/HEAD/registry/apps.json"
-            with patch.object(main, "fetch_remote_registry", fake_fetch({url: payload("owner/official")})):
+            with patch.object(registry, "fetch_remote_registry", fake_fetch({url: payload("owner/official")})):
                 self.assertEqual(asyncio.run(plugin.add_custom_registry(url))["reason"], "nothing-new")
 
     def test_add_stops_at_the_registr_cap(self):
-        with tempfile.TemporaryDirectory() as home, patch.object(main, "MAX_CUSTOM_REGISTRIES", 1):
+        with tempfile.TemporaryDirectory() as home, patch.object(registry, "MAX_CUSTOM_REGISTRIES", 1):
             plugin = self.plugin(home, [CUSTOM_URL])
             result = asyncio.run(plugin.add_custom_registry(OTHER_URL))
             self.assertEqual((result["added"], result["reason"], result["detail"]), (False, "too-many", "1"))
@@ -363,7 +447,7 @@ class CustomRegistryTests(unittest.TestCase):
             self.seed_cache(plugin, REMOTE_REGISTRY_URL, payload("owner/official"))
             custom_cache = self.seed_cache(plugin, CUSTOM_URL, payload("owner/custom"))
             # No fetch is patched: removing must not touch the network.
-            with patch.object(main, "fetch_remote_registry", fake_fetch({})):
+            with patch.object(registry, "fetch_remote_registry", fake_fetch({})):
                 self.assertTrue(asyncio.run(plugin.remove_custom_registry(CUSTOM_URL))["removed"])
             self.assertEqual([app["repo"] for app in plugin.apps], ["owner/official"])
             self.assertFalse(custom_cache.exists())
@@ -379,7 +463,7 @@ class CustomRegistryTests(unittest.TestCase):
                 REMOTE_REGISTRY_URL: payload("owner/shared", "owner/official"),
                 CUSTOM_URL: payload("owner/shared", "owner/custom"),
             }
-            with patch.object(main, "fetch_remote_registry", fake_fetch(responses)):
+            with patch.object(registry, "fetch_remote_registry", fake_fetch(responses)):
                 apps = plugin._load_registry()
             self.assertEqual([app["repo"] for app in apps], ["owner/shared", "owner/official", "owner/custom"])
 
@@ -401,31 +485,45 @@ class CustomRegistryTests(unittest.TestCase):
             cache.write_text(json.dumps(payload("owner/cached")), encoding="utf-8")
             # The official registry has no cache here, so it contributes nothing;
             # the point is that the custom registry still contributes its own.
-            with patch.object(main, "fetch_remote_registry", fake_fetch({REMOTE_REGISTRY_URL: URLError("offline"), CUSTOM_URL: URLError("offline")})):
+            with patch.object(
+                registry,
+                "fetch_remote_registry",
+                fake_fetch({REMOTE_REGISTRY_URL: URLError("offline"), CUSTOM_URL: URLError("offline")}),
+            ):
                 apps = plugin._load_registry()
             self.assertEqual([app["repo"] for app in apps], ["owner/cached"])
 
     def test_a_broken_custom_registry_is_skipped_not_fatal(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = self.plugin(home, [CUSTOM_URL])
-            with patch.object(main, "fetch_remote_registry", fake_fetch({REMOTE_REGISTRY_URL: payload("owner/official"), CUSTOM_URL: URLError("gone")})):
+            with patch.object(
+                registry,
+                "fetch_remote_registry",
+                fake_fetch({REMOTE_REGISTRY_URL: payload("owner/official"), CUSTOM_URL: URLError("gone")}),
+            ):
                 self.assertEqual([app["repo"] for app in plugin._load_registry()], ["owner/official"])
 
     def test_successful_fetch_is_cached_for_next_time(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = self.plugin(home, [CUSTOM_URL])
             responses = {REMOTE_REGISTRY_URL: payload("owner/official"), CUSTOM_URL: payload("owner/custom")}
-            with patch.object(main, "fetch_remote_registry", fake_fetch(responses)):
+            with patch.object(registry, "fetch_remote_registry", fake_fetch(responses)):
                 plugin._load_registry()
-            self.assertEqual(json.loads(plugin._registry_cache_path(CUSTOM_URL).read_text(encoding="utf-8")), payload("owner/custom"))
-            with patch.object(main, "fetch_remote_registry", fake_fetch({REMOTE_REGISTRY_URL: URLError("offline"), CUSTOM_URL: URLError("offline")})):
+            self.assertEqual(
+                json.loads(plugin._registry_cache_path(CUSTOM_URL).read_text(encoding="utf-8")), payload("owner/custom")
+            )
+            with patch.object(
+                registry,
+                "fetch_remote_registry",
+                fake_fetch({REMOTE_REGISTRY_URL: URLError("offline"), CUSTOM_URL: URLError("offline")}),
+            ):
                 self.assertEqual([app["repo"] for app in plugin._load_registry()], ["owner/official", "owner/custom"])
 
     def test_an_empty_official_registry_keeps_the_last_good_cache(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = self.plugin(home)
             cache = self.seed_cache(plugin, REMOTE_REGISTRY_URL, payload("owner/official"))
-            with patch.object(main, "fetch_remote_registry", fake_fetch({REMOTE_REGISTRY_URL: payload()})):
+            with patch.object(registry, "fetch_remote_registry", fake_fetch({REMOTE_REGISTRY_URL: payload()})):
                 self.assertEqual([app["repo"] for app in plugin._load_registry()], ["owner/official"])
             self.assertEqual(json.loads(cache.read_text(encoding="utf-8")), payload("owner/official"))
 
@@ -444,7 +542,9 @@ class CustomRegistryTests(unittest.TestCase):
             {**good, "detect": "decky-plugin"},
             {**good, "detect": {"type": "decky-plugin", "names": [1]}},
         ]
-        self.assertEqual([app["repo"] for app in parse_registry({"schemaVersion": 1, "apps": [*bad, good]})], ["owner/good"])
+        self.assertEqual(
+            [app["repo"] for app in parse_registry({"schemaVersion": 1, "apps": [*bad, good]})], ["owner/good"]
+        )
 
     def test_a_newer_schema_falls_back_to_the_cache(self):
         # Old installs read main's registry too: a breaking format change must bump
@@ -453,7 +553,7 @@ class CustomRegistryTests(unittest.TestCase):
             plugin = self.plugin(home)
             self.seed_cache(plugin, REMOTE_REGISTRY_URL, payload("owner/official"))
             newer = FakeResponse(json.dumps({**payload("owner/new"), "schemaVersion": 2}).encode("utf-8"))
-            with patch.object(main, "fetch_remote_registry", fake_fetch({REMOTE_REGISTRY_URL: newer})):
+            with patch.object(registry, "fetch_remote_registry", fake_fetch({REMOTE_REGISTRY_URL: newer})):
                 self.assertEqual([app["repo"] for app in plugin._load_registry()], ["owner/official"])
 
     def test_a_registry_removed_during_refresh_does_not_come_back(self):
@@ -466,7 +566,7 @@ class CustomRegistryTests(unittest.TestCase):
                     plugin.settings["customRegistries"].remove(CUSTOM_URL)
                 return fetch(url, *args, **kwargs)
 
-            with patch.object(main, "fetch_remote_registry", removed_mid_download):
+            with patch.object(registry, "fetch_remote_registry", removed_mid_download):
                 asyncio.run(plugin.refresh_registry())
             self.assertEqual([app["repo"] for app in plugin.apps], ["owner/official"])
             self.assertFalse(plugin._registry_cache_path(CUSTOM_URL).exists())
@@ -477,7 +577,7 @@ class CustomRegistryTests(unittest.TestCase):
             clash = payload("owner/other", "owner/custom")
             clash["apps"][0]["id"] = "owner/official"
             responses = {REMOTE_REGISTRY_URL: payload("owner/official"), CUSTOM_URL: clash}
-            with patch.object(main, "fetch_remote_registry", fake_fetch(responses)):
+            with patch.object(registry, "fetch_remote_registry", fake_fetch(responses)):
                 self.assertEqual([app["repo"] for app in plugin._load_registry()], ["owner/official", "owner/custom"])
 
     def test_a_custom_entry_cannot_claim_a_taken_detect_name(self):
@@ -489,7 +589,7 @@ class CustomRegistryTests(unittest.TestCase):
             clash["apps"][0]["detect"] = {"type": "decky-plugin", "names": ["css loader"]}
             clash["apps"][1]["detect"] = {"type": "decky-plugin", "names": ["DeckyHub"]}
             responses = {REMOTE_REGISTRY_URL: official, CUSTOM_URL: clash}
-            with patch.object(main, "fetch_remote_registry", fake_fetch(responses)):
+            with patch.object(registry, "fetch_remote_registry", fake_fetch(responses)):
                 self.assertEqual([app["repo"] for app in plugin._load_registry()], ["owner/official", "owner/custom"])
 
     def test_two_adds_racing_save_the_registry_once(self):
@@ -499,24 +599,28 @@ class CustomRegistryTests(unittest.TestCase):
             fetch = fake_fetch({CUSTOM_URL: payload("owner/custom")})
 
             async def both():
-                return await asyncio.gather(plugin.add_custom_registry(CUSTOM_URL), plugin.add_custom_registry(CUSTOM_URL))
+                return await asyncio.gather(
+                    plugin.add_custom_registry(CUSTOM_URL), plugin.add_custom_registry(CUSTOM_URL)
+                )
 
-            with patch.object(main, "fetch_remote_registry", fetch):
+            with patch.object(registry, "fetch_remote_registry", fetch):
                 results = asyncio.run(both())
             self.assertEqual(sorted(result["added"] for result in results), [False, True])
             self.assertEqual(plugin.settings["customRegistries"], [CUSTOM_URL])
 
     def test_repository_names_reject_dot_only_parts(self):
         for repo in ("../..", "owner/..", "./x", "a/b/c", "a"):
-            self.assertIsNone(main.REPOSITORY_NAME.fullmatch(repo), repo)
+            self.assertIsNone(validation.REPOSITORY_NAME.fullmatch(repo), repo)
         for repo in ("owner/name", "o.w-n_er/na.me", "..a/b.."):
-            self.assertIsNotNone(main.REPOSITORY_NAME.fullmatch(repo), repo)
+            self.assertIsNotNone(validation.REPOSITORY_NAME.fullmatch(repo), repo)
 
     def test_add_reports_only_the_apps_it_contributed(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = self.plugin(home)
             self.seed_cache(plugin, REMOTE_REGISTRY_URL, payload("owner/official"))
-            with patch.object(main, "fetch_remote_registry", fake_fetch({CUSTOM_URL: payload("owner/official", "owner/new")})):
+            with patch.object(
+                registry, "fetch_remote_registry", fake_fetch({CUSTOM_URL: payload("owner/official", "owner/new")})
+            ):
                 result = asyncio.run(plugin.add_custom_registry(CUSTOM_URL))
             self.assertEqual((result["added"], result["apps"]), (True, 1))
 
@@ -525,7 +629,10 @@ class CustomRegistryTests(unittest.TestCase):
             plugin = self.plugin(home)
             plugin.apps = parse_registry(payload("owner/official"))
             for data in (payload("owner/official"), payload()):
-                with self.subTest(apps=len(data["apps"])), patch.object(main, "fetch_remote_registry", fake_fetch({CUSTOM_URL: data})):
+                with (
+                    self.subTest(apps=len(data["apps"])),
+                    patch.object(registry, "fetch_remote_registry", fake_fetch({CUSTOM_URL: data})),
+                ):
                     result = asyncio.run(plugin.add_custom_registry(CUSTOM_URL))
                     self.assertEqual((result["added"], result["reason"]), (False, "nothing-new"))
             self.assertEqual(plugin._load_settings()["customRegistries"], [])
@@ -538,34 +645,55 @@ class CustomRegistryTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as home, patch.object(main.decky, "emit", emit, create=True):
             plugin = self.plugin(home)
-            plugin.apps = [{**app, "official": True} for app in parse_registry(payload("owner/official"))]  # as _load_registry marks them
-            with patch.object(main, "fetch_remote_registry", fake_fetch({REMOTE_REGISTRY_URL: payload("owner/official")})):
+            plugin.apps = [
+                {**app, "official": True} for app in parse_registry(payload("owner/official"))
+            ]  # as _load_registry marks them
+            with patch.object(
+                registry, "fetch_remote_registry", fake_fetch({REMOTE_REGISTRY_URL: payload("owner/official")})
+            ):
                 asyncio.run(plugin._refresh_registry_in_background())
             self.assertEqual(events, [])
-            with patch.object(main, "fetch_remote_registry", fake_fetch({REMOTE_REGISTRY_URL: payload("owner/official", "owner/new")})):
+            with patch.object(
+                registry,
+                "fetch_remote_registry",
+                fake_fetch({REMOTE_REGISTRY_URL: payload("owner/official", "owner/new")}),
+            ):
                 asyncio.run(plugin._refresh_registry_in_background())
             self.assertEqual(events, ["registry_updated"])
 
     def test_only_the_official_registry_apps_are_marked_official(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = self.plugin(home, [CUSTOM_URL])
-            with patch.object(main, "fetch_remote_registry", fake_fetch({REMOTE_REGISTRY_URL: payload("owner/official"), CUSTOM_URL: payload("owner/custom")})):
+            with patch.object(
+                registry,
+                "fetch_remote_registry",
+                fake_fetch({REMOTE_REGISTRY_URL: payload("owner/official"), CUSTOM_URL: payload("owner/custom")}),
+            ):
                 apps = plugin._load_registry()
-            self.assertEqual({app["repo"]: app.get("official", False) for app in apps}, {"owner/official": True, "owner/custom": False})
+            self.assertEqual(
+                {app["repo"]: app.get("official", False) for app in apps},
+                {"owner/official": True, "owner/custom": False},
+            )
 
     def test_cache_writes_leave_no_temp_files(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = self.plugin(home, [CUSTOM_URL])
-            with patch.object(main, "fetch_remote_registry", fake_fetch({REMOTE_REGISTRY_URL: payload("owner/official"), CUSTOM_URL: payload("owner/custom")})):
+            with patch.object(
+                registry,
+                "fetch_remote_registry",
+                fake_fetch({REMOTE_REGISTRY_URL: payload("owner/official"), CUSTOM_URL: payload("owner/custom")}),
+            ):
                 plugin._load_registry()
             self.assertEqual(list(Path(home).rglob("*.tmp")), [])
-            self.assertEqual(json.loads(plugin._registry_cache_path(CUSTOM_URL).read_text(encoding="utf-8")), payload("owner/custom"))
+            self.assertEqual(
+                json.loads(plugin._registry_cache_path(CUSTOM_URL).read_text(encoding="utf-8")), payload("owner/custom")
+            )
 
     def test_offline_without_a_cache_lists_nothing(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = self.plugin(home)
             offline = {REMOTE_REGISTRY_URL: URLError("offline")}
-            with patch.object(main, "fetch_remote_registry", fake_fetch(offline)):
+            with patch.object(registry, "fetch_remote_registry", fake_fetch(offline)):
                 self.assertEqual(plugin._load_registry(), [])
                 self.assertEqual(asyncio.run(plugin.refresh_registry())["apps"], 0)
 
