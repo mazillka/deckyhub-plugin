@@ -20,7 +20,7 @@ REGISTRY = os.environ.get("DECKYHUB_REGISTRY")
 # - anything else (renaming, retyping, removing, new required meaning) -> bump
 #   schemaVersion instead, so older versions reject it and keep their own list.
 REQUIRED = {"id": str, "name": str, "repo": str, "category": str, "detect": dict, "asset": dict}
-OPTIONAL = {"description": str, "releaseTagInclude": str, "knownIssues": list}
+OPTIONAL = {"description": str, "releaseTagInclude": str, "knownIssues": list, "upstream": str}
 
 
 def _string_list(value) -> bool:

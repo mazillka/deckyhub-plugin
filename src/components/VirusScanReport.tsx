@@ -211,7 +211,7 @@ export function VirusScanReport({
       {metaDefender && (metaDefender.state === "complete"
         ? <Row color={metaDefender.flagged ? COLORS.infected : COLORS.clean} label={t("scan.metaDefenderResult", { flagged: metaDefender.flagged, total: metaDefender.total })} />
         : <MetaDefenderPending t={t} state={metaDefender.state} />)}
-      {report && <small style={{ color: MUTED }}>{t("scan.safetyWarning")}</small>}
+      {report && <small style={{ color: COLORS.incomplete }}>{t("scan.safetyWarning")}</small>}
       {(report || virusTotal || metaDefender || (showExternalActions && sha256) || (showZipActions && link)) && (
         <Focusable flow-children="right" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
           {(report || virusTotal || metaDefender || (showExternalActions && sha256)) && (

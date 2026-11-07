@@ -1068,7 +1068,7 @@ test("Discover shows the registry's audit warnings next to Runs as root and expl
   await expect(unifideck.getByText("Fork", { exact: true })).toHaveCount(0);
   // A repository set up for AI coding assistants gets the AI badge, naming the files.
   await expect(mako.locator(".deckyhub-ai-badge")).toHaveText("AI");
-  await expect(mako.locator(".deckyhub-ai-badge")).toHaveAttribute("title", /instructions for AI coding assistants \(AGENTS\.md, CLAUDE\.md\)/);
+  await expect(mako.locator(".deckyhub-ai-badge")).toHaveAttribute("title", /Likely developed with AI help \(AGENTS\.md, CLAUDE\.md\)/);
   await expect(unifideck.locator(".deckyhub-ai-badge")).toHaveCount(0);
   // A warning this release doesn't know yet (the registry adds them first) shows nothing.
   await expect(mako.getByText("some-future-warning")).toHaveCount(0);
