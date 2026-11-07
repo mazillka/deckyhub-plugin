@@ -43,7 +43,8 @@ export function useApps(view: View) {
       const [appData, settings, stats, scans] = await Promise.all([
         getApps(),
         getSettings(),
-        showBadges ? fetchPluginStats(force) : Promise.resolve<Record<string, PluginStats>>({}),
+        // Updates needs the audit warnings too, for its Update and Update all confirms.
+        fetchPluginStats(force),
         showBadges ? fetchVirusScans(force) : Promise.resolve<Record<string, VirusScan>>({}),
       ]);
       const local = appData.apps;
@@ -56,7 +57,8 @@ export function useApps(view: View) {
       setRegistryChannel(settings.registryChannel === "prerelease" ? "prerelease" : "stable");
       const tracked = (view !== "discover" ? local.filter((app) => app.installedVersion) : local).map((app) => {
         const stat = stats[app.repo.toLowerCase()];
-        return stat ? { ...app, stats: stat } : app;
+        // Updates keeps only the audit warnings: no downloads, root, fork or AI badges there.
+        return stat ? { ...app, stats: showBadges ? stat : { warnings: stat.warnings, prereleaseWarnings: stat.prereleaseWarnings } } : app;
       });
       // A card keeps its last release check until this load's replaces it.
       setApps((current) => {

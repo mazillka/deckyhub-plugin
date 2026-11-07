@@ -1,5 +1,6 @@
 import { usePopClass } from "../uiStyle";
-import { DialogButtonPrimary as Button, ModalRoot, ProgressBar, showModal } from "@decky/ui";
+import { DialogButtonPrimary as Button, ProgressBar, showModal } from "@decky/ui";
+import { WideModalRoot } from "./WideModal";
 import { MotionStyle } from "../motion";
 import { useEffect, useRef, useState } from "react";
 import { FaCheck, FaTimes } from "react-icons/fa";
@@ -65,7 +66,7 @@ function DownloadModal({
   const preparing = Boolean(until) && (!active || progress >= 100);
 
   return (
-    <ModalRoot closeModal={closeModal}>
+    <WideModalRoot closeModal={closeModal}>
       <MotionStyle />
       <div className={popClass}>
       <div style={{ display: "grid", gap: 14 }}>
@@ -116,7 +117,7 @@ function DownloadModal({
         )}
       </div>
     </div>
-    </ModalRoot>
+    </WideModalRoot>
   );
 }
 

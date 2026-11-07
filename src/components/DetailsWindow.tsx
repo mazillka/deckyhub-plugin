@@ -1,6 +1,7 @@
 import { usePopClass, useUiStyle } from "../uiStyle";
 import { ExpDetailsLayout } from "./experimental/ExpDetailsLayout";
-import { DropdownItem, Focusable, ModalRoot } from "@decky/ui";
+import { DropdownItem, Focusable } from "@decky/ui";
+import { WideModalRoot } from "./WideModal";
 import type { ReactNode } from "react";
 import type { TFunc } from "../i18n/en";
 import { MotionStyle } from "../motion";
@@ -70,15 +71,15 @@ export function DetailsWindow({
   const notesPreview = notes.length > NOTES_PREVIEW ? `${notes.slice(0, NOTES_PREVIEW).replace(/\s+\S*$/, "")}…` : notes;
   if (experimental)
     return (
-      <ModalRoot closeModal={closeModal} bAllowFullSize>
+      <WideModalRoot closeModal={closeModal} bAllowFullSize>
         <MotionStyle />
         <div className={popClass}>
           <ExpDetailsLayout {...{ t, icon, title, aside, meta, description, release, notesPreview, primary, scan, footer }} picker={<VersionPicker {...{ t, channel, onChannelChange, versionOptions, selectedTag, onVersionChange, disabled, error, isEmpty }} />} />
         </div>
-      </ModalRoot>
+      </WideModalRoot>
     );
   return (
-    <ModalRoot closeModal={closeModal} bAllowFullSize>
+    <WideModalRoot closeModal={closeModal} bAllowFullSize>
       <MotionStyle />
       <div className={popClass}>
         <Focusable flow-children="down" className="deckyhub-details" style={{ display: "grid", gap: 18 }}>
@@ -138,7 +139,7 @@ export function DetailsWindow({
           </Focusable>
         </Focusable>
       </div>
-    </ModalRoot>
+    </WideModalRoot>
   );
 }
 

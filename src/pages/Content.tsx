@@ -204,7 +204,10 @@ export function Content({ fullPage }: { fullPage?: View }) {
   // Decky's own dialog takes over, so leave the page once the request is sent.
   const updateAll = async () => {
     const label = t("content.updateAll", { count: batchUpdates.length });
-    if (!(await confirmPluginInstall(t, `${label}?`, label))) return;
+    // Every audit warning any of the batch's releases carries, once each.
+    const repos = new Set(batchUpdates.map((update) => update.repo));
+    const warnings = [...new Set(visibleApps.filter((app) => repos.has(app.repo)).flatMap((app) => [...(app.stats?.warnings ?? []), ...(app.channel === "prerelease" ? app.stats?.prereleaseWarnings ?? [] : [])]))];
+    if (!(await confirmPluginInstall(t, `${label}?`, label, undefined, undefined, warnings))) return;
     setUpdatingAll(true);
     void updateDeckyPlugins(batchUpdates)
       .catch((error: unknown) => toaster.toast({ title: "DeckyHub", body: String(error) }))

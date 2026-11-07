@@ -1,5 +1,6 @@
 import { FileSelectionType, openFilePicker, toaster } from "@decky/api";
-import { ConfirmModal, showModal } from "@decky/ui";
+import { showModal } from "@decky/ui";
+import { WideConfirmModal } from "../components/WideModal";
 import { PageHeader } from "../components/Card";
 import { CustomRegistriesSection, CustomReposSection } from "../components/RepositoriesSections";
 import { RateLimitBanner } from "../components/RateLimitBanner";
@@ -59,7 +60,7 @@ export function ManageRepositoriesPage({ embedded }: { embedded?: boolean }) {
 
   const confirmRemove = (repo: string) =>
     showModal(
-      <ConfirmModal
+      <WideConfirmModal
         strTitle={t("repos.removeRepositoryTitle")}
         strDescription={t("repos.removeRepositoryDesc", { repo })}
         strOKButtonText={t("repos.removeConfirm")}
@@ -109,7 +110,7 @@ export function ManageRepositoriesPage({ embedded }: { embedded?: boolean }) {
 
   const confirmRemoveRegistry = (url: string) =>
     showModal(
-      <ConfirmModal
+      <WideConfirmModal
         strTitle={t("repos.removeRegistryTitle")}
         strDescription={t("repos.removeRegistryDesc", { url })}
         strOKButtonText={t("repos.removeConfirm")}
