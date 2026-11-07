@@ -1,3 +1,5 @@
+import { usePopClass, useUiStyle } from "../uiStyle";
+import { ExpDetailsLayout } from "./experimental/ExpDetailsLayout";
 import { DropdownItem, Focusable, ModalRoot } from "@decky/ui";
 import type { ReactNode } from "react";
 import type { TFunc } from "../i18n/en";
@@ -62,12 +64,23 @@ export function DetailsWindow({
   // Links, Uninstall, Close: under the version box.
   footer: ReactNode;
 }) {
+  const popClass = usePopClass();
+  const experimental = useUiStyle() === "experimental";
   const notes = plainNotes(release?.notes);
   const notesPreview = notes.length > NOTES_PREVIEW ? `${notes.slice(0, NOTES_PREVIEW).replace(/\s+\S*$/, "")}…` : notes;
+  if (experimental)
+    return (
+      <ModalRoot closeModal={closeModal} bAllowFullSize>
+        <MotionStyle />
+        <div className={popClass}>
+          <ExpDetailsLayout {...{ t, icon, title, aside, meta, description, release, notesPreview, primary, scan, footer }} picker={<VersionPicker {...{ t, channel, onChannelChange, versionOptions, selectedTag, onVersionChange, disabled, error, isEmpty }} />} />
+        </div>
+      </ModalRoot>
+    );
   return (
     <ModalRoot closeModal={closeModal} bAllowFullSize>
       <MotionStyle />
-      <div className="deckyhub-pop">
+      <div className={popClass}>
         <Focusable flow-children="down" className="deckyhub-details" style={{ display: "grid", gap: 18 }}>
           <Focusable onActivate={() => {}} onFocus={keepInView} style={{ display: "flex", alignItems: "center", gap: 18 }}>
             {icon}
@@ -102,33 +115,7 @@ export function DetailsWindow({
               layout left them out of reach on a Deck). Each text section is its own stop because Steam only
               scrolls to follow focus. */}
           <Focusable flow-children="down" style={{ display: "grid", gap: 10 }}>
-              <div onFocus={keepInView} style={{ display: "grid", gap: 4, padding: "8px 12px", background: "rgba(0, 0, 0, 0.2)", borderRadius: 10 }}>
-                <h3 style={sectionTitleStyle}>{t("settings.version")}</h3>
-                {/* Channel and version side by side; the version gets more room for long tags. */}
-                <Focusable flow-children="right" className="deckyhub-version-pickers" style={{ display: "grid", gridTemplateColumns: versionOptions.length > 0 ? "minmax(0, 2fr) minmax(0, 3fr)" : "minmax(0, 1fr)", gap: 12, alignItems: "end" }}>
-                  <div style={{ minWidth: 0 }}>
-                    <DropdownItem
-                      layout="below"
-                      bottomSeparator="none"
-                      label={t("settings.updateChannel")}
-                      rgOptions={[
-                        { label: t("settings.stableReleases"), data: "stable" },
-                        { label: t("settings.preReleases"), data: "prerelease" },
-                      ]}
-                      selectedOption={channel}
-                      disabled={disabled}
-                      onChange={({ data }) => onChannelChange(data as UpdateChannel)}
-                    />
-                  </div>
-                  {versionOptions.length > 0 && (
-                    <div style={{ minWidth: 0 }}>
-                      <DropdownItem layout="below" bottomSeparator="none" label={t("settings.version")} rgOptions={versionOptions} selectedOption={selectedTag} disabled={disabled} onChange={({ data }) => onVersionChange(String(data))} />
-                    </div>
-                  )}
-                </Focusable>
-                {error && <small style={{ color: "#ff6b6b" }}>{error}</small>}
-                {isEmpty && <small style={{ color: "#ff6b6b" }}>{t("settings.noReleasesFound")}</small>}
-              </div>
+              <VersionPicker {...{ t, channel, onChannelChange, versionOptions, selectedTag, onVersionChange, disabled, error, isEmpty }} />
             {primary}
           </Focusable>
 
@@ -152,5 +139,40 @@ export function DetailsWindow({
         </Focusable>
       </div>
     </ModalRoot>
+  );
+}
+
+type VersionPickerProps = { t: TFunc; channel: UpdateChannel; onChannelChange: (channel: UpdateChannel) => void; versionOptions: { data: string; label: string }[]; selectedTag: string; onVersionChange: (tag: string) => void; disabled: boolean; error?: string | null; isEmpty: boolean };
+
+// The channel and version menus, with what went wrong loading releases; both UI styles' windows use it.
+export function VersionPicker({ t, channel, onChannelChange, versionOptions, selectedTag, onVersionChange, disabled, error, isEmpty }: VersionPickerProps) {
+  return (
+    <div onFocus={keepInView} style={{ display: "grid", gap: 4, padding: "8px 12px", background: "rgba(0, 0, 0, 0.2)", borderRadius: 10 }}>
+      <h3 style={sectionTitleStyle}>{t("settings.version")}</h3>
+      {/* Channel and version side by side; the version gets more room for long tags. */}
+      <Focusable flow-children="right" className="deckyhub-version-pickers" style={{ display: "grid", gridTemplateColumns: versionOptions.length > 0 ? "minmax(0, 2fr) minmax(0, 3fr)" : "minmax(0, 1fr)", gap: 12, alignItems: "end" }}>
+        <div style={{ minWidth: 0 }}>
+          <DropdownItem
+            layout="below"
+            bottomSeparator="none"
+            label={t("settings.updateChannel")}
+            rgOptions={[
+              { label: t("settings.stableReleases"), data: "stable" },
+              { label: t("settings.preReleases"), data: "prerelease" },
+            ]}
+            selectedOption={channel}
+            disabled={disabled}
+            onChange={({ data }) => onChannelChange(data as UpdateChannel)}
+          />
+        </div>
+        {versionOptions.length > 0 && (
+          <div style={{ minWidth: 0 }}>
+            <DropdownItem layout="below" bottomSeparator="none" label={t("settings.version")} rgOptions={versionOptions} selectedOption={selectedTag} disabled={disabled} onChange={({ data }) => onVersionChange(String(data))} />
+          </div>
+        )}
+      </Focusable>
+      {error && <small style={{ color: "#ff6b6b" }}>{error}</small>}
+      {isEmpty && <small style={{ color: "#ff6b6b" }}>{t("settings.noReleasesFound")}</small>}
+    </div>
   );
 }

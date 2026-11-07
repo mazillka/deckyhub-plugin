@@ -30,16 +30,10 @@ const fullRow = { gridColumn: "1 / -1" };
 const cardTitleStyle = { margin: 0, overflow: "hidden", color: "#fff", fontSize: "1.05em", fontWeight: 700, lineHeight: 1.2, textOverflow: "ellipsis", whiteSpace: "nowrap" as const };
 const categoryStyle = { color: "#8fcef4", fontSize: "max(12px, 0.78em)", letterSpacing: "0.04em", textTransform: "uppercase" as const };
 
-export function AppCard({
-  app,
-  preference,
-  downloadDisabled,
-  hiddenButtons,
-  onDownload,
-  onPreferenceChange,
-  onUninstalled,
-  layout = "card",
-}: {
+// "row": one line of a list.
+export type CardLayout = "card" | "row";
+
+export type AppCardProps = {
   app: App;
   preference: RepoPreference;
   downloadDisabled?: boolean;
@@ -47,16 +41,19 @@ export function AppCard({
   onDownload: (asset: Asset) => Promise<void>;
   onPreferenceChange: (repo: string, preference: RepoPreference) => void;
   onUninstalled: () => void;
-  // "row": one line of Discover's list view.
-  layout?: "card" | "row";
-}) {
+  layout?: CardLayout;
+};
+
+// What a card can do, shared by the Default card and the Experimental one (ExpAppCard):
+// the quick Install / Update (with Y / X / Menu on it) and the Manage window.
+export function useCardActions({ app, preference, downloadDisabled, hiddenButtons, onDownload, onPreferenceChange, onUninstalled }: AppCardProps) {
   const t = useT();
   // Quick install/update to the latest release of a Decky plugin;
   // Manage still offers other versions/channels.
   const install = app.latestVersion ? installAction(app, { tag: app.latestVersion, assets: app.assets }) : null;
   // Only offer Update when the card's own status says one is available.
   const isUpdate = install?.type === PLUGIN_INSTALL_TYPE.UPDATE && app.updateAvailable === true;
-  const quickAction = install && (isUpdate || install.type === PLUGIN_INSTALL_TYPE.INSTALL) && !hiddenButtons.includes(isUpdate ? "update" : "install");
+  const quickAction = Boolean(install && (isUpdate || install.type === PLUGIN_INSTALL_TYPE.INSTALL) && !hiddenButtons.includes(isUpdate ? "update" : "install"));
   // Installs hand over to Decky's own dialog, so leave the Updates/Discover page.
   const leavePage = () => Navigation.NavigateBack();
   // Blocks a second tap from starting a second install while the first is handed over.
@@ -67,6 +64,44 @@ export function AppCard({
   // Decky is installing it now (after its confirmation): say so until it finishes.
   const deckyInstalling = useSyncExternalStore(subscribeInstalling, () => Boolean(install && isInstalling(install.name)));
   const accent = deckyInstalling ? "#1a9fff" : statusColor(app) ?? "#8fcef4";
+  const quickButtonProps = {
+    disabled: installing || deckyInstalling,
+    onSecondaryButton: () => showReleaseInfo(t, `${app.name} v${latest}`, app.publishedAt, app.releaseNotes),
+    onSecondaryActionDescription: t("appcard.releaseInfo"),
+    // X downloads the same release's ZIP instead of installing it.
+    onOptionsButton: hiddenButtons.includes("downloadZip") || downloadDisabled || !app.assets[0] ? undefined : () => void onDownload(app.assets[0]),
+    onOptionsActionDescription: t("settings.downloadUpdate"),
+    // Menu opens the plugin's GitHub page, to read about it before installing.
+    onMenuButton: () => openExternalWeb(`https://github.com/${app.repo}`),
+    onMenuActionDescription: t("appcard.repository"),
+    onClick: () => {
+      if (!install) return;
+      setInstalling(true);
+      void startPluginInstall(t, app.name, app.repo, app.assets[0], app.latestVersion!, install, quickLabel, leavePage, [...(app.stats?.warnings ?? []), ...(app.channel === "prerelease" ? app.stats?.prereleaseWarnings ?? [] : [])]).finally(() => setInstalling(false));
+    },
+  };
+  const openManage = (event: MouseEvent) => {
+    // Its Repository button closes it from code, which doesn't give focus back here.
+    rememberOpener(event.currentTarget);
+    showModal(
+      <AppDetailsModal
+        t={t}
+        app={app}
+        preference={preference}
+        downloadDisabled={downloadDisabled}
+        hiddenButtons={hiddenButtons}
+        onDownload={onDownload}
+        onPreferenceChange={(next) => onPreferenceChange(app.repo, next)}
+        onUninstalled={onUninstalled}
+      />
+    );
+  };
+  return { t, install, isUpdate, quickAction, latest, quickLabel, notes, deckyInstalling, accent, quickButtonProps, openManage };
+}
+
+export function AppCard(props: AppCardProps) {
+  const { app, layout = "card" } = props;
+  const { t, install, isUpdate, quickAction, latest, quickLabel, notes, deckyInstalling, accent, quickButtonProps, openManage } = useCardActions(props);
   const statusPill = <span style={{ ...pillStyle, color: accent, background: `${accent}22`, borderColor: `${accent}66` }}>{deckyInstalling ? t("status.installing") : t(statusKey(app))}</span>;
   const row = layout === "row";
   // Stable is the default, so only a pre-release override earns a pill.
@@ -80,20 +115,8 @@ export function AppCard({
           <div style={{ flex: 1, minWidth: 0 }}>
           <Button
             style={{ ...compactButtonStyle, marginBottom: 0 }}
-            disabled={installing || deckyInstalling}
             {...(row && { "aria-label": deckyInstalling ? t("status.installing") : quickLabel })}
-            onSecondaryButton={() => showReleaseInfo(t, `${app.name} v${latest}`, app.publishedAt, app.releaseNotes)}
-            onSecondaryActionDescription={t("appcard.releaseInfo")}
-            // X downloads the same release's ZIP instead of installing it.
-            onOptionsButton={hiddenButtons.includes("downloadZip") || downloadDisabled || !app.assets[0] ? undefined : () => void onDownload(app.assets[0])}
-            onOptionsActionDescription={t("settings.downloadUpdate")}
-            // Menu opens the plugin's GitHub page, to read about it before installing.
-            onMenuButton={() => openExternalWeb(`https://github.com/${app.repo}`)}
-            onMenuActionDescription={t("appcard.repository")}
-            onClick={() => {
-              setInstalling(true);
-              void startPluginInstall(t, app.name, app.repo, app.assets[0], app.latestVersion!, install, quickLabel, leavePage, [...(app.stats?.warnings ?? []), ...(app.channel === "prerelease" ? app.stats?.prereleaseWarnings ?? [] : [])]).finally(() => setInstalling(false));
-            }}
+            {...quickButtonProps}
           >
             {/* A row's Latest line names the version, so its button can say just Update / Install
                 ("Update to v0.9.…" got cut short); its accessible name stays complete. */}
@@ -104,22 +127,7 @@ export function AppCard({
         <div style={install && quickAction ? { flex: "0 0 44px" } : { flex: 1 }}>
         <Button
           style={{ ...compactButtonStyle, marginBottom: 0, ...(install && quickAction && { padding: 0 }) }}
-          onClick={(event) => {
-            // Its Repository button closes it from code, which doesn't give focus back here.
-            rememberOpener(event.currentTarget);
-            showModal(
-              <AppDetailsModal
-                t={t}
-                app={app}
-                preference={preference}
-                downloadDisabled={downloadDisabled}
-                hiddenButtons={hiddenButtons}
-                onDownload={onDownload}
-                onPreferenceChange={(next) => onPreferenceChange(app.repo, next)}
-                onUninstalled={onUninstalled}
-              />
-            );
-          }}
+          onClick={openManage}
         >
           {/* The label stays as hidden text, so the gear keeps its name for screen readers and tests. */}
           <FaCog /> <span style={install && quickAction ? visuallyHidden : undefined}>{t("appcard.manage")}</span>

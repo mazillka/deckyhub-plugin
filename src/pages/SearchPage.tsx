@@ -1,6 +1,9 @@
 import { toaster } from "@decky/api";
 import { DialogButtonPrimary as Button, Focusable, Navigation, PanelSection, PanelSectionRow, TextField } from "@decky/ui";
 import { SearchResults } from "../components/SearchResults";
+import { ExpSearchBar } from "../components/experimental/ExpSearchBar";
+import { ExpSearchResults } from "../components/experimental/ExpSearchResults";
+import { useUiStyle } from "../uiStyle";
 import { Card, PageHeader, useSwapAnimation } from "../components/Card";
 import { LayoutToggle, useLayout } from "../components/LayoutToggle";
 import { RateLimitBanner } from "../components/RateLimitBanner";
@@ -21,6 +24,14 @@ const rowButtonStyle = { ...compactButtonStyle, marginBottom: 0 };
 
 export function SearchPage() {
   const t = useT();
+  // Experimental: its own search banner and result tiles.
+  const experimental = useUiStyle() === "experimental";
+  const Results = experimental ? ExpSearchResults : SearchResults;
+  const clear = () => {
+    setQuery("");
+    setResults([]);
+    setSearchError(null);
+  };
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchRepo[]>([]);
   const [searching, setSearching] = useState(false);
@@ -127,9 +138,10 @@ export function SearchPage() {
   return (
     <>
       <RateLimitBanner />
-      <PageHeader icon={<FaSearch />} title={t("view.searchTitle")} description={t("view.searchDescription")} />
+      {experimental && <ExpSearchBar query={query} onQuery={setQuery} searching={searching} onSearch={() => void search()} onClear={clear} layout={layout} onLayout={setLayout} error={searchError} />}
+      {!experimental && <PageHeader icon={<FaSearch />} title={t("view.searchTitle")} description={t("view.searchDescription")} />}
       <Notice className="deckyhub-search-warning" text={t("search.warning")} />
-      <Card>
+      {!experimental && <Card>
         {/* The label is the section title rather than TextField's own, so the field and
             buttons share one centre line and the card is padded evenly top and bottom
             (Steam pads an untitled section's bottom only). */}
@@ -154,11 +166,7 @@ export function SearchPage() {
               <div style={{ flex: "0 0 120px" }}>
                 <Button
                   style={rowButtonStyle}
-                  onClick={() => {
-                    setQuery("");
-                    setResults([]);
-                    setSearchError(null);
-                  }}
+                  onClick={clear}
                 >
                   <FaTimes /> {t("repos.clear")}
                 </Button>
@@ -170,9 +178,9 @@ export function SearchPage() {
           </PanelSectionRow>
           {searchError && <PanelSectionRow>{searchError}</PanelSectionRow>}
         </PanelSection>
-      </Card>
+      </Card>}
       <div ref={resultsRef}>
-        <SearchResults
+        <Results
           results={results}
           layout={layout}
           isAdded={(repo) => existingRepos.has(repo.toLowerCase())}

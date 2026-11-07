@@ -213,8 +213,8 @@ export function ToggleField({ label, description, checked, onChange }: { label?:
   );
 }
 
-// Steam's gamepad buttons the plugin listens for; the mock maps "[" / "]" to L1 / R1.
-export const GamepadButton = { BUMPER_LEFT: 5, BUMPER_RIGHT: 6 };
+// Steam's gamepad buttons the plugin listens for; the mock maps "[" / "]" to L1 / R1 and "{" / "}" to L2 / R2.
+export const GamepadButton = { BUMPER_LEFT: 5, BUMPER_RIGHT: 6, TRIGGER_LEFT: 7, TRIGGER_RIGHT: 8 };
 export enum NavEntryPositionPreferences { FIRST, LAST, MAINTAIN_X, MAINTAIN_Y, PREFERRED_CHILD }
 
 export function Focusable({ style, children, ...rest }: { style?: CSSProperties; children?: ReactNode; [key: string]: unknown }) {
@@ -223,7 +223,7 @@ export function Focusable({ style, children, ...rest }: { style?: CSSProperties;
   const bumper = onButtonDown || onCancelButton
     ? (event: React.KeyboardEvent) => {
         if (event.key === "Escape" && onCancelButton) return (onCancelButton as () => void)();
-        const button = { "[": GamepadButton.BUMPER_LEFT, "]": GamepadButton.BUMPER_RIGHT }[event.key];
+        const button = { "[": GamepadButton.BUMPER_LEFT, "]": GamepadButton.BUMPER_RIGHT, "{": GamepadButton.TRIGGER_LEFT, "}": GamepadButton.TRIGGER_RIGHT }[event.key];
         if (button && onButtonDown) (onButtonDown as (event: { detail: { button: number } }) => void)({ detail: { button } });
       }
     : undefined;

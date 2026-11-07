@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { getSettings } from "../api";
 import { applyDensity, setGithubToken, setHaptics, setRegistryChannel, setTranslator, substitute } from "../utils";
+import { setUiStyle } from "../uiStyle";
 import { en, type MessageKey, type TFunc } from "./en";
 import { uk } from "./uk";
 import { ru } from "./ru";
@@ -79,6 +80,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         setRegistryChannel(settings.registryChannel);
         applyDensity(settings.density);
         setHaptics(settings.haptics !== false);
+        setUiStyle(settings.uiStyle);
       });
     refresh();
     window.addEventListener(LOCALE_CHANGED, refresh);

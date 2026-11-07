@@ -137,6 +137,8 @@ def _coerce_settings(settings: dict) -> dict:
         # DeckyHub's own icon in Steam's Quick Access tab strip (QuickAccessTab.tsx).
         # Off leaves DeckyHub in Decky's plugin list.
         "quickAccessTab": bool(settings.get("quickAccessTab", True)),
+        # Quick Access' UI Style: the classic look, or the Experimental redesign (src/components/experimental/).
+        "uiStyle": "experimental" if settings.get("uiStyle") == "experimental" else "default",
         # Manage-window buttons the user chose to hide (Display Settings).
         "hiddenButtons": [name for name in HIDEABLE_BUTTONS if isinstance(settings.get("hiddenButtons"), list) and name in settings["hiddenButtons"]],
     }
