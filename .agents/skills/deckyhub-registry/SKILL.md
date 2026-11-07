@@ -5,7 +5,7 @@ description: Maintain DeckyHub's plugin registry, which lives only in mazillka/d
 
 # Maintaining the DeckyHub registry
 
-DeckyHub's plugin list lives only in [mazillka/deckyhub-registry](https://github.com/mazillka/deckyhub-registry), `registry/apps.json` on `main`. DeckyHub downloads it at startup (`REMOTE_REGISTRY_URL` in `main.py`) and caches the last good copy; no copy ships in the plugin ZIP. The registry repo's Pages site (`docs/`: catalog `index.html` and `editor.html`, served from `main` `/docs`) loads it live; this repo's promo page renders it at deploy time (`devtools/build-site.py`, run daily by `pages.yml`). Releases from before the move read this repo's old `registry/apps.json` from `main`, which no longer exists, so they keep their cached or bundled list.
+DeckyHub's plugin list lives only in [mazillka/deckyhub-registry](https://github.com/mazillka/deckyhub-registry), `registry/apps.json` on `main`. DeckyHub downloads it at startup (`REMOTE_REGISTRY_URL` in `py_modules/deckyhub/registry.py`) and caches the last good copy; no copy ships in the plugin ZIP. The registry repo's Pages site (`docs/`: catalog `index.html` and `editor.html`, served from `main` `/docs`) loads it live; this repo's promo page renders it at deploy time (`devtools/build-site.py`, run daily by `pages.yml`). Releases from before the move read this repo's old `registry/apps.json` from `main`, which no longer exists, so they keep their cached or bundled list.
 
 The local checkout sits next to this repo: `../deckyhub-registry`. Clone it with `gh repo clone mazillka/deckyhub-registry` if it's missing. It uses the same branches as this repo: work on a short kebab-case branch from `develop`, never commit to `main` or `develop`, one topic per PR against `develop`, squash-merge. A `develop` → `main` PR ships to users; the registry's `ship-registry` skill has the steps.
 
@@ -46,7 +46,7 @@ The registry publishes `releases.json` and `stats.json` on its `release-index` b
 
 `tests/test_registry_schema.py` (here; the registry repo's CI runs it from this repo's `main`) pins schema version 1 for every released DeckyHub:
 
-- A new optional key that older versions safely ignore: add it to `OPTIONAL` in that test (plugin PR first), teach `main.py`/`src/` to use it, then add it to entries.
+- A new optional key that older versions safely ignore: add it to `OPTIONAL` in that test (plugin PR first), teach `py_modules/deckyhub/`/`src/` to use it, then add it to entries.
 - Anything else (renaming, retyping, removing, new required meaning): bump `schemaVersion`. Older versions reject the file and keep their cached list, so plan that rollout deliberately.
 
 ## Security rules

@@ -1,6 +1,16 @@
 import { toaster } from "@decky/api";
-import { DialogButtonPrimary as Button, Focusable, Navigation, PanelSection, PanelSectionRow, TextField } from "@decky/ui";
+import {
+  DialogButtonPrimary as Button,
+  Focusable,
+  Navigation,
+  PanelSection,
+  PanelSectionRow,
+  TextField,
+} from "@decky/ui";
 import { SearchResults } from "../components/SearchResults";
+import { ExpSearchBar } from "../components/experimental/ExpSearchBar";
+import { ExpSearchResults } from "../components/experimental/ExpSearchResults";
+import { useUiStyle } from "../uiStyle";
 import { Card, PageHeader, useSwapAnimation } from "../components/Card";
 import { LayoutToggle, useLayout } from "../components/LayoutToggle";
 import { RateLimitBanner } from "../components/RateLimitBanner";
@@ -14,13 +24,30 @@ import { useT } from "../i18n";
 import { Notice } from "../components/Notice";
 import type { HideableButton, SearchRepo } from "../types";
 import { displayVersion } from "../version";
-import { compactButtonStyle, githubFetch, githubResponseError, hydrate, installAction, manifestName, installTypeLabel, log } from "../utils";
+import {
+  compactButtonStyle,
+  githubFetch,
+  githubResponseError,
+  hydrate,
+  installAction,
+  manifestName,
+  installTypeLabel,
+  log,
+} from "../utils";
 
 // No bottom margin, so the buttons line up with the search field beside them.
 const rowButtonStyle = { ...compactButtonStyle, marginBottom: 0 };
 
 export function SearchPage() {
   const t = useT();
+  // Experimental: its own search banner and result tiles.
+  const experimental = useUiStyle() === "experimental";
+  const Results = experimental ? ExpSearchResults : SearchResults;
+  const clear = () => {
+    setQuery("");
+    setResults([]);
+    setSearchError(null);
+  };
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchRepo[]>([]);
   const [searching, setSearching] = useState(false);
@@ -49,10 +76,14 @@ export function SearchPage() {
       setExistingRepos(existing);
       // "decky" in the name, description, topics or README narrows GitHub's results;
       // the plugin.json check below drops the lists and guides that still match.
-      const response = await githubFetch(`https://api.github.com/search/repositories?q=${encodeURIComponent(`${query} decky in:name,description,topics,readme`)}&sort=stars&order=desc&per_page=25`);
+      const response = await githubFetch(
+        `https://api.github.com/search/repositories?q=${encodeURIComponent(`${query} decky in:name,description,topics,readme`)}&sort=stars&order=desc&per_page=25`,
+      );
       if (!response.ok) throw await githubResponseError(response);
       const items: SearchRepo[] = (await response.json()).items || [];
-      const plugins = await Promise.all(items.map((repo) => existing.has(repo.full_name.toLowerCase()) || manifestName(repo.full_name).then(Boolean)));
+      const plugins = await Promise.all(
+        items.map((repo) => existing.has(repo.full_name.toLowerCase()) || manifestName(repo.full_name).then(Boolean)),
+      );
       setResults(items.filter((_, index) => plugins[index]));
     } catch (error) {
       log(`Repository search failed: ${error}`);
@@ -86,7 +117,18 @@ export function SearchPage() {
   // that isn't listed gets the entry the backend makes for an added one (_custom_apps).
   const latestRelease = async (repo: string) => {
     const listed = (await getApps()).apps.find((app) => app.repo.toLowerCase() === repo.toLowerCase());
-    const app = await hydrate(listed ?? { id: `custom-${repo.replace("/", "-")}`, name: repo, repo, category: "Custom", detect: { type: "decky-plugin" }, asset: { include: [], exclude: ["source"] }, assets: [] }, false);
+    const app = await hydrate(
+      listed ?? {
+        id: `custom-${repo.replace("/", "-")}`,
+        name: repo,
+        repo,
+        category: "Custom",
+        detect: { type: "decky-plugin" },
+        asset: { include: [], exclude: ["source"] },
+        assets: [],
+      },
+      false,
+    );
     if (!app.latestVersion || !app.assets[0]) throw new Error(app.error ?? t("release.noMatch"));
     return app as typeof app & { latestVersion: string };
   };
@@ -102,7 +144,8 @@ export function SearchPage() {
     const asset = (await latestRelease(repo)).assets[0];
     const result = await downloadAsset(asset, repo);
     if (result.error) throw new Error(result.error);
-    if (result.jobId) showDownloadModal(t, result.jobId, { state: "queued", filename: asset.name, total: asset.size }, () => {});
+    if (result.jobId)
+      showDownloadModal(t, result.jobId, { state: "queued", filename: asset.name, total: asset.size }, () => {});
   };
 
   // Installs its latest stable release the way a Discover card does, and tracks the
@@ -127,52 +170,63 @@ export function SearchPage() {
   return (
     <>
       <RateLimitBanner />
-      <PageHeader icon={<FaSearch />} title={t("view.searchTitle")} description={t("view.searchDescription")} />
+      {experimental && (
+        <ExpSearchBar
+          query={query}
+          onQuery={setQuery}
+          searching={searching}
+          onSearch={() => void search()}
+          onClear={clear}
+          layout={layout}
+          onLayout={setLayout}
+          error={searchError}
+        />
+      )}
+      {!experimental && (
+        <PageHeader icon={<FaSearch />} title={t("view.searchTitle")} description={t("view.searchDescription")} />
+      )}
       <Notice className="deckyhub-search-warning" text={t("search.warning")} />
-      <Card>
-        {/* The label is the section title rather than TextField's own, so the field and
+      {!experimental && (
+        <Card>
+          {/* The label is the section title rather than TextField's own, so the field and
             buttons share one centre line and the card is padded evenly top and bottom
             (Steam pads an untitled section's bottom only). */}
-        <PanelSection title={t("repos.searchGithub")}>
-          <PanelSectionRow>
-            <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                {/* Enter on Steam's keyboard searches, so there's no trip over to the Search button. */}
-                <TextField
-                  aria-label={t("repos.searchGithub")}
-                  placeholder={t("search.placeholder")}
-                  value={query}
-                  onChange={(event) => setQuery(event.currentTarget.value)}
-                  onKeyDown={(event) => { if (event.key === "Enter" && !searching) void search(); }}
-                />
-              </div>
-              <div style={{ flex: "0 0 160px" }}>
-                <Button style={rowButtonStyle} onClick={() => void search()} disabled={searching}>
-                  <FaSearch /> {searching ? t("repos.searching") : t("filter.search")}
-                </Button>
-              </div>
-              <div style={{ flex: "0 0 120px" }}>
-                <Button
-                  style={rowButtonStyle}
-                  onClick={() => {
-                    setQuery("");
-                    setResults([]);
-                    setSearchError(null);
-                  }}
-                >
-                  <FaTimes /> {t("repos.clear")}
-                </Button>
-              </div>
-              <div style={{ flex: "0 0 120px" }}>
-                <LayoutToggle layout={layout} onChange={setLayout} />
-              </div>
-            </Focusable>
-          </PanelSectionRow>
-          {searchError && <PanelSectionRow>{searchError}</PanelSectionRow>}
-        </PanelSection>
-      </Card>
+          <PanelSection title={t("repos.searchGithub")}>
+            <PanelSectionRow>
+              <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  {/* Enter on Steam's keyboard searches, so there's no trip over to the Search button. */}
+                  <TextField
+                    aria-label={t("repos.searchGithub")}
+                    placeholder={t("search.placeholder")}
+                    value={query}
+                    onChange={(event) => setQuery(event.currentTarget.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" && !searching) void search();
+                    }}
+                  />
+                </div>
+                <div style={{ flex: "0 0 160px" }}>
+                  <Button style={rowButtonStyle} onClick={() => void search()} disabled={searching}>
+                    <FaSearch /> {searching ? t("repos.searching") : t("filter.search")}
+                  </Button>
+                </div>
+                <div style={{ flex: "0 0 120px" }}>
+                  <Button style={rowButtonStyle} onClick={clear}>
+                    <FaTimes /> {t("repos.clear")}
+                  </Button>
+                </div>
+                <div style={{ flex: "0 0 120px" }}>
+                  <LayoutToggle layout={layout} onChange={setLayout} />
+                </div>
+              </Focusable>
+            </PanelSectionRow>
+            {searchError && <PanelSectionRow>{searchError}</PanelSectionRow>}
+          </PanelSection>
+        </Card>
+      )}
       <div ref={resultsRef}>
-        <SearchResults
+        <Results
           results={results}
           layout={layout}
           isAdded={(repo) => existingRepos.has(repo.toLowerCase())}

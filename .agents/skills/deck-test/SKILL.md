@@ -54,7 +54,7 @@ Long text beside a pill (`pillStyle`) can squeeze it onto several lines; on a De
 DeckyHub reads `apps.json`, `releases.json` and `stats.json` from GitHub. To see a registry change before it ships (a new stats field, say):
 
 1. Build the file in the registry checkout (`GITHUB_TOKEN=$(gh auth token) python scripts/build_release_index.py <scratch>/out`) and serve it from this computer on its LAN address with a tiny Node HTTP server (Node already gets through the firewall for `deploy.mjs`).
-2. Point the URL in `src/releases.ts` (or `REMOTE_REGISTRY_URL` in `main.py`) at `http://<this computer>:<port>/<file>` with a `// TEMP` comment, deploy, and put the real URL back right after `deploy.mjs` returns: `git diff src/releases.ts` must be empty again (`git checkout -- src/releases.ts` if only line endings changed).
+2. Point the URL in `src/releases.ts` (or `REMOTE_REGISTRY_URL` in `py_modules/deckyhub/registry.py`) at `http://<this computer>:<port>/<file>` with a `// TEMP` comment, deploy, and put the real URL back right after `deploy.mjs` returns: `git diff src/releases.ts` must be empty again (`git checkout -- src/releases.ts` if only line endings changed).
 3. Test, then deploy once more from the clean source, so the Deck doesn't keep a build that reads from this computer, and stop the server.
 
 ## When you're done

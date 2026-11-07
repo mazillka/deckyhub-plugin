@@ -9,7 +9,11 @@ export function PanelSection({ title, children }: { title?: ReactNode; children?
   return (
     <section className="steam-panel">
       {/* A div like Steam's, still a heading for the tests that find sections by title. */}
-      {title && <div className="steam-panel-title" role="heading" aria-level={3}>{title}</div>}
+      {title && (
+        <div className="steam-panel-title" role="heading" aria-level={3}>
+          {title}
+        </div>
+      )}
       {children}
     </section>
   );
@@ -63,7 +67,10 @@ export function Button({
       data-menu-hint={onMenuButton ? onMenuActionDescription : undefined}
       onKeyDown={(event) => {
         const handler = { y: onSecondaryButton, x: onOptionsButton, m: onMenuButton }[event.key.toLowerCase()];
-        if (handler) { event.preventDefault(); handler(); }
+        if (handler) {
+          event.preventDefault();
+          handler();
+        }
       }}
     >
       {children}
@@ -77,14 +84,22 @@ export function ModalRoot({ children, bAllowFullSize }: { children?: ReactNode; 
   return (
     <div className="steam-modal-backdrop">
       {/* bAllowFullSize: Steam lets the window use most of the screen. */}
-      <div className="steam-modal" style={bAllowFullSize ? { width: "min(657px, calc(100% - 32px))" } : undefined}>{children}</div>
+      <div className="steam-modal" style={bAllowFullSize ? { width: "min(657px, calc(100% - 32px))" } : undefined}>
+        {children}
+      </div>
     </div>
   );
 }
 
 // Steam's dropdown: a button as wide as its current value, then a solid triangle.
 // A transparent native <select> covers it, so it still opens and can be chosen from.
-function SteamSelect({ rgOptions, selectedOption, onChange, ariaLabel, style }: {
+function SteamSelect({
+  rgOptions,
+  selectedOption,
+  onChange,
+  ariaLabel,
+  style,
+}: {
   rgOptions: { label: ReactNode; data: unknown }[];
   selectedOption: unknown;
   onChange?: (option: { data: unknown }) => void;
@@ -95,7 +110,9 @@ function SteamSelect({ rgOptions, selectedOption, onChange, ariaLabel, style }: 
   return (
     <span className="steam-select" style={style}>
       <span className="steam-select-value">{selected?.label}</span>
-      <svg viewBox="0 0 12 8" width="12" height="8" aria-hidden><path d="M0 0h12L6 7z" fill="currentColor" /></svg>
+      <svg viewBox="0 0 12 8" width="12" height="8" aria-hidden>
+        <path d="M0 0h12L6 7z" fill="currentColor" />
+      </svg>
       <select
         aria-label={ariaLabel}
         value={String(selectedOption)}
@@ -126,7 +143,15 @@ export function Dropdown({
   menuLabel?: string;
 }) {
   // On its own, Steam's dropdown fills its container (a labelled row sizes it to its value).
-  return <SteamSelect rgOptions={rgOptions} selectedOption={selectedOption} onChange={onChange} ariaLabel={menuLabel} style={{ display: "flex", width: "100%" }} />;
+  return (
+    <SteamSelect
+      rgOptions={rgOptions}
+      selectedOption={selectedOption}
+      onChange={onChange}
+      ariaLabel={menuLabel}
+      style={{ display: "flex", width: "100%" }}
+    />
+  );
 }
 
 export function DropdownItem({
@@ -148,13 +173,25 @@ export function DropdownItem({
   const inline = layout !== "below";
   return (
     <>
-    <label className="steam-field-label" style={inline ? { display: "flex", alignItems: "center", gap: 12 } : undefined}>
-      {label}
-      {/* Inline, Steam keeps the menu as wide as its value, right-aligned beside the label; below it, as wide as the field. */}
-      <SteamSelect rgOptions={rgOptions} selectedOption={selectedOption} onChange={onChange} style={inline ? { marginTop: 0, marginLeft: "auto" } : { display: "flex", width: "100%", marginTop: 6 }} />
-    </label>
-    {/* Steam's Field prints its description under the row. */}
-    {description && <div className="steam-field-description" style={{ marginTop: 4, color: "#8b929a", fontSize: "0.85em" }}>{description}</div>}
+      <label
+        className="steam-field-label"
+        style={inline ? { display: "flex", alignItems: "center", gap: 12 } : undefined}
+      >
+        {label}
+        {/* Inline, Steam keeps the menu as wide as its value, right-aligned beside the label; below it, as wide as the field. */}
+        <SteamSelect
+          rgOptions={rgOptions}
+          selectedOption={selectedOption}
+          onChange={onChange}
+          style={inline ? { marginTop: 0, marginLeft: "auto" } : { display: "flex", width: "100%", marginTop: 6 }}
+        />
+      </label>
+      {/* Steam's Field prints its description under the row. */}
+      {description && (
+        <div className="steam-field-description" style={{ marginTop: 4, color: "#8b929a", fontSize: "0.85em" }}>
+          {description}
+        </div>
+      )}
     </>
   );
 }
@@ -181,7 +218,15 @@ export function TextField({
   return (
     <label className={label ? "steam-field-label" : "steam-field-label steam-field-unlabelled"}>
       {label}
-      <input type={bIsPassword ? "password" : "text"} value={value} onChange={onChange} onKeyDown={onKeyDown} placeholder={placeholder} aria-label={ariaLabel} className={value ? "steam-input" : "steam-input Placeholder"} />
+      <input
+        type={bIsPassword ? "password" : "text"}
+        value={value}
+        onChange={onChange}
+        onKeyDown={onKeyDown}
+        placeholder={placeholder}
+        aria-label={ariaLabel}
+        className={value ? "steam-input" : "steam-input Placeholder"}
+      />
       {bShowClearAction && value && (
         <button
           type="button"
@@ -196,7 +241,17 @@ export function TextField({
   );
 }
 
-export function ToggleField({ label, description, checked, onChange }: { label?: string; description?: ReactNode; checked?: boolean; onChange?: (checked: boolean) => void }) {
+export function ToggleField({
+  label,
+  description,
+  checked,
+  onChange,
+}: {
+  label?: string;
+  description?: ReactNode;
+  checked?: boolean;
+  onChange?: (checked: boolean) => void;
+}) {
   const toggle = (
     <label className="steam-toggle">
       {label}
@@ -208,30 +263,75 @@ export function ToggleField({ label, description, checked, onChange }: { label?:
   return (
     <div>
       {toggle}
-      <div className="steam-field-description" style={{ marginTop: 4, color: "#8b929a", fontSize: "0.85em" }}>{description}</div>
+      <div className="steam-field-description" style={{ marginTop: 4, color: "#8b929a", fontSize: "0.85em" }}>
+        {description}
+      </div>
     </div>
   );
 }
 
-// Steam's gamepad buttons the plugin listens for; the mock maps "[" / "]" to L1 / R1.
-export const GamepadButton = { BUMPER_LEFT: 5, BUMPER_RIGHT: 6 };
-export enum NavEntryPositionPreferences { FIRST, LAST, MAINTAIN_X, MAINTAIN_Y, PREFERRED_CHILD }
+// Steam's gamepad buttons the plugin listens for; the mock maps "[" / "]" to L1 / R1 and "{" / "}" to L2 / R2.
+export const GamepadButton = { BUMPER_LEFT: 5, BUMPER_RIGHT: 6, TRIGGER_LEFT: 7, TRIGGER_RIGHT: 8 };
+export enum NavEntryPositionPreferences {
+  FIRST,
+  LAST,
+  MAINTAIN_X,
+  MAINTAIN_Y,
+  PREFERRED_CHILD,
+}
 
-export function Focusable({ style, children, ...rest }: { style?: CSSProperties; children?: ReactNode; [key: string]: unknown }) {
-  const { "flow-children": flowChildren, noFocusRing: _noFocusRing, onActivate, onCancel: _onCancel, onButtonDown, onCancelButton, onCancelActionDescription: _onCancelActionDescription, navEntryPreferPosition: _navEntryPreferPosition, ...divProps } = rest;
+export function Focusable({
+  style,
+  children,
+  ...rest
+}: {
+  style?: CSSProperties;
+  children?: ReactNode;
+  [key: string]: unknown;
+}) {
+  const {
+    "flow-children": flowChildren,
+    noFocusRing: _noFocusRing,
+    onActivate,
+    onCancel: _onCancel,
+    onButtonDown,
+    onCancelButton,
+    onCancelActionDescription: _onCancelActionDescription,
+    navEntryPreferPosition: _navEntryPreferPosition,
+    ...divProps
+  } = rest;
   // "Escape" stands in for B where a Focusable handles it.
-  const bumper = onButtonDown || onCancelButton
-    ? (event: React.KeyboardEvent) => {
-        if (event.key === "Escape" && onCancelButton) return (onCancelButton as () => void)();
-        const button = { "[": GamepadButton.BUMPER_LEFT, "]": GamepadButton.BUMPER_RIGHT }[event.key];
-        if (button && onButtonDown) (onButtonDown as (event: { detail: { button: number } }) => void)({ detail: { button } });
-      }
-    : undefined;
-  const flowStyle = flowChildren === "right" ? { display: "flex", flexDirection: "row" as const } : flowChildren === "down" ? { display: "flex", flexDirection: "column" as const } : {};
+  const bumper =
+    onButtonDown || onCancelButton
+      ? (event: React.KeyboardEvent) => {
+          if (event.key === "Escape" && onCancelButton) return (onCancelButton as () => void)();
+          const button = {
+            "[": GamepadButton.BUMPER_LEFT,
+            "]": GamepadButton.BUMPER_RIGHT,
+            "{": GamepadButton.TRIGGER_LEFT,
+            "}": GamepadButton.TRIGGER_RIGHT,
+          }[event.key];
+          if (button && onButtonDown)
+            (onButtonDown as (event: { detail: { button: number } }) => void)({ detail: { button } });
+        }
+      : undefined;
+  const flowStyle =
+    flowChildren === "right"
+      ? { display: "flex", flexDirection: "row" as const }
+      : flowChildren === "down"
+        ? { display: "flex", flexDirection: "column" as const }
+        : {};
   return (
     // Like Steam, onActivate makes the block itself a focus stop. The flow is
     // exposed so tests can check D-pad structure the geometric mock ignores.
-    <div data-focusable="" data-flow-children={flowChildren as string | undefined} style={{ ...flowStyle, ...style }} tabIndex={onActivate ? 0 : undefined} onKeyDown={bumper} {...(divProps as React.HTMLAttributes<HTMLDivElement>)}>
+    <div
+      data-focusable=""
+      data-flow-children={flowChildren as string | undefined}
+      style={{ ...flowStyle, ...style }}
+      tabIndex={onActivate ? 0 : undefined}
+      onKeyDown={bumper}
+      {...(divProps as React.HTMLAttributes<HTMLDivElement>)}
+    >
       {children}
     </div>
   );
@@ -360,8 +460,20 @@ export const Router = { WindowStore: undefined };
 
 // Steam's Tabs: a tab bar (L1 / R1, here "[" and "]", switch tabs) over the active
 // tab's content, which scrolls on its own under the bar.
-export function Tabs({ tabs, activeTab, onShowTab }: { tabs: { id: string; title: string; content: ReactNode }[]; activeTab: string; onShowTab: (id: string) => void; autoFocusContents?: boolean }) {
-  const index = Math.max(0, tabs.findIndex((tab) => tab.id === activeTab));
+export function Tabs({
+  tabs,
+  activeTab,
+  onShowTab,
+}: {
+  tabs: { id: string; title: string; content: ReactNode }[];
+  activeTab: string;
+  onShowTab: (id: string) => void;
+  autoFocusContents?: boolean;
+}) {
+  const index = Math.max(
+    0,
+    tabs.findIndex((tab) => tab.id === activeTab),
+  );
   const step = (delta: number) => onShowTab(tabs[(index + delta + tabs.length) % tabs.length].id);
   return (
     <div
@@ -374,15 +486,28 @@ export function Tabs({ tabs, activeTab, onShowTab }: { tabs: { id: string; title
       }}
     >
       <div className="steam-tab-bar" role="tablist">
-        <span className="steam-tab-bumper" aria-hidden>L1</span>
+        <span className="steam-tab-bumper" aria-hidden>
+          L1
+        </span>
         {tabs.map((tab) => (
-          <button key={tab.id} type="button" role="tab" aria-selected={tab.id === tabs[index].id} className="steam-tab" onClick={() => onShowTab(tab.id)}>
+          <button
+            key={tab.id}
+            type="button"
+            role="tab"
+            aria-selected={tab.id === tabs[index].id}
+            className="steam-tab"
+            onClick={() => onShowTab(tab.id)}
+          >
             {tab.title}
           </button>
         ))}
-        <span className="steam-tab-bumper" aria-hidden>R1</span>
+        <span className="steam-tab-bumper" aria-hidden>
+          R1
+        </span>
       </div>
-      <div className="steam-tab-content" role="tabpanel">{tabs[index]?.content}</div>
+      <div className="steam-tab-content" role="tabpanel">
+        {tabs[index]?.content}
+      </div>
     </div>
   );
 }

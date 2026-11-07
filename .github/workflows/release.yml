@@ -38,11 +38,17 @@ jobs:
           mkdir -p release/DeckyHub/dist
           cp dist/index.js release/DeckyHub/dist/
           cp LICENSE.md main.py package.json plugin.json release/DeckyHub/
+          # The backend's modules; Decky Loader puts py_modules/ on sys.path. The tests
+          # above left bytecode caches in it, which don't belong in the ZIP.
+          cp -r py_modules release/DeckyHub/
+          find release -name __pycache__ -prune -exec rm -rf {} +
           (cd release && zip -r "../DeckyHub-${GITHUB_REF_NAME}.zip" DeckyHub)
       - name: Verify release package
         run: |
           unzip -Z1 "DeckyHub-${GITHUB_REF_NAME}.zip" | grep -Fx "DeckyHub/main.py"
           unzip -Z1 "DeckyHub-${GITHUB_REF_NAME}.zip" | grep -Fx "DeckyHub/plugin.json"
+          unzip -Z1 "DeckyHub-${GITHUB_REF_NAME}.zip" | grep -Fx "DeckyHub/py_modules/deckyhub/registry.py"
+          if unzip -Z1 "DeckyHub-${GITHUB_REF_NAME}.zip" | grep -F ".pyc"; then echo "bytecode in the ZIP"; exit 1; fi
           unzip -Z1 "DeckyHub-${GITHUB_REF_NAME}.zip" | grep -Fx "DeckyHub/dist/index.js"
           if unzip -Z1 "DeckyHub-${GITHUB_REF_NAME}.zip" | grep -F ".map"; then echo "source map in the ZIP"; exit 1; fi
           sha256sum "DeckyHub-${GITHUB_REF_NAME}.zip"
@@ -58,7 +64,7 @@ jobs:
           cp "$zip" DeckyHub.zip
           python3 installer/build_installer.py "${GITHUB_REF_NAME}" "${sha}" > install-deckyhub.sh
           sed -e "s/@TAG@/${GITHUB_REF_NAME}/g" installer/Install-DeckyHub.desktop > Install-DeckyHub.desktop
-          if grep -n "@TAG@\|@SHA256@\|@STARTER_PLUGINS@" install-deckyhub.sh Install-DeckyHub.desktop; then echo "placeholder left in the installer"; exit 1; fi
+          if grep -n "@TAG@\|@SHA256@\|@STARTER_PLUGINS@\|@MESSAGES@" install-deckyhub.sh Install-DeckyHub.desktop; then echo "placeholder left in the installer"; exit 1; fi
           bash -n install-deckyhub.sh
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

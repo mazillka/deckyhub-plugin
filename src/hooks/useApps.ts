@@ -1,8 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { getApps, getSettings, REGISTRY_UPDATED } from "../api";
 import type { App, HideableButton, PluginStats, RepoPreference, UpdateChannel, View, VirusScan } from "../types";
-import { DEFAULT_COLUMNS_PER_ROW, fetchPluginStats, fetchVirusScans, getDeckyBackend, hydrate, log, notifyUpdates, scanFor } from "../utils";
-import { metaDefenderReportOf, virusTotalReportOf } from "../releases";
+import {
+  DEFAULT_COLUMNS_PER_ROW,
+  fetchPluginStats,
+  fetchVirusScans,
+  getDeckyBackend,
+  hydrate,
+  log,
+  notifyUpdates,
+  scanFor,
+} from "../utils";
+import { installedRisk, metaDefenderReportOf, virusTotalReportOf } from "../releases";
+import { notifyInstalledRisks } from "../notify";
 
 // ponytail: fixed pool of 8 GitHub requests in flight; lower it if the registry grows
 // big enough to trip GitHub's secondary (burst) rate limit.
@@ -42,7 +52,8 @@ export function useApps(view: View) {
       const [appData, settings, stats, scans] = await Promise.all([
         getApps(),
         getSettings(),
-        showBadges ? fetchPluginStats(force) : Promise.resolve<Record<string, PluginStats>>({}),
+        // Updates needs the audit warnings too, for its Update and Update all confirms.
+        fetchPluginStats(force),
         showBadges ? fetchVirusScans(force) : Promise.resolve<Record<string, VirusScan>>({}),
       ]);
       const local = appData.apps;
@@ -55,12 +66,21 @@ export function useApps(view: View) {
       setRegistryChannel(settings.registryChannel === "prerelease" ? "prerelease" : "stable");
       const tracked = (view !== "discover" ? local.filter((app) => app.installedVersion) : local).map((app) => {
         const stat = stats[app.repo.toLowerCase()];
-        return stat ? { ...app, stats: stat } : app;
+        // Updates keeps only the audit warnings: no downloads, root, fork or AI badges there.
+        return stat
+          ? {
+              ...app,
+              stats: showBadges ? stat : { warnings: stat.warnings, prereleaseWarnings: stat.prereleaseWarnings },
+            }
+          : app;
       });
       // A card keeps its last release check until this load's replaces it.
       setApps((current) => {
         const previous = new Map(current.map((app) => [app.id, app]));
-        return tracked.map((app) => { const kept = previous.get(app.id); return kept ? { ...kept, stats: app.stats } : app; });
+        return tracked.map((app) => {
+          const kept = previous.get(app.id);
+          return kept ? { ...kept, stats: app.stats } : app;
+        });
       });
       setLoadError(null);
       // Discover shows every card straight away and fills each in as its
@@ -77,7 +97,9 @@ export function useApps(view: View) {
       const worker = async () => {
         while (next < tracked.length) {
           const index = next++;
-          const app = await hydrate(tracked[index], force, preferences[tracked[index].repo]);
+          const fresh = await hydrate(tracked[index], force, preferences[tracked[index].repo]);
+          // Every view, Updates too: the installed version's own scan and warnings.
+          const app = { ...fresh, installedRisk: await installedRisk(fresh, force).catch(() => undefined) };
           // The report for the ZIP this card installs, once its release is known.
           hydrated[index] = showBadges ? { ...app, scan: scanFor(scans, app.assets[0]) } : app;
           if (showBadges && app.assets[0]) {
@@ -98,6 +120,7 @@ export function useApps(view: View) {
       loaded.current = true;
       setLoading(false);
       notifyUpdates(hydrated);
+      notifyInstalledRisks(hydrated);
     } catch (error) {
       log(`Loading apps failed: ${error}`);
       setLoadError(String(error));
@@ -136,5 +159,19 @@ export function useApps(view: View) {
     };
   }, []);
 
-  return { apps, setApps, loading, loadError, checked, listedCount, installedCount, columnsPerRow, repoPreferences, setRepoPreferences, hiddenButtons, registryChannel, load };
+  return {
+    apps,
+    setApps,
+    loading,
+    loadError,
+    checked,
+    listedCount,
+    installedCount,
+    columnsPerRow,
+    repoPreferences,
+    setRepoPreferences,
+    hiddenButtons,
+    registryChannel,
+    load,
+  };
 }

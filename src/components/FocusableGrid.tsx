@@ -30,13 +30,19 @@ export function FocusableGrid<T>({
       {rows.map((row, index) => (
         <Focusable key={index} flow-children="right" style={{ display: "flex", gap: gridGap, marginBottom: gridGap }}>
           {row.map((item) => (
-            <Focusable key={keyFor(item)} flow-children="down" onFocus={keepInView} style={{ flex: fit ? "1 1 auto" : 1, minWidth: 0 }}>
+            <Focusable
+              key={keyFor(item)}
+              flow-children="down"
+              onFocus={keepInView}
+              style={{ flex: fit ? "1 1 auto" : 1, minWidth: 0 }}
+            >
               {children(item)}
             </Focusable>
           ))}
-          {!fit && Array.from({ length: columns - row.length }, (_, index) => (
-            <div aria-hidden key={`empty-${index}`} style={{ flex: 1, minWidth: 0 }} />
-          ))}
+          {!fit &&
+            Array.from({ length: columns - row.length }, (_, index) => (
+              <div aria-hidden key={`empty-${index}`} style={{ flex: 1, minWidth: 0 }} />
+            ))}
         </Focusable>
       ))}
     </Focusable>

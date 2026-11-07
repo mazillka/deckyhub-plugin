@@ -10,17 +10,25 @@ import { Content } from "./pages/Content";
 import { SearchPage } from "./pages/SearchPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { MotionStyle } from "./motion";
+import { ExpPageFrame } from "./components/experimental/ExpNavBar";
+import { useUiStyle } from "./uiStyle";
 import { hapticTick, markUnloaded, pageStyle, tr } from "./utils";
 
 // Steam's history for its main window, which @decky/ui doesn't type.
-type MainWindowHistory = { location: { pathname: string }; replace: (path: string) => void; push: (path: string) => void };
+type MainWindowHistory = {
+  location: { pathname: string };
+  replace: (path: string) => void;
+  push: (path: string) => void;
+};
 
 // B on a page with nothing behind it opens Steam's menu instead of leaving DeckyHub
 // (after a Steam UI reload or a cut-short Deck test run, seen on a Deck). Put Library
 // behind the page then, so B always leaves.
 function BackToLibrary() {
   useEffect(() => {
-    const history = (Router.WindowStore?.GamepadUIMainWindowInstance as unknown as { m_history?: MainWindowHistory } | undefined)?.m_history;
+    const history = (
+      Router.WindowStore?.GamepadUIMainWindowInstance as unknown as { m_history?: MainWindowHistory } | undefined
+    )?.m_history;
     if ((window as { navigation?: { canGoBack?: boolean } }).navigation?.canGoBack !== false || !history) return;
     const path = history.location.pathname;
     history.replace("/library/home");
@@ -30,8 +38,32 @@ function BackToLibrary() {
 }
 
 function Motion({ children }: { children: ReactNode }) {
+  const experimental = useUiStyle() === "experimental";
   // onFocus bubbles (focusin), so every focus move within DeckyHub ticks.
-  return <div className="deckyhub-motion" style={{ height: "100%" }} onFocus={hapticTick}><MotionStyle />{children}</div>;
+  return (
+    <div
+      className={experimental ? "deckyhub-motion deckyhub-exp" : "deckyhub-motion"}
+      style={{ height: "100%" }}
+      onFocus={hapticTick}
+    >
+      <MotionStyle />
+      {children}
+    </div>
+  );
+}
+
+// Experimental: every page under one tab bar, switched in place (Repositories is part of
+// Settings, so it opens the Settings tab on its own section).
+function PageFrame({ path }: { path: string }) {
+  const page = path.split("/").pop() ?? "";
+  const initial = page === "repositories" ? "settings" : page;
+  if (useUiStyle() !== "experimental") return <>{ROUTES[path]()}</>;
+  return (
+    <ExpPageFrame
+      initial={initial}
+      render={(tab) => (tab === initial ? ROUTES[path]() : ROUTES[`/deckyhub/${tab}`]())}
+    />
+  );
 }
 
 const ROUTES: Record<string, () => ReactNode> = {
@@ -52,12 +84,14 @@ export default definePlugin(() => {
   addEventListener("registry_updated", onRegistryUpdated);
   // Plugins picked in the Desktop Mode installer: remind the user once the Steam UI is up.
   window.setTimeout(() => void announcePendingInstalls(tr), 8000);
-  for (const [path, page] of Object.entries(ROUTES)) {
+  for (const path of Object.keys(ROUTES)) {
     routerHook.addRoute(path, () => (
       <Motion>
         <BackToLibrary />
         <div style={pageStyle}>
-          <I18nProvider>{page()}</I18nProvider>
+          <I18nProvider>
+            <PageFrame path={path} />
+          </I18nProvider>
         </div>
       </Motion>
     ));

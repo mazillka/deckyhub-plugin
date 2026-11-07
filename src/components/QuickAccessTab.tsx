@@ -2,8 +2,8 @@ import { useQuickAccessVisible } from "@decky/api";
 import { Focusable, NavEntryPositionPreferences, staticClasses } from "@decky/ui";
 import { useSyncExternalStore, type ReactNode } from "react";
 import { getApps, getSettings } from "../api";
-import { getUpdateCount, notifyUpdates, subscribeUpdateCount } from "../notify";
-import { hydrate } from "../releases";
+import { getUpdateCount, notifyInstalledRisks, notifyUpdates, subscribeUpdateCount } from "../notify";
+import { hydrate, installedRisk } from "../releases";
 import { DeckyHubIcon } from "./DeckyHubIcon";
 
 // DeckyHub's own icon in Steam's Quick Access tab strip (beside notifications,
@@ -11,7 +11,10 @@ import { DeckyHubIcon } from "./DeckyHubIcon";
 // its own tab. Older or newer Decky without the hook just keeps the plugin entry.
 const TAB_ID = 0x444855; // "DHU"; clear of Steam's tabs and Decky's 999.
 
-type TabsHook = { add(tab: { id: number; title: ReactNode; content: ReactNode; icon: ReactNode }): void; removeById(id: number): void };
+type TabsHook = {
+  add(tab: { id: number; title: ReactNode; content: ReactNode; icon: ReactNode }): void;
+  removeById(id: number): void;
+};
 const tabsHook = () => (window as { __TABS_HOOK_INSTANCE?: Partial<TabsHook> }).__TABS_HOOK_INSTANCE;
 
 // Like Decky's own panel: the title stays at the top, the content renders only while shown.
@@ -19,10 +22,14 @@ function TabPanel({ children }: { children: ReactNode }) {
   const visible = useQuickAccessVisible();
   return (
     <>
-      <div className={staticClasses.Title} style={{ position: "sticky", top: 0, paddingRight: 16 }}>DeckyHub</div>
+      <div className={staticClasses.Title} style={{ position: "sticky", top: 0, paddingRight: 16 }}>
+        DeckyHub
+      </div>
       {/* Right from the tab strip enters at the top. Without this Steam picks whatever is
           level with DeckyHub's icon, low in the strip: the Manage button (seen on a Deck). */}
-      <Focusable navEntryPreferPosition={NavEntryPositionPreferences.FIRST} style={{ paddingTop: 16 }}>{visible && children}</Focusable>
+      <Focusable navEntryPreferPosition={NavEntryPositionPreferences.FIRST} style={{ paddingTop: 16 }}>
+        {visible && children}
+      </Focusable>
     </>
   );
 }
@@ -31,9 +38,26 @@ function TabPanel({ children }: { children: ReactNode }) {
 function TabIcon() {
   const updates = useSyncExternalStore(subscribeUpdateCount, getUpdateCount);
   return (
-    <span className="deckyhub-tab-icon" style={{ position: "relative", display: "inline-flex", alignSelf: "center", lineHeight: 0 }}>
+    <span
+      className="deckyhub-tab-icon"
+      style={{ position: "relative", display: "inline-flex", alignSelf: "center", lineHeight: 0 }}
+    >
       <DeckyHubIcon />
-      {updates > 0 && <span className="deckyhub-tab-dot" style={{ position: "absolute", top: -4, right: -6, width: 8, height: 8, borderRadius: "50%", background: "#ff8c1a", boxShadow: "0 0 0 2px #0e141b" }} />}
+      {updates > 0 && (
+        <span
+          className="deckyhub-tab-dot"
+          style={{
+            position: "absolute",
+            top: -4,
+            right: -6,
+            width: 8,
+            height: 8,
+            borderRadius: "50%",
+            background: "#ff8c1a",
+            boxShadow: "0 0 0 2px #0e141b",
+          }}
+        />
+      )}
     </span>
   );
 }
@@ -48,7 +72,16 @@ async function checkUpdates() {
   try {
     const [{ apps }, settings] = await Promise.all([getApps(), getSettings()]);
     const preferences = settings.repoSettings || {};
-    notifyUpdates(await Promise.all(apps.filter((app) => app.installedVersion).map((app) => hydrate(app, false, preferences[app.repo]))));
+    const installed = await Promise.all(
+      apps
+        .filter((app) => app.installedVersion)
+        .map(async (app) => {
+          const hydrated = await hydrate(app, false, preferences[app.repo]);
+          return { ...hydrated, installedRisk: await installedRisk(hydrated).catch(() => undefined) };
+        }),
+    );
+    notifyUpdates(installed);
+    notifyInstalledRisks(installed);
   } catch {
     // Offline or rate-limited: the next check, or the panel's own, sets the dot.
   }
@@ -63,7 +96,10 @@ export function addQuickAccessTab(content: ReactNode) {
   if (typeof hook?.add !== "function" || typeof hook.removeById !== "function") return;
   tabContent = content;
   // Settings' "DeckyHub tab in Quick Access": on unless turned off, and on if they can't be read.
-  void getSettings().then((settings) => setQuickAccessTab(settings.quickAccessTab !== false), () => setQuickAccessTab(true));
+  void getSettings().then(
+    (settings) => setQuickAccessTab(settings.quickAccessTab !== false),
+    () => setQuickAccessTab(true),
+  );
   void checkUpdates();
   window.clearInterval(checkTimer);
   checkTimer = window.setInterval(() => void checkUpdates(), CHECK_EVERY);

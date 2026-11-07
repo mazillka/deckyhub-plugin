@@ -20,9 +20,11 @@ export const tr: Record<MessageKey, string> = {
   "discover.list": "Liste",
   "view.discoverEmpty": "Kullanılabilir depo yok.",
   "view.installedEmpty": "Yüklü eklenti bulunamadı.",
-  "view.searchDescription": "GitHub'da Decky eklentileri ara. Hemen yükle ya da güncellemelerini takip etmek için ekle.",
+  "view.searchDescription":
+    "GitHub'da Decky eklentileri ara. Hemen yükle ya da güncellemelerini takip etmek için ekle.",
   "view.searchTitle": "Ara ve yükle",
-  "search.warning": "Arama sonuçları doğrudan GitHub'dan gelir. Hiç kimse onları incelemedi: ne DeckyHub ne de Decky mağazası. Bir eklenti Deck'inde her şeyi yapabilir, bu yüzden yalnızca güvendiğin yazarların eklentilerini yükle.",
+  "search.warning":
+    "Arama sonuçları doğrudan GitHub'dan gelir. Hiç kimse onları incelemedi: ne DeckyHub ne de Decky mağazası. Bir eklenti cihazında her şeyi yapabilir, bu yüzden yalnızca güvendiğin yazarların eklentilerini yükle.",
   "search.placeholder": "Eklenti adı, yazar veya özellik",
 
   "filter.search": "Ara",
@@ -73,29 +75,40 @@ export const tr: Record<MessageKey, string> = {
   "appcard.skipVersion": "{version} sürümünü atla",
   "appcard.unskipVersion": "{version} sürümünü atlama",
   "appcard.fork": "Fork",
-  "appcard.forkHint": "Orijinali durduktan sonra bir eklentiyi sürdüren bir fork. DeckyHub onu yalnızca etkin olan sürüm olduğu sürece listeler.",
+  "appcard.forkHint":
+    "Orijinali durduktan sonra bir eklentiyi sürdüren bir fork. DeckyHub onu yalnızca etkin olan sürüm olduğu sürece listeler.",
   "appcard.forkOf": "{repo} fork'u",
   "appcard.ai": "YZ",
-  "appcard.aiHint": "Deposunda yapay zekâ kodlama asistanları için talimatlar var; bu yüzden muhtemelen yapay zekâ yardımıyla geliştirildi. Bu, kalitesi veya güvenliği hakkında bir şey söylemez ve rozetin olmaması yapay zekâ kullanılmadığı anlamına gelmez.",
-  "appcard.aiFiles": "Muhtemelen yapay zekâ yardımıyla geliştirildi: deposunda yapay zekâ kodlama asistanları için talimatlar var ({files})",
+  "appcard.aiHint":
+    "Deposunda yapay zekâ kodlama asistanları için talimatlar var ya da README'si yapay zekâyla yapıldığını söylüyor, bu yüzden muhtemelen yapay zekâ yardımıyla geliştirildi. Bu, kalitesi veya güvenliği hakkında bir şey söylemez; rozetin olmaması da yapay zekâ kullanılmadığı anlamına gelmez.",
+  "appcard.aiFiles": "Muhtemelen yapay zekâ yardımıyla geliştirildi ({files})",
   "appcard.scan.clean": "Tehdit yok",
-  "appcard.scan.clean.hint": "Virüs taramaları yükleyeceğin sürümde tehdit bulmadı. Tarama raporu Yönet'te. Temiz bir tarama güvenliğin kanıtı değildir.",
+  "appcard.scan.clean.hint":
+    "Virüs taramaları, yükleyeceğin sürümde bilinen bir tehdit bulmadı. Taramalar yalnızca bilinen kötü amaçlı yazılımları yakalar ve atlatılabilir, bu yüzden bu güvenliğin kanıtı değildir. Tarama raporu Yönet'te.",
   "appcard.scan.infected": "Tehdit bulundu",
-  "appcard.scan.infected.hint": "Bir virüs taraması yükleyeceğin sürümü işaretledi. Yanlış alarm olabilir: Yönet'i aç, raporu oku ve kendin karar ver.",
+  "appcard.scan.infected.hint":
+    "Bir virüs taraması yükleyeceğin sürümü işaretledi. Yanlış alarm olabilir: Yönet'i aç, raporu oku ve kendin karar ver.",
   "appcard.scan.partial": "Tam taranmadı",
   "appcard.scan.partial.hint": "Virüs taramaları yükleyeceğin sürümü tamamen denetleyemedi. Nedeni Yönet'te.",
   "appcard.badgesNotice": "Eklentilerdeki rozetlerin anlamı",
   "appcard.noReleaseInYear": "Bir yıldır sürüm yok",
-  "appcard.warningsIntro": "Uyarılar, Decky Extended Plugins'in yükleyeceğin sürüm için yaptığı otomatik denetimden gelir. sudo, mount veya systemctl gibi olağan bulgular gösterilmez. Bir uyarı zararın kanıtı değildir, uyarı olmaması da güvenliğin kanıtı değildir.",
+  "appcard.installedFlagged": "Yüklü sürüm işaretlendi",
+  "appcard.installedFlagged.hint":
+    "Yüklü sürümünde işaretlendi: {reasons}. Yanlış alarm olabilir: eklentiyi kontrol et ve tutup tutmayacağına karar ver.",
+  "appcard.warningsIntro":
+    "Uyarılar, Decky Extended Plugins'in yükleyeceğin sürüm için yaptığı otomatik denetimden gelir. sudo, mount veya systemctl gibi olağan bulgular gösterilmez. Bir uyarı zararın kanıtı değildir, uyarı olmaması da güvenliğin kanıtı değildir.",
   "appcard.auditLink": "Decky Extended Plugins denetimini aç",
   "appcard.warning.blocked": "Denetim tarafından engellendi",
   "appcard.warning.blocked.hint": "Denetim kötü amaçlı yazılım veya bozuk bir arşiv buldu. Yüklenmesi önerilmez.",
   "appcard.warning.private-data": "Özel verileri okur",
-  "appcard.warning.private-data.hint": "Steam oturum verilerini, SSH anahtarlarını veya ortamdaki gizli bilgileri okur.",
+  "appcard.warning.private-data.hint":
+    "Steam oturum verilerini, SSH anahtarlarını veya ortamdaki gizli bilgileri okur.",
   "appcard.warning.persistence": "Sistem başlangıcını değiştirir",
-  "appcard.warning.persistence.hint": "Kabuk profillerini düzenler, kütüphaneleri önceden yükler, çekirdek modülleri yükler veya aygıt kuralları ekler; bunlar Decky dışında da çalışmaya devam eder.",
+  "appcard.warning.persistence.hint":
+    "Kabuk profillerini düzenler, kütüphaneleri önceden yükler, çekirdek modülleri yükler veya aygıt kuralları ekler; bunlar Decky dışında da çalışmaya devam eder.",
   "appcard.warning.not-in-source": "Kod deposunda yok",
-  "appcard.warning.not-in-source.hint": "Sürüm, GitHub kaynağında olmayan betikler veya programlar içeriyor, bu yüzden ne yaptıklarını okuyamazsın.",
+  "appcard.warning.not-in-source.hint":
+    "Sürüm, GitHub kaynağında olmayan betikler veya programlar içeriyor, bu yüzden ne yaptıklarını okuyamazsın.",
   "appcard.warning.obfuscated": "Gizlenmiş kod",
   "appcard.warning.obfuscated.hint": "Okunması zor, kodlanmış veya paketlenmiş kod içerir.",
   "appcard.warning.no-tls-check": "HTTPS denetimini atlar",
@@ -108,12 +121,15 @@ export const tr: Record<MessageKey, string> = {
   "appcard.update": "Güncelle",
   "appcard.uninstall": "Kaldır",
   "appcard.uninstallTitle": "{name} kaldırılsın mı?",
-  "appcard.uninstallDescription": "Bu, eklentiyi ve ayarlarını bu cihazdan kaldırır. Daha sonra yeniden yükleyebilirsin.",
+  "appcard.uninstallDescription":
+    "Bu, eklentiyi ve ayarlarını bu cihazdan kaldırır. Daha sonra yeniden yükleyebilirsin.",
   "appcard.uninstalled": "{name} kaldırıldı.",
-  "appcard.freshInstallDescription": "DeckyHub önce yüklü sürümü kaldırır, ardından Decky seçilen sürümü sıfırdan yükler. Yerinde güncelleme, bir Decky Loader hatası yüzünden Deck'i dondurabilir. Decky'nin yükleme penceresini iptal edersen {name}, yeniden yükleyene kadar kaldırılmış kalır.",
+  "appcard.freshInstallDescription":
+    "DeckyHub önce yüklü sürümü kaldırır, ardından Decky seçilen sürümü sıfırdan yükler. Yerinde güncelleme, bir Decky Loader hatası yüzünden cihazı dondurabilir. Decky'nin yükleme penceresini iptal edersen {name}, yeniden yükleyene kadar kaldırılmış kalır.",
   "appcard.releaseInfo": "Sürüm bilgisi",
   "appcard.noReleaseNotes": "Bu sürümün notu yok.",
-  "install.disclaimer": "DeckyHub sürümleri yalnızca yazarlarının GitHub depolarından alır. Bu eklentileri yapmaz, incelemez veya onlara kefil olmaz; cihazına veya verilerine yaptıklarından sorumlu değildir. Yükleme riski sana aittir.",
+  "install.disclaimer":
+    "DeckyHub sürümleri yalnızca yazarlarının GitHub depolarından alır. Bu eklentileri yapmaz, incelemez veya onlara kefil olmaz; cihazına veya verilerine yaptıklarından sorumlu değildir. Yükleme riski sana aittir.",
   "pending.title": "Seçtiğin eklentiler yüklensin mi?",
   "pending.description": "Bu eklentileri yükleyicide seçtin. Decky Loader yüklemeden önce bir kez daha onay isteyecek.",
   "pending.install": "Seçilenleri yükle",
@@ -141,8 +157,10 @@ export const tr: Record<MessageKey, string> = {
   "scan.engine": "Tarayıcı: {engine}, imzalar {signatures}",
   "scan.rules": "Tarayıcı: {engine}, kurallar {rules}",
   "scan.scannedAt": "Tarandı: {date}",
-  "scan.hint": "DeckyHub'ın kayıt listesi sunduğu her eklenti ZIP'ini açık kaynaklı bir antivirüs olan ClamAV ile, içindeki dosyaları da YARA ve çoğu Linux kötü amaçlı yazılımları için yazılmış YARA Forge topluluk kurallarıyla tarar.",
-  "scan.safetyWarning": "Temiz bir sonuç güvenliğin kanıtı değildir.",
+  "scan.hint":
+    "DeckyHub'ın kayıt listesi sunduğu her eklenti ZIP'ini açık kaynaklı bir antivirüs olan ClamAV ile, içindeki dosyaları da YARA ve çoğu Linux kötü amaçlı yazılımları için yazılmış YARA Forge topluluk kurallarıyla tarar.",
+  "scan.safetyWarning":
+    "Taramalar yalnızca bilinen kötü amaçlı yazılımları yakalar ve kötü amaçlı yazılım onları atlatacak şekilde yapılabilir: temiz bir sonuç eklentinin güvenli olduğunu kanıtlamaz.",
   "scan.unverifiedMatch": "ZIP eşleşmesi doğrulanmadı",
   "scan.waiting": "Tarama bekliyor",
   "scan.unavailable": "Rapor kullanılamıyor",
@@ -150,14 +168,17 @@ export const tr: Record<MessageKey, string> = {
   "scan.unverifiedDetail": "Bu rapor başka bir ZIP dosyasına ait olabilir; eşleşme doğrulanmadı.",
   "scan.virusTotalResult": "VirusTotal: {total} motorun {flagged} tanesi bu ZIP dosyasını işaretledi",
   "scan.metaDefenderResult": "MetaDefender: {total} motorun {flagged} tanesi bu ZIP dosyasını işaretledi",
-  "scan.virusTotalHint": "VirusTotal, Steam'in tarayıcısında açılır ve bu ZIP'i SHA-256'sıyla arar. Hiçbir şey yüklenmez; bu yüzden yalnızca biri aynı dosyayı daha önce gönderdiyse sonuç vardır.",
+  "scan.virusTotalHint":
+    "VirusTotal, Steam tarayıcısında açılır ve bu ZIP'i SHA-256 değeriyle arar. Cihazından hiçbir şey yüklenmez. DeckyHub kayıt defteri, VirusTotal'ın henüz görmediği eklenti ZIP'lerini ona gönderir, bu yüzden yeni bir sürümün sonuçları biraz gecikebilir.",
   "scan.copyLink": "ZIP bağlantısını kopyala",
   "scan.scanLink": "Bağlantıyı VirusTotal'da tara",
   "scan.copied": "ZIP bağlantısı kopyalandı",
   "scan.copyFailed": "Bağlantı kopyalanamadı",
   "scan.pasteIntoVirusTotal": "VirusTotal sayfasındaki URL kutusuna yapıştır ve taramayı başlat.",
-  "scan.scanLinkHint": "Bağlantıyı VirusTotal'da tara, ZIP'in indirme bağlantısını kopyalar ve VirusTotal'ın URL tarama sayfasını açar: bağlantıyı oraya yapıştır. VirusTotal çoğunlukla bağlantının kendisini değerlendirir, bu yüzden ZIP'in içini denetlemeyebilir.",
-  "scan.deckyhubChecks": "Her DeckyHub sürümü yayımlanmadan önce ClamAV, VirusTotal ve MetaDefender ile taranır ve kodu her değişiklikte GitHub CodeQL ile denetlenir. Rapor, her tarayıcının sürümünü ve tarihini gösterir.",
+  "scan.scanLinkHint":
+    "Bağlantıyı VirusTotal'da tara, ZIP'in indirme bağlantısını kopyalar ve VirusTotal'ın URL tarama sayfasını açar: bağlantıyı oraya yapıştır. VirusTotal çoğunlukla bağlantının kendisini değerlendirir, bu yüzden ZIP'in içini denetlemeyebilir.",
+  "scan.deckyhubChecks":
+    "Her DeckyHub sürümü yayımlanmadan önce ClamAV, VirusTotal ve MetaDefender ile taranır ve kodu her değişiklikte GitHub CodeQL ile denetlenir. Rapor, her tarayıcının sürümünü ve tarihini gösterir.",
 
   "dl.downloading": "{filename} indiriliyor",
   "dl.preparing": "İndirme hazırlanıyor…",
@@ -174,7 +195,8 @@ export const tr: Record<MessageKey, string> = {
   "settings.latestVersion": "En son: {version}",
   "settings.updateChannel": "Güncelleme kanalı",
   "settings.registryChannel": "Kayıt defteri kanalı",
-  "settings.registryChannelHint": "Ön sürüm, herkese ulaşmadan önce hâlâ test edilen eklentileri ve değişiklikleri gösterir. Yüklenemezlerse DeckyHub kararlı listeyi kullanır.",
+  "settings.registryChannelHint":
+    "Ön sürüm, herkese ulaşmadan önce hâlâ test edilen eklentileri ve değişiklikleri gösterir. Yüklenemezlerse DeckyHub kararlı listeyi kullanır.",
   "settings.stableReleases": "Kararlı sürümler",
   "settings.preReleases": "Ön sürümler",
   "settings.checkUpdate": "Güncellemeleri denetle",
@@ -191,18 +213,21 @@ export const tr: Record<MessageKey, string> = {
   "settings.selfUpdateUnavailable": "Otomatik güncelleme şu anda kullanılamıyor — bunun yerine ZIP indir'i kullan.",
   "settings.downloadUpdate": "ZIP indir",
   "settings.downloadSettings": "İndirme ayarları",
-  "settings.whereZipsSaved": "Tüm sürüm ZIP'leri /home/deck/Downloads/deckyhub klasörüne kaydedilir; GitHub sağladığında SHA-256 sağlama toplamları otomatik olarak doğrulanır.",
+  "settings.whereZipsSaved":
+    "Tüm sürüm ZIP'leri ~/Downloads/deckyhub klasörüne kaydedilir; GitHub sağladığında SHA-256 sağlama toplamları otomatik olarak doğrulanır.",
   "settings.overwriteExisting": "Var olanların üzerine yaz",
   "settings.cleanup": "Temizlik",
   "settings.emptyFolder": "Klasörü boşalt",
   "settings.clearDownloadsTitle": "DeckyHub indirme klasörünü boşalt",
-  "settings.clearDownloadsDescription": "/home/deck/Downloads/deckyhub içindeki tüm dosyalar kalıcı olarak silinsin mi?",
+  "settings.clearDownloadsDescription": "~/Downloads/deckyhub içindeki tüm dosyalar kalıcı olarak silinsin mi?",
   "settings.downloadsCleared": "DeckyHub indirmelerinden {count} öğe silindi.",
   "settings.saveSettings": "Ayarları kaydet",
   "settings.githubAccess": "GitHub erişimi",
-  "settings.githubTokenIntro": "İsteğe bağlı. Token olmadan GitHub bu cihazı saatte 60 istekle (arama için dakikada 10) sınırlar — yoğun kullanımda kolayca tükenir. Kişisel erişim token'ı bu sınırı saatte 5.000'e (arama için dakikada 30) çıkarır.",
+  "settings.githubTokenIntro":
+    "İsteğe bağlı. Token olmadan GitHub bu cihazı saatte 60 istekle (arama için dakikada 10) sınırlar — yoğun kullanımda kolayca tükenir. Kişisel erişim token'ı bu sınırı saatte 5.000'e (arama için dakikada 30) çıkarır.",
   "settings.githubTokenHowTo": "Tüm izinleri işaretsiz bırakarak şuradan bir tane oluştur:",
-  "settings.githubTokenNote": "DeckyHub yalnızca herkese açık depoları ve sürümleri okur. Token bu ayarlarda yerel olarak saklanır ve yalnızca api.github.com'a gönderilir.",
+  "settings.githubTokenNote":
+    "DeckyHub yalnızca herkese açık depoları ve sürümleri okur. Token bu ayarlarda yerel olarak saklanır ve yalnızca api.github.com'a gönderilir.",
   "settings.githubToken": "GitHub token'ı",
   "settings.githubQuota": "Kalan GitHub isteği: {remaining} / {limit} ({minutes} dk içinde sıfırlanır)",
   "rateLimit.title": "GitHub istek sınırına ulaşıldı",
@@ -216,9 +241,11 @@ export const tr: Record<MessageKey, string> = {
   "settings.languageHint": "İngilizce dışındaki çeviriler otomatik olarak yapılır ve hata içerebilir.",
   "settings.displaySettings": "Görüntü ayarları",
   "settings.about": "Hakkında",
-  "settings.aboutText": "DeckyHub, Decky eklentilerini doğrudan yazarlarının GitHub sürümlerinden yükler ve günceller. Ücretsiz ve açık kaynaklıdır.",
+  "settings.aboutText":
+    "DeckyHub, Decky eklentilerini doğrudan yazarlarının GitHub sürümlerinden yükler ve günceller. Ücretsiz ve açık kaynaklıdır.",
   "settings.aboutSource": "GitHub'da DeckyHub",
-  "settings.thanks": "DeckyHub listesindeki birçok eklenti iki topluluk kataloğu sayesinde bulundu. Yazarlarına teşekkürler!",
+  "settings.thanks":
+    "DeckyHub listesindeki birçok eklenti iki topluluk kataloğu sayesinde bulundu. Yazarlarına teşekkürler!",
   "settings.catalogBy": "{name} - {author}",
   "settings.layout": "Düzen",
   "settings.density": "Arayüz",
@@ -228,10 +255,15 @@ export const tr: Record<MessageKey, string> = {
   "settings.haptics": "Gezinirken dokunsal geri bildirim",
   "settings.quickAccessTab": "Hızlı Erişim'de DeckyHub sekmesi",
   "settings.quickAccessTabHint": "Kapalıyken DeckyHub'ı Decky'nin eklenti listesinden aç.",
+  "settings.uiStyle": "Arayüz stili",
+  "settings.uiStyleHint": "Deneysel, DeckyHub'ın hâlâ üzerinde çalışılan yeni görünümüdür.",
+  "settings.uiStyleDefault": "Varsayılan",
+  "settings.uiStyleExperimental": "Deneysel",
   "settings.hideButton": "“{button}” düğmesini gizle",
   "settings.troubleshooting": "Sorun giderme",
   "settings.exportLogs": "Günlükleri dışa aktar",
-  "settings.exportLogsNote": "DeckyHub günlüklerini /home/deck/Downloads içine ZIP olarak kaydeder — bir hata raporuna ekle. GitHub token'ın asla günlüğe yazılmaz.",
+  "settings.exportLogsNote":
+    "DeckyHub günlüklerini ~/Downloads içine ZIP olarak kaydeder — bir hata raporuna ekle. GitHub token'ın asla günlüğe yazılmaz.",
 
   "repos.addManage": "Ekle ve yönet",
   "repos.searchGithub": "GitHub'da ara",
@@ -277,6 +309,7 @@ export const tr: Record<MessageKey, string> = {
   "release.noChecksum": "SHA-256 sağlama toplamı olan bir DeckyHub sürüm ZIP'i bulunamadı.",
   "error.loaderUnavailable": "Decky Loader şu anda kullanılamıyor.",
   "toast.updatesAvailable": "Mevcut güncellemeler: {count}",
+  "toast.installedFlagged": "İşaretlenen yüklü eklentiler: {count}",
   "toast.installStalledTitle": "Decky, {name} yüklemesini tamamlayamadı",
   "toast.installStalledBody": "Decky'yi yeniden yükle ve tekrar dene.",
   "dl.failedTitle": "DeckyHub indirmesi başarısız oldu",
@@ -303,8 +336,10 @@ export const tr: Record<MessageKey, string> = {
   "toast.installed": "{name} yüklendi.",
   "toast.installedVersion": "{name} {version} yüklendi.",
   "welcome.title": "DeckyHub'a hoş geldin",
-  "welcome.body": "Decky eklentilerini doğrudan yazarlarının GitHub sürümlerinden yükle ve güncelle. Keşfet'te göz at, Ara ile daha fazlasını bul ve Güncellemeler'de güncel tut.",
-  "welcome.safety": "Bu eklentileri DeckyHub dahil kimse incelemez. Yalnızca güvendiğin yazarların eklentilerini yükle; DeckyHub bir şey yüklemeden önce her zaman sorar.",
+  "welcome.body":
+    "Decky eklentilerini doğrudan yazarlarının GitHub sürümlerinden yükle ve güncelle. Keşfet'te göz at, Ara ile daha fazlasını bul ve Güncellemeler'de güncel tut.",
+  "welcome.safety":
+    "Bu eklentileri DeckyHub dahil kimse incelemez. Virüs taramaları yalnızca bilinen kötü amaçlı yazılımları yakalar, bu yüzden temiz bir tarama eklentinin güvenli olduğu anlamına gelmez. Yalnızca güvendiğin yazarların eklentilerini yükle; DeckyHub bir şey yüklemeden önce her zaman sorar.",
   "welcome.gotIt": "Anladım",
   "settings.tabGeneral": "Genel",
   "settings.tabDownloads": "İndirmeler",

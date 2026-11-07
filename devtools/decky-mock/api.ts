@@ -61,7 +61,13 @@ export const toaster = {
     });
     document.body.appendChild(el);
     const timer = setTimeout(() => el.remove(), 4000);
-    return { data, dismiss: () => { clearTimeout(timer); el.remove(); } };
+    return {
+      data,
+      dismiss: () => {
+        clearTimeout(timer);
+        el.remove();
+      },
+    };
   },
 };
 
@@ -70,10 +76,10 @@ export const fetchNoCors = (input: string, init?: RequestInit) => fetch(input, i
 
 export const FileSelectionType = { FILE: 0, FOLDER: 1 } as const;
 
-export async function openFilePicker() {
+export async function openFilePicker(_type?: number, startPath = "") {
   const path = window.prompt(
     "Dev mock: there's no native file picker in the browser. Paste an absolute path to a JSON file:",
-    "/home/deck/Downloads/DeckyHub-repositories.json",
+    `${startPath}/DeckyHub-repositories.json`,
   );
   if (!path) throw new Error("File selection cancelled");
   return { path, realpath: path };

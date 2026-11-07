@@ -3,13 +3,26 @@ import { openExternalWeb, rememberOpener } from "../external";
 import { useState, useSyncExternalStore } from "react";
 import { FaArrowUp, FaCog, FaPlus } from "react-icons/fa";
 import { useT } from "../i18n";
-import type { App, Asset, HideableButton, RepoPreference } from "../types";
-import { compactButtonStyle, cardDescriptionStyle, ellipsis, installAction, isInstalling, PLUGIN_INSTALL_TYPE, statusKey, statusColor, subscribeInstalling, surfaceStyle, visuallyHidden } from "../utils";
+import { installWarnings, type App, type Asset, type HideableButton, type RepoPreference } from "../types";
+import {
+  compactButtonStyle,
+  cardDescriptionStyle,
+  ellipsis,
+  installAction,
+  isInstalling,
+  PLUGIN_INSTALL_TYPE,
+  statusKey,
+  statusColor,
+  subscribeInstalling,
+  surfaceStyle,
+  visuallyHidden,
+} from "../utils";
 import { displayVersion } from "../version";
 import { AppDetailsModal } from "./AppDetailsModal";
 import { startPluginInstall } from "./InstallFlow";
 import { AppBadges, AppMonogram, AppStats, pillStyle } from "./AppBadges";
 import { plainNotes, showReleaseInfo } from "./ReleaseInfo";
+import { colors, tint } from "../styles";
 
 // Card chrome. The top border takes the status color (see statusColor()).
 const cardStyle = {
@@ -27,19 +40,27 @@ const cardStyle = {
   borderTop: "3px solid",
 };
 const fullRow = { gridColumn: "1 / -1" };
-const cardTitleStyle = { margin: 0, overflow: "hidden", color: "#fff", fontSize: "1.05em", fontWeight: 700, lineHeight: 1.2, textOverflow: "ellipsis", whiteSpace: "nowrap" as const };
-const categoryStyle = { color: "#8fcef4", fontSize: "max(12px, 0.78em)", letterSpacing: "0.04em", textTransform: "uppercase" as const };
+const cardTitleStyle = {
+  margin: 0,
+  overflow: "hidden",
+  color: colors.text,
+  fontSize: "1.05em",
+  fontWeight: 700,
+  lineHeight: 1.2,
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap" as const,
+};
+const categoryStyle = {
+  color: colors.accent,
+  fontSize: "max(12px, 0.78em)",
+  letterSpacing: "0.04em",
+  textTransform: "uppercase" as const,
+};
 
-export function AppCard({
-  app,
-  preference,
-  downloadDisabled,
-  hiddenButtons,
-  onDownload,
-  onPreferenceChange,
-  onUninstalled,
-  layout = "card",
-}: {
+// "row": one line of a list.
+export type CardLayout = "card" | "row";
+
+export type AppCardProps = {
   app: App;
   preference: RepoPreference;
   downloadDisabled?: boolean;
@@ -47,16 +68,31 @@ export function AppCard({
   onDownload: (asset: Asset) => Promise<void>;
   onPreferenceChange: (repo: string, preference: RepoPreference) => void;
   onUninstalled: () => void;
-  // "row": one line of Discover's list view.
-  layout?: "card" | "row";
-}) {
+  layout?: CardLayout;
+};
+
+// What a card can do, shared by the Default card and the Experimental one (ExpAppCard):
+// the quick Install / Update (with Y / X / Menu on it) and the Manage window.
+export function useCardActions({
+  app,
+  preference,
+  downloadDisabled,
+  hiddenButtons,
+  onDownload,
+  onPreferenceChange,
+  onUninstalled,
+}: AppCardProps) {
   const t = useT();
   // Quick install/update to the latest release of a Decky plugin;
   // Manage still offers other versions/channels.
   const install = app.latestVersion ? installAction(app, { tag: app.latestVersion, assets: app.assets }) : null;
   // Only offer Update when the card's own status says one is available.
   const isUpdate = install?.type === PLUGIN_INSTALL_TYPE.UPDATE && app.updateAvailable === true;
-  const quickAction = install && (isUpdate || install.type === PLUGIN_INSTALL_TYPE.INSTALL) && !hiddenButtons.includes(isUpdate ? "update" : "install");
+  const quickAction = Boolean(
+    install &&
+    (isUpdate || install.type === PLUGIN_INSTALL_TYPE.INSTALL) &&
+    !hiddenButtons.includes(isUpdate ? "update" : "install"),
+  );
   // Installs hand over to Decky's own dialog, so leave the Updates/Discover page.
   const leavePage = () => Navigation.NavigateBack();
   // Blocks a second tap from starting a second install while the first is handed over.
@@ -65,67 +101,130 @@ export function AppCard({
   const quickLabel = t(isUpdate ? "settings.updateTo" : "appcard.installVersion", { version: latest });
   const notes = isUpdate ? plainNotes(app.releaseNotes).replace(/\s+/g, " ") : "";
   // Decky is installing it now (after its confirmation): say so until it finishes.
-  const deckyInstalling = useSyncExternalStore(subscribeInstalling, () => Boolean(install && isInstalling(install.name)));
-  const accent = deckyInstalling ? "#1a9fff" : statusColor(app) ?? "#8fcef4";
-  const statusPill = <span style={{ ...pillStyle, color: accent, background: `${accent}22`, borderColor: `${accent}66` }}>{deckyInstalling ? t("status.installing") : t(statusKey(app))}</span>;
+  const deckyInstalling = useSyncExternalStore(subscribeInstalling, () =>
+    Boolean(install && isInstalling(install.name)),
+  );
+  const accent = deckyInstalling ? colors.blue : (statusColor(app) ?? colors.accent);
+  const quickButtonProps = {
+    disabled: installing || deckyInstalling,
+    onSecondaryButton: () => showReleaseInfo(t, `${app.name} v${latest}`, app.publishedAt, app.releaseNotes),
+    onSecondaryActionDescription: t("appcard.releaseInfo"),
+    // X downloads the same release's ZIP instead of installing it.
+    onOptionsButton:
+      hiddenButtons.includes("downloadZip") || downloadDisabled || !app.assets[0]
+        ? undefined
+        : () => void onDownload(app.assets[0]),
+    onOptionsActionDescription: t("settings.downloadUpdate"),
+    // Menu opens the plugin's GitHub page, to read about it before installing.
+    onMenuButton: () => openExternalWeb(`https://github.com/${app.repo}`),
+    onMenuActionDescription: t("appcard.repository"),
+    onClick: () => {
+      if (!install) return;
+      setInstalling(true);
+      void startPluginInstall(
+        t,
+        app.name,
+        app.repo,
+        app.assets[0],
+        app.latestVersion!,
+        install,
+        quickLabel,
+        leavePage,
+        installWarnings(app),
+      ).finally(() => setInstalling(false));
+    },
+  };
+  const openManage = (event: MouseEvent) => {
+    // Its Repository button closes it from code, which doesn't give focus back here.
+    rememberOpener(event.currentTarget);
+    showModal(
+      <AppDetailsModal
+        t={t}
+        app={app}
+        preference={preference}
+        downloadDisabled={downloadDisabled}
+        hiddenButtons={hiddenButtons}
+        onDownload={onDownload}
+        onPreferenceChange={(next) => onPreferenceChange(app.repo, next)}
+        onUninstalled={onUninstalled}
+      />,
+    );
+  };
+  return {
+    t,
+    install,
+    isUpdate,
+    quickAction,
+    latest,
+    quickLabel,
+    notes,
+    deckyInstalling,
+    accent,
+    quickButtonProps,
+    openManage,
+  };
+}
+
+export function AppCard(props: AppCardProps) {
+  const { app, layout = "card" } = props;
+  const {
+    t,
+    install,
+    isUpdate,
+    quickAction,
+    latest,
+    quickLabel,
+    notes,
+    deckyInstalling,
+    accent,
+    quickButtonProps,
+    openManage,
+  } = useCardActions(props);
+  const statusPill = (
+    <span style={{ ...pillStyle, ...tint(accent) }}>
+      {deckyInstalling ? t("status.installing") : t(statusKey(app))}
+    </span>
+  );
   const row = layout === "row";
   // Stable is the default, so only a pre-release override earns a pill.
   const channelPill = app.channel === "prerelease" && (
-    <span style={{ ...pillStyle, color: "#ffa94d", background: "#ffa94d22", borderColor: "#ffa94d66" }}>{t("appcard.channel", { channel: t("appcard.channelPrerelease") })}</span>
+    <span style={{ ...pillStyle, ...tint(colors.prerelease) }}>
+      {t("appcard.channel", { channel: t("appcard.channelPrerelease") })}
+    </span>
   );
   // Install/Update, with Manage as a gear beside it; Manage alone takes the full width.
   const actions = (
-      <Focusable flow-children="right" style={{ display: "flex", gap: 8, ...(row ? {} : { ...fullRow, gridRow: 9 }) }}>
+    <Focusable flow-children="right" style={{ display: "flex", gap: 8, ...(row ? {} : { ...fullRow, gridRow: 9 }) }}>
       {install && quickAction && (
-          <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <Button
             style={{ ...compactButtonStyle, marginBottom: 0 }}
-            disabled={installing || deckyInstalling}
             {...(row && { "aria-label": deckyInstalling ? t("status.installing") : quickLabel })}
-            onSecondaryButton={() => showReleaseInfo(t, `${app.name} v${latest}`, app.publishedAt, app.releaseNotes)}
-            onSecondaryActionDescription={t("appcard.releaseInfo")}
-            // X downloads the same release's ZIP instead of installing it.
-            onOptionsButton={hiddenButtons.includes("downloadZip") || downloadDisabled || !app.assets[0] ? undefined : () => void onDownload(app.assets[0])}
-            onOptionsActionDescription={t("settings.downloadUpdate")}
-            // Menu opens the plugin's GitHub page, to read about it before installing.
-            onMenuButton={() => openExternalWeb(`https://github.com/${app.repo}`)}
-            onMenuActionDescription={t("appcard.repository")}
-            onClick={() => {
-              setInstalling(true);
-              void startPluginInstall(t, app.name, app.repo, app.assets[0], app.latestVersion!, install, quickLabel, leavePage, [...(app.stats?.warnings ?? []), ...(app.channel === "prerelease" ? app.stats?.prereleaseWarnings ?? [] : [])]).finally(() => setInstalling(false));
-            }}
+            {...quickButtonProps}
           >
             {/* A row's Latest line names the version, so its button can say just Update / Install
                 ("Update to v0.9.…" got cut short); its accessible name stays complete. */}
-            {isUpdate ? <FaArrowUp /> : <FaPlus />} <span style={ellipsis}>{deckyInstalling ? t("status.installing") : row ? t(isUpdate ? "appcard.update" : "appcard.install") : quickLabel}</span>
+            {isUpdate ? <FaArrowUp /> : <FaPlus />}{" "}
+            <span style={ellipsis}>
+              {deckyInstalling
+                ? t("status.installing")
+                : row
+                  ? t(isUpdate ? "appcard.update" : "appcard.install")
+                  : quickLabel}
+            </span>
           </Button>
-          </div>
+        </div>
       )}
-        <div style={install && quickAction ? { flex: "0 0 44px" } : { flex: 1 }}>
+      <div style={install && quickAction ? { flex: "0 0 44px" } : { flex: 1 }}>
         <Button
           style={{ ...compactButtonStyle, marginBottom: 0, ...(install && quickAction && { padding: 0 }) }}
-          onClick={(event) => {
-            // Its Repository button closes it from code, which doesn't give focus back here.
-            rememberOpener(event.currentTarget);
-            showModal(
-              <AppDetailsModal
-                t={t}
-                app={app}
-                preference={preference}
-                downloadDisabled={downloadDisabled}
-                hiddenButtons={hiddenButtons}
-                onDownload={onDownload}
-                onPreferenceChange={(next) => onPreferenceChange(app.repo, next)}
-                onUninstalled={onUninstalled}
-              />
-            );
-          }}
+          onClick={openManage}
         >
           {/* The label stays as hidden text, so the gear keeps its name for screen readers and tests. */}
           <FaCog /> <span style={install && quickAction ? visuallyHidden : undefined}>{t("appcard.manage")}</span>
         </Button>
-        </div>
-      </Focusable>
+      </div>
+    </Focusable>
   );
   if (row)
     return (
@@ -133,28 +232,79 @@ export function AppCard({
       // Name and its release / stats on the left, badges beside them, and under both the
       // description on up to two lines: one line beside the name showed ~35 characters on a
       // Deck, too little to tell what a plugin does without opening it.
-      <div className="deckyhub-app-row deckyhub-focus-ring" style={{ ...surfaceStyle, display: "grid", gridTemplateColumns: "40px minmax(0, 1.5fr) minmax(0, 1.5fr) 230px", gridTemplateRows: "auto auto auto", alignItems: "center", columnGap: 12, rowGap: 2, padding: "8px 12px" }}>
+      <div
+        className="deckyhub-app-row deckyhub-focus-ring"
+        style={{
+          ...surfaceStyle,
+          display: "grid",
+          gridTemplateColumns: "40px minmax(0, 1.5fr) minmax(0, 1.5fr) 230px",
+          gridTemplateRows: "auto auto auto",
+          alignItems: "center",
+          columnGap: 12,
+          rowGap: 2,
+          padding: "8px 12px",
+        }}
+      >
         <AppMonogram app={app} style={{ gridRow: "1 / 4", width: 40, height: 40, fontSize: "0.85em" }} />
         <h3 style={{ ...cardTitleStyle, gridColumn: 2, gridRow: 1 }}>{app.name}</h3>
         {/* The release an Install / Update gives, then the stats. */}
-        <div style={{ gridColumn: 2, gridRow: 2, display: "flex", gap: 10, minWidth: 0, overflow: "hidden", whiteSpace: "nowrap", color: "#8b9aa7", fontSize: "max(12px, 0.8em)" }}>
+        <div
+          style={{
+            gridColumn: 2,
+            gridRow: 2,
+            display: "flex",
+            gap: 10,
+            minWidth: 0,
+            overflow: "hidden",
+            whiteSpace: "nowrap",
+            color: colors.subtle,
+            fontSize: "max(12px, 0.8em)",
+          }}
+        >
           {/* A long version ("v2025.10.27-dddf365") gives way with "…"; the counts always show. */}
-          <span style={{ ...ellipsis, color: "#c3cfd9" }}>{t("settings.latestVersion", { version: app.latestVersion ? displayVersion(app.latestVersion) : app.error ? "—" : t("settings.checkingUpdate") })}</span>
+          <span style={{ ...ellipsis, color: colors.textSecondary }}>
+            {t("settings.latestVersion", {
+              version: app.latestVersion
+                ? displayVersion(app.latestVersion)
+                : app.error
+                  ? "—"
+                  : t("settings.checkingUpdate"),
+            })}
+          </span>
           <AppStats app={app} t={t} noUpdated />
         </div>
         {/* Status and badges. */}
-        <div style={{ gridColumn: 3, gridRow: "1 / 3", display: "flex", flexWrap: "wrap", alignItems: "center", alignContent: "center", gap: "2px 10px" }}>
+        <div
+          style={{
+            gridColumn: 3,
+            gridRow: "1 / 3",
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            alignContent: "center",
+            gap: "2px 10px",
+          }}
+        >
           {statusPill}
           {channelPill}
           <AppBadges app={app} t={t} />
         </div>
         {/* What the plugin is, or for an update what it brings, across both columns. */}
         {!app.error && notes ? (
-          <small className="deckyhub-card-notes deckyhub-row-description" style={{ ...cardDescriptionStyle, gridColumn: "2 / 4", gridRow: 3, color: "#d8e6f0" }}>
-            <strong style={{ color: "#f0c33c" }}>{t("details.whatsNew", { version: `v${latest}` })}:</strong> {notes}
+          <small
+            className="deckyhub-card-notes deckyhub-row-description"
+            style={{ ...cardDescriptionStyle, gridColumn: "2 / 4", gridRow: 3, color: "#d8e6f0" }}
+          >
+            <strong style={{ color: colors.warning }}>{t("details.whatsNew", { version: `v${latest}` })}:</strong>{" "}
+            {notes}
           </small>
         ) : (
-          <small className="deckyhub-row-description" style={{ ...cardDescriptionStyle, gridColumn: "2 / 4", gridRow: 3, color: "#b8c7d3" }}>{app.error || app.description}</small>
+          <small
+            className="deckyhub-row-description"
+            style={{ ...cardDescriptionStyle, gridColumn: "2 / 4", gridRow: 3, color: colors.muted }}
+          >
+            {app.error || app.description}
+          </small>
         )}
         <div style={{ gridColumn: 4, gridRow: "1 / 4" }}>{actions}</div>
       </div>
@@ -171,18 +321,53 @@ export function AppCard({
         {channelPill}
         <AppBadges app={app} t={t} />
       </div>
-      <small style={{ ...cardDescriptionStyle, ...fullRow, gridRow: 4, display: "-webkit-box", color: "#b8c7d3" }}>{app.description || " "}</small>
-      <div style={{ ...fullRow, gridRow: 5, display: "flex", flexWrap: "wrap", gap: "2px 14px", color: "#8b9aa7", fontSize: "max(12px, 0.8em)" }}>
-        {app.installedVersion && <span>{t("settings.installedVersion", { version: displayVersion(app.installedVersion) })}</span>}
+      <small style={{ ...cardDescriptionStyle, ...fullRow, gridRow: 4, display: "-webkit-box", color: colors.muted }}>
+        {app.description || " "}
+      </small>
+      <div
+        style={{
+          ...fullRow,
+          gridRow: 5,
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "2px 14px",
+          color: colors.subtle,
+          fontSize: "max(12px, 0.8em)",
+        }}
+      >
+        {app.installedVersion && (
+          <span>{t("settings.installedVersion", { version: displayVersion(app.installedVersion) })}</span>
+        )}
         {/* No release and no error yet: its GitHub check is still running. */}
-        <span>{t("settings.latestVersion", { version: app.latestVersion ? displayVersion(app.latestVersion) : app.error ? "—" : t("settings.checkingUpdate") })}</span>
+        <span>
+          {t("settings.latestVersion", {
+            version: app.latestVersion
+              ? displayVersion(app.latestVersion)
+              : app.error
+                ? "—"
+                : t("settings.checkingUpdate"),
+          })}
+        </span>
         <AppStats app={app} t={t} />
       </div>
-      {app.error && <small style={{ ...fullRow, gridRow: 6, color: "#ff6b6b", overflowWrap: "anywhere" }}>{app.error}</small>}
+      {app.error && (
+        <small style={{ ...fullRow, gridRow: 6, color: colors.danger, overflowWrap: "anywhere" }}>{app.error}</small>
+      )}
       {/* What an update brings, so you can decide on the card; Y (Release Info) reads it all. */}
       {isUpdate && notes && (
-        <small className="deckyhub-card-notes" style={{ ...cardDescriptionStyle, ...fullRow, gridRow: 7, display: "-webkit-box", color: "#d8e6f0", borderLeft: "2px solid #f0c33c", paddingLeft: 8 }}>
-          <strong style={{ color: "#f0c33c" }}>{t("details.whatsNew", { version: `v${latest}` })}:</strong> {notes}
+        <small
+          className="deckyhub-card-notes"
+          style={{
+            ...cardDescriptionStyle,
+            ...fullRow,
+            gridRow: 7,
+            display: "-webkit-box",
+            color: "#d8e6f0",
+            borderLeft: "2px solid #f0c33c",
+            paddingLeft: 8,
+          }}
+        >
+          <strong style={{ color: colors.warning }}>{t("details.whatsNew", { version: `v${latest}` })}:</strong> {notes}
         </small>
       )}
       {actions}

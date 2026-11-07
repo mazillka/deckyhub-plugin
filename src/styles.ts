@@ -1,6 +1,35 @@
 export const DEFAULT_COLUMNS_PER_ROW = 3;
 
-export const pageStyle = { boxSizing: "border-box" as const, height: "100%", overflowY: "auto" as const, padding: "64px 12px 96px", scrollPaddingBottom: 96, scrollPaddingTop: 64, width: "100%" };
+// The colors components share; a shade used once stays where it's used.
+export const colors = {
+  danger: "#ff6b6b",
+  dangerSoft: "#ff8a8a",
+  warning: "#f0c33c",
+  caution: "#ffb35c",
+  prerelease: "#ffa94d",
+  success: "#6bcb6b",
+  accent: "#8fcef4",
+  blue: "#1a9fff",
+  text: "#fff",
+  textSecondary: "#c3cfd9",
+  muted: "#b8c7d3",
+  dim: "#9fb0bf",
+  subtle: "#8b9aa7",
+  info: "#d6f5ff",
+} as const;
+
+// A badge's text, fill and border in one color (with pillStyle).
+export const tint = (color: string) => ({ color, background: `${color}22`, borderColor: `${color}66` });
+
+export const pageStyle = {
+  boxSizing: "border-box" as const,
+  height: "100%",
+  overflowY: "auto" as const,
+  padding: "64px 12px 96px",
+  scrollPaddingBottom: 96,
+  scrollPaddingTop: 64,
+  width: "100%",
+};
 
 // Sizes read CSS variables that fall back to the Default density; the Compact
 // setting overrides them on the page root (see applyDensity).
@@ -9,17 +38,34 @@ export const iconRow = { display: "flex", alignItems: "center", justifyContent: 
 
 // minWidth 0: Steam's DialogButton has a minimum width of its own, which pushed a
 // narrow button (the Manage gear) over its neighbour in side-by-side rows on a Deck.
-export const compactButtonStyle = { ...iconRow, width: "100%", minWidth: 0, minHeight: "var(--dh-button-height, 40px)", marginBottom: "var(--dh-button-gap, 8px)", padding: "var(--dh-button-padding, 6px 10px)" };
+export const compactButtonStyle = {
+  ...iconRow,
+  width: "100%",
+  minWidth: 0,
+  minHeight: "var(--dh-button-height, 40px)",
+  marginBottom: "var(--dh-button-gap, 8px)",
+  padding: "var(--dh-button-padding, 6px 10px)",
+};
 
 // One line, cut with … when it doesn't fit (a long version in a button, stats in a row).
 export const ellipsis = { minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const };
 
 export const modalButtonStyle = { ...compactButtonStyle, marginBottom: 0 };
 
-export const sectionDividerStyle = { borderTop: "1px solid rgba(255, 255, 255, 0.14)", margin: "var(--dh-divider-margin, 16px) 0" };
+export const sectionDividerStyle = {
+  borderTop: "1px solid rgba(255, 255, 255, 0.14)",
+  margin: "var(--dh-divider-margin, 16px) 0",
+};
 
 // Text screen readers (and tests) still read, e.g. an icon-only button's label.
-export const visuallyHidden = { position: "absolute" as const, width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" as const };
+export const visuallyHidden = {
+  position: "absolute" as const,
+  width: 1,
+  height: 1,
+  overflow: "hidden",
+  clip: "rect(0 0 0 0)",
+  whiteSpace: "nowrap" as const,
+};
 
 export const windowGap = "var(--dh-window-gap, 10px)";
 
@@ -27,10 +73,23 @@ export const gridGap = "var(--dh-grid-gap, 12px)";
 
 // The tile every card and section is drawn on (see Card and AppCard).
 // Same no-responsibility note the install confirm shows, kept in view on the Updates, Discover and Search pages.
-export const disclaimerStyle = { marginBottom: "var(--dh-card-gap, 14px)", padding: "8px 12px", color: "#ffb3b3", fontSize: "max(12px, 0.85em)", background: "rgba(255, 107, 107, 0.08)", borderLeft: "3px solid #ff6b6b", borderRadius: 6 };
+export const disclaimerStyle = {
+  marginBottom: "var(--dh-card-gap, 14px)",
+  padding: "8px 12px",
+  color: "#ffb3b3",
+  fontSize: "max(12px, 0.85em)",
+  background: "rgba(255, 107, 107, 0.08)",
+  borderLeft: "3px solid #ff6b6b",
+  borderRadius: 6,
+};
 
 // A notice that explains rather than warns (what the badges mean): the same shape in blue.
-export const infoNoticeStyle = { ...disclaimerStyle, color: "#d6f5ff", background: "rgba(29, 117, 204, 0.1)", borderLeft: "3px solid #1d75cc" };
+export const infoNoticeStyle = {
+  ...disclaimerStyle,
+  color: "#d6f5ff",
+  background: "rgba(29, 117, 204, 0.1)",
+  borderLeft: "3px solid #1d75cc",
+};
 
 export const surfaceStyle = {
   background: "linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02))",

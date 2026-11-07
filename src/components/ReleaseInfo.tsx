@@ -1,4 +1,5 @@
-import { ConfirmModal, Focusable, showModal } from "@decky/ui";
+import { Focusable, showModal } from "@decky/ui";
+import { WideConfirmModal } from "./WideModal";
 import { useEffect, useRef, type ReactNode } from "react";
 import type { TFunc } from "../i18n/en";
 import { plainNotes, textSections } from "../notes";
@@ -9,15 +10,21 @@ export { plainNotes, textSections };
 // Y on an Install/Update button shows what that release changes before installing it.
 export const showReleaseInfo = (t: TFunc, title: string, publishedAt?: string | null, notes?: string) =>
   showModal(
-    <ConfirmModal
+    <WideConfirmModal
       bAlertDialog
       strTitle={title}
       strDescription={
         <FromTop>
-          {publishedAt && <p><small>{new Date(publishedAt).toLocaleDateString()}</small></p>}
+          {publishedAt && (
+            <p>
+              <small>{new Date(publishedAt).toLocaleDateString()}</small>
+            </p>
+          )}
           <Focusable flow-children="down">
             {textSections(plainNotes(notes) || t("appcard.noReleaseNotes")).map((section, index) => (
-              <Focusable key={index} onActivate={() => {}} onFocus={keepInView}>{section}</Focusable>
+              <Focusable key={index} onActivate={() => {}} onFocus={keepInView}>
+                {section}
+              </Focusable>
             ))}
           </Focusable>
         </FromTop>
@@ -32,11 +39,16 @@ function FromTop({ children }: { children: ReactNode }) {
   useEffect(() => {
     const toTop = () => {
       for (let el = ref.current?.parentElement; el; el = el.parentElement) {
-        if (el.scrollHeight > el.clientHeight + 2 && /auto|scroll/.test(getComputedStyle(el).overflowY)) el.scrollTop = 0;
+        if (el.scrollHeight > el.clientHeight + 2 && /auto|scroll/.test(getComputedStyle(el).overflowY))
+          el.scrollTop = 0;
       }
     };
     const timers = [0, 100, 300].map((delay) => window.setTimeout(toTop, delay));
     return () => timers.forEach((timer) => window.clearTimeout(timer));
   }, []);
-  return <div ref={ref} style={{ whiteSpace: "pre-wrap" }}>{children}</div>;
+  return (
+    <div ref={ref} style={{ whiteSpace: "pre-wrap" }}>
+      {children}
+    </div>
+  );
 }

@@ -4,6 +4,7 @@ import { FaCheck, FaShieldAlt } from "react-icons/fa";
 import { useT } from "../i18n";
 import { compactButtonStyle } from "../utils";
 import { Card, IconNote } from "./Card";
+import { colors } from "../styles";
 
 const WELCOME_KEY = "deckyhub-welcome";
 
@@ -30,12 +31,12 @@ export function Welcome() {
     setShow(false);
   };
   return (
-    <Card accent="#1a9fff">
+    <Card accent={colors.blue}>
       <div className="deckyhub-welcome" style={{ paddingTop: 12 }}>
         <PanelSection>
           <PanelSectionRow>
             <div style={{ display: "grid", gap: 8 }}>
-              <strong style={{ color: "#fff", fontSize: "1.15em" }}>{t("welcome.title")}</strong>
+              <strong style={{ color: colors.text, fontSize: "1.15em" }}>{t("welcome.title")}</strong>
               <div>{t("welcome.body")}</div>
               <IconNote icon={<FaShieldAlt />}>{t("welcome.safety")}</IconNote>
             </div>

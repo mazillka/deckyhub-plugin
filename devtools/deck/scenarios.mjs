@@ -7,20 +7,50 @@ import { connect, goTo, resetFocus, sleep, TARGETS, waitFor } from "./cdp.mjs";
 import { BUTTON, press } from "./navigation.mjs";
 
 const AUDIT = readFileSync(new URL("./audit.js", import.meta.url), "utf8");
-const LANGUAGES = ["en", "uk", "ru", "es", "de", "fr", "pt", "pt-PT", "it", "pl", "tr", "nl", "cs", "ja", "ko", "zh", "zh-TW"];
+const LANGUAGES = [
+  "en",
+  "uk",
+  "ru",
+  "es",
+  "de",
+  "fr",
+  "pt",
+  "pt-PT",
+  "it",
+  "pl",
+  "tr",
+  "nl",
+  "cs",
+  "ja",
+  "ko",
+  "zh",
+  "zh-TW",
+];
 const PAGES = ["discover", "updates", "search", "settings"];
 const TAB_ID = 0x444855;
 
 const shared = await connect(TARGETS.shared);
 const main = await connect(TARGETS.main);
 const quickAccess = await connect(TARGETS.quickAccess);
-const backend = (method, ...args) => shared.eval(`DeckyBackend.call("loader/call_plugin_method", "DeckyHub", ${JSON.stringify(method)}${args.map((arg) => `, ${JSON.stringify(arg)}`).join("")})`);
+const backend = (method, ...args) =>
+  shared.eval(
+    `DeckyBackend.call("loader/call_plugin_method", "DeckyHub", ${JSON.stringify(method)}${args.map((arg) => `, ${JSON.stringify(arg)}`).join("")})`,
+  );
 const audit = (page, root) => page.eval(`JSON.stringify((${AUDIT})(${JSON.stringify(root)}))`).then(JSON.parse);
-const local = (key, value) => shared.eval(value === null ? `localStorage.removeItem(${JSON.stringify(key)}); true` : `localStorage.setItem(${JSON.stringify(key)}, ${JSON.stringify(value)}); true`);
+const local = (key, value) =>
+  shared.eval(
+    value === null
+      ? `localStorage.removeItem(${JSON.stringify(key)}); true`
+      : `localStorage.setItem(${JSON.stringify(key)}, ${JSON.stringify(value)}); true`,
+  );
 
 const startPath = await shared.eval("location.pathname.slice('/routes'.length)");
 const original = await backend("get_settings");
-const originalLocal = JSON.parse(await shared.eval(`JSON.stringify({ layout: localStorage.getItem("deckyhub-layout"), welcome: localStorage.getItem("deckyhub-welcome") })`));
+const originalLocal = JSON.parse(
+  await shared.eval(
+    `JSON.stringify({ layout: localStorage.getItem("deckyhub-layout"), welcome: localStorage.getItem("deckyhub-welcome") })`,
+  ),
+);
 
 // Saves settings and has every open DeckyHub view pick them up (I18nProvider listens).
 const settings = async (changes) => {
@@ -46,7 +76,9 @@ async function auditPages(scenario, pages = PAGES) {
     if (name === "settings") {
       await press(shared, BUTTON.DOWN, 500);
       for (let tab = 0; tab < 6; tab++) {
-        const id = await main.eval(`[...document.querySelectorAll("[class^=deckyhub-settings-]")].map((e) => e.className).find((c) => /^deckyhub-settings-(general|github|downloads|repositories|troubleshoot|about)$/.test(c)) ?? "tab" + ${tab}`);
+        const id = await main.eval(
+          `[...document.querySelectorAll("[class^=deckyhub-settings-]")].map((e) => e.className).find((c) => /^deckyhub-settings-(general|github|downloads|repositories|troubleshoot|about)$/.test(c)) ?? "tab" + ${tab}`,
+        );
         record(scenario, id.replace("deckyhub-", ""), await audit(main, ".deckyhub-motion"));
         await press(shared, 6, 1000); // R1
       }
@@ -69,11 +101,15 @@ async function auditAllPlugins(scenario) {
   await goTo(shared, "/deckyhub/discover");
   await waitFor(main, `!!document.querySelector(".deckyhub-category-chips")`, 30000);
   await sleep(1500);
-  await main.eval(`[...document.querySelectorAll(".deckyhub-category-chips button, .deckyhub-category-chips .DialogButton")][1].click(); true`);
+  await main.eval(
+    `[...document.querySelectorAll(".deckyhub-category-chips button, .deckyhub-category-chips .DialogButton")][1].click(); true`,
+  );
   await waitFor(main, `!!document.querySelector(".deckyhub-back-button")`);
   await sleep(2000);
   // Filters open, a category picked from its chip.
-  await main.eval(`[...document.querySelectorAll(".deckyhub-motion button, .deckyhub-motion .DialogButton")].find((b) => b.getAttribute("aria-expanded") === "false" && b.querySelector("svg"))?.click(); true`);
+  await main.eval(
+    `[...document.querySelectorAll(".deckyhub-motion button, .deckyhub-motion .DialogButton")].find((b) => b.getAttribute("aria-expanded") === "false" && b.querySelector("svg"))?.click(); true`,
+  );
   await sleep(1200);
   record(scenario, "all-plugins (a category, Filters open)", await audit(main, ".deckyhub-motion"));
 }
@@ -116,8 +152,12 @@ const SCENARIOS = {
   async noResults() {
     await goTo(shared, "/deckyhub/search");
     await waitFor(main, `!!document.querySelector(".deckyhub-motion input")`, 30000);
-    await main.eval(`(() => { const input = document.querySelector(".deckyhub-motion input"); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set.call(input, "zzqqxx no such decky plugin"); input.dispatchEvent(new Event("input", { bubbles: true })); return true; })()`);
-    await main.eval(`[...document.querySelectorAll(".deckyhub-motion button, .deckyhub-motion .DialogButton")].find((b) => b.textContent.trim() === "Search").click(); true`);
+    await main.eval(
+      `(() => { const input = document.querySelector(".deckyhub-motion input"); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set.call(input, "zzqqxx no such decky plugin"); input.dispatchEvent(new Event("input", { bubbles: true })); return true; })()`,
+    );
+    await main.eval(
+      `[...document.querySelectorAll(".deckyhub-motion button, .deckyhub-motion .DialogButton")].find((b) => b.textContent.trim() === "Search").click(); true`,
+    );
     await sleep(5000);
     record("search with no results", "search", await audit(main, ".deckyhub-motion"));
   },
@@ -125,7 +165,8 @@ const SCENARIOS = {
 
 const chosen = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(SCENARIOS);
 try {
-  if ((await main.screenshot()).length < 15000) throw new Error("The Deck's screen is off: wake it and keep it awake while testing.");
+  if ((await main.screenshot()).length < 15000)
+    throw new Error("The Deck's screen is off: wake it and keep it awake while testing.");
   for (const name of chosen) {
     console.log(`… ${name}`);
     // A scenario that breaks is a finding too; the rest still run.

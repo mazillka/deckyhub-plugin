@@ -1,0 +1,2 @@
+# Development only: the plugin's backend uses just the Python standard library.
+ruff==0.17.4

@@ -8,7 +8,11 @@ import { Card, IconNote } from "./Card";
 // The community catalogs most listed plugins were found through (see the
 // registry's scripts/discover.py), credited in About.
 const CATALOGS = [
-  { name: "Decky Plugins Explorer", author: "SafetZahirovic", url: "https://github.com/SafetZahirovic/decky-plugins-explorer" },
+  {
+    name: "Decky Plugins Explorer",
+    author: "SafetZahirovic",
+    url: "https://github.com/SafetZahirovic/decky-plugins-explorer",
+  },
   { name: "Decky Extended Plugins", author: "beallio", url: "https://github.com/beallio/decky-plugins-extended" },
 ];
 
@@ -22,7 +26,10 @@ export function AboutSection() {
           <IconNote icon={<FaInfoCircle />}>{t("settings.aboutText")}</IconNote>
         </PanelSectionRow>
         <PanelSectionRow>
-          <Button style={compactButtonStyle} onClick={() => openExternalWeb("https://github.com/mazillka/deckyhub-plugin")}>
+          <Button
+            style={compactButtonStyle}
+            onClick={() => openExternalWeb("https://github.com/mazillka/deckyhub-plugin")}
+          >
             <FaGithub /> {t("settings.aboutSource")}
           </Button>
         </PanelSectionRow>
@@ -33,7 +40,11 @@ export function AboutSection() {
         {CATALOGS.map((catalog) => (
           <PanelSectionRow key={catalog.url}>
             {/* Name and author on a line each: as one sentence it wrapped to three in the panel. */}
-            <Button style={compactButtonStyle} aria-label={t("settings.catalogBy", { name: catalog.name, author: catalog.author })} onClick={() => openExternalWeb(catalog.url)}>
+            <Button
+              style={compactButtonStyle}
+              aria-label={t("settings.catalogBy", { name: catalog.name, author: catalog.author })}
+              onClick={() => openExternalWeb(catalog.url)}
+            >
               <FaExternalLinkAlt />
               <span aria-hidden style={{ display: "grid", minWidth: 0, textAlign: "left" }}>
                 <span>{catalog.name}</span>

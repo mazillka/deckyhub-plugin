@@ -20,7 +20,18 @@ const saved: Partial<Record<View, BrowseState>> = {};
 let returningUntil = 0;
 
 export const saveBrowse = (view: View, patch: Partial<BrowseState>) => {
-  saved[view] = { browsing: false, query: "", installedFilter: "All", categoryFilter: "", sortOrder: "az", thenBy: "az", count: 0, scroll: 0, ...saved[view], ...patch };
+  saved[view] = {
+    browsing: false,
+    query: "",
+    installedFilter: "All",
+    categoryFilter: "",
+    sortOrder: "az",
+    thenBy: "az",
+    count: 0,
+    scroll: 0,
+    ...saved[view],
+    ...patch,
+  };
 };
 
 // Called when a page opens in Steam's browser.
@@ -31,4 +42,5 @@ export const returned = () => {
   returningUntil = 0;
 };
 
-export const restoreBrowse = (view: View): BrowseState | undefined => (Date.now() < returningUntil ? saved[view] : undefined);
+export const restoreBrowse = (view: View): BrowseState | undefined =>
+  Date.now() < returningUntil ? saved[view] : undefined;

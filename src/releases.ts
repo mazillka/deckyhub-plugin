@@ -1,7 +1,17 @@
 import { log } from "./log";
 import { tr } from "./translate";
-import { type App, type AppReleaseOption, type Asset, type DeckyHubRelease, type DeckyHubReleaseOption, type PluginStats, type RepoPreference, type UpdateChannel, type VirusScan } from "./types";
-import { compareVersions, inChannel, releaseVersion } from "./version";
+import {
+  type App,
+  type AppReleaseOption,
+  type Asset,
+  type DeckyHubRelease,
+  type DeckyHubReleaseOption,
+  type PluginStats,
+  type RepoPreference,
+  type UpdateChannel,
+  type VirusScan,
+} from "./types";
+import { compareVersions, inChannel, installedRelease, releaseVersion } from "./version";
 import { fetchNoCors } from "@decky/api";
 import { getSettings } from "./api";
 import { githubFetch, githubHeaders, githubResponseError, githubToken } from "./github";
@@ -38,7 +48,8 @@ let cachePruned = false;
 
 function pruneReleaseCache() {
   for (const key of Object.keys(localStorage)) {
-    if (key.startsWith(RELEASES_CACHE_PREFIX) && !(Date.now() - (readCache(key)?.at ?? 0) < CACHE_MAX_AGE)) localStorage.removeItem(key);
+    if (key.startsWith(RELEASES_CACHE_PREFIX) && !(Date.now() - (readCache(key)?.at ?? 0) < CACHE_MAX_AGE))
+      localStorage.removeItem(key);
   }
 }
 
@@ -62,7 +73,11 @@ function matchingAssets(app: App, assets: Asset[]): Asset[] {
   const exclude = app.asset.exclude.map((word) => word.toLowerCase());
   return assets.filter((asset) => {
     const name = asset.name.toLowerCase();
-    return name.endsWith(".zip") && !exclude.some((word) => name.includes(word)) && (!include.length || include.every((word) => name.includes(word)));
+    return (
+      name.endsWith(".zip") &&
+      !exclude.some((word) => name.includes(word)) &&
+      (!include.length || include.every((word) => name.includes(word)))
+    );
   });
 }
 
@@ -72,7 +87,15 @@ function matchingAssets(app: App, assets: Asset[]): Asset[] {
 // tag/asset filters on top, so a changed filter never serves stale results.
 // GitHub's list endpoint isn't reliably sorted newest-first (a just-published
 // release has been seen mid-array), so sort by published date here.
-export type Release = { tag: string; pluginVersion?: string; prerelease: boolean; publishedAt: string | null; url: string; notes?: string; assets: Asset[] };
+export type Release = {
+  tag: string;
+  pluginVersion?: string;
+  prerelease: boolean;
+  publishedAt: string | null;
+  url: string;
+  notes?: string;
+  assets: Asset[];
+};
 
 // Lookups for the same repo that overlap share one request.
 const inFlight = new Map<string, Promise<Release[]>>();
@@ -106,7 +129,10 @@ export function setRegistryChannel(channel: UpdateChannel | undefined) {
   registryChannelLoaded = Promise.resolve();
 }
 
-const indexUrls = (file: string) => [...(registryChannel === "prerelease" ? [`${REGISTRY_RAW}release-index-develop/${file}`] : []), `${REGISTRY_RAW}release-index/${file}`];
+const indexUrls = (file: string) => [
+  ...(registryChannel === "prerelease" ? [`${REGISTRY_RAW}release-index-develop/${file}`] : []),
+  `${REGISTRY_RAW}release-index/${file}`,
+];
 
 // An index this old means its job stopped publishing; ask GitHub instead. Generous on
 // purpose: GitHub skips scheduled runs for hours at a time, and a list of 300+ plugins
@@ -119,19 +145,31 @@ const RELEASE_INDEX_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 // downloads the other branch's. `pick` turns the file into what callers get, and its
 // fallback stands in for a missing or broken file, which moves on to the next URL.
 // `urlsOf` picks where the file lives: the channel's release index by default.
-function cachedRawJson<T>(file: string, pick: (data: any) => T, fallback: T, urlsOf: (file: string) => string[] = indexUrls) {
+function cachedRawJson<T>(
+  file: string,
+  pick: (data: any) => T,
+  fallback: T,
+  urlsOf: (file: string) => string[] = indexUrls,
+) {
   const cached = createRawCache((urls) => firstRawJson(urls, pick, fallback), CACHE_TTL, FAILED_RAW_JSON_TTL);
   return async (force = false) => {
     // A failed settings read is retried on the next call rather than kept.
-    registryChannelLoaded ??= getSettings().then((settings) => setRegistryChannel(settings.registryChannel), () => {
-      registryChannelLoaded = null;
-    });
+    registryChannelLoaded ??= getSettings().then(
+      (settings) => setRegistryChannel(settings.registryChannel),
+      () => {
+        registryChannelLoaded = null;
+      },
+    );
     await registryChannelLoaded;
     return cached(urlsOf(file), force);
   };
 }
 
-async function firstRawJson<T>(urls: string[], pick: (data: any) => T, fallback: T): Promise<{ value: T; failed: boolean }> {
+async function firstRawJson<T>(
+  urls: string[],
+  pick: (data: any) => T,
+  fallback: T,
+): Promise<{ value: T; failed: boolean }> {
   for (const url of urls) {
     try {
       const response = await fetchNoCors(url, { signal: AbortSignal.timeout(15_000) });
@@ -163,7 +201,7 @@ export const fetchPluginStats = cachedRawJson<Record<string, PluginStats>>(
 // there) publishes it on its own branch, the same for both Registry channels.
 const fetchVirusScansResult = cachedRawJson<Record<string, VirusScan> | null>(
   "scans.json",
-  (scans) => scans.files && typeof scans.files === "object" && !Array.isArray(scans.files) ? scans.files : null,
+  (scans) => (scans.files && typeof scans.files === "object" && !Array.isArray(scans.files) ? scans.files : null),
   null,
   (file) => [`${REGISTRY_RAW}virus-scans/${file}`],
 );
@@ -189,7 +227,8 @@ export async function virusScanOf(asset: Asset, force = false): Promise<VirusSca
 
 const fetchVirusTotalReports = cachedRawJson<Record<string, unknown> | null>(
   "reports.json",
-  (index) => index.reports && typeof index.reports === "object" && !Array.isArray(index.reports) ? index.reports : null,
+  (index) =>
+    index.reports && typeof index.reports === "object" && !Array.isArray(index.reports) ? index.reports : null,
   null,
   (file) => [`${REGISTRY_RAW}virustotal-reports/${file}`],
 );
@@ -208,16 +247,23 @@ export async function virusTotalReportOf(asset: Asset) {
   if (report.state === "unsupported") return { state: "unsupported" as const };
   if (report.state !== "complete" || !report.stats) return null;
   const { malicious, suspicious, harmless, undetected } = report.stats;
-  const count = (value: unknown): value is number => typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
+  const count = (value: unknown): value is number =>
+    typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
   if (!count(malicious) || !count(suspicious) || !count(harmless) || !count(undetected)) return null;
   const total = malicious + suspicious + harmless + undetected;
   if (!total) return null;
-  return { state: "complete" as const, flagged: malicious + suspicious, total, scannedAt: count(report.scannedAt) ? report.scannedAt : undefined };
+  return {
+    state: "complete" as const,
+    flagged: malicious + suspicious,
+    total,
+    scannedAt: count(report.scannedAt) ? report.scannedAt : undefined,
+  };
 }
 
 const fetchMetaDefenderReports = cachedRawJson<Record<string, unknown> | null>(
   "reports.json",
-  (index) => index.reports && typeof index.reports === "object" && !Array.isArray(index.reports) ? index.reports : null,
+  (index) =>
+    index.reports && typeof index.reports === "object" && !Array.isArray(index.reports) ? index.reports : null,
   null,
   (file) => [`${REGISTRY_RAW}metadefender-reports/${file}`],
 );
@@ -233,8 +279,22 @@ export async function metaDefenderReportOf(asset: Asset) {
   if (report.state === "error") return { state: "error" as const };
   if (report.state !== "complete") return null;
   const { flagged, total, dataId } = report;
-  if (typeof flagged !== "number" || !Number.isSafeInteger(flagged) || flagged < 0 || typeof total !== "number" || !Number.isSafeInteger(total) || total <= 0 || flagged > total) return null;
-  return { state: "complete" as const, flagged, total, dataId: typeof dataId === "string" && /^[A-Za-z0-9_-]+$/.test(dataId) ? dataId : undefined };
+  if (
+    typeof flagged !== "number" ||
+    !Number.isSafeInteger(flagged) ||
+    flagged < 0 ||
+    typeof total !== "number" ||
+    !Number.isSafeInteger(total) ||
+    total <= 0 ||
+    flagged > total
+  )
+    return null;
+  return {
+    state: "complete" as const,
+    flagged,
+    total,
+    dataId: typeof dataId === "string" && /^[A-Za-z0-9_-]+$/.test(dataId) ? dataId : undefined,
+  };
 }
 
 const DECKYHUB_REPO = "mazillka/deckyhub-plugin";
@@ -280,7 +340,12 @@ async function requestReleases(repo: string, force: boolean): Promise<Release[]>
       publishedAt: item.published_at || null,
       url: item.html_url || `https://github.com/${repo}/releases`,
       notes: typeof item.body === "string" ? item.body : undefined,
-      assets: (item.assets || []).map((asset: any) => ({ name: String(asset.name || ""), url: asset.browser_download_url, size: asset.size || 0, sha256: String(asset.digest || "").replace(/^sha256:/, "") || undefined })),
+      assets: (item.assets || []).map((asset: any) => ({
+        name: String(asset.name || ""),
+        url: asset.browser_download_url,
+        size: asset.size || 0,
+        sha256: String(asset.digest || "").replace(/^sha256:/, "") || undefined,
+      })),
     }))
     .sort((a: Release, b: Release) => (Date.parse(b.publishedAt || "") || 0) - (Date.parse(a.publishedAt || "") || 0));
   // An empty answer never replaces releases we've already seen: that's far more likely
@@ -298,27 +363,38 @@ async function requestReleases(repo: string, force: boolean): Promise<Release[]>
 
 // A failed lookup becomes an empty list plus the error, for the caller to show.
 function listOrError<T>(items: Promise<T[]>): Promise<{ items: T[]; error?: string }> {
-  return items.then((items) => ({ items }), (error) => {
-    log(`Release lookup failed: ${error}`);
-    return { items: [], error: String(error) };
-  });
+  return items.then(
+    (items) => ({ items }),
+    (error) => {
+      log(`Release lookup failed: ${error}`);
+      return { items: [], error: String(error) };
+    },
+  );
 }
 
 // DeckyHub's own recent releases (both channels) for its update window's
 // version picker, each with its DeckyHub-*.zip only when it carries a SHA-256
 // — Decky Loader's installer needs one to verify the download.
 export function listDeckyHubReleases(force = false): Promise<{ items: DeckyHubReleaseOption[]; error?: string }> {
-  return listOrError(fetchReleases(DECKYHUB_REPO, force).then((releases) => releases.map(({ assets, ...release }) => ({
-    ...release,
-    asset: assets.find((asset) => /^DeckyHub-.*\.zip$/i.test(asset.name) && /^[0-9a-f]{64}$/i.test(asset.sha256 ?? "")),
-  }))));
+  return listOrError(
+    fetchReleases(DECKYHUB_REPO, force).then((releases) =>
+      releases.map(({ assets, ...release }) => ({
+        ...release,
+        asset: assets.find(
+          (asset) => /^DeckyHub-.*\.zip$/i.test(asset.name) && /^[0-9a-f]{64}$/i.test(asset.sha256 ?? ""),
+        ),
+      })),
+    ),
+  );
 }
 
 // Newest release on the given channel for the QAM "Update" button.
 export async function latestDeckyHubRelease(channel: UpdateChannel): Promise<DeckyHubRelease> {
   const { items, error } = await listDeckyHubReleases();
   const release = items.find((item) => inChannel(item, channel));
-  return release?.asset ? { version: release.tag, asset: release.asset, publishedAt: release.publishedAt, notes: release.notes } : { error: error ?? tr("release.noChecksum") };
+  return release?.asset
+    ? { version: release.tag, asset: release.asset, publishedAt: release.publishedAt, notes: release.notes }
+    : { error: error ?? tr("release.noChecksum") };
 }
 
 // A tracked app's recent releases (tag-filtered, assets matched to its
@@ -327,10 +403,42 @@ export async function latestDeckyHubRelease(channel: UpdateChannel): Promise<Dec
 // is skipped, so cards and the version picker fall back to the last installable one.
 export function listAppReleases(app: App, force = false): Promise<{ items: AppReleaseOption[]; error?: string }> {
   const tagInclude = app.releaseTagInclude?.toLowerCase();
-  return listOrError(fetchReleases(app.repo, force).then((releases) => releases
-    .filter((release) => !tagInclude || release.tag.toLowerCase().includes(tagInclude))
-    .map((release) => ({ ...release, assets: matchingAssets(app, release.assets) }))
-    .filter((release) => release.assets.length > 0)));
+  return listOrError(
+    fetchReleases(app.repo, force).then((releases) =>
+      releases
+        .filter((release) => !tagInclude || release.tag.toLowerCase().includes(tagInclude))
+        .map((release) => ({ ...release, assets: matchingAssets(app, release.assets) }))
+        .filter((release) => release.assets.length > 0),
+    ),
+  );
+}
+
+// What flagged the version a hydrated app has installed (not the one its card would
+// install): a threat from any of the four virus scans, and the registry audit's warnings
+// when they cover that release. Undefined when nothing did, or its ZIP isn't known.
+export async function installedRisk(app: App, force = false): Promise<App["installedRisk"]> {
+  const asset = app.installedAssets?.[0];
+  if (!asset) return undefined;
+  const [scans, stats, virusTotal, metaDefender] = await Promise.all([
+    fetchVirusScans(force),
+    fetchPluginStats(force),
+    virusTotalReportOf(asset).catch(() => null),
+    metaDefenderReportOf(asset).catch(() => null),
+  ]);
+  const scan = scanFor(scans, asset);
+  const threat =
+    scan?.result === "infected" ||
+    scan?.yara?.result === "infected" ||
+    !!(virusTotal && "flagged" in virusTotal && virusTotal.flagged) ||
+    !!(metaDefender && "flagged" in metaDefender && metaDefender.flagged);
+  const stat = stats[app.repo.toLowerCase()];
+  const warnings =
+    (app.installedAudit === "stable"
+      ? stat?.warnings
+      : app.installedAudit === "prerelease"
+        ? stat?.prereleaseWarnings
+        : undefined) ?? [];
+  return threat || warnings.length ? { threat, warnings } : undefined;
 }
 
 // Fills in a card's latest release for its channel and whether it's newer
@@ -341,9 +449,12 @@ export async function hydrate(app: App, force: boolean, preference?: RepoPrefere
   const release = items.find((item) => inChannel(item, channel));
   if (!release) return { ...app, channel, error: error ?? tr("release.noMatch") };
   const cmp = app.installedVersion ? compareVersions(releaseVersion(release), app.installedVersion) : null;
+  const installed = installedRelease(items, app.installedVersion);
   return {
     ...app,
     channel,
+    installedAssets: installed?.release.assets,
+    installedAudit: installed?.audit,
     latestVersion: release.tag,
     publishedAt: release.publishedAt,
     releaseUrl: release.url,

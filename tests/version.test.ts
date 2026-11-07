@@ -1,7 +1,7 @@
 // Run with `pnpm run test:frontend` (Node's built-in runner strips the types).
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { compareVersions, displayVersion, inChannel, releaseVersion } from "../src/version.ts";
+import { compareVersions, displayVersion, inChannel, installedRelease, releaseVersion } from "../src/version.ts";
 
 test("release numbers compare numerically, not as text", () => {
   assert.equal(compareVersions("1.10.0", "1.9.0"), 1);
@@ -48,4 +48,18 @@ test("a release installs as the version its ZIP reports, when the registry read 
   // Without it (older releases, repos outside the index) the tag is all there is.
   assert.equal(releaseVersion({ tag: "v0.45" }), "v0.45");
   assert.equal(releaseVersion({ tag: "v0.45", pluginVersion: "" }), "v0.45");
+});
+
+test("the installed version's release, and which audit covers it", () => {
+  const items = [
+    { tag: "v2.1.0-rc.1", prerelease: true },
+    { tag: "v2.0", pluginVersion: "2.0.0", prerelease: false },
+    { tag: "v1.9.0", prerelease: false },
+  ];
+  assert.deepEqual(installedRelease(items, "2.1.0-rc.1"), { release: items[0], audit: "prerelease" });
+  assert.deepEqual(installedRelease(items, "2.0.0"), { release: items[1], audit: "stable" });
+  assert.deepEqual(installedRelease(items, "1.9.0"), { release: items[2], audit: undefined });
+  assert.equal(installedRelease(items, "1.0.0"), undefined);
+  assert.equal(installedRelease(items, null), undefined);
+  assert.deepEqual(installedRelease([{ tag: "nightly", prerelease: false }], "nightly")?.audit, "stable");
 });

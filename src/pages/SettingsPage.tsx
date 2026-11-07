@@ -4,8 +4,16 @@ import { FaCog } from "react-icons/fa";
 import { getSettings, saveSettings } from "../api";
 import { PageHeader } from "../components/Card";
 import { AboutSection } from "../components/AboutSection";
-import { DisplaySection, DownloadsSection, GitHubAccessSection, LanguageSection, TroubleshootingSection } from "../components/SettingsSections";
+import {
+  DisplaySection,
+  DownloadsSection,
+  GitHubAccessSection,
+  LanguageSection,
+  TroubleshootingSection,
+} from "../components/SettingsSections";
 import { ManageRepositoriesPage } from "./ManageRepositoriesPage";
+import { ExpSettings } from "../components/experimental/ExpSettings";
+import { useUiStyle } from "../uiStyle";
 import { useLayout } from "../components/LayoutToggle";
 import { LOCALE_CHANGED, useT } from "../i18n";
 import type { Settings } from "../types";
@@ -14,13 +22,27 @@ import { DEFAULT_COLUMNS_PER_ROW, githubCoreQuota, setGithubToken } from "../uti
 
 export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
   const t = useT();
+  // Experimental swaps Steam's tab bar for a side menu (ExpSettings).
+  const experimental = useUiStyle() === "experimental";
   const [layout, setLayout] = useLayout();
   const [tab, setTab] = useState<SettingsTab>(() => {
     const opening = initialTab ?? nextTab;
     nextTab = "general";
     return opening;
   });
-  const [settings, setSettings] = useState<Settings>({ overwriteExisting: true, updateChannel: "stable", registryChannel: "stable", language: "auto", columnsPerRow: DEFAULT_COLUMNS_PER_ROW, githubToken: "", density: "default", haptics: true, quickAccessTab: true, hiddenButtons: [] });
+  const [settings, setSettings] = useState<Settings>({
+    overwriteExisting: true,
+    updateChannel: "stable",
+    registryChannel: "stable",
+    language: "auto",
+    columnsPerRow: DEFAULT_COLUMNS_PER_ROW,
+    githubToken: "",
+    density: "default",
+    haptics: true,
+    quickAccessTab: true,
+    uiStyle: "default",
+    hiddenButtons: [],
+  });
   // The token field saves on an explicit button (below), not per keystroke
   // like the other settings — typing a 40+ character token would otherwise
   // fire a save on every keystroke. This tracks the field independently of
@@ -54,7 +76,8 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
       if ("quickAccessTab" in next) setQuickAccessTab(saved.quickAccessTab);
       // Every mounted I18nProvider (one per route) re-syncs both the locale
       // and the GitHub token off this event — see i18n/index.tsx.
-      if ("language" in next || "githubToken" in next || "density" in next || "haptics" in next) window.dispatchEvent(new Event(LOCALE_CHANGED));
+      if ("language" in next || "githubToken" in next || "density" in next || "haptics" in next)
+        window.dispatchEvent(new Event(LOCALE_CHANGED));
     });
   };
 
@@ -62,8 +85,67 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
   // B leaves Settings in one press: Steam's tabs would spend the first B moving focus
   // up to the tab bar (seen on a Deck).
   const stack = (...sections: ReactNode[]) => (
-    <Focusable flow-children="down" className="deckyhub-settings-stack" onCancelButton={() => Navigation.NavigateBack()} style={{ display: "block", paddingTop: 8 }}>{sections}</Focusable>
+    <Focusable
+      flow-children="down"
+      className="deckyhub-settings-stack"
+      onCancelButton={() => Navigation.NavigateBack()}
+      style={{ display: "block", paddingTop: 8 }}
+    >
+      {sections}
+    </Focusable>
   );
+
+  const tabs = (
+    [
+      {
+        id: "general",
+        title: t("settings.tabGeneral"),
+        content: stack(
+          <LanguageSection key="language" settings={settings} update={update} />,
+          <DisplaySection key="display" settings={settings} update={update} layout={layout} onLayout={setLayout} />,
+        ),
+      },
+      {
+        id: "github",
+        // Just "GitHub" in every language: "Доступ до GitHub" overflowed Steam's tab bar.
+        title: "GitHub",
+        content: stack(
+          <GitHubAccessSection
+            key="github"
+            quota={quota}
+            tokenDraft={tokenDraft}
+            onTokenDraft={setTokenDraft}
+            savedToken={settings.githubToken}
+            update={update}
+          />,
+        ),
+      },
+      {
+        id: "downloads",
+        title: t("settings.tabDownloads"),
+        content: stack(<DownloadsSection key="downloads" settings={settings} update={update} />),
+      },
+      {
+        id: "repositories",
+        title: t("nav.repositories"),
+        content: stack(<ManageRepositoriesPage key="repositories" embedded />),
+      },
+      {
+        id: "troubleshoot",
+        title: t("settings.tabTroubleshoot"),
+        content: stack(<TroubleshootingSection key="troubleshooting" />),
+      },
+      {
+        id: "about",
+        // Tab names are kept short: six have to fit Steam's tab bar in every language.
+        title: t("settings.tabAbout"),
+        content: stack(<AboutSection key="about" />),
+      },
+      // Each tab's content says which tab it is, for tests on a Deck (Steam's own classes are minified).
+    ] as const
+  ).map((tab) => ({ ...tab, content: <div className={`deckyhub-settings-${tab.id}`}>{tab.content}</div> }));
+
+  if (experimental) return <ExpSettings tabs={tabs} active={tab} onSelect={setTab} />;
 
   return (
     <>
@@ -74,47 +156,11 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
           content scrolls inside. */}
       {/* overflow hidden: Steam slides the old and new tab side by side when switching,
           which made the whole page scroll sideways and flicker (seen on a Deck). */}
-      <div className="deckyhub-settings-tabs" style={{ height: "calc(100% - 16px)", marginBottom: -56, overflow: "hidden" }}>
-        <Tabs
-          activeTab={tab}
-          onShowTab={(id: string) => setTab(id as SettingsTab)}
-          autoFocusContents
-          tabs={([
-            {
-              id: "general",
-              title: t("settings.tabGeneral"),
-              content: stack(<LanguageSection key="language" settings={settings} update={update} />, <DisplaySection key="display" settings={settings} update={update} layout={layout} onLayout={setLayout} />),
-            },
-            {
-              id: "github",
-              // Just "GitHub" in every language: "Доступ до GitHub" overflowed Steam's tab bar.
-              title: "GitHub",
-              content: stack(<GitHubAccessSection key="github" quota={quota} tokenDraft={tokenDraft} onTokenDraft={setTokenDraft} savedToken={settings.githubToken} update={update} />),
-            },
-            {
-              id: "downloads",
-              title: t("settings.tabDownloads"),
-              content: stack(<DownloadsSection key="downloads" settings={settings} update={update} />),
-            },
-            {
-              id: "repositories",
-              title: t("nav.repositories"),
-              content: stack(<ManageRepositoriesPage key="repositories" embedded />),
-            },
-            {
-              id: "troubleshoot",
-              title: t("settings.tabTroubleshoot"),
-              content: stack(<TroubleshootingSection key="troubleshooting" />),
-            },
-            {
-              id: "about",
-              // Tab names are kept short: six have to fit Steam's tab bar in every language.
-              title: t("settings.tabAbout"),
-              content: stack(<AboutSection key="about" />),
-            },
-            // Each tab's content says which tab it is, for tests on a Deck (Steam's own classes are minified).
-          ] as const).map((tab) => ({ ...tab, content: <div className={`deckyhub-settings-${tab.id}`}>{tab.content}</div> }))}
-        />
+      <div
+        className="deckyhub-settings-tabs"
+        style={{ height: "calc(100% - 16px)", marginBottom: -56, overflow: "hidden" }}
+      >
+        <Tabs activeTab={tab} onShowTab={(id: string) => setTab(id as SettingsTab)} autoFocusContents tabs={tabs} />
       </div>
     </>
   );

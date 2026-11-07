@@ -13,6 +13,7 @@ DeckyHub runs inside Decky Loader on any device that runs it. It lists the plugi
 - Safety information per plugin: a ClamAV and YARA virus scan of the exact release ZIP, warnings from Decky Extended Plugins' security audit, a "Runs as root" badge, and an "AI" badge for plugins developed with AI coding assistants. DeckyHub doesn't review or endorse plugins; they install at your own risk.
 - Updates: checks installed plugins every few hours, shows what each update brings, and updates DeckyHub itself from its Quick Access tab. Stable or pre-release channel per plugin.
 - Not affiliated with Valve or the Decky Loader project.
+- Not on the official Decky Loader store, and won't be: the Decky team declined it because it installs plugins they haven't reviewed and is largely AI-written (https://github.com/SteamDeckHomebrew/decky-plugin-database/issues/1182). Install it separately as shown below.
 
 ## Install
 
