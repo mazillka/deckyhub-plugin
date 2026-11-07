@@ -1,11 +1,11 @@
 ---
 name: seo-and-ai
-description: Keep DeckyHub's website (deckyhub.com, its plugin pages, and the registry's pages) optimized for search engines and AI assistants. Use when changing any web page, devtools/build-site.py, devtools/plugin_pages.py, robots.txt, sitemap.xml, llms.txt or structured data, when adding a page, or before a release.
+description: Keep DeckyHub's website (deckyhub.com, its plugin pages and contributor pages) optimized for search engines and AI assistants. Use when changing any web page, devtools/build-site.py, devtools/plugin_pages.py, robots.txt, sitemap.xml, llms.txt or structured data, when adding a page, or before a release.
 ---
 
 # SEO and AI optimization
 
-deckyhub.com exists to be found, by people searching for Steam Deck plugins and by AI assistants that answer questions about them. Every page change keeps it that way.
+deckyhub.com exists to be found, by people searching for Decky plugins and by AI assistants that answer questions about them. Every page change keeps it that way.
 
 ## Every page
 
@@ -24,7 +24,7 @@ deckyhub.com exists to be found, by people searching for Steam Deck plugins and 
 
 ## Plugin pages (`devtools/plugin_pages.py`)
 
-One page per registry plugin, built daily: name, description, category, downloads, stars, latest release, badges and the security scans (ClamAV, YARA, VirusTotal by SHA-256, MetaDefender). Keep the title pattern `<name>: Decky plugin for Steam Deck | DeckyHub`, descriptions cut at a word boundary, and the same facts the app shows. Anything the build can't fetch is left out, never invented.
+One page per registry plugin, built daily: name, description, category, downloads, stars, latest release, badges and the security scans (ClamAV, YARA, VirusTotal by SHA-256, MetaDefender). Keep the title pattern `<name>: Decky Loader plugin | DeckyHub`, descriptions cut at a word boundary, and the same facts the app shows. Anything the build can't fetch is left out, never invented.
 
 ## Check before you finish
 

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Додати плагін Decky до DeckyHub | DeckyHub</title>
+<meta name="description" content="Як додати плагін Decky Loader до списку DeckyHub, виправити запис або запустити власний реєстр. Щоб переглянути плагіни, відкрийте список плагінів.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://deckyhub.com/uk/contribute/">
+<link rel="alternate" hreflang="en" href="https://deckyhub.com/contribute/">
+<link rel="alternate" hreflang="uk" href="https://deckyhub.com/uk/contribute/">
+<link rel="alternate" hreflang="x-default" href="https://deckyhub.com/contribute/">
+<meta name="theme-color" content="#10151f">
+<meta property="og:type" content="website"><meta property="og:site_name" content="DeckyHub">
+<meta property="og:url" content="https://deckyhub.com/uk/contribute/"><meta property="og:title" content="Додати плагін Decky до DeckyHub">
+<meta property="og:description" content="Як додати плагін Decky Loader до списку DeckyHub або запустити власний реєстр.">
+<meta property="og:image" content="https://deckyhub.com/img/og.jpg"><meta name="twitter:card" content="summary_large_image">
+<style>
+:root{color-scheme:dark;--bg:#10151f;--panel:#182131;--line:#2e405a;--text:#eef4ff;--muted:#b6c3d4;--dim:#8a9bb2;--accent:#1d75cc;--accent2:#4b9cf0;--warn:#e8b54a}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+a{color:var(--accent2)}
+.wrap{max-width:900px;margin:auto;padding:0 20px}
+header{padding:56px 0 24px}
+h1{font-size:clamp(2rem,5vw,2.8rem);line-height:1.15;margin:0 0 12px;letter-spacing:-.02em}
+h2{font-size:1.4rem;margin:36px 0 10px}
+.lead{font-size:1.15rem;color:var(--muted);margin:0 0 20px;max-width:680px}
+.cta{display:flex;flex-wrap:wrap;gap:10px}
+.btn{display:inline-block;padding:12px 20px;border-radius:8px;background:var(--accent);color:#fff;text-decoration:none;font-weight:600}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin:18px 0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.card h3{margin:0 0 6px;font-size:1.05rem}.card p{margin:0;color:var(--muted);font-size:.95rem}
+code{background:#0f1724;border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.88em;overflow-wrap:anywhere}
+.caution{color:var(--dim);font-size:.9rem}
+footer{margin-top:48px;padding:28px 0;border-top:1px solid var(--line);color:var(--dim);font-size:.88rem}footer .wrap>div+div{margin-top:8px}
+/* site-nav-style */
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Перейти до вмісту</a>
+<!-- site-nav: contribute -->
+<main id="main">
+<header><div class="wrap">
+<h1>Додати плагін до DeckyHub</h1>
+<p class="lead">Список, що стоїть за вкладкою «Огляд» у DeckyHub, зберігається тут, у <a href="https://github.com/mazillka/deckyhub-registry">mazillka/deckyhub-registry</a>. Щоб переглянути <!-- plugin-count --> плагінів, кожен зі своєю сторінкою, відкрийте список плагінів.</p>
+<div class="cta"><a class="btn" href="https://deckyhub.com/plugins/">Переглянути всі плагіни</a><a class="btn ghost" href="editor.html">Відкрити редактор реєстру</a></div>
+</div></header>
+
+<section id="contribute"><div class="wrap">
+<h2>Долучитися</h2>
+<p class="lead" style="font-size:1rem">Зміни спершу потрапляють до <code>develop</code>, а потім до <code>main</code>, що доходить до кожного DeckyHub під час його наступного запуску. Оновлювати застосунок не потрібно.</p>
+<div class="grid">
+<div class="card"><h3>Запропонувати плагін</h3><p>Знаєте плагін Decky, який тут на місці? <a href="https://github.com/mazillka/deckyhub-registry/issues/new">Відкрийте issue</a> з його репозиторієм.</p></div>
+<div class="card"><h3>Додайте самі</h3><p>Додайте запис до <code>registry/apps.json</code> і його рядок до README, а потім відкрийте pull request. CI звіряє його зі справжніми релізами плагіна. <a href="https://github.com/mazillka/deckyhub-registry#adding-a-plugin">Як додати</a></p></div>
+<div class="card"><h3>Запустіть власний список</h3><p>Зробіть форк цього репозиторію й додайте його в DeckyHub у <strong>Налаштування → Репозиторії → Власні реєстри</strong> як <code>owner/repo</code>.</p></div>
+<div class="card"><h3>Редактор реєстру</h3><p>Бажаєте більший екран? Створюйте чи редагуйте список плагінів у браузері й експортуйте його як файл реєстру. Розмістіть його будь-де за HTTPS і додайте як власний реєстр. Нічого не завантажується. <a href="editor.html">Відкрити редактор</a></p></div>
+</div>
+<p class="caution"><strong>Встановлюйте на власний ризик.</strong> DeckyHub лише отримує релізи з GitHub-репозиторіїв їхніх авторів. Він не створює ці плагіни, не перевіряє їх і не ручається за них та не відповідає за те, що вони роблять із вашим пристроєм чи даними.</p>
+</div></section>
+</main>
+<!-- site-footer -->
+</body>
+</html>

@@ -3,10 +3,11 @@
 Copies docs/, writes mazillka/deckyhub-registry's catalog into index.html
 so crawlers see it without JavaScript, and makes WebP screenshots plus a JPEG
 link-preview image (screenshots/hero.jpg) from screenshots/. It also renders
-DeckyHub's GitHub releases into releases.html (the release notes page), fills
+DeckyHub's GitHub releases into releases.html (the release notes page), fills in help.html and about.html (and their Ukrainian twins in uk/), fills
 index.html's latest-release line and structured data (schema.org JSON-LD,
 with the FAQ taken from the page's own <details>), writes a page per plugin
-(plugins/<id>.html, see plugin_pages.py) and sitemap.xml.
+(plugins/<id>.html, see plugin_pages.py), fills in the contributor pages
+(contribute/ and uk/contribute/: how to add a plugin, and the registry editor) and writes sitemap.xml.
 Needs Pillow and Markdown (CI-only, not plugin dependencies). GITHUB_TOKEN, if
 set, is sent with the releases request; without the releases (GitHub down),
 the site still builds and the release notes page links to GitHub.
@@ -120,17 +121,27 @@ def nice_date_uk(iso: str | None) -> str:
     return f"{day.tm_mday} {MONTHS_UK[day.tm_mon - 1]} {day.tm_year}"
 
 
-def structured_data(page: str, latest: dict | None, uk: bool = False) -> str:
-    """schema.org JSON-LD: the site, DeckyHub itself and the page's FAQ, as visible."""
-    faq = [
+def faq_items(page: str) -> list[dict]:
+    """schema.org Questions from the page's own <details><summary>question</summary><p>answer</p></details>."""
+    return [
         {"@type": "Question", "name": re.sub(r"<[^>]+>", "", question).strip(), "acceptedAnswer": {"@type": "Answer", "text": re.sub(r"<[^>]+>", "", answer).strip()}}
         for question, answer in re.findall(r"<details><summary>(.*?)</summary><p>(.*?)</p></details>", page, re.S)
     ]
+
+
+def json_ld(data: dict) -> str:
+    # No "<" at all inside the script element, so nothing in the page's text can end it.
+    return '<script type="application/ld+json">' + json.dumps({"@context": "https://schema.org", **data}, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c") + "</script>"
+
+
+def structured_data(page: str, latest: dict | None, uk: bool = False) -> str:
+    """schema.org JSON-LD: the site, DeckyHub itself and the page's FAQ, as visible."""
+    faq = faq_items(page)
     app = {
         "@type": "SoftwareApplication", "name": "DeckyHub", "url": SITE + "uk/" if uk else SITE, "inLanguage": "uk" if uk else "en",
         "applicationCategory": "UtilitiesApplication", "applicationSubCategory": "Decky Loader plugin", "operatingSystem": "SteamOS",
-        "description": ("Магазин плагінів Decky Loader для Steam Deck: знаходьте, встановлюйте й оновлюйте 500+ плагінів Decky Loader в ігровому режимі, зокрема тих, яких немає в офіційному магазині Decky."
-                        if uk else "A Decky Loader plugin store for Steam Deck: find, install and update 500+ Decky Loader plugins from Gaming Mode, including plugins not on the official Decky store."),
+        "description": ("Магазин плагінів Decky Loader: знаходьте, встановлюйте й оновлюйте 500+ плагінів Decky Loader в ігровому режимі, зокрема тих, яких немає в офіційному магазині Decky."
+                        if uk else "A Decky Loader plugin store: find, install and update 500+ Decky Loader plugins from Gaming Mode, including plugins not on the official Decky store."),
         "downloadUrl": f"{REPO_URL}/releases/latest", "installUrl": f"{SITE}uk/#install" if uk else f"{SITE}#install", "releaseNotes": f"{SITE}releases.html",
         "image": f"{SITE}img/og.jpg", "screenshot": [f"{SITE}img/{name}.webp" for name in ("discover", "updates", "manage", "menu")],
         "license": "https://www.gnu.org/licenses/gpl-3.0.html", "isAccessibleForFree": True,
@@ -141,9 +152,7 @@ def structured_data(page: str, latest: dict | None, uk: bool = False) -> str:
         app["softwareVersion"] = latest["tag_name"].removeprefix("v")
         app["dateModified"] = latest.get("published_at")
     graph = [{"@type": "WebSite", "name": "DeckyHub", "url": SITE}, app] + ([{"@type": "FAQPage", "mainEntity": faq}] if faq else [])
-    # No "<" at all inside the script element, so nothing in the page's text can end it.
-    data = json.dumps({"@context": "https://schema.org", "@graph": graph}, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
-    return '<script type="application/ld+json">' + data + "</script>"
+    return json_ld({"@graph": graph})
 
 
 out = Path(sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("--") else "_site")
@@ -186,6 +195,26 @@ if "<!-- releases -->" not in notes_page:
     sys.exit("docs/releases.html is missing the <!-- releases --> placeholder")
 notes.write_text(site_shell.apply(notes_page.replace("<!-- releases -->", release_articles(releases))), encoding="utf-8")
 
+# deckyhub.com/contribute/: how to add a plugin and the registry editor (moved here from registry.deckyhub.com), each with a Ukrainian twin.
+CONTRIBUTE = ["contribute/", "contribute/editor.html", "uk/contribute/", "uk/contribute/editor.html"]
+for name in ("index.html", "editor.html"):
+    path = "" if name == "index.html" else name
+    for lang, folder, switch in (("en", "contribute", ("Українська", f"{SITE}uk/contribute/{path}", "uk")), ("uk", "uk/contribute", ("English", f"{SITE}contribute/{path}", "en"))):
+        page_file = out / folder / name
+        page_file.write_text(site_shell.apply(page_file.read_text(encoding="utf-8").replace("<!-- plugin-count -->", str(len(apps))), lang, switch), encoding="utf-8")
+
+# help.html (its questions also as FAQ structured data) and about.html, each with a Ukrainian twin under uk/.
+HELP_ABOUT = ["help.html", "about.html", "uk/help.html", "uk/about.html"]
+for name in ("help.html", "about.html"):
+    for lang, path, switch in (("en", name, ("Українська", f"{SITE}uk/{name}", "uk")), ("uk", f"uk/{name}", ("English", f"{SITE}{name}", "en"))):
+        page_file = out / path
+        text = page_file.read_text(encoding="utf-8")
+        if name == "help.html":
+            if "<!-- structured-data -->" not in text:
+                sys.exit(f"docs/{path} is missing the <!-- structured-data --> placeholder")
+            text = text.replace("<!-- structured-data -->", json_ld({"@type": "FAQPage", "url": f"{SITE}{path}", "inLanguage": lang, "mainEntity": faq_items(text)}))
+        page_file.write_text(site_shell.apply(text, lang, switch), encoding="utf-8")
+
 plugin_urls = plugin_pages.write_pages(out, apps, (ROOT / "docs" / "releases.html").read_text(encoding="utf-8"), data)
 llms = out / "llms.txt"
 if llms.exists():
@@ -199,6 +228,7 @@ newest = (releases[0].get("published_at") or "")[:10] if releases else today
     f"<url><loc>{SITE}</loc><lastmod>{today}</lastmod></url>\n"
     f"<url><loc>{SITE}uk/</loc><lastmod>{today}</lastmod></url>\n"
     f"<url><loc>{SITE}releases.html</loc><lastmod>{newest}</lastmod></url>\n"
+    + "".join(f"<url><loc>{SITE}{path}</loc><lastmod>{today}</lastmod></url>\n" for path in HELP_ABOUT + CONTRIBUTE)
     + "".join(f"<url><loc>{escape(url)}</loc><lastmod>{date}</lastmod></url>\n" for url, date in plugin_urls) + "</urlset>\n",
     encoding="utf-8",
 )
@@ -211,6 +241,35 @@ for shot in (ROOT / "screenshots").glob("*.jpg"):
     image.resize((640, round(image.height * 640 / image.width)), Image.LANCZOS).save(img / f"{shot.stem}-640.webp", quality=78, method=6)
 # The walkthrough GIF tops the page (with the Discover screenshot for reduced motion).
 shutil.copy(ROOT / "promo" / "deckyhub.gif", img / "deckyhub.gif")
+# The same walkthrough as animated WebP, about a third of the GIF's size; browsers without WebP keep the GIF.
+with Image.open(ROOT / "promo" / "deckyhub.gif") as gif:
+    durations = [gif.seek(i) or gif.info.get("duration", 100) for i in range(gif.n_frames)]
+    gif.save(img / "deckyhub.webp", save_all=True, duration=durations, loop=0, quality=75, method=4)
+
+# Pages without their own structured data get a WebPage with its breadcrumb, from what the page shows.
+for path in ["releases.html", "about.html", "uk/about.html"] + [p + ("index.html" if p.endswith("/") else "") for p in CONTRIBUTE]:
+    page_file = out / path
+    text = page_file.read_text(encoding="utf-8")
+    if "application/ld+json" in text:
+        continue
+    url = re.search(r'<link rel="canonical" href="([^"]+)"', text).group(1)
+    name = re.sub(r"<[^>]+>", "", re.search(r"<h1[^>]*>(.*?)</h1>", text, re.S).group(1)).strip()
+    uk = path.startswith("uk/")
+    home = SITE + "uk/" if uk else SITE
+    text = text.replace("</head>", json_ld({"@type": "WebPage", "name": name, "url": url, "inLanguage": "uk" if uk else "en", "isPartOf": {"@type": "WebSite", "name": "DeckyHub", "url": SITE},
+                                            "breadcrumb": {"@type": "BreadcrumbList", "itemListElement": [
+                                                {"@type": "ListItem", "position": 1, "name": "DeckyHub", "item": home},
+                                                {"@type": "ListItem", "position": 2, "name": name, "item": url}]}}) + "\n</head>", 1)
+    page_file.write_text(text, encoding="utf-8")
+
+# GitHub Pages can't send security headers, so every page carries them as meta tags. Scripts and styles are inline;
+# the only outside requests are shields.io badges and the registry editor's fetch of apps.json.
+CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://img.shields.io; "
+       "connect-src 'self' https://raw.githubusercontent.com; object-src 'none'; base-uri 'self'; form-action 'self'")
+for html_file in out.rglob("*.html"):
+    text = html_file.read_text(encoding="utf-8")
+    text = text.replace("<head>", f'<head>\n<meta http-equiv="Content-Security-Policy" content="{CSP}">\n<meta name="referrer" content="strict-origin-when-cross-origin">', 1)
+    html_file.write_text(text, encoding="utf-8")
 # The promo hero (16:9) suits link previews better than a bare screenshot.
 shutil.copy(ROOT / "screenshots" / "hero.jpg", img / "og.jpg")
 
@@ -223,7 +282,10 @@ if PREVIEW:
         (out / sitemap).unlink(missing_ok=True)
     for html_file in out.rglob("*.html"):
         text = html_file.read_text(encoding="utf-8")
-        text = text.replace(SITE, base).replace('href="/', f'href="{base}').replace('src="/', f'src="{base}')
+        # Root-relative links first: done after SITE they'd get the preview path twice (/develop/develop/).
+        text = text.replace('href="/', f'href="{base}').replace('src="/', f'src="{base}').replace(SITE, base)
+        if f'"{base}{base.lstrip("/")}' in text:
+            sys.exit(f"{html_file}: a link got the preview path twice")
         text = re.sub(r'<link rel="canonical"[^>]*>|<meta property="og:url"[^>]*>', "", text)
         text = text.replace("<head>", '<head>\n<meta name="robots" content="noindex,nofollow">', 1)
         text = re.sub(r"(<body[^>]*>)", lambda match: match.group(1) + "\n" + banner.replace(f'href="{base}"', f'href="{SITE}"'), text, count=1)
