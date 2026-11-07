@@ -175,7 +175,18 @@ document.querySelectorAll("code.cmd").forEach(function (code) {
   button.type = "button"; button.className = "copy"; button.textContent = label;
   button.onclick = function () {
     var finish = function () { button.textContent = done; setTimeout(function () { button.textContent = label; }, 2000); };
-    if (navigator.clipboard) navigator.clipboard.writeText(code.textContent).then(finish, function () {});
+    // Steam's browser (where DeckyHub opens this page) refuses the Clipboard API: select the
+    // command and use the copy command instead, and if that fails too, leave it selected to copy by hand.
+    var fallback = function () {
+      var range = document.createRange();
+      range.selectNodeContents(code);
+      var selection = getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      try { if (document.execCommand("copy")) { selection.removeAllRanges(); finish(); } } catch (error) {}
+    };
+    if (navigator.clipboard) navigator.clipboard.writeText(code.textContent).then(finish, fallback);
+    else fallback();
   };
   code.after(button);
 });
