@@ -101,6 +101,8 @@ A daily job checks both catalogs, plus its own search of GitHub for repositories
 
 ## Installing DeckyHub
 
+DeckyHub isn't on the official Decky Loader store, and won't be: the Decky team [declined it](https://github.com/SteamDeckHomebrew/decky-plugin-database/issues/1182) because it installs plugins they haven't reviewed and most of its code was written with AI tools. Install it one of the ways below instead.
+
 There are two ways to install DeckyHub. Pick one:
 
 | | **Desktop installer** (recommended) | **Manual ZIP** |
