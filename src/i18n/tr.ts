@@ -1,6 +1,18 @@
 import type { MessageKey } from "./en";
 
 export const tr: Record<MessageKey, string> = {
+  "remote.title": "Uzaktan yükleme",
+  "remote.description": "Aynı ağdaki bir tarayıcıyı eşleştir. Her yükleme bu cihazda onay gerektirir.",
+  "remote.address": "Cihaz adresi",
+  "remote.fingerprint": "Sertifika parmak izi (SHA-256)",
+  "remote.pair": "Tarayıcıyı eşleştir",
+  "remote.pairings": "Eşleştirme istekleri",
+  "remote.requests": "Yükleme istekleri",
+  "remote.from": "{name} tarafından",
+  "remote.devices": "Eşleştirilmiş tarayıcılar",
+  "remote.approve": "Onayla",
+  "remote.reject": "Reddet",
+  "appcard.identityUnverified": "Yüklü eklenti doğrulanamadı; yükleme ve güncellemeler devre dışı.",
   "nav.updates": "Güncellemeler",
   "nav.discover": "Keşfet",
   "nav.search": "Ara",

@@ -464,6 +464,6 @@ export async function hydrate(app: App, force: boolean, preference?: RepoPrefere
     releaseNotes: release.notes,
     assets: release.assets,
     // A skipped release counts as up to date until a newer one comes out.
-    updateAvailable: cmp === null ? null : cmp > 0 && preference?.skipVersion !== release.tag,
+    updateAvailable: app.identityUnverified || cmp === null ? null : cmp > 0 && preference?.skipVersion !== release.tag,
   };
 }

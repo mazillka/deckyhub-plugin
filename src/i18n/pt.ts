@@ -2,6 +2,18 @@ import type { MessageKey } from "./en";
 
 // Portuguese, written for Brazil (Steam's "Português-Brasil"); Portugal reads it fine.
 export const pt: Record<MessageKey, string> = {
+  "remote.title": "Instalação remota",
+  "remote.description": "Vincule um navegador na mesma rede. Cada instalação precisa de aprovação neste dispositivo.",
+  "remote.address": "Endereço do dispositivo",
+  "remote.fingerprint": "Impressão digital do certificado (SHA-256)",
+  "remote.pair": "Vincular navegador",
+  "remote.pairings": "Solicitações de vínculo",
+  "remote.requests": "Solicitações de instalação",
+  "remote.from": "De {name}",
+  "remote.devices": "Navegadores vinculados",
+  "remote.approve": "Aprovar",
+  "remote.reject": "Rejeitar",
+  "appcard.identityUnverified": "Não foi possível verificar o plugin instalado; instalação e atualizações desativadas.",
   "nav.updates": "Atualizações",
   "nav.discover": "Descobrir",
   "nav.search": "Buscar",

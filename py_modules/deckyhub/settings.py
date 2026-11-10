@@ -64,6 +64,8 @@ def coerce_settings(settings: dict) -> dict:
             for name in HIDEABLE_BUTTONS
             if isinstance(settings.get("hiddenButtons"), list) and name in settings["hiddenButtons"]
         ],
+        "remoteInstall": settings.get("remoteInstall") is True,
+        "remoteInstallFeature": settings.get("remoteInstallFeature") is True,
     }
 
 
@@ -146,6 +148,10 @@ class SettingsMixin:
             "customRepos": getattr(self, "settings", {}).get("customRepos", []),
             "customRegistries": getattr(self, "settings", {}).get("customRegistries", []),
             "repoSettings": getattr(self, "settings", {}).get("repoSettings", {}),
+            # The dedicated remote-install RPC owns listener lifecycle. A stale
+            # general settings form must not silently change its enabled state.
+            "remoteInstall": getattr(self, "settings", {}).get("remoteInstall") is True,
+            "remoteInstallFeature": getattr(self, "settings", {}).get("remoteInstallFeature") is True,
         }
         self._save_settings()
         decky.logger.info("Saved settings: %s", {**self.settings, "githubToken": bool(self.settings["githubToken"])})

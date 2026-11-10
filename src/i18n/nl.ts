@@ -1,6 +1,20 @@
 import type { MessageKey } from "./en";
 
 export const nl: Record<MessageKey, string> = {
+  "remote.title": "Installatie op afstand",
+  "remote.description":
+    "Koppel een browser op hetzelfde netwerk. Elke installatie vereist goedkeuring op dit apparaat.",
+  "remote.address": "Apparaatadres",
+  "remote.fingerprint": "Certificaatvingerafdruk (SHA-256)",
+  "remote.pair": "Browser koppelen",
+  "remote.pairings": "Koppelverzoeken",
+  "remote.requests": "Installatieverzoeken",
+  "remote.from": "Van {name}",
+  "remote.devices": "Gekoppelde browsers",
+  "remote.approve": "Goedkeuren",
+  "remote.reject": "Afwijzen",
+  "appcard.identityUnverified":
+    "De geïnstalleerde plugin kon niet worden geverifieerd; installeren en bijwerken zijn uitgeschakeld.",
   "nav.updates": "Updates",
   "nav.discover": "Ontdekken",
   "nav.search": "Zoeken",

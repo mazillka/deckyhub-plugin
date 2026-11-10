@@ -1661,7 +1661,7 @@ test("DeckyHub's Quick Access icon shows a dot while a plugin has an update", as
   mkdirSync(pluginDir, { recursive: true });
   writeFileSync(
     new URL("plugin.json", pluginDir),
-    JSON.stringify({ name: "MAKO - Frame Generation", version: "1.0.0" }),
+    JSON.stringify({ name: "MAKO - Frame Generation", version: "1.0.0", repository: "eugeniosegala/MAKO" }),
   );
   await mockMakoReleases(page, [makoRelease("plugin-v1.2.3", "d".repeat(64))]);
   try {
@@ -1875,7 +1875,7 @@ test("An outdated Decky plugin's card offers Update and hands it to Decky's inst
   mkdirSync(pluginDir, { recursive: true });
   writeFileSync(
     new URL("plugin.json", pluginDir),
-    JSON.stringify({ name: "MAKO - Frame Generation", version: "1.0.0" }),
+    JSON.stringify({ name: "MAKO - Frame Generation", version: "1.0.0", repository: "eugeniosegala/MAKO" }),
   );
   const sha256 = "c".repeat(64);
   const url = "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v1.2.3/mako-decky.zip";
@@ -2259,7 +2259,7 @@ test("The Manage window reinstalls or downgrades an installed Decky plugin to th
   mkdirSync(pluginDir, { recursive: true });
   writeFileSync(
     new URL("plugin.json", pluginDir),
-    JSON.stringify({ name: "MAKO - Frame Generation", version: "1.2.3" }),
+    JSON.stringify({ name: "MAKO - Frame Generation", version: "1.2.3", repository: "eugeniosegala/MAKO" }),
   );
   const sha = "b".repeat(64);
   await mockMakoReleases(page, [makoRelease("plugin-v1.2.3", sha, "02"), makoRelease("plugin-v1.0.0", sha, "01")]);
@@ -2305,7 +2305,10 @@ test("Unifideck updates by uninstalling first and installing fresh, after a warn
   // which froze the Deck, so DeckyHub removes it first and installs fresh (0).
   const pluginDir = new URL("../.dev-data/plugins/e2e-unifideck/", import.meta.url);
   mkdirSync(pluginDir, { recursive: true });
-  writeFileSync(new URL("plugin.json", pluginDir), JSON.stringify({ name: "Unifideck", version: "0.7.0" }));
+  writeFileSync(
+    new URL("plugin.json", pluginDir),
+    JSON.stringify({ name: "Unifideck", version: "0.7.0", repository: "mubaraknumann/unifideck" }),
+  );
   const sha = "f".repeat(64);
   const url = "https://github.com/mubaraknumann/unifideck/releases/download/Release-0.7.6/unifideck.prod.v0.7.6.zip";
   await page.route("https://api.github.com/repos/mubaraknumann/unifideck/releases**", (route) =>
@@ -2362,7 +2365,7 @@ test("A release whose ZIP calls itself the installed version isn't an update, wh
   mkdirSync(pluginDir, { recursive: true });
   writeFileSync(
     new URL("plugin.json", pluginDir),
-    JSON.stringify({ name: "MAKO - Frame Generation", version: "1.2.3" }),
+    JSON.stringify({ name: "MAKO - Frame Generation", version: "1.2.3", repository: "eugeniosegala/MAKO" }),
   );
   await mockMakoReleases(page, [{ ...makoRelease("plugin-v1.3.0", "b".repeat(64)), pluginVersion: "1.2.3" }]);
 
@@ -2386,7 +2389,7 @@ test("Skip this version hides one release's update until the user stops skipping
   mkdirSync(pluginDir, { recursive: true });
   writeFileSync(
     new URL("plugin.json", pluginDir),
-    JSON.stringify({ name: "MAKO - Frame Generation", version: "1.0.0" }),
+    JSON.stringify({ name: "MAKO - Frame Generation", version: "1.0.0", repository: "eugeniosegala/MAKO" }),
   );
   await mockMakoReleases(page, [makoRelease("plugin-v1.3.0", "b".repeat(64))]);
 
@@ -2461,14 +2464,14 @@ test("Update All sends every outdated Decky plugin to Decky's installer in one r
   page,
 }) => {
   const plugins = {
-    "e2e-mako": ["MAKO - Frame Generation", "1.0.0"],
-    "e2e-lsfg": ["Decky LSFG-VK", "0.1.0"],
-    "e2e-unifideck": ["Unifideck", "0.7.0"],
+    "e2e-mako": ["MAKO - Frame Generation", "1.0.0", "eugeniosegala/MAKO"],
+    "e2e-lsfg": ["Decky LSFG-VK", "0.1.0", "xXJSONDeruloXx/decky-lsfg-vk"],
+    "e2e-unifideck": ["Unifideck", "0.7.0", "mubaraknumann/unifideck"],
   };
-  const dirs = Object.entries(plugins).map(([dir, [name, version]]) => {
+  const dirs = Object.entries(plugins).map(([dir, [name, version, repository]]) => {
     const pluginDir = new URL(`../.dev-data/plugins/${dir}/`, import.meta.url);
     mkdirSync(pluginDir, { recursive: true });
-    writeFileSync(new URL("plugin.json", pluginDir), JSON.stringify({ name, version }));
+    writeFileSync(new URL("plugin.json", pluginDir), JSON.stringify({ name, version, repository }));
     return pluginDir;
   });
   const sha = "9".repeat(64);
@@ -2591,7 +2594,7 @@ test("The Manage window uninstalls an installed Decky plugin after confirming", 
   mkdirSync(pluginDir, { recursive: true });
   writeFileSync(
     new URL("plugin.json", pluginDir),
-    JSON.stringify({ name: "MAKO - Frame Generation", version: "1.0.0" }),
+    JSON.stringify({ name: "MAKO - Frame Generation", version: "1.0.0", repository: "eugeniosegala/MAKO" }),
   );
   // Stand-in for Decky Loader's WS bridge: records calls without deleting anything.
   await page.addInitScript(() => {
@@ -2994,7 +2997,7 @@ test("A newer pre-release of an installed pre-release counts as an update", asyn
   mkdirSync(pluginDir, { recursive: true });
   writeFileSync(
     new URL("plugin.json", pluginDir),
-    JSON.stringify({ name: "MAKO - Frame Generation", version: "1.4.0-rc.1" }),
+    JSON.stringify({ name: "MAKO - Frame Generation", version: "1.4.0-rc.1", repository: "eugeniosegala/MAKO" }),
   );
   await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases?per_page=20", (route) =>
     route.fulfill({
@@ -3411,10 +3414,10 @@ test("With motion allowed, windows pop in and switching views slides the list in
 });
 
 // Seeds an installed Decky plugin where dev-server.py scans for them.
-function seedPlugin(dir: string, name: string, version: string) {
+function seedPlugin(dir: string, name: string, version: string, repository = "eugeniosegala/MAKO") {
   const pluginDir = new URL(`../.dev-data/plugins/${dir}/`, import.meta.url);
   mkdirSync(pluginDir, { recursive: true });
-  writeFileSync(new URL("plugin.json", pluginDir), JSON.stringify({ name, version }));
+  writeFileSync(new URL("plugin.json", pluginDir), JSON.stringify({ name, version, repository }));
   // Retries: on Windows the bridge's plugin scan can briefly lock the folder.
   return () => rmSync(pluginDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
 }
@@ -3677,7 +3680,7 @@ test("Check for Updates and Download ZIP keep the Manage window open", async ({ 
 });
 
 test("Updates counts its plugins and Discover lists them first", async ({ page }) => {
-  const removePlugin = seedPlugin("e2e-nexus", "Nexus Mods", "1.0.0");
+  const removePlugin = seedPlugin("e2e-nexus", "Nexus Mods", "1.0.0", "RedRanger14/decky-nexus");
   try {
     await page.goto("/?preview=/deckyhub/updates&bridge=http://127.0.0.1:8643");
     const app = mock(page);
@@ -4088,7 +4091,7 @@ test("An update card says what the update brings", async ({ page }) => {
   mkdirSync(pluginDir, { recursive: true });
   writeFileSync(
     new URL("plugin.json", pluginDir),
-    JSON.stringify({ name: "MAKO - Frame Generation", version: "1.0.0" }),
+    JSON.stringify({ name: "MAKO - Frame Generation", version: "1.0.0", repository: "eugeniosegala/MAKO" }),
   );
   await mockMakoReleases(page, [
     { ...makoRelease("plugin-v1.2.3", "d".repeat(64)), body: "## Fixes\n- Smoother **frame pacing**" },

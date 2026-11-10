@@ -1,6 +1,18 @@
 import type { MessageKey } from "./en";
 
 export const ko: Record<MessageKey, string> = {
+  "remote.title": "원격 설치",
+  "remote.description": "같은 네트워크의 브라우저를 연결하세요. 설치할 때마다 이 기기에서 승인해야 합니다.",
+  "remote.address": "기기 주소",
+  "remote.fingerprint": "인증서 지문 (SHA-256)",
+  "remote.pair": "브라우저 연결",
+  "remote.pairings": "연결 요청",
+  "remote.requests": "설치 요청",
+  "remote.from": "요청자: {name}",
+  "remote.devices": "연결된 브라우저",
+  "remote.approve": "승인",
+  "remote.reject": "거부",
+  "appcard.identityUnverified": "설치된 플러그인을 확인할 수 없어 설치와 업데이트가 비활성화되었습니다.",
   "nav.updates": "업데이트",
   "nav.discover": "둘러보기",
   "nav.search": "검색",

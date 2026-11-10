@@ -1,6 +1,19 @@
 import type { MessageKey } from "./en";
 
 export const fr: Record<MessageKey, string> = {
+  "remote.title": "Installation à distance",
+  "remote.description":
+    "Associez un navigateur sur le même réseau. Chaque installation nécessite une approbation sur cet appareil.",
+  "remote.address": "Adresse de l’appareil",
+  "remote.fingerprint": "Empreinte du certificat (SHA-256)",
+  "remote.pair": "Associer un navigateur",
+  "remote.pairings": "Demandes d’association",
+  "remote.requests": "Demandes d’installation",
+  "remote.from": "De {name}",
+  "remote.devices": "Navigateurs associés",
+  "remote.approve": "Approuver",
+  "remote.reject": "Refuser",
+  "appcard.identityUnverified": "Impossible de vérifier le plugin installé ; installation et mises à jour désactivées.",
   "nav.updates": "Mises à jour",
   "nav.discover": "Découvrir",
   "nav.search": "Recherche",

@@ -1,6 +1,20 @@
 import type { MessageKey } from "./en";
 
 export const uk: Record<MessageKey, string> = {
+  "remote.title": "Віддалене встановлення",
+  "remote.description":
+    "З’єднайте браузер у тій самій мережі. Кожне встановлення потребує підтвердження на цьому пристрої.",
+  "remote.address": "Адреса пристрою",
+  "remote.fingerprint": "Відбиток сертифіката (SHA-256)",
+  "remote.pair": "З’єднати браузер",
+  "remote.pairings": "Запити на з’єднання",
+  "remote.requests": "Запити на встановлення",
+  "remote.from": "Від {name}",
+  "remote.devices": "З’єднані браузери",
+  "remote.approve": "Підтвердити",
+  "remote.reject": "Відхилити",
+  "appcard.identityUnverified":
+    "Не вдалося перевірити ідентичність встановленого плагіна; встановлення та оновлення вимкнено.",
   "nav.updates": "Оновлення",
   "nav.discover": "Огляд",
   "nav.search": "Пошук",

@@ -1,6 +1,18 @@
 import type { MessageKey } from "./en";
 
 export const cs: Record<MessageKey, string> = {
+  "remote.title": "Vzdálená instalace",
+  "remote.description": "Spárujte prohlížeč ve stejné síti. Každou instalaci je třeba potvrdit na tomto zařízení.",
+  "remote.address": "Adresa zařízení",
+  "remote.fingerprint": "Otisk certifikátu (SHA-256)",
+  "remote.pair": "Spárovat prohlížeč",
+  "remote.pairings": "Žádosti o spárování",
+  "remote.requests": "Žádosti o instalaci",
+  "remote.from": "Od {name}",
+  "remote.devices": "Spárované prohlížeče",
+  "remote.approve": "Schválit",
+  "remote.reject": "Odmítnout",
+  "appcard.identityUnverified": "Nainstalovaný plugin nelze ověřit; instalace a aktualizace jsou vypnuté.",
   "nav.updates": "Aktualizace",
   "nav.discover": "Objevovat",
   "nav.search": "Hledat",

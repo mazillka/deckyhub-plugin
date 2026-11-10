@@ -1,6 +1,18 @@
 import type { MessageKey } from "./en";
 
 export const zh: Record<MessageKey, string> = {
+  "remote.title": "远程安装",
+  "remote.description": "配对同一网络上的浏览器。每次安装都需要在此设备上批准。",
+  "remote.address": "设备地址",
+  "remote.fingerprint": "证书指纹 (SHA-256)",
+  "remote.pair": "配对浏览器",
+  "remote.pairings": "配对请求",
+  "remote.requests": "安装请求",
+  "remote.from": "来自 {name}",
+  "remote.devices": "已配对的浏览器",
+  "remote.approve": "批准",
+  "remote.reject": "拒绝",
+  "appcard.identityUnverified": "无法验证已安装的插件；安装和更新已禁用。",
   "nav.updates": "更新",
   "nav.discover": "发现",
   "nav.search": "搜索",

@@ -19,6 +19,7 @@ from deckyhub import paths
 from deckyhub.apps import AppsMixin
 from deckyhub.downloads import DownloadsMixin
 from deckyhub.registry import RegistryMixin
+from deckyhub.remote_install import RemoteInstallMixin
 from deckyhub.settings import SettingsMixin
 from deckyhub.validation import REPOSITORY_NAME
 
@@ -26,7 +27,7 @@ from deckyhub.validation import REPOSITORY_NAME
 PENDING_INSTALLS_FILE = "pending-installs.json"
 
 
-class Plugin(SettingsMixin, RegistryMixin, AppsMixin, DownloadsMixin):
+class Plugin(SettingsMixin, RegistryMixin, AppsMixin, DownloadsMixin, RemoteInstallMixin):
     async def _main(self):
         self.settings_path = Path(decky.DECKY_PLUGIN_SETTINGS_DIR) / "settings.json"
         self.settings = self._load_settings()
@@ -38,10 +39,20 @@ class Plugin(SettingsMixin, RegistryMixin, AppsMixin, DownloadsMixin):
         self.download_queue: asyncio.Queue = asyncio.Queue()
         self.queue_worker = asyncio.create_task(self._run_download_queue())
         self.registry_task = asyncio.create_task(self._refresh_registry_in_background())
+        self._init_remote_install()
+        self.remote_install_start_task = None
+        if self.settings.get("remoteInstall"):
+            self.remote_install_start_task = asyncio.create_task(self._start_remote_transport())
         decky.logger.info("DeckyHub %s started", (await self.get_deckyhub_info())["version"])
 
     async def _unload(self):
         # Decky calls this before stopping or reloading DeckyHub (an update included).
+        task = getattr(self, "remote_install_start_task", None)
+        if task:
+            task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await task
+        await self._stop_remote_transport()
         for task in (getattr(self, "queue_worker", None), getattr(self, "registry_task", None)):
             if task:
                 task.cancel()

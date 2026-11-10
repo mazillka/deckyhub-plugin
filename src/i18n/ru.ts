@@ -1,6 +1,18 @@
 import type { MessageKey } from "./en";
 
 export const ru: Record<MessageKey, string> = {
+  "remote.title": "Удалённая установка",
+  "remote.description": "Подключите браузер в той же сети. Каждая установка требует подтверждения на этом устройстве.",
+  "remote.address": "Адрес устройства",
+  "remote.fingerprint": "Отпечаток сертификата (SHA-256)",
+  "remote.pair": "Подключить браузер",
+  "remote.pairings": "Запросы на подключение",
+  "remote.requests": "Запросы на установку",
+  "remote.from": "От {name}",
+  "remote.devices": "Подключённые браузеры",
+  "remote.approve": "Подтвердить",
+  "remote.reject": "Отклонить",
+  "appcard.identityUnverified": "Не удалось проверить установленный плагин; установка и обновления отключены.",
   "nav.updates": "Обновления",
   "nav.discover": "Обзор",
   "nav.search": "Поиск",

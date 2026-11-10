@@ -1,6 +1,19 @@
 import type { MessageKey } from "./en";
 
 export const ja: Record<MessageKey, string> = {
+  "remote.title": "リモートインストール",
+  "remote.description":
+    "同じネットワークのブラウザーをペアリングします。インストールごとにこのデバイスでの承認が必要です。",
+  "remote.address": "デバイスのアドレス",
+  "remote.fingerprint": "証明書のフィンガープリント (SHA-256)",
+  "remote.pair": "ブラウザーをペアリング",
+  "remote.pairings": "ペアリング要求",
+  "remote.requests": "インストール要求",
+  "remote.from": "送信元: {name}",
+  "remote.devices": "ペアリング済みブラウザー",
+  "remote.approve": "承認",
+  "remote.reject": "拒否",
+  "appcard.identityUnverified": "インストール済みプラグインを確認できません。インストールと更新は無効です。",
   "nav.updates": "アップデート",
   "nav.discover": "見つける",
   "nav.search": "検索",

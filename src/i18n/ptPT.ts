@@ -2,6 +2,18 @@ import type { MessageKey } from "./en";
 
 // Portuguese, written for Portugal; Brazil has its own in pt.ts.
 export const ptPT: Record<MessageKey, string> = {
+  "remote.title": "Instalação remota",
+  "remote.description": "Associe um navegador na mesma rede. Cada instalação requer aprovação neste dispositivo.",
+  "remote.address": "Endereço do dispositivo",
+  "remote.fingerprint": "Impressão digital do certificado (SHA-256)",
+  "remote.pair": "Associar navegador",
+  "remote.pairings": "Pedidos de associação",
+  "remote.requests": "Pedidos de instalação",
+  "remote.from": "De {name}",
+  "remote.devices": "Navegadores associados",
+  "remote.approve": "Aprovar",
+  "remote.reject": "Rejeitar",
+  "appcard.identityUnverified": "Não foi possível verificar o plugin instalado; instalação e atualizações desativadas.",
   "nav.updates": "Atualizações",
   "nav.discover": "Descobrir",
   "nav.search": "Pesquisar",
