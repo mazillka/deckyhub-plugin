@@ -64,9 +64,39 @@ function init(root) {
   const form = byId('pair-form'), status = byId('status'), pairButton = byId('pair');
   const requestButton = byId('request'), cancelButton = byId('cancel');
   const pluginId = root.dataset.pluginId;
-  let transport, token, requestId, idempotencyKey, cancelled = false;
+  let transport, endpoint, token, requestId, idempotencyKey, cancelled = false;
   const say = message => { status.textContent = message; };
-  const disconnect = () => { if (transport) transport.close(); transport = undefined; token = undefined; requestButton.disabled = true; cancelButton.disabled = true; };
+  const closeTransport = () => {
+    const current = transport;
+    transport = undefined;
+    current?.close();
+  };
+  const disconnect = () => {
+    closeTransport();
+    endpoint = undefined;
+    token = undefined;
+    requestButton.disabled = true;
+    cancelButton.disabled = true;
+  };
+  const send = async message => {
+    if (!endpoint) throw new Error('Pair with your device first.');
+    if (!transport) {
+      const current = new WebTransport(endpoint.url, {
+        serverCertificateHashes: [{ algorithm: 'sha-256', value: endpoint.fingerprint }],
+      });
+      transport = current;
+      const onClose = () => { if (transport === current) transport = undefined; };
+      void current.closed.then(onClose, onClose);
+    }
+    const current = transport;
+    try {
+      await timeout(current.ready, 15000);
+      return await exchange(current, message);
+    } catch (error) {
+      if (transport === current) closeTransport();
+      throw error;
+    }
+  };
   const showError = error => say(error instanceof Error ? error.message : 'Unable to contact the device.');
   if (!/^[a-z0-9][a-z0-9-]{0,127}$/.test(pluginId || '')) { say('Invalid plugin identifier.'); pairButton.disabled = true; return; }
   if (typeof WebTransport === 'undefined' || !globalThis.isSecureContext) { say('This browser does not support secure remote installation.'); pairButton.disabled = true; return; }
@@ -79,18 +109,17 @@ function init(root) {
       const fingerprint = fingerprintBytes(byId('fingerprint').value);
       const code = byId('code').value.trim(), name = byId('name').value.trim();
       if (!/^\d{6}$/.test(code) || !name || name.length > 64) throw new Error('Enter the six-digit pairing code and a browser name.');
-      transport = new WebTransport(url, { serverCertificateHashes: [{ algorithm: 'sha-256', value: fingerprint }] });
-      await timeout(transport.ready, 15000);
+      endpoint = { url, fingerprint };
       const secret = crypto.getRandomValues(new Uint8Array(32));
       const pairingSecret = btoa(String.fromCharCode(...secret)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-      const pairing = await exchange(transport, { op: 'pair', code, name, pairingSecret });
+      const pairing = await send({ op: 'pair', code, name, pairingSecret });
       if (typeof pairing.pairingId !== 'string' || !pairing.pairingId) throw new Error('Invalid pairing response.');
       byId('code').value = '';
       say('Approve this browser on your device.');
       const deadline = Date.now() + 120000;
       while (Date.now() < deadline) {
         await sleep(2000);
-        const result = await exchange(transport, { op: 'pair_status', pairingId: pairing.pairingId, pairingSecret });
+        const result = await send({ op: 'pair_status', pairingId: pairing.pairingId, pairingSecret });
         if (result.status === 'approved' && typeof result.token === 'string' && result.token) {
           token = result.token;
           say('Paired. Request installation, then approve it on your device.');
@@ -105,15 +134,15 @@ function init(root) {
     finally { pairButton.disabled = false; }
   });
   requestButton.addEventListener('click', async () => {
-    if (!transport || !token) return;
+    if (!endpoint || !token) return;
     requestButton.disabled = true;
     pairButton.disabled = true;
     cancelled = false;
     idempotencyKey ||= crypto.randomUUID();
     try {
       const result = requestId
-        ? await exchange(transport, { op: 'status', token, requestId })
-        : await exchange(transport, { op: 'request', token, idempotencyKey, pluginId });
+        ? await send({ op: 'status', token, requestId })
+        : await send({ op: 'request', token, idempotencyKey, pluginId });
       if (typeof result.requestId !== 'string' || !result.requestId ||
           (requestId && result.requestId !== requestId) || !REQUEST_STATES.has(result.status)) throw new Error('Invalid request response.');
       requestId = result.requestId;
@@ -126,7 +155,7 @@ function init(root) {
         await sleep(delay);
         if (cancelled) return;
         try {
-          const next = await exchange(transport, { op: 'status', token, requestId });
+          const next = await send({ op: 'status', token, requestId });
           if (next.requestId !== requestId || !REQUEST_STATES.has(next.status)) throw new Error('Invalid request status.');
           state = next.status;
           delay = 3000;
@@ -150,10 +179,10 @@ function init(root) {
     }
   });
   cancelButton.addEventListener('click', async () => {
-    if (!transport || !token || !requestId) return;
+    if (!endpoint || !token || !requestId) return;
     cancelButton.disabled = true;
     try {
-      const result = await exchange(transport, { op: 'cancel', token, requestId });
+      const result = await send({ op: 'cancel', token, requestId });
       if (result.requestId !== requestId || result.status !== 'cancelled') throw new Error('The request could not be cancelled.');
       cancelled = true; requestId = undefined; idempotencyKey = undefined; pairButton.disabled = false; say('Request cancelled.');
     } catch (error) { showError(error); }
