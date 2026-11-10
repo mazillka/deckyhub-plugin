@@ -158,6 +158,11 @@ class PluginPageTests(unittest.TestCase):
         self.assertIn("<small>Tagged v0.45, its ZIP says 0.4.5</small></a>", page)
         self.assertNotIn("Same One", page)  # Release-0.7.6 and 0.7.6 are the same version
 
+    def test_remote_install_preview_link_preserves_plugin(self):
+        page = self.page()
+        self.assertIn('href="#remote-install"', page)
+        self.assertIn(f'data-plugin-id="{APP["id"]}"', page)
+
     def test_an_unscanned_plugin_says_so(self):
         self.assertIn("Not scanned yet", self.page())
 
