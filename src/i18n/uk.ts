@@ -6,6 +6,7 @@ export const uk: Record<MessageKey, string> = {
     "З’єднайте браузер у тій самій мережі. Кожне встановлення потребує підтвердження на цьому пристрої.",
   "remote.address": "Адреса пристрою",
   "remote.fingerprint": "Відбиток сертифіката (SHA-256)",
+  "remote.copyPairingLink": "Копіювати посилання для сполучення",
   "remote.pair": "З’єднати браузер",
   "remote.pairings": "Запити на з’єднання",
   "remote.requests": "Запити на встановлення",

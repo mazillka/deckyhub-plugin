@@ -40,6 +40,7 @@ class Plugin(SettingsMixin, RegistryMixin, AppsMixin, DownloadsMixin, RemoteInst
         self.queue_worker = asyncio.create_task(self._run_download_queue())
         self.registry_task = asyncio.create_task(self._refresh_registry_in_background())
         self._init_remote_install()
+        self.remote_address_task = asyncio.create_task(self._watch_remote_address())
         self.remote_install_start_task = None
         if self.settings.get("remoteInstall"):
             self.remote_install_start_task = asyncio.create_task(self._start_remote_transport())
@@ -47,11 +48,12 @@ class Plugin(SettingsMixin, RegistryMixin, AppsMixin, DownloadsMixin, RemoteInst
 
     async def _unload(self):
         # Decky calls this before stopping or reloading DeckyHub (an update included).
-        task = getattr(self, "remote_install_start_task", None)
-        if task:
-            task.cancel()
-            with contextlib.suppress(asyncio.CancelledError):
-                await task
+        for name in ("remote_install_start_task", "remote_address_task"):
+            task = getattr(self, name, None)
+            if task:
+                task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await task
         await self._stop_remote_transport()
         for task in (getattr(self, "queue_worker", None), getattr(self, "registry_task", None)):
             if task:

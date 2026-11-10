@@ -6,6 +6,7 @@ export const fr: Record<MessageKey, string> = {
     "Associez un navigateur sur le même réseau. Chaque installation nécessite une approbation sur cet appareil.",
   "remote.address": "Adresse de l’appareil",
   "remote.fingerprint": "Empreinte du certificat (SHA-256)",
+  "remote.copyPairingLink": "Copier le lien d’association",
   "remote.pair": "Associer un navigateur",
   "remote.pairings": "Demandes d’association",
   "remote.requests": "Demandes d’installation",

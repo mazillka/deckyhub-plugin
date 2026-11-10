@@ -6,6 +6,7 @@ export const ptPT: Record<MessageKey, string> = {
   "remote.description": "Associe um navegador na mesma rede. Cada instalação requer aprovação neste dispositivo.",
   "remote.address": "Endereço do dispositivo",
   "remote.fingerprint": "Impressão digital do certificado (SHA-256)",
+  "remote.copyPairingLink": "Copiar ligação de emparelhamento",
   "remote.pair": "Associar navegador",
   "remote.pairings": "Pedidos de associação",
   "remote.requests": "Pedidos de instalação",

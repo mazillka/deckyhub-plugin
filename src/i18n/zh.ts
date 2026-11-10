@@ -5,6 +5,7 @@ export const zh: Record<MessageKey, string> = {
   "remote.description": "配对同一网络上的浏览器。每次安装都需要在此设备上批准。",
   "remote.address": "设备地址",
   "remote.fingerprint": "证书指纹 (SHA-256)",
+  "remote.copyPairingLink": "复制配对链接",
   "remote.pair": "配对浏览器",
   "remote.pairings": "配对请求",
   "remote.requests": "安装请求",

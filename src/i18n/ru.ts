@@ -5,6 +5,7 @@ export const ru: Record<MessageKey, string> = {
   "remote.description": "Подключите браузер в той же сети. Каждая установка требует подтверждения на этом устройстве.",
   "remote.address": "Адрес устройства",
   "remote.fingerprint": "Отпечаток сертификата (SHA-256)",
+  "remote.copyPairingLink": "Копировать ссылку для сопряжения",
   "remote.pair": "Подключить браузер",
   "remote.pairings": "Запросы на подключение",
   "remote.requests": "Запросы на установку",

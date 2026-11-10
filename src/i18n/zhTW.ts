@@ -6,6 +6,7 @@ export const zhTW: Record<MessageKey, string> = {
   "remote.description": "配對同一網路上的瀏覽器。每次安裝都需要在此裝置上核准。",
   "remote.address": "裝置位址",
   "remote.fingerprint": "憑證指紋 (SHA-256)",
+  "remote.copyPairingLink": "複製配對連結",
   "remote.pair": "配對瀏覽器",
   "remote.pairings": "配對請求",
   "remote.requests": "安裝請求",

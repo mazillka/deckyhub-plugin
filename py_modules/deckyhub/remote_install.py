@@ -1,11 +1,12 @@
 """Remote install management and RPC interface."""
 
 import asyncio
+from urllib.parse import urlsplit
 
 import decky
 
 from .remote_install_service import RemoteInstallService
-from .remote_install_transport import start_transport
+from .remote_install_transport import lan_address, start_transport
 
 
 class RemoteInstallMixin:
@@ -61,6 +62,24 @@ class RemoteInstallMixin:
             self.remote_install_address = None
             self.remote_install_fingerprint = None
             self.remote_install_error = None
+
+    async def _refresh_remote_address(self):
+        if not self.settings.get("remoteInstall") or not self.settings.get("remoteInstallFeature"):
+            return
+        try:
+            address = lan_address()
+        except OSError:
+            return
+        previous = self.remote_install_address
+        if previous and urlsplit(previous).hostname != address:
+            await self._stop_remote_transport()
+        if self.remote_install_server is None:
+            await self._start_remote_transport()
+
+    async def _watch_remote_address(self):
+        while True:
+            await asyncio.sleep(10)
+            await self._refresh_remote_address()
 
     async def get_remote_install_status(self):
         enabled = bool(getattr(self, "settings", {}).get("remoteInstall", False))
@@ -130,6 +149,8 @@ class RemoteInstallMixin:
         return self.remote_install_service.decide_request(request_id, approve)
 
     async def claim_remote_request(self, request_id: str):
+        if not self.settings.get("remoteInstallFeature") or not self.settings.get("remoteInstall"):
+            raise ValueError("Remote install is disabled")
         return self.remote_install_service.claim(request_id)
 
     async def finish_remote_request(self, request_id: str, success: bool):

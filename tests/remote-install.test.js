@@ -1,6 +1,22 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { deviceUrl, exchange, fingerprintBytes } from '../docs/remote-install.js';
+import { detailsFromPairingLink, deviceUrl, exchange, fingerprintBytes, init, pairingDetails } from '../docs/remote-install.js';
+
+test('pairing links accept only a private device address and a complete fingerprint', () => {
+  const fingerprint = 'ab'.repeat(32);
+  const fragment = (device, hash = fingerprint) => `#${new URLSearchParams({ device, fingerprint: hash })}`;
+  assert.deepEqual(pairingDetails(fragment('192.168.1.20:8765')), { address: '192.168.1.20:8765', fingerprint });
+  assert.equal(pairingDetails(fragment('example.com:8765')), null);
+  assert.equal(pairingDetails(fragment('192.168.1.20:8765', 'short')), null);
+  assert.equal(pairingDetails('#remote-install'), null);
+});
+
+test('pasted DeckyHub links fill device details without navigating away from the selected plugin', () => {
+  const address = '192.168.1.20:8765', fingerprint = 'ab'.repeat(32);
+  const path = `/develop/plugins/#${new URLSearchParams({ device: address, fingerprint })}`;
+  assert.deepEqual(detailsFromPairingLink(`https://deckyhub.com${path}`), { address, fingerprint });
+  assert.equal(detailsFromPairingLink(`https://example.com${path}`), null);
+});
 
 test('accepts only private IPv4 literals and valid ports', () => {
   assert.equal(deviceUrl('192.168.1.20:8765'), 'https://192.168.1.20:8765/remote-install');
@@ -22,6 +38,50 @@ function transportReturning(response, sent) {
     readable: new ReadableStream({ start(controller) { controller.enqueue(data); controller.close(); } }),
   }) };
 }
+
+test('the device picker sends only to the selected device with its own pin and token', async (t) => {
+  const devices = [
+    { name: 'First', address: '192.168.1.20:8765', fingerprint: 'aa'.repeat(32), token: 'a'.repeat(43) },
+    { name: 'Second', address: '192.168.1.21:8765', fingerprint: 'bb'.repeat(32), token: 'b'.repeat(43) },
+  ];
+  const sent = [], connections = [];
+  const globals = {
+    isSecureContext: true,
+    sessionStorage: { getItem: () => JSON.stringify(devices), setItem() {} },
+    Option: class { constructor(text, value) { Object.assign(this, { text, value }); } },
+    addEventListener() {},
+    WebTransport: class {
+      ready = Promise.resolve();
+      closed = new Promise(() => {});
+      constructor(url, options) { connections.push({ url, pin: options.serverCertificateHashes[0].value }); }
+      createBidirectionalStream = transportReturning('{"ok":true,"requestId":"example","status":"installed"}', sent).createBidirectionalStream;
+      close() {}
+    },
+  };
+  for (const [key, value] of Object.entries(globals)) {
+    const original = Object.getOwnPropertyDescriptor(globalThis, key);
+    Object.defineProperty(globalThis, key, { value, configurable: true });
+    t.after(() => original ? Object.defineProperty(globalThis, key, original) : delete globalThis[key]);
+  }
+  const elements = new Map();
+  const querySelector = id => {
+    if (!elements.has(id)) elements.set(id, {
+      value: '', handlers: {}, replaceChildren() {}, add() {},
+      addEventListener(event, handler) { this.handlers[event] = handler; },
+    });
+    return elements.get(id);
+  };
+  init({ querySelector, dataset: { pluginId: 'example-plugin' } });
+  const picker = querySelector('#remote-device-picker');
+  picker.value = '1';
+  picker.handlers.change();
+  assert.equal(connections.length, 0);
+  await querySelector('#remote-request').handlers.click();
+  assert.deepEqual(connections, [{ url: 'https://192.168.1.21:8765/remote-install', pin: new Uint8Array(32).fill(0xbb) }]);
+  assert.deepEqual(JSON.parse(sent[0]).token, devices[1].token);
+  assert.equal(JSON.parse(sent[0]).pluginId, 'example-plugin');
+  assert.equal(querySelector('#remote-status').textContent, 'Installed on your device.');
+});
 
 test('sends one JSON request and accepts a successful response', async () => {
   const sent = [];

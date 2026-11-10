@@ -6,6 +6,7 @@ export const pl: Record<MessageKey, string> = {
     "Sparuj przeglądarkę w tej samej sieci. Każda instalacja wymaga zatwierdzenia na tym urządzeniu.",
   "remote.address": "Adres urządzenia",
   "remote.fingerprint": "Odcisk certyfikatu (SHA-256)",
+  "remote.copyPairingLink": "Skopiuj link do parowania",
   "remote.pair": "Sparuj przeglądarkę",
   "remote.pairings": "Prośby o parowanie",
   "remote.requests": "Prośby o instalację",
