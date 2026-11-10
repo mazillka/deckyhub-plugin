@@ -139,6 +139,17 @@ class PluginPageTests(unittest.TestCase):
         self.assertIn("<small>Tagged v0.45, its ZIP says 0.4.5</small></a>", page)
         self.assertNotIn("Same One", page)  # Release-0.7.6 and 0.7.6 are the same version
 
+    def test_reported_identity_issue_appears_on_plugin_page_and_index(self):
+        shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
+        title = "Installed plugin identity could not be verified: release ZIP is missing its repository."
+        url = "https://github.com/example/plugin/issues/1"
+        app = {**APP, "knownIssues": [{"title": title, "url": url}]}
+        detail = plugin_pages.plugin_page(shell, app, {}, {}, {}, [app])
+        index = plugin_pages.issues_page(shell, [app], {"stats": {}, "scans": {}})
+        self.assertIn(f'<a href="{url}">{title}</a>', detail)
+        self.assertIn('id="reported-issues"', index)
+        self.assertIn(f"<small>{title}</small>", index)
+
     def test_an_unscanned_plugin_says_so(self):
         self.assertIn("Not scanned yet", self.page())
 
