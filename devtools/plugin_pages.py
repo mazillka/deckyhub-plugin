@@ -351,6 +351,21 @@ def page(
 """
 
 
+def reported_issues(app: dict) -> list[tuple[str, str]]:
+    issues = app.get("knownIssues")
+    if not isinstance(issues, list):
+        return []
+    return [
+        (issue["title"].strip()[:200], issue["url"])
+        for issue in issues[:10]
+        if isinstance(issue, dict)
+        and isinstance(issue.get("title"), str)
+        and issue["title"].strip()
+        and isinstance(issue.get("url"), str)
+        and issue["url"].startswith("https://")
+    ]
+
+
 def plugin_page(
     shell: dict[str, str],
     app: dict,
@@ -371,6 +386,8 @@ def plugin_page(
     if stats.get("updated"):
         facts.append(f"<li><strong>{nice_date(stats['updated'])}</strong>Latest release</li>")
     badges = badges_of(stats, scans, warnings, reports, vt_reports)
+    issues = reported_issues(app)
+    issue_list = "".join(f'<li><a href="{escape(url)}">{escape(title)}</a></li>' for title, url in issues)
     related = [other for other in others if other["id"] != app["id"]][:6]
     crumbs = f'<p class="crumbs"><a href="/">DeckyHub</a> › <a href="/plugins/">Plugins</a> › {escape(name)}</p>'
     body = f"""{crumbs}
@@ -381,6 +398,7 @@ def plugin_page(
 <h2>Install {escape(name)}</h2>
 <p class="note">Before updating an installed plugin, check that its GitHub owner and repository match the source shown here. Plugin names alone may not identify the correct project.</p>
 <p>{escape(name)} is a <a href="https://decky.xyz/">Decky Loader</a> plugin. With <a href="/">DeckyHub</a> installed, open DeckyHub's <strong>Discover</strong> tab in Gaming Mode, search for <strong>{escape(name)}</strong> and press <strong>Install</strong>. DeckyHub hands the release to Decky Loader's own installer and checks its SHA-256 whenever GitHub publishes one. You can also download the ZIP from its <a href="{escape(repo_url)}/releases">releases</a> and install it by hand from Decky's developer settings.</p>
+{f"<h2>Known issues</h2><ul>{issue_list}</ul>" if issue_list else ""}
 <h2>Safety information</h2>
 {"<ul class='badges'>" + "".join(badges) + "</ul>" if badges else "<p>No badges: it doesn't run as root, and no audit warnings or virus scan findings are known for it.</p>"}
 <h2>Security scans</h2>
@@ -652,6 +670,8 @@ def issues_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
             add(warning, "" if warning in stable else "Pre-release only")
         if mismatch := version_mismatch((data.get("releases") or {}).get(key) or []):
             add("version-mismatch", f"Tagged {mismatch[0]}, its ZIP says {mismatch[1]}")
+        if reported := reported_issues(app):
+            add("reported-issues", " · ".join(title for title, _ in reported))
     issues = [
         (
             kind,
@@ -671,6 +691,14 @@ def issues_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
             "Its newest release is tagged with one version, but the plugin in its ZIP reports another, so an update check that reads the tag can offer the same update again after you install it.",
         )
     )
+    issues.append(
+        (
+            "reported-issues",
+            "Reported plugin issues",
+            "warn",
+            "Open the plugin page for details and links to the reports.",
+        )
+    )
     sections = "".join(
         f'<h2 id="{key}"><span class="badge {css}">{escape(label)}</span> {len(groups[key])}</h2><p>{escape(hint)}</p><ul class="list">'
         + "".join(f"<li>{item}</li>" for item in groups[key])
@@ -681,7 +709,7 @@ def issues_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
     flagged = len(listed)
     body = f"""<p class="crumbs"><a href="/">DeckyHub</a> › <a href="/plugins/">Plugins</a> › Known issues</p>
 <h1>Known plugin issues</h1>
-<p class="lead">{flagged} of {len(apps)} Decky Loader plugins have a virus scan finding, a warning from <a href="https://decky-extended-plugins.beallio.com/audit">Decky Extended Plugins' audit</a> or a version mismatch. DeckyHub shows the scan and audit notes in the app before you install; they inform and never block.</p>
+<p class="lead">{flagged} of {len(apps)} Decky Loader plugins have a scan finding, an audit warning, a version mismatch or a reported issue. The app shows these notes in Manage and blocks updates when it cannot verify the installed plugin's repository identity.</p>
 <p class="note">A warning isn't proof a plugin is harmful, and no warning isn't proof it's safe. Open a plugin's page for its scans, and check its repository before installing. Updated daily.</p>
 {sections or "<p>No known issues right now.</p>"}"""
     trail = json_ld(
