@@ -85,8 +85,10 @@ class RemoteInstallMixinTests(unittest.TestCase):
 
     def test_feature_flag_blocks_listener_and_disabling_closes_it(self):
         server = types.SimpleNamespace(close=MagicMock())
+
         async def fake_start(service):
             return server, "https://example.test/remote-install", "fingerprint"
+
         with patch("deckyhub.remote_install.start_transport", side_effect=fake_start):
             run_coro(self.plugin.set_remote_install_enabled(True))
             run_coro(self.plugin.set_remote_install_feature_enabled(False))

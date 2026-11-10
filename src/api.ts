@@ -37,7 +37,9 @@ export const saveRepoSettings = callable<[repo: string, values: RepoPreference],
 
 export const getRemoteInstallStatus = callable<[], RemoteInstallStatus>("get_remote_install_status");
 export const setRemoteInstallEnabled = callable<[enabled: boolean], RemoteInstallStatus>("set_remote_install_enabled");
-export const setRemoteInstallFeatureEnabled = callable<[enabled: boolean], Settings>("set_remote_install_feature_enabled");
+export const setRemoteInstallFeatureEnabled = callable<[enabled: boolean], Settings>(
+  "set_remote_install_feature_enabled",
+);
 export const beginRemotePairing = callable<[], { code: string; expiresInSeconds: number }>("begin_remote_pairing");
 export const decideRemotePairing = callable<[pairId: string, approve: boolean], { status: string }>(
   "decide_remote_pairing",

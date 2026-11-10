@@ -11,7 +11,8 @@ export const en = {
   "remote.devices": "Paired browsers",
   "remote.approve": "Approve",
   "remote.reject": "Reject",
-  "appcard.identityUnverified": "Installed plugin identity could not be verified; installation and updates are disabled.",
+  "appcard.identityUnverified":
+    "Installed plugin identity could not be verified; installation and updates are disabled.",
   "nav.updates": "Updates",
   "nav.discover": "Discover",
   "nav.search": "Search",

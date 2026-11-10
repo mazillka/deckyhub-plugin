@@ -37,13 +37,13 @@ class PluginPageTests(unittest.TestCase):
     def test_remote_install_handoff_has_plugin_id_and_no_secrets_in_url(self):
         page = self.page()
         self.assertIn('id="remote-install"', page)
-        form = page.split('<form id="remote-pair-form">', 1)[1].split('</form>', 1)[0]
-        self.assertNotIn(' name=', form)
+        form = page.split('<form id="remote-pair-form">', 1)[1].split("</form>", 1)[0]
+        self.assertNotIn(" name=", form)
         self.assertIn('id="remote-pair" disabled', form)
         self.assertIn(f'data-plugin-id="{APP["id"]}"', page)
         self.assertIn('src="/remote-install.js"', page)
-        self.assertIn('approve the browser and each installation', page)
-        self.assertNotIn('token=', page)
+        self.assertIn("approve the browser and each installation", page)
+        self.assertNotIn("token=", page)
 
     def test_a_long_repository_name_gets_a_full_width_tile_that_wraps(self):
         page = self.page()

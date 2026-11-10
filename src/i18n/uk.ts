@@ -13,7 +13,8 @@ export const uk: Record<MessageKey, string> = {
   "remote.devices": "З’єднані браузери",
   "remote.approve": "Підтвердити",
   "remote.reject": "Відхилити",
-  "appcard.identityUnverified": "Не вдалося перевірити ідентичність встановленого плагіна; встановлення та оновлення вимкнено.",
+  "appcard.identityUnverified":
+    "Не вдалося перевірити ідентичність встановленого плагіна; встановлення та оновлення вимкнено.",
   "nav.updates": "Оновлення",
   "nav.discover": "Огляд",
   "nav.search": "Пошук",

@@ -39,7 +39,11 @@ class AppsMixin:
         self, rule: dict, installed_plugins: list[tuple[dict, dict, str | None]]
     ) -> tuple[dict, dict] | None:
         expected_repo = str(rule.get("repo", "")).casefold()
-        matches = [(manifest, package) for manifest, package, repo in installed_plugins if expected_repo and repo == expected_repo]
+        matches = [
+            (manifest, package)
+            for manifest, package, repo in installed_plugins
+            if expected_repo and repo == expected_repo
+        ]
         return matches[0] if len(matches) == 1 else None
 
     def _decky_plugin_version(self, match: tuple[dict, dict] | None) -> str | None:
@@ -54,7 +58,11 @@ class AppsMixin:
             value = value.get("url")
         if not isinstance(value, str):
             return None
-        match = re.fullmatch(r"(?:https://github\.com/|git@github\.com:|github:)([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+?)(?:\.git)?/?", value, re.IGNORECASE)
+        match = re.fullmatch(
+            r"(?:https://github\.com/|git@github\.com:|github:)([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+?)(?:\.git)?/?",
+            value,
+            re.IGNORECASE,
+        )
         repo = (match.group(1) if match else value).removesuffix(".git")
         return repo.casefold() if REPOSITORY_NAME.fullmatch(repo) else None
 
@@ -71,7 +79,11 @@ class AppsMixin:
                 rule = {**app["detect"], "repo": app["repo"]}
                 match = self._match_decky_plugin(rule, installed_plugins)
                 names = {name.casefold() for name in rule.get("names", [])}
-                candidates = [item for item in installed_plugins if item[0].get("name", "").casefold() in names or item[2] == app["repo"].casefold()]
+                candidates = [
+                    item
+                    for item in installed_plugins
+                    if item[0].get("name", "").casefold() in names or item[2] == app["repo"].casefold()
+                ]
                 unverified[index] = bool(candidates) and (not match or len(candidates) != 1)
                 if unverified[index]:
                     match = None

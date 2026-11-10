@@ -13,7 +13,8 @@ export const pl: Record<MessageKey, string> = {
   "remote.devices": "Sparowane przeglądarki",
   "remote.approve": "Zatwierdź",
   "remote.reject": "Odrzuć",
-  "appcard.identityUnverified": "Nie można zweryfikować zainstalowanej wtyczki; instalacja i aktualizacje są wyłączone.",
+  "appcard.identityUnverified":
+    "Nie można zweryfikować zainstalowanej wtyczki; instalacja i aktualizacje są wyłączone.",
   "nav.updates": "Aktualizacje",
   "nav.discover": "Odkrywaj",
   "nav.search": "Szukaj",

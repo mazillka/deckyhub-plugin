@@ -13,7 +13,8 @@ export const es: Record<MessageKey, string> = {
   "remote.devices": "Navegadores vinculados",
   "remote.approve": "Aprobar",
   "remote.reject": "Rechazar",
-  "appcard.identityUnverified": "No se pudo verificar el plugin instalado; la instalación y las actualizaciones están desactivadas.",
+  "appcard.identityUnverified":
+    "No se pudo verificar el plugin instalado; la instalación y las actualizaciones están desactivadas.",
   "nav.updates": "Actualizaciones",
   "nav.discover": "Descubrir",
   "nav.search": "Buscar",

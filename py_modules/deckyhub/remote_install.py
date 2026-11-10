@@ -21,12 +21,18 @@ class RemoteInstallMixin:
 
     async def _start_remote_transport(self):
         async with self._remote_transport_lock:
-            if self.remote_install_server is not None or not self.settings.get("remoteInstall", False) or not self.settings.get("remoteInstallFeature", False):
+            if (
+                self.remote_install_server is not None
+                or not self.settings.get("remoteInstall", False)
+                or not self.settings.get("remoteInstallFeature", False)
+            ):
                 return
             try:
                 server, url, fingerprint = await start_transport(self.remote_install_service)
                 # Disable can occur while the listener is starting. Never leave it active.
-                if not self.settings.get("remoteInstall", False) or not self.settings.get("remoteInstallFeature", False):
+                if not self.settings.get("remoteInstall", False) or not self.settings.get(
+                    "remoteInstallFeature", False
+                ):
                     server.close()
                     return
                 self.remote_install_server = server
@@ -103,7 +109,9 @@ class RemoteInstallMixin:
         return await self.get_settings()
 
     async def begin_remote_pairing(self):
-        if not getattr(self, "settings", {}).get("remoteInstall", False) or not self.settings.get("remoteInstallFeature", False):
+        if not getattr(self, "settings", {}).get("remoteInstall", False) or not self.settings.get(
+            "remoteInstallFeature", False
+        ):
             raise ValueError("Remote install is disabled")
         if self.remote_install_server is None:
             await self._start_remote_transport()

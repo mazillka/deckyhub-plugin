@@ -127,7 +127,12 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
         title: t("settings.tabDownloads"),
         content: stack(
           <DownloadsSection key="downloads" settings={settings} update={update} />,
-          <ToggleField key="remote-feature" label={t("remote.title")} checked={settings.remoteInstallFeature === true} onChange={(enabled: boolean) => void setRemoteInstallFeatureEnabled(enabled).then(setSettings)} />,
+          <ToggleField
+            key="remote-feature"
+            label={t("remote.title")}
+            checked={settings.remoteInstallFeature === true}
+            onChange={(enabled: boolean) => void setRemoteInstallFeatureEnabled(enabled).then(setSettings)}
+          />,
           settings.remoteInstallFeature ? <RemoteInstallSection key="remote-install" /> : null,
         ),
       },

@@ -7,9 +7,9 @@ import json
 import platform
 import socket
 import sys
-from pathlib import Path
 import time
 from collections import deque
+from pathlib import Path
 
 MAX_MESSAGE = 16384
 MAX_STREAMS = 16
@@ -31,7 +31,12 @@ def lan_address():
 
 async def start_transport(service):
     vendor = Path(__file__).resolve().parent.parent / "deckyhub_vendor" / "cp314"
-    if vendor.is_dir() and sys.version_info[:2] == (3, 14) and sys.platform == "linux" and platform.machine() in ("x86_64", "AMD64"):
+    if (
+        vendor.is_dir()
+        and sys.version_info[:2] == (3, 14)
+        and sys.platform == "linux"
+        and platform.machine() in ("x86_64", "AMD64")
+    ):
         if str(vendor) not in sys.path:
             sys.path.insert(0, str(vendor))
     from aioquic.asyncio import QuicConnectionProtocol, serve

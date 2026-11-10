@@ -13,7 +13,8 @@ export const nl: Record<MessageKey, string> = {
   "remote.devices": "Gekoppelde browsers",
   "remote.approve": "Goedkeuren",
   "remote.reject": "Afwijzen",
-  "appcard.identityUnverified": "De geïnstalleerde plugin kon niet worden geverifieerd; installeren en bijwerken zijn uitgeschakeld.",
+  "appcard.identityUnverified":
+    "De geïnstalleerde plugin kon niet worden geverifieerd; installeren en bijwerken zijn uitgeschakeld.",
   "nav.updates": "Updates",
   "nav.discover": "Ontdekken",
   "nav.search": "Zoeken",
