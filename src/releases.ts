@@ -449,7 +449,7 @@ export async function hydrate(app: App, force: boolean, preference?: RepoPrefere
   const release = items.find((item) => inChannel(item, channel));
   if (!release) return { ...app, channel, error: error ?? tr("release.noMatch") };
   const cmp = app.installedVersion ? compareVersions(releaseVersion(release), app.installedVersion) : null;
-  const installed = installedRelease(items, app.installedVersion);
+  const installed = app.identityUnverified ? undefined : installedRelease(items, app.installedVersion);
   return {
     ...app,
     channel,
