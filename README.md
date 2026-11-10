@@ -105,13 +105,13 @@ DeckyHub isn't on the official Decky Loader store, and won't be: the Decky team 
 
 There are two ways to install DeckyHub. Pick one:
 
-|                    | **Desktop installer** (recommended)                  | **Manual ZIP**                                                             |
-| ------------------ | ---------------------------------------------------- | -------------------------------------------------------------------------- |
-| Where              | Desktop Mode                                         | Gaming Mode                                                                |
-| Decky Loader       | Checked, and installed if it's missing               | Must already be installed                                                  |
-| Admin password     | Needed                                               | Not needed                                                                 |
-| What you do        | Download one file and follow the steps it shows      | Download the ZIP and add it in Decky's developer settings, or paste a link |
-| Decky Loader setup | None: Decky Loader and DeckyHub are set up in one go | You install Decky Loader first                                             |
+| | **Desktop installer** (recommended) | **Manual ZIP** |
+| --- | --- | --- |
+| Where | Desktop Mode | Gaming Mode |
+| Decky Loader | Checked, and installed if it's missing | Must already be installed |
+| Admin password | Needed | Not needed |
+| What you do | Download one file and follow the steps it shows | Download the ZIP and add it in Decky's developer settings, or paste a link |
+| Decky Loader setup | None: Decky Loader and DeckyHub are set up in one go | You install Decky Loader first |
 
 Afterward, DeckyHub can install and update plugins from Gaming Mode.
 
@@ -164,7 +164,6 @@ If Decky Loader is already installed:
    <img src="docs/install-link-qr.svg" width="140" alt="QR code of the link above">
 
    Scan the QR code to have the link on your phone while you type it.
-
 3. Pick DeckyHub's four-square icon in the Quick Access Menu (or Decky → **DeckyHub**).
 
 ## Using DeckyHub
@@ -173,11 +172,11 @@ If Decky Loader is already installed:
 
 DeckyHub uses Steam's standard controller controls, plus extra shortcuts on every **Install** / **Update** button (on Discover and Updates cards, on **Search** results, in the [Manage](#manage) window, and for DeckyHub's own update):
 
-| Button        | What it does                                                                                                                           |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| **X**         | Download that release's ZIP to `~/Downloads/deckyhub` instead of installing it. Not shown when **Download ZIP** is hidden in Settings. |
-| **Y**         | Show the release notes (what that release changes) without installing anything.                                                        |
-| **Menu** (☰) | Open the plugin's GitHub page. Not on DeckyHub's own update.                                                                           |
+| Button | What it does |
+| --- | --- |
+| **X** | Download that release's ZIP to `~/Downloads/deckyhub` instead of installing it. Not shown when **Download ZIP** is hidden in Settings. |
+| **Y** | Show the release notes (what that release changes) without installing anything. |
+| **Menu** (☰) | Open the plugin's GitHub page. Not on DeckyHub's own update. |
 
 Steam's footer shows these actions for whichever button is focused.
 
@@ -201,30 +200,30 @@ Every **Status** and **Category** option shows how many plugins it would list.
 
 Cards can carry these badges. **More** on the "What the badges on plugins mean" notice at the top of Discover explains them in the app too.
 
-| Badge                                                     | What it means                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Runs as root**                                          | Its backend runs as root, with full access to the system. Install only if you trust the author.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| **No release in a year**                                  | No new release for over a year, so it may be abandoned.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| **Fork**                                                  | A fork that carries a plugin on after its original stopped. DeckyHub lists it only while it's the active one.                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| **AI**                                                    | Its repository has instructions for AI coding assistants (`CLAUDE.md`, `AGENTS.md`, `.cursorrules`, `.github/copilot-instructions.md` and similar), or its README says it's made with AI ("vibe-coded", "100% AI", "built with Claude Code" and similar), so it's likely developed with AI help. It says nothing about quality or safety, and no badge doesn't mean no AI was used.                                                                                                                                                                                                       |
-| **Pre-release only**                                      | It has no stable release, so DeckyHub offers its pre-releases, which may be unfinished, and its Manage window hides the Stable channel.                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| **No description**                                        | Its author hasn't said what it does. Check its repository before installing.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| Badge | What it means |
+| --- | --- |
+| **Runs as root** | Its backend runs as root, with full access to the system. Install only if you trust the author. |
+| **No release in a year** | No new release for over a year, so it may be abandoned. |
+| **Fork** | A fork that carries a plugin on after its original stopped. DeckyHub lists it only while it's the active one. |
+| **AI** | Its repository has instructions for AI coding assistants (`CLAUDE.md`, `AGENTS.md`, `.cursorrules`, `.github/copilot-instructions.md` and similar), or its README says it's made with AI ("vibe-coded", "100% AI", "built with Claude Code" and similar), so it's likely developed with AI help. It says nothing about quality or safety, and no badge doesn't mean no AI was used. |
+| **Pre-release only** | It has no stable release, so DeckyHub offers its pre-releases, which may be unfinished, and its Manage window hides the Stable channel. |
+| **No description** | Its author hasn't said what it does. Check its repository before installing. |
 | **No threats** / **Threat found** / **Not fully scanned** | The virus scans of the release you'd install (ClamAV and YARA; the badge shows the worse of the two): nothing found, something flagged (it may be a false positive; open **Manage** for the report and decide), or it couldn't scan all of it (**Manage** says why). No badge until it's been scanned. The registry also looks up each public ZIP on MetaDefender by SHA-256 and uploads it there if it has no report. New, pending, failed, or unsupported scans may not have a result yet. The scans only catch known malware and can be evaded, so a clean scan isn't proof of safety. |
 
 The selected ZIP's scan report also includes DeckyHub's independent automated code audit, separate from ClamAV, YARA and the community audit below. It checks a limited set of patterns and reports relevant file locations and whether the manifest requests root. Findings need review and may not indicate harm; a manifest without a root request does not rule out privileged behavior. An incomplete, failed, missing or unmatched report cannot establish what was checked, and even a completed audit cannot prove a plugin is safe.
 
 These warnings come from Decky Extended Plugins' automated [security audit](https://decky-extended-plugins.beallio.com/audit) of the release you'd install. Routine findings like `sudo`, `mount` or `systemctl` aren't shown. A warning isn't proof of harm, and no warning isn't proof of safety.
 
-| Warning                     | What the audit found                                                                                                      |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| **Blocked by audit**        | Malware or a broken archive. Not recommended for installation.                                                            |
-| **Reads private data**      | It reads Steam login data, SSH keys or secrets from the environment.                                                      |
-| **Changes system startup**  | It edits shell profiles, preloads libraries, loads kernel modules or adds device rules, which keep working outside Decky. |
-| **Code not in its repo**    | The release has scripts or programs that aren't in its GitHub source, so you can't read what they do.                     |
-| **Hidden code**             | It contains encoded or packed code that's hard to read.                                                                   |
-| **Skips HTTPS checks**      | It turns off certificate checks, so what it downloads could be tampered with.                                             |
-| **Runs downloaded scripts** | It downloads a script and runs it straight away.                                                                          |
-| **Known vulnerabilities**   | It bundles libraries with published security flaws.                                                                       |
+| Warning | What the audit found |
+| --- | --- |
+| **Blocked by audit** | Malware or a broken archive. Not recommended for installation. |
+| **Reads private data** | It reads Steam login data, SSH keys or secrets from the environment. |
+| **Changes system startup** | It edits shell profiles, preloads libraries, loads kernel modules or adds device rules, which keep working outside Decky. |
+| **Code not in its repo** | The release has scripts or programs that aren't in its GitHub source, so you can't read what they do. |
+| **Hidden code** | It contains encoded or packed code that's hard to read. |
+| **Skips HTTPS checks** | It turns off certificate checks, so what it downloads could be tampered with. |
+| **Runs downloaded scripts** | It downloads a script and runs it straight away. |
+| **Known vulnerabilities** | It bundles libraries with published security flaws. |
 
 A warning about a newer pre-release is labelled **Pre-release:**. Download counts, stars and warnings come from the registry, refreshed every hour.
 
@@ -260,14 +259,14 @@ Tap **Manage** on any card in Discover or Updates to:
 
 Settings is split into tabs; **L1** / **R1** switch between them.
 
-| Tab              | What's in it                                                                                                                                                                                                                                                          |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **General**      | The language, and the display: **Grid** or **List**, **Default** or **Compact** density, **OLED black** (true black backgrounds for OLED screens), items per row, haptics, whether DeckyHub has its own tab in Quick Access, and which Manage-window buttons to hide. |
-| **GitHub**       | An optional personal access token that raises GitHub's rate limit (see [Troubleshooting](#troubleshooting)). Type it, or load it from a text file in Downloads.                                                                                                       |
-| **Downloads**    | The download folder and the **Overwrite Existing** toggle (see [Downloads](#downloads)).                                                                                                                                                                              |
-| **Repositories** | Your tracked repositories, export and import, and **Custom Registries** (see [Repositories](#repositories)).                                                                                                                                                          |
-| **Logs**         | **Export Logs**, for bug reports.                                                                                                                                                                                                                                     |
-| **About**        | What DeckyHub is, and the catalogs it builds on.                                                                                                                                                                                                                      |
+| Tab | What's in it |
+| --- | --- |
+| **General** | The language, and the display: **Grid** or **List**, **Default** or **Compact** density, **OLED black** (true black backgrounds for OLED screens), items per row, haptics, whether DeckyHub has its own tab in Quick Access, and which Manage-window buttons to hide. |
+| **GitHub** | An optional personal access token that raises GitHub's rate limit (see [Troubleshooting](#troubleshooting)). Type it, or load it from a text file in Downloads. |
+| **Downloads** | The download folder and the **Overwrite Existing** toggle (see [Downloads](#downloads)). |
+| **Repositories** | Your tracked repositories, export and import, and **Custom Registries** (see [Repositories](#repositories)). |
+| **Logs** | **Export Logs**, for bug reports. |
+| **About** | What DeckyHub is, and the catalogs it builds on. |
 
 DeckyHub comes in English, Ukrainian, Russian, Spanish, German, French, Portuguese (Brazil and Portugal), Italian, Polish, Turkish, Dutch, Czech, Japanese, Korean, and Chinese (Simplified and Traditional). Translations other than English are made automatically, so they may have mistakes; corrections are welcome.
 
@@ -318,14 +317,14 @@ DeckyHub installs software on your Deck, so every change, every release and ever
 
 **Every change, before it's merged.** `develop` and `main` are protected: nothing is pushed to them directly, and a pull request merges only when these pass (the browser tests are skipped when a change touches only Markdown or the website's `docs/` and `promo/` folders):
 
-| Check                                                                              | What it covers                                                                                                                                               |
-| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Backend tests (Python's built-in `unittest`)                                       | Downloads, SHA-256 checks, HTTPS-only redirects, the settings file, registry parsing, and the Desktop installer run as root against stand-ins                |
-| Frontend unit tests                                                                | Version comparison, release-notes cleanup, the cache, and every language's placeholders                                                                      |
-| Browser tests (over a hundred Playwright tests in four parallel shards)            | DeckyHub's real UI in a Gaming Mode mock: browsing, installing, updating, virus scan reports, Skip this version, known issues, Settings and controller focus |
-| Type check                                                                         | The whole TypeScript frontend (`tsc`)                                                                                                                        |
-| [CodeQL](https://github.com/mazillka/deckyhub-plugin/actions/workflows/codeql.yml) | GitHub's security analysis of the Python and TypeScript code                                                                                                 |
-| Dependency review and Dependabot                                                   | Dependencies with known vulnerabilities are flagged, and security updates arrive as pull requests                                                            |
+| Check | What it covers |
+| --- | --- |
+| Backend tests (Python's built-in `unittest`) | Downloads, SHA-256 checks, HTTPS-only redirects, the settings file, registry parsing, and the Desktop installer run as root against stand-ins |
+| Frontend unit tests | Version comparison, release-notes cleanup, the cache, and every language's placeholders |
+| Browser tests (over a hundred Playwright tests in four parallel shards) | DeckyHub's real UI in a Gaming Mode mock: browsing, installing, updating, virus scan reports, Skip this version, known issues, Settings and controller focus |
+| Type check | The whole TypeScript frontend (`tsc`) |
+| [CodeQL](https://github.com/mazillka/deckyhub-plugin/actions/workflows/codeql.yml) | GitHub's security analysis of the Python and TypeScript code |
+| Dependency review and Dependabot | Dependencies with known vulnerabilities are flagged, and security updates arrive as pull requests |
 
 **Every release.** Pre-releases (`-rc`) come first, and a stable release is a reviewed pull request from `develop` into `main`. The release workflow refuses a tag that doesn't match `package.json`, runs every test again and builds the ZIP with a read-only token. The ZIP is scanned with ClamAV, VirusTotal and MetaDefender before it's published, and the Desktop installer right after; the verdicts go into the release notes and the badges at the top of this page. Before a stable release, it's tried on a real Steam Deck: `devtools/deck/` deploys the build over Steam's debugger, drives Gaming Mode with the D-pad and takes screenshots.
 
