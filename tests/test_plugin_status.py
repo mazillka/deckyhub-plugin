@@ -20,6 +20,20 @@ from main import Plugin
 
 
 class PluginStatusTests(unittest.TestCase):
+    def test_repository_match_with_duplicate_loader_name_is_unverified(self):
+        plugin = Plugin()
+        plugin.settings = {"customRepos": []}
+        plugin.apps = [{"repo": "owner/project", "detect": {"type": "decky-plugin", "names": ["Old name"]}}]
+        installed = [
+            ({"name": "New name", "version": "1.2.3"}, {}, "owner/project"),
+            ({"name": "new name", "version": "9.0.0"}, {}, "other/project"),
+        ]
+        with patch.object(plugin, "_scan_installed_plugins", return_value=installed):
+            app = asyncio.run(plugin.get_apps())["apps"][0]
+        self.assertTrue(app["identityUnverified"])
+        self.assertIsNone(app["pluginName"])
+        self.assertEqual(app["installedVersion"], "1.2.3")
+
     def test_repository_match_rejects_name_only_wrong_owner_and_duplicates(self):
         plugin = Plugin()
         rule = {"repo": "owner/project", "names": ["Plugin"]}
@@ -33,6 +47,13 @@ class PluginStatusTests(unittest.TestCase):
         self.assertIsNone(
             plugin._plugin_repository({}, {"repository": "https://evil.example/github.com/owner/project"})
         )
+        for repository in (
+            "git+https://github.com.example/owner/project.git",
+            "git+https://github.com@other.example/owner/project.git",
+            "git+https://github.com/owner/project/extra",
+        ):
+            with self.subTest(repository=repository):
+                self.assertIsNone(plugin._plugin_repository({}, {"repository": repository}))
 
     def test_decky_plugin_detection_reads_manifest_and_package_version(self):
         with tempfile.TemporaryDirectory() as home:
@@ -40,7 +61,10 @@ class PluginStatusTests(unittest.TestCase):
             plugin_dir.mkdir(parents=True)
             (plugin_dir / "plugin.json").write_text(json.dumps({"name": "MAKO - Frame Generation"}), encoding="utf-8")
             (plugin_dir / "package.json").write_text(
-                json.dumps({"version": "3.2.1", "repository": "owner/mako"}), encoding="utf-8"
+                json.dumps(
+                    {"version": "3.2.1", "repository": {"type": "git", "url": "git+https://github.com/Owner/Mako.git"}}
+                ),
+                encoding="utf-8",
             )
             sys.modules["decky"].DECKY_HOME = home
             plugin = Plugin()

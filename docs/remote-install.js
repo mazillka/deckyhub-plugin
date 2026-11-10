@@ -4,9 +4,9 @@ export function deviceUrl(address) {
   const match = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3}):(\d{1,5})$/.exec(address.trim());
   if (!match) throw new Error('Enter a private IPv4 address and port, for example 192.168.1.50:8765.');
   const [a, b, c, d, port] = match.slice(1).map(Number);
-  if ([a, b, c, d].some(n => n > 255) || port < 1 || port > 65535 ||
+  if ([a, b, c, d].some(n => n > 255) || port !== 8765 ||
       !(a === 10 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168))) {
-    throw new Error('Enter a private IPv4 address and valid port.');
+    throw new Error('Enter the private IPv4 address shown in DeckyHub with port 8765.');
   }
   return `https://${a}.${b}.${c}.${d}:${port}/remote-install`;
 }
