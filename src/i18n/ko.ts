@@ -1,6 +1,7 @@
 import type { MessageKey } from "./en";
 
 export const ko: Record<MessageKey, string> = {
+  "appcard.identityUnverified": "설치된 플러그인을 확인할 수 없어 설치와 업데이트가 비활성화되었습니다.",
   "nav.updates": "업데이트",
   "nav.discover": "둘러보기",
   "nav.search": "검색",

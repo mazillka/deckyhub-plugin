@@ -1,5 +1,7 @@
 // Canonical key source — every other locale must cover the same keys.
 export const en = {
+  "appcard.identityUnverified":
+    "Installed plugin identity could not be verified; installation and updates are disabled.",
   "nav.updates": "Updates",
   "nav.discover": "Discover",
   "nav.search": "Search",

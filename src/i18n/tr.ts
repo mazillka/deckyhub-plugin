@@ -1,6 +1,7 @@
 import type { MessageKey } from "./en";
 
 export const tr: Record<MessageKey, string> = {
+  "appcard.identityUnverified": "Yüklü eklenti doğrulanamadı; yükleme ve güncellemeler devre dışı.",
   "nav.updates": "Güncellemeler",
   "nav.discover": "Keşfet",
   "nav.search": "Ara",
