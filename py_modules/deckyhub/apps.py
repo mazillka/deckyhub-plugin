@@ -59,7 +59,7 @@ class AppsMixin:
         if not isinstance(value, str):
             return None
         match = re.fullmatch(
-            r"(?:https://github\.com/|git@github\.com:|github:)([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+?)(?:\.git)?/?",
+            r"(?:(?:git\+)?https://github\.com/|git@github\.com:|github:)([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+?)(?:\.git)?/?",
             value,
             re.IGNORECASE,
         )
