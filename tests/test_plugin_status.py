@@ -33,6 +33,13 @@ class PluginStatusTests(unittest.TestCase):
         self.assertIsNone(
             plugin._plugin_repository({}, {"repository": "https://evil.example/github.com/owner/project"})
         )
+        for repository in (
+            "git+https://github.com.example/owner/project.git",
+            "git+https://github.com@other.example/owner/project.git",
+            "git+https://github.com/owner/project/extra",
+        ):
+            with self.subTest(repository=repository):
+                self.assertIsNone(plugin._plugin_repository({}, {"repository": repository}))
 
     def test_decky_plugin_detection_reads_manifest_and_package_version(self):
         with tempfile.TemporaryDirectory() as home:
@@ -40,7 +47,10 @@ class PluginStatusTests(unittest.TestCase):
             plugin_dir.mkdir(parents=True)
             (plugin_dir / "plugin.json").write_text(json.dumps({"name": "MAKO - Frame Generation"}), encoding="utf-8")
             (plugin_dir / "package.json").write_text(
-                json.dumps({"version": "3.2.1", "repository": "owner/mako"}), encoding="utf-8"
+                json.dumps(
+                    {"version": "3.2.1", "repository": {"type": "git", "url": "git+https://github.com/Owner/Mako.git"}}
+                ),
+                encoding="utf-8",
             )
             sys.modules["decky"].DECKY_HOME = home
             plugin = Plugin()
