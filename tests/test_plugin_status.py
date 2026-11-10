@@ -20,6 +20,20 @@ from main import Plugin
 
 
 class PluginStatusTests(unittest.TestCase):
+    def test_repository_match_with_duplicate_loader_name_is_unverified(self):
+        plugin = Plugin()
+        plugin.settings = {"customRepos": []}
+        plugin.apps = [{"repo": "owner/project", "detect": {"type": "decky-plugin", "names": ["Old name"]}}]
+        installed = [
+            ({"name": "New name", "version": "1.2.3"}, {}, "owner/project"),
+            ({"name": "new name", "version": "9.0.0"}, {}, "other/project"),
+        ]
+        with patch.object(plugin, "_scan_installed_plugins", return_value=installed):
+            app = asyncio.run(plugin.get_apps())["apps"][0]
+        self.assertTrue(app["identityUnverified"])
+        self.assertIsNone(app["pluginName"])
+        self.assertEqual(app["installedVersion"], "1.2.3")
+
     def test_repository_match_rejects_name_only_wrong_owner_and_duplicates(self):
         plugin = Plugin()
         rule = {"repo": "owner/project", "names": ["Plugin"]}

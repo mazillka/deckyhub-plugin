@@ -4,6 +4,7 @@ each with the version of the matching plugin installed in Decky Loader."""
 import asyncio
 import json
 import re
+from collections import Counter
 from pathlib import Path
 
 import decky
@@ -69,6 +70,7 @@ class AppsMixin:
     async def get_apps(self):
         apps = [*self.apps, *self._custom_apps()]
         installed_plugins = await asyncio.to_thread(self._scan_installed_plugins)
+        name_counts = Counter(manifest.get("name", "").casefold() for manifest, _, _ in installed_plugins)
         installed = [None] * len(apps)
         # The installed plugin's own name, which Decky Loader's install_plugin
         # route needs to update it in place (see "Install update" on the cards).
@@ -84,13 +86,12 @@ class AppsMixin:
                     for item in installed_plugins
                     if item[0].get("name", "").casefold() in names or item[2] == app["repo"].casefold()
                 ]
-                unverified[index] = bool(candidates) and (not match or len(candidates) != 1)
-                if unverified[index]:
-                    match = None
-                installed[index] = self._decky_plugin_version(match)
-                if unverified[index]:
-                    installed[index] = self._decky_plugin_version((candidates[0][0], candidates[0][1]))
-                plugin_names[index] = match[0].get("name") if match else None
+                name = match[0].get("name", "") if match else ""
+                # Decky Loader targets plugins by manifest name, including names not listed in the registry.
+                verified = bool(name) and name_counts[name.casefold()] == 1 and len(candidates) == 1
+                unverified[index] = bool(candidates) and not verified
+                installed[index] = self._decky_plugin_version(match or (candidates[0][:2] if candidates else None))
+                plugin_names[index] = name if verified else None
         decky.logger.info("Listed %d apps, %d installed", len(apps), sum(version is not None for version in installed))
         return {
             "apps": [
