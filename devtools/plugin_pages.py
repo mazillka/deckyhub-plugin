@@ -391,7 +391,9 @@ def plugin_page(
 <h2>Send {escape(name)} to your device</h2>
 <p>Use a DeckyHub pre-release with Remote Install. In DeckyHub, open <strong>Settings → Downloads</strong> and turn on both Remote Install switches. Paste the pairing link here or enter the local address and certificate fingerprint. Use a compatible browser on the same network and allow local network access if it asks. You must approve the browser and each installation on your device.</p>
 <p id="remote-unavailable">Remote Install is experimental and requires a compatible DeckyHub service and browser. Connection details are never sent to DeckyHub's website.</p>
+<p><label for="remote-device-picker">Device</label><br><select id="remote-device-picker" disabled><option value="">Pair another device</option></select></p>
 <form id="remote-pair-form">
+<p><label for="remote-device-name">Device name (optional)</label><br><input id="remote-device-name" maxlength="64" autocomplete="off" placeholder="Living room Deck"></p>
 <p><label for="remote-pairing-link">Pairing link from DeckyHub</label><br><input id="remote-pairing-link" type="text" autocomplete="off" placeholder="Paste pairing link"></p>
 <p><label for="remote-address">Device IPv4 address and port</label><br><input id="remote-address" placeholder="192.168.1.50:8765" autocomplete="off" required></p>
 <p><label for="remote-fingerprint">Certificate fingerprint (SHA-256)</label><br><input id="remote-fingerprint" autocomplete="off" spellcheck="false" required></p>
