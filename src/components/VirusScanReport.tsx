@@ -3,6 +3,7 @@ import { DialogButtonPrimary as Button, Focusable, showModal } from "@decky/ui";
 import { WideConfirmModal } from "./WideModal";
 import { useEffect, useState } from "react";
 import { FaCopy, FaExternalLinkAlt, FaShieldAlt } from "react-icons/fa";
+import { independentAuditOf } from "../independentAudit";
 import { openExternalWeb } from "../external";
 import type { TFunc } from "../i18n/en";
 import { metaDefenderReportOf, virusTotalReportOf } from "../releases";
@@ -141,6 +142,7 @@ function ScanReportModal({
   closeParent?: () => void;
   closeModal?: () => void;
 }) {
+  const audit = independentAuditOf(scan);
   const hash = [asset.sha256, scan?.unverifiedMatch ? undefined : scan?.sha256].find(
     (value) => value && /^[0-9a-f]{64}$/i.test(value),
   );
@@ -191,6 +193,129 @@ function ScanReportModal({
                 </Focusable>
               );
             })}
+          <Focusable onActivate={() => {}} onFocus={keepInView}>
+            <strong>
+              {t("audit.title")}: {audit ? t(`audit.${audit.result}`) : t("scan.unavailable")}
+            </strong>
+          </Focusable>
+          <Focusable onActivate={() => {}} onFocus={keepInView}>
+            <small style={{ color: MUTED }}>{t("audit.scope")}</small>
+          </Focusable>
+          {audit && (
+            <>
+              <Focusable onActivate={() => {}} onFocus={keepInView}>
+                {t(audit.root === true ? "audit.rootYes" : audit.root === false ? "audit.rootNo" : "audit.rootUnknown")}
+              </Focusable>
+              {audit.findings.slice(0, 20).map((finding, index) => (
+                <Focusable key={index} onActivate={() => {}} onFocus={keepInView}>
+                  {finding.rule === "no-tls-check" || finding.rule === "runs-downloads"
+                    ? t(`appcard.warning.${finding.rule}`)
+                    : t(
+                        (
+                          {
+                            sensitive_file_read: "audit.sensitive",
+                            persistence_crontab: "audit.cron",
+                            persistence_systemd_enable: "audit.service",
+                            privilege_setuid: "audit.setuid",
+                            privilege_sudoers: "audit.sudoers",
+                          } as const
+                        )[finding.rule],
+                      )}
+                  : {finding.path}:{finding.line}
+                </Focusable>
+              ))}
+              {audit.findings.length > 20 && (
+                <Focusable onActivate={() => {}} onFocus={keepInView}>
+                  {t("audit.more", { count: audit.findings.length - 20 })}
+                </Focusable>
+              )}
+              <Focusable onActivate={() => {}} onFocus={keepInView}>
+                <strong>
+                  {t("audit.source")}: {audit.source ? t(`audit.${audit.source.result}`) : t("scan.unavailable")}
+                </strong>
+              </Focusable>
+              {audit.source && (
+                <Focusable onActivate={() => {}} onFocus={keepInView}>
+                  <small style={{ color: MUTED }}>{t("audit.sourceScope")}</small>
+                </Focusable>
+              )}
+              {audit.source?.tag && (
+                <Focusable onActivate={() => {}} onFocus={keepInView}>
+                  {t("audit.sourceTag")}: {audit.source.tag}
+                </Focusable>
+              )}
+              {audit.source && audit.source.result !== "complete" && (
+                <Focusable onActivate={() => {}} onFocus={keepInView}>
+                  <small style={{ color: MUTED }}>{t("audit.sourceCoverage")}</small>
+                </Focusable>
+              )}
+              {audit.source?.findings.slice(0, 20).map((finding, index) => (
+                <Focusable key={`source-${index}`} onActivate={() => {}} onFocus={keepInView}>
+                  {t(finding.rule === "source_path_missing" ? "audit.sourceMissing" : "audit.sourceDiffers")}:{" "}
+                  {finding.path}
+                </Focusable>
+              ))}
+              {audit.source && audit.source.findings.length > 20 && (
+                <Focusable onActivate={() => {}} onFocus={keepInView}>
+                  {t("audit.more", { count: audit.source.findings.length - 20 })}
+                </Focusable>
+              )}
+              <Focusable onActivate={() => {}} onFocus={keepInView}>
+                <strong>
+                  {t("audit.dependencies")}:{" "}
+                  {audit.dependencies ? t(`audit.${audit.dependencies.result}`) : t("scan.unavailable")}
+                </strong>
+              </Focusable>
+              {audit.dependencies && audit.dependencies.result !== "complete" && (
+                <Focusable onActivate={() => {}} onFocus={keepInView}>
+                  <small style={{ color: MUTED }}>{t("audit.dependencyCoverage")}</small>
+                </Focusable>
+              )}
+              {audit.dependencies && (
+                <Focusable onActivate={() => {}} onFocus={keepInView}>
+                  {t("audit.packages")}: {audit.dependencies.packages.length}
+                </Focusable>
+              )}
+              {audit.dependencies?.packages.slice(0, 20).map((pkg, index) => (
+                <Focusable key={`package-${index}`} onActivate={() => {}} onFocus={keepInView}>
+                  {pkg.ecosystem}: {pkg.name} {pkg.version} — {pkg.source}
+                </Focusable>
+              ))}
+              {audit.dependencies && audit.dependencies.packages.length > 20 && (
+                <Focusable onActivate={() => {}} onFocus={keepInView}>
+                  {t("audit.morePackages", { count: audit.dependencies.packages.length - 20 })}
+                </Focusable>
+              )}
+              {!!audit.dependencies?.findings.length && (
+                <Focusable onActivate={() => {}} onFocus={keepInView}>
+                  <strong>{t("appcard.warning.vulnerable")}</strong>
+                </Focusable>
+              )}
+              {audit.dependencies?.findings.slice(0, 20).map((finding, index) => (
+                <Focusable key={`dependency-${index}`} onActivate={() => {}} onFocus={keepInView}>
+                  {finding.ecosystem}: {finding.name} {finding.version} — {finding.id}
+                </Focusable>
+              ))}
+              {audit.dependencies && audit.dependencies.findings.length > 20 && (
+                <Focusable onActivate={() => {}} onFocus={keepInView}>
+                  {t("audit.more", { count: audit.dependencies.findings.length - 20 })}
+                </Focusable>
+              )}
+              {audit.dependencies?.binaries && (
+                <Focusable onActivate={() => {}} onFocus={keepInView}>
+                  {t("audit.binaries")}: {audit.dependencies.binaries.length}
+                </Focusable>
+              )}
+              {audit.dependencies?.binaries?.slice(0, 20).map((binary, index) => (
+                <Focusable key={`binary-${index}`} onActivate={() => {}} onFocus={keepInView}>
+                  {binary.path} ({binary.format}, {binary.size})
+                </Focusable>
+              ))}
+              <Focusable onActivate={() => {}} onFocus={keepInView}>
+                {t("scan.scannedAt", { date: new Date(audit.scannedAt).toLocaleString() })}
+              </Focusable>
+            </>
+          )}
           <Focusable onActivate={() => {}} onFocus={keepInView}>
             {t("scan.file", { file: asset.name })}
           </Focusable>
@@ -307,6 +432,7 @@ export function VirusScanReport({
   }, [asset?.url, asset?.sha256]);
   if (!asset) return null;
   const report = typeof scan === "object" ? scan : null;
+  const audit = independentAuditOf(report);
   const sha256 = [asset.sha256, report?.unverifiedMatch ? undefined : report?.sha256].find(
     (hash) => hash && /^[0-9a-f]{64}$/i.test(hash),
   );
@@ -384,6 +510,9 @@ export function VirusScanReport({
           )}
         </>
       )}
+      <small style={{ color: MUTED }}>
+        {t("audit.title")}: {audit ? t(`audit.${audit.result}`) : t("scan.unavailable")}
+      </small>
       {virusTotal &&
         (virusTotal.state === "complete" ? (
           <Row
