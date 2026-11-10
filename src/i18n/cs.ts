@@ -5,6 +5,7 @@ export const cs: Record<MessageKey, string> = {
   "remote.description": "Spárujte prohlížeč ve stejné síti. Každou instalaci je třeba potvrdit na tomto zařízení.",
   "remote.address": "Adresa zařízení",
   "remote.fingerprint": "Otisk certifikátu (SHA-256)",
+  "remote.copyPairingLink": "Zkopírovat odkaz pro párování",
   "remote.pair": "Spárovat prohlížeč",
   "remote.pairings": "Žádosti o spárování",
   "remote.requests": "Žádosti o instalaci",

@@ -4,6 +4,7 @@ export const en = {
   "remote.description": "Pair a browser on the same network. Every installation requires approval on this device.",
   "remote.address": "Device address",
   "remote.fingerprint": "Certificate fingerprint (SHA-256)",
+  "remote.copyPairingLink": "Copy pairing link",
   "remote.pair": "Pair browser",
   "remote.pairings": "Pairing requests",
   "remote.requests": "Install requests",

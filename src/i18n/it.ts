@@ -6,6 +6,7 @@ export const it: Record<MessageKey, string> = {
     "Associa un browser sulla stessa rete. Ogni installazione richiede conferma su questo dispositivo.",
   "remote.address": "Indirizzo del dispositivo",
   "remote.fingerprint": "Impronta del certificato (SHA-256)",
+  "remote.copyPairingLink": "Copia link di abbinamento",
   "remote.pair": "Associa browser",
   "remote.pairings": "Richieste di associazione",
   "remote.requests": "Richieste di installazione",

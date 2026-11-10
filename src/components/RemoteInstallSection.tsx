@@ -18,6 +18,7 @@ import { Card, IconNote } from "./Card";
 import { colors } from "../styles";
 import { installWarnings, type RemoteInstallRequest, type RemoteInstallStatus } from "../types";
 import { useT } from "../i18n";
+import { copyText } from "../clipboard";
 import { listAppReleases, fetchPluginStats } from "../releases";
 import { getDeckyBackend, installAction, installDeckyPlugin, needsFreshInstall } from "../install";
 import { manifestName } from "../utils";
@@ -159,11 +160,11 @@ export function RemoteInstallSection() {
         asset.sha256 !== release.assets[0].sha256
       )
         throw new Error(t("appcard.noMatchingAsset"));
+      const name =
+        freshAction.name === current.repo ? ((await manifestName(current.repo)) ?? current.repo) : freshAction.name;
       const claim = await claimRemoteRequest(request.id);
       if (claim.pluginId !== request.pluginId || (claim.releaseTag ?? null) !== (request.releaseTag ?? null))
         throw new Error(t("appcard.noMatchingAsset"));
-      const name =
-        freshAction.name === current.repo ? ((await manifestName(current.repo)) ?? current.repo) : freshAction.name;
       // Loader's confirmation can be cancelled, and its events lack request IDs. A handoff
       // cannot prove success: report unknown unless a future correlated result is available.
       handedOver = true;
@@ -183,6 +184,14 @@ export function RemoteInstallSection() {
 
   const isEnabled = Boolean(status?.enabled);
   const isActive = Boolean(status?.active);
+  const pairingLink =
+    status?.address &&
+    status.fingerprint &&
+    (() => {
+      const device = new URL(status.address).host;
+      const details = new URLSearchParams({ device, fingerprint: status.fingerprint });
+      return `https://deckyhub.com/develop/plugins/#${details}`;
+    })();
 
   return (
     <Card>
@@ -241,6 +250,23 @@ export function RemoteInstallSection() {
                     )}
                   </div>
                 </PanelSectionRow>
+
+                {pairingLink && (
+                  <PanelSectionRow>
+                    <Button
+                      onClick={() =>
+                        void copyText(pairingLink).then((copied) => {
+                          toaster.toast({
+                            title: copied ? t("remote.copyPairingLink") : t("scan.copyFailed"),
+                            body: "",
+                          });
+                        })
+                      }
+                    >
+                      {t("remote.copyPairingLink")}
+                    </Button>
+                  </PanelSectionRow>
+                )}
 
                 <PanelSectionRow>
                   <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 12 }}>

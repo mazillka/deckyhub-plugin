@@ -6,6 +6,7 @@ export const pt: Record<MessageKey, string> = {
   "remote.description": "Vincule um navegador na mesma rede. Cada instalação precisa de aprovação neste dispositivo.",
   "remote.address": "Endereço do dispositivo",
   "remote.fingerprint": "Impressão digital do certificado (SHA-256)",
+  "remote.copyPairingLink": "Copiar link de pareamento",
   "remote.pair": "Vincular navegador",
   "remote.pairings": "Solicitações de vínculo",
   "remote.requests": "Solicitações de instalação",

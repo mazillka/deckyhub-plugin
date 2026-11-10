@@ -5,6 +5,7 @@ export const ko: Record<MessageKey, string> = {
   "remote.description": "같은 네트워크의 브라우저를 연결하세요. 설치할 때마다 이 기기에서 승인해야 합니다.",
   "remote.address": "기기 주소",
   "remote.fingerprint": "인증서 지문 (SHA-256)",
+  "remote.copyPairingLink": "페어링 링크 복사",
   "remote.pair": "브라우저 연결",
   "remote.pairings": "연결 요청",
   "remote.requests": "설치 요청",

@@ -5,7 +5,7 @@ export function deviceUrl(address) {
   if (!match) throw new Error('Enter a private IPv4 address and port, for example 192.168.1.50:8765.');
   const [a, b, c, d, port] = match.slice(1).map(Number);
   if ([a, b, c, d].some(n => n > 255) || port < 1 || port > 65535 ||
-      !(a === 10 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 169 && b === 254))) {
+      !(a === 10 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168))) {
     throw new Error('Enter a private IPv4 address and valid port.');
   }
   return `https://${a}.${b}.${c}.${d}:${port}/remote-install`;
@@ -16,6 +16,22 @@ export function fingerprintBytes(value) {
   if (!/^[a-f\d]{64}$/i.test(hex)) throw new Error('Enter the 64-digit SHA-256 fingerprint shown on your device.');
   return Uint8Array.from(hex.match(/../g), pair => parseInt(pair, 16));
 }
+
+export function pairingDetails(fragment) {
+  const params = new URLSearchParams(fragment.replace(/^#/, ''));
+  const address = params.get('device');
+  const fingerprint = params.get('fingerprint');
+  if (!address || !fingerprint) return null;
+  try {
+    deviceUrl(address);
+    fingerprintBytes(fingerprint);
+    return { address, fingerprint };
+  } catch {
+    return null;
+  }
+}
+
+const PAIRING_DETAILS_KEY = 'deckyhub.remoteInstall.device';
 
 function timeout(promise, ms) {
   let timer;
@@ -59,7 +75,7 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const REQUEST_STATES = new Set(['pending_confirmation', 'approved', 'installing', 'installed', 'rejected', 'expired', 'cancelled', 'failed', 'unknown']);
 const TERMINAL = new Set(['installed', 'rejected', 'expired', 'cancelled', 'failed', 'unknown']);
 
-function init(root) {
+function init(root, details) {
   const byId = id => root.querySelector(`#remote-${id}`);
   const form = byId('pair-form'), status = byId('status'), pairButton = byId('pair');
   const requestButton = byId('request'), cancelButton = byId('cancel');
@@ -90,7 +106,11 @@ function init(root) {
     }
     const current = transport;
     try {
-      await timeout(current.ready, 15000);
+      try {
+        await timeout(current.ready, 45000);
+      } catch {
+        throw new Error('Could not connect. Allow local network access in your browser and check the device address and fingerprint.');
+      }
       return await exchange(current, message);
     } catch (error) {
       if (transport === current) closeTransport();
@@ -100,6 +120,11 @@ function init(root) {
   const showError = error => say(error instanceof Error ? error.message : 'Unable to contact the device.');
   if (!/^[a-z0-9][a-z0-9-]{0,127}$/.test(pluginId || '')) { say('Invalid plugin identifier.'); pairButton.disabled = true; return; }
   if (typeof WebTransport === 'undefined' || !globalThis.isSecureContext) { say('This browser does not support secure remote installation.'); pairButton.disabled = true; return; }
+  if (details) {
+    byId('address').value = details.address;
+    byId('fingerprint').value = details.fingerprint;
+    say('Device details filled in. Enter the pairing code shown on your device.');
+  }
   form.addEventListener('submit', async event => {
     event.preventDefault();
     pairButton.disabled = true;
@@ -110,6 +135,7 @@ function init(root) {
       const code = byId('code').value.trim(), name = byId('name').value.trim();
       if (!/^\d{6}$/.test(code) || !name || name.length > 64) throw new Error('Enter the six-digit pairing code and a browser name.');
       endpoint = { url, fingerprint };
+      say('Connecting. Allow local network access if your browser asks.');
       const secret = crypto.getRandomValues(new Uint8Array(32));
       const pairingSecret = btoa(String.fromCharCode(...secret)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
       const pairing = await send({ op: 'pair', code, name, pairingSecret });
@@ -174,7 +200,7 @@ function init(root) {
       say('Status unknown. The request may still be active; retry status before requesting another install.');
     } finally {
       requestButton.disabled = !token;
-      requestButton.textContent = idempotencyKey ? 'Retry request status' : 'Request installation';
+      requestButton.textContent = idempotencyKey ? 'Retry request status' : 'Send to device';
       pairButton.disabled = !!idempotencyKey;
     }
   });
@@ -191,6 +217,19 @@ function init(root) {
   addEventListener('pagehide', disconnect, { once: true });
 }
 if (typeof document !== 'undefined') {
+  const fromLink = pairingDetails(location.hash);
+  let details = fromLink;
+  try {
+    if (fromLink) sessionStorage.setItem(PAIRING_DETAILS_KEY, new URLSearchParams({
+      device: fromLink.address, fingerprint: fromLink.fingerprint,
+    }).toString());
+    else details = pairingDetails(sessionStorage.getItem(PAIRING_DETAILS_KEY) || '');
+  } catch { /* Manual pairing is still available when browser storage is disabled. */ }
+  if (fromLink) history.replaceState(history.state, '', location.pathname + location.search);
   const root = document.querySelector('#remote-install');
-  if (root) init(root);
+  if (root) init(root, details);
+  else if (fromLink) {
+    const prompt = document.querySelector('#remote-device-ready');
+    if (prompt) prompt.hidden = false;
+  }
 }

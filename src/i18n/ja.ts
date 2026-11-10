@@ -6,6 +6,7 @@ export const ja: Record<MessageKey, string> = {
     "同じネットワークのブラウザーをペアリングします。インストールごとにこのデバイスでの承認が必要です。",
   "remote.address": "デバイスのアドレス",
   "remote.fingerprint": "証明書のフィンガープリント (SHA-256)",
+  "remote.copyPairingLink": "ペアリングリンクをコピー",
   "remote.pair": "ブラウザーをペアリング",
   "remote.pairings": "ペアリング要求",
   "remote.requests": "インストール要求",

@@ -6,6 +6,7 @@ export const de: Record<MessageKey, string> = {
     "Verbinde einen Browser im selben Netzwerk. Jede Installation muss auf diesem Gerät bestätigt werden.",
   "remote.address": "Geräteadresse",
   "remote.fingerprint": "Zertifikat-Fingerabdruck (SHA-256)",
+  "remote.copyPairingLink": "Kopplungslink kopieren",
   "remote.pair": "Browser koppeln",
   "remote.pairings": "Kopplungsanfragen",
   "remote.requests": "Installationsanfragen",

@@ -130,6 +130,8 @@ class RemoteInstallMixin:
         return self.remote_install_service.decide_request(request_id, approve)
 
     async def claim_remote_request(self, request_id: str):
+        if not self.settings.get("remoteInstallFeature") or not self.settings.get("remoteInstall"):
+            raise ValueError("Remote install is disabled")
         return self.remote_install_service.claim(request_id)
 
     async def finish_remote_request(self, request_id: str, success: bool):

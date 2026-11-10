@@ -97,6 +97,13 @@ class RemoteInstallMixinTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 run_coro(self.plugin.set_remote_install_enabled(True))
 
+    def test_disabled_feature_cannot_claim_request(self):
+        self.plugin.settings.update(remoteInstall=True, remoteInstallFeature=False)
+        with patch.object(self.plugin.remote_install_service, "claim") as claim:
+            with self.assertRaisesRegex(ValueError, "Remote install is disabled"):
+                run_coro(self.plugin.claim_remote_request("pending"))
+        claim.assert_not_called()
+
     def test_invalid_persisted_values_do_not_enable_listener(self):
         for value in ("false", 1, None, [], {}):
             with self.subTest(value=value):

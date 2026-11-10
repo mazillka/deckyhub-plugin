@@ -1,6 +1,15 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { deviceUrl, exchange, fingerprintBytes } from '../docs/remote-install.js';
+import { deviceUrl, exchange, fingerprintBytes, pairingDetails } from '../docs/remote-install.js';
+
+test('pairing links accept only a private device address and a complete fingerprint', () => {
+  const fingerprint = 'ab'.repeat(32);
+  const fragment = (device, hash = fingerprint) => `#${new URLSearchParams({ device, fingerprint: hash })}`;
+  assert.deepEqual(pairingDetails(fragment('192.168.1.20:8765')), { address: '192.168.1.20:8765', fingerprint });
+  assert.equal(pairingDetails(fragment('example.com:8765')), null);
+  assert.equal(pairingDetails(fragment('192.168.1.20:8765', 'short')), null);
+  assert.equal(pairingDetails('#remote-install'), null);
+});
 
 test('accepts only private IPv4 literals and valid ports', () => {
   assert.equal(deviceUrl('192.168.1.20:8765'), 'https://192.168.1.20:8765/remote-install');

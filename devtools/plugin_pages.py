@@ -389,7 +389,7 @@ def plugin_page(
 <p>{escape(name)} is a <a href="https://decky.xyz/">Decky Loader</a> plugin. With <a href="/">DeckyHub</a> installed, open DeckyHub's <strong>Discover</strong> tab in Gaming Mode, search for <strong>{escape(name)}</strong> and press <strong>Install</strong>. DeckyHub hands the release to Decky Loader's own installer and checks its SHA-256 whenever GitHub publishes one. You can also download the ZIP from its <a href="{escape(repo_url)}/releases">releases</a> and install it by hand from Decky's developer settings.</p>
 <section id="remote-install" class="remote-install" data-plugin-id="{escape(app["id"], quote=True)}">
 <h2>Install from another device</h2>
-<p>Enable Remote Install in DeckyHub, then enter the local address and certificate fingerprint shown on your device. Both devices must be on the same network. You must approve the browser and each installation on your device.</p>
+<p>Use a DeckyHub pre-release with Remote Install. In DeckyHub, open <strong>Settings → Downloads</strong> and turn on both Remote Install switches. Enter the local address and certificate fingerprint shown on your device. Use a compatible browser on the same network and allow local network access if it asks. You must approve the browser and each installation on your device.</p>
 <p id="remote-unavailable">Remote Install is experimental and requires a compatible DeckyHub service and browser. Connection details are never sent to DeckyHub's website.</p>
 <form id="remote-pair-form">
 <p><label for="remote-address">Device IPv4 address and port</label><br><input id="remote-address" placeholder="192.168.1.50:8765" autocomplete="off" required></p>
@@ -398,7 +398,7 @@ def plugin_page(
 <p><label for="remote-name">Browser name</label><br><input id="remote-name" value="Browser" maxlength="64" required></p>
 <button type="submit" id="remote-pair" disabled>Pair browser</button>
 </form>
-<p><button type="button" id="remote-request" disabled>Request installation</button> <button type="button" id="remote-cancel" disabled>Cancel request</button></p>
+<p><button type="button" id="remote-request" disabled>Send to device</button> <button type="button" id="remote-cancel" disabled>Cancel request</button></p>
 <p id="remote-status" role="status" aria-live="polite">Not connected.</p>
 <noscript>Enable JavaScript to connect to your device.</noscript>
 <script type="module" src="/remote-install.js"></script>
@@ -575,6 +575,8 @@ def catalog_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
     )
     body = f"""<p class="crumbs"><a href="/">DeckyHub</a> › Plugins</p>
 <h1>Decky plugins</h1>
+<p id="remote-device-ready" role="status" hidden>Device details received. Choose a plugin to pair with your device and request installation.</p>
+<script type="module" src="/remote-install.js"></script>
 <p class="lead">{len(apps)} Decky Loader plugins, most downloaded first. Install any of them from Gaming Mode with <a href="/">DeckyHub</a>, which also checks them for updates.</p>
 <p class="note">Every plugin belongs to its authors. DeckyHub doesn't make, review or vouch for them, and a plugin's page shows its notes (AI help, root, audit warnings) and security scans; <a href="/plugins/known-issues.html">Known issues</a> lists every plugin with a warning. Missing one? <a href="/contribute/">Add a plugin</a>.</p>
 <div class="filters"><input id="q" type="search" placeholder="Search plugins" aria-label="Search plugins" autocomplete="off"><div class="chips" role="group" aria-label="Categories">{chips}</div></div>

@@ -6,6 +6,7 @@ export const nl: Record<MessageKey, string> = {
     "Koppel een browser op hetzelfde netwerk. Elke installatie vereist goedkeuring op dit apparaat.",
   "remote.address": "Apparaatadres",
   "remote.fingerprint": "Certificaatvingerafdruk (SHA-256)",
+  "remote.copyPairingLink": "Koppelingslink kopiëren",
   "remote.pair": "Browser koppelen",
   "remote.pairings": "Koppelverzoeken",
   "remote.requests": "Installatieverzoeken",

@@ -5,6 +5,7 @@ export const tr: Record<MessageKey, string> = {
   "remote.description": "Aynı ağdaki bir tarayıcıyı eşleştir. Her yükleme bu cihazda onay gerektirir.",
   "remote.address": "Cihaz adresi",
   "remote.fingerprint": "Sertifika parmak izi (SHA-256)",
+  "remote.copyPairingLink": "Eşleştirme bağlantısını kopyala",
   "remote.pair": "Tarayıcıyı eşleştir",
   "remote.pairings": "Eşleştirme istekleri",
   "remote.requests": "Yükleme istekleri",
