@@ -18,6 +18,7 @@ export type App = {
   detect?: { type: string; names?: string[] };
   // Installed Decky plugin's own manifest name (decky-plugin detection only).
   pluginName?: string | null;
+  identityUnverified?: boolean;
   latestVersion?: string | null;
   publishedAt?: string | null;
   releaseUrl?: string | null;
@@ -149,6 +150,8 @@ export type Settings = {
   quickAccessTab: boolean;
   uiStyle: UiStyle;
   hiddenButtons: HideableButton[];
+  remoteInstall?: boolean;
+  remoteInstallFeature?: boolean;
   repoSettings?: Record<string, RepoPreference>;
   customRepos?: string[];
   customRegistries?: string[];
@@ -199,3 +202,23 @@ export type SearchRepo = { full_name: string; description?: string; stargazers_c
 
 // skipVersion: a release tag the user chose to skip; that release stops counting as an update.
 export type RepoPreference = { channel: "stable" | "prerelease"; skipVersion?: string };
+
+export type RemoteInstallRequest = {
+  id: string;
+  pluginId: string;
+  releaseTag?: string | null;
+  ownerName: string;
+  status: string;
+};
+
+export type RemoteInstallStatus = {
+  enabled: boolean;
+  active: boolean;
+  address?: string | null;
+  fingerprint?: string | null;
+  error?: string | null;
+  pairingCode?: string | null;
+  pairings: { id: string; name: string }[];
+  devices: { id: string; name: string }[];
+  requests: RemoteInstallRequest[];
+};

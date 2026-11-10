@@ -37,6 +37,7 @@ if (!published) {
     recursive: true,
     filter: (path) => !path.includes("__pycache__"),
   });
+  execSync(`python devtools/package-remote.py "${join(stage, "DeckyHub")}"`, { cwd: root, stdio: "inherit" });
   writeFileSync(join(stage, "DeckyHub", "package.json"), JSON.stringify({ ...pkg, version }, null, 2));
   execSync(`python -c "import shutil; shutil.make_archive('DeckyHub', 'zip', '.', 'DeckyHub')"`, { cwd: stage });
 }

@@ -1,6 +1,19 @@
 import type { MessageKey } from "./en";
 
 export const pl: Record<MessageKey, string> = {
+  "remote.title": "Zdalna instalacja",
+  "remote.description":
+    "Sparuj przeglądarkę w tej samej sieci. Każda instalacja wymaga zatwierdzenia na tym urządzeniu.",
+  "remote.address": "Adres urządzenia",
+  "remote.fingerprint": "Odcisk certyfikatu (SHA-256)",
+  "remote.pair": "Sparuj przeglądarkę",
+  "remote.pairings": "Prośby o parowanie",
+  "remote.requests": "Prośby o instalację",
+  "remote.from": "Od {name}",
+  "remote.devices": "Sparowane przeglądarki",
+  "remote.approve": "Zatwierdź",
+  "remote.reject": "Odrzuć",
+  "appcard.identityUnverified": "Nie można zweryfikować zainstalowanej wtyczki; instalacja i aktualizacje są wyłączone.",
   "nav.updates": "Aktualizacje",
   "nav.discover": "Odkrywaj",
   "nav.search": "Szukaj",

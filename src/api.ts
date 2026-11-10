@@ -1,5 +1,5 @@
 import { callable } from "@decky/api";
-import type { Asset, App, Settings, Download, DeckyHubInfo, RepoPreference } from "./types";
+import type { Asset, App, Settings, Download, DeckyHubInfo, RepoPreference, RemoteInstallStatus } from "./types";
 
 export const getApps = callable<[], { apps: App[] }>("get_apps");
 export const getSettings = callable<[], Settings>("get_settings");
@@ -35,4 +35,27 @@ export const clearDownloads = callable<[], { removed: number }>("clear_downloads
 export const listDownloads = callable<[], { items: { name: string; directory: boolean }[] }>("list_downloads");
 export const saveRepoSettings = callable<[repo: string, values: RepoPreference], RepoPreference>("save_repo_settings");
 
+export const getRemoteInstallStatus = callable<[], RemoteInstallStatus>("get_remote_install_status");
+export const setRemoteInstallEnabled = callable<[enabled: boolean], RemoteInstallStatus>("set_remote_install_enabled");
+export const setRemoteInstallFeatureEnabled = callable<[enabled: boolean], Settings>("set_remote_install_feature_enabled");
+export const beginRemotePairing = callable<[], { code: string; expiresInSeconds: number }>("begin_remote_pairing");
+export const decideRemotePairing = callable<[pairId: string, approve: boolean], { status: string }>(
+  "decide_remote_pairing",
+);
+export const revokeRemoteDevice = callable<[deviceId: string], { revoked: boolean }>("revoke_remote_device");
+export const decideRemoteRequest = callable<[requestId: string, approve: boolean], { id: string; status: string }>(
+  "decide_remote_request",
+);
+export const claimRemoteRequest = callable<
+  [requestId: string],
+  { id: string; pluginId: string; releaseTag?: string | null; status: string }
+>("claim_remote_request");
+export const finishRemoteRequest = callable<[requestId: string, success: boolean], { id: string; status: string }>(
+  "finish_remote_request",
+);
+
 export const REGISTRY_UPDATED = "deckyhub-registry-updated";
+
+export const finishRemoteRequestUnknown = callable<[requestId: string], { id: string; status: string }>(
+  "finish_remote_request_unknown",
+);

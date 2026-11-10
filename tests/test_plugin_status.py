@@ -20,12 +20,22 @@ from main import Plugin
 
 
 class PluginStatusTests(unittest.TestCase):
+    def test_repository_match_rejects_name_only_wrong_owner_and_duplicates(self):
+        plugin = Plugin()
+        rule = {"repo": "owner/project", "names": ["Plugin"]}
+        manifest = {"name": "Plugin", "version": "1.0"}
+        self.assertIsNone(plugin._match_decky_plugin(rule, [(manifest, {}, None)]))
+        self.assertIsNone(plugin._match_decky_plugin(rule, [(manifest, {}, "other/project")]))
+        self.assertEqual(plugin._match_decky_plugin(rule, [(manifest, {}, "owner/project")]), (manifest, {}))
+        self.assertIsNone(plugin._match_decky_plugin(rule, [(manifest, {}, "owner/project"), (manifest, {}, "owner/project")]))
+        self.assertIsNone(plugin._plugin_repository({}, {"repository": "https://evil.example/github.com/owner/project"}))
+
     def test_decky_plugin_detection_reads_manifest_and_package_version(self):
         with tempfile.TemporaryDirectory() as home:
             plugin_dir = Path(home) / "plugins" / "mako"
             plugin_dir.mkdir(parents=True)
             (plugin_dir / "plugin.json").write_text(json.dumps({"name": "MAKO - Frame Generation"}), encoding="utf-8")
-            (plugin_dir / "package.json").write_text(json.dumps({"version": "3.2.1"}), encoding="utf-8")
+            (plugin_dir / "package.json").write_text(json.dumps({"version": "3.2.1", "repository": "owner/mako"}), encoding="utf-8")
             sys.modules["decky"].DECKY_HOME = home
             plugin = Plugin()
 
@@ -33,7 +43,7 @@ class PluginStatusTests(unittest.TestCase):
             self.assertEqual(
                 plugin._decky_plugin_version(
                     plugin._match_decky_plugin(
-                        {"type": "decky-plugin", "names": ["MAKO - Frame Generation", "MAKO Decky"]}, installed_plugins
+                        {"type": "decky-plugin", "repo": "owner/mako", "names": ["MAKO - Frame Generation", "MAKO Decky"]}, installed_plugins
                     )
                 ),
                 "3.2.1",
@@ -44,7 +54,7 @@ class PluginStatusTests(unittest.TestCase):
             plugin_dir = Path(home) / "plugins" / "mako"
             plugin_dir.mkdir(parents=True)
             (plugin_dir / "plugin.json").write_text(
-                json.dumps({"name": "MAKO - Frame Generation", "version": "3.2.1"}), encoding="utf-8"
+                json.dumps({"name": "MAKO - Frame Generation", "version": "3.2.1", "repository": "owner/mako"}), encoding="utf-8"
             )
             sys.modules["decky"].DECKY_HOME = home
             plugin = Plugin()
@@ -68,7 +78,7 @@ class PluginStatusTests(unittest.TestCase):
             for name, manifest, package in (
                 ("list", [], {}),
                 ("number", {"name": 1}, {}),
-                ("bad-package", {"name": "Good", "version": "1.0"}, []),
+                ("bad-package", {"name": "Good", "version": "1.0", "repository": "owner/good"}, []),
             ):
                 plugin_dir = Path(home) / "plugins" / name
                 plugin_dir.mkdir(parents=True)

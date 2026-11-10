@@ -290,7 +290,7 @@ export function installAction(
   app: App,
   release: { tag: string; pluginVersion?: string; assets: Asset[] },
 ): { type: 0 | 1 | 2 | 3; name: string } | null {
-  if (!release.assets[0]) return null;
+  if (!release.assets[0] || app.identityUnverified) return null;
   if (app.pluginName)
     return {
       type: resolveDeckyHubInstallType(releaseVersion(release), app.installedVersion ?? ""),

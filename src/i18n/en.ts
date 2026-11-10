@@ -1,5 +1,17 @@
 // Canonical key source — every other locale must cover the same keys.
 export const en = {
+  "remote.title": "Remote Install",
+  "remote.description": "Pair a browser on the same network. Every installation requires approval on this device.",
+  "remote.address": "Device address",
+  "remote.fingerprint": "Certificate fingerprint (SHA-256)",
+  "remote.pair": "Pair browser",
+  "remote.pairings": "Pairing requests",
+  "remote.requests": "Install requests",
+  "remote.from": "From {name}",
+  "remote.devices": "Paired browsers",
+  "remote.approve": "Approve",
+  "remote.reject": "Reject",
+  "appcard.identityUnverified": "Installed plugin identity could not be verified; installation and updates are disabled.",
   "nav.updates": "Updates",
   "nav.discover": "Discover",
   "nav.search": "Search",

@@ -2,6 +2,18 @@ import type { MessageKey } from "./en";
 
 // Traditional Chinese, with Taiwan's terms (Steam's "繁體中文").
 export const zhTW: Record<MessageKey, string> = {
+  "remote.title": "遠端安裝",
+  "remote.description": "配對同一網路上的瀏覽器。每次安裝都需要在此裝置上核准。",
+  "remote.address": "裝置位址",
+  "remote.fingerprint": "憑證指紋 (SHA-256)",
+  "remote.pair": "配對瀏覽器",
+  "remote.pairings": "配對請求",
+  "remote.requests": "安裝請求",
+  "remote.from": "來自 {name}",
+  "remote.devices": "已配對的瀏覽器",
+  "remote.approve": "核准",
+  "remote.reject": "拒絕",
+  "appcard.identityUnverified": "無法驗證已安裝的外掛；安裝和更新已停用。",
   "nav.updates": "更新",
   "nav.discover": "探索",
   "nav.search": "搜尋",

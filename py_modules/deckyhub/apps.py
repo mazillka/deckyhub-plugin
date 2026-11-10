@@ -38,12 +38,9 @@ class AppsMixin:
     def _match_decky_plugin(
         self, rule: dict, installed_plugins: list[tuple[dict, dict, str | None]]
     ) -> tuple[dict, dict] | None:
-        names = {name.casefold() for name in rule.get("names", [])}
         expected_repo = str(rule.get("repo", "")).casefold()
-        for manifest, package, repo in installed_plugins:
-            if manifest.get("name", "").casefold() in names or (expected_repo and repo == expected_repo):
-                return manifest, package
-        return None
+        matches = [(manifest, package) for manifest, package, repo in installed_plugins if expected_repo and repo == expected_repo]
+        return matches[0] if len(matches) == 1 else None
 
     def _decky_plugin_version(self, match: tuple[dict, dict] | None) -> str | None:
         if not match:
@@ -57,7 +54,7 @@ class AppsMixin:
             value = value.get("url")
         if not isinstance(value, str):
             return None
-        match = re.search(r"(?:github\.com[/:]|github:)([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)", value)
+        match = re.fullmatch(r"(?:https://github\.com/|git@github\.com:|github:)([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+?)(?:\.git)?/?", value, re.IGNORECASE)
         repo = (match.group(1) if match else value).removesuffix(".git")
         return repo.casefold() if REPOSITORY_NAME.fullmatch(repo) else None
 
@@ -68,10 +65,19 @@ class AppsMixin:
         # The installed plugin's own name, which Decky Loader's install_plugin
         # route needs to update it in place (see "Install update" on the cards).
         plugin_names = [None] * len(apps)
+        unverified = [False] * len(apps)
         for index, app in enumerate(apps):
             if app.get("detect", {}).get("type") == "decky-plugin":
-                match = self._match_decky_plugin(app["detect"], installed_plugins)
+                rule = {**app["detect"], "repo": app["repo"]}
+                match = self._match_decky_plugin(rule, installed_plugins)
+                names = {name.casefold() for name in rule.get("names", [])}
+                candidates = [item for item in installed_plugins if item[0].get("name", "").casefold() in names or item[2] == app["repo"].casefold()]
+                unverified[index] = bool(candidates) and (not match or len(candidates) != 1)
+                if unverified[index]:
+                    match = None
                 installed[index] = self._decky_plugin_version(match)
+                if unverified[index]:
+                    installed[index] = self._decky_plugin_version((candidates[0][0], candidates[0][1]))
                 plugin_names[index] = match[0].get("name") if match else None
         decky.logger.info("Listed %d apps, %d installed", len(apps), sum(version is not None for version in installed))
         return {
@@ -80,6 +86,7 @@ class AppsMixin:
                     **app,
                     "installedVersion": version,
                     "pluginName": name,
+                    "identityUnverified": uncertain,
                     "latestVersion": None,
                     "publishedAt": None,
                     "releaseUrl": None,
@@ -87,7 +94,7 @@ class AppsMixin:
                     "updateAvailable": None,
                     "error": None,
                 }
-                for app, version, name in zip(apps, installed, plugin_names)
+                for app, version, name, uncertain in zip(apps, installed, plugin_names, unverified)
             ]
         }
 

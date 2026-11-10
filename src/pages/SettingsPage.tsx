@@ -1,7 +1,7 @@
-import { Focusable, Navigation, Tabs } from "@decky/ui";
+import { Focusable, Navigation, Tabs, ToggleField } from "@decky/ui";
 import { useEffect, useState, type ReactNode } from "react";
 import { FaCog } from "react-icons/fa";
-import { getSettings, saveSettings } from "../api";
+import { getSettings, saveSettings, setRemoteInstallFeatureEnabled } from "../api";
 import { PageHeader } from "../components/Card";
 import { AboutSection } from "../components/AboutSection";
 import {
@@ -11,6 +11,7 @@ import {
   LanguageSection,
   TroubleshootingSection,
 } from "../components/SettingsSections";
+import { RemoteInstallSection } from "../components/RemoteInstallSection";
 import { ManageRepositoriesPage } from "./ManageRepositoriesPage";
 import { ExpSettings } from "../components/experimental/ExpSettings";
 import { useUiStyle } from "../uiStyle";
@@ -124,7 +125,11 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
       {
         id: "downloads",
         title: t("settings.tabDownloads"),
-        content: stack(<DownloadsSection key="downloads" settings={settings} update={update} />),
+        content: stack(
+          <DownloadsSection key="downloads" settings={settings} update={update} />,
+          <ToggleField key="remote-feature" label={t("remote.title")} checked={settings.remoteInstallFeature === true} onChange={(enabled: boolean) => void setRemoteInstallFeatureEnabled(enabled).then(setSettings)} />,
+          settings.remoteInstallFeature ? <RemoteInstallSection key="remote-install" /> : null,
+        ),
       },
       {
         id: "repositories",

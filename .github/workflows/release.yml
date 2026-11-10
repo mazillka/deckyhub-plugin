@@ -41,6 +41,7 @@ jobs:
           # The backend's modules; Decky Loader puts py_modules/ on sys.path. The tests
           # above left bytecode caches in it, which don't belong in the ZIP.
           cp -r py_modules release/DeckyHub/
+          python3 devtools/package-remote.py release/DeckyHub
           find release -name __pycache__ -prune -exec rm -rf {} +
           (cd release && zip -r "../DeckyHub-${GITHUB_REF_NAME}.zip" DeckyHub)
       - name: Verify release package
