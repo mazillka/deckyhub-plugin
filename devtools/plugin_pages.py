@@ -244,6 +244,11 @@ def security_scans(scans: dict, reports: dict, vt_reports: dict | None = None) -
     ClamAV and YARA from the registry's own scans, VirusTotal and MetaDefender from the reports
     the registry publishes (it uploads ZIPs they haven't seen yet)."""
 
+    def external_status(report: dict) -> str:
+        state = report.get("state")
+        label = EXTERNAL_STATUS.get(state, "No report yet")
+        return f'<span class="stale">{label}</span>' if state in ("pending", "waiting") else label
+
     def when(scan: dict) -> str:
         return nice_date(scan["scannedAt"]) if scan.get("scannedAt") else "date unknown"
 
@@ -257,7 +262,7 @@ def security_scans(scans: dict, reports: dict, vt_reports: dict | None = None) -
         rows = []
         for name, scan in (("ClamAV", channel.get("clamav")), ("YARA", channel.get("yara"))):
             if not scan:
-                rows.append(f"<tr><td>{name}</td><td>Not scanned yet</td><td></td></tr>")
+                rows.append(f'<tr><td>{name}</td><td class="stale">Not scanned yet</td><td></td></tr>')
                 continue
             result = SCAN_RESULTS.get(scan["result"], scan["result"]) + (
                 f" ({', '.join(scan['found'])})" if scan.get("found") else ""
@@ -278,7 +283,7 @@ def security_scans(scans: dict, reports: dict, vt_reports: dict | None = None) -
                     f"<tr><td>VirusTotal</td><td>{found[0]} of {found[1]} engines flagged this file ({vt_link})</td><td>{escape(scanned)}</td></tr>"
                 )
             else:
-                status = EXTERNAL_STATUS.get(vt.get("state"), "No report yet")
+                status = external_status(vt)
                 rows.append(f"<tr><td>VirusTotal</td><td>{status} ({vt_link})</td><td></td></tr>")
             report = (reports or {}).get(sha.lower()) or {}
             if md_result(reports, sha):
@@ -292,7 +297,7 @@ def security_scans(scans: dict, reports: dict, vt_reports: dict | None = None) -
                     f"<tr><td>MetaDefender</td><td>{report['flagged']} of {report['total']} engines flagged this file{link}</td><td></td></tr>"
                 )
             else:
-                status = EXTERNAL_STATUS.get(report.get("state"), "No report yet")
+                status = external_status(report)
                 rows.append(f"<tr><td>MetaDefender</td><td>{status}</td><td></td></tr>")
         detail = (
             f"{escape(prefix)}: <code>{escape(channel.get('file', ''))}</code> ({escape(channel.get('tag', ''))})"
@@ -302,7 +307,7 @@ def security_scans(scans: dict, reports: dict, vt_reports: dict | None = None) -
             f'<table class="scans"><caption>{detail}</caption><thead><tr><th>Scanner</th><th>Result</th><th>Scanned</th></tr></thead><tbody>{"".join(rows)}</tbody></table>'
         )
     if not tables:
-        return "<p>Not scanned yet. The registry scans every ZIP it offers a few times a day, so a new release shows up here soon.</p>"
+        return '<p><span class="stale">Not scanned yet.</span> The registry scans every ZIP it offers a few times a day, so a new release shows up here soon.</p>'
     return "".join(tables)
 
 
