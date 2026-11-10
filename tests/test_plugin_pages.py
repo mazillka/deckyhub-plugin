@@ -90,7 +90,10 @@ class PluginPageTests(unittest.TestCase):
             }
         }
         page = self.page(scans=scans, reports={SHA: {"state": "pending"}}, vt=vt)
-        for text in ("3 of 60 engines flagged this file", "<tr><td>MetaDefender</td><td>Scan pending</td>"):
+        for text in (
+            "3 of 60 engines flagged this file",
+            '<tr><td>MetaDefender</td><td><span class="stale">Scan pending</span></td>',
+        ):
             self.assertIn(text, page)
         self.assertIn("Threat found", page)  # the badge counts VirusTotal, not just ClamAV and YARA
         self.assertIn("✖ Threat found", plugin_pages.flags_of({}, scans, {}, vt))
