@@ -150,6 +150,9 @@ class PluginPageTests(unittest.TestCase):
         self.assertIn('id="reported-issues"', index)
         self.assertIn(f"<small>{title}</small>", index)
 
+    def test_remote_install_preview_link_preserves_plugin(self):
+        self.assertIn(f'href="/develop/plugins/{APP["id"]}.html#remote-install"', self.page())
+
     def test_an_unscanned_plugin_says_so(self):
         self.assertIn("Not scanned yet", self.page())
 
