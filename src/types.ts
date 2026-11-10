@@ -96,7 +96,31 @@ export type ScanVerdict = {
 export type IndependentAudit = {
   result: "complete" | "incomplete" | "error";
   root: boolean | null;
-  findings: { rule: "no-tls-check" | "runs-downloads"; path: string; line: number }[];
+  findings: {
+    rule:
+      | "no-tls-check"
+      | "runs-downloads"
+      | "sensitive_file_read"
+      | "persistence_crontab"
+      | "persistence_systemd_enable"
+      | "privilege_setuid"
+      | "privilege_sudoers";
+    path: string;
+    line: number;
+  }[];
+  source?: {
+    result: "complete" | "incomplete" | "error";
+    findings: { rule: "source_path_missing" | "source_file_differs"; path: string }[];
+    tag?: string;
+    reason?: string;
+  };
+  dependencies?: {
+    result: "complete" | "incomplete" | "error";
+    packages: { ecosystem: string; name: string; version: string; source: string }[];
+    findings: { ecosystem: string; name: string; version: string; id: string }[];
+    issues: string[];
+    binaries?: { path: string; size: number; format: string }[];
+  };
   scannedAt: string;
 };
 export type VirusScan = ScanVerdict & {
