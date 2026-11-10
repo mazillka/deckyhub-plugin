@@ -367,16 +367,22 @@ for path in ["releases.html", "about.html", "uk/about.html"] + [
     page_file.write_text(text, encoding="utf-8")
 
 # GitHub Pages can't send security headers, so every page carries them as meta tags. Scripts and styles are inline;
-# the only outside requests are shields.io badges and the registry editor's fetch of apps.json.
+# Outside requests are shields.io badges, the registry editor, and pinned Remote Install connections.
 CSP = (
     "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://img.shields.io; "
     "connect-src 'self' https://raw.githubusercontent.com; object-src 'none'; base-uri 'self'; form-action 'self'"
 )
 for html_file in out.rglob("*.html"):
     text = html_file.read_text(encoding="utf-8")
+    # CSP cannot express private IP ranges. The pairing form validates private IPv4 and pins the certificate.
+    policy = (
+        CSP.replace("https://raw.githubusercontent.com;", "https://raw.githubusercontent.com https://*:8765;")
+        if '<section id="remote-install"' in text
+        else CSP
+    )
     text = text.replace(
         "<head>",
-        f'<head>\n<meta http-equiv="Content-Security-Policy" content="{CSP}">\n<meta name="referrer" content="strict-origin-when-cross-origin">',
+        f'<head>\n<meta http-equiv="Content-Security-Policy" content="{policy}">\n<meta name="referrer" content="strict-origin-when-cross-origin">',
         1,
     )
     html_file.write_text(text, encoding="utf-8")

@@ -18,9 +18,10 @@ test('pasted DeckyHub links fill device details without navigating away from the
   assert.equal(detailsFromPairingLink(`https://example.com${path}`), null);
 });
 
-test('accepts only private IPv4 literals and valid ports', () => {
+test('accepts only private IPv4 literals on the DeckyHub port', () => {
   assert.equal(deviceUrl('192.168.1.20:8765'), 'https://192.168.1.20:8765/remote-install');
-  assert.equal(deviceUrl('172.31.0.1:1'), 'https://172.31.0.1:1/remote-install');
+  assert.equal(deviceUrl('172.31.0.1:8765'), 'https://172.31.0.1:8765/remote-install');
+  assert.throws(() => deviceUrl('172.31.0.1:1'));
   for (const address of ['example.com:8765', '8.8.8.8:8765', '172.32.1.1:8765', '192.168.1.999:2', '10.1.1.1:0', '10.1.1.1:99999', 'https://10.1.1.1:8765']) {
     assert.throws(() => deviceUrl(address));
   }
