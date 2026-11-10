@@ -89,6 +89,7 @@ function init(root, details) {
   const byId = id => root.querySelector(`#remote-${id}`);
   const form = byId('pair-form'), status = byId('status'), pairButton = byId('pair');
   const requestButton = byId('request'), cancelButton = byId('cancel');
+  const reconnectButton = byId('reconnect');
   const pluginId = root.dataset.pluginId;
   let transport, endpoint, token, requestId, idempotencyKey, cancelled = false;
   const say = message => { status.textContent = message; };
@@ -103,6 +104,7 @@ function init(root, details) {
     token = undefined;
     requestButton.disabled = true;
     cancelButton.disabled = true;
+    reconnectButton.hidden = true;
   };
   const send = async message => {
     if (!endpoint) throw new Error('Pair with your device first.');
@@ -132,8 +134,12 @@ function init(root, details) {
   if (typeof WebTransport === 'undefined' || !globalThis.isSecureContext) { say('This browser does not support secure remote installation.'); pairButton.disabled = true; return; }
   const fillDevice = ({ address, fingerprint }) => {
     byId('address').value = address;
-    byId('fingerprint').value = fingerprint;
-    say('Device details filled in. Enter the pairing code shown on your device.');
+    if (token) {
+      say('Address filled in. Select Use new device address to reconnect to the paired device.');
+    } else {
+      byId('fingerprint').value = fingerprint;
+      say('Device details filled in. Enter the pairing code shown on your device.');
+    }
   };
   if (details) fillDevice(details);
   const linkInput = byId('pairing-link');
@@ -167,6 +173,7 @@ function init(root, details) {
         const result = await send({ op: 'pair_status', pairingId: pairing.pairingId, pairingSecret });
         if (result.status === 'approved' && typeof result.token === 'string' && result.token) {
           token = result.token;
+          reconnectButton.hidden = false;
           say('Paired. Request installation, then approve it on your device.');
           requestButton.disabled = false;
           return;
@@ -177,6 +184,18 @@ function init(root, details) {
       throw new Error('Pairing timed out.');
     } catch (error) { disconnect(); showError(error); }
     finally { pairButton.disabled = false; }
+  });
+  reconnectButton.addEventListener('click', () => {
+    if (!endpoint || !token) return;
+    try {
+      const url = deviceUrl(byId('address').value);
+      if (url !== endpoint.url) {
+        closeTransport();
+        // The next request authenticates the new address with the original pinned fingerprint.
+        endpoint = { ...endpoint, url };
+      }
+      say('Address updated. Send to device or retry the pending request to reconnect.');
+    } catch (error) { showError(error); }
   });
   requestButton.addEventListener('click', async () => {
     if (!endpoint || !token) return;

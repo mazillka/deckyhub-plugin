@@ -97,6 +97,32 @@ class RemoteInstallMixinTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 run_coro(self.plugin.set_remote_install_enabled(True))
 
+    def test_address_change_rebinds_without_discarding_pairing_or_certificate(self):
+        plugin = self.plugin
+        plugin.settings.update(remoteInstall=True, remoteInstallFeature=True)
+        service = plugin.remote_install_service
+        service.transport_identity = object()
+        identity = service.transport_identity
+        old_server = types.SimpleNamespace(close=MagicMock())
+        new_server = types.SimpleNamespace(close=MagicMock())
+        plugin.remote_install_server = old_server
+        plugin.remote_install_address = "https://192.168.1.100:8765/remote-install"
+
+        async def fake_start(current_service):
+            self.assertIs(current_service, service)
+            self.assertIs(current_service.transport_identity, identity)
+            return new_server, "https://192.168.1.101:8765/remote-install", "same-fingerprint"
+
+        with (
+            patch("deckyhub.remote_install.lan_address", return_value="192.168.1.101"),
+            patch("deckyhub.remote_install.start_transport", side_effect=fake_start),
+        ):
+            run_coro(plugin._refresh_remote_address())
+        old_server.close.assert_called_once()
+        self.assertIs(plugin.remote_install_service, service)
+        self.assertIs(plugin.remote_install_server, new_server)
+        self.assertEqual(plugin.remote_install_fingerprint, "same-fingerprint")
+
     def test_disabled_feature_cannot_claim_request(self):
         self.plugin.settings.update(remoteInstall=True, remoteInstallFeature=False)
         with patch.object(self.plugin.remote_install_service, "claim") as claim:

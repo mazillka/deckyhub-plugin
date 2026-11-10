@@ -46,20 +46,24 @@ async def start_transport(service):
     from cryptography.x509.oid import NameOID
 
     address = lan_address()
-    key = ec.generate_private_key(ec.SECP256R1())
     now = datetime.datetime.now(datetime.timezone.utc)
-    subject = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "DeckyHub Remote Install")])
-    cert = (
-        x509.CertificateBuilder()
-        .subject_name(subject)
-        .issuer_name(subject)
-        .public_key(key.public_key())
-        .serial_number(x509.random_serial_number())
-        .not_valid_before(now - datetime.timedelta(minutes=5))
-        .not_valid_after(now + datetime.timedelta(days=7))
-        .add_extension(x509.SubjectAlternativeName([x509.IPAddress(ipaddress.ip_address(address))]), critical=False)
-        .sign(key, hashes.SHA256())
-    )
+    identity = service.transport_identity
+    if identity is None or identity[0].not_valid_after_utc <= now:
+        key = ec.generate_private_key(ec.SECP256R1())
+        subject = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "DeckyHub Remote Install")])
+        cert = (
+            x509.CertificateBuilder()
+            .subject_name(subject)
+            .issuer_name(subject)
+            .public_key(key.public_key())
+            .serial_number(x509.random_serial_number())
+            .not_valid_before(now - datetime.timedelta(minutes=5))
+            .not_valid_after(now + datetime.timedelta(days=7))
+            .sign(key, hashes.SHA256())
+        )
+        service.transport_identity = cert, key
+    else:
+        cert, key = identity
     fingerprint = hashlib.sha256(cert.public_bytes(serialization.Encoding.DER)).hexdigest()
 
     active_connections = set()

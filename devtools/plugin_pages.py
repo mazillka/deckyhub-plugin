@@ -400,6 +400,7 @@ def plugin_page(
 <button type="submit" id="remote-pair" disabled>Pair browser</button>
 </form>
 <p><button type="button" id="remote-request" disabled>Send to device</button> <button type="button" id="remote-cancel" disabled>Cancel request</button></p>
+<p><button type="button" id="remote-reconnect" hidden>Use new device address</button></p>
 <p id="remote-status" role="status" aria-live="polite">Not connected.</p>
 <noscript>Enable JavaScript to connect to your device.</noscript>
 <script type="module" src="/remote-install.js"></script>
