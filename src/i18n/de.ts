@@ -120,6 +120,16 @@ export const de: Record<MessageKey, string> = {
     "Das Release enthält Skripte oder Programme, die nicht im GitHub-Quellcode stehen, du kannst also nicht nachlesen, was sie tun.",
   "appcard.warning.obfuscated": "Versteckter Code",
   "appcard.warning.obfuscated.hint": "Es enthält kodierten oder gepackten Code, der schwer zu lesen ist.",
+  "audit.scope":
+    "Prüft eine begrenzte Auswahl von Mustern. Befunde müssen geprüft werden; Sicherheit lässt sich so nicht beweisen.",
+  "audit.title": "Unabhängige Codeprüfung",
+  "audit.complete": "Abgeschlossen",
+  "audit.incomplete": "Unvollständig",
+  "audit.error": "Fehler",
+  "audit.rootYes": "Manifest fordert Root-Rechte an",
+  "audit.rootNo": "Manifest fordert keine Root-Rechte an; Rechte können trotzdem genutzt werden",
+  "audit.rootUnknown": "Root-Anforderung unbekannt",
+  "audit.more": "Weitere Befunde: {count}",
   "appcard.warning.no-tls-check": "Überspringt HTTPS-Prüfung",
   "appcard.warning.no-tls-check.hint":
     "Es schaltet Zertifikatsprüfungen ab, sodass Downloads manipuliert werden könnten.",

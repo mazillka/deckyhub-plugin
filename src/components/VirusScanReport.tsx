@@ -3,6 +3,7 @@ import { DialogButtonPrimary as Button, Focusable, showModal } from "@decky/ui";
 import { WideConfirmModal } from "./WideModal";
 import { useEffect, useState } from "react";
 import { FaCopy, FaExternalLinkAlt, FaShieldAlt } from "react-icons/fa";
+import { independentAuditOf } from "../independentAudit";
 import { openExternalWeb } from "../external";
 import type { TFunc } from "../i18n/en";
 import { metaDefenderReportOf, virusTotalReportOf } from "../releases";
@@ -141,6 +142,7 @@ function ScanReportModal({
   closeParent?: () => void;
   closeModal?: () => void;
 }) {
+  const audit = independentAuditOf(scan);
   const hash = [asset.sha256, scan?.unverifiedMatch ? undefined : scan?.sha256].find(
     (value) => value && /^[0-9a-f]{64}$/i.test(value),
   );
@@ -191,6 +193,34 @@ function ScanReportModal({
                 </Focusable>
               );
             })}
+          <Focusable onActivate={() => {}} onFocus={keepInView}>
+            <strong>
+              {t("audit.title")}: {audit ? t(`audit.${audit.result}`) : t("scan.unavailable")}
+            </strong>
+          </Focusable>
+          <Focusable onActivate={() => {}} onFocus={keepInView}>
+            <small style={{ color: MUTED }}>{t("audit.scope")}</small>
+          </Focusable>
+          {audit && (
+            <>
+              <Focusable onActivate={() => {}} onFocus={keepInView}>
+                {t(audit.root === true ? "audit.rootYes" : audit.root === false ? "audit.rootNo" : "audit.rootUnknown")}
+              </Focusable>
+              {audit.findings.slice(0, 20).map((finding, index) => (
+                <Focusable key={index} onActivate={() => {}} onFocus={keepInView}>
+                  {t(`appcard.warning.${finding.rule}`)}: {finding.path}:{finding.line}
+                </Focusable>
+              ))}
+              {audit.findings.length > 20 && (
+                <Focusable onActivate={() => {}} onFocus={keepInView}>
+                  {t("audit.more", { count: audit.findings.length - 20 })}
+                </Focusable>
+              )}
+              <Focusable onActivate={() => {}} onFocus={keepInView}>
+                {t("scan.scannedAt", { date: new Date(audit.scannedAt).toLocaleString() })}
+              </Focusable>
+            </>
+          )}
           <Focusable onActivate={() => {}} onFocus={keepInView}>
             {t("scan.file", { file: asset.name })}
           </Focusable>
@@ -307,6 +337,7 @@ export function VirusScanReport({
   }, [asset?.url, asset?.sha256]);
   if (!asset) return null;
   const report = typeof scan === "object" ? scan : null;
+  const audit = independentAuditOf(report);
   const sha256 = [asset.sha256, report?.unverifiedMatch ? undefined : report?.sha256].find(
     (hash) => hash && /^[0-9a-f]{64}$/i.test(hash),
   );
@@ -384,6 +415,9 @@ export function VirusScanReport({
           )}
         </>
       )}
+      <small style={{ color: MUTED }}>
+        {t("audit.title")}: {audit ? t(`audit.${audit.result}`) : t("scan.unavailable")}
+      </small>
       {virusTotal &&
         (virusTotal.state === "complete" ? (
           <Row

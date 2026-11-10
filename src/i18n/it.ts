@@ -117,6 +117,16 @@ export const it: Record<MessageKey, string> = {
     "La release contiene script o programmi che non sono nel sorgente su GitHub, quindi non puoi leggere cosa fanno.",
   "appcard.warning.obfuscated": "Codice nascosto",
   "appcard.warning.obfuscated.hint": "Contiene codice codificato o compresso difficile da leggere.",
+  "audit.scope":
+    "Controlla un insieme limitato di schemi. I risultati richiedono una verifica; non dimostra che sia sicuro.",
+  "audit.title": "Controllo indipendente del codice",
+  "audit.complete": "Completato",
+  "audit.incomplete": "Incompleto",
+  "audit.error": "Errore",
+  "audit.rootYes": "Il manifesto richiede root",
+  "audit.rootNo": "Il manifesto non richiede root; i privilegi potrebbero comunque essere usati",
+  "audit.rootUnknown": "Richiesta root sconosciuta",
+  "audit.more": "Altri risultati: {count}",
   "appcard.warning.no-tls-check": "Salta i controlli HTTPS",
   "appcard.warning.no-tls-check.hint":
     "Disattiva il controllo dei certificati, quindi ciò che scarica potrebbe essere manomesso.",

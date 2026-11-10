@@ -117,6 +117,16 @@ export const es: Record<MessageKey, string> = {
     "La versión trae scripts o programas que no están en su código de GitHub, así que no puedes leer lo que hacen.",
   "appcard.warning.obfuscated": "Código oculto",
   "appcard.warning.obfuscated.hint": "Contiene código codificado o empaquetado difícil de leer.",
+  "audit.scope":
+    "Comprueba un conjunto limitado de patrones. Los hallazgos requieren revisión; no demuestra que sea seguro.",
+  "audit.title": "Auditoría independiente del código",
+  "audit.complete": "Completa",
+  "audit.incomplete": "Incompleta",
+  "audit.error": "Error",
+  "audit.rootYes": "El manifiesto solicita root",
+  "audit.rootNo": "El manifiesto no solicita root; aún podrían usarse privilegios",
+  "audit.rootUnknown": "Solicitud de root desconocida",
+  "audit.more": "Otros hallazgos: {count}",
   "appcard.warning.no-tls-check": "Omite comprobaciones HTTPS",
   "appcard.warning.no-tls-check.hint":
     "Desactiva la verificación de certificados, así que lo que descarga podría ser alterado.",

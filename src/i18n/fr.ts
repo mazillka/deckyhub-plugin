@@ -118,6 +118,16 @@ export const fr: Record<MessageKey, string> = {
     "La version contient des scripts ou programmes absents de son code GitHub : impossible de lire ce qu'ils font.",
   "appcard.warning.obfuscated": "Code caché",
   "appcard.warning.obfuscated.hint": "Il contient du code encodé ou compressé difficile à lire.",
+  "audit.scope":
+    "Vérifie un nombre limité de motifs. Les résultats doivent être examinés ; cela ne prouve pas la sécurité.",
+  "audit.title": "Audit indépendant du code",
+  "audit.complete": "Terminé",
+  "audit.incomplete": "Incomplet",
+  "audit.error": "Erreur",
+  "audit.rootYes": "Le manifeste demande root",
+  "audit.rootNo": "Le manifeste ne demande pas root ; des privilèges peuvent toutefois être utilisés",
+  "audit.rootUnknown": "Demande root inconnue",
+  "audit.more": "Autres résultats : {count}",
   "appcard.warning.no-tls-check": "Ignore les contrôles HTTPS",
   "appcard.warning.no-tls-check.hint":
     "Il désactive la vérification des certificats : ses téléchargements pourraient être altérés.",

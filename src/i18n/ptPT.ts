@@ -120,6 +120,16 @@ export const ptPT: Record<MessageKey, string> = {
     "A versão tem scripts ou programas que não estão no código do GitHub, por isso não é possível ler o que fazem.",
   "appcard.warning.obfuscated": "Código oculto",
   "appcard.warning.obfuscated.hint": "Contém código codificado ou compactado difícil de ler.",
+  "audit.scope":
+    "Verifica um conjunto limitado de padrões. Os resultados exigem análise; isto não comprova a segurança.",
+  "audit.title": "Auditoria independente ao código",
+  "audit.complete": "Concluída",
+  "audit.incomplete": "Incompleta",
+  "audit.error": "Erro",
+  "audit.rootYes": "O manifesto pede root",
+  "audit.rootNo": "O manifesto não pede root; ainda podem ser usados privilégios",
+  "audit.rootUnknown": "Pedido de root desconhecido",
+  "audit.more": "Mais resultados: {count}",
   "appcard.warning.no-tls-check": "Ignora verificação HTTPS",
   "appcard.warning.no-tls-check.hint":
     "Desativa a verificação de certificados, por isso o que transfere pode ter sido adulterado.",

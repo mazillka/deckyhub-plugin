@@ -93,7 +93,18 @@ export type ScanVerdict = {
 // One plugin ZIP's line in the registry's scans.json (fetchVirusScans): ClamAV's verdict
 // at the top (all DeckyHub releases read it), YARA's under yara (absent until YARA has
 // scanned the ZIP, and in reports from before the registry ran YARA).
-export type VirusScan = ScanVerdict & { sha256?: string; yara?: ScanVerdict; unverifiedMatch?: boolean };
+export type IndependentAudit = {
+  result: "complete" | "incomplete" | "error";
+  root: boolean | null;
+  findings: { rule: "no-tls-check" | "runs-downloads"; path: string; line: number }[];
+  scannedAt: string;
+};
+export type VirusScan = ScanVerdict & {
+  sha256?: string;
+  yara?: ScanVerdict;
+  audit?: IndependentAudit;
+  unverifiedMatch?: boolean;
+};
 
 // Manage-window buttons that Display Settings can hide.
 export type HideableButton = "downloadZip" | "install" | "update" | "releasePage";

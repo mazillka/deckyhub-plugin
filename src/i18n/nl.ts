@@ -118,6 +118,16 @@ export const nl: Record<MessageKey, string> = {
     "De release bevat scripts of programma's die niet in de GitHub-broncode staan, dus je kunt niet nalezen wat ze doen.",
   "appcard.warning.obfuscated": "Verborgen code",
   "appcard.warning.obfuscated.hint": "Bevat gecodeerde of ingepakte code die moeilijk te lezen is.",
+  "audit.scope":
+    "Controleert een beperkt aantal patronen. Bevindingen moeten worden beoordeeld; dit bewijst geen veiligheid.",
+  "audit.title": "Onafhankelijke codecontrole",
+  "audit.complete": "Voltooid",
+  "audit.incomplete": "Onvolledig",
+  "audit.error": "Fout",
+  "audit.rootYes": "Manifest vraagt root aan",
+  "audit.rootNo": "Manifest vraagt geen root aan; rechten kunnen alsnog worden gebruikt",
+  "audit.rootUnknown": "Rootaanvraag onbekend",
+  "audit.more": "Meer bevindingen: {count}",
   "appcard.warning.no-tls-check": "Slaat HTTPS-controles over",
   "appcard.warning.no-tls-check.hint":
     "Schakelt certificaatcontroles uit, dus wat het downloadt kan gemanipuleerd zijn.",
