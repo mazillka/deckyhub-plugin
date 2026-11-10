@@ -1,6 +1,8 @@
 import type { MessageKey } from "./en";
 
 export const uk: Record<MessageKey, string> = {
+  "appcard.identityUnverified":
+    "Не вдалося перевірити ідентичність встановленого плагіна; встановлення та оновлення вимкнено.",
   "nav.updates": "Оновлення",
   "nav.discover": "Огляд",
   "nav.search": "Пошук",

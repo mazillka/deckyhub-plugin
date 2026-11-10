@@ -1,6 +1,7 @@
 import type { MessageKey } from "./en";
 
 export const ru: Record<MessageKey, string> = {
+  "appcard.identityUnverified": "Не удалось проверить установленный плагин; установка и обновления отключены.",
   "nav.updates": "Обновления",
   "nav.discover": "Обзор",
   "nav.search": "Поиск",

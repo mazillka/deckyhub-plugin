@@ -1,6 +1,7 @@
 import type { MessageKey } from "./en";
 
 export const zh: Record<MessageKey, string> = {
+  "appcard.identityUnverified": "无法验证已安装的插件；安装和更新已禁用。",
   "nav.updates": "更新",
   "nav.discover": "发现",
   "nav.search": "搜索",

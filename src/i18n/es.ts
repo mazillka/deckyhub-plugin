@@ -1,6 +1,8 @@
 import type { MessageKey } from "./en";
 
 export const es: Record<MessageKey, string> = {
+  "appcard.identityUnverified":
+    "No se pudo verificar el plugin instalado; la instalación y las actualizaciones están desactivadas.",
   "nav.updates": "Actualizaciones",
   "nav.discover": "Descubrir",
   "nav.search": "Buscar",

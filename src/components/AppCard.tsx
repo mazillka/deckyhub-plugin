@@ -338,6 +338,7 @@ export function AppCard(props: AppCardProps) {
         {app.installedVersion && (
           <span>{t("settings.installedVersion", { version: displayVersion(app.installedVersion) })}</span>
         )}
+        {app.identityUnverified && <span style={{ color: colors.warning }}>{t("appcard.identityUnverified")}</span>}
         {/* No release and no error yet: its GitHub check is still running. */}
         <span>
           {t("settings.latestVersion", {

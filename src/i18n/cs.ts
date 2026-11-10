@@ -1,6 +1,7 @@
 import type { MessageKey } from "./en";
 
 export const cs: Record<MessageKey, string> = {
+  "appcard.identityUnverified": "Nainstalovaný plugin nelze ověřit; instalace a aktualizace jsou vypnuté.",
   "nav.updates": "Aktualizace",
   "nav.discover": "Objevovat",
   "nav.search": "Hledat",

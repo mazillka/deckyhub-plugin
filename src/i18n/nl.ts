@@ -1,6 +1,8 @@
 import type { MessageKey } from "./en";
 
 export const nl: Record<MessageKey, string> = {
+  "appcard.identityUnverified":
+    "De geïnstalleerde plugin kon niet worden geverifieerd; installeren en bijwerken zijn uitgeschakeld.",
   "nav.updates": "Updates",
   "nav.discover": "Ontdekken",
   "nav.search": "Zoeken",

@@ -2,6 +2,7 @@ import type { MessageKey } from "./en";
 
 // Portuguese, written for Brazil (Steam's "Português-Brasil"); Portugal reads it fine.
 export const pt: Record<MessageKey, string> = {
+  "appcard.identityUnverified": "Não foi possível verificar o plugin instalado; instalação e atualizações desativadas.",
   "nav.updates": "Atualizações",
   "nav.discover": "Descobrir",
   "nav.search": "Buscar",

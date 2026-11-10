@@ -2,6 +2,7 @@ import type { MessageKey } from "./en";
 
 // Traditional Chinese, with Taiwan's terms (Steam's "繁體中文").
 export const zhTW: Record<MessageKey, string> = {
+  "appcard.identityUnverified": "無法驗證已安裝的外掛；安裝和更新已停用。",
   "nav.updates": "更新",
   "nav.discover": "探索",
   "nav.search": "搜尋",

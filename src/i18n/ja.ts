@@ -1,6 +1,7 @@
 import type { MessageKey } from "./en";
 
 export const ja: Record<MessageKey, string> = {
+  "appcard.identityUnverified": "インストール済みプラグインを確認できません。インストールと更新は無効です。",
   "nav.updates": "アップデート",
   "nav.discover": "見つける",
   "nav.search": "検索",

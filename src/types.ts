@@ -18,6 +18,7 @@ export type App = {
   detect?: { type: string; names?: string[] };
   // Installed Decky plugin's own manifest name (decky-plugin detection only).
   pluginName?: string | null;
+  identityUnverified?: boolean;
   latestVersion?: string | null;
   publishedAt?: string | null;
   releaseUrl?: string | null;

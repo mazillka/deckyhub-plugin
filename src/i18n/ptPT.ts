@@ -2,6 +2,7 @@ import type { MessageKey } from "./en";
 
 // Portuguese, written for Portugal; Brazil has its own in pt.ts.
 export const ptPT: Record<MessageKey, string> = {
+  "appcard.identityUnverified": "Não foi possível verificar o plugin instalado; instalação e atualizações desativadas.",
   "nav.updates": "Atualizações",
   "nav.discover": "Descobrir",
   "nav.search": "Pesquisar",
