@@ -388,10 +388,11 @@ def plugin_page(
 <p class="note">Before updating an installed plugin, check that its GitHub owner and repository match the source shown here. Plugin names alone may not identify the correct project.</p>
 <p>{escape(name)} is a <a href="https://decky.xyz/">Decky Loader</a> plugin. With <a href="/">DeckyHub</a> installed, open DeckyHub's <strong>Discover</strong> tab in Gaming Mode, search for <strong>{escape(name)}</strong> and press <strong>Install</strong>. DeckyHub hands the release to Decky Loader's own installer and checks its SHA-256 whenever GitHub publishes one. You can also download the ZIP from its <a href="{escape(repo_url)}/releases">releases</a> and install it by hand from Decky's developer settings.</p>
 <section id="remote-install" class="remote-install" data-plugin-id="{escape(app["id"], quote=True)}">
-<h2>Install from another device</h2>
-<p>Use a DeckyHub pre-release with Remote Install. In DeckyHub, open <strong>Settings → Downloads</strong> and turn on both Remote Install switches. Enter the local address and certificate fingerprint shown on your device. Use a compatible browser on the same network and allow local network access if it asks. You must approve the browser and each installation on your device.</p>
+<h2>Send {escape(name)} to your device</h2>
+<p>Use a DeckyHub pre-release with Remote Install. In DeckyHub, open <strong>Settings → Downloads</strong> and turn on both Remote Install switches. Paste the pairing link here or enter the local address and certificate fingerprint. Use a compatible browser on the same network and allow local network access if it asks. You must approve the browser and each installation on your device.</p>
 <p id="remote-unavailable">Remote Install is experimental and requires a compatible DeckyHub service and browser. Connection details are never sent to DeckyHub's website.</p>
 <form id="remote-pair-form">
+<p><label for="remote-pairing-link">Pairing link from DeckyHub</label><br><input id="remote-pairing-link" type="text" autocomplete="off" placeholder="Paste pairing link"></p>
 <p><label for="remote-address">Device IPv4 address and port</label><br><input id="remote-address" placeholder="192.168.1.50:8765" autocomplete="off" required></p>
 <p><label for="remote-fingerprint">Certificate fingerprint (SHA-256)</label><br><input id="remote-fingerprint" autocomplete="off" spellcheck="false" required></p>
 <p><label for="remote-code">Pairing code shown on your device</label><br><input id="remote-code" autocomplete="off" inputmode="numeric" required></p>

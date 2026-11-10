@@ -31,6 +31,16 @@ export function pairingDetails(fragment) {
   }
 }
 
+export function detailsFromPairingLink(value) {
+  try {
+    const url = new URL(value.trim());
+    if (url.origin !== 'https://deckyhub.com' || url.pathname !== '/develop/plugins/' || url.username || url.password) return null;
+    return pairingDetails(url.hash);
+  } catch {
+    return null;
+  }
+}
+
 const PAIRING_DETAILS_KEY = 'deckyhub.remoteInstall.device';
 
 function timeout(promise, ms) {
@@ -120,11 +130,20 @@ function init(root, details) {
   const showError = error => say(error instanceof Error ? error.message : 'Unable to contact the device.');
   if (!/^[a-z0-9][a-z0-9-]{0,127}$/.test(pluginId || '')) { say('Invalid plugin identifier.'); pairButton.disabled = true; return; }
   if (typeof WebTransport === 'undefined' || !globalThis.isSecureContext) { say('This browser does not support secure remote installation.'); pairButton.disabled = true; return; }
-  if (details) {
-    byId('address').value = details.address;
-    byId('fingerprint').value = details.fingerprint;
+  const fillDevice = ({ address, fingerprint }) => {
+    byId('address').value = address;
+    byId('fingerprint').value = fingerprint;
     say('Device details filled in. Enter the pairing code shown on your device.');
-  }
+  };
+  if (details) fillDevice(details);
+  const linkInput = byId('pairing-link');
+  linkInput.addEventListener('change', () => {
+    if (!linkInput.value.trim()) return;
+    const device = detailsFromPairingLink(linkInput.value);
+    if (!device) { say('Paste the pairing link copied from DeckyHub on your device.'); return; }
+    fillDevice(device);
+    linkInput.value = '';
+  });
   form.addEventListener('submit', async event => {
     event.preventDefault();
     pairButton.disabled = true;

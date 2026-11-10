@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { deviceUrl, exchange, fingerprintBytes, pairingDetails } from '../docs/remote-install.js';
+import { detailsFromPairingLink, deviceUrl, exchange, fingerprintBytes, pairingDetails } from '../docs/remote-install.js';
 
 test('pairing links accept only a private device address and a complete fingerprint', () => {
   const fingerprint = 'ab'.repeat(32);
@@ -9,6 +9,13 @@ test('pairing links accept only a private device address and a complete fingerpr
   assert.equal(pairingDetails(fragment('example.com:8765')), null);
   assert.equal(pairingDetails(fragment('192.168.1.20:8765', 'short')), null);
   assert.equal(pairingDetails('#remote-install'), null);
+});
+
+test('pasted DeckyHub links fill device details without navigating away from the selected plugin', () => {
+  const address = '192.168.1.20:8765', fingerprint = 'ab'.repeat(32);
+  const path = `/develop/plugins/#${new URLSearchParams({ device: address, fingerprint })}`;
+  assert.deepEqual(detailsFromPairingLink(`https://deckyhub.com${path}`), { address, fingerprint });
+  assert.equal(detailsFromPairingLink(`https://example.com${path}`), null);
 });
 
 test('accepts only private IPv4 literals and valid ports', () => {
