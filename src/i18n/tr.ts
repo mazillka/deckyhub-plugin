@@ -6,6 +6,7 @@ export const tr: Record<MessageKey, string> = {
   "remote.address": "Cihaz adresi",
   "remote.fingerprint": "Sertifika parmak izi (SHA-256)",
   "remote.copyPairingLink": "Eşleştirme bağlantısını kopyala",
+  "remote.scanPairingQr": "Eşleştirilmiş cihazları açmak için tarayın",
   "remote.pair": "Tarayıcıyı eşleştir",
   "remote.pairings": "Eşleştirme istekleri",
   "remote.requests": "Eklenti istekleri",

@@ -6,6 +6,7 @@ export const zh: Record<MessageKey, string> = {
   "remote.address": "设备地址",
   "remote.fingerprint": "证书指纹 (SHA-256)",
   "remote.copyPairingLink": "复制配对链接",
+  "remote.scanPairingQr": "扫码打开已配对设备",
   "remote.pair": "配对浏览器",
   "remote.pairings": "配对请求",
   "remote.requests": "插件操作请求",
