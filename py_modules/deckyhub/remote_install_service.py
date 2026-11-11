@@ -18,7 +18,9 @@ _SECRET = re.compile(r"[A-Za-z0-9_-]{43}\Z")
 
 
 class RemoteInstallService:
-    def __init__(self, apps, clock=time.monotonic, installed=None):
+    def __init__(self, apps, clock=time.monotonic, installed=None, store=None):
+        self.store = store
+        saved = store.load() if store else {}
         self.installed = installed or (lambda: [])
         self.apps = apps
         self.clock = clock
@@ -28,9 +30,38 @@ class RemoteInstallService:
         self.code_expiry = 0
         self.pairings = {}
         self.devices = {}
-        self.transport_identity = None
+        for device_id, device in (saved.get("devices") or {}).items():
+            try:
+                self.devices[device_id] = {
+                    "name": str(device["name"])[:80],
+                    "token_hash": bytes.fromhex(device["token_hash"]),
+                }
+            except (KeyError, TypeError, ValueError):
+                continue
+        # PEM pairs {"current": [cert, key], "next": [cert, key] | None}; see remote_install_transport.
+        identity = saved.get("identity")
+        self.identity = identity if isinstance(identity, dict) else None
+        self.pins = {}
         self.discovery = None
         self.attempts = []
+
+    def persist(self):
+        if self.store:
+            self.store.save(
+                {
+                    "devices": {
+                        k: {"name": d["name"], "token_hash": d["token_hash"].hex()} for k, d in self.devices.items()
+                    },
+                    "identity": self.identity,
+                }
+            )
+
+    def reset_session(self):
+        """Forget everything that only lasts while the listener runs; paired devices stay."""
+        self.code = self.pairing_token_hash = None
+        self.pairings = {}
+        self.attempts = []
+        self.queue = RemoteInstallQueue(clock=self.clock)
 
     def begin_pairing(self):
         self.code = f"{secrets.randbelow(1000000):06d}"
@@ -48,9 +79,9 @@ class RemoteInstallService:
 
     def pair(self, code, name, secret, pairing_token=None):
         self._sweep()
-        if len(self.attempts) >= 5:
+        # Only guesses of the six-digit code are limited; the one-time token cannot be guessed.
+        if pairing_token is None and len(self.attempts) >= 5:
             raise ValueError("too many pairing attempts")
-        self.attempts.append(self.clock())
         if self.code is None or self.clock() >= self.code_expiry:
             raise ValueError("invalid or expired pairing code")
         if pairing_token is None:
@@ -63,6 +94,8 @@ class RemoteInstallService:
                 and hmac.compare_digest(self.pairing_token_hash, hashlib.sha256(pairing_token.encode()).digest())
             )
         if not valid:
+            if pairing_token is None:
+                self.attempts.append(self.clock())
             raise ValueError("invalid or expired pairing code")
         if not isinstance(name, str) or not name.strip() or len(name) > 80:
             raise ValueError("invalid browser name")
@@ -110,6 +143,7 @@ class RemoteInstallService:
             token = secrets.token_urlsafe(32)
             device_id = secrets.token_urlsafe(16)
             self.devices[device_id] = {"name": p["name"], "token_hash": hashlib.sha256(token.encode()).digest()}
+            self.persist()
             p["token"], p["status"], p["device_id"] = token, "approved", device_id
         else:
             p["status"] = "rejected"
@@ -121,6 +155,7 @@ class RemoteInstallService:
     def revoke(self, device_id):
         device = self.devices.pop(device_id, None)
         if device:
+            self.persist()
             self.queue.cancel_owner_pending(device_id)
             for p in self.pairings.values():
                 if p.get("device_id") == device_id:
@@ -204,6 +239,13 @@ class RemoteInstallService:
         return {"plugins": page, "nextOffset": offset + 20 if offset + 20 < len(visible) else None}
 
     def remote(self, message, *, installed=None):
+        result = self._remote(message, installed=installed)
+        op = message["op"]
+        if op != "pair" and not (op == "pair_status" and result["status"] != "approved"):
+            result = {**result, **self.pins}
+        return result
+
+    def _remote(self, message, *, installed=None):
         if not isinstance(message, dict):
             raise ValueError("invalid request")
         op = message.get("op")

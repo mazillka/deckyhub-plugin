@@ -380,6 +380,7 @@ def remote_device_panel() -> str:
 <p><label for="remote-device-name">Device name (optional)</label><br><input id="remote-device-name" maxlength="64" autocomplete="off" placeholder="Living room device"></p>
 <p><label for="remote-name">Browser name shown on your device</label><br><input id="remote-name" value="Browser" maxlength="64"></p>
 <p><button type="button" id="remote-reconnect" hidden>Use new device address</button></p>
+<p><button type="button" id="remote-forget" hidden>Forget this device in this browser</button></p>
 </details>
 <button type="submit" id="remote-pair" disabled>Pair browser</button>
 </form>

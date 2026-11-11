@@ -31,7 +31,10 @@ class RemoteInstallTransportTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(
             first_pin, hashlib.sha256(first.certificate.public_bytes(serialization.Encoding.DER)).hexdigest()
         )
-        self.assertIs(first.certificate, second.certificate)
+        self.assertEqual(
+            first.certificate.public_bytes(serialization.Encoding.DER),
+            second.certificate.public_bytes(serialization.Encoding.DER),
+        )
         self.assertEqual(first_pin, second_pin)
         self.assertEqual(first_url, "https://192.168.1.20:8765/remote-install")
         self.assertEqual(second_url, "https://192.168.1.21:8765/remote-install")

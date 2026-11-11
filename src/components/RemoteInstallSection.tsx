@@ -33,6 +33,7 @@ export function RemoteInstallSection() {
   const [code, setCode] = useState<string | null>(null);
   const [pairingTicket, setPairingTicket] = useState<{ code: string; token: string } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
 
   const refresh = async () => {
     try {
@@ -59,6 +60,10 @@ export function RemoteInstallSection() {
       if (!enabled) {
         setCode(null);
         setPairingTicket(null);
+        setShowDetails(false);
+      } else if (next.active) {
+        // Turning pairing on shows the QR straight away; there is nothing else to press.
+        await onPair(true);
       }
     } catch (error) {
       toaster.toast({ title: "DeckyHub", body: String(error) });
@@ -67,15 +72,12 @@ export function RemoteInstallSection() {
     }
   };
 
-  const onPair = async () => {
+  const onPair = async (quiet = false) => {
     try {
       const res = await beginRemotePairing();
       setCode(res.code);
       setPairingTicket({ code: res.code, token: res.pairingToken });
-      toaster.toast({
-        title: t("remote.pair"),
-        body: res.code,
-      });
+      if (!quiet) toaster.toast({ title: t("remote.pair"), body: res.code });
       void refresh();
     } catch (error) {
       toaster.toast({ title: "DeckyHub", body: String(error) });
@@ -262,31 +264,36 @@ export function RemoteInstallSection() {
               <>
                 <div aria-hidden style={sectionDividerStyle} />
                 <PanelSectionRow>
-                  <div style={{ display: "grid", gap: 6 }}>
-                    <div style={{ fontSize: "0.85em", color: colors.muted }}>{t("remote.address")}</div>
-                    <code style={{ fontSize: "0.95em", color: colors.accent }}>
-                      {status.address.replace(/^https?:\/\//, "").replace(/\/remote-install$/, "")}
-                    </code>
-                    {status.fingerprint && (
-                      <>
-                        <div style={{ fontSize: "0.85em", color: colors.muted, marginTop: 4 }}>
-                          {t("remote.fingerprint")}
-                        </div>
-                        <code
-                          style={{
-                            fontSize: "0.75em",
-                            wordBreak: "break-all",
-                            background: "rgba(0,0,0,0.2)",
-                            padding: "4px 8px",
-                            borderRadius: 4,
-                          }}
-                        >
-                          {status.fingerprint}
-                        </code>
-                      </>
-                    )}
-                  </div>
+                  <ToggleField label={t("remote.address")} checked={showDetails} onChange={setShowDetails} />
                 </PanelSectionRow>
+                {showDetails && (
+                  <PanelSectionRow>
+                    <div style={{ display: "grid", gap: 6 }}>
+                      <div style={{ fontSize: "0.85em", color: colors.muted }}>{t("remote.address")}</div>
+                      <code style={{ fontSize: "0.95em", color: colors.accent }}>
+                        {status.address.replace(/^https?:\/\//, "").replace(/\/remote-install$/, "")}
+                      </code>
+                      {status.fingerprint && (
+                        <>
+                          <div style={{ fontSize: "0.85em", color: colors.muted, marginTop: 4 }}>
+                            {t("remote.fingerprint")}
+                          </div>
+                          <code
+                            style={{
+                              fontSize: "0.75em",
+                              wordBreak: "break-all",
+                              background: "rgba(0,0,0,0.2)",
+                              padding: "4px 8px",
+                              borderRadius: 4,
+                            }}
+                          >
+                            {status.fingerprint}
+                          </code>
+                        </>
+                      )}
+                    </div>
+                  </PanelSectionRow>
+                )}
 
                 <PanelSectionRow>
                   <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 12 }}>

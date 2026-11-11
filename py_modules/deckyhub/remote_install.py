@@ -6,7 +6,8 @@ from urllib.parse import urlsplit
 import decky
 
 from .remote_install_service import RemoteInstallService
-from .remote_install_transport import lan_address, start_transport
+from .remote_install_store import RemoteInstallStore
+from .remote_install_transport import identity_rotated, lan_address, start_transport
 
 
 class RemoteInstallMixin:
@@ -18,9 +19,11 @@ class RemoteInstallMixin:
         return self._remote_installed_plugins() if hasattr(self, "_remote_installed_plugins") else []
 
     def _init_remote_install(self):
+        path = getattr(self, "settings_path", None)
         self.remote_install_service = RemoteInstallService(
             apps=self._remote_apps,
             installed=self._remote_inventory,
+            store=RemoteInstallStore(path.with_name("remote-install.json")) if path else None,
         )
         self.remote_install_server = None
         self.remote_install_address = None
@@ -48,7 +51,10 @@ class RemoteInstallMixin:
                 self.remote_install_server = None
                 self.remote_install_address = None
                 self.remote_install_fingerprint = None
-                self.remote_install_error = str(error)
+                # A missing or mismatched bundled library is not something the user can fix from here.
+                self.remote_install_error = (
+                    "Remote Install is not supported on this system" if isinstance(error, ImportError) else str(error)
+                )
                 decky.logger.warning("Remote install transport failed to start: %s", error)
 
     async def _stop_remote_discovery(self):
@@ -84,7 +90,14 @@ class RemoteInstallMixin:
         except OSError:
             return
         previous = self.remote_install_address
-        if previous and urlsplit(previous).hostname != address:
+        # Also restart when the certificate is about to expire, so it never runs out while serving.
+        if previous and (
+            urlsplit(previous).hostname != address
+            or (
+                self.remote_install_server is not None
+                and identity_rotated(self.remote_install_service, self.remote_install_fingerprint)
+            )
+        ):
             await self._stop_remote_transport()
         if self.remote_install_server is None:
             await self._start_remote_transport()
@@ -123,8 +136,8 @@ class RemoteInstallMixin:
             await self._start_remote_transport()
         else:
             await self._stop_remote_transport()
-            # Closing the listener also revokes all in-memory credentials and requests.
-            self.remote_install_service = RemoteInstallService(apps=self._remote_apps, installed=self._remote_inventory)
+            # Pending pairings and requests end with the listener; paired devices stay until revoked.
+            self.remote_install_service.reset_session()
         return await self.get_remote_install_status()
 
     async def begin_remote_pairing(self):
