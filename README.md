@@ -4,6 +4,8 @@
 
 # DeckyHub
 
+[![Support Development & Maintenance](https://img.shields.io/badge/Support_Development_%26_Maintenance-FF5E5B?style=for-the-badge&logo=kofi&logoColor=white)](https://ko-fi.com/mazillka)
+
 **Your Decky plugin hub — right inside Gaming Mode.**
 
 Find, install and update Decky Loader plugins with your controller — from DeckyHub's plugin list, or any plugin on GitHub.
