@@ -349,11 +349,13 @@ def page(
 def remote_device_panel(title: str, plugin_id: str = "") -> str:
     hidden = "" if plugin_id else " hidden"
     layout = "" if plugin_id else " remote-device-dashboard"
+    pair_link = "" if plugin_id else '<a class="btn ghost" href="#remote-pair-form">Pair a new device</a>'
+    pair_title = "Pair a device" if plugin_id else "Pair a new device"
     devices_link = '<p><a href="/paired-devices.html">Manage paired devices</a></p>' if plugin_id else ""
     return f"""<section id="remote-install" class="remote-install{layout}" aria-labelledby="remote-title" data-plugin-id="{escape(plugin_id, quote=True)}">
 <link rel="stylesheet" href="/remote-install.css">
 <div class="remote-device-overview">
-<h2 id="remote-title">{escape(title)}</h2>
+<div class="remote-device-heading"><h2 id="remote-title">{escape(title)}</h2>{pair_link}</div>
 <p>Choose a paired device or set up a new one below. Approve pairing and plugin changes on your device.</p>
 <p><label for="remote-device-picker">Paired device</label><br><select id="remote-device-picker" disabled><option value="">Pair a device</option></select></p>
 <p class="remote-actions"><button type="button" id="remote-request" disabled{hidden}>Send install request</button> <button type="button" id="remote-cancel" disabled>Cancel request</button></p>
@@ -366,8 +368,8 @@ def remote_device_panel(title: str, plugin_id: str = "") -> str:
 {devices_link}
 </section>
 </div>
-<form id="remote-pair-form">
-<h3>Pair a device</h3>
+<form id="remote-pair-form" aria-labelledby="remote-pair-title">
+<h3 id="remote-pair-title">{pair_title}</h3>
 <ol>
 <li>In a DeckyHub pre-release, open <strong>Settings → Downloads</strong> and turn on both Remote Install switches.</li>
 <li>Copy the pairing link and six-digit code from DeckyHub.</li>
