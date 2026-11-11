@@ -221,6 +221,7 @@ export function RemoteInstallSection() {
     (() => {
       const device = new URL(status.address).host;
       const details = new URLSearchParams({ device, fingerprint: status.fingerprint, pair: pairingTicket.token });
+      if (status.deviceName) details.set("name", status.deviceName);
       return `https://deckyhub.com/develop/remote-install/#${details}`;
     })();
 
@@ -262,6 +263,81 @@ export function RemoteInstallSection() {
 
             {isActive && status?.address && (
               <>
+                {/* Pending Pairing Requests */}
+                {Boolean(status.pairings?.length) && (
+                  <>
+                    <div aria-hidden style={sectionDividerStyle} />
+                    <PanelSectionRow>
+                      <strong style={{ color: colors.warning }}>{t("remote.pairings")}</strong>
+                    </PanelSectionRow>
+                    {status.pairings.map((p) => (
+                      <PanelSectionRow key={p.id}>
+                        <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <span style={{ flex: 1 }}>{p.name}</span>
+                          <Button
+                            style={{ ...compactButtonStyle, background: colors.success, marginBottom: 0 }}
+                            onClick={() => void onDecidePairing(p.id, true)}
+                          >
+                            <FaCheck /> {t("remote.approve")}
+                          </Button>
+                          <Button
+                            style={{ ...compactButtonStyle, background: colors.danger, marginBottom: 0 }}
+                            onClick={() => void onDecidePairing(p.id, false)}
+                          >
+                            <FaTimes /> {t("remote.reject")}
+                          </Button>
+                        </Focusable>
+                      </PanelSectionRow>
+                    ))}
+                  </>
+                )}
+
+                {/* Pending Install Requests */}
+                {Boolean(status.requests?.length) && (
+                  <>
+                    <div aria-hidden style={sectionDividerStyle} />
+                    <PanelSectionRow>
+                      <strong style={{ color: colors.accent }}>{t("remote.requests")}</strong>
+                    </PanelSectionRow>
+                    {status.requests.map((r) => (
+                      <PanelSectionRow key={r.id}>
+                        <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontWeight: "bold" }}>
+                              {t(
+                                r.action === "uninstall"
+                                  ? "appcard.uninstall"
+                                  : r.action === "update"
+                                    ? "appcard.update"
+                                    : "appcard.install",
+                              )}{" "}
+                              · {r.pluginName || r.pluginId}
+                            </div>
+                            <div style={{ fontSize: "0.8em", color: colors.muted }}>
+                              {t("remote.from", { name: r.ownerName })}
+                              {r.releaseTag ? ` (${r.releaseTag})` : ""}
+                            </div>
+                          </div>
+                          <Button
+                            style={{ ...compactButtonStyle, background: colors.success, marginBottom: 0 }}
+                            disabled={loading}
+                            onClick={() => void onDecideRequest(r, true)}
+                          >
+                            <FaCheck /> {t("remote.approve")}
+                          </Button>
+                          <Button
+                            style={{ ...compactButtonStyle, background: colors.danger, marginBottom: 0 }}
+                            disabled={loading}
+                            onClick={() => void onDecideRequest(r, false)}
+                          >
+                            <FaTimes /> {t("remote.reject")}
+                          </Button>
+                        </Focusable>
+                      </PanelSectionRow>
+                    ))}
+                  </>
+                )}
+
                 <div aria-hidden style={sectionDividerStyle} />
                 <PanelSectionRow>
                   <ToggleField label={t("remote.address")} checked={showDetails} onChange={setShowDetails} />
@@ -343,81 +419,6 @@ export function RemoteInstallSection() {
                       {t("remote.copyPairingLink")}
                     </Button>
                   </PanelSectionRow>
-                )}
-
-                {/* Pending Pairing Requests */}
-                {Boolean(status.pairings?.length) && (
-                  <>
-                    <div aria-hidden style={sectionDividerStyle} />
-                    <PanelSectionRow>
-                      <strong style={{ color: colors.warning }}>{t("remote.pairings")}</strong>
-                    </PanelSectionRow>
-                    {status.pairings.map((p) => (
-                      <PanelSectionRow key={p.id}>
-                        <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <span style={{ flex: 1 }}>{p.name}</span>
-                          <Button
-                            style={{ ...compactButtonStyle, background: colors.success, marginBottom: 0 }}
-                            onClick={() => void onDecidePairing(p.id, true)}
-                          >
-                            <FaCheck /> {t("remote.approve")}
-                          </Button>
-                          <Button
-                            style={{ ...compactButtonStyle, background: colors.danger, marginBottom: 0 }}
-                            onClick={() => void onDecidePairing(p.id, false)}
-                          >
-                            <FaTimes /> {t("remote.reject")}
-                          </Button>
-                        </Focusable>
-                      </PanelSectionRow>
-                    ))}
-                  </>
-                )}
-
-                {/* Pending Install Requests */}
-                {Boolean(status.requests?.length) && (
-                  <>
-                    <div aria-hidden style={sectionDividerStyle} />
-                    <PanelSectionRow>
-                      <strong style={{ color: colors.accent }}>{t("remote.requests")}</strong>
-                    </PanelSectionRow>
-                    {status.requests.map((r) => (
-                      <PanelSectionRow key={r.id}>
-                        <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontWeight: "bold" }}>
-                              {t(
-                                r.action === "uninstall"
-                                  ? "appcard.uninstall"
-                                  : r.action === "update"
-                                    ? "appcard.update"
-                                    : "appcard.install",
-                              )}{" "}
-                              · {r.pluginName || r.pluginId}
-                            </div>
-                            <div style={{ fontSize: "0.8em", color: colors.muted }}>
-                              {t("remote.from", { name: r.ownerName })}
-                              {r.releaseTag ? ` (${r.releaseTag})` : ""}
-                            </div>
-                          </div>
-                          <Button
-                            style={{ ...compactButtonStyle, background: colors.success, marginBottom: 0 }}
-                            disabled={loading}
-                            onClick={() => void onDecideRequest(r, true)}
-                          >
-                            <FaCheck /> {t("remote.approve")}
-                          </Button>
-                          <Button
-                            style={{ ...compactButtonStyle, background: colors.danger, marginBottom: 0 }}
-                            disabled={loading}
-                            onClick={() => void onDecideRequest(r, false)}
-                          >
-                            <FaTimes /> {t("remote.reject")}
-                          </Button>
-                        </Focusable>
-                      </PanelSectionRow>
-                    ))}
-                  </>
                 )}
 
                 {/* Paired Browsers */}

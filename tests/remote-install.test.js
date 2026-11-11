@@ -9,6 +9,8 @@ test('pairing links accept only a private device address and a complete fingerpr
   assert.equal(pairingDetails(fragment('example.com:8765')), null);
   assert.equal(pairingDetails(fragment('192.168.1.20:8765', 'short')), null);
   assert.equal(pairingDetails('#remote-install'), null);
+  assert.equal(pairingDetails(fragment('192.168.1.20:8765') + '&name=Steam%20Deck').name, 'Steam Deck');
+  assert.equal('name' in pairingDetails(fragment('192.168.1.20:8765') + '&name=%3Cb%3E'), false);
 });
 
 test('pasted DeckyHub links fill device details without navigating away from the selected plugin', () => {

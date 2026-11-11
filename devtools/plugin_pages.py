@@ -359,6 +359,7 @@ def remote_device_panel() -> str:
 <h3 id="remote-plugins-title">Installed plugins</h3>
 <p class="remote-actions"><a class="btn" href="/plugins/">Browse plugins to install</a> <button type="button" id="remote-plugins-refresh" disabled>Refresh list</button></p>
 <p id="remote-plugins-status" role="status" aria-live="polite">Pair a device to see its installed plugins.</p>
+<p><input id="remote-plugins-filter" type="search" aria-label="Search installed plugins" placeholder="Search installed plugins" autocomplete="off" hidden></p>
 <ul id="remote-plugins" class="remote-plugins"></ul>
 </section>
 </div>

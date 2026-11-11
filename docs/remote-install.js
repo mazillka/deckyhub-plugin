@@ -26,10 +26,12 @@ export function pairingDetails(fragment) {
   const pairingToken = params.get('pair');
   if (!address || !fingerprint) return null;
   if (pairingToken !== null && !/^[A-Za-z0-9_-]{43}$/.test(pairingToken)) return null;
+  // The device's own name, shown instead of its address; ignored if it looks odd.
+  const name = /^[\w .-]{1,40}$/.test(params.get('name') || '') ? params.get('name') : undefined;
   try {
     deviceUrl(address);
     fingerprintBytes(fingerprint);
-    return pairingToken ? { address, fingerprint, pairingToken } : { address, fingerprint };
+    return { address, fingerprint, ...(pairingToken && { pairingToken }), ...(name && { name }) };
   } catch {
     return null;
   }
@@ -272,8 +274,9 @@ export function init(root, details) {
       });
     }
   }
-  const fillDevice = ({ address, fingerprint }) => {
+  const fillDevice = ({ address, fingerprint, name }) => {
     byId('address').value = address;
+    if (name && !byId('device-name').value.trim()) byId('device-name').value = name;
     if (token) {
       say('Address filled in. Select Use new device address to reconnect to the paired device.');
     } else {

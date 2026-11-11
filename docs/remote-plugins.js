@@ -3,6 +3,7 @@ export function createPluginList(root, { loadPage, request }) {
   const list = root.querySelector('#remote-plugins');
   const status = root.querySelector('#remote-plugins-status');
   const refresh = root.querySelector('#remote-plugins-refresh');
+  const filter = root.querySelector('#remote-plugins-filter');
   const document = root.ownerDocument;
   if (!list || !status || !refresh || !document) return { reset() {}, setEnabled() {}, load() {} };
   let generation = 0;
@@ -13,6 +14,19 @@ export function createPluginList(root, { loadPage, request }) {
     refresh.disabled = !enabled || loading;
     actionButtons.forEach(button => { button.disabled = !enabled || loading; });
   };
+  const applyFilter = () => {
+    const words = (filter?.value || '').toLowerCase().split(/\s+/).filter(Boolean);
+    let shown = 0;
+    for (const row of list.children) {
+      row.hidden = !words.every(word => row.textContent.toLowerCase().includes(word));
+      if (!row.hidden) shown++;
+    }
+    if (filter) {
+      filter.hidden = list.children.length < 6;
+      status.textContent = words.length ? `${shown} of ${list.children.length} plugins` : `${list.children.length} installed ${list.children.length === 1 ? 'plugin' : 'plugins'}`;
+    }
+  };
+  filter?.addEventListener('input', applyFilter);
   const render = plugins => {
     list.replaceChildren();
     actionButtons.length = 0;
@@ -36,6 +50,7 @@ export function createPluginList(root, { loadPage, request }) {
           button.type = 'button';
           button.textContent = label;
           button.setAttribute('aria-label', `${label} for ${plugin.name}`);
+          if (action === 'uninstall') button.className = 'remote-danger';
           button.addEventListener('click', () => request(plugin.id, action));
           actions.append(button);
           actionButtons.push(button);
@@ -45,13 +60,14 @@ export function createPluginList(root, { loadPage, request }) {
         const note = document.createElement('span');
         note.textContent = plugin.pluginName?.toLowerCase() === 'deckyhub'
           ? 'Manage DeckyHub on your device.'
-          : 'Installed plugin identity could not be verified. Manage this plugin on your device.';
+          : 'Can’t be changed from here. Manage it on your device.';
         row.append(note);
       }
       list.append(row);
     }
     status.textContent = plugins.length ? `${plugins.length} installed ${plugins.length === 1 ? 'plugin' : 'plugins'}` : 'No installed plugins found.';
     updateButtons();
+    applyFilter();
   };
   const load = async () => {
     if (!enabled || loading) return;

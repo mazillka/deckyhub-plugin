@@ -218,6 +218,7 @@ export type RemoteInstallStatus = {
   enabled: boolean;
   active: boolean;
   address?: string | null;
+  deviceName?: string | null;
   fingerprint?: string | null;
   error?: string | null;
   pairingCode?: string | null;

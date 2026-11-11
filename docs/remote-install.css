@@ -80,3 +80,6 @@
 .remote-compact select { width: min(100%, 24rem); flex: 1 1 12rem; }
 .remote-compact .remote-actions .btn { margin: 0; }
 .remote-compact [hidden] { display: none; }
+.remote-plugins li[hidden] { display: none; }
+.remote-plugins .remote-danger { color: #ff8a80; border-color: currentColor; }
+#remote-plugins-filter { width: min(100%, 24rem); }

@@ -1,6 +1,8 @@
 """Remote install management and RPC interface."""
 
 import asyncio
+import re
+import socket
 from urllib.parse import urlsplit
 
 import decky
@@ -120,6 +122,7 @@ class RemoteInstallMixin:
             "active": self.remote_install_server is not None,
             "address": self.remote_install_address,
             "fingerprint": self.remote_install_fingerprint,
+            "deviceName": re.sub(r"[^\w .-]", "", socket.gethostname())[:40] or None,
             "error": self.remote_install_error,
             "pairingCode": code,
             "pairings": service.list_pairings(),
