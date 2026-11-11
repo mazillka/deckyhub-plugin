@@ -72,9 +72,3 @@ By contributing you agree that your changes are licensed under GPL-3.0-or-later,
 ## Remote Install
 
 Backend in `py_modules/deckyhub/remote_install*.py`: the WebTransport listener and certificate rotation (`remote_install_transport.py`), request authorization and state (`remote_install_service.py`, `remote_install_queue.py`), the settings-folder file for paired devices and the certificate (`remote_install_store.py`) and the RPC surface (`remote_install.py`). The website side is `docs/remote-install.js`, `docs/remote-plugins.js` and `devtools/plugin_pages.py`; the device UI is `src/components/RemoteInstallSection.tsx`, `remoteRequests.tsx` and the background runner `src/remoteRunner.ts`, which runs requests from **Trusted** browsers (trust is set only through a local RPC, never a remote operation). Install and update need a plugin the registry can verify; uninstall also accepts an installed plugin by its unique Decky name. Test it with `tests/test_remote_install_*.py`, `tests/test_remote_uninstall_by_name.py` and `tests/remote-install.test.js`, and on a real device with `devtools/deck/`.
-
-## Test local Remote Install discovery
-
-Turn on **Pair mode** in DeckyHub’s Quick Access Menu. On a computer on the same network, install `zeroconf==0.154.0` in a Python virtual environment and run `python devtools/find-deckyhub-devices.py` from the repository root.
-
-The helper lists advertised addresses and ports. Confirm the certificate fingerprint on the device before pairing. Turning off Pair mode withdraws the announcement.

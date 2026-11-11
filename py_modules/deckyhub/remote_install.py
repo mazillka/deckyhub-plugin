@@ -42,7 +42,6 @@ class RemoteInstallMixin:
                 # Disable can occur while the listener is starting. Never leave it active.
                 if not self.settings.get("remoteInstall", False):
                     server.close()
-                    await self._stop_remote_discovery()
                     return
                 self.remote_install_server = server
                 self.remote_install_address = url
@@ -59,15 +58,6 @@ class RemoteInstallMixin:
                 )
                 decky.logger.warning("Remote install transport failed to start: %s", error)
 
-    async def _stop_remote_discovery(self):
-        service = self.remote_install_service
-        discovery, service.discovery = service.discovery, None
-        if discovery is not None:
-            try:
-                await discovery.async_close()
-            except Exception as error:
-                decky.logger.warning("Error withdrawing Remote Install announcement: %s", error)
-
     async def _stop_remote_transport(self):
         if not hasattr(self, "_remote_transport_lock"):
             return
@@ -79,7 +69,6 @@ class RemoteInstallMixin:
                     decky.logger.warning("Error stopping remote install server: %s", error)
                 self.remote_install_server = None
                 decky.logger.info("Remote install transport stopped")
-            await self._stop_remote_discovery()
             self.remote_install_address = None
             self.remote_install_fingerprint = None
             self.remote_install_error = None

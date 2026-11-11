@@ -14,12 +14,14 @@ import time
 
 from .remote_install_queue import RemoteInstallQueue
 
+DEVICE_IDLE_SECONDS = 30 * 24 * 3600
 _SECRET = re.compile(r"[A-Za-z0-9_-]{43}\Z")
 
 
 class RemoteInstallService:
-    def __init__(self, apps, clock=time.monotonic, installed=None, store=None):
+    def __init__(self, apps, clock=time.monotonic, installed=None, store=None, wall=time.time):
         self.store = store
+        self.wall = wall
         saved = store.load() if store else {}
         self.installed = installed or (lambda: [])
         self.apps = apps
@@ -36,6 +38,7 @@ class RemoteInstallService:
                     "name": str(device["name"])[:80],
                     "token_hash": bytes.fromhex(device["token_hash"]),
                     "trusted": device.get("trusted") is True,
+                    "last_used": float(device.get("last_used") or wall()),
                 }
             except (KeyError, TypeError, ValueError):
                 continue
@@ -43,7 +46,6 @@ class RemoteInstallService:
         identity = saved.get("identity")
         self.identity = identity if isinstance(identity, dict) else None
         self.pins = {}
-        self.discovery = None
         self.attempts = []
 
     def persist(self):
@@ -51,7 +53,12 @@ class RemoteInstallService:
             self.store.save(
                 {
                     "devices": {
-                        k: {"name": d["name"], "token_hash": d["token_hash"].hex(), "trusted": d["trusted"]}
+                        k: {
+                            "name": d["name"],
+                            "token_hash": d["token_hash"].hex(),
+                            "trusted": d["trusted"],
+                            "last_used": d["last_used"],
+                        }
                         for k, d in self.devices.items()
                     },
                     "identity": self.identity,
@@ -73,6 +80,10 @@ class RemoteInstallService:
         return {"code": self.code, "pairingToken": token, "expiresInSeconds": 120}
 
     def _sweep(self):
+        # A browser unused for 30 days is forgotten, so an old token cannot linger for good.
+        stale = [k for k, d in self.devices.items() if self.wall() - d["last_used"] > DEVICE_IDLE_SECONDS]
+        for device_id in stale:
+            self.revoke(device_id)
         now = self.clock()
         for key in list(self.pairings):
             if now >= self.pairings[key]["expires"]:
@@ -148,6 +159,7 @@ class RemoteInstallService:
                 "name": p["name"],
                 "token_hash": hashlib.sha256(token.encode()).digest(),
                 "trusted": False,
+                "last_used": self.wall(),
             }
             self.persist()
             p["token"], p["status"], p["device_id"] = token, "approved", device_id
@@ -163,6 +175,9 @@ class RemoteInstallService:
         if type(trusted) is not bool or device_id not in self.devices:
             raise ValueError("unknown device")
         self.devices[device_id]["trusted"] = trusted
+        if not trusted:
+            # Requests approved on trust must not run once the trust is gone.
+            self.queue.cancel_owner_pending(device_id, approved_only=True)
         self.persist()
         return {"id": device_id, "trusted": trusted}
 
@@ -177,11 +192,16 @@ class RemoteInstallService:
         return bool(device)
 
     def owner(self, token):
+        self._sweep()
         if not isinstance(token, str) or not _SECRET.fullmatch(token):
             raise ValueError("unauthorized")
         digest = hashlib.sha256(token.encode()).digest()
         for device_id, device in self.devices.items():
             if hmac.compare_digest(digest, device["token_hash"]):
+                # Saved at most once an hour; it only has to be right to the day.
+                if self.wall() - device["last_used"] > 3600:
+                    device["last_used"] = self.wall()
+                    self.persist()
                 return device_id
         raise ValueError("unauthorized")
 

@@ -119,7 +119,9 @@ export function init(root, details) {
   let selectedFingerprint;
   try {
     const saved = JSON.parse(localStorage.getItem(PAIRED_DEVICES_KEY) || '[]');
-    if (Array.isArray(saved)) devices = saved.filter(device =>
+    // Pairings unused for 30 days are dropped; the device forgets them after the same time.
+    const cutoff = Date.now() - 30 * 24 * 3600 * 1000;
+    if (Array.isArray(saved)) devices = saved.filter(device => !(device?.lastUsed < cutoff)).filter(device =>
       device && typeof device.name === 'string' && typeof device.address === 'string' &&
       /^[a-f0-9]{64}$/.test(device.fingerprint) && /^[A-Za-z0-9_-]{43}$/.test(device.token),
     ).slice(0, 16).map(device => /^[a-f0-9]{64}$/.test(device.nextFingerprint) ? device : { ...device, nextFingerprint: undefined });
@@ -157,9 +159,11 @@ export function init(root, details) {
       try {
         await timeout(current.ready, 45000);
       } catch {
-        throw new Error('Could not connect. Allow local network access in your browser, make sure Pair mode is on, and check the device address; it can change when your router hands out a new one. Open DeckyHub on your device and pair again if it did.');
+        throw new Error('Could not connect. Allow local network access in your browser, make sure Pair mode is on, and check the device address; it can change when your router hands out a new one. Open DeckyHub on your device and pair again if it did, or if you have not used this device for a week or more.');
       }
       const result = await exchange(current, message);
+      const used = activeDevice();
+      if (used && !(Date.now() - used.lastUsed < 3600000)) { used.lastUsed = Date.now(); saveDevices(); }
       learnPins(result);
       return result;
     } catch (error) {
@@ -335,7 +339,7 @@ export function init(root, details) {
           const address = new URL(url).host;
           const deviceName = byId('device-name').value.trim().slice(0, 64) || address;
           const next = /^[a-f0-9]{64}$/.test(approval.nextFingerprint || '') ? approval.nextFingerprint : undefined;
-          const paired = { name: deviceName, address, fingerprint: pin, nextFingerprint: next, token };
+          const paired = { name: deviceName, address, fingerprint: pin, nextFingerprint: next, token, lastUsed: Date.now() };
           devices = [...devices.filter(device => device.fingerprint !== pin), paired];
           endpoint = { url, hashes: pinnedHashes(paired) };
           saveDevices();

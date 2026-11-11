@@ -5,15 +5,12 @@ import datetime
 import hashlib
 import ipaddress
 import json
-import logging
 import platform
 import socket
 import sys
 import time
 from collections import deque
 from pathlib import Path
-
-from .remote_install_discovery import advertise
 
 MAX_MESSAGE = 16384
 MAX_STREAMS = 16
@@ -106,6 +103,11 @@ def prepare_identity(service, now=None):
     if changed:
         service.identity = {"current": _pem(current), "next": _pem(upcoming) if upcoming else None}
         service.persist()
+    # The next time the certificate can need attention, so the watcher can skip parsing before then.
+    due = current[0].not_valid_after_utc - ROTATE_BEFORE
+    if upcoming is None:
+        due = min(due, current[0].not_valid_before_utc + NEXT_AFTER)
+    service.identity_check_at = due
     service.pins = {"fingerprint": _fingerprint(current[0])}
     if upcoming:
         service.pins["nextFingerprint"] = _fingerprint(upcoming[0])
@@ -114,6 +116,9 @@ def prepare_identity(service, now=None):
 
 def identity_rotated(service, serving_fingerprint):
     """True when the listener should restart to serve a newer certificate."""
+    due = getattr(service, "identity_check_at", None)
+    if due is not None and datetime.datetime.now(datetime.timezone.utc) < due:
+        return False
     return prepare_identity(service)[2] != serving_fingerprint
 
 
@@ -239,13 +244,4 @@ async def start_transport(service):
     )
     config.certificate, config.private_key = cert, key
     server = await serve(address, 8765, configuration=config, create_protocol=Protocol, retry=True)
-    try:
-        service.discovery = await advertise(address, 8765)
-    except asyncio.CancelledError:
-        server.close()
-        raise
-    except Exception:
-        logging.getLogger(__name__).warning(
-            "Could not advertise DeckyHub Remote Install on the local network", exc_info=True
-        )
     return server, f"https://{address}:8765/remote-install", fingerprint

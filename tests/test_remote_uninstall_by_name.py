@@ -122,3 +122,55 @@ class TrustedDeviceTests(Base):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class AuditFixTests(Base):
+    def setUp(self):
+        self.now = 1000.0
+        self.wall_now = 1_000_000.0
+        self.rows = [row("KDE Connect", "owner/kde")]
+        self.service = RemoteInstallService(
+            apps=lambda: [], installed=lambda: self.rows, clock=lambda: self.now, wall=lambda: self.wall_now
+        )
+        grant = self.service.begin_pairing()
+        secret = secrets.token_urlsafe(32)
+        pairing = self.service.remote(
+            {"op": "pair", "name": "Phone", "pairingSecret": secret, "pairingToken": grant["pairingToken"]}
+        )
+        self.service.decide_pairing(pairing["pairingId"], True)
+        self.token = self.service.pair_status(pairing["pairingId"], secret)["token"]
+        self.device = self.service.list_devices()[0]["id"]
+
+    def test_an_approved_request_nobody_started_expires(self):
+        self.service.set_trusted(self.device, True)
+        result = self.request(action="uninstall", pluginName="KDE Connect")
+        self.assertEqual(len(self.service.list_trusted_requests()), 1)
+        self.now += 121
+        self.assertEqual(self.service.list_trusted_requests(), [])
+        with self.assertRaises(Exception):
+            self.service.claim(result["requestId"], installed=self.rows)
+
+    def test_approving_restarts_the_request_clock(self):
+        result = self.request(action="uninstall", pluginName="KDE Connect")
+        self.now += 100
+        self.service.decide_request(result["requestId"], True)
+        self.now += 100
+        self.service.claim(result["requestId"], installed=self.rows)
+
+    def test_removing_trust_cancels_requests_approved_on_trust(self):
+        self.service.set_trusted(self.device, True)
+        result = self.request(action="uninstall", pluginName="KDE Connect")
+        self.service.set_trusted(self.device, False)
+        self.assertEqual(self.service.list_trusted_requests(), [])
+        with self.assertRaises(Exception):
+            self.service.claim(result["requestId"], installed=self.rows)
+
+    def test_a_device_unused_for_30_days_is_forgotten_and_use_keeps_it_alive(self):
+        self.wall_now += 20 * 24 * 3600
+        self.service.owner(self.token)
+        self.wall_now += 20 * 24 * 3600
+        self.service.owner(self.token)
+        self.wall_now += 31 * 24 * 3600
+        with self.assertRaises(ValueError):
+            self.service.owner(self.token)
+        self.assertEqual(self.service.list_devices(), [])

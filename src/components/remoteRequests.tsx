@@ -100,7 +100,7 @@ export async function runRemoteRequest(request: RemoteInstallRequest, t: TFunc, 
     await installDeckyPlugin(asset, current.repo, name, refreshed.tag, freshAction.type, auto);
     await finishRemoteRequestUnknown(request.id);
   } catch (error) {
-    if (approved) {
+    if (approved || auto) {
       if (handedOver) await finishRemoteRequestUnknown(request.id).catch(() => undefined);
       else await finishRemoteRequest(request.id, false).catch(() => undefined);
     }

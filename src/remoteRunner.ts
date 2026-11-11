@@ -3,6 +3,7 @@ import { getRemoteInstallStatus } from "./api";
 import { runRemoteRequest } from "./components/remoteRequests";
 import { getDeckyBackend } from "./install";
 import type { TFunc } from "./i18n/en";
+import { nextTrustedRequest } from "./remoteTrusted";
 
 // Runs requests from trusted browsers while DeckyHub is loaded, even with Quick Access closed.
 // Requests from other browsers wait for the device owner in Quick Access.
@@ -14,7 +15,7 @@ export function startRemoteRunner(t: TFunc) {
     busy = true;
     try {
       const status = await getRemoteInstallStatus();
-      const request = status.enabled ? status.trustedRequests?.find((item) => !started.has(item.id)) : undefined;
+      const request = nextTrustedRequest(status, started);
       if (!request) return;
       started.add(request.id);
       try {

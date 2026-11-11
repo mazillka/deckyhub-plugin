@@ -278,6 +278,8 @@ function confirmDeckyPrompt(pluginName: string) {
   const onPrompt = (name: string, _version: string, requestId: string) => {
     if (name !== pluginName || typeof requestId !== "string") return;
     log(`Confirming Decky Loader's install prompt for ${name} (trusted browser)`);
+    // One prompt per request: a later manual install of the same plugin must still ask.
+    backend.removeEventListener("loader/add_plugin_install_prompt", onPrompt);
     void callDeckyLoader("utilities/confirm_plugin_install", requestId).catch(() => undefined);
   };
   backend.addEventListener("loader/add_plugin_install_prompt", onPrompt);

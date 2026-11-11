@@ -296,7 +296,7 @@ Manage plugins on your device from a computer or phone on the same network. Open
 2. Scan the QR code with the browser's device, or open the pairing link (**Copy pairing link**). Allow local network access if the browser asks.
 3. Approve the browser on your device.
 
-The pairing is kept, so you don't pair again after a restart, a reload or turning Pair mode off. Remove a browser from the list in the same section to forget it. Pair mode only needs to be on while you pair or while you send requests.
+The pairing is kept, so you don't pair again after a restart, a reload or turning Pair mode off. A browser you haven't used for 30 days is forgotten. Remove a browser from the list in the same section to forget it. Pair mode only needs to be on while you pair or while you send requests.
 
 **What happens to a request:**
 
