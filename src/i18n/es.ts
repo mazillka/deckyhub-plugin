@@ -8,6 +8,7 @@ export const es: Record<MessageKey, string> = {
   "remote.fingerprint": "Huella del certificado (SHA-256)",
   "remote.copyPairingLink": "Copiar enlace de vinculación",
   "remote.pairMode": "Modo de vinculación",
+  "remote.scanPairingQr": "Escanea para abrir Dispositivos vinculados",
   "remote.pair": "Vincular navegador",
   "remote.pairings": "Solicitudes de vinculación",
   "remote.requests": "Solicitudes de complementos",

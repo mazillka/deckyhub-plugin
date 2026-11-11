@@ -8,6 +8,7 @@ export const ptPT: Record<MessageKey, string> = {
   "remote.fingerprint": "Impressão digital do certificado (SHA-256)",
   "remote.copyPairingLink": "Copiar ligação de emparelhamento",
   "remote.pairMode": "Modo de emparelhamento",
+  "remote.scanPairingQr": "Leia para abrir os dispositivos emparelhados",
   "remote.pair": "Associar navegador",
   "remote.pairings": "Pedidos de associação",
   "remote.requests": "Pedidos de alterações de plugins",
