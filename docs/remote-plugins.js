@@ -56,11 +56,25 @@ export function createPluginList(root, { loadPage, request }) {
           actionButtons.push(button);
         }
         row.append(actions);
+      } else if (plugin.pluginName && plugin.pluginName.toLowerCase() !== 'deckyhub') {
+        // DeckyHub cannot tell which repository this plugin came from, so it cannot install or
+        // update it from here. Removing it only needs the name Decky Loader uses.
+        const actions = document.createElement('div');
+        actions.className = 'remote-actions';
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'remote-danger';
+        button.textContent = 'Request uninstall';
+        button.setAttribute('aria-label', `Request uninstall for ${plugin.name}`);
+        button.addEventListener('click', () => request(null, 'uninstall', plugin.pluginName));
+        actions.append(button);
+        actionButtons.push(button);
+        const note = document.createElement('span');
+        note.textContent = 'Updates for this plugin come from its own page or your device.';
+        row.append(actions, note);
       } else {
         const note = document.createElement('span');
-        note.textContent = plugin.pluginName?.toLowerCase() === 'deckyhub'
-          ? 'Manage DeckyHub on your device.'
-          : 'Can’t be changed from here. Manage it on your device.';
+        note.textContent = 'Manage DeckyHub on your device.';
         row.append(note);
       }
       list.append(row);

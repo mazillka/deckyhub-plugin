@@ -395,4 +395,9 @@ export const cs: Record<MessageKey, string> = {
   "settings.tabDownloads": "Stahování",
   "settings.tabTroubleshoot": "Protokoly",
   "settings.tabAbout": "O aplikaci",
+  "remote.trusted": "Trusted: run requests without asking",
+  "remote.trust": "Trust",
+  "remote.trustTitle": "Trust {name}?",
+  "remote.trustWarning":
+    "This browser will be able to install, update and remove plugins on this device without asking you first. Plugins can run with full access to your device. Only trust a browser you control.",
 };

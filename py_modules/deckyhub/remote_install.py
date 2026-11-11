@@ -128,6 +128,7 @@ class RemoteInstallMixin:
             "pairings": service.list_pairings(),
             "devices": service.list_devices(),
             "requests": service.list_requests(),
+            "trustedRequests": service.list_trusted_requests(),
         }
 
     async def set_remote_install_enabled(self, enabled: bool):
@@ -155,6 +156,9 @@ class RemoteInstallMixin:
     async def decide_remote_pairing(self, pair_id: str, approve: bool):
         return self.remote_install_service.decide_pairing(pair_id, approve)
 
+    async def set_remote_device_trusted(self, device_id: str, trusted: bool):
+        return self.remote_install_service.set_trusted(device_id, trusted)
+
     async def revoke_remote_device(self, device_id: str):
         revoked = self.remote_install_service.revoke(device_id)
         return {"revoked": revoked}
@@ -170,6 +174,14 @@ class RemoteInstallMixin:
         if service is not self.remote_install_service or not self.settings.get("remoteInstall"):
             raise ValueError("Remote install is disabled")
         return service.claim(request_id, installed=installed)
+
+    async def get_remote_installed_version(self, plugin_name: str):
+        """The installed version of a plugin by its Decky Loader name, or None once it is gone."""
+        installed = await asyncio.to_thread(self._remote_inventory)
+        for row in installed:
+            if isinstance(row.get("pluginName"), str) and row["pluginName"].casefold() == str(plugin_name).casefold():
+                return {"version": row.get("version")}
+        return {"version": None}
 
     async def finish_remote_request(self, request_id: str, success: bool):
         return self.remote_install_service.finish(request_id, success)

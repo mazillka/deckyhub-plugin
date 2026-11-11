@@ -35,6 +35,7 @@ class RemoteInstallService:
                 self.devices[device_id] = {
                     "name": str(device["name"])[:80],
                     "token_hash": bytes.fromhex(device["token_hash"]),
+                    "trusted": device.get("trusted") is True,
                 }
             except (KeyError, TypeError, ValueError):
                 continue
@@ -50,7 +51,8 @@ class RemoteInstallService:
             self.store.save(
                 {
                     "devices": {
-                        k: {"name": d["name"], "token_hash": d["token_hash"].hex()} for k, d in self.devices.items()
+                        k: {"name": d["name"], "token_hash": d["token_hash"].hex(), "trusted": d["trusted"]}
+                        for k, d in self.devices.items()
                     },
                     "identity": self.identity,
                 }
@@ -142,7 +144,11 @@ class RemoteInstallService:
         if approve:
             token = secrets.token_urlsafe(32)
             device_id = secrets.token_urlsafe(16)
-            self.devices[device_id] = {"name": p["name"], "token_hash": hashlib.sha256(token.encode()).digest()}
+            self.devices[device_id] = {
+                "name": p["name"],
+                "token_hash": hashlib.sha256(token.encode()).digest(),
+                "trusted": False,
+            }
             self.persist()
             p["token"], p["status"], p["device_id"] = token, "approved", device_id
         else:
@@ -150,7 +156,15 @@ class RemoteInstallService:
         return {"status": p["status"]}
 
     def list_devices(self):
-        return [{"id": k, "name": d["name"]} for k, d in self.devices.items()]
+        return [{"id": k, "name": d["name"], "trusted": d["trusted"]} for k, d in self.devices.items()]
+
+    def set_trusted(self, device_id, trusted):
+        """Let a device's requests run without asking. Only the local UI can call this."""
+        if type(trusted) is not bool or device_id not in self.devices:
+            raise ValueError("unknown device")
+        self.devices[device_id]["trusted"] = trusted
+        self.persist()
+        return {"id": device_id, "trusted": trusted}
 
     def revoke(self, device_id):
         device = self.devices.pop(device_id, None)
@@ -211,6 +225,27 @@ class RemoteInstallService:
             raise ValueError("DeckyHub must be managed locally")
         return repo, row.get("pluginName") if row else None, row.get("version") if row else None
 
+    def _snapshot_installed_name(self, plugin_name, installed: list) -> tuple:
+        """Identify an installed plugin by the name Decky Loader uninstalls it by.
+
+        Used for plugins the registry cannot vouch for; it never lets a request pick a repository.
+        """
+        if not isinstance(plugin_name, str) or not 0 < len(plugin_name) <= 100:
+            raise ValueError("invalid plugin name")
+        if plugin_name.casefold() == "deckyhub":
+            raise ValueError("DeckyHub must be managed locally")
+        rows = [
+            r
+            for r in installed
+            if isinstance(r.get("pluginName"), str) and r["pluginName"].casefold() == plugin_name.casefold()
+        ]
+        if len(rows) != 1:
+            raise ValueError("installed identity is unverified")
+        row = rows[0]
+        if str(row.get("repo") or "").casefold() == "mazillka/deckyhub-plugin":
+            raise ValueError("DeckyHub must be managed locally")
+        return row.get("repo"), row["pluginName"], row.get("version")
+
     def _plugins_page(self, message: dict, installed: list) -> dict:
         offset = message.get("offset", 0)
         if type(offset) is not int or offset < 0:
@@ -263,13 +298,21 @@ class RemoteInstallService:
             if action not in ("install", "update", "uninstall"):
                 raise ValueError("invalid action")
             plugin_id = message.get("pluginId")
-            if not isinstance(plugin_id, str):
+            plugin_name = message.get("pluginName")
+            by_name = plugin_id is None and action == "uninstall" and plugin_name is not None
+            if not by_name and not isinstance(plugin_id, str):
                 raise ValueError("plugin not in registry")
             key, tag = message.get("idempotencyKey"), message.get("releaseTag")
-            previous = self.queue.retry(owner, key, plugin_id, tag, action)
+            previous = self.queue.retry(owner, key, None if by_name else plugin_id, tag, action, plugin_name)
             if previous:
                 return {"requestId": previous.id, "status": previous.status}
-            snapshot = self._snapshot(plugin_id, action, self.installed() if installed is None else installed)
+            current = self.installed() if installed is None else installed
+            snapshot = (
+                self._snapshot_installed_name(plugin_name, current)
+                if by_name
+                else self._snapshot(plugin_id, action, current)
+            )
+            plugin_id = None if by_name else plugin_id
             r = self.queue.create(
                 owner,
                 key,
@@ -280,6 +323,8 @@ class RemoteInstallService:
                 plugin_name=snapshot[1],
                 installed_version=snapshot[2],
             )
+            if self.devices[owner]["trusted"]:
+                r = self.queue.transition_local(r.id, "approved")
         elif op == "status":
             r = self.queue.get(owner, message.get("requestId"))
         elif op == "cancel":
@@ -291,20 +336,24 @@ class RemoteInstallService:
         return {"requestId": r.id, "status": r.status}
 
     def list_requests(self):
-        return [
-            {
-                "id": r.id,
-                "pluginId": r.plugin_id,
-                "releaseTag": r.release_tag,
-                "action": r.action,
-                "repo": r.repository,
-                "pluginName": r.plugin_name,
-                "installedVersion": r.installed_version,
-                "ownerName": self.devices.get(r.owner, {}).get("name", "Revoked browser"),
-                "status": r.status,
-            }
-            for r in self.queue.pending()
-        ]
+        return [self._row(r) for r in self.queue.pending()]
+
+    def list_trusted_requests(self):
+        """Approved requests from trusted devices, for the device to run on its own."""
+        return [self._row(r) for r in self.queue.approved() if self.devices.get(r.owner, {}).get("trusted")]
+
+    def _row(self, r):
+        return {
+            "id": r.id,
+            "pluginId": r.plugin_id,
+            "releaseTag": r.release_tag,
+            "action": r.action,
+            "repo": r.repository,
+            "pluginName": r.plugin_name,
+            "installedVersion": r.installed_version,
+            "ownerName": self.devices.get(r.owner, {}).get("name", "Revoked browser"),
+            "status": r.status,
+        }
 
     def decide_request(self, request_id, approve):
         if type(approve) is not bool:
@@ -315,7 +364,12 @@ class RemoteInstallService:
     def claim(self, request_id, *, installed=None):
         r = self.queue.transition_local(request_id, "installing")
         try:
-            snapshot = self._snapshot(r.plugin_id, r.action, self.installed() if installed is None else installed)
+            current = self.installed() if installed is None else installed
+            snapshot = (
+                self._snapshot(r.plugin_id, r.action, current)
+                if r.plugin_id
+                else self._snapshot_installed_name(r.plugin_name, current)
+            )
             if snapshot != (r.repository, r.plugin_name, r.installed_version):
                 raise ValueError("installed plugin or registry changed")
         except ValueError:

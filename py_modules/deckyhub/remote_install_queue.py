@@ -34,7 +34,7 @@ class InvalidTransitionError(Exception):
 class InstallRequest:
     id: str
     owner: str
-    plugin_id: str
+    plugin_id: str | None
     release_tag: str | None
     status: str
     expires_at: float
@@ -76,7 +76,7 @@ class RemoteInstallQueue:
         self,
         owner: str,
         key: str,
-        plugin_id: str,
+        plugin_id: str | None,
         release_tag: str | None = None,
         *,
         action: str = "install",
@@ -92,7 +92,11 @@ class RemoteInstallQueue:
             raise ValueError("invalid owner")
         if not isinstance(key, str) or not _KEY.fullmatch(key):
             raise ValueError("invalid idempotency key")
-        if not isinstance(plugin_id, str) or not _ID.fullmatch(plugin_id):
+        if plugin_id is None:
+            # An installed plugin outside the registry can only be uninstalled, by its own name.
+            if action != "uninstall" or not isinstance(plugin_name, str) or not plugin_name:
+                raise ValueError("invalid plugin ID")
+        elif not isinstance(plugin_id, str) or not _ID.fullmatch(plugin_id):
             raise ValueError("invalid plugin ID")
         if release_tag is not None and (
             not isinstance(release_tag, str)
@@ -147,7 +151,13 @@ class RemoteInstallQueue:
             return request if request is not None and request.owner == owner else None
 
     def retry(
-        self, owner: str, key: str, plugin_id: str, release_tag: str | None, action: str
+        self,
+        owner: str,
+        key: str,
+        plugin_id: str | None,
+        release_tag: str | None,
+        action: str,
+        plugin_name: str | None = None,
     ) -> InstallRequest | None:
         if not isinstance(key, str) or not _KEY.fullmatch(key):
             raise ValueError("invalid idempotency key")
@@ -157,7 +167,9 @@ class RemoteInstallQueue:
             if request_id is None:
                 return None
             request = self._requests[request_id]
-            if (request.plugin_id, request.release_tag, request.action) != (plugin_id, release_tag, action):
+            if (request.plugin_id, request.release_tag, request.action) != (plugin_id, release_tag, action) or (
+                plugin_id is None and str(request.plugin_name).casefold() != str(plugin_name).casefold()
+            ):
                 raise RequestConflictError("idempotency key already used")
             return request
 
@@ -171,6 +183,12 @@ class RemoteInstallQueue:
         with self._lock:
             self._sweep(self._clock())
             return tuple(request for request in self._requests.values() if request.status == "pending_confirmation")
+
+    def approved(self) -> tuple[InstallRequest, ...]:
+        """Requests waiting for this device to run them, for its local runner."""
+        with self._lock:
+            self._sweep(self._clock())
+            return tuple(request for request in self._requests.values() if request.status == "approved")
 
     def cancel(self, owner: str, request_id: str) -> InstallRequest | None:
         with self._lock:

@@ -1,31 +1,32 @@
-import { DialogButtonPrimary as Button, Focusable, PanelSection, PanelSectionRow, ToggleField } from "@decky/ui";
+import {
+  DialogButtonPrimary as Button,
+  Focusable,
+  PanelSection,
+  PanelSectionRow,
+  ToggleField,
+  showModal,
+} from "@decky/ui";
 import { toaster } from "@decky/api";
 import { useEffect, useMemo, useState } from "react";
 import qrcode from "qrcode-generator";
 import { FaCheck, FaInfoCircle, FaMobileAlt, FaTimes, FaTrash } from "react-icons/fa";
 import {
   beginRemotePairing,
-  claimRemoteRequest,
   decideRemotePairing,
   decideRemoteRequest,
-  finishRemoteRequest,
-  finishRemoteRequestUnknown,
-  getApps,
   getRemoteInstallStatus,
   revokeRemoteDevice,
+  setRemoteDeviceTrusted,
   setRemoteInstallEnabled,
 } from "../api";
 import { Card, IconNote } from "./Card";
 import { colors } from "../styles";
-import { installWarnings, type RemoteInstallRequest, type RemoteInstallStatus } from "../types";
+import type { RemoteInstallRequest, RemoteInstallStatus } from "../types";
 import { useT } from "../i18n";
 import { copyText } from "../clipboard";
-import { listAppReleases, fetchPluginStats } from "../releases";
-import { getDeckyBackend, installAction, installDeckyPlugin, needsFreshInstall, PLUGIN_INSTALL_TYPE } from "../install";
-import { manifestName } from "../utils";
-import { confirmPluginInstall } from "./InstallFlow";
 import { compactButtonStyle, sectionDividerStyle } from "../utils";
-import { approveRemoteUninstall } from "./RemotePluginUninstall";
+import { runRemoteRequest } from "./remoteRequests";
+import { WideConfirmModal } from "./WideModal";
 
 export function RemoteInstallSection() {
   const t = useT();
@@ -107,6 +108,31 @@ export function RemoteInstallSection() {
     }
   };
 
+  const onTrustDevice = async (device: { id: string; name: string; trusted?: boolean }, trusted: boolean) => {
+    try {
+      if (trusted) {
+        // Trust skips every approval on this device, so it is only ever switched on here, after a warning.
+        const accepted = await new Promise<boolean>((resolve) =>
+          showModal(
+            <WideConfirmModal
+              strTitle={t("remote.trustTitle", { name: device.name })}
+              strDescription={t("remote.trustWarning")}
+              strOKButtonText={t("remote.trust")}
+              bDestructiveWarning
+              onOK={() => resolve(true)}
+              onCancel={() => resolve(false)}
+            />,
+          ),
+        );
+        if (!accepted) return;
+      }
+      await setRemoteDeviceTrusted(device.id, trusted);
+      void refresh();
+    } catch (error) {
+      toaster.toast({ title: "DeckyHub", body: String(error) });
+    }
+  };
+
   const onDecideRequest = async (request: RemoteInstallRequest, approve: boolean) => {
     if (!approve) {
       try {
@@ -119,91 +145,9 @@ export function RemoteInstallSection() {
     }
     if (loading) return;
     setLoading(true);
-    let approved = false;
-    let handedOver = false;
     try {
-      if (!getDeckyBackend()) throw new Error(t("settings.selfUpdateUnavailable"));
-      if (request.action === "uninstall") {
-        await approveRemoteUninstall(request, t);
-        return;
-      }
-      const { apps } = await getApps();
-      const app = apps.find((item) => item.id === request.pluginId);
-      if (!app) throw new Error(t("appcard.noMatchingAsset"));
-      if (request.action === "update" && (!app.installedVersion || app.repo !== request.repo))
-        throw new Error(t("appcard.noMatchingAsset"));
-      const { items, error } = await listAppReleases(app, true);
-      const release = request.releaseTag
-        ? items.find((item) => item.tag === request.releaseTag)
-        : items.find((item) => !item.prerelease);
-      const action = release && installAction(app, release);
-      if (!release || !action || !release.assets[0]) throw new Error(error || t("appcard.noMatchingAsset"));
-      if (request.action === "update" && action.type !== PLUGIN_INSTALL_TYPE.UPDATE) {
-        await decideRemoteRequest(request.id, false);
-        throw new Error(t("status.upToDate"));
-      }
-      const stats = await fetchPluginStats(false).catch(() => ({}) as Awaited<ReturnType<typeof fetchPluginStats>>);
-      const warningApp = {
-        ...app,
-        stats: stats[app.repo.toLowerCase()],
-        channel: release.prerelease ? ("prerelease" as const) : ("stable" as const),
-      };
-      const note = [
-        request.ownerName,
-        app.repo,
-        release.tag,
-        warningApp.stats?.root ? t("appcard.runsAsRootHint") : "",
-        needsFreshInstall(action.name, action.type) ? t("appcard.freshInstallDescription", { name: app.name }) : "",
-      ]
-        .filter(Boolean)
-        .join(" · ");
-      const accepted = await confirmPluginInstall(
-        t,
-        `${app.name} — ${release.tag}`,
-        t(request.action === "update" ? "appcard.update" : "appcard.install"),
-        {
-          note,
-          asset: release.assets[0],
-          warnings: installWarnings(warningApp),
-        },
-      );
-      if (!accepted) {
-        await decideRemoteRequest(request.id, false);
-        return;
-      }
-      await decideRemoteRequest(request.id, true);
-      approved = true;
-      // Refresh registry and release data after approval. Never substitute a different ZIP.
-      const current = (await getApps()).apps.find((item) => item.id === request.pluginId);
-      if (!current || current.repo !== app.repo) throw new Error(t("appcard.noMatchingAsset"));
-      const refreshed = (await listAppReleases(current, true)).items.find((item) => item.tag === release.tag);
-      const freshAction = refreshed && installAction(current, refreshed);
-      const asset = refreshed?.assets[0];
-      if (
-        !freshAction ||
-        freshAction.name !== action.name ||
-        freshAction.type !== action.type ||
-        !asset ||
-        asset.url !== release.assets[0].url ||
-        asset.sha256 !== release.assets[0].sha256
-      )
-        throw new Error(t("appcard.noMatchingAsset"));
-      const name =
-        freshAction.name === current.repo ? ((await manifestName(current.repo)) ?? current.repo) : freshAction.name;
-      const claim = await claimRemoteRequest(request.id);
-      if (claim.pluginId !== request.pluginId || (claim.releaseTag ?? null) !== (request.releaseTag ?? null))
-        throw new Error(t("appcard.noMatchingAsset"));
-      if ((claim.action ?? "install") !== (request.action ?? "install")) throw new Error(t("appcard.noMatchingAsset"));
-      // Loader's confirmation can be cancelled, and its events lack request IDs. A handoff
-      // cannot prove success: report unknown unless a future correlated result is available.
-      handedOver = true;
-      await installDeckyPlugin(asset, current.repo, name, refreshed.tag, freshAction.type);
-      await finishRemoteRequestUnknown(request.id);
+      await runRemoteRequest(request, t, false);
     } catch (error) {
-      if (approved) {
-        if (handedOver) await finishRemoteRequestUnknown(request.id).catch(() => undefined);
-        else await finishRemoteRequest(request.id, false).catch(() => undefined);
-      }
       toaster.toast({ title: "DeckyHub", body: String(error) });
     } finally {
       setLoading(false);
@@ -432,6 +376,11 @@ export function RemoteInstallSection() {
                       <PanelSectionRow key={d.id}>
                         <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 8 }}>
                           <span style={{ flex: 1 }}>{d.name}</span>
+                          <ToggleField
+                            label={t("remote.trusted")}
+                            checked={Boolean(d.trusted)}
+                            onChange={(checked) => void onTrustDevice(d, checked)}
+                          />
                           <Button
                             style={{ ...compactButtonStyle, marginBottom: 0 }}
                             onClick={() => void onRevokeDevice(d.id)}

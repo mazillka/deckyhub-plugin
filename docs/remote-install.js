@@ -113,7 +113,7 @@ export function init(root, details) {
   const pairNew = compact ? byId('pair-new') : null;
   let reachable = null;
   let transport, endpoint, token, requestId, idempotencyKey, requestPluginId, cancelled = false;
-  let requestAction = 'install', busy = false;
+  let requestAction = 'install', requestName, busy = false;
   let inventory;
   let devices = [];
   let selectedFingerprint;
@@ -194,7 +194,7 @@ export function init(root, details) {
   const saveRequest = () => {
     const device = activeDevice();
     if (!device) return;
-    device.pending = idempotencyKey ? { key: idempotencyKey, id: requestId, pluginId: requestPluginId, action: requestAction } : undefined;
+    device.pending = idempotencyKey ? { key: idempotencyKey, id: requestId, pluginId: requestPluginId, name: requestName, action: requestAction } : undefined;
     saveDevices();
   };
   const updateActions = () => {
@@ -219,7 +219,7 @@ export function init(root, details) {
   };
   const selectDevice = index => {
     disconnect();
-    requestId = idempotencyKey = requestPluginId = undefined;
+    requestId = idempotencyKey = requestPluginId = requestName = undefined;
     const device = devices[index];
     rememberDevice(device);
     if (!device) { updateActions(); say('Enter the details for the device you want to pair.'); return; }
@@ -228,6 +228,7 @@ export function init(root, details) {
       token = device.token;
       ({ id: requestId, key: idempotencyKey, pluginId: requestPluginId } = device.pending || {});
       requestAction = device.pending?.action || 'install';
+      requestName = typeof device.pending?.name === 'string' ? device.pending.name : undefined;
       if (form) {
         byId('address').value = device.address;
         byId('fingerprint').value = device.fingerprint;
@@ -399,23 +400,26 @@ export function init(root, details) {
       if (!pluginId) void inventory?.load();
     } catch (error) { showError(error); }
   });
-  const runRequest = async (selectedPluginId = pluginId, action = 'install') => {
-    if (!endpoint || !token || busy || !selectedPluginId) return;
-    if (idempotencyKey && (selectedPluginId !== requestPluginId || action !== requestAction)) return;
+  // A plugin DeckyHub cannot match to the registry has no id; it is identified by its name.
+  const runRequest = async (selectedPluginId = pluginId, action = 'install', pluginName) => {
+    const target = selectedPluginId || pluginName;
+    if (!endpoint || !token || busy || !target) return;
+    if (idempotencyKey && (target !== requestPluginId || action !== requestAction)) return;
     busy = true;
     requestButton.disabled = true;
     if (pairButton) pairButton.disabled = true;
     picker.disabled = true;
     cancelled = false;
     idempotencyKey ||= crypto.randomUUID();
-    requestPluginId = selectedPluginId;
+    requestPluginId = target;
+    requestName = selectedPluginId ? undefined : pluginName;
     requestAction = action;
     saveRequest();
     inventory?.setEnabled(false);
     try {
       const result = requestId
         ? await send({ op: 'status', token, requestId })
-        : await send({ op: 'request', token, idempotencyKey, pluginId: requestPluginId, action: requestAction });
+        : await send({ op: 'request', token, idempotencyKey, action: requestAction, ...(requestName ? { pluginName: requestName } : { pluginId: requestPluginId }) });
       if (typeof result.requestId !== 'string' || !result.requestId ||
           (requestId && result.requestId !== requestId) || !REQUEST_STATES.has(result.status)) throw new Error('Invalid request response.');
       requestId = result.requestId;
@@ -443,7 +447,7 @@ export function init(root, details) {
       say(state === 'installed' ? 'Installed on your device.' : state === 'uninstalled' ? 'Uninstalled from your device.' : state === 'unknown' ? 'Outcome unknown. Check your device before trying again.' : `Request ${state}.`);
       idempotencyKey = undefined;
       requestId = undefined;
-      requestPluginId = undefined;
+      requestPluginId = requestName = undefined;
       saveRequest();
       if (state === 'installed' || state === 'uninstalled' || state === 'unknown') inventory?.reset();
       if (cancelButton) cancelButton.disabled = true;
@@ -455,12 +459,12 @@ export function init(root, details) {
       renderPicker(devices.indexOf(activeDevice()));
     }
   };
-  requestButton.addEventListener('click', () => runRequest(requestPluginId || pluginId, idempotencyKey ? requestAction : 'install'));
+  requestButton.addEventListener('click', () => runRequest(requestName ? null : requestPluginId || pluginId, idempotencyKey ? requestAction : 'install', requestName));
   inventory = createPluginList(root, {
     loadPage: offset => send({ op: 'plugins', token, offset }),
-    request: (id, action) => {
+    request: (id, action, name) => {
       status.scrollIntoView({ block: 'nearest' });
-      return runRequest(id, action);
+      return runRequest(id, action, name);
     },
   });
   updateActions();
@@ -471,7 +475,7 @@ export function init(root, details) {
     try {
       const result = await send({ op: 'cancel', token, requestId });
       if (result.requestId !== requestId || result.status !== 'cancelled') throw new Error('The request could not be cancelled.');
-      cancelled = true; requestId = undefined; idempotencyKey = undefined; requestPluginId = undefined;
+      cancelled = true; requestId = undefined; idempotencyKey = undefined; requestPluginId = requestName = undefined;
       saveRequest();
       say('Request cancelled.');
     } catch (error) { showError(error); }

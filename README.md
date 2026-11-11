@@ -68,7 +68,7 @@ Tired of tabbing out to Desktop Mode, hunting through GitHub releases, and manua
 - **Any plugin on GitHub, one search away** — **Search & Install** finds Decky plugins that aren't in the Decky store or DeckyHub's list and installs them right from Gaming Mode. No Desktop Mode, no browser, no Developer Mode URL pasting.
 - **Never miss an update** — DeckyHub checks your installed plugins against their latest GitHub releases every few hours and pings you with a toast when something new is available.
 - **Built for the couch** — full gamepad navigation, color-coded status at a glance, and one-tap downloads designed for Gaming Mode, not a desktop browser squeezed onto a small screen.
-- **You stay in control** — DeckyHub never installs or runs anything on its own. Nothing touches your system until you say so, and installs go through Decky Loader's own installer and confirmation dialog (see [Manage](#manage)).
+- **You stay in control** — DeckyHub never installs or runs anything on its own. Nothing touches your system until you say so (a browser you mark as **Trusted** under [Remote Install](#remote-install) is the one exception, and you choose it), and installs go through Decky Loader's own installer and confirmation dialog (see [Manage](#manage)).
 
 ## What it does
 
@@ -285,6 +285,28 @@ When GitHub provides a checksum for a release asset, DeckyHub always verifies it
 Repositories is a tab in **Settings**. Add a repository from **Search** with the **+** beside a result's **Install** (results already in DeckyHub say **In DeckyHub** instead). Export your custom repositories to `DeckyHub-repositories.json` in `~/Downloads` to back them up or share them, or import that file back in. Any repository you've added can be removed again here; the plugins in DeckyHub's own list stay available and can't be removed. Prefer a bigger screen? The [Registry Editor](https://deckyhub.com/contribute/editor.html) is a browser-based tool for building or editing a repository list file before importing it.
 
 Under **Custom Registries**, add someone else's app list by its GitHub `owner/repo` (DeckyHub reads its `registry/apps.json`) or any HTTPS `.json` URL. Its apps join Discover alongside DeckyHub's own; up to 10 registries are allowed, and **Refresh registries** downloads them all again. An added registry can only add apps: it can't change or replace one DeckyHub already lists, including the plugins you have installed.
+
+### Remote Install
+
+Manage plugins on your device from a computer or phone on the same network. Open [deckyhub.com](https://deckyhub.com/develop/paired-devices/) (or any plugin's page) in **Chrome, Edge or another Chromium browser**, pick your device, and send an **install**, **update** or **uninstall** request.
+
+**Pair a browser once:**
+
+1. In DeckyHub's Quick Access tab, turn on **Pair mode** under **Remote Install**. A QR code and a six-digit code appear.
+2. Scan the QR code with the browser's device, or open the pairing link (**Copy pairing link**). Allow local network access if the browser asks.
+3. Approve the browser on your device.
+
+The pairing is kept, so you don't pair again after a restart, a reload or turning Pair mode off. Remove a browser from the list in the same section to forget it. Pair mode only needs to be on while you pair or while you send requests.
+
+**What happens to a request:**
+
+- It appears at the top of the Remote Install section in the Quick Access tab. **Approve** or **Reject** it there. Install and update still show Decky Loader's own confirmation.
+- **Install** and **update** work for plugins DeckyHub can match to its list. **Uninstall** works for any installed plugin whose name is unique, including plugins DeckyHub can't match. DeckyHub itself can only be managed on the device.
+- A request that isn't approved within two minutes expires.
+
+**Trusted browsers:** turn on **Trusted** next to a paired browser and its requests run without asking: no approval in DeckyHub, and DeckyHub confirms Decky Loader's install prompt for you. This can only be switched on from the device itself, after a warning. Plugins can run with full access to your device, so only trust a browser you control; turn **Trusted** off, or remove the browser, to go back to asking every time.
+
+Everything stays on your network: the device talks directly to the browser over an encrypted connection pinned to the device's own certificate, nothing goes through a server, and a request can only name a plugin or release, never a file or a command. If the browser can't reach the device, check that both are on the same network, that Pair mode is on, and that the address hasn't changed (open DeckyHub's Quick Access tab to see it, or pair again).
 
 ### Keeping DeckyHub itself updated
 
