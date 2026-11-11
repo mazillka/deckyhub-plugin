@@ -20,7 +20,6 @@ class RemoteInstallTransportTests(unittest.IsolatedAsyncioTestCase):
         with (
             patch.object(remote_install_transport, "lan_address", side_effect=["192.168.1.20", "192.168.1.21"]),
             patch("aioquic.asyncio.serve") as serve,
-            patch.object(remote_install_transport, "advertise"),
         ):
             _, first_url, first_pin = await remote_install_transport.start_transport(service)
             _, second_url, second_pin = await remote_install_transport.start_transport(service)
@@ -31,7 +30,10 @@ class RemoteInstallTransportTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(
             first_pin, hashlib.sha256(first.certificate.public_bytes(serialization.Encoding.DER)).hexdigest()
         )
-        self.assertIs(first.certificate, second.certificate)
+        self.assertEqual(
+            first.certificate.public_bytes(serialization.Encoding.DER),
+            second.certificate.public_bytes(serialization.Encoding.DER),
+        )
         self.assertEqual(first_pin, second_pin)
         self.assertEqual(first_url, "https://192.168.1.20:8765/remote-install")
         self.assertEqual(second_url, "https://192.168.1.21:8765/remote-install")

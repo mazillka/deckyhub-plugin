@@ -121,8 +121,12 @@ export async function installDeckyPlugin(
   pluginName: string,
   version: string,
   installType: 0 | 1 | 2 | 3,
+  // A trusted browser's request: confirm Decky Loader's own install prompt for this plugin
+  // too, since the device owner already chose to trust that browser.
+  confirmForUser = false,
 ) {
   const { handedOver, done } = handOff();
+  const stopConfirming = confirmForUser ? confirmDeckyPrompt(pluginName) : () => undefined;
   try {
     // Before any uninstall, so a failed download leaves the plugin as it was.
     const artifact = await localZip(asset, repo, handedOver);
@@ -144,6 +148,7 @@ export async function installDeckyPlugin(
     return result;
   } finally {
     done();
+    window.setTimeout(stopConfirming, 60_000);
   }
 }
 
@@ -265,6 +270,22 @@ function traceDeckyInstall(pluginName: string, version?: string) {
 
 // Decky Loader's uninstall deletes the plugin's folder and its settings right
 // away, with no dialog of its own — callers must confirm first.
+// Decky Loader announces each install with `loader/add_plugin_install_prompt` (name, version,
+// request id, ...) and installs once `utilities/confirm_plugin_install` gets that id.
+function confirmDeckyPrompt(pluginName: string) {
+  const backend = getDeckyBackend();
+  if (!backend) return () => undefined;
+  const onPrompt = (name: string, _version: string, requestId: string) => {
+    if (name !== pluginName || typeof requestId !== "string") return;
+    log(`Confirming Decky Loader's install prompt for ${name} (trusted browser)`);
+    // One prompt per request: a later manual install of the same plugin must still ask.
+    backend.removeEventListener("loader/add_plugin_install_prompt", onPrompt);
+    void callDeckyLoader("utilities/confirm_plugin_install", requestId).catch(() => undefined);
+  };
+  backend.addEventListener("loader/add_plugin_install_prompt", onPrompt);
+  return () => backend.removeEventListener("loader/add_plugin_install_prompt", onPrompt);
+}
+
 export function uninstallDeckyPlugin(pluginName: string) {
   return callDeckyLoader("utilities/uninstall_plugin", pluginName);
 }

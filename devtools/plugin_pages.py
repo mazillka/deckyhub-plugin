@@ -359,6 +359,7 @@ def remote_device_panel() -> str:
 <h3 id="remote-plugins-title">Installed plugins</h3>
 <p class="remote-actions"><a class="btn" href="/plugins/">Browse plugins to install</a> <button type="button" id="remote-plugins-refresh" disabled>Refresh list</button></p>
 <p id="remote-plugins-status" role="status" aria-live="polite">Pair a device to see its installed plugins.</p>
+<p><input id="remote-plugins-filter" type="search" aria-label="Search installed plugins" placeholder="Search installed plugins" autocomplete="off" hidden></p>
 <ul id="remote-plugins" class="remote-plugins"></ul>
 </section>
 </div>
@@ -380,6 +381,7 @@ def remote_device_panel() -> str:
 <p><label for="remote-device-name">Device name (optional)</label><br><input id="remote-device-name" maxlength="64" autocomplete="off" placeholder="Living room device"></p>
 <p><label for="remote-name">Browser name shown on your device</label><br><input id="remote-name" value="Browser" maxlength="64"></p>
 <p><button type="button" id="remote-reconnect" hidden>Use new device address</button></p>
+<p><button type="button" id="remote-forget" hidden>Forget this device in this browser</button></p>
 </details>
 <button type="submit" id="remote-pair" disabled>Pair browser</button>
 </form>

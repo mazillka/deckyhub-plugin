@@ -22,6 +22,10 @@ You can expect an initial response within a few days. Once a fix is released, th
 - **Code analysis:** GitHub [CodeQL](https://github.com/mazillka/deckyhub-plugin/actions/workflows/codeql.yml) checks the Python and TypeScript code on every push and pull request, and weekly (`.github/workflows/codeql.yml`).
 - **Listed plugins:** DeckyHub's registry scans every plugin ZIP it offers with ClamAV, and the files inside it with YARA and YARA Forge's core rules, every few hours and publishes one report per ZIP, so every listed plugin has one (a failed scan is a report too, with the reason). A plugin's Manage window shows it, with a VirusTotal button that looks the ZIP up by its SHA-256 without uploading it, and you decide whether to install. A clean scan isn't proof of safety.
 
+## Remote Install
+
+Remote Install is off until you turn on **Pair mode**. It listens on the local network only, over QUIC/WebTransport with a self-made certificate that browsers accept only by its fingerprint, and a browser must be paired with a one-time code or link and approved on the device. A request can only name a registry plugin and release, or an installed plugin to uninstall; it can't send a file, a URL or a command. Every request is approved on the device, except for a paired browser you mark **Trusted** in the Quick Access tab: that can only be switched on from the device, after a warning, and it can be switched off or the browser removed at any time. A paired browser unused for 30 days is forgotten. Paired devices and the certificate are stored in `remote-install.json` in DeckyHub's settings folder (owner-only). Report a weakness privately, as described above.
+
 ## Scope
 
 DeckyHub only downloads release assets from GitHub and hands them to Decky Loader's installer. Issues in third-party plugins listed in its registry, in Decky Loader itself, or in GitHub should be reported to their respective maintainers. The policy DeckyHub follows for downloads and tokens is in [CONTRIBUTING.md](CONTRIBUTING.md#security-boundaries).

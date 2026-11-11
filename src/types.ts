@@ -204,7 +204,7 @@ export type RepoPreference = { channel: "stable" | "prerelease"; skipVersion?: s
 
 export type RemoteInstallRequest = {
   id: string;
-  pluginId: string;
+  pluginId: string | null;
   releaseTag?: string | null;
   ownerName: string;
   status: string;
@@ -218,10 +218,13 @@ export type RemoteInstallStatus = {
   enabled: boolean;
   active: boolean;
   address?: string | null;
+  deviceName?: string | null;
   fingerprint?: string | null;
   error?: string | null;
   pairingCode?: string | null;
   pairings: { id: string; name: string }[];
-  devices: { id: string; name: string }[];
+  devices: { id: string; name: string; trusted?: boolean }[];
   requests: RemoteInstallRequest[];
+  // Approved requests from trusted browsers; this device runs them without asking.
+  trustedRequests?: RemoteInstallRequest[];
 };

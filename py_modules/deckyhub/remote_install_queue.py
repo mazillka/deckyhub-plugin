@@ -34,7 +34,7 @@ class InvalidTransitionError(Exception):
 class InstallRequest:
     id: str
     owner: str
-    plugin_id: str
+    plugin_id: str | None
     release_tag: str | None
     status: str
     expires_at: float
@@ -65,7 +65,9 @@ class RemoteInstallQueue:
 
     def _sweep(self, now: float) -> None:
         for request_id, request in list(self._requests.items()):
-            if request.status == "pending_confirmation" and now >= request.expires_at:
+            # An approved request that nobody started (say the device was in Desktop Mode)
+            # must not run later; its expiry is restarted when it is approved.
+            if request.status in ("pending_confirmation", "approved") and now >= request.expires_at:
                 request = replace(request, status="expired", updated_at=now)
                 self._requests[request_id] = request
             if request.status in _TERMINAL and now - request.updated_at >= self._retention:
@@ -76,7 +78,7 @@ class RemoteInstallQueue:
         self,
         owner: str,
         key: str,
-        plugin_id: str,
+        plugin_id: str | None,
         release_tag: str | None = None,
         *,
         action: str = "install",
@@ -92,7 +94,11 @@ class RemoteInstallQueue:
             raise ValueError("invalid owner")
         if not isinstance(key, str) or not _KEY.fullmatch(key):
             raise ValueError("invalid idempotency key")
-        if not isinstance(plugin_id, str) or not _ID.fullmatch(plugin_id):
+        if plugin_id is None:
+            # An installed plugin outside the registry can only be uninstalled, by its own name.
+            if action != "uninstall" or not isinstance(plugin_name, str) or not plugin_name:
+                raise ValueError("invalid plugin ID")
+        elif not isinstance(plugin_id, str) or not _ID.fullmatch(plugin_id):
             raise ValueError("invalid plugin ID")
         if release_tag is not None and (
             not isinstance(release_tag, str)
@@ -147,7 +153,13 @@ class RemoteInstallQueue:
             return request if request is not None and request.owner == owner else None
 
     def retry(
-        self, owner: str, key: str, plugin_id: str, release_tag: str | None, action: str
+        self,
+        owner: str,
+        key: str,
+        plugin_id: str | None,
+        release_tag: str | None,
+        action: str,
+        plugin_name: str | None = None,
     ) -> InstallRequest | None:
         if not isinstance(key, str) or not _KEY.fullmatch(key):
             raise ValueError("invalid idempotency key")
@@ -157,7 +169,9 @@ class RemoteInstallQueue:
             if request_id is None:
                 return None
             request = self._requests[request_id]
-            if (request.plugin_id, request.release_tag, request.action) != (plugin_id, release_tag, action):
+            if (request.plugin_id, request.release_tag, request.action) != (plugin_id, release_tag, action) or (
+                plugin_id is None and str(request.plugin_name).casefold() != str(plugin_name).casefold()
+            ):
                 raise RequestConflictError("idempotency key already used")
             return request
 
@@ -172,6 +186,12 @@ class RemoteInstallQueue:
             self._sweep(self._clock())
             return tuple(request for request in self._requests.values() if request.status == "pending_confirmation")
 
+    def approved(self) -> tuple[InstallRequest, ...]:
+        """Requests waiting for this device to run them, for its local runner."""
+        with self._lock:
+            self._sweep(self._clock())
+            return tuple(request for request in self._requests.values() if request.status == "approved")
+
     def cancel(self, owner: str, request_id: str) -> InstallRequest | None:
         with self._lock:
             now = self._clock()
@@ -181,13 +201,13 @@ class RemoteInstallQueue:
                 return None
             return self._transition(request, "cancelled", {"pending_confirmation"}, now)
 
-    def cancel_owner_pending(self, owner: str) -> None:
-        """Revocation cancels unclaimed work; a running installer cannot be undone."""
+    def cancel_owner_pending(self, owner: str, *, approved_only: bool = False) -> None:
+        """Revocation or lost trust cancels unclaimed work; a running installer cannot be undone."""
         with self._lock:
             now = self._clock()
             self._sweep(now)
             for request in tuple(self._requests.values()):
-                if request.owner == owner and request.status == "pending_confirmation":
+                if request.owner == owner and request.status == "pending_confirmation" and not approved_only:
                     self._transition(request, "cancelled", {"pending_confirmation"}, now)
                 elif request.owner == owner and request.status == "approved":
                     self._transition(request, "failed", {"approved"}, now)
@@ -211,7 +231,11 @@ class RemoteInstallQueue:
             request = self._requests[request_id]
             if status == "installing" and any(r.status == "installing" for r in self._requests.values()):
                 raise InvalidTransitionError("another installation is active")
-            return self._transition(request, status, allowed[status], now)
+            updated = self._transition(request, status, allowed[status], now)
+            if status == "approved":
+                updated = replace(updated, expires_at=now + self._ttl)
+                self._requests[request_id] = updated
+            return updated
 
     def _transition(self, request: InstallRequest, status: str, allowed: set[str], now: float) -> InstallRequest:
         if request.status not in allowed:

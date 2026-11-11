@@ -48,6 +48,7 @@ footer{padding:36px 0;border-top:1px solid var(--line);color:var(--dim);font-siz
 <ul class="toc">
 <li><a href="#install">Installing and uninstalling</a></li>
 <li><a href="#updates">Updates</a></li>
+<li><a href="#remote">Remote Install</a></li>
 <li><a href="#safety">Badges, warnings and virus scans</a></li>
 <li><a href="#problems">Troubleshooting</a></li>
 <li><a href="#contact">Getting help</a></li>
@@ -57,7 +58,7 @@ footer{padding:36px 0;border-top:1px solid var(--line);color:var(--dim);font-siz
 <h2 id="install">Installing and uninstalling</h2>
 <details><summary>What do I need?</summary><p>Any device with Decky Loader 3.x, and an internet connection that can reach GitHub. No GitHub account is needed.</p></details>
 <details><summary>How do I install DeckyHub?</summary><p>The easiest way is the Desktop Mode installer: download Install-DeckyHub.desktop from the latest release, double-click it, choose Execute and enter your device's admin password. It installs Decky Loader first if it's missing. Already in Gaming Mode with Decky Loader? Turn on Developer mode in Decky's settings and use Install Plugin from URL. The <a href="/#install">install guide</a> has every step.</p></details>
-<details><summary>Does DeckyHub install anything on its own?</summary><p>Never. Install, Update and Uninstall go through Decky Loader's own installer, which asks you to confirm first. Download ZIP only saves a file to <code>~/Downloads/deckyhub</code>.</p></details>
+<details><summary>Does DeckyHub install anything on its own?</summary><p>Never, unless you choose it: Install, Update and Uninstall go through Decky Loader's own installer, which asks you to confirm first. The one exception is a browser you mark as Trusted under Remote Install, whose requests run without asking. Download ZIP only saves a file to <code>~/Downloads/deckyhub</code>.</p></details>
 <details><summary>How do I uninstall DeckyHub?</summary><p>In Decky's settings (the gear icon), open Plugins, open the menu next to DeckyHub and choose Uninstall. Decky removes DeckyHub with its settings and cached lists. Plugins you installed with it stay installed, and so do the files it saved to Downloads.</p></details>
 
 <h2 id="updates">Updates</h2>
@@ -65,6 +66,13 @@ footer{padding:36px 0;border-top:1px solid var(--line);color:var(--dim);font-siz
 <details><summary>Why doesn't a new release show up right away?</summary><p>Release info is cached for 30 minutes, and the plugin list's release file is refreshed every hour, so a brand-new release can take up to an hour to appear. Check for Updates and Refresh skip DeckyHub's own cache.</p></details>
 <details><summary>How does DeckyHub update itself?</summary><p>Its Quick Access tab shows when a new DeckyHub release is out, with an Update button. Manage there lets you pick Stable releases or Pre-releases, and a specific version to update, reinstall or downgrade to.</p></details>
 <details><summary>What are the Stable and Pre-release channels?</summary><p>Each plugin's Manage window has a channel: Stable offers only stable releases, Pre-release offers every release. Separately, the Registry Channel in DeckyHub's own Manage window picks the plugin list itself: Stable is what everyone gets, Pre-release shows list changes still being tested.</p></details>
+
+<h2 id="remote">Remote Install</h2>
+<details><summary>What is Remote Install?</summary><p>It lets you install, update or uninstall plugins on your device from a browser on the same network. Open the <a href="/develop/paired-devices/">Paired devices</a> page or any plugin's page in Chrome, Edge or another Chromium browser. Nothing goes through a server.</p></details>
+<details><summary>How do I pair a browser?</summary><p>In DeckyHub's Quick Access tab, turn on Pair mode under Remote Install, scan the QR code (or open the pairing link), allow local network access if the browser asks, then approve the browser on your device. You only pair once: pairings are kept until you remove them or haven't used a browser for 30 days.</p></details>
+<details><summary>Do I have to approve every request?</summary><p>Yes, by default. Each request shows in the Quick Access tab for you to Approve or Reject, and Decky Loader still asks to confirm installs and updates. If you fully trust a browser, turn on Trusted next to it: its requests then run without asking. Only switch it on for a browser you control, because plugins can run with full access to your device. You can turn it off or remove the browser at any time.</p></details>
+<details><summary>Which plugins can I manage remotely?</summary><p>Install and update work for plugins DeckyHub can match to its list. Uninstall also works for any other installed plugin with a unique name. DeckyHub itself can only be managed on the device.</p></details>
+<details><summary>The browser can't find my device</summary><p>Use Chrome, Edge or another Chromium browser, keep both devices on the same network, make sure Pair mode is on, and allow local network access when asked. If your router gave the device a new address, open the Quick Access tab to see it or pair again.</p></details>
 
 <h2 id="safety">Badges, warnings and virus scans</h2>
 <details><summary>What do the badges on plugins mean?</summary><p>Runs as root: its backend has full access to the system. No release in a year: it may be abandoned. Fork: its code started as a copy of another plugin, which its page links to. AI: its repository is set up for AI coding assistants or its README says it's made with AI, which says nothing about quality or safety. Pre-release only: it has no stable release, so DeckyHub offers its pre-releases and hides the Stable channel. No description: its author hasn't said what it does. Each plugin's page lists its badges.</p></details>

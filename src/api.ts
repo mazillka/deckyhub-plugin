@@ -43,6 +43,9 @@ export const beginRemotePairing = callable<[], { code: string; pairingToken: str
 export const decideRemotePairing = callable<[pairId: string, approve: boolean], { status: string }>(
   "decide_remote_pairing",
 );
+export const setRemoteDeviceTrusted = callable<[deviceId: string, trusted: boolean], { id: string; trusted: boolean }>(
+  "set_remote_device_trusted",
+);
 export const revokeRemoteDevice = callable<[deviceId: string], { revoked: boolean }>("revoke_remote_device");
 export const decideRemoteRequest = callable<[requestId: string, approve: boolean], { id: string; status: string }>(
   "decide_remote_request",
@@ -51,7 +54,7 @@ export const claimRemoteRequest = callable<
   [requestId: string],
   {
     id: string;
-    pluginId: string;
+    pluginId: string | null;
     releaseTag?: string | null;
     status: string;
     action?: "install" | "update" | "uninstall";
@@ -62,6 +65,10 @@ export const claimRemoteRequest = callable<
 >("claim_remote_request");
 export const finishRemoteRequest = callable<[requestId: string, success: boolean], { id: string; status: string }>(
   "finish_remote_request",
+);
+
+export const getRemoteInstalledVersion = callable<[pluginName: string], { version: string | null }>(
+  "get_remote_installed_version",
 );
 
 export const REGISTRY_UPDATED = "deckyhub-registry-updated";

@@ -6,6 +6,7 @@ import { DeckyHubIcon } from "./components/DeckyHubIcon";
 import { addQuickAccessTab, removeQuickAccessTab } from "./components/QuickAccessTab";
 import { I18nProvider } from "./i18n";
 import { announcePendingInstalls } from "./components/PendingInstalls";
+import { startRemoteRunner } from "./remoteRunner";
 import { Content } from "./pages/Content";
 import { SearchPage } from "./pages/SearchPage";
 import { SettingsPage } from "./pages/SettingsPage";
@@ -82,6 +83,7 @@ const onRegistryUpdated = () => window.dispatchEvent(new Event(REGISTRY_UPDATED)
 
 export default definePlugin(() => {
   addEventListener("registry_updated", onRegistryUpdated);
+  const stopRemoteRunner = startRemoteRunner(tr);
   // Plugins picked in the Desktop Mode installer: remind the user once the Steam UI is up.
   window.setTimeout(() => void announcePendingInstalls(tr), 8000);
   for (const path of Object.keys(ROUTES)) {
@@ -114,6 +116,7 @@ export default definePlugin(() => {
       markUnloaded();
       Object.keys(ROUTES).forEach((path) => routerHook.removeRoute(path));
       removeEventListener("registry_updated", onRegistryUpdated);
+      stopRemoteRunner();
     },
   };
 });

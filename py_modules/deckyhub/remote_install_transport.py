@@ -5,7 +5,6 @@ import datetime
 import hashlib
 import ipaddress
 import json
-import logging
 import platform
 import socket
 import sys
@@ -13,12 +12,114 @@ import time
 from collections import deque
 from pathlib import Path
 
-from .remote_install_discovery import advertise
-
 MAX_MESSAGE = 16384
 MAX_STREAMS = 16
 MAX_CONNECTIONS = 32
 MAX_REQUESTS_PER_MINUTE = 120
+
+
+# Chromium only accepts a pinned certificate that is valid for at most 14 days.
+VALIDITY = datetime.timedelta(days=13)
+ROTATE_BEFORE = datetime.timedelta(days=1)
+NEXT_AFTER = datetime.timedelta(days=6)
+
+
+def _identity_modules():
+    from cryptography import x509
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import ec
+    from cryptography.x509.oid import NameOID
+
+    return x509, serialization, ec, NameOID
+
+
+def _make_identity(now):
+    from cryptography.hazmat.primitives import hashes
+
+    x509, _, ec, NameOID = _identity_modules()
+    key = ec.generate_private_key(ec.SECP256R1())
+    subject = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "DeckyHub Remote Install")])
+    cert = (
+        x509.CertificateBuilder()
+        .subject_name(subject)
+        .issuer_name(subject)
+        .public_key(key.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(now - datetime.timedelta(minutes=5))
+        .not_valid_after(now + VALIDITY)
+        # Chromium requires certificate extensions even when it pins the fingerprint.
+        # Keep the name independent of the current LAN address.
+        .add_extension(x509.SubjectAlternativeName([x509.DNSName("deckyhub.local")]), critical=False)
+        .sign(key, hashes.SHA256())
+    )
+    return cert, key
+
+
+def _pem(pair):
+    x509, serialization, _, _ = _identity_modules()
+    cert, key = pair
+    return [
+        cert.public_bytes(serialization.Encoding.PEM).decode(),
+        key.private_bytes(
+            serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8, serialization.NoEncryption()
+        ).decode(),
+    ]
+
+
+def _load(pem):
+    x509, serialization, _, _ = _identity_modules()
+    try:
+        return x509.load_pem_x509_certificate(pem[0].encode()), serialization.load_pem_private_key(
+            pem[1].encode(), None
+        )
+    except (TypeError, ValueError, IndexError, AttributeError):
+        return None
+
+
+def _fingerprint(cert):
+    _, serialization, _, _ = _identity_modules()
+    return hashlib.sha256(cert.public_bytes(serialization.Encoding.DER)).hexdigest()
+
+
+def prepare_identity(service, now=None):
+    """Return the certificate to serve and keep the next one ready.
+
+    The certificate and key are stored with the paired devices, so a restart keeps every
+    browser's pin. The next certificate is created halfway through the current one's life
+    and announced to paired browsers (service.pins) before it takes over.
+    """
+    now = now or datetime.datetime.now(datetime.timezone.utc)
+    saved = service.identity or {}
+    current = _load(saved.get("current") or [])
+    upcoming = _load(saved.get("next") or [])
+    changed = False
+    if current is None or current[0].not_valid_after_utc - ROTATE_BEFORE <= now:
+        usable = upcoming and upcoming[0].not_valid_after_utc - ROTATE_BEFORE > now
+        current, upcoming = (upcoming if usable else _make_identity(now)), None
+        changed = True
+    if upcoming is None and current[0].not_valid_before_utc + NEXT_AFTER <= now:
+        upcoming = _make_identity(now)
+        changed = True
+    if changed:
+        service.identity = {"current": _pem(current), "next": _pem(upcoming) if upcoming else None}
+        service.persist()
+    # The next time the certificate can need attention, so the watcher can skip parsing before then.
+    due = current[0].not_valid_after_utc - ROTATE_BEFORE
+    if upcoming is None:
+        due = min(due, current[0].not_valid_before_utc + NEXT_AFTER)
+    service.identity_check_at = due
+    service.pins = {"fingerprint": _fingerprint(current[0])}
+    if upcoming:
+        service.pins["nextFingerprint"] = _fingerprint(upcoming[0])
+    return current[0], current[1], service.pins["fingerprint"]
+
+
+def identity_rotated(service, serving_fingerprint):
+    """True when the listener should restart to serve a newer certificate."""
+    due = getattr(service, "identity_check_at", None)
+    if due is not None and datetime.datetime.now(datetime.timezone.utc) < due:
+        return False
+    return prepare_identity(service)[2] != serving_fingerprint
 
 
 def lan_address():
@@ -44,34 +145,9 @@ async def start_transport(service):
     from aioquic.h3.events import HeadersReceived, WebTransportStreamDataReceived
     from aioquic.quic.configuration import QuicConfiguration
     from aioquic.quic.events import ConnectionTerminated, ProtocolNegotiated
-    from cryptography import x509
-    from cryptography.hazmat.primitives import hashes, serialization
-    from cryptography.hazmat.primitives.asymmetric import ec
-    from cryptography.x509.oid import NameOID
 
     address = lan_address()
-    now = datetime.datetime.now(datetime.timezone.utc)
-    identity = service.transport_identity
-    if identity is None or identity[0].not_valid_after_utc <= now:
-        key = ec.generate_private_key(ec.SECP256R1())
-        subject = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "DeckyHub Remote Install")])
-        cert = (
-            x509.CertificateBuilder()
-            .subject_name(subject)
-            .issuer_name(subject)
-            .public_key(key.public_key())
-            .serial_number(x509.random_serial_number())
-            .not_valid_before(now - datetime.timedelta(minutes=5))
-            .not_valid_after(now + datetime.timedelta(days=7))
-            # Chromium requires certificate extensions even when it pins the fingerprint.
-            # Keep the name independent of the current LAN address.
-            .add_extension(x509.SubjectAlternativeName([x509.DNSName("deckyhub.local")]), critical=False)
-            .sign(key, hashes.SHA256())
-        )
-        service.transport_identity = cert, key
-    else:
-        cert, key = identity
-    fingerprint = hashlib.sha256(cert.public_bytes(serialization.Encoding.DER)).hexdigest()
+    cert, key, fingerprint = prepare_identity(service)
 
     active_connections = set()
 
@@ -168,13 +244,4 @@ async def start_transport(service):
     )
     config.certificate, config.private_key = cert, key
     server = await serve(address, 8765, configuration=config, create_protocol=Protocol, retry=True)
-    try:
-        service.discovery = await advertise(address, 8765)
-    except asyncio.CancelledError:
-        server.close()
-        raise
-    except Exception:
-        logging.getLogger(__name__).warning(
-            "Could not advertise DeckyHub Remote Install on the local network", exc_info=True
-        )
     return server, f"https://{address}:8765/remote-install", fingerprint

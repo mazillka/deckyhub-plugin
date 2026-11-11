@@ -9,6 +9,8 @@ test('pairing links accept only a private device address and a complete fingerpr
   assert.equal(pairingDetails(fragment('example.com:8765')), null);
   assert.equal(pairingDetails(fragment('192.168.1.20:8765', 'short')), null);
   assert.equal(pairingDetails('#remote-install'), null);
+  assert.equal(pairingDetails(fragment('192.168.1.20:8765') + '&name=Steam%20Deck').name, 'Steam Deck');
+  assert.equal('name' in pairingDetails(fragment('192.168.1.20:8765') + '&name=%3Cb%3E'), false);
 });
 
 test('pasted DeckyHub links fill device details without navigating away from the selected plugin', () => {
@@ -48,18 +50,18 @@ function transportReturning(response, sent) {
 test('the device picker sends only to the selected device with its own pin and token', async (t) => {
   const devices = [
     { name: 'First', address: '192.168.1.20:8765', fingerprint: 'aa'.repeat(32), token: 'a'.repeat(43) },
-    { name: 'Second', address: '192.168.1.21:8765', fingerprint: 'bb'.repeat(32), token: 'b'.repeat(43) },
+    { name: 'Second', address: '192.168.1.21:8765', fingerprint: 'bb'.repeat(32), nextFingerprint: 'cc'.repeat(32), token: 'b'.repeat(43) },
   ];
   const sent = [], connections = [];
   const globals = {
     isSecureContext: true,
-    sessionStorage: { getItem: () => JSON.stringify(devices), setItem() {} },
+    localStorage: { getItem: key => key.endsWith('pairedDevices') ? JSON.stringify(devices) : null, setItem() {}, removeItem() {} },
     Option: class { constructor(text, value) { Object.assign(this, { text, value }); } },
     addEventListener() {},
     WebTransport: class {
       ready = Promise.resolve();
       closed = new Promise(() => {});
-      constructor(url, options) { connections.push({ url, pin: options.serverCertificateHashes[0].value }); }
+      constructor(url, options) { connections.push({ url, pin: options.serverCertificateHashes.map(hash => hash.value) }); }
       createBidirectionalStream = transportReturning('{"ok":true,"requestId":"example","status":"installed"}', sent).createBidirectionalStream;
       close() {}
     },
@@ -83,7 +85,7 @@ test('the device picker sends only to the selected device with its own pin and t
   picker.handlers.change();
   assert.equal(connections.length, 0);
   await querySelector('#remote-request').handlers.click();
-  assert.deepEqual(connections, [{ url: 'https://192.168.1.21:8765/remote-install', pin: new Uint8Array(32).fill(0xbb) }]);
+  assert.deepEqual(connections, [{ url: 'https://192.168.1.21:8765/remote-install', pin: [new Uint8Array(32).fill(0xbb), new Uint8Array(32).fill(0xcc)] }]);
   assert.deepEqual(JSON.parse(sent[0]).token, devices[1].token);
   assert.equal(JSON.parse(sent[0]).pluginId, 'example-plugin');
   assert.equal(querySelector('#remote-status').textContent, 'Installed on your device.');
