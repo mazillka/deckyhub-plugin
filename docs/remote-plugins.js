@@ -4,7 +4,7 @@ export function createPluginList(root, { loadPage, request }) {
   const status = root.querySelector('#remote-plugins-status');
   const refresh = root.querySelector('#remote-plugins-refresh');
   const document = root.ownerDocument;
-  if (!list || !status || !refresh || !document) return { reset() {}, setEnabled() {} };
+  if (!list || !status || !refresh || !document) return { reset() {}, setEnabled() {}, load() {} };
   let generation = 0;
   let enabled = false;
   let loading = false;
@@ -50,10 +50,10 @@ export function createPluginList(root, { loadPage, request }) {
       }
       list.append(row);
     }
-    status.textContent = plugins.length ? `${plugins.length} installed plugins on this device.` : 'No installed plugins found.';
+    status.textContent = plugins.length ? `${plugins.length} installed ${plugins.length === 1 ? 'plugin' : 'plugins'}` : 'No installed plugins found.';
     updateButtons();
   };
-  refresh.addEventListener('click', async () => {
+  const load = async () => {
     if (!enabled || loading) return;
     const current = ++generation;
     loading = true;
@@ -86,16 +86,18 @@ export function createPluginList(root, { loadPage, request }) {
     } finally {
       if (current === generation) { loading = false; updateButtons(); }
     }
-  });
+  };
+  refresh.addEventListener('click', load);
   return {
     reset() {
       generation++;
       loading = false;
       list.replaceChildren();
       actionButtons.length = 0;
-      status.textContent = 'Choose a paired device, then load its installed plugins.';
+      status.textContent = 'Pair a device to see its installed plugins.';
       updateButtons();
     },
     setEnabled(value) { enabled = value; updateButtons(); },
+    load,
   };
 }

@@ -348,29 +348,32 @@ def page(
 
 def remote_device_panel(title: str, plugin_id: str = "") -> str:
     hidden = "" if plugin_id else " hidden"
+    layout = "" if plugin_id else " remote-device-dashboard"
     devices_link = '<p><a href="/paired-devices.html">Manage paired devices</a></p>' if plugin_id else ""
-    return f"""<section id="remote-install" class="remote-install" aria-labelledby="remote-title" data-plugin-id="{escape(plugin_id, quote=True)}">
+    return f"""<section id="remote-install" class="remote-install{layout}" aria-labelledby="remote-title" data-plugin-id="{escape(plugin_id, quote=True)}">
 <link rel="stylesheet" href="/remote-install.css">
+<div class="remote-device-overview">
 <h2 id="remote-title">{escape(title)}</h2>
 <p>Choose a paired device or set up a new one below. Approve pairing and plugin changes on your device.</p>
 <p><label for="remote-device-picker">Paired device</label><br><select id="remote-device-picker" disabled><option value="">Pair a device</option></select></p>
 <p class="remote-actions"><button type="button" id="remote-request" disabled{hidden}>Send install request</button> <button type="button" id="remote-cancel" disabled>Cancel request</button></p>
 <p id="remote-status" role="status" aria-live="polite">Not connected.</p>
-<section aria-labelledby="remote-plugins-title">
-<h3 id="remote-plugins-title">Installed on this device</h3>
-<p>View installed versions and request an update or uninstall. Each change needs approval on your device.</p>
-<p><button type="button" id="remote-plugins-refresh" disabled>Load installed plugins</button> <a href="/plugins/">Browse plugins to install</a></p>
-<p id="remote-plugins-status" role="status" aria-live="polite">Choose a paired device, then load its installed plugins.</p>
+<section class="remote-inventory" aria-labelledby="remote-plugins-title">
+<h3 id="remote-plugins-title">Installed plugins</h3>
+<p class="remote-actions"><a class="btn" href="/plugins/">Browse plugins to install</a> <button type="button" id="remote-plugins-refresh" disabled>Refresh list</button></p>
+<p id="remote-plugins-status" role="status" aria-live="polite">Pair a device to see its installed plugins.</p>
 <ul id="remote-plugins" class="remote-plugins"></ul>
 {devices_link}
 </section>
+</div>
 <form id="remote-pair-form">
 <h3>Pair a device</h3>
 <ol>
 <li>In a DeckyHub pre-release, open <strong>Settings → Downloads</strong> and turn on both Remote Install switches.</li>
-<li>Copy the pairing link from DeckyHub and enter the six-digit code shown on your device.</li>
-<li>Allow local network access if your browser asks, then approve this browser on your device. Both devices must be on the same network.</li>
+<li>Copy the pairing link and six-digit code from DeckyHub.</li>
+<li>Allow local network access if asked, then approve the browser on your device.</li>
 </ol>
+<p>Keep both devices on the same network.</p>
 <p><label for="remote-pairing-link">Pairing link</label><br><input id="remote-pairing-link" type="text" autocomplete="off" spellcheck="false" placeholder="Paste the link from DeckyHub"></p>
 <p><label for="remote-code">Six-digit pairing code</label><br><input id="remote-code" autocomplete="off" inputmode="numeric" maxlength="6" pattern="[0-9]{{6}}" required></p>
 <details id="remote-manual">
@@ -379,10 +382,10 @@ def remote_device_panel(title: str, plugin_id: str = "") -> str:
 <p><label for="remote-fingerprint">Certificate fingerprint</label><br><input id="remote-fingerprint" autocomplete="off" spellcheck="false"></p>
 <p><label for="remote-device-name">Device name (optional)</label><br><input id="remote-device-name" maxlength="64" autocomplete="off" placeholder="Living room device"></p>
 <p><label for="remote-name">Browser name shown on your device</label><br><input id="remote-name" value="Browser" maxlength="64"></p>
+<p><button type="button" id="remote-reconnect" hidden>Use new device address</button></p>
 </details>
 <button type="submit" id="remote-pair" disabled>Pair browser</button>
 </form>
-<p><button type="button" id="remote-reconnect" hidden>Use new device address</button></p>
 <noscript>Enable JavaScript to connect to your device.</noscript>
 <script type="module" src="/remote-install.js"></script>
 </section>"""
@@ -390,7 +393,7 @@ def remote_device_panel(title: str, plugin_id: str = "") -> str:
 
 def paired_devices_page(shell: dict[str, str]) -> str:
     description = "Pair a device and manage its installed Decky plugins."
-    body = "<h1>Paired devices</h1>" + remote_device_panel("Manage your devices")
+    body = "<h1>Paired devices</h1>" + remote_device_panel("Your devices")
     return page(shell, "Paired devices | DeckyHub", description, "paired-devices.html", body, [])
 
 
