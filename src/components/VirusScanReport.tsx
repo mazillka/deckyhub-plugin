@@ -87,7 +87,8 @@ function VirusTotalResult({ t, report }: { t: TFunc; report: VirusTotalReport })
             : report.state === "unavailable"
               ? t("scan.unavailable")
               : t("scan.error");
-    return <small style={{ color: MUTED }}>{t("scan.verdict", { scanner: "VirusTotal", verdict })}</small>;
+    const color = report.state === "pending" || report.state === "none" ? colors.danger : MUTED;
+    return <small style={{ color }}>{t("scan.verdict", { scanner: "VirusTotal", verdict })}</small>;
   }
   return (
     <div style={{ display: "grid", gap: 2 }}>
@@ -104,7 +105,7 @@ function VirusTotalResult({ t, report }: { t: TFunc; report: VirusTotalReport })
 }
 
 const MetaDefenderPending = ({ t, state }: { t: TFunc; state: "none" | "pending" | "error" | "unavailable" }) => (
-  <small style={{ color: MUTED }}>
+  <small style={{ color: state === "pending" || state === "none" ? colors.danger : MUTED }}>
     {t("scan.verdict", {
       scanner: "MetaDefender",
       verdict: t(
@@ -164,7 +165,7 @@ function ScanReportModal({
               return (
                 <Focusable key={name} flow-children="down" style={{ display: "grid", gap: 4 }}>
                   <Focusable onActivate={() => {}} onFocus={keepInView}>
-                    <strong style={{ color: verdict ? COLORS[verdict.result] : MUTED }}>
+                    <strong style={{ color: verdict ? COLORS[verdict.result] : colors.danger }}>
                       <FaShieldAlt /> {line(t, scanner)}
                     </strong>
                   </Focusable>
@@ -484,7 +485,7 @@ export function VirusScanReport({
       ) : scan === "unavailable" ? (
         <small style={{ color: MUTED }}>{t("scan.unavailable")}</small>
       ) : scan === null ? (
-        <small style={{ color: MUTED }}>{t("scan.notScanned")}</small>
+        <small style={{ color: colors.danger }}>{t("scan.notScanned")}</small>
       ) : (
         <>
           {scan.unverifiedMatch && <strong style={{ color: COLORS.incomplete }}>{t("scan.unverifiedDetail")}</strong>}
@@ -496,7 +497,7 @@ export function VirusScanReport({
                 style={{ display: "grid", gap: 2 }}
               >
                 <Row
-                  color={scanner.verdict ? COLORS[scanner.verdict.result] : MUTED}
+                  color={scanner.verdict ? COLORS[scanner.verdict.result] : colors.danger}
                   label={line(t, scanner)}
                   when={scanner.verdict?.scannedAt ? timeAgo(Date.parse(scanner.verdict.scannedAt)) : undefined}
                 />
