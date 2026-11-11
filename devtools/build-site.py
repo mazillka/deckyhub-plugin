@@ -386,11 +386,12 @@ for html_file in out.rglob("*.html"):
         else CSP
     )
     # Browsers hash a script's text as parsed, with LF line ends, which is how Python holds it here.
-    # JSON-LD (<script type=...>) is data and needs none.
+    # Every script element without a src, however its tag is written: one this misses is blocked, never allowed.
     hashes = sorted(
         {
             "'sha256-" + base64.b64encode(hashlib.sha256(body.encode("utf-8")).digest()).decode() + "'"
-            for body in re.findall(r"<script>(.*?)</script>", text, re.S)
+            for attributes, body in re.findall(r"(?is)<script\b([^>]*)>(.*?)</script[^>]*>", text)
+            if not re.search(r"(?i)\bsrc\s*=", attributes)
         }
     )
     policy = policy.replace("SCRIPTS", "".join(" " + source for source in hashes))
