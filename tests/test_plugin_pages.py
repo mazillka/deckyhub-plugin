@@ -163,6 +163,17 @@ class PluginPageTests(unittest.TestCase):
         self.assertIn('href="#remote-install"', page)
         self.assertIn(f'data-plugin-id="{APP["id"]}"', page)
 
+    def test_remote_install_prefers_pairing_link_and_code_over_manual_connection_details(self):
+        page = self.page()
+        form = page.split('<form id="remote-pair-form">', 1)[1].split("</form>", 1)[0]
+        basic, advanced = form.split('<details id="remote-manual">', 1)
+        self.assertIn('id="remote-pairing-link"', basic)
+        self.assertIn('pattern="[0-9]{6}" required', basic)
+        self.assertIn('id="remote-address"', advanced)
+        self.assertIn('id="remote-fingerprint"', advanced)
+        self.assertNotIn("required", advanced)
+        self.assertIn('href="/remote-install.css"', page)
+
     def test_an_unscanned_plugin_says_so(self):
         self.assertIn("Not scanned yet", self.page())
 

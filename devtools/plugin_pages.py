@@ -388,23 +388,32 @@ def plugin_page(
 <p><a class="btn ghost" href="#remote-install">Send to device (preview)</a></p>
 <p class="note">Before updating an installed plugin, check that its GitHub owner and repository match the source shown here. Plugin names alone may not identify the correct project.</p>
 <p>{escape(name)} is a <a href="https://decky.xyz/">Decky Loader</a> plugin. With <a href="/">DeckyHub</a> installed, open DeckyHub's <strong>Discover</strong> tab in Gaming Mode, search for <strong>{escape(name)}</strong> and press <strong>Install</strong>. DeckyHub hands the release to Decky Loader's own installer and checks its SHA-256 whenever GitHub publishes one. You can also download the ZIP from its <a href="{escape(repo_url)}/releases">releases</a> and install it by hand from Decky's developer settings.</p>
-<section id="remote-install" class="remote-install" data-plugin-id="{escape(app["id"], quote=True)}">
-<h2>Send {escape(name)} to your device</h2>
-<p>Use a DeckyHub pre-release with Remote Install. In DeckyHub, open <strong>Settings → Downloads</strong> and turn on both Remote Install switches. Paste the pairing link here or enter the local address and certificate fingerprint. Use a compatible browser on the same network and allow local network access if it asks. You must approve the browser and each installation on your device.</p>
-<p id="remote-unavailable">Remote Install is experimental and requires a compatible DeckyHub service and browser. Connection details are never sent to DeckyHub's website.</p>
-<p><label for="remote-device-picker">Device</label><br><select id="remote-device-picker" disabled><option value="">Pair another device</option></select></p>
+<section id="remote-install" class="remote-install" aria-labelledby="remote-title" data-plugin-id="{escape(app["id"], quote=True)}">
+<link rel="stylesheet" href="/remote-install.css">
+<h2 id="remote-title">Send {escape(name)} to your device</h2>
+<p>Choose a paired device or set up a new one below. You approve the browser and each installation on your device.</p>
+<p><label for="remote-device-picker">Paired device</label><br><select id="remote-device-picker" disabled><option value="">Pair a device</option></select></p>
+<p class="remote-actions"><button type="button" id="remote-request" disabled>Send install request</button> <button type="button" id="remote-cancel" disabled>Cancel request</button></p>
+<p id="remote-status" role="status" aria-live="polite">Not connected.</p>
 <form id="remote-pair-form">
-<p><label for="remote-device-name">Device name (optional)</label><br><input id="remote-device-name" maxlength="64" autocomplete="off" placeholder="Living room Deck"></p>
-<p><label for="remote-pairing-link">Pairing link from DeckyHub</label><br><input id="remote-pairing-link" type="text" autocomplete="off" placeholder="Paste pairing link"></p>
-<p><label for="remote-address">Device IPv4 address and port</label><br><input id="remote-address" placeholder="192.168.1.50:8765" autocomplete="off" required></p>
-<p><label for="remote-fingerprint">Certificate fingerprint (SHA-256)</label><br><input id="remote-fingerprint" autocomplete="off" spellcheck="false" required></p>
-<p><label for="remote-code">Pairing code shown on your device</label><br><input id="remote-code" autocomplete="off" inputmode="numeric" required></p>
-<p><label for="remote-name">Browser name</label><br><input id="remote-name" value="Browser" maxlength="64" required></p>
+<h3>Pair a device</h3>
+<ol>
+<li>In a DeckyHub pre-release, open <strong>Settings → Downloads</strong> and turn on both Remote Install switches.</li>
+<li>Copy the pairing link from DeckyHub and enter the six-digit code shown on your device.</li>
+<li>Allow local network access if your browser asks, then approve this browser on your device. Both devices must be on the same network.</li>
+</ol>
+<p><label for="remote-pairing-link">Pairing link</label><br><input id="remote-pairing-link" type="text" autocomplete="off" spellcheck="false" placeholder="Paste the link from DeckyHub"></p>
+<p><label for="remote-code">Six-digit pairing code</label><br><input id="remote-code" autocomplete="off" inputmode="numeric" maxlength="6" pattern="[0-9]{{6}}" required></p>
+<details id="remote-manual">
+<summary>Enter connection details manually or rename this device</summary>
+<p><label for="remote-address">Device address and port</label><br><input id="remote-address" placeholder="192.168.1.50:8765" autocomplete="off"></p>
+<p><label for="remote-fingerprint">Certificate fingerprint</label><br><input id="remote-fingerprint" autocomplete="off" spellcheck="false"></p>
+<p><label for="remote-device-name">Device name (optional)</label><br><input id="remote-device-name" maxlength="64" autocomplete="off" placeholder="Living room device"></p>
+<p><label for="remote-name">Browser name shown on your device</label><br><input id="remote-name" value="Browser" maxlength="64"></p>
+</details>
 <button type="submit" id="remote-pair" disabled>Pair browser</button>
 </form>
-<p><button type="button" id="remote-request" disabled>Send to device</button> <button type="button" id="remote-cancel" disabled>Cancel request</button></p>
 <p><button type="button" id="remote-reconnect" hidden>Use new device address</button></p>
-<p id="remote-status" role="status" aria-live="polite">Not connected.</p>
 <noscript>Enable JavaScript to connect to your device.</noscript>
 <script type="module" src="/remote-install.js"></script>
 </section>
