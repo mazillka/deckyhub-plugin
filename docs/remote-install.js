@@ -154,11 +154,11 @@ export function init(root, details) {
   };
   const updateActions = () => {
     requestButton.disabled = !token || (Boolean(requestPluginId) && requestPluginId !== pluginId);
-    requestButton.textContent = idempotencyKey ? 'Retry request status' : 'Send to device';
+    requestButton.textContent = idempotencyKey ? 'Retry request status' : 'Send install request';
     pairButton.disabled = Boolean(idempotencyKey);
   };
   const renderPicker = selected => {
-    picker.replaceChildren(new Option('Pair another device', ''));
+    picker.replaceChildren(new Option(devices.length ? 'Pair another device' : 'Pair a device', ''));
     devices.forEach((device, index) => picker.add(new Option(`${device.name} (${device.address})`, String(index))));
     picker.value = selected === undefined ? '' : String(selected);
     picker.disabled = false;
@@ -196,12 +196,15 @@ export function init(root, details) {
   };
   if (details) fillDevice(details);
   const linkInput = byId('pairing-link');
-  linkInput.addEventListener('change', () => {
+  const usePairingLink = () => {
     if (!linkInput.value.trim()) return;
     const device = detailsFromPairingLink(linkInput.value);
-    if (!device) { say('Paste the pairing link copied from DeckyHub on your device.'); return; }
+    if (!device) throw new Error('Paste the pairing link copied from DeckyHub on your device.');
     fillDevice(device);
     linkInput.value = '';
+  };
+  linkInput.addEventListener('change', () => {
+    try { usePairingLink(); } catch (error) { showError(error); }
   });
   form.addEventListener('submit', async event => {
     event.preventDefault();
@@ -210,6 +213,8 @@ export function init(root, details) {
     picker.disabled = true;
     disconnect();
     try {
+      usePairingLink();
+      if (!byId('address').value.trim()) throw new Error('Paste a pairing link or enter the address under connection details.');
       const url = deviceUrl(byId('address').value);
       const fingerprint = fingerprintBytes(byId('fingerprint').value);
       const pin = Array.from(fingerprint, byte => byte.toString(16).padStart(2, '0')).join('');

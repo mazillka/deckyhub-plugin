@@ -1,0 +1,36 @@
+.remote-install {
+  scroll-margin-top: 72px;
+  margin: 24px 0;
+  padding: clamp(14px, 4vw, 24px);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+}
+.remote-install h2, .remote-install h3 { margin-top: 0; }
+.remote-install form { border-top: 1px solid var(--line); padding-top: 16px; }
+.remote-install ol { padding-inline-start: 24px; }
+.remote-install li + li { margin-top: 6px; }
+.remote-install label, .remote-install summary { font-weight: 600; }
+.remote-install input, .remote-install select, .remote-install button {
+  max-width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  padding: 8px 12px;
+  font: inherit;
+}
+.remote-install input, .remote-install select { width: min(100%, 34rem); }
+.remote-install #remote-code { width: 11ch; letter-spacing: .15em; }
+.remote-install button:not(:disabled), .remote-install summary { cursor: pointer; }
+.remote-install button:disabled { opacity: .55; }
+.remote-install :focus-visible { outline: 2px solid var(--accent2); outline-offset: 2px; }
+.remote-install #remote-pair:not(:disabled), .remote-install #remote-request:not(:disabled) {
+  border-color: var(--accent2);
+  color: var(--accent2);
+  font-weight: 650;
+}
+.remote-install details { margin: 16px 0; }
+.remote-install .remote-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.remote-install #remote-status { padding: 10px 12px; border-inline-start: 3px solid var(--accent2); background: var(--bg); }
