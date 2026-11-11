@@ -59,6 +59,9 @@ async def start_transport(service):
             .serial_number(x509.random_serial_number())
             .not_valid_before(now - datetime.timedelta(minutes=5))
             .not_valid_after(now + datetime.timedelta(days=7))
+            # Chromium requires certificate extensions even when it pins the fingerprint.
+            # Keep the name independent of the current LAN address.
+            .add_extension(x509.SubjectAlternativeName([x509.DNSName("deckyhub.local")]), critical=False)
             .sign(key, hashes.SHA256())
         )
         service.transport_identity = cert, key
