@@ -1,8 +1,9 @@
 import type { MessageKey } from "./en";
 
 export const tr: Record<MessageKey, string> = {
-  "remote.title": "Uzaktan yükleme",
-  "remote.description": "Aynı ağdaki bir tarayıcıyı eşleştir. Her yükleme bu cihazda onay gerektirir.",
+  "remote.title": "Uzaktan yükleme (deneysel)",
+  "remote.description":
+    "Aynı ağdaki bir tarayıcıyı eşleştir. Her yükleme bu cihazda onay gerektirir. Yalnızca yerel ağda çalışır: hiçbir şey toplanmaz ve hiçbir yere gönderilmez.",
   "remote.address": "Cihaz adresi",
   "remote.fingerprint": "Sertifika parmak izi (SHA-256)",
   "remote.copyPairingLink": "Eşleştirme bağlantısını kopyala",

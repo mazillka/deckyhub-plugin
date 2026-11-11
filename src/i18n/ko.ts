@@ -1,8 +1,9 @@
 import type { MessageKey } from "./en";
 
 export const ko: Record<MessageKey, string> = {
-  "remote.title": "원격 설치",
-  "remote.description": "같은 네트워크의 브라우저를 연결하세요. 설치할 때마다 이 기기에서 승인해야 합니다.",
+  "remote.title": "원격 설치 (실험적)",
+  "remote.description":
+    "같은 네트워크의 브라우저를 연결하세요. 설치할 때마다 이 기기에서 승인해야 합니다. 로컬 네트워크에서만 작동하며, 어떤 정보도 수집하거나 외부로 보내지 않습니다.",
   "remote.address": "기기 주소",
   "remote.fingerprint": "인증서 지문 (SHA-256)",
   "remote.copyPairingLink": "페어링 링크 복사",

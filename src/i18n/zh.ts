@@ -1,8 +1,9 @@
 import type { MessageKey } from "./en";
 
 export const zh: Record<MessageKey, string> = {
-  "remote.title": "远程安装",
-  "remote.description": "配对同一网络上的浏览器。每次安装都需要在此设备上批准。",
+  "remote.title": "远程安装（实验性）",
+  "remote.description":
+    "配对同一网络上的浏览器。每次安装都需要在此设备上批准。仅在本地网络内运行：不会收集任何信息，也不会发送到任何地方。",
   "remote.address": "设备地址",
   "remote.fingerprint": "证书指纹 (SHA-256)",
   "remote.copyPairingLink": "复制配对链接",

@@ -1,7 +1,8 @@
 // Canonical key source — every other locale must cover the same keys.
 export const en = {
-  "remote.title": "Remote Install",
-  "remote.description": "Pair a browser on the same network. Every installation requires approval on this device.",
+  "remote.title": "Remote Install (experimental)",
+  "remote.description":
+    "Pair a browser on the same network. Every installation requires approval on this device. It works only on your local network: nothing is collected or sent anywhere.",
   "remote.address": "Device address",
   "remote.fingerprint": "Certificate fingerprint (SHA-256)",
   "remote.copyPairingLink": "Copy pairing link",

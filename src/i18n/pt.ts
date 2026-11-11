@@ -2,8 +2,9 @@ import type { MessageKey } from "./en";
 
 // Portuguese, written for Brazil (Steam's "Português-Brasil"); Portugal reads it fine.
 export const pt: Record<MessageKey, string> = {
-  "remote.title": "Instalação remota",
-  "remote.description": "Vincule um navegador na mesma rede. Cada instalação precisa de aprovação neste dispositivo.",
+  "remote.title": "Instalação remota (experimental)",
+  "remote.description":
+    "Vincule um navegador na mesma rede. Cada instalação precisa de aprovação neste dispositivo. Funciona só na rede local: nada é coletado nem enviado para lugar nenhum.",
   "remote.address": "Endereço do dispositivo",
   "remote.fingerprint": "Impressão digital do certificado (SHA-256)",
   "remote.copyPairingLink": "Copiar link de pareamento",

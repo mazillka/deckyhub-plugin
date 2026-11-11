@@ -1,8 +1,9 @@
 import type { MessageKey } from "./en";
 
 export const cs: Record<MessageKey, string> = {
-  "remote.title": "Vzdálená instalace",
-  "remote.description": "Spárujte prohlížeč ve stejné síti. Každou instalaci je třeba potvrdit na tomto zařízení.",
+  "remote.title": "Vzdálená instalace (experimentální)",
+  "remote.description":
+    "Spárujte prohlížeč ve stejné síti. Každou instalaci je třeba potvrdit na tomto zařízení. Funguje jen v místní síti: nic se neshromažďuje ani nikam neodesílá.",
   "remote.address": "Adresa zařízení",
   "remote.fingerprint": "Otisk certifikátu (SHA-256)",
   "remote.copyPairingLink": "Zkopírovat odkaz pro párování",

@@ -1,9 +1,9 @@
 import type { MessageKey } from "./en";
 
 export const ja: Record<MessageKey, string> = {
-  "remote.title": "リモートインストール",
+  "remote.title": "リモートインストール（試験的）",
   "remote.description":
-    "同じネットワークのブラウザーをペアリングします。インストールごとにこのデバイスでの承認が必要です。",
+    "同じネットワークのブラウザーをペアリングします。インストールごとにこのデバイスでの承認が必要です。ローカルネットワーク内だけで動作し、データの収集や外部への送信は一切ありません。",
   "remote.address": "デバイスのアドレス",
   "remote.fingerprint": "証明書のフィンガープリント (SHA-256)",
   "remote.copyPairingLink": "ペアリングリンクをコピー",

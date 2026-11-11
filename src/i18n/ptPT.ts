@@ -2,8 +2,9 @@ import type { MessageKey } from "./en";
 
 // Portuguese, written for Portugal; Brazil has its own in pt.ts.
 export const ptPT: Record<MessageKey, string> = {
-  "remote.title": "Instalação remota",
-  "remote.description": "Associe um navegador na mesma rede. Cada instalação requer aprovação neste dispositivo.",
+  "remote.title": "Instalação remota (experimental)",
+  "remote.description":
+    "Associe um navegador na mesma rede. Cada instalação requer aprovação neste dispositivo. Funciona apenas na rede local: nada é recolhido nem enviado para lado nenhum.",
   "remote.address": "Endereço do dispositivo",
   "remote.fingerprint": "Impressão digital do certificado (SHA-256)",
   "remote.copyPairingLink": "Copiar ligação de emparelhamento",

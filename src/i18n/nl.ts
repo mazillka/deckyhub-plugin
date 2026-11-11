@@ -1,9 +1,9 @@
 import type { MessageKey } from "./en";
 
 export const nl: Record<MessageKey, string> = {
-  "remote.title": "Installatie op afstand",
+  "remote.title": "Installatie op afstand (experimenteel)",
   "remote.description":
-    "Koppel een browser op hetzelfde netwerk. Elke installatie vereist goedkeuring op dit apparaat.",
+    "Koppel een browser op hetzelfde netwerk. Elke installatie vereist goedkeuring op dit apparaat. Werkt alleen op het lokale netwerk: er wordt niets verzameld of ergens naartoe gestuurd.",
   "remote.address": "Apparaatadres",
   "remote.fingerprint": "Certificaatvingerafdruk (SHA-256)",
   "remote.copyPairingLink": "Koppelingslink kopiëren",
