@@ -40,8 +40,8 @@
 
 .remote-device-dashboard {
   display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -54,7 +54,15 @@
   border-radius: 12px;
   background: var(--panel);
 }
-.remote-device-dashboard form { align-self: start; }
+.remote-device-dashboard form { scroll-margin-top: 72px; }
+.remote-device-dashboard .remote-device-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+.remote-device-dashboard .remote-device-heading .btn { margin: 0; }
 .remote-device-dashboard .remote-inventory { margin-top: 22px; }
 .remote-device-dashboard .remote-actions { align-items: center; }
 .remote-device-dashboard .remote-actions .btn { margin: 0; }
@@ -67,6 +75,3 @@
   background: var(--bg);
 }
 .remote-device-dashboard .remote-plugins .remote-actions { margin-top: 6px; }
-@media (max-width: 740px) {
-  .remote-device-dashboard { grid-template-columns: minmax(0, 1fr); }
-}
