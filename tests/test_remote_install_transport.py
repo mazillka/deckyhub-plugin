@@ -27,7 +27,9 @@ class RemoteInstallTransportTests(unittest.IsolatedAsyncioTestCase):
         first, second = (call.kwargs["configuration"] for call in serve.await_args_list)
         names = first.certificate.extensions.get_extension_for_class(x509.SubjectAlternativeName).value
         self.assertEqual(names.get_values_for_type(x509.DNSName), ["deckyhub.local"])
-        self.assertEqual(first_pin, hashlib.sha256(first.certificate.public_bytes(serialization.Encoding.DER)).hexdigest())
+        self.assertEqual(
+            first_pin, hashlib.sha256(first.certificate.public_bytes(serialization.Encoding.DER)).hexdigest()
+        )
         self.assertIs(first.certificate, second.certificate)
         self.assertEqual(first_pin, second_pin)
         self.assertEqual(first_url, "https://192.168.1.20:8765/remote-install")
