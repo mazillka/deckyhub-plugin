@@ -401,10 +401,13 @@ def remote_install_picker(plugin_id: str) -> str:
 </section>"""
 
 
-def paired_devices_page(shell: dict[str, str]) -> str:
-    description = "Pair a device and manage its installed Decky plugins."
+def paired_devices_page(
+    shell: dict[str, str],
+    title: str = "Paired devices | DeckyHub",
+    description: str = "Pair a device and manage its installed Decky plugins.",
+) -> str:
     body = "<h1>Paired devices</h1>" + remote_device_panel()
-    return page(shell, "Paired devices | DeckyHub", description, "remote-install/", body, [])
+    return page(shell, title, description, "remote-install/", body, [], current="paired-devices")
 
 
 def plugin_page(
@@ -793,11 +796,29 @@ def write_pages(out, apps: list[dict], releases_page: str, data: dict) -> list[t
     remote_page = paired_devices_page(shell)
     (out / "remote-install").mkdir(exist_ok=True)
     (out / "remote-install" / "index.html").write_text(remote_page, encoding="utf-8")
-    (out / "paired-devices.html").write_text(remote_page, encoding="utf-8")
+    (out / "paired-devices").mkdir(exist_ok=True)
+    (out / "paired-devices" / "index.html").write_text(
+        paired_devices_page(
+            shell,
+            "Manage paired devices | DeckyHub",
+            "Choose a paired device to review, install or remove Decky plugins.",
+        ),
+        encoding="utf-8",
+    )
+    (out / "paired-devices.html").write_text(
+        paired_devices_page(
+            shell,
+            "Device pairing | DeckyHub",
+            "Open your saved DeckyHub pairing link and manage plugins on your device.",
+        ),
+        encoding="utf-8",
+    )
     urls = [
         (f"{SITE}plugins/", today),
         (f"{SITE}plugins/known-issues.html", today),
         (f"{SITE}remote-install/", today),
+        (f"{SITE}paired-devices/", today),
+        (f"{SITE}paired-devices.html", today),
     ]
     for app in apps:
         key = app["repo"].casefold()

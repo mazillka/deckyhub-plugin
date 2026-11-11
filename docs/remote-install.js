@@ -39,7 +39,7 @@ export function detailsFromPairingLink(value) {
   try {
     const url = new URL(value.trim());
     if (url.origin !== 'https://deckyhub.com' ||
-        !['/develop/plugins/', '/develop/paired-devices.html', '/develop/remote-install/'].includes(url.pathname) || url.username || url.password) return null;
+        !['/develop/plugins/', '/develop/paired-devices.html', '/develop/paired-devices/', '/develop/remote-install/'].includes(url.pathname) || url.username || url.password) return null;
     return pairingDetails(url.hash);
   } catch {
     return null;
