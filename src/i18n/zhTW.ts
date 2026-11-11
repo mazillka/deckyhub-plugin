@@ -9,7 +9,7 @@ export const zhTW: Record<MessageKey, string> = {
   "remote.copyPairingLink": "複製配對連結",
   "remote.pair": "配對瀏覽器",
   "remote.pairings": "配對請求",
-  "remote.requests": "安裝請求",
+  "remote.requests": "外掛操作請求",
   "remote.from": "來自 {name}",
   "remote.devices": "已配對的瀏覽器",
   "remote.approve": "核准",

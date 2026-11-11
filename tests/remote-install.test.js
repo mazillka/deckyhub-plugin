@@ -15,6 +15,7 @@ test('pasted DeckyHub links fill device details without navigating away from the
   const address = '192.168.1.20:8765', fingerprint = 'ab'.repeat(32);
   const path = `/develop/plugins/#${new URLSearchParams({ device: address, fingerprint })}`;
   assert.deepEqual(detailsFromPairingLink(`https://deckyhub.com${path}`), { address, fingerprint });
+  assert.deepEqual(detailsFromPairingLink(`https://deckyhub.com${path.replace('/plugins/', '/paired-devices.html')}`), { address, fingerprint });
   assert.equal(detailsFromPairingLink(`https://example.com${path}`), null);
 });
 

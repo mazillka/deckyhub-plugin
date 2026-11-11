@@ -9,7 +9,7 @@ export const fr: Record<MessageKey, string> = {
   "remote.copyPairingLink": "Copier le lien d’association",
   "remote.pair": "Associer un navigateur",
   "remote.pairings": "Demandes d’association",
-  "remote.requests": "Demandes d’installation",
+  "remote.requests": "Demandes de modification des plugins",
   "remote.from": "De {name}",
   "remote.devices": "Navigateurs associés",
   "remote.approve": "Approuver",

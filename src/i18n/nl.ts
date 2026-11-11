@@ -9,7 +9,7 @@ export const nl: Record<MessageKey, string> = {
   "remote.copyPairingLink": "Koppelingslink kopiëren",
   "remote.pair": "Browser koppelen",
   "remote.pairings": "Koppelverzoeken",
-  "remote.requests": "Installatieverzoeken",
+  "remote.requests": "Verzoeken voor plug-ins",
   "remote.from": "Van {name}",
   "remote.devices": "Gekoppelde browsers",
   "remote.approve": "Goedkeuren",

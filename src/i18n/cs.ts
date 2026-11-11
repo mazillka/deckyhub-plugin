@@ -8,7 +8,7 @@ export const cs: Record<MessageKey, string> = {
   "remote.copyPairingLink": "Zkopírovat odkaz pro párování",
   "remote.pair": "Spárovat prohlížeč",
   "remote.pairings": "Žádosti o spárování",
-  "remote.requests": "Žádosti o instalaci",
+  "remote.requests": "Požadavky na změny pluginů",
   "remote.from": "Od {name}",
   "remote.devices": "Spárované prohlížeče",
   "remote.approve": "Schválit",

@@ -9,7 +9,7 @@ export const ja: Record<MessageKey, string> = {
   "remote.copyPairingLink": "ペアリングリンクをコピー",
   "remote.pair": "ブラウザーをペアリング",
   "remote.pairings": "ペアリング要求",
-  "remote.requests": "インストール要求",
+  "remote.requests": "プラグイン操作のリクエスト",
   "remote.from": "送信元: {name}",
   "remote.devices": "ペアリング済みブラウザー",
   "remote.approve": "承認",

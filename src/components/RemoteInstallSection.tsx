@@ -20,10 +20,11 @@ import { installWarnings, type RemoteInstallRequest, type RemoteInstallStatus } 
 import { useT } from "../i18n";
 import { copyText } from "../clipboard";
 import { listAppReleases, fetchPluginStats } from "../releases";
-import { getDeckyBackend, installAction, installDeckyPlugin, needsFreshInstall } from "../install";
+import { getDeckyBackend, installAction, installDeckyPlugin, needsFreshInstall, PLUGIN_INSTALL_TYPE } from "../install";
 import { manifestName } from "../utils";
 import { confirmPluginInstall } from "./InstallFlow";
 import { compactButtonStyle, sectionDividerStyle } from "../utils";
+import { approveRemoteUninstall } from "./RemotePluginUninstall";
 
 export function RemoteInstallSection() {
   const t = useT();
@@ -113,15 +114,25 @@ export function RemoteInstallSection() {
     let handedOver = false;
     try {
       if (!getDeckyBackend()) throw new Error(t("settings.selfUpdateUnavailable"));
+      if (request.action === "uninstall") {
+        await approveRemoteUninstall(request, t);
+        return;
+      }
       const { apps } = await getApps();
       const app = apps.find((item) => item.id === request.pluginId);
       if (!app) throw new Error(t("appcard.noMatchingAsset"));
+      if (request.action === "update" && (!app.installedVersion || app.repo !== request.repo))
+        throw new Error(t("appcard.noMatchingAsset"));
       const { items, error } = await listAppReleases(app, true);
       const release = request.releaseTag
         ? items.find((item) => item.tag === request.releaseTag)
         : items.find((item) => !item.prerelease);
       const action = release && installAction(app, release);
       if (!release || !action || !release.assets[0]) throw new Error(error || t("appcard.noMatchingAsset"));
+      if (request.action === "update" && action.type !== PLUGIN_INSTALL_TYPE.UPDATE) {
+        await decideRemoteRequest(request.id, false);
+        throw new Error(t("status.upToDate"));
+      }
       const stats = await fetchPluginStats(false).catch(() => ({}) as Awaited<ReturnType<typeof fetchPluginStats>>);
       const warningApp = {
         ...app,
@@ -137,12 +148,20 @@ export function RemoteInstallSection() {
       ]
         .filter(Boolean)
         .join(" · ");
-      const accepted = await confirmPluginInstall(t, `${app.name} — ${release.tag}`, t("appcard.install"), {
-        note,
-        asset: release.assets[0],
-        warnings: installWarnings(warningApp),
-      });
-      if (!accepted) return;
+      const accepted = await confirmPluginInstall(
+        t,
+        `${app.name} — ${release.tag}`,
+        t(request.action === "update" ? "appcard.update" : "appcard.install"),
+        {
+          note,
+          asset: release.assets[0],
+          warnings: installWarnings(warningApp),
+        },
+      );
+      if (!accepted) {
+        await decideRemoteRequest(request.id, false);
+        return;
+      }
       await decideRemoteRequest(request.id, true);
       approved = true;
       // Refresh registry and release data after approval. Never substitute a different ZIP.
@@ -165,6 +184,7 @@ export function RemoteInstallSection() {
       const claim = await claimRemoteRequest(request.id);
       if (claim.pluginId !== request.pluginId || (claim.releaseTag ?? null) !== (request.releaseTag ?? null))
         throw new Error(t("appcard.noMatchingAsset"));
+      if ((claim.action ?? "install") !== (request.action ?? "install")) throw new Error(t("appcard.noMatchingAsset"));
       // Loader's confirmation can be cancelled, and its events lack request IDs. A handoff
       // cannot prove success: report unknown unless a future correlated result is available.
       handedOver = true;
@@ -190,7 +210,7 @@ export function RemoteInstallSection() {
     (() => {
       const device = new URL(status.address).host;
       const details = new URLSearchParams({ device, fingerprint: status.fingerprint });
-      return `https://deckyhub.com/develop/plugins/#${details}`;
+      return `https://deckyhub.com/develop/paired-devices.html#${details}`;
     })();
 
   return (
@@ -333,7 +353,16 @@ export function RemoteInstallSection() {
                       <PanelSectionRow key={r.id}>
                         <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 8 }}>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontWeight: "bold" }}>{r.pluginId}</div>
+                            <div style={{ fontWeight: "bold" }}>
+                              {t(
+                                r.action === "uninstall"
+                                  ? "appcard.uninstall"
+                                  : r.action === "update"
+                                    ? "appcard.update"
+                                    : "appcard.install",
+                              )}{" "}
+                              · {r.pluginName || r.pluginId}
+                            </div>
                             <div style={{ fontSize: "0.8em", color: colors.muted }}>
                               {t("remote.from", { name: r.ownerName })}
                               {r.releaseTag ? ` (${r.releaseTag})` : ""}

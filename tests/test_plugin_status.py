@@ -55,6 +55,23 @@ class PluginStatusTests(unittest.TestCase):
             with self.subTest(repository=repository):
                 self.assertIsNone(plugin._plugin_repository({}, {"repository": repository}))
 
+    def test_remote_inventory_keeps_unlisted_installed_plugins_visible(self):
+        plugin = Plugin()
+        plugin.settings = {"customRepos": []}
+        plugin.apps = [
+            {"id": "known", "name": "Known plugin", "repo": "owner/known", "detect": {"type": "decky-plugin"}}
+        ]
+        installed = [
+            ({"name": "Known plugin", "version": "1.2.3"}, {}, "owner/known"),
+            ({"name": "Unlisted plugin"}, {"version": "4.5.6"}, None),
+        ]
+        with patch.object(plugin, "_scan_installed_plugins", return_value=installed):
+            inventory = plugin._remote_installed_plugins()
+        self.assertEqual(
+            [(row["id"], row["name"], row["version"], row["identityUnverified"]) for row in inventory],
+            [("known", "Known plugin", "1.2.3", False), (None, "Unlisted plugin", "4.5.6", True)],
+        )
+
     def test_decky_plugin_detection_reads_manifest_and_package_version(self):
         with tempfile.TemporaryDirectory() as home:
             plugin_dir = Path(home) / "plugins" / "mako"

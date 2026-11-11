@@ -1,5 +1,6 @@
 """Opt-in WebTransport listener; missing dependencies never expose an insecure fallback."""
 
+import asyncio
 import datetime
 import hashlib
 import ipaddress
@@ -77,6 +78,7 @@ async def start_transport(service):
             self.http = None
             self.sessions = set()
             self.streams = {}
+            self.responses = {}
             self.request_times = deque()
             self.over_limit = len(active_connections) >= MAX_CONNECTIONS
             if not self.over_limit:
@@ -87,6 +89,9 @@ async def start_transport(service):
                 active_connections.discard(self)
                 self.sessions.clear()
                 self.streams.clear()
+                for task in self.responses.values():
+                    task.cancel()
+                self.responses.clear()
                 return
             if self.over_limit:
                 self.close(error_code=0x10, reason_phrase="connection limit reached")
@@ -115,6 +120,8 @@ async def start_transport(service):
                         self.sessions.add(e.stream_id)
                     self.transmit()
                 elif isinstance(e, WebTransportStreamDataReceived) and e.session_id in self.sessions:
+                    if e.stream_id in self.responses:
+                        continue
                     if e.stream_id not in self.streams and len(self.streams) >= MAX_STREAMS:
                         self._quic.reset_stream(e.stream_id, 0x10)
                         continue
@@ -124,20 +131,29 @@ async def start_transport(service):
                         del self.streams[e.stream_id]
                         self._quic.reset_stream(e.stream_id, 0x10)
                     elif e.stream_ended:
-                        del self.streams[e.stream_id]
-                        try:
-                            now = time.monotonic()
-                            while self.request_times and now - self.request_times[0] >= 60:
-                                self.request_times.popleft()
-                            if len(self.request_times) >= MAX_REQUESTS_PER_MINUTE:
-                                raise ValueError("request rate limit")
-                            self.request_times.append(now)
-                            msg = json.loads(data.decode("utf-8"))
-                            result = {"ok": True, **service.remote(msg)}
-                        except Exception:
-                            result = {"ok": False, "error": "Request rejected"}
-                        self._quic.send_stream_data(e.stream_id, json.dumps(result).encode(), end_stream=True)
+                        self.responses[e.stream_id] = asyncio.create_task(self.respond(e.stream_id, bytes(data)))
                     self.transmit()
+
+        async def respond(self, stream_id, data):
+            try:
+                now = time.monotonic()
+                while self.request_times and now - self.request_times[0] >= 60:
+                    self.request_times.popleft()
+                if len(self.request_times) >= MAX_REQUESTS_PER_MINUTE:
+                    raise ValueError("request rate limit")
+                self.request_times.append(now)
+                message = json.loads(data.decode("utf-8"))
+                result = {"ok": True, **await service.remote_async(message)}
+                payload = json.dumps(result).encode()
+                if len(payload) > MAX_MESSAGE:
+                    raise ValueError("response is too large")
+            except Exception:
+                payload = b'{"ok":false,"error":"Request rejected"}'
+            finally:
+                self.streams.pop(stream_id, None)
+                self.responses.pop(stream_id, None)
+            self._quic.send_stream_data(stream_id, payload, end_stream=True)
+            self.transmit()
 
     config = QuicConfiguration(
         is_client=False,

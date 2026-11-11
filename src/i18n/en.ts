@@ -7,7 +7,7 @@ export const en = {
   "remote.copyPairingLink": "Copy pairing link",
   "remote.pair": "Pair browser",
   "remote.pairings": "Pairing requests",
-  "remote.requests": "Install requests",
+  "remote.requests": "Plugin requests",
   "remote.from": "From {name}",
   "remote.devices": "Paired browsers",
   "remote.approve": "Approve",

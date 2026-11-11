@@ -15,7 +15,7 @@ from typing import Callable
 _ID = re.compile(r"[a-z0-9][a-z0-9-]{0,127}\Z")
 _TAG = re.compile(r"[A-Za-z0-9][A-Za-z0-9._+/-]{0,127}\Z")
 _KEY = re.compile(r"[A-Za-z0-9_-]{1,128}\Z")
-_TERMINAL = frozenset({"rejected", "expired", "cancelled", "installed", "failed", "unknown"})
+_TERMINAL = frozenset({"rejected", "expired", "cancelled", "installed", "uninstalled", "failed", "unknown"})
 
 
 class QueueFullError(Exception):
@@ -39,6 +39,10 @@ class InstallRequest:
     status: str
     expires_at: float
     updated_at: float
+    action: str = "install"
+    repository: str | None = None
+    plugin_name: str | None = None
+    installed_version: str | None = None
 
 
 class RemoteInstallQueue:
@@ -68,7 +72,22 @@ class RemoteInstallQueue:
                 del self._requests[request_id]
         self._keys = {key: request_id for key, request_id in self._keys.items() if request_id in self._requests}
 
-    def create(self, owner: str, key: str, plugin_id: str, release_tag: str | None = None) -> InstallRequest:
+    def create(
+        self,
+        owner: str,
+        key: str,
+        plugin_id: str,
+        release_tag: str | None = None,
+        *,
+        action: str = "install",
+        repository: str | None = None,
+        plugin_name: str | None = None,
+        installed_version: str | None = None,
+    ) -> InstallRequest:
+        if action not in ("install", "update", "uninstall"):
+            raise ValueError("invalid action")
+        if action == "uninstall" and release_tag is not None:
+            raise ValueError("uninstall cannot select a release")
         if not isinstance(owner, str) or not _KEY.fullmatch(owner):
             raise ValueError("invalid owner")
         if not isinstance(key, str) or not _KEY.fullmatch(key):
@@ -89,7 +108,14 @@ class RemoteInstallQueue:
             previous_id = self._keys.get((owner, key))
             if previous_id is not None:
                 previous = self._requests[previous_id]
-                if (previous.plugin_id, previous.release_tag) != (plugin_id, release_tag):
+                if (
+                    previous.plugin_id,
+                    previous.release_tag,
+                    previous.action,
+                    previous.repository,
+                    previous.plugin_name,
+                    previous.installed_version,
+                ) != (plugin_id, release_tag, action, repository, plugin_name, installed_version):
                     raise RequestConflictError("idempotency key already used")
                 return previous
             if len(self._requests) >= self._capacity:
@@ -98,7 +124,17 @@ class RemoteInstallQueue:
             while request_id in self._requests:
                 request_id = secrets.token_urlsafe(24)
             request = InstallRequest(
-                request_id, owner, plugin_id, release_tag, "pending_confirmation", now + self._ttl, now
+                request_id,
+                owner,
+                plugin_id,
+                release_tag,
+                "pending_confirmation",
+                now + self._ttl,
+                now,
+                action,
+                repository,
+                plugin_name,
+                installed_version,
             )
             self._requests[request_id] = request
             self._keys[(owner, key)] = request_id
@@ -109,6 +145,26 @@ class RemoteInstallQueue:
             self._sweep(self._clock())
             request = self._requests.get(request_id)
             return request if request is not None and request.owner == owner else None
+
+    def retry(
+        self, owner: str, key: str, plugin_id: str, release_tag: str | None, action: str
+    ) -> InstallRequest | None:
+        if not isinstance(key, str) or not _KEY.fullmatch(key):
+            raise ValueError("invalid idempotency key")
+        with self._lock:
+            self._sweep(self._clock())
+            request_id = self._keys.get((owner, key))
+            if request_id is None:
+                return None
+            request = self._requests[request_id]
+            if (request.plugin_id, request.release_tag, request.action) != (plugin_id, release_tag, action):
+                raise RequestConflictError("idempotency key already used")
+            return request
+
+    def get_local(self, request_id: str) -> InstallRequest:
+        with self._lock:
+            self._sweep(self._clock())
+            return self._requests[request_id]
 
     def pending(self) -> tuple[InstallRequest, ...]:
         """For the local approval UI, not a remote owner-scoped API."""
@@ -144,6 +200,7 @@ class RemoteInstallQueue:
             "installing": {"approved"},
             "failed": {"approved", "installing"},
             "installed": {"installing"},
+            "uninstalled": {"installing"},
             "unknown": {"installing"},
         }
         if status not in allowed:

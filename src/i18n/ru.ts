@@ -8,7 +8,7 @@ export const ru: Record<MessageKey, string> = {
   "remote.copyPairingLink": "Копировать ссылку для сопряжения",
   "remote.pair": "Подключить браузер",
   "remote.pairings": "Запросы на подключение",
-  "remote.requests": "Запросы на установку",
+  "remote.requests": "Запросы на изменение плагинов",
   "remote.from": "От {name}",
   "remote.devices": "Подключённые браузеры",
   "remote.approve": "Подтвердить",

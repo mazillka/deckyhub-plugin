@@ -1,3 +1,5 @@
+import { createPluginList } from './remote-plugins.js';
+
 // Remote requests use WebTransport with the certificate fingerprint displayed on the device.
 // The user must enter the fingerprint through this trusted HTTPS page, not a network response.
 export function deviceUrl(address) {
@@ -34,7 +36,8 @@ export function pairingDetails(fragment) {
 export function detailsFromPairingLink(value) {
   try {
     const url = new URL(value.trim());
-    if (url.origin !== 'https://deckyhub.com' || url.pathname !== '/develop/plugins/' || url.username || url.password) return null;
+    if (url.origin !== 'https://deckyhub.com' ||
+        !['/develop/plugins/', '/develop/paired-devices.html'].includes(url.pathname) || url.username || url.password) return null;
     return pairingDetails(url.hash);
   } catch {
     return null;
@@ -43,6 +46,7 @@ export function detailsFromPairingLink(value) {
 
 const PAIRING_DETAILS_KEY = 'deckyhub.remoteInstall.device';
 const PAIRED_DEVICES_KEY = 'deckyhub.remoteInstall.pairedDevices';
+const SELECTED_DEVICE_KEY = 'deckyhub.remoteInstall.selectedDevice';
 
 function timeout(promise, ms) {
   let timer;
@@ -83,8 +87,8 @@ export async function exchange(transport, message) {
 }
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
-const REQUEST_STATES = new Set(['pending_confirmation', 'approved', 'installing', 'installed', 'rejected', 'expired', 'cancelled', 'failed', 'unknown']);
-const TERMINAL = new Set(['installed', 'rejected', 'expired', 'cancelled', 'failed', 'unknown']);
+const REQUEST_STATES = new Set(['pending_confirmation', 'approved', 'installing', 'installed', 'uninstalled', 'rejected', 'expired', 'cancelled', 'failed', 'unknown']);
+const TERMINAL = new Set(['installed', 'uninstalled', 'rejected', 'expired', 'cancelled', 'failed', 'unknown']);
 
 export function init(root, details) {
   const byId = id => root.querySelector(`#remote-${id}`);
@@ -94,13 +98,17 @@ export function init(root, details) {
   const picker = byId('device-picker');
   const pluginId = root.dataset.pluginId;
   let transport, endpoint, token, requestId, idempotencyKey, requestPluginId, cancelled = false;
+  let requestAction = 'install', busy = false;
+  let inventory;
   let devices = [];
+  let selectedFingerprint;
   try {
     const saved = JSON.parse(sessionStorage.getItem(PAIRED_DEVICES_KEY) || '[]');
     if (Array.isArray(saved)) devices = saved.filter(device =>
       device && typeof device.name === 'string' && typeof device.address === 'string' &&
       /^[a-f0-9]{64}$/.test(device.fingerprint) && /^[A-Za-z0-9_-]{43}$/.test(device.token),
     ).slice(0, 16);
+    selectedFingerprint = sessionStorage.getItem(SELECTED_DEVICE_KEY);
   } catch { /* Pairing remains available without browser storage. */ }
   const say = message => { status.textContent = message; };
   const closeTransport = () => {
@@ -115,6 +123,8 @@ export function init(root, details) {
     requestButton.disabled = true;
     cancelButton.disabled = true;
     reconnectButton.hidden = true;
+    inventory?.reset();
+    inventory?.setEnabled(false);
   };
   const send = async message => {
     if (!endpoint) throw new Error('Pair with your device first.');
@@ -140,22 +150,30 @@ export function init(root, details) {
     }
   };
   const showError = error => say(error instanceof Error ? error.message : 'Unable to contact the device.');
-  if (!/^[a-z0-9][a-z0-9-]{0,127}$/.test(pluginId || '')) { say('Invalid plugin identifier.'); pairButton.disabled = true; return; }
+  if (pluginId && !/^[a-z0-9][a-z0-9-]{0,127}$/.test(pluginId)) { say('Invalid plugin identifier.'); pairButton.disabled = true; return; }
   if (typeof WebTransport === 'undefined' || !globalThis.isSecureContext) { say('This browser does not support secure remote installation.'); pairButton.disabled = true; return; }
   const activeDevice = () => devices.find(device => device.token === token);
   const saveDevices = () => {
     try { sessionStorage.setItem(PAIRED_DEVICES_KEY, JSON.stringify(devices)); } catch { /* Keep pairings in this page. */ }
   };
+  const rememberDevice = device => {
+    try {
+      if (device) sessionStorage.setItem(SELECTED_DEVICE_KEY, device.fingerprint);
+      else sessionStorage.removeItem(SELECTED_DEVICE_KEY);
+    } catch { /* Selection still works in this page. */ }
+  };
   const saveRequest = () => {
     const device = activeDevice();
     if (!device) return;
-    device.pending = idempotencyKey ? { key: idempotencyKey, id: requestId, pluginId: requestPluginId } : undefined;
+    device.pending = idempotencyKey ? { key: idempotencyKey, id: requestId, pluginId: requestPluginId, action: requestAction } : undefined;
     saveDevices();
   };
   const updateActions = () => {
-    requestButton.disabled = !token || (Boolean(requestPluginId) && requestPluginId !== pluginId);
+    requestButton.disabled = !token || busy;
+    requestButton.hidden = !pluginId && !idempotencyKey;
     requestButton.textContent = idempotencyKey ? 'Retry request status' : 'Send install request';
     pairButton.disabled = Boolean(idempotencyKey);
+    inventory?.setEnabled(Boolean(token) && !busy && !idempotencyKey);
   };
   const renderPicker = selected => {
     picker.replaceChildren(new Option(devices.length ? 'Pair another device' : 'Pair a device', ''));
@@ -167,24 +185,27 @@ export function init(root, details) {
     disconnect();
     requestId = idempotencyKey = requestPluginId = undefined;
     const device = devices[index];
+    rememberDevice(device);
     if (!device) { updateActions(); say('Enter the details for the device you want to pair.'); return; }
     try {
       endpoint = { url: deviceUrl(device.address), fingerprint: fingerprintBytes(device.fingerprint) };
       token = device.token;
       ({ id: requestId, key: idempotencyKey, pluginId: requestPluginId } = device.pending || {});
+      requestAction = device.pending?.action || 'install';
       byId('address').value = device.address;
       byId('fingerprint').value = device.fingerprint;
       byId('device-name').value = device.name;
       reconnectButton.hidden = false;
       updateActions();
-      say(requestPluginId && requestPluginId !== pluginId
-        ? 'This device has a pending request for another plugin. Return to that plugin to check its status.'
-        : `${device.name} selected. Each install still needs approval on the device.`);
+      say(requestPluginId
+        ? 'This device has a pending request. Retry its status before starting another change.'
+        : `${device.name} selected.`);
     } catch (error) { showError(error); }
   };
   picker.addEventListener('change', () => selectDevice(picker.value));
-  renderPicker(devices.length && !details ? 0 : undefined);
-  if (devices.length && !details) selectDevice(0);
+  const selectedIndex = Math.max(0, devices.findIndex(device => device.fingerprint === selectedFingerprint));
+  renderPicker(devices.length && !details ? selectedIndex : undefined);
+  if (devices.length && !details) selectDevice(selectedIndex);
   const fillDevice = ({ address, fingerprint }) => {
     byId('address').value = address;
     if (token) {
@@ -241,10 +262,12 @@ export function init(root, details) {
           const deviceName = byId('device-name').value.trim().slice(0, 64) || address;
           devices = [...devices.filter(device => device.fingerprint !== pin), { name: deviceName, address, fingerprint: pin, token }];
           saveDevices();
+          rememberDevice(activeDevice());
+          try { sessionStorage.removeItem(PAIRING_DETAILS_KEY); } catch { /* Pairing is already complete. */ }
           renderPicker(devices.length - 1);
           reconnectButton.hidden = false;
           say('Paired. Request installation, then approve it on your device.');
-          requestButton.disabled = false;
+          updateActions();
           return;
         }
         if (result.status === 'rejected' || result.status === 'expired') throw new Error(`Pairing ${result.status}.`);
@@ -272,19 +295,23 @@ export function init(root, details) {
       say('Address updated. Send to device or retry the pending request to reconnect.');
     } catch (error) { showError(error); }
   });
-  requestButton.addEventListener('click', async () => {
-    if (!endpoint || !token || (requestPluginId && requestPluginId !== pluginId)) return;
+  const runRequest = async (selectedPluginId = pluginId, action = 'install') => {
+    if (!endpoint || !token || busy || !selectedPluginId) return;
+    if (idempotencyKey && (selectedPluginId !== requestPluginId || action !== requestAction)) return;
+    busy = true;
     requestButton.disabled = true;
     pairButton.disabled = true;
     picker.disabled = true;
     cancelled = false;
     idempotencyKey ||= crypto.randomUUID();
-    requestPluginId = pluginId;
+    requestPluginId = selectedPluginId;
+    requestAction = action;
     saveRequest();
+    inventory?.setEnabled(false);
     try {
       const result = requestId
         ? await send({ op: 'status', token, requestId })
-        : await send({ op: 'request', token, idempotencyKey, pluginId });
+        : await send({ op: 'request', token, idempotencyKey, pluginId: requestPluginId, action: requestAction });
       if (typeof result.requestId !== 'string' || !result.requestId ||
           (requestId && result.requestId !== requestId) || !REQUEST_STATES.has(result.status)) throw new Error('Invalid request response.');
       requestId = result.requestId;
@@ -294,7 +321,7 @@ export function init(root, details) {
       const deadline = Date.now() + 120000;
       while (!TERMINAL.has(state) && !cancelled && Date.now() < deadline) {
         cancelButton.disabled = state !== 'pending_confirmation';
-        say(state === 'pending_confirmation' ? 'Waiting for approval on your device.' : state === 'approved' ? 'Approved; waiting to install.' : 'Installing…');
+        say(state === 'pending_confirmation' ? 'Waiting for approval on your device.' : state === 'approved' ? 'Approved; waiting for your device.' : requestAction === 'uninstall' ? 'Uninstalling…' : 'Installing…');
         await sleep(delay);
         if (cancelled) return;
         try {
@@ -308,20 +335,31 @@ export function init(root, details) {
         }
       }
       if (cancelled) return;
-      if (!TERMINAL.has(state)) throw new Error('Status unknown. The request may still be active; retry status before requesting another install.');
-      say(state === 'installed' ? 'Installed on your device.' : state === 'unknown' ? 'Installation outcome unknown. Check your device before trying again.' : `Installation ${state}.`);
+      if (!TERMINAL.has(state)) throw new Error('Status unknown. Retry request status before starting another change.');
+      say(state === 'installed' ? 'Installed on your device.' : state === 'uninstalled' ? 'Uninstalled from your device.' : state === 'unknown' ? 'Outcome unknown. Check your device before trying again.' : `Request ${state}.`);
       idempotencyKey = undefined;
       requestId = undefined;
       requestPluginId = undefined;
       saveRequest();
+      if (state === 'installed' || state === 'uninstalled' || state === 'unknown') inventory?.reset();
       cancelButton.disabled = true;
     } catch (_) {
-      say('Status unknown. The request may still be active; retry status before requesting another install.');
+      say('Status unknown. The request may still be active; retry request status before starting another change.');
     } finally {
+      busy = false;
       updateActions();
       renderPicker(devices.indexOf(activeDevice()));
     }
+  };
+  requestButton.addEventListener('click', () => runRequest(requestPluginId || pluginId, idempotencyKey ? requestAction : 'install'));
+  inventory = createPluginList(root, {
+    loadPage: offset => send({ op: 'plugins', token, offset }),
+    request: (id, action) => {
+      status.scrollIntoView({ block: 'nearest' });
+      return runRequest(id, action);
+    },
   });
+  updateActions();
   cancelButton.addEventListener('click', async () => {
     if (!endpoint || !token || !requestId) return;
     cancelButton.disabled = true;

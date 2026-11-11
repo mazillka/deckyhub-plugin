@@ -13,11 +13,7 @@ from deckyhub.settings import coerce_settings
 
 
 def run_coro(coro):
-    while True:
-        try:
-            coro.send(None)
-        except StopIteration as e:
-            return e.value
+    return asyncio.run(coro)
 
 
 class DummyPlugin(RemoteInstallMixin):

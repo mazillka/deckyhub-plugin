@@ -10,9 +10,17 @@ from .remote_install_transport import lan_address, start_transport
 
 
 class RemoteInstallMixin:
+    def _remote_apps(self) -> list:
+        custom = self._custom_apps() if hasattr(self, "_custom_apps") else []
+        return [*getattr(self, "apps", []), *custom]
+
+    def _remote_inventory(self) -> list:
+        return self._remote_installed_plugins() if hasattr(self, "_remote_installed_plugins") else []
+
     def _init_remote_install(self):
         self.remote_install_service = RemoteInstallService(
-            apps=lambda: getattr(self, "apps", []),
+            apps=self._remote_apps,
+            installed=self._remote_inventory,
         )
         self.remote_install_server = None
         self.remote_install_address = None
@@ -113,7 +121,7 @@ class RemoteInstallMixin:
         else:
             await self._stop_remote_transport()
             # Closing the listener also revokes all in-memory credentials and requests.
-            self.remote_install_service = RemoteInstallService(apps=lambda: getattr(self, "apps", []))
+            self.remote_install_service = RemoteInstallService(apps=self._remote_apps, installed=self._remote_inventory)
         return await self.get_remote_install_status()
 
     async def set_remote_install_feature_enabled(self, enabled: bool):
@@ -123,7 +131,7 @@ class RemoteInstallMixin:
         if not enabled:
             self.settings["remoteInstall"] = False
             await self._stop_remote_transport()
-            self.remote_install_service = RemoteInstallService(apps=lambda: getattr(self, "apps", []))
+            self.remote_install_service = RemoteInstallService(apps=self._remote_apps, installed=self._remote_inventory)
         self._save_settings()
         return await self.get_settings()
 
@@ -151,7 +159,15 @@ class RemoteInstallMixin:
     async def claim_remote_request(self, request_id: str):
         if not self.settings.get("remoteInstallFeature") or not self.settings.get("remoteInstall"):
             raise ValueError("Remote install is disabled")
-        return self.remote_install_service.claim(request_id)
+        service = self.remote_install_service
+        installed = await asyncio.to_thread(self._remote_inventory)
+        if (
+            service is not self.remote_install_service
+            or not self.settings.get("remoteInstallFeature")
+            or not self.settings.get("remoteInstall")
+        ):
+            raise ValueError("Remote install is disabled")
+        return service.claim(request_id, installed=installed)
 
     async def finish_remote_request(self, request_id: str, success: bool):
         return self.remote_install_service.finish(request_id, success)

@@ -209,6 +209,10 @@ export type RemoteInstallRequest = {
   releaseTag?: string | null;
   ownerName: string;
   status: string;
+  action?: "install" | "update" | "uninstall";
+  repo?: string | null;
+  pluginName?: string | null;
+  installedVersion?: string | null;
 };
 
 export type RemoteInstallStatus = {
