@@ -126,7 +126,7 @@ export async function installDeckyPlugin(
   confirmForUser = false,
 ) {
   const { handedOver, done } = handOff();
-  const stopConfirming = confirmForUser ? confirmDeckyPrompt(pluginName) : () => undefined;
+  let stopConfirming = () => {};
   try {
     // Before any uninstall, so a failed download leaves the plugin as it was.
     const artifact = await localZip(asset, repo, handedOver);
@@ -136,11 +136,15 @@ export async function installDeckyPlugin(
       installType = PLUGIN_INSTALL_TYPE.INSTALL;
     }
     traceDeckyInstall(pluginName, version);
+    const loaderVersion = normalizeVersion(displayVersion(version));
+    // Only once the ZIP is staged, and only for this very file, so no other prompt for the
+    // same plugin (a manual install started meanwhile, say) is answered for the user.
+    if (confirmForUser) stopConfirming = confirmDeckyPrompt(pluginName, loaderVersion, asset.sha256 ?? "");
     const result = await callDeckyLoader(
       "utilities/install_plugin",
       artifact,
       pluginName,
-      normalizeVersion(displayVersion(version)),
+      loaderVersion,
       asset.sha256 ?? "",
       installType,
     );
@@ -271,12 +275,13 @@ function traceDeckyInstall(pluginName: string, version?: string) {
 // Decky Loader's uninstall deletes the plugin's folder and its settings right
 // away, with no dialog of its own — callers must confirm first.
 // Decky Loader announces each install with `loader/add_plugin_install_prompt` (name, version,
-// request id, ...) and installs once `utilities/confirm_plugin_install` gets that id.
-function confirmDeckyPrompt(pluginName: string) {
+// request id, hash, install type) and installs once `utilities/confirm_plugin_install` gets that id.
+function confirmDeckyPrompt(pluginName: string, version: string, hash: string) {
   const backend = getDeckyBackend();
   if (!backend) return () => undefined;
-  const onPrompt = (name: string, _version: string, requestId: string) => {
-    if (name !== pluginName || typeof requestId !== "string") return;
+  const onPrompt = (name: string, promptVersion: string, requestId: string, promptHash: unknown) => {
+    if (name !== pluginName || promptVersion !== version || (promptHash || "") !== hash) return;
+    if (typeof requestId !== "string") return;
     log(`Confirming Decky Loader's install prompt for ${name} (trusted browser)`);
     // One prompt per request: a later manual install of the same plugin must still ask.
     backend.removeEventListener("loader/add_plugin_install_prompt", onPrompt);

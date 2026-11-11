@@ -15,6 +15,9 @@ from typing import Callable
 _ID = re.compile(r"[a-z0-9][a-z0-9-]{0,127}\Z")
 _TAG = re.compile(r"[A-Za-z0-9][A-Za-z0-9._+/-]{0,127}\Z")
 _KEY = re.compile(r"[A-Za-z0-9_-]{1,128}\Z")
+# How long a claimed request may stay "installing" before its outcome is called unknown.
+# The claim only covers the download and the handover to Decky Loader, never the install itself.
+INSTALLING_SECONDS = 15 * 60
 _TERMINAL = frozenset({"rejected", "expired", "cancelled", "installed", "uninstalled", "failed", "unknown"})
 
 
@@ -69,6 +72,11 @@ class RemoteInstallQueue:
             # must not run later; its expiry is restarted when it is approved.
             if request.status in ("pending_confirmation", "approved") and now >= request.expires_at:
                 request = replace(request, status="expired", updated_at=now)
+                self._requests[request_id] = request
+            # The frontend that claimed it never reported back (the Steam UI reloaded, say):
+            # without this it would block every later request as "another installation is active".
+            elif request.status == "installing" and now - request.updated_at >= INSTALLING_SECONDS:
+                request = replace(request, status="unknown", updated_at=now)
                 self._requests[request_id] = request
             if request.status in _TERMINAL and now - request.updated_at >= self._retention:
                 del self._requests[request_id]
@@ -178,7 +186,7 @@ class RemoteInstallQueue:
     def get_local(self, request_id: str) -> InstallRequest:
         with self._lock:
             self._sweep(self._clock())
-            return self._requests[request_id]
+            return self._known(request_id)
 
     def pending(self) -> tuple[InstallRequest, ...]:
         """For the local approval UI, not a remote owner-scoped API."""
@@ -228,7 +236,7 @@ class RemoteInstallQueue:
         with self._lock:
             now = self._clock()
             self._sweep(now)
-            request = self._requests[request_id]
+            request = self._known(request_id)
             if status == "installing" and any(r.status == "installing" for r in self._requests.values()):
                 raise InvalidTransitionError("another installation is active")
             updated = self._transition(request, status, allowed[status], now)
@@ -236,6 +244,13 @@ class RemoteInstallQueue:
                 updated = replace(updated, expires_at=now + self._ttl)
                 self._requests[request_id] = updated
             return updated
+
+    def _known(self, request_id: str) -> InstallRequest:
+        # Swept away or never there: the same error as any other step that can't be taken.
+        request = self._requests.get(request_id) if isinstance(request_id, str) else None
+        if request is None:
+            raise InvalidTransitionError("request not found")
+        return request
 
     def _transition(self, request: InstallRequest, status: str, allowed: set[str], now: float) -> InstallRequest:
         if request.status not in allowed:

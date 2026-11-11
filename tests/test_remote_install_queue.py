@@ -5,6 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "py_modules"))
 from deckyhub.remote_install_queue import (
+    INSTALLING_SECONDS,
     InvalidTransitionError,
     QueueFullError,
     RemoteInstallQueue,
@@ -111,6 +112,25 @@ class QueueTests(unittest.TestCase):
         request = self.create()
         other = RemoteInstallQueue()
         self.assertIsNone(other.get("device-a", request.id))
+
+    def test_a_claim_nobody_finishes_becomes_unknown_and_frees_the_queue(self):
+        first, second = self.create(), self.create(key="key-b", plugin="plugin-b")
+        for request in (first, second):
+            self.queue.transition_local(request.id, "approved")
+        self.queue.transition_local(first.id, "installing")
+        with self.assertRaises(InvalidTransitionError):
+            self.queue.transition_local(second.id, "installing")
+        self.now += INSTALLING_SECONDS - 1
+        self.assertEqual(self.queue.get("device-a", first.id).status, "installing")
+        self.now += 1
+        self.assertEqual(self.queue.get("device-a", first.id).status, "unknown")
+
+    def test_an_unknown_request_id_is_an_invalid_transition(self):
+        for request_id in ("missing", None):
+            with self.assertRaises(InvalidTransitionError):
+                self.queue.transition_local(request_id, "approved")
+            with self.assertRaises(InvalidTransitionError):
+                self.queue.get_local(request_id)
 
 
 if __name__ == "__main__":

@@ -16,6 +16,8 @@ for minor in (11, 14):
             "install",
             "--no-compile",
             "--only-binary=:all:",
+            # requirements-remote.txt lists each wheel's SHA-256 (devtools/hash-remote.py).
+            "--require-hashes",
             "--platform",
             "manylinux2014_x86_64",
             "--platform",
