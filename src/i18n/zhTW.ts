@@ -2,8 +2,9 @@ import type { MessageKey } from "./en";
 
 // Traditional Chinese, with Taiwan's terms (Steam's "繁體中文").
 export const zhTW: Record<MessageKey, string> = {
-  "remote.title": "遠端安裝",
-  "remote.description": "配對同一網路上的瀏覽器。每次安裝都需要在此裝置上核准。",
+  "remote.title": "遠端安裝（實驗性）",
+  "remote.description":
+    "配對同一網路上的瀏覽器。每次安裝都需要在此裝置上核准。僅在區域網路內運作：不會收集任何資訊，也不會傳送到任何地方。",
   "remote.address": "裝置位址",
   "remote.fingerprint": "憑證指紋 (SHA-256)",
   "remote.copyPairingLink": "複製配對連結",

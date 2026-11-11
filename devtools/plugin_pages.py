@@ -352,6 +352,7 @@ def remote_device_panel() -> str:
 <div class="remote-device-overview">
 <div class="remote-device-heading"><h2 id="remote-title">Your devices</h2><a class="btn ghost" href="#remote-pair-form">Pair a new device</a></div>
 <p>Choose a paired device or set up a new one below. Approve pairing and plugin changes on your device.</p>
+<p class="note"><strong>Experimental.</strong> Remote Install works only on your local network: this page talks straight to your device. Nothing is collected or sent anywhere.</p>
 <p><label for="remote-device-picker">Paired device</label><br><select id="remote-device-picker" disabled><option value="">Pair a device</option></select></p>
 <p class="remote-actions"><button type="button" id="remote-request" disabled hidden>Send install request</button> <button type="button" id="remote-cancel" disabled>Cancel request</button></p>
 <p id="remote-status" role="status" aria-live="polite">Not connected.</p>
@@ -399,6 +400,7 @@ def remote_install_picker(plugin_id: str) -> str:
 <a id="remote-pair-new" class="btn ghost" href="/remote-install/">Pair new</a>
 </div>
 <p id="remote-status" role="status" aria-live="polite" hidden></p>
+<p class="note">Experimental, and fully local: your browser talks straight to your device on your network. Nothing is collected or sent anywhere.</p>
 <script type="module" src="/remote-install.js"></script>
 </section>"""
 
@@ -451,7 +453,7 @@ def plugin_page(
 <p><a class="btn" href="/#install">Install with DeckyHub</a><a class="btn ghost" href="{escape(repo_url)}">Source on GitHub</a></p>
 <ul class="facts">{"".join(facts)}<li class="wide"><strong><a href="{escape(repo_url)}">{escape(repo)}</a></strong>Repository</li></ul>
 <h2>Install {escape(name)}</h2>
-<p><a class="btn ghost" href="#remote-install">Send to device (preview)</a></p>
+<p><a class="btn ghost" href="#remote-install">Send to device (experimental)</a></p>
 <p class="note">Before updating an installed plugin, check that its GitHub owner and repository match the source shown here. Plugin names alone may not identify the correct project.</p>
 <p>{escape(name)} is a <a href="https://decky.xyz/">Decky Loader</a> plugin. With <a href="/">DeckyHub</a> installed, open DeckyHub's <strong>Discover</strong> tab in Gaming Mode, search for <strong>{escape(name)}</strong> and press <strong>Install</strong>. DeckyHub hands the release to Decky Loader's own installer and checks its SHA-256 whenever GitHub publishes one. You can also download the ZIP from its <a href="{escape(repo_url)}/releases">releases</a> and install it by hand from Decky's developer settings.</p>
 {remote_install_picker(app["id"])}

@@ -1,9 +1,9 @@
 import type { MessageKey } from "./en";
 
 export const fr: Record<MessageKey, string> = {
-  "remote.title": "Installation à distance",
+  "remote.title": "Installation à distance (expérimental)",
   "remote.description":
-    "Associez un navigateur sur le même réseau. Chaque installation nécessite une approbation sur cet appareil.",
+    "Associez un navigateur sur le même réseau. Chaque installation nécessite une approbation sur cet appareil. Fonctionne uniquement sur le réseau local : rien n’est collecté ni envoyé où que ce soit.",
   "remote.address": "Adresse de l’appareil",
   "remote.fingerprint": "Empreinte du certificat (SHA-256)",
   "remote.copyPairingLink": "Copier le lien d’association",
