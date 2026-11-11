@@ -8,7 +8,7 @@ export const ko: Record<MessageKey, string> = {
   "remote.copyPairingLink": "페어링 링크 복사",
   "remote.pair": "브라우저 연결",
   "remote.pairings": "연결 요청",
-  "remote.requests": "설치 요청",
+  "remote.requests": "플러그인 변경 요청",
   "remote.from": "요청자: {name}",
   "remote.devices": "연결된 브라우저",
   "remote.approve": "승인",

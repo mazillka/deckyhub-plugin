@@ -134,7 +134,7 @@ class RemoteInstallServiceTests(unittest.TestCase):
             self.service.decide_request(request["requestId"], True)
 
     def test_uncertain_install_is_not_reported_installed(self):
-        request = self.service.queue.create("device", "key", "plugin-one")
+        request = self.service.queue.create("device", "key", "plugin-one", repository="owner/one")
         self.service.decide_request(request.id, True)
         self.service.claim(request.id)
         self.assertEqual(self.service.finish_unknown(request.id)["status"], "unknown")

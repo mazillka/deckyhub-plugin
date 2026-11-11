@@ -9,7 +9,7 @@ export const ptPT: Record<MessageKey, string> = {
   "remote.copyPairingLink": "Copiar ligação de emparelhamento",
   "remote.pair": "Associar navegador",
   "remote.pairings": "Pedidos de associação",
-  "remote.requests": "Pedidos de instalação",
+  "remote.requests": "Pedidos de alterações de plugins",
   "remote.from": "De {name}",
   "remote.devices": "Navegadores associados",
   "remote.approve": "Aprovar",

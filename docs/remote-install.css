@@ -34,3 +34,6 @@
 .remote-install details { margin: 16px 0; }
 .remote-install .remote-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .remote-install #remote-status { padding: 10px 12px; border-inline-start: 3px solid var(--accent2); background: var(--bg); }
+.remote-plugins { list-style: none; padding: 0; }
+.remote-plugins li { display: grid; gap: 4px; padding: 12px 0; border-top: 1px solid var(--line); overflow-wrap: anywhere; }
+.remote-plugins li > span { font-size: .9em; color: var(--muted); }

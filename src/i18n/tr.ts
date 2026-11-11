@@ -8,7 +8,7 @@ export const tr: Record<MessageKey, string> = {
   "remote.copyPairingLink": "Eşleştirme bağlantısını kopyala",
   "remote.pair": "Tarayıcıyı eşleştir",
   "remote.pairings": "Eşleştirme istekleri",
-  "remote.requests": "Yükleme istekleri",
+  "remote.requests": "Eklenti istekleri",
   "remote.from": "{name} tarafından",
   "remote.devices": "Eşleştirilmiş tarayıcılar",
   "remote.approve": "Onayla",

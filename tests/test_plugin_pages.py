@@ -42,7 +42,7 @@ class PluginPageTests(unittest.TestCase):
         self.assertIn('id="remote-pair" disabled', form)
         self.assertIn(f'data-plugin-id="{APP["id"]}"', page)
         self.assertIn('src="/remote-install.js"', page)
-        self.assertIn("approve the browser and each installation", page)
+        self.assertIn("Approve pairing and plugin changes on your device.", page)
         self.assertNotIn("token=", page)
 
     def test_a_long_repository_name_gets_a_full_width_tile_that_wraps(self):

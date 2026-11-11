@@ -8,7 +8,7 @@ export const zh: Record<MessageKey, string> = {
   "remote.copyPairingLink": "复制配对链接",
   "remote.pair": "配对浏览器",
   "remote.pairings": "配对请求",
-  "remote.requests": "安装请求",
+  "remote.requests": "插件操作请求",
   "remote.from": "来自 {name}",
   "remote.devices": "已配对的浏览器",
   "remote.approve": "批准",

@@ -50,7 +50,16 @@ export const decideRemoteRequest = callable<[requestId: string, approve: boolean
 );
 export const claimRemoteRequest = callable<
   [requestId: string],
-  { id: string; pluginId: string; releaseTag?: string | null; status: string }
+  {
+    id: string;
+    pluginId: string;
+    releaseTag?: string | null;
+    status: string;
+    action?: "install" | "update" | "uninstall";
+    repo?: string | null;
+    pluginName?: string | null;
+    installedVersion?: string | null;
+  }
 >("claim_remote_request");
 export const finishRemoteRequest = callable<[requestId: string, success: boolean], { id: string; status: string }>(
   "finish_remote_request",

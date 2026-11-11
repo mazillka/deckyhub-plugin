@@ -9,7 +9,7 @@ export const pl: Record<MessageKey, string> = {
   "remote.copyPairingLink": "Skopiuj link do parowania",
   "remote.pair": "Sparuj przeglądarkę",
   "remote.pairings": "Prośby o parowanie",
-  "remote.requests": "Prośby o instalację",
+  "remote.requests": "Żądania zmian wtyczek",
   "remote.from": "Od {name}",
   "remote.devices": "Sparowane przeglądarki",
   "remote.approve": "Zatwierdź",

@@ -9,7 +9,7 @@ export const uk: Record<MessageKey, string> = {
   "remote.copyPairingLink": "Копіювати посилання для сполучення",
   "remote.pair": "З’єднати браузер",
   "remote.pairings": "Запити на з’єднання",
-  "remote.requests": "Запити на встановлення",
+  "remote.requests": "Запити на зміни плагінів",
   "remote.from": "Від {name}",
   "remote.devices": "З’єднані браузери",
   "remote.approve": "Підтвердити",

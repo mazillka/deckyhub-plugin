@@ -4,8 +4,10 @@ All state is in memory. Restart revokes pairings and abandons pending requests.
 This module never starts an install; only the local UI can approve and claim one.
 """
 
+import asyncio
 import hashlib
 import hmac
+import json
 import re
 import secrets
 import time
@@ -16,7 +18,8 @@ _SECRET = re.compile(r"[A-Za-z0-9_-]{43}\Z")
 
 
 class RemoteInstallService:
-    def __init__(self, apps, clock=time.monotonic):
+    def __init__(self, apps, clock=time.monotonic, installed=None):
+        self.installed = installed or (lambda: [])
         self.apps = apps
         self.clock = clock
         self.queue = RemoteInstallQueue(clock=clock)
@@ -122,7 +125,74 @@ class RemoteInstallService:
                 return device_id
         raise ValueError("unauthorized")
 
-    def remote(self, message):
+    async def remote_async(self, message: dict) -> dict:
+        installed = None
+        if isinstance(message, dict) and message.get("op") in ("plugins", "request"):
+            self.owner(message.get("token"))
+            installed = await asyncio.to_thread(self.installed)
+        return self.remote(message, installed=installed)
+
+    def _snapshot(self, plugin_id: str, action: str, installed: list) -> tuple:
+        app = next((a for a in self.apps() if a.get("id") == plugin_id), None)
+        if not app:
+            raise ValueError("plugin not in registry")
+        repo = app.get("repo")
+        matches = [
+            r
+            for r in installed
+            if r.get("id") == plugin_id or (repo and str(r.get("repo", "")).casefold() == repo.casefold())
+        ]
+        if any(r.get("identityUnverified") is not False for r in matches) or len(matches) > 1:
+            raise ValueError("installed identity is unverified")
+        row = matches[0] if matches else None
+        if row and (
+            not repo
+            or str(row.get("repo", "")).casefold() != repo.casefold()
+            or not row.get("pluginName")
+            or sum(
+                r.get("pluginName", "").casefold() == row["pluginName"].casefold()
+                for r in installed
+                if isinstance(r.get("pluginName"), str)
+            )
+            != 1
+        ):
+            raise ValueError("installed identity is unverified")
+        if action in ("update", "uninstall") and not row:
+            raise ValueError("plugin is not installed")
+        if (repo or "").casefold() == "mazillka/deckyhub-plugin" or (
+            row and row["pluginName"].casefold() == "deckyhub"
+        ):
+            raise ValueError("DeckyHub must be managed locally")
+        return repo, row.get("pluginName") if row else None, row.get("version") if row else None
+
+    def _plugins_page(self, message: dict, installed: list) -> dict:
+        offset = message.get("offset", 0)
+        if type(offset) is not int or offset < 0:
+            raise ValueError("invalid offset")
+
+        # ASCII output bounds include JSON escaping, even for unusual manifest text.
+        def bounded(value):
+            if value is None:
+                return None
+            value = str(value)[:256]
+            while len(json.dumps(value)) > 100:
+                value = value[:-1]
+            return value
+
+        # Registry candidates without a verified manifest are represented by
+        # their raw installed entries in the public list.
+        visible = [row for row in installed if row.get("pluginName")]
+        page = [
+            {
+                "id": row.get("id"),
+                "identityUnverified": bool(row.get("identityUnverified")),
+                **{key: bounded(row.get(key)) for key in ("name", "repo", "version", "pluginName")},
+            }
+            for row in visible[offset : offset + 20]
+        ]
+        return {"plugins": page, "nextOffset": offset + 20 if offset + 20 < len(visible) else None}
+
+    def remote(self, message, *, installed=None):
         if not isinstance(message, dict):
             raise ValueError("invalid request")
         op = message.get("op")
@@ -131,11 +201,30 @@ class RemoteInstallService:
         if op == "pair_status":
             return self.pair_status(message.get("pairingId"), message.get("pairingSecret"))
         owner = self.owner(message.get("token"))
+        if op == "plugins":
+            return self._plugins_page(message, self.installed() if installed is None else installed)
         if op == "request":
+            action = message.get("action", "install")
+            if action not in ("install", "update", "uninstall"):
+                raise ValueError("invalid action")
             plugin_id = message.get("pluginId")
-            if not isinstance(plugin_id, str) or not any(a.get("id") == plugin_id for a in self.apps()):
+            if not isinstance(plugin_id, str):
                 raise ValueError("plugin not in registry")
-            r = self.queue.create(owner, message.get("idempotencyKey"), plugin_id, message.get("releaseTag"))
+            key, tag = message.get("idempotencyKey"), message.get("releaseTag")
+            previous = self.queue.retry(owner, key, plugin_id, tag, action)
+            if previous:
+                return {"requestId": previous.id, "status": previous.status}
+            snapshot = self._snapshot(plugin_id, action, self.installed() if installed is None else installed)
+            r = self.queue.create(
+                owner,
+                key,
+                plugin_id,
+                tag,
+                action=action,
+                repository=snapshot[0],
+                plugin_name=snapshot[1],
+                installed_version=snapshot[2],
+            )
         elif op == "status":
             r = self.queue.get(owner, message.get("requestId"))
         elif op == "cancel":
@@ -152,6 +241,10 @@ class RemoteInstallService:
                 "id": r.id,
                 "pluginId": r.plugin_id,
                 "releaseTag": r.release_tag,
+                "action": r.action,
+                "repo": r.repository,
+                "pluginName": r.plugin_name,
+                "installedVersion": r.installed_version,
                 "ownerName": self.devices.get(r.owner, {}).get("name", "Revoked browser"),
                 "status": r.status,
             }
@@ -164,17 +257,32 @@ class RemoteInstallService:
         r = self.queue.transition_local(request_id, "approved" if approve else "rejected")
         return {"id": r.id, "status": r.status}
 
-    def claim(self, request_id):
+    def claim(self, request_id, *, installed=None):
         r = self.queue.transition_local(request_id, "installing")
-        if not any(a.get("id") == r.plugin_id for a in self.apps()):
+        try:
+            snapshot = self._snapshot(r.plugin_id, r.action, self.installed() if installed is None else installed)
+            if snapshot != (r.repository, r.plugin_name, r.installed_version):
+                raise ValueError("installed plugin or registry changed")
+        except ValueError:
             self.queue.transition_local(request_id, "failed")
-            raise ValueError("plugin no longer in registry")
-        return {"id": r.id, "pluginId": r.plugin_id, "releaseTag": r.release_tag, "status": r.status}
+            raise
+        return {
+            "id": r.id,
+            "pluginId": r.plugin_id,
+            "releaseTag": r.release_tag,
+            "status": r.status,
+            "action": r.action,
+            "repo": r.repository,
+            "pluginName": r.plugin_name,
+            "installedVersion": r.installed_version,
+        }
 
     def finish(self, request_id, success):
         if type(success) is not bool:
             raise ValueError("invalid outcome")
-        r = self.queue.transition_local(request_id, "installed" if success else "failed")
+        request = self.queue.get_local(request_id)
+        outcome = "uninstalled" if request and request.action == "uninstall" else "installed"
+        r = self.queue.transition_local(request_id, outcome if success else "failed")
         return {"id": r.id, "status": r.status}
 
     def finish_unknown(self, request_id):
