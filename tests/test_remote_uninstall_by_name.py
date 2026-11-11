@@ -150,6 +150,15 @@ class AuditFixTests(Base):
         with self.assertRaises(Exception):
             self.service.claim(result["requestId"], installed=self.rows)
 
+    def test_only_a_trusted_devices_request_wakes_the_runner(self):
+        woken = []
+        self.service.on_trusted_request = lambda: woken.append(True)
+        self.request(action="uninstall", pluginName="KDE Connect")
+        self.assertEqual(woken, [])
+        self.service.set_trusted(self.device, True)
+        self.request(action="uninstall", pluginName="KDE Connect", idempotencyKey="second-key")
+        self.assertEqual(woken, [True])
+
     def test_approving_restarts_the_request_clock(self):
         result = self.request(action="uninstall", pluginName="KDE Connect")
         self.now += 100

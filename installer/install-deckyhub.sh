@@ -375,6 +375,8 @@ install_all() {
         if ! { mkdir -p "$settings_dir" && printf '[%s]\n' "${json%,}" > "${settings_dir}/pending-installs.json"; }; then
             rm -f "${WORK}/picked-names"
         fi
+        # This runs as root, DeckyHub as the user: it must be able to save its settings here and remove the file.
+        [ -n "$SUDO_USER" ] && chown -R "$SUDO_USER:" "$settings_dir"
     fi
 
     step 90 "$(t progress.restarting)"

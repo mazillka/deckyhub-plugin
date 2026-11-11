@@ -156,6 +156,9 @@ class SettingsMixin:
         decky.logger.info("Saved settings: %s", {**self.settings, "githubToken": bool(self.settings["githubToken"])})
         if channel is not None and channel != self.settings["registryChannel"]:
             # The other registry branch: load it now, and open pages reload when it lands.
+            # The refresh still running (startup's, say) would finish last with the old channel's list.
+            if getattr(self, "registry_task", None):
+                self.registry_task.cancel()
             self.registry_task = asyncio.create_task(self._refresh_registry_in_background())
         return self.settings
 

@@ -18,6 +18,8 @@ engines are told to stay away (noindex, no canonical link, no sitemap) and a ban
 it isn't the live site.
 """
 
+import base64
+import hashlib
 import json
 import os
 import re
@@ -366,10 +368,13 @@ for path in ["releases.html", "about.html", "uk/about.html"] + [
     )
     page_file.write_text(text, encoding="utf-8")
 
-# GitHub Pages can't send security headers, so every page carries them as meta tags. Scripts and styles are inline;
+# GitHub Pages can't send security headers, so every page carries them as meta tags. Styles are inline;
 # Outside requests are shields.io badges, the registry editor, and pinned Remote Install connections.
+# Scripts: the site's own files, and each page's own inline scripts by their hash (SCRIPTS below). Not
+# 'unsafe-inline': the site holds the tokens of paired devices, so text that slipped into a page unescaped
+# must not be able to run. Inline event handlers (onclick="...") don't run either; use addEventListener.
 CSP = (
-    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://img.shields.io; "
+    "default-src 'self'; script-src 'self'SCRIPTS; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://img.shields.io; "
     "connect-src 'self' https://raw.githubusercontent.com; object-src 'none'; base-uri 'self'; form-action 'self'"
 )
 for html_file in out.rglob("*.html"):
@@ -380,6 +385,15 @@ for html_file in out.rglob("*.html"):
         if '<section id="remote-install"' in text
         else CSP
     )
+    # Browsers hash a script's text as parsed, with LF line ends, which is how Python holds it here.
+    # JSON-LD (<script type=...>) is data and needs none.
+    hashes = sorted(
+        {
+            "'sha256-" + base64.b64encode(hashlib.sha256(body.encode("utf-8")).digest()).decode() + "'"
+            for body in re.findall(r"<script>(.*?)</script>", text, re.S)
+        }
+    )
+    policy = policy.replace("SCRIPTS", "".join(" " + source for source in hashes))
     text = text.replace(
         "<head>",
         f'<head>\n<meta http-equiv="Content-Security-Policy" content="{policy}">\n<meta name="referrer" content="strict-origin-when-cross-origin">',

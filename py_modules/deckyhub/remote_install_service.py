@@ -1,6 +1,7 @@
 """Remote request authorization and state; transport must authenticate its server.
 
-All state is in memory. Restart revokes pairings and abandons pending requests.
+Paired devices and the listener's certificate are saved (remote_install_store), so they
+survive a restart; pairing attempts and requests are in memory and end with it.
 This module never starts an install; only the local UI can approve and claim one.
 """
 
@@ -47,6 +48,8 @@ class RemoteInstallService:
         self.identity = identity if isinstance(identity, dict) else None
         self.pins = {}
         self.attempts = []
+        # Called when a trusted device's request is approved on arrival, so the device can run it.
+        self.on_trusted_request = None
 
     def persist(self):
         if self.store:
@@ -345,6 +348,8 @@ class RemoteInstallService:
             )
             if self.devices[owner]["trusted"]:
                 r = self.queue.transition_local(r.id, "approved")
+                if self.on_trusted_request:
+                    self.on_trusted_request()
         elif op == "status":
             r = self.queue.get(owner, message.get("requestId"))
         elif op == "cancel":

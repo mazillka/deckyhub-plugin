@@ -393,6 +393,14 @@ class PluginStatusTests(unittest.TestCase):
 
             self.assertEqual(plugin.downloads["job"]["received"], 3)
 
+            # A server sending more than the release file's stated size is cut off.
+            plugin.downloads["job"]["received"] = 0
+            Response.reads = []
+            with patch.object(net.OPENER, "open", return_value=Response()), self.assertRaises(RuntimeError):
+                plugin._download_with_urllib(
+                    "job", {"url": "https://example.com/file.zip", "size": 2}, Path(home) / "file.part"
+                )
+
     def test_downloads_refuse_redirects_off_https(self):
         handler = net.HttpsOnlyRedirects()
         request = Request("https://github.com/owner/repo/releases/download/v1/a.zip")

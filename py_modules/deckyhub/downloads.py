@@ -223,8 +223,16 @@ class DownloadsMixin:
             job["finished_at"] = time.monotonic()
             self.cancelled.discard(job_id)
 
+    @staticmethod
+    def _size_limit(asset: dict) -> int | None:
+        """The file's size as GitHub states it, which a download may not pass: a server
+        sending more would otherwise fill the device's storage. None when it isn't known."""
+        size = asset.get("size")
+        return size if type(size) is int and size > 0 else None
+
     def _download_with_urllib(self, job_id: str, asset: dict, temp: Path):
         job = self.downloads[job_id]
+        limit = self._size_limit(asset)
         request = Request(asset["url"], headers={"User-Agent": "DeckyHub/0.2"})
         with OPENER.open(request, timeout=30) as response, open(temp, "wb") as file:
             job["total"] = int(response.headers.get("Content-Length") or job["total"] or 0)
@@ -233,6 +241,8 @@ class DownloadsMixin:
                     raise InterruptedError("Download cancelled")
                 file.write(chunk)
                 job["received"] += len(chunk)
+                if limit and job["received"] > limit:
+                    raise RuntimeError("The download is larger than the release file")
 
     def _download_with_curl(self, job_id: str, asset: dict, temp: Path):
         job = self.downloads[job_id]
@@ -242,9 +252,11 @@ class DownloadsMixin:
         environment = os.environ.copy()
         environment.pop("LD_LIBRARY_PATH", None)
         environment.pop("LD_PRELOAD", None)
+        limit = self._size_limit(asset)
         process = subprocess.Popen(
             [
                 curl,
+                *(["--max-filesize", str(limit)] if limit else []),
                 "--fail",
                 "--location",
                 "--proto",
