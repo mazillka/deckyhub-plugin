@@ -7,6 +7,7 @@ export const ja: Record<MessageKey, string> = {
   "remote.address": "デバイスのアドレス",
   "remote.fingerprint": "証明書のフィンガープリント (SHA-256)",
   "remote.copyPairingLink": "ペアリングリンクをコピー",
+  "remote.pairMode": "ペアリングモード",
   "remote.scanPairingQr": "スキャンしてペアリング済みデバイスを開く",
   "remote.pair": "ブラウザーをペアリング",
   "remote.pairings": "ペアリング要求",

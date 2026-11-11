@@ -31,6 +31,7 @@ export function RemoteInstallSection() {
   const t = useT();
   const [status, setStatus] = useState<RemoteInstallStatus | null>(null);
   const [code, setCode] = useState<string | null>(null);
+  const [pairingTicket, setPairingTicket] = useState<{ code: string; token: string } | null>(null);
   const [loading, setLoading] = useState(false);
 
   const refresh = async () => {
@@ -38,6 +39,7 @@ export function RemoteInstallSection() {
       const current = await getRemoteInstallStatus();
       setStatus(current);
       setCode(current.pairingCode ?? null);
+      setPairingTicket((ticket) => (ticket?.code === current.pairingCode ? ticket : null));
     } catch {
       // Ignored if plugin is unloading
     }
@@ -54,7 +56,10 @@ export function RemoteInstallSection() {
     try {
       const next = await setRemoteInstallEnabled(enabled);
       setStatus(next);
-      if (!enabled) setCode(null);
+      if (!enabled) {
+        setCode(null);
+        setPairingTicket(null);
+      }
     } catch (error) {
       toaster.toast({ title: "DeckyHub", body: String(error) });
     } finally {
@@ -66,6 +71,7 @@ export function RemoteInstallSection() {
     try {
       const res = await beginRemotePairing();
       setCode(res.code);
+      setPairingTicket({ code: res.code, token: res.pairingToken });
       toaster.toast({
         title: t("remote.pair"),
         body: res.code,
@@ -208,10 +214,12 @@ export function RemoteInstallSection() {
   const pairingLink =
     status?.address &&
     status.fingerprint &&
+    pairingTicket &&
+    pairingTicket.code === code &&
     (() => {
       const device = new URL(status.address).host;
-      const details = new URLSearchParams({ device, fingerprint: status.fingerprint });
-      return `https://deckyhub.com/develop/paired-devices.html#${details}`;
+      const details = new URLSearchParams({ device, fingerprint: status.fingerprint, pair: pairingTicket.token });
+      return `https://deckyhub.com/develop/remote-install/#${details}`;
     })();
 
   const pairingQr = useMemo(() => {
@@ -233,7 +241,7 @@ export function RemoteInstallSection() {
         <div aria-hidden style={sectionDividerStyle} />
         <PanelSectionRow>
           <ToggleField
-            label={t("remote.title")}
+            label={t("remote.pairMode")}
             checked={isEnabled}
             disabled={loading}
             onChange={(checked) => void onToggle(checked)}
@@ -280,31 +288,6 @@ export function RemoteInstallSection() {
                   </div>
                 </PanelSectionRow>
 
-                {pairingQr && (
-                  <PanelSectionRow>
-                    <div style={{ display: "grid", justifyItems: "center", gap: 8, textAlign: "center" }}>
-                      <img src={pairingQr} alt="" style={{ maxWidth: "100%", height: "auto" }} />
-                      <span>{t("remote.scanPairingQr")}</span>
-                    </div>
-                  </PanelSectionRow>
-                )}
-                {pairingLink && (
-                  <PanelSectionRow>
-                    <Button
-                      onClick={() =>
-                        void copyText(pairingLink).then((copied) => {
-                          toaster.toast({
-                            title: copied ? t("remote.copyPairingLink") : t("scan.copyFailed"),
-                            body: "",
-                          });
-                        })
-                      }
-                    >
-                      {t("remote.copyPairingLink")}
-                    </Button>
-                  </PanelSectionRow>
-                )}
-
                 <PanelSectionRow>
                   <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <div style={{ flex: 1 }}>
@@ -329,6 +312,31 @@ export function RemoteInstallSection() {
                     )}
                   </Focusable>
                 </PanelSectionRow>
+
+                {pairingQr && (
+                  <PanelSectionRow>
+                    <div style={{ display: "grid", justifyItems: "center", gap: 8, textAlign: "center" }}>
+                      <img src={pairingQr} alt="" style={{ maxWidth: "100%", height: "auto" }} />
+                      <span>{t("remote.scanPairingQr")}</span>
+                    </div>
+                  </PanelSectionRow>
+                )}
+                {pairingLink && (
+                  <PanelSectionRow>
+                    <Button
+                      onClick={() =>
+                        void copyText(pairingLink).then((copied) => {
+                          toaster.toast({
+                            title: copied ? t("remote.copyPairingLink") : t("scan.copyFailed"),
+                            body: "",
+                          });
+                        })
+                      }
+                    >
+                      {t("remote.copyPairingLink")}
+                    </Button>
+                  </PanelSectionRow>
+                )}
 
                 {/* Pending Pairing Requests */}
                 {Boolean(status.pairings?.length) && (

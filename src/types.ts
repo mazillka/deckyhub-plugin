@@ -151,7 +151,6 @@ export type Settings = {
   uiStyle: UiStyle;
   hiddenButtons: HideableButton[];
   remoteInstall?: boolean;
-  remoteInstallFeature?: boolean;
   repoSettings?: Record<string, RepoPreference>;
   customRepos?: string[];
   customRegistries?: string[];

@@ -69,3 +69,8 @@ DeckyHub never installs or runs anything without an explicit tap. Four controls 
 ## License
 
 By contributing you agree that your changes are licensed under GPL-3.0-or-later, the same as the rest of the project (see [LICENSE.md](LICENSE.md)).
+## Test local Remote Install discovery
+
+Turn on **Pair mode** in DeckyHub’s Quick Access Menu. On a computer on the same network, install `zeroconf==0.154.0` in a Python virtual environment and run `python devtools/find-deckyhub-devices.py` from the repository root.
+
+The helper lists advertised addresses and ports. Confirm the certificate fingerprint on the device before pairing. Turning off Pair mode withdraws the announcement.

@@ -7,6 +7,7 @@ export const nl: Record<MessageKey, string> = {
   "remote.address": "Apparaatadres",
   "remote.fingerprint": "Certificaatvingerafdruk (SHA-256)",
   "remote.copyPairingLink": "Koppelingslink kopiëren",
+  "remote.pairMode": "Koppelmodus",
   "remote.scanPairingQr": "Scan om gekoppelde apparaten te openen",
   "remote.pair": "Browser koppelen",
   "remote.pairings": "Koppelverzoeken",

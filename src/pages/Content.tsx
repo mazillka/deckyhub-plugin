@@ -41,6 +41,7 @@ import { RateLimitBanner } from "../components/RateLimitBanner";
 import { offerPendingInstalls } from "../components/PendingInstalls";
 import { Welcome } from "../components/Welcome";
 import { UiStyleSection } from "../components/UiStyleSection";
+import { RemoteInstallSection } from "../components/RemoteInstallSection";
 import { ExpAppCard } from "../components/experimental/ExpAppCard";
 import { ExpHeader } from "../components/experimental/ExpHeader";
 import { ExpDiscoverHome } from "../components/experimental/ExpDiscoverHome";
@@ -444,6 +445,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
         <QuickAccessNav updateCount={updateCount} listedCount={listedCount} installedCount={installedCount} />
       )}
       <UiStyleSection />
+      <RemoteInstallSection />
     </div>
   );
 }

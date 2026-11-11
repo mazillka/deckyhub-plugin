@@ -7,6 +7,7 @@ export const zhTW: Record<MessageKey, string> = {
   "remote.address": "裝置位址",
   "remote.fingerprint": "憑證指紋 (SHA-256)",
   "remote.copyPairingLink": "複製配對連結",
+  "remote.pairMode": "配對模式",
   "remote.scanPairingQr": "掃描以開啟已配對裝置",
   "remote.pair": "配對瀏覽器",
   "remote.pairings": "配對請求",

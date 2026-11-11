@@ -30,19 +30,14 @@ class RemoteInstallMixin:
 
     async def _start_remote_transport(self):
         async with self._remote_transport_lock:
-            if (
-                self.remote_install_server is not None
-                or not self.settings.get("remoteInstall", False)
-                or not self.settings.get("remoteInstallFeature", False)
-            ):
+            if self.remote_install_server is not None or not self.settings.get("remoteInstall", False):
                 return
             try:
                 server, url, fingerprint = await start_transport(self.remote_install_service)
                 # Disable can occur while the listener is starting. Never leave it active.
-                if not self.settings.get("remoteInstall", False) or not self.settings.get(
-                    "remoteInstallFeature", False
-                ):
+                if not self.settings.get("remoteInstall", False):
                     server.close()
+                    await self._stop_remote_discovery()
                     return
                 self.remote_install_server = server
                 self.remote_install_address = url
@@ -56,6 +51,15 @@ class RemoteInstallMixin:
                 self.remote_install_error = str(error)
                 decky.logger.warning("Remote install transport failed to start: %s", error)
 
+    async def _stop_remote_discovery(self):
+        service = self.remote_install_service
+        discovery, service.discovery = service.discovery, None
+        if discovery is not None:
+            try:
+                await discovery.async_close()
+            except Exception as error:
+                decky.logger.warning("Error withdrawing Remote Install announcement: %s", error)
+
     async def _stop_remote_transport(self):
         if not hasattr(self, "_remote_transport_lock"):
             return
@@ -67,12 +71,13 @@ class RemoteInstallMixin:
                     decky.logger.warning("Error stopping remote install server: %s", error)
                 self.remote_install_server = None
                 decky.logger.info("Remote install transport stopped")
+            await self._stop_remote_discovery()
             self.remote_install_address = None
             self.remote_install_fingerprint = None
             self.remote_install_error = None
 
     async def _refresh_remote_address(self):
-        if not self.settings.get("remoteInstall") or not self.settings.get("remoteInstallFeature"):
+        if not self.settings.get("remoteInstall"):
             return
         try:
             address = lan_address()
@@ -112,8 +117,6 @@ class RemoteInstallMixin:
     async def set_remote_install_enabled(self, enabled: bool):
         if type(enabled) is not bool:
             raise ValueError("enabled must be a boolean")
-        if enabled and not self.settings.get("remoteInstallFeature", False):
-            raise ValueError("Remote install feature is disabled")
         self.settings["remoteInstall"] = enabled
         self._save_settings()
         if self.settings["remoteInstall"]:
@@ -124,21 +127,8 @@ class RemoteInstallMixin:
             self.remote_install_service = RemoteInstallService(apps=self._remote_apps, installed=self._remote_inventory)
         return await self.get_remote_install_status()
 
-    async def set_remote_install_feature_enabled(self, enabled: bool):
-        if type(enabled) is not bool:
-            raise ValueError("enabled must be a boolean")
-        self.settings["remoteInstallFeature"] = enabled
-        if not enabled:
-            self.settings["remoteInstall"] = False
-            await self._stop_remote_transport()
-            self.remote_install_service = RemoteInstallService(apps=self._remote_apps, installed=self._remote_inventory)
-        self._save_settings()
-        return await self.get_settings()
-
     async def begin_remote_pairing(self):
-        if not getattr(self, "settings", {}).get("remoteInstall", False) or not self.settings.get(
-            "remoteInstallFeature", False
-        ):
+        if not getattr(self, "settings", {}).get("remoteInstall", False):
             raise ValueError("Remote install is disabled")
         if self.remote_install_server is None:
             await self._start_remote_transport()
@@ -157,15 +147,11 @@ class RemoteInstallMixin:
         return self.remote_install_service.decide_request(request_id, approve)
 
     async def claim_remote_request(self, request_id: str):
-        if not self.settings.get("remoteInstallFeature") or not self.settings.get("remoteInstall"):
+        if not self.settings.get("remoteInstall"):
             raise ValueError("Remote install is disabled")
         service = self.remote_install_service
         installed = await asyncio.to_thread(self._remote_inventory)
-        if (
-            service is not self.remote_install_service
-            or not self.settings.get("remoteInstallFeature")
-            or not self.settings.get("remoteInstall")
-        ):
+        if service is not self.remote_install_service or not self.settings.get("remoteInstall"):
             raise ValueError("Remote install is disabled")
         return service.claim(request_id, installed=installed)
 

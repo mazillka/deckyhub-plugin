@@ -7,6 +7,7 @@ export const fr: Record<MessageKey, string> = {
   "remote.address": "Adresse de l’appareil",
   "remote.fingerprint": "Empreinte du certificat (SHA-256)",
   "remote.copyPairingLink": "Copier le lien d’association",
+  "remote.pairMode": "Mode d’association",
   "remote.scanPairingQr": "Scannez pour ouvrir les appareils associés",
   "remote.pair": "Associer un navigateur",
   "remote.pairings": "Demandes d’association",

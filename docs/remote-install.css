@@ -75,3 +75,8 @@
   background: var(--bg);
 }
 .remote-device-dashboard .remote-plugins .remote-actions { margin-top: 6px; }
+
+.remote-compact .remote-actions { align-items: center; }
+.remote-compact select { width: min(100%, 24rem); flex: 1 1 12rem; }
+.remote-compact .remote-actions .btn { margin: 0; }
+.remote-compact [hidden] { display: none; }

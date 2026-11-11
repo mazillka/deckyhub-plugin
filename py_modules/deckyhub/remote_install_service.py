@@ -24,16 +24,20 @@ class RemoteInstallService:
         self.clock = clock
         self.queue = RemoteInstallQueue(clock=clock)
         self.code = None
+        self.pairing_token_hash = None
         self.code_expiry = 0
         self.pairings = {}
         self.devices = {}
         self.transport_identity = None
+        self.discovery = None
         self.attempts = []
 
     def begin_pairing(self):
         self.code = f"{secrets.randbelow(1000000):06d}"
+        token = secrets.token_urlsafe(32)
+        self.pairing_token_hash = hashlib.sha256(token.encode()).digest()
         self.code_expiry = self.clock() + 120
-        return {"code": self.code, "expiresInSeconds": 120}
+        return {"code": self.code, "pairingToken": token, "expiresInSeconds": 120}
 
     def _sweep(self):
         now = self.clock()
@@ -42,17 +46,23 @@ class RemoteInstallService:
                 del self.pairings[key]
         self.attempts = [t for t in self.attempts if now - t < 60]
 
-    def pair(self, code, name, secret):
+    def pair(self, code, name, secret, pairing_token=None):
         self._sweep()
         if len(self.attempts) >= 5:
             raise ValueError("too many pairing attempts")
         self.attempts.append(self.clock())
-        if (
-            not isinstance(code, str)
-            or self.code is None
-            or self.clock() >= self.code_expiry
-            or not hmac.compare_digest(code, self.code)
-        ):
+        if self.code is None or self.clock() >= self.code_expiry:
+            raise ValueError("invalid or expired pairing code")
+        if pairing_token is None:
+            valid = isinstance(code, str) and code.isascii() and hmac.compare_digest(code, self.code)
+        else:
+            valid = (
+                isinstance(pairing_token, str)
+                and _SECRET.fullmatch(pairing_token)
+                and self.pairing_token_hash is not None
+                and hmac.compare_digest(self.pairing_token_hash, hashlib.sha256(pairing_token.encode()).digest())
+            )
+        if not valid:
             raise ValueError("invalid or expired pairing code")
         if not isinstance(name, str) or not name.strip() or len(name) > 80:
             raise ValueError("invalid browser name")
@@ -61,6 +71,7 @@ class RemoteInstallService:
         if len(self.pairings) >= 16 or len(self.devices) >= 16:
             raise ValueError("pairing limit reached")
         self.code = None
+        self.pairing_token_hash = None
         pair_id = secrets.token_urlsafe(24)
         self.pairings[pair_id] = {
             "name": name.strip(),
@@ -197,7 +208,9 @@ class RemoteInstallService:
             raise ValueError("invalid request")
         op = message.get("op")
         if op == "pair":
-            return self.pair(message.get("code"), message.get("name"), message.get("pairingSecret"))
+            return self.pair(
+                message.get("code"), message.get("name"), message.get("pairingSecret"), message.get("pairingToken")
+            )
         if op == "pair_status":
             return self.pair_status(message.get("pairingId"), message.get("pairingSecret"))
         owner = self.owner(message.get("token"))

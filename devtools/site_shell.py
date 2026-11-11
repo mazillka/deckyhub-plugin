@@ -14,6 +14,7 @@ REPO = "https://github.com/mazillka/deckyhub-plugin"
 LINKS = [
     ("home", "Home", SITE),
     ("plugins", "Plugins", SITE + "plugins/"),
+    ("paired-devices", "Paired devices", SITE + "paired-devices/"),
     ("install", "Install", SITE + "#install"),
     ("releases", "Release notes", SITE + "releases.html"),
     ("help", "Help", SITE + "help.html"),
@@ -25,6 +26,7 @@ LINKS = [
 LINKS_UK = [
     ("home", "Головна", SITE + "uk/"),
     ("plugins", "Плагіни", SITE + "plugins/"),
+    ("paired-devices", "Сполучені пристрої", SITE + "paired-devices/"),
     ("install", "Встановлення", SITE + "uk/#install"),
     ("releases", "Нотатки до релізів", SITE + "releases.html"),
     ("help", "Довідка", SITE + "uk/help.html"),
@@ -80,7 +82,7 @@ def nav(current: str | None = None, lang: str = "en", switch: tuple[str, str, st
 
 def apply(page: str, lang: str = "en", switch: tuple[str, str, str] | None = None) -> str:
     """The page with its shell placeholders filled in (in Ukrainian for lang="uk")."""
-    page = re.sub(r"<!-- site-nav(?::\s*(\w+))? -->", lambda match: nav(match.group(1), lang, switch), page)
+    page = re.sub(r"<!-- site-nav(?::\s*([\w-]+))? -->", lambda match: nav(match.group(1), lang, switch), page)
     return page.replace("<!-- site-footer -->", FOOTER_UK if lang == "uk" else FOOTER).replace(
         "/* site-nav-style */", NAV_STYLE
     )

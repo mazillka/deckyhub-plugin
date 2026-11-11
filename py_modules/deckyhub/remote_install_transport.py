@@ -5,12 +5,15 @@ import datetime
 import hashlib
 import ipaddress
 import json
+import logging
 import platform
 import socket
 import sys
 import time
 from collections import deque
 from pathlib import Path
+
+from .remote_install_discovery import advertise
 
 MAX_MESSAGE = 16384
 MAX_STREAMS = 16
@@ -165,4 +168,13 @@ async def start_transport(service):
     )
     config.certificate, config.private_key = cert, key
     server = await serve(address, 8765, configuration=config, create_protocol=Protocol, retry=True)
+    try:
+        service.discovery = await advertise(address, 8765)
+    except asyncio.CancelledError:
+        server.close()
+        raise
+    except Exception:
+        logging.getLogger(__name__).warning(
+            "Could not advertise DeckyHub Remote Install on the local network", exc_info=True
+        )
     return server, f"https://{address}:8765/remote-install", fingerprint
