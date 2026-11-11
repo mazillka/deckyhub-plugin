@@ -5,6 +5,7 @@ export const en = {
   "remote.address": "Device address",
   "remote.fingerprint": "Certificate fingerprint (SHA-256)",
   "remote.copyPairingLink": "Copy pairing link",
+  "remote.scanPairingQr": "Scan to open Paired devices",
   "remote.pair": "Pair browser",
   "remote.pairings": "Pairing requests",
   "remote.requests": "Plugin requests",

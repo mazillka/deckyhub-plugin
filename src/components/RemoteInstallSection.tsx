@@ -1,6 +1,7 @@
 import { DialogButtonPrimary as Button, Focusable, PanelSection, PanelSectionRow, ToggleField } from "@decky/ui";
 import { toaster } from "@decky/api";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import qrcode from "qrcode-generator";
 import { FaCheck, FaInfoCircle, FaMobileAlt, FaTimes, FaTrash } from "react-icons/fa";
 import {
   beginRemotePairing,
@@ -213,6 +214,14 @@ export function RemoteInstallSection() {
       return `https://deckyhub.com/develop/paired-devices.html#${details}`;
     })();
 
+  const pairingQr = useMemo(() => {
+    if (!pairingLink) return null;
+    const qr = qrcode(0, "M");
+    qr.addData(pairingLink);
+    qr.make();
+    return qr.createDataURL(4, 16);
+  }, [pairingLink]);
+
   return (
     <Card>
       <PanelSection title={t("remote.title")}>
@@ -271,6 +280,14 @@ export function RemoteInstallSection() {
                   </div>
                 </PanelSectionRow>
 
+                {pairingQr && (
+                  <PanelSectionRow>
+                    <div style={{ display: "grid", justifyItems: "center", gap: 8, textAlign: "center" }}>
+                      <img src={pairingQr} alt="" style={{ maxWidth: "100%", height: "auto" }} />
+                      <span>{t("remote.scanPairingQr")}</span>
+                    </div>
+                  </PanelSectionRow>
+                )}
                 {pairingLink && (
                   <PanelSectionRow>
                     <Button
