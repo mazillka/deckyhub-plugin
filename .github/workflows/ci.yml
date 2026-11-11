@@ -51,12 +51,12 @@ jobs:
           # Formatting and lint (prettier, ruff). Ruff is a dev tool only; the plugin itself
           # stays standard-library Python.
           python3 -m venv "$RUNNER_TEMP/venv"
-          "$RUNNER_TEMP/venv/bin/pip" install --quiet -r requirements-dev.txt
+          "$RUNNER_TEMP/venv/bin/pip" install --quiet -r requirements-dev.txt -r requirements-remote.txt
           PATH="$RUNNER_TEMP/venv/bin:$PATH" pnpm run lint
           pnpm run typecheck
           pnpm run build
           pnpm run test:frontend
-          python3 -m unittest discover -s tests
+          "$RUNNER_TEMP/venv/bin/python" -m unittest discover -s tests
 
   e2e:
     needs: changes
