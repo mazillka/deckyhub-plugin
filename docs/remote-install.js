@@ -197,6 +197,7 @@ export function init(root, details) {
       byId('device-name').value = device.name;
       reconnectButton.hidden = false;
       updateActions();
+      if (!pluginId) void inventory?.load();
       say(requestPluginId
         ? 'This device has a pending request. Retry its status before starting another change.'
         : `${device.name} selected.`);
@@ -268,6 +269,7 @@ export function init(root, details) {
           reconnectButton.hidden = false;
           say('Paired. Request installation, then approve it on your device.');
           updateActions();
+          if (!pluginId) void inventory?.load();
           return;
         }
         if (result.status === 'rejected' || result.status === 'expired') throw new Error(`Pairing ${result.status}.`);
@@ -293,6 +295,7 @@ export function init(root, details) {
         }
       }
       say('Address updated. Send to device or retry the pending request to reconnect.');
+      if (!pluginId) void inventory?.load();
     } catch (error) { showError(error); }
   });
   const runRequest = async (selectedPluginId = pluginId, action = 'install') => {
@@ -360,6 +363,7 @@ export function init(root, details) {
     },
   });
   updateActions();
+  if (!pluginId && token) void inventory.load();
   cancelButton.addEventListener('click', async () => {
     if (!endpoint || !token || !requestId) return;
     cancelButton.disabled = true;

@@ -37,3 +37,36 @@
 .remote-plugins { list-style: none; padding: 0; }
 .remote-plugins li { display: grid; gap: 4px; padding: 12px 0; border-top: 1px solid var(--line); overflow-wrap: anywhere; }
 .remote-plugins li > span { font-size: .9em; color: var(--muted); }
+
+.remote-device-dashboard {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 16px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.remote-device-dashboard .remote-device-overview,
+.remote-device-dashboard form {
+  min-width: 0;
+  padding: clamp(14px, 3vw, 22px);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+}
+.remote-device-dashboard form { align-self: start; }
+.remote-device-dashboard .remote-inventory { margin-top: 22px; }
+.remote-device-dashboard .remote-actions { align-items: center; }
+.remote-device-dashboard .remote-actions .btn { margin: 0; }
+.remote-device-dashboard #remote-cancel:disabled { display: none; }
+.remote-device-dashboard .remote-plugins li {
+  margin-top: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+}
+.remote-device-dashboard .remote-plugins .remote-actions { margin-top: 6px; }
+@media (max-width: 740px) {
+  .remote-device-dashboard { grid-template-columns: minmax(0, 1fr); }
+}
