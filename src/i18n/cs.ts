@@ -6,6 +6,7 @@ export const cs: Record<MessageKey, string> = {
   "remote.address": "Adresa zařízení",
   "remote.fingerprint": "Otisk certifikátu (SHA-256)",
   "remote.copyPairingLink": "Zkopírovat odkaz pro párování",
+  "remote.pairMode": "Režim párování",
   "remote.pair": "Spárovat prohlížeč",
   "remote.pairings": "Žádosti o spárování",
   "remote.requests": "Požadavky na změny pluginů",

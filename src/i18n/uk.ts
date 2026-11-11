@@ -7,6 +7,7 @@ export const uk: Record<MessageKey, string> = {
   "remote.address": "Адреса пристрою",
   "remote.fingerprint": "Відбиток сертифіката (SHA-256)",
   "remote.copyPairingLink": "Копіювати посилання для сполучення",
+  "remote.pairMode": "Режим сполучення",
   "remote.pair": "З’єднати браузер",
   "remote.pairings": "Запити на з’єднання",
   "remote.requests": "Запити на зміни плагінів",

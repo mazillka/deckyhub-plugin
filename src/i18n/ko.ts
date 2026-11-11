@@ -6,6 +6,7 @@ export const ko: Record<MessageKey, string> = {
   "remote.address": "기기 주소",
   "remote.fingerprint": "인증서 지문 (SHA-256)",
   "remote.copyPairingLink": "페어링 링크 복사",
+  "remote.pairMode": "페어링 모드",
   "remote.pair": "브라우저 연결",
   "remote.pairings": "연결 요청",
   "remote.requests": "플러그인 변경 요청",

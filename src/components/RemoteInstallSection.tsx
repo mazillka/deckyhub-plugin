@@ -224,7 +224,7 @@ export function RemoteInstallSection() {
         <div aria-hidden style={sectionDividerStyle} />
         <PanelSectionRow>
           <ToggleField
-            label={t("remote.title")}
+            label={t("remote.pairMode")}
             checked={isEnabled}
             disabled={loading}
             onChange={(checked) => void onToggle(checked)}

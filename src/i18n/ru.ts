@@ -6,6 +6,7 @@ export const ru: Record<MessageKey, string> = {
   "remote.address": "Адрес устройства",
   "remote.fingerprint": "Отпечаток сертификата (SHA-256)",
   "remote.copyPairingLink": "Копировать ссылку для сопряжения",
+  "remote.pairMode": "Режим сопряжения",
   "remote.pair": "Подключить браузер",
   "remote.pairings": "Запросы на подключение",
   "remote.requests": "Запросы на изменение плагинов",

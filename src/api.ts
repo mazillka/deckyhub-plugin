@@ -66,6 +66,7 @@ export const finishRemoteRequest = callable<[requestId: string, success: boolean
 );
 
 export const REGISTRY_UPDATED = "deckyhub-registry-updated";
+export const REMOTE_INSTALL_FEATURE_CHANGED = "deckyhub-remote-install-feature-changed";
 
 export const finishRemoteRequestUnknown = callable<[requestId: string], { id: string; status: string }>(
   "finish_remote_request_unknown",

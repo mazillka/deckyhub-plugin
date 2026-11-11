@@ -1,7 +1,7 @@
 import { Focusable, Navigation, Tabs, ToggleField } from "@decky/ui";
 import { useEffect, useState, type ReactNode } from "react";
 import { FaCog } from "react-icons/fa";
-import { getSettings, saveSettings, setRemoteInstallFeatureEnabled } from "../api";
+import { getSettings, REMOTE_INSTALL_FEATURE_CHANGED, saveSettings, setRemoteInstallFeatureEnabled } from "../api";
 import { PageHeader } from "../components/Card";
 import { AboutSection } from "../components/AboutSection";
 import {
@@ -11,7 +11,6 @@ import {
   LanguageSection,
   TroubleshootingSection,
 } from "../components/SettingsSections";
-import { RemoteInstallSection } from "../components/RemoteInstallSection";
 import { ManageRepositoriesPage } from "./ManageRepositoriesPage";
 import { ExpSettings } from "../components/experimental/ExpSettings";
 import { useUiStyle } from "../uiStyle";
@@ -131,9 +130,13 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
             key="remote-feature"
             label={t("remote.title")}
             checked={settings.remoteInstallFeature === true}
-            onChange={(enabled: boolean) => void setRemoteInstallFeatureEnabled(enabled).then(setSettings)}
+            onChange={(enabled: boolean) =>
+              void setRemoteInstallFeatureEnabled(enabled).then((saved) => {
+                setSettings(saved);
+                window.dispatchEvent(new Event(REMOTE_INSTALL_FEATURE_CHANGED));
+              })
+            }
           />,
-          settings.remoteInstallFeature ? <RemoteInstallSection key="remote-install" /> : null,
         ),
       },
       {

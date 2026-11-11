@@ -347,7 +347,7 @@ def page(
 
 
 def remote_device_panel() -> str:
-    return f"""<section id="remote-install" class="remote-install remote-device-dashboard" aria-labelledby="remote-title" data-plugin-id="">
+    return """<section id="remote-install" class="remote-install remote-device-dashboard" aria-labelledby="remote-title" data-plugin-id="">
 <link rel="stylesheet" href="/remote-install.css">
 <div class="remote-device-overview">
 <div class="remote-device-heading"><h2 id="remote-title">Your devices</h2><a class="btn ghost" href="#remote-pair-form">Pair a new device</a></div>
@@ -365,13 +365,13 @@ def remote_device_panel() -> str:
 <form id="remote-pair-form" aria-labelledby="remote-pair-title">
 <h3 id="remote-pair-title">Pair a new device</h3>
 <ol>
-<li>In a DeckyHub pre-release, open <strong>Settings → Downloads</strong> and turn on both Remote Install switches.</li>
+<li>Enable Remote Install under <strong>Settings → Downloads</strong>, then turn on <strong>Pair mode</strong> in DeckyHub’s Quick Access Menu.</li>
 <li>Copy the pairing link and six-digit code from DeckyHub.</li>
 <li>Allow local network access if asked, then approve the browser on your device.</li>
 </ol>
 <p>Keep both devices on the same network.</p>
 <p><label for="remote-pairing-link">Pairing link</label><br><input id="remote-pairing-link" type="text" autocomplete="off" spellcheck="false" placeholder="Paste the link from DeckyHub"></p>
-<p><label for="remote-code">Six-digit pairing code</label><br><input id="remote-code" autocomplete="off" inputmode="numeric" maxlength="6" pattern="[0-9]{{6}}" required></p>
+<p><label for="remote-code">Six-digit pairing code</label><br><input id="remote-code" autocomplete="off" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" required></p>
 <details id="remote-manual">
 <summary>Enter connection details manually or rename this device</summary>
 <p><label for="remote-address">Device address and port</label><br><input id="remote-address" placeholder="192.168.1.50:8765" autocomplete="off"></p>
