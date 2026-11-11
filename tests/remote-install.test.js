@@ -17,6 +17,10 @@ test('pasted DeckyHub links fill device details without navigating away from the
   assert.deepEqual(detailsFromPairingLink(`https://deckyhub.com${path}`), { address, fingerprint });
   assert.deepEqual(detailsFromPairingLink(`https://deckyhub.com${path.replace('/plugins/', '/paired-devices.html')}`), { address, fingerprint });
   assert.equal(detailsFromPairingLink(`https://example.com${path}`), null);
+  const pairingToken = 'a'.repeat(43);
+  const newLink = `https://deckyhub.com${path.replace('/plugins/', '/remote-install/')}&pair=${pairingToken}`;
+  assert.deepEqual(detailsFromPairingLink(newLink), { address, fingerprint, pairingToken });
+  assert.equal(detailsFromPairingLink(newLink.replace(pairingToken, 'short')), null);
 });
 
 test('accepts only private IPv4 literals on the DeckyHub port', () => {

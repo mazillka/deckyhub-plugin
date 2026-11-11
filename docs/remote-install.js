@@ -23,11 +23,13 @@ export function pairingDetails(fragment) {
   const params = new URLSearchParams(fragment.replace(/^#/, ''));
   const address = params.get('device');
   const fingerprint = params.get('fingerprint');
+  const pairingToken = params.get('pair');
   if (!address || !fingerprint) return null;
+  if (pairingToken !== null && !/^[A-Za-z0-9_-]{43}$/.test(pairingToken)) return null;
   try {
     deviceUrl(address);
     fingerprintBytes(fingerprint);
-    return { address, fingerprint };
+    return pairingToken ? { address, fingerprint, pairingToken } : { address, fingerprint };
   } catch {
     return null;
   }
@@ -264,18 +266,21 @@ export function init(root, details) {
     if (!device) throw new Error('Paste the pairing link copied from DeckyHub on your device.');
     fillDevice(device);
     linkInput.value = '';
+    return device;
   };
-  linkInput?.addEventListener('change', () => {
-    try { usePairingLink(); } catch (error) { showError(error); }
-  });
-  form?.addEventListener('submit', async event => {
-    event.preventDefault();
-    if (idempotencyKey) return;
+  let pairing = false;
+  const pairDevice = async (link) => {
+    if (idempotencyKey || pairing) return;
+    pairing = true;
     if (pairButton) pairButton.disabled = true;
     picker.disabled = true;
     disconnect();
     try {
-      usePairingLink();
+      const pairingToken = (link || usePairingLink())?.pairingToken;
+      if (link) {
+        byId('address').value = link.address;
+        byId('fingerprint').value = link.fingerprint;
+      }
       if (!byId('address').value.trim()) throw new Error('Paste a pairing link or enter the address under connection details.');
       const url = deviceUrl(byId('address').value);
       const fingerprint = fingerprintBytes(byId('fingerprint').value);
@@ -284,21 +289,22 @@ export function init(root, details) {
       if (previous?.pending) throw new Error('Select the existing pairing to check its pending request first.');
       if (!previous && devices.length >= 16) throw new Error('This tab can pair with up to 16 devices.');
       const code = byId('code').value.trim(), name = byId('name').value.trim();
-      if (!/^\d{6}$/.test(code) || !name || name.length > 64) throw new Error('Enter the six-digit pairing code and a browser name.');
+      if ((!pairingToken && !/^\d{6}$/.test(code)) || !name || name.length > 64) throw new Error('Enter the six-digit pairing code and a browser name.');
       endpoint = { url, fingerprint };
       say('Connecting. Allow local network access if your browser asks.');
       const secret = crypto.getRandomValues(new Uint8Array(32));
       const pairingSecret = btoa(String.fromCharCode(...secret)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-      const pairing = await send({ op: 'pair', code, name, pairingSecret });
-      if (typeof pairing.pairingId !== 'string' || !pairing.pairingId) throw new Error('Invalid pairing response.');
+      const credential = pairingToken ? { pairingToken } : { code };
+      const result = await send({ op: 'pair', ...credential, name, pairingSecret });
+      if (typeof result.pairingId !== 'string' || !result.pairingId) throw new Error('Invalid pairing response.');
       byId('code').value = '';
       say('Approve this browser on your device.');
       const deadline = Date.now() + 120000;
       while (Date.now() < deadline) {
         await sleep(2000);
-        const result = await send({ op: 'pair_status', pairingId: pairing.pairingId, pairingSecret });
-        if (result.status === 'approved' && /^[A-Za-z0-9_-]{43}$/.test(result.token || '')) {
-          token = result.token;
+        const approval = await send({ op: 'pair_status', pairingId: result.pairingId, pairingSecret });
+        if (approval.status === 'approved' && /^[A-Za-z0-9_-]{43}$/.test(approval.token || '')) {
+          token = approval.token;
           const address = new URL(url).host;
           const deviceName = byId('device-name').value.trim().slice(0, 64) || address;
           devices = [...devices.filter(device => device.fingerprint !== pin), { name: deviceName, address, fingerprint: pin, token }];
@@ -307,17 +313,33 @@ export function init(root, details) {
           try { sessionStorage.removeItem(PAIRING_DETAILS_KEY); } catch { /* Pairing is already complete. */ }
           renderPicker(devices.length - 1);
           if (reconnectButton) reconnectButton.hidden = false;
-          say('Paired. Request installation, then approve it on your device.');
+          say('Paired. You can now manage this device.');
           updateActions();
           if (!pluginId) void inventory?.load();
           return;
         }
-        if (result.status === 'rejected' || result.status === 'expired') throw new Error(`Pairing ${result.status}.`);
-        if (result.status !== 'pending') throw new Error('Invalid pairing status.');
+        if (approval.status === 'rejected' || approval.status === 'expired') throw new Error(`Pairing ${approval.status}.`);
+        if (approval.status !== 'pending') throw new Error('Invalid pairing status.');
       }
       throw new Error('Pairing timed out.');
-    } catch (error) { disconnect(); renderPicker(); showError(error); }
-    finally { if (pairButton) pairButton.disabled = false; picker.disabled = false; }
+    } catch (error) {
+      disconnect();
+      renderPicker();
+      if (link?.pairingToken && error.message === 'The device rejected the request.')
+        say('This pairing link was rejected. Generate a new QR code or pairing link on your device.');
+      else showError(error);
+    }
+    finally { pairing = false; updateActions(); picker.disabled = false; }
+  };
+  linkInput?.addEventListener('change', () => {
+    try {
+      const link = usePairingLink();
+      if (link?.pairingToken) void pairDevice(link);
+    } catch (error) { showError(error); }
+  });
+  form?.addEventListener('submit', event => {
+    event.preventDefault();
+    void pairDevice();
   });
   reconnectButton?.addEventListener('click', () => {
     if (!endpoint || !token) return;
@@ -416,6 +438,7 @@ export function init(root, details) {
     } catch (error) { showError(error); }
   });
   updateActions();
+  if (form && details?.pairingToken) void pairDevice(details);
   addEventListener('pagehide', disconnect, { once: true });
 }
 if (typeof document !== 'undefined') {

@@ -23,6 +23,26 @@ class RemoteInstallServiceTests(unittest.TestCase):
         self.assertTrue(p["code"].isdigit())
         self.assertEqual(p["expiresInSeconds"], 120)
 
+    def test_pairing_link_is_single_use_and_requires_local_approval(self):
+        grant = self.service.begin_pairing()
+        secret = self._secret()
+        result = self.service.remote(
+            {"op": "pair", "pairingToken": grant["pairingToken"], "name": "Phone", "pairingSecret": secret}
+        )
+        self.assertEqual(self.service.pair_status(result["pairingId"], secret), {"status": "pending"})
+        with self.assertRaises(ValueError):
+            self.service.pair(None, "Other browser", self._secret(), grant["pairingToken"])
+        with self.assertRaises(ValueError):
+            self.service.pair(grant["code"], "Other browser", self._secret())
+        self.service.decide_pairing(result["pairingId"], True)
+        self.assertEqual(len(self.service.pair_status(result["pairingId"], secret)["token"]), 43)
+
+    def test_pairing_link_expires(self):
+        grant = self.service.begin_pairing()
+        self.now += grant["expiresInSeconds"]
+        with self.assertRaises(ValueError):
+            self.service.pair(None, "Phone", self._secret(), grant["pairingToken"])
+
     def test_pair_and_pair_status_workflow(self):
         p = self.service.begin_pairing()
         code = p["code"]

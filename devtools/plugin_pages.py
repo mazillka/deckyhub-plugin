@@ -366,10 +366,11 @@ def remote_device_panel() -> str:
 <h3 id="remote-pair-title">Pair a new device</h3>
 <ol>
 <li>Turn on <strong>Pair mode</strong> in DeckyHub’s Quick Access Menu.</li>
-<li>Copy the pairing link and six-digit code from DeckyHub.</li>
+<li>Select <strong>Pair browser</strong> in DeckyHub, then scan the QR code or open the copied pairing link.</li>
 <li>Allow local network access if asked, then approve the browser on your device.</li>
 </ol>
 <p>Keep both devices on the same network.</p>
+<p>Enter the six-digit code below if your pairing link only fills in the connection details.</p>
 <p><label for="remote-pairing-link">Pairing link</label><br><input id="remote-pairing-link" type="text" autocomplete="off" spellcheck="false" placeholder="Paste the link from DeckyHub"></p>
 <p><label for="remote-code">Six-digit pairing code</label><br><input id="remote-code" autocomplete="off" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" required></p>
 <details id="remote-manual">
