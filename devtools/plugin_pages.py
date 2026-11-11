@@ -365,7 +365,7 @@ def remote_device_panel() -> str:
 <form id="remote-pair-form" aria-labelledby="remote-pair-title">
 <h3 id="remote-pair-title">Pair a new device</h3>
 <ol>
-<li>Enable Remote Install under <strong>Settings → Downloads</strong>, then turn on <strong>Pair mode</strong> in DeckyHub’s Quick Access Menu.</li>
+<li>Turn on <strong>Pair mode</strong> in DeckyHub’s Quick Access Menu.</li>
 <li>Copy the pairing link and six-digit code from DeckyHub.</li>
 <li>Allow local network access if asked, then approve the browser on your device.</li>
 </ol>

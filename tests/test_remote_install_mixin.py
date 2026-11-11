@@ -18,7 +18,7 @@ def run_coro(coro):
 
 class DummyPlugin(RemoteInstallMixin):
     def __init__(self):
-        self.settings = {"remoteInstall": False, "remoteInstallFeature": True}
+        self.settings = {"remoteInstall": False}
         self.apps = [{"id": "plugin-test", "repo": "test/plugin"}]
         self._init_remote_install()
 
@@ -79,23 +79,9 @@ class RemoteInstallMixinTests(unittest.TestCase):
             run_coro(self.plugin.set_remote_install_enabled("false"))
         self.assertFalse(self.plugin.settings["remoteInstall"])
 
-    def test_feature_flag_blocks_listener_and_disabling_closes_it(self):
-        server = types.SimpleNamespace(close=MagicMock())
-
-        async def fake_start(service):
-            return server, "https://example.test/remote-install", "fingerprint"
-
-        with patch("deckyhub.remote_install.start_transport", side_effect=fake_start):
-            run_coro(self.plugin.set_remote_install_enabled(True))
-            run_coro(self.plugin.set_remote_install_feature_enabled(False))
-            server.close.assert_called_once()
-            self.assertFalse(self.plugin.settings["remoteInstall"])
-            with self.assertRaises(ValueError):
-                run_coro(self.plugin.set_remote_install_enabled(True))
-
     def test_address_change_rebinds_without_discarding_pairing_or_certificate(self):
         plugin = self.plugin
-        plugin.settings.update(remoteInstall=True, remoteInstallFeature=True)
+        plugin.settings.update(remoteInstall=True)
         service = plugin.remote_install_service
         service.transport_identity = object()
         identity = service.transport_identity
@@ -119,8 +105,8 @@ class RemoteInstallMixinTests(unittest.TestCase):
         self.assertIs(plugin.remote_install_server, new_server)
         self.assertEqual(plugin.remote_install_fingerprint, "same-fingerprint")
 
-    def test_disabled_feature_cannot_claim_request(self):
-        self.plugin.settings.update(remoteInstall=True, remoteInstallFeature=False)
+    def test_disabled_pair_mode_cannot_claim_request(self):
+        self.plugin.settings["remoteInstall"] = False
         with patch.object(self.plugin.remote_install_service, "claim") as claim:
             with self.assertRaisesRegex(ValueError, "Remote install is disabled"):
                 run_coro(self.plugin.claim_remote_request("pending"))
@@ -132,15 +118,14 @@ class RemoteInstallMixinTests(unittest.TestCase):
                 self.assertFalse(coerce_settings({"remoteInstall": value})["remoteInstall"])
         self.assertTrue(coerce_settings({"remoteInstall": True})["remoteInstall"])
 
-    def test_remote_install_feature_defaults_off_and_blocks_startup(self):
-        self.assertFalse(coerce_settings({})["remoteInstallFeature"])
-        for value in ("true", 1, None, [], {}):
-            self.assertFalse(coerce_settings({"remoteInstallFeature": value})["remoteInstallFeature"])
-        self.plugin.settings = coerce_settings({"remoteInstall": True})
+    def test_remote_install_defaults_off_and_preserves_legacy_disabled_state(self):
+        self.assertFalse(coerce_settings({})["remoteInstall"])
+        self.assertFalse(coerce_settings({"remoteInstall": True, "remoteInstallFeature": False})["remoteInstall"])
+        self.assertTrue(coerce_settings({"remoteInstall": True, "remoteInstallFeature": True})["remoteInstall"])
+        self.assertNotIn("remoteInstallFeature", coerce_settings({}))
         with patch("deckyhub.remote_install.start_transport") as start:
             run_coro(self.plugin._start_remote_transport())
             start.assert_not_called()
-        self.assertIsNone(self.plugin.remote_install_server)
 
     def test_disable_during_start_closes_late_listener(self):
         async def scenario():

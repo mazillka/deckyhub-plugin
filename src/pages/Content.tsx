@@ -9,7 +9,7 @@ import {
 } from "@decky/ui";
 import { useEffect, useRef, useState } from "react";
 import { FaSync } from "react-icons/fa";
-import { downloadAsset, getSettings, REMOTE_INSTALL_FEATURE_CHANGED } from "../api";
+import { downloadAsset } from "../api";
 import { useT } from "../i18n";
 import { installWarnings, type App, type Asset, type RepoPreference, type View } from "../types";
 import {
@@ -52,24 +52,6 @@ import { useUiStyle } from "../uiStyle";
 import { colors, tint } from "../styles";
 export function Content({ fullPage }: { fullPage?: View }) {
   const t = useT();
-  const [remoteInstallFeature, setRemoteInstallFeature] = useState(false);
-  useEffect(() => {
-    if (fullPage) return;
-    let active = true;
-    const refresh = () => {
-      void getSettings()
-        .then((settings) => {
-          if (active) setRemoteInstallFeature(settings.remoteInstallFeature === true);
-        })
-        .catch(() => undefined);
-    };
-    refresh();
-    window.addEventListener(REMOTE_INSTALL_FEATURE_CHANGED, refresh);
-    return () => {
-      active = false;
-      window.removeEventListener(REMOTE_INSTALL_FEATURE_CHANGED, refresh);
-    };
-  }, [fullPage]);
   const view: View = fullPage ?? "updates";
   const {
     apps,
@@ -463,7 +445,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
         <QuickAccessNav updateCount={updateCount} listedCount={listedCount} installedCount={installedCount} />
       )}
       <UiStyleSection />
-      {remoteInstallFeature && <RemoteInstallSection />}
+      <RemoteInstallSection />
     </div>
   );
 }

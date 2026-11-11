@@ -1,7 +1,7 @@
-import { Focusable, Navigation, Tabs, ToggleField } from "@decky/ui";
+import { Focusable, Navigation, Tabs } from "@decky/ui";
 import { useEffect, useState, type ReactNode } from "react";
 import { FaCog } from "react-icons/fa";
-import { getSettings, REMOTE_INSTALL_FEATURE_CHANGED, saveSettings, setRemoteInstallFeatureEnabled } from "../api";
+import { getSettings, saveSettings } from "../api";
 import { PageHeader } from "../components/Card";
 import { AboutSection } from "../components/AboutSection";
 import {
@@ -124,20 +124,7 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
       {
         id: "downloads",
         title: t("settings.tabDownloads"),
-        content: stack(
-          <DownloadsSection key="downloads" settings={settings} update={update} />,
-          <ToggleField
-            key="remote-feature"
-            label={t("remote.title")}
-            checked={settings.remoteInstallFeature === true}
-            onChange={(enabled: boolean) =>
-              void setRemoteInstallFeatureEnabled(enabled).then((saved) => {
-                setSettings(saved);
-                window.dispatchEvent(new Event(REMOTE_INSTALL_FEATURE_CHANGED));
-              })
-            }
-          />,
-        ),
+        content: <DownloadsSection settings={settings} update={update} />,
       },
       {
         id: "repositories",

@@ -37,9 +37,6 @@ export const saveRepoSettings = callable<[repo: string, values: RepoPreference],
 
 export const getRemoteInstallStatus = callable<[], RemoteInstallStatus>("get_remote_install_status");
 export const setRemoteInstallEnabled = callable<[enabled: boolean], RemoteInstallStatus>("set_remote_install_enabled");
-export const setRemoteInstallFeatureEnabled = callable<[enabled: boolean], Settings>(
-  "set_remote_install_feature_enabled",
-);
 export const beginRemotePairing = callable<[], { code: string; expiresInSeconds: number }>("begin_remote_pairing");
 export const decideRemotePairing = callable<[pairId: string, approve: boolean], { status: string }>(
   "decide_remote_pairing",
@@ -66,7 +63,6 @@ export const finishRemoteRequest = callable<[requestId: string, success: boolean
 );
 
 export const REGISTRY_UPDATED = "deckyhub-registry-updated";
-export const REMOTE_INSTALL_FEATURE_CHANGED = "deckyhub-remote-install-feature-changed";
 
 export const finishRemoteRequestUnknown = callable<[requestId: string], { id: string; status: string }>(
   "finish_remote_request_unknown",
