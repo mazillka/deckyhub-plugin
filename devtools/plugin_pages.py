@@ -346,30 +346,24 @@ def page(
 """
 
 
-def remote_device_panel(title: str, plugin_id: str = "") -> str:
-    hidden = "" if plugin_id else " hidden"
-    layout = "" if plugin_id else " remote-device-dashboard"
-    pair_link = "" if plugin_id else '<a class="btn ghost" href="#remote-pair-form">Pair a new device</a>'
-    pair_title = "Pair a device" if plugin_id else "Pair a new device"
-    devices_link = '<p><a href="/paired-devices.html">Manage paired devices</a></p>' if plugin_id else ""
-    return f"""<section id="remote-install" class="remote-install{layout}" aria-labelledby="remote-title" data-plugin-id="{escape(plugin_id, quote=True)}">
+def remote_device_panel() -> str:
+    return f"""<section id="remote-install" class="remote-install remote-device-dashboard" aria-labelledby="remote-title" data-plugin-id="">
 <link rel="stylesheet" href="/remote-install.css">
 <div class="remote-device-overview">
-<div class="remote-device-heading"><h2 id="remote-title">{escape(title)}</h2>{pair_link}</div>
+<div class="remote-device-heading"><h2 id="remote-title">Your devices</h2><a class="btn ghost" href="#remote-pair-form">Pair a new device</a></div>
 <p>Choose a paired device or set up a new one below. Approve pairing and plugin changes on your device.</p>
 <p><label for="remote-device-picker">Paired device</label><br><select id="remote-device-picker" disabled><option value="">Pair a device</option></select></p>
-<p class="remote-actions"><button type="button" id="remote-request" disabled{hidden}>Send install request</button> <button type="button" id="remote-cancel" disabled>Cancel request</button></p>
+<p class="remote-actions"><button type="button" id="remote-request" disabled hidden>Send install request</button> <button type="button" id="remote-cancel" disabled>Cancel request</button></p>
 <p id="remote-status" role="status" aria-live="polite">Not connected.</p>
 <section class="remote-inventory" aria-labelledby="remote-plugins-title">
 <h3 id="remote-plugins-title">Installed plugins</h3>
 <p class="remote-actions"><a class="btn" href="/plugins/">Browse plugins to install</a> <button type="button" id="remote-plugins-refresh" disabled>Refresh list</button></p>
 <p id="remote-plugins-status" role="status" aria-live="polite">Pair a device to see its installed plugins.</p>
 <ul id="remote-plugins" class="remote-plugins"></ul>
-{devices_link}
 </section>
 </div>
 <form id="remote-pair-form" aria-labelledby="remote-pair-title">
-<h3 id="remote-pair-title">{pair_title}</h3>
+<h3 id="remote-pair-title">Pair a new device</h3>
 <ol>
 <li>In a DeckyHub pre-release, open <strong>Settings → Downloads</strong> and turn on both Remote Install switches.</li>
 <li>Copy the pairing link and six-digit code from DeckyHub.</li>
@@ -393,10 +387,23 @@ def remote_device_panel(title: str, plugin_id: str = "") -> str:
 </section>"""
 
 
+def remote_install_picker(plugin_id: str) -> str:
+    return f"""<section id="remote-install" class="remote-install remote-compact" aria-label="Send to device" data-plugin-id="{escape(plugin_id, quote=True)}">
+<link rel="stylesheet" href="/remote-install.css">
+<div class="remote-actions">
+<select id="remote-device-picker" aria-label="Paired device" disabled><option value="">Select a device</option></select>
+<button type="button" id="remote-request" disabled>Send</button>
+<a id="remote-pair-new" class="btn ghost" href="/remote-install/">Pair new</a>
+</div>
+<p id="remote-status" role="status" aria-live="polite" hidden></p>
+<script type="module" src="/remote-install.js"></script>
+</section>"""
+
+
 def paired_devices_page(shell: dict[str, str]) -> str:
     description = "Pair a device and manage its installed Decky plugins."
-    body = "<h1>Paired devices</h1>" + remote_device_panel("Your devices")
-    return page(shell, "Paired devices | DeckyHub", description, "paired-devices.html", body, [])
+    body = "<h1>Paired devices</h1>" + remote_device_panel()
+    return page(shell, "Paired devices | DeckyHub", description, "remote-install/", body, [])
 
 
 def plugin_page(
@@ -441,7 +448,7 @@ def plugin_page(
 <p><a class="btn ghost" href="#remote-install">Send to device (preview)</a></p>
 <p class="note">Before updating an installed plugin, check that its GitHub owner and repository match the source shown here. Plugin names alone may not identify the correct project.</p>
 <p>{escape(name)} is a <a href="https://decky.xyz/">Decky Loader</a> plugin. With <a href="/">DeckyHub</a> installed, open DeckyHub's <strong>Discover</strong> tab in Gaming Mode, search for <strong>{escape(name)}</strong> and press <strong>Install</strong>. DeckyHub hands the release to Decky Loader's own installer and checks its SHA-256 whenever GitHub publishes one. You can also download the ZIP from its <a href="{escape(repo_url)}/releases">releases</a> and install it by hand from Decky's developer settings.</p>
-{remote_device_panel(f"Send {name} to your device", app["id"])}
+{remote_install_picker(app["id"])}
 <h2>Safety information</h2>
 {"<ul class='badges'>" + "".join(badges) + "</ul>" if badges else "<p>No badges: it doesn't run as root, and no audit warnings or virus scan findings are known for it.</p>"}
 <h2>Security scans</h2>
@@ -614,7 +621,7 @@ def catalog_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
     )
     body = f"""<p class="crumbs"><a href="/">DeckyHub</a> › Plugins</p>
 <h1>Decky plugins</h1>
-<p><a class="btn ghost" href="/paired-devices.html">Paired devices</a></p>
+<p><a class="btn ghost" href="/remote-install/">Paired devices</a></p>
 <p id="remote-device-ready" role="status" hidden>Device details received. Choose a plugin to pair with your device and request installation.</p>
 <script type="module" src="/remote-install.js"></script>
 <p class="lead">{len(apps)} Decky Loader plugins, most downloaded first. Install any of them from Gaming Mode with <a href="/">DeckyHub</a>, which also checks them for updates.</p>
@@ -782,11 +789,14 @@ def write_pages(out, apps: list[dict], releases_page: str, data: dict) -> list[t
     today = time.strftime("%Y-%m-%d", time.gmtime())
     (out / "plugins" / "index.html").write_text(catalog_page(shell, apps, data), encoding="utf-8")
     (out / "plugins" / "known-issues.html").write_text(issues_page(shell, apps, data), encoding="utf-8")
-    (out / "paired-devices.html").write_text(paired_devices_page(shell), encoding="utf-8")
+    remote_page = paired_devices_page(shell)
+    (out / "remote-install").mkdir(exist_ok=True)
+    (out / "remote-install" / "index.html").write_text(remote_page, encoding="utf-8")
+    (out / "paired-devices.html").write_text(remote_page, encoding="utf-8")
     urls = [
         (f"{SITE}plugins/", today),
         (f"{SITE}plugins/known-issues.html", today),
-        (f"{SITE}paired-devices.html", today),
+        (f"{SITE}remote-install/", today),
     ]
     for app in apps:
         key = app["repo"].casefold()

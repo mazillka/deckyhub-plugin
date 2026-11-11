@@ -37,14 +37,11 @@ class PluginPageTests(unittest.TestCase):
     def test_remote_install_handoff_has_plugin_id_and_no_secrets_in_url(self):
         page = self.page()
         self.assertIn('id="remote-install"', page)
-        form = page.split('<form id="remote-pair-form" aria-labelledby="remote-pair-title">', 1)[1].split("</form>", 1)[
-            0
-        ]
-        self.assertNotIn(" name=", form)
-        self.assertIn('id="remote-pair" disabled', form)
+        self.assertNotIn('id="remote-pair-form"', page)
+        self.assertNotIn('id="remote-plugins"', page)
         self.assertIn(f'data-plugin-id="{APP["id"]}"', page)
         self.assertIn('src="/remote-install.js"', page)
-        self.assertIn("Approve pairing and plugin changes on your device.", page)
+        self.assertIn('href="/remote-install/">Pair new</a>', page)
         self.assertNotIn("token=", page)
 
     def test_a_long_repository_name_gets_a_full_width_tile_that_wraps(self):
@@ -166,7 +163,8 @@ class PluginPageTests(unittest.TestCase):
         self.assertIn(f'data-plugin-id="{APP["id"]}"', page)
 
     def test_remote_install_prefers_pairing_link_and_code_over_manual_connection_details(self):
-        page = self.page()
+        shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
+        page = plugin_pages.paired_devices_page(shell)
         form = page.split('<form id="remote-pair-form" aria-labelledby="remote-pair-title">', 1)[1].split("</form>", 1)[
             0
         ]
