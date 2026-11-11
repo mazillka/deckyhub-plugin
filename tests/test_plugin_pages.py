@@ -37,7 +37,9 @@ class PluginPageTests(unittest.TestCase):
     def test_remote_install_handoff_has_plugin_id_and_no_secrets_in_url(self):
         page = self.page()
         self.assertIn('id="remote-install"', page)
-        form = page.split('<form id="remote-pair-form" aria-labelledby="remote-pair-title">', 1)[1].split("</form>", 1)[0]
+        form = page.split('<form id="remote-pair-form" aria-labelledby="remote-pair-title">', 1)[1].split("</form>", 1)[
+            0
+        ]
         self.assertNotIn(" name=", form)
         self.assertIn('id="remote-pair" disabled', form)
         self.assertIn(f'data-plugin-id="{APP["id"]}"', page)
@@ -165,7 +167,9 @@ class PluginPageTests(unittest.TestCase):
 
     def test_remote_install_prefers_pairing_link_and_code_over_manual_connection_details(self):
         page = self.page()
-        form = page.split('<form id="remote-pair-form" aria-labelledby="remote-pair-title">', 1)[1].split("</form>", 1)[0]
+        form = page.split('<form id="remote-pair-form" aria-labelledby="remote-pair-title">', 1)[1].split("</form>", 1)[
+            0
+        ]
         basic, advanced = form.split('<details id="remote-manual">', 1)
         self.assertIn('id="remote-pairing-link"', basic)
         self.assertIn('pattern="[0-9]{6}" required', basic)
