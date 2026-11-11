@@ -28,6 +28,7 @@ class RemoteInstallService:
         self.pairings = {}
         self.devices = {}
         self.transport_identity = None
+        self.discovery = None
         self.attempts = []
 
     def begin_pairing(self):

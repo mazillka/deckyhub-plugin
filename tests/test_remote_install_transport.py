@@ -20,6 +20,7 @@ class RemoteInstallTransportTests(unittest.IsolatedAsyncioTestCase):
         with (
             patch.object(remote_install_transport, "lan_address", side_effect=["192.168.1.20", "192.168.1.21"]),
             patch("aioquic.asyncio.serve") as serve,
+            patch.object(remote_install_transport, "advertise"),
         ):
             _, first_url, first_pin = await remote_install_transport.start_transport(service)
             _, second_url, second_pin = await remote_install_transport.start_transport(service)
