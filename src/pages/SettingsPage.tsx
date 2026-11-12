@@ -17,6 +17,8 @@ import { useUiStyle } from "../uiStyle";
 import { useLayout } from "../components/LayoutToggle";
 import { LOCALE_CHANGED, useT } from "../i18n";
 import type { Settings } from "../types";
+import { BackupsSection } from "../components/BackupsSection";
+import { LeftoversSection } from "../components/LeftoversSection";
 import { setQuickAccessTab } from "../components/QuickAccessTab";
 import { DEFAULT_COLUMNS_PER_ROW, githubCoreQuota, setGithubToken } from "../utils";
 
@@ -32,6 +34,7 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
   });
   const [settings, setSettings] = useState<Settings>({
     overwriteExisting: true,
+    backupBeforeChange: true,
     updateChannel: "stable",
     registryChannel: "stable",
     language: "auto",
@@ -134,7 +137,11 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
       {
         id: "troubleshoot",
         title: t("settings.tabTroubleshoot"),
-        content: stack(<TroubleshootingSection key="troubleshooting" />),
+        content: stack(
+          <BackupsSection key="backups" settings={settings} update={update} />,
+          <LeftoversSection key="leftovers" />,
+          <TroubleshootingSection key="troubleshooting" />,
+        ),
       },
       {
         id: "about",

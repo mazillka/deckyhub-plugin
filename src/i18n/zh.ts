@@ -306,6 +306,25 @@ export const zh: Record<MessageKey, string> = {
   "settings.exportLogs": "导出日志",
   "settings.exportLogsNote":
     "将 DeckyHub 的日志以 ZIP 格式保存到 ~/Downloads，可附加到错误报告中。你的 GitHub 令牌永远不会被记录。",
+  "settings.backups": "备份",
+  "settings.backupBefore": "更新和移除前备份设置",
+  "settings.backupBeforeNote":
+    "DeckyHub 更新、重新安装或移除插件之前，会在这里保存该插件设置的副本（每个插件保留最近 5 份）。如果更新出问题，可以恢复其中一份。",
+  "settings.backupsEmpty": "还没有备份。",
+  "settings.restore": "恢复",
+  "settings.restoreTitle": "恢复 {name} 的设置？",
+  "settings.restoreDescription":
+    "这会用 {date} 的备份替换它当前的设置。当前设置会先备份。之后请重新加载或重启该插件以使用它们。",
+  "settings.restored": "已恢复 {name} 的设置",
+  "settings.leftovers": "插件残留文件",
+  "settings.leftoversNote": "Decky 为已不再安装的插件保留的文件夹。选择要移除的项目；插件的设置会先备份。",
+  "settings.leftoversScan": "查找残留",
+  "settings.leftoversNone": "没有残留。",
+  "settings.leftoverInfo": "{size} · {when}更改",
+  "settings.leftoversRemove": "移除所选 ({count})",
+  "settings.leftoversConfirmTitle": "移除 {count} 个残留文件夹？",
+  "settings.leftoversConfirm": "这会从此设备删除它们的设置、数据和日志。设置会先备份，可从“备份”中恢复。",
+  "settings.leftoversRemoved": "已移除 {count} 个文件夹，释放 {size}",
 
   "repos.addManage": "添加与管理",
   "repos.searchGithub": "搜索 GitHub",

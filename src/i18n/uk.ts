@@ -320,6 +320,27 @@ export const uk: Record<MessageKey, string> = {
   "settings.exportLogs": "Експортувати журнали",
   "settings.exportLogsNote":
     "Зберігає журнали DeckyHub як ZIP у ~/Downloads — додайте його до звіту про помилку. Ваш токен GitHub ніколи не потрапляє в журнали.",
+  "settings.backups": "Резервні копії",
+  "settings.backupBefore": "Копіювати налаштування перед оновленням і видаленням",
+  "settings.backupBeforeNote":
+    "Перед оновленням, перевстановленням чи видаленням плагіна DeckyHub зберігає тут копію його налаштувань (останні 5 на плагін). Відновіть одну, якщо оновлення щось зламає.",
+  "settings.backupsEmpty": "Резервних копій ще немає.",
+  "settings.restore": "Відновити",
+  "settings.restoreTitle": "Відновити налаштування {name}?",
+  "settings.restoreDescription":
+    "Поточні налаштування буде замінено копією від {date}. Спершу їх буде збережено в резервну копію. Після цього перезавантажте або перезапустіть плагін, щоб він їх використовував.",
+  "settings.restored": "Налаштування {name} відновлено",
+  "settings.leftovers": "Залишки файлів плагінів",
+  "settings.leftoversNote":
+    "Теки, які Decky зберігає для вже не встановлених плагінів. Оберіть, що видалити; налаштування плагіна спершу копіюються.",
+  "settings.leftoversScan": "Знайти залишки",
+  "settings.leftoversNone": "Нічого не залишилось.",
+  "settings.leftoverInfo": "{size} · змінено {when}",
+  "settings.leftoversRemove": "Видалити вибране ({count})",
+  "settings.leftoversConfirmTitle": "Видалити залишкові теки ({count})?",
+  "settings.leftoversConfirm":
+    "Це видалить їхні налаштування, дані та журнали з цього пристрою. Налаштування спершу копіюються й відновлюються з резервних копій.",
+  "settings.leftoversRemoved": "Видалено тек: {count}, звільнено {size}",
 
   "repos.addManage": "Додати й керувати",
   "repos.searchGithub": "Пошук на GitHub",

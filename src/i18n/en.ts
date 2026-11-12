@@ -318,6 +318,27 @@ export const en = {
   "settings.exportLogs": "Export Logs",
   "settings.exportLogsNote":
     "Saves DeckyHub's logs as a ZIP in ~/Downloads — attach it to a bug report. Your GitHub token is never logged.",
+  "settings.backups": "Backups",
+  "settings.backupBefore": "Back up settings before updates and removal",
+  "settings.backupBeforeNote":
+    "Before DeckyHub updates, reinstalls or removes a plugin, it saves a copy of that plugin's settings here (the last 5 per plugin). Restore one if an update breaks something.",
+  "settings.backupsEmpty": "No backups yet.",
+  "settings.restore": "Restore",
+  "settings.restoreTitle": "Restore {name}'s settings?",
+  "settings.restoreDescription":
+    "This replaces its current settings with the backup from {date}. The current ones are backed up first. Reload or restart the plugin afterwards so it uses them.",
+  "settings.restored": "Restored {name}'s settings",
+  "settings.leftovers": "Leftover plugin files",
+  "settings.leftoversNote":
+    "Folders Decky keeps for plugins that are no longer installed. Choose what to remove; a plugin's settings are backed up first.",
+  "settings.leftoversScan": "Look for leftovers",
+  "settings.leftoversNone": "Nothing left over.",
+  "settings.leftoverInfo": "{size} · changed {when}",
+  "settings.leftoversRemove": "Remove selected ({count})",
+  "settings.leftoversConfirmTitle": "Remove {count} leftover folders?",
+  "settings.leftoversConfirm":
+    "This deletes their settings, data and logs from this device. Settings are backed up first and can be restored from Backups.",
+  "settings.leftoversRemoved": "Removed {count} folders, freed {size}",
 
   "repos.addManage": "Add & Manage",
   "repos.searchGithub": "Search GitHub",

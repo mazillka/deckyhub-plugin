@@ -324,6 +324,27 @@ export const pt: Record<MessageKey, string> = {
   "settings.exportLogs": "Exportar logs",
   "settings.exportLogsNote":
     "Salva os logs do DeckyHub como ZIP em ~/Downloads — anexe-o a um relato de bug. Seu token do GitHub nunca é registrado.",
+  "settings.backups": "Backups",
+  "settings.backupBefore": "Fazer backup das configurações antes de atualizar e remover",
+  "settings.backupBeforeNote":
+    "Antes de atualizar, reinstalar ou remover um plugin, o DeckyHub salva aqui uma cópia das configurações dele (as últimas 5 por plugin). Restaure uma se uma atualização quebrar algo.",
+  "settings.backupsEmpty": "Ainda não há backups.",
+  "settings.restore": "Restaurar",
+  "settings.restoreTitle": "Restaurar as configurações de {name}?",
+  "settings.restoreDescription":
+    "Isto substitui as configurações atuais pelo backup de {date}. As atuais são salvas antes. Recarregue ou reinicie o plugin depois para que ele as use.",
+  "settings.restored": "Configurações de {name} restauradas",
+  "settings.leftovers": "Arquivos restantes de plugins",
+  "settings.leftoversNote":
+    "Pastas que o Decky guarda de plugins que não estão mais instalados. Escolha o que remover; as configurações do plugin são salvas antes.",
+  "settings.leftoversScan": "Procurar restos",
+  "settings.leftoversNone": "Não sobrou nada.",
+  "settings.leftoverInfo": "{size} · alterado {when}",
+  "settings.leftoversRemove": "Remover selecionados ({count})",
+  "settings.leftoversConfirmTitle": "Remover {count} pastas restantes?",
+  "settings.leftoversConfirm":
+    "Isto apaga as configurações, os dados e os registros delas deste dispositivo. As configurações são salvas antes e podem ser restauradas em Backups.",
+  "settings.leftoversRemoved": "{count} pastas removidas, {size} liberados",
 
   "repos.addManage": "Adicionar e gerenciar",
   "repos.searchGithub": "Buscar no GitHub",

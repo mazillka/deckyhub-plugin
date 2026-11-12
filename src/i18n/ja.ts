@@ -320,6 +320,27 @@ export const ja: Record<MessageKey, string> = {
   "settings.exportLogs": "ログをエクスポート",
   "settings.exportLogsNote":
     "DeckyHub のログを ZIP として ~/Downloads に保存します。バグ報告に添付してください。GitHub トークンはログに記録されません。",
+  "settings.backups": "バックアップ",
+  "settings.backupBefore": "更新・削除の前に設定をバックアップ",
+  "settings.backupBeforeNote":
+    "DeckyHub がプラグインを更新・再インストール・削除する前に、そのプラグインの設定のコピーをここに保存します（プラグインごとに直近 5 件）。更新で問題が起きたら復元できます。",
+  "settings.backupsEmpty": "バックアップはまだありません。",
+  "settings.restore": "復元",
+  "settings.restoreTitle": "{name} の設定を復元しますか？",
+  "settings.restoreDescription":
+    "現在の設定を {date} のバックアップで置き換えます。現在の設定は先にバックアップされます。その後、プラグインを再読み込みまたは再起動してください。",
+  "settings.restored": "{name} の設定を復元しました",
+  "settings.leftovers": "残ったプラグインのファイル",
+  "settings.leftoversNote":
+    "インストールされていないプラグイン用に Decky が保持しているフォルダーです。削除するものを選んでください。プラグインの設定は先にバックアップされます。",
+  "settings.leftoversScan": "残りを探す",
+  "settings.leftoversNone": "残っているものはありません。",
+  "settings.leftoverInfo": "{size} · 更新 {when}",
+  "settings.leftoversRemove": "選択したものを削除 ({count})",
+  "settings.leftoversConfirmTitle": "残った {count} 個のフォルダーを削除しますか？",
+  "settings.leftoversConfirm":
+    "それらの設定・データ・ログをこのデバイスから削除します。設定は先にバックアップされ、「バックアップ」から復元できます。",
+  "settings.leftoversRemoved": "{count} 個のフォルダーを削除し、{size} を解放しました",
 
   "repos.addManage": "追加と管理",
   "repos.searchGithub": "GitHubを検索",

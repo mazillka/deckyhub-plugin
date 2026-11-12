@@ -325,6 +325,27 @@ export const es: Record<MessageKey, string> = {
   "settings.exportLogs": "Exportar registros",
   "settings.exportLogsNote":
     "Guarda los registros de DeckyHub como ZIP en ~/Downloads; adjúntalo a un informe de error. Tu token de GitHub nunca se registra.",
+  "settings.backups": "Copias de seguridad",
+  "settings.backupBefore": "Copiar los ajustes antes de actualizar o quitar",
+  "settings.backupBeforeNote":
+    "Antes de actualizar, reinstalar o quitar un plugin, DeckyHub guarda aquí una copia de sus ajustes (las últimas 5 por plugin). Restaura una si una actualización rompe algo.",
+  "settings.backupsEmpty": "Aún no hay copias.",
+  "settings.restore": "Restaurar",
+  "settings.restoreTitle": "¿Restaurar los ajustes de {name}?",
+  "settings.restoreDescription":
+    "Esto sustituye sus ajustes actuales por la copia del {date}. Los actuales se copian antes. Recarga o reinicia el plugin después para que los use.",
+  "settings.restored": "Ajustes de {name} restaurados",
+  "settings.leftovers": "Archivos sobrantes de plugins",
+  "settings.leftoversNote":
+    "Carpetas que Decky conserva de plugins que ya no están instalados. Elige qué quitar; los ajustes del plugin se copian antes.",
+  "settings.leftoversScan": "Buscar sobrantes",
+  "settings.leftoversNone": "No sobra nada.",
+  "settings.leftoverInfo": "{size} · cambiado {when}",
+  "settings.leftoversRemove": "Quitar seleccionados ({count})",
+  "settings.leftoversConfirmTitle": "¿Quitar {count} carpetas sobrantes?",
+  "settings.leftoversConfirm":
+    "Esto borra sus ajustes, datos y registros de este dispositivo. Los ajustes se copian antes y se pueden restaurar desde Copias de seguridad.",
+  "settings.leftoversRemoved": "{count} carpetas quitadas, {size} liberados",
 
   "repos.addManage": "Añadir y gestionar",
   "repos.searchGithub": "Buscar en GitHub",

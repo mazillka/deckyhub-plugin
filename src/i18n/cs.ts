@@ -320,6 +320,27 @@ export const cs: Record<MessageKey, string> = {
   "settings.exportLogs": "Exportovat protokoly",
   "settings.exportLogsNote":
     "Uloží protokoly DeckyHub jako ZIP do ~/Downloads — přiložte ho k hlášení chyby. Váš token GitHub se nikdy nezaznamenává.",
+  "settings.backups": "Zálohy",
+  "settings.backupBefore": "Zálohovat nastavení před aktualizací a odebráním",
+  "settings.backupBeforeNote":
+    "Než DeckyHub plugin aktualizuje, přeinstaluje nebo odebere, uloží sem kopii jeho nastavení (posledních 5 na plugin). Pokud aktualizace něco pokazí, jednu z nich obnovte.",
+  "settings.backupsEmpty": "Zatím žádné zálohy.",
+  "settings.restore": "Obnovit",
+  "settings.restoreTitle": "Obnovit nastavení pluginu {name}?",
+  "settings.restoreDescription":
+    "Tím se jeho aktuální nastavení nahradí zálohou z {date}. Aktuální nastavení se nejdřív zazálohuje. Poté plugin znovu načtěte nebo restartujte, aby je použil.",
+  "settings.restored": "Nastavení pluginu {name} obnoveno",
+  "settings.leftovers": "Zbytky po pluginech",
+  "settings.leftoversNote":
+    "Složky, které Decky drží pro už nenainstalované pluginy. Vyberte, co odstranit; nastavení pluginu se předtím zazálohuje.",
+  "settings.leftoversScan": "Vyhledat zbytky",
+  "settings.leftoversNone": "Nic nezbylo.",
+  "settings.leftoverInfo": "{size} · změněno {when}",
+  "settings.leftoversRemove": "Odstranit vybrané ({count})",
+  "settings.leftoversConfirmTitle": "Odstranit {count} zbylých složek?",
+  "settings.leftoversConfirm":
+    "Smaže jejich nastavení, data a logy z tohoto zařízení. Nastavení se předtím zazálohuje a lze je obnovit v Zálohách.",
+  "settings.leftoversRemoved": "Odstraněno složek: {count}, uvolněno {size}",
 
   "repos.addManage": "Přidat a spravovat",
   "repos.searchGithub": "Hledat na GitHubu",

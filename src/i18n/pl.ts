@@ -321,6 +321,27 @@ export const pl: Record<MessageKey, string> = {
   "settings.exportLogs": "Eksportuj logi",
   "settings.exportLogsNote":
     "Zapisuje logi DeckyHub jako ZIP w ~/Downloads — dołącz go do zgłoszenia błędu. Twój token GitHub nigdy nie trafia do logów.",
+  "settings.backups": "Kopie zapasowe",
+  "settings.backupBefore": "Kopiuj ustawienia przed aktualizacją i usunięciem",
+  "settings.backupBeforeNote":
+    "Zanim DeckyHub zaktualizuje, zainstaluje ponownie lub usunie wtyczkę, zapisze tu kopię jej ustawień (ostatnie 5 na wtyczkę). Przywróć jedną, jeśli aktualizacja coś zepsuje.",
+  "settings.backupsEmpty": "Brak kopii zapasowych.",
+  "settings.restore": "Przywróć",
+  "settings.restoreTitle": "Przywrócić ustawienia {name}?",
+  "settings.restoreDescription":
+    "To zastąpi jej bieżące ustawienia kopią z {date}. Bieżące zostaną najpierw zapisane. Potem przeładuj lub uruchom ponownie wtyczkę, aby ich użyła.",
+  "settings.restored": "Przywrócono ustawienia {name}",
+  "settings.leftovers": "Pozostałości po wtyczkach",
+  "settings.leftoversNote":
+    "Foldery, które Decky trzyma dla wtyczek, które nie są już zainstalowane. Wybierz, co usunąć; ustawienia wtyczki są najpierw kopiowane.",
+  "settings.leftoversScan": "Szukaj pozostałości",
+  "settings.leftoversNone": "Nic nie zostało.",
+  "settings.leftoverInfo": "{size} · zmieniono {when}",
+  "settings.leftoversRemove": "Usuń zaznaczone ({count})",
+  "settings.leftoversConfirmTitle": "Usunąć {count} pozostałych folderów?",
+  "settings.leftoversConfirm":
+    "To usuwa ich ustawienia, dane i logi z tego urządzenia. Ustawienia są najpierw kopiowane i można je przywrócić w Kopiach zapasowych.",
+  "settings.leftoversRemoved": "Usunięto folderów: {count}, zwolniono {size}",
 
   "repos.addManage": "Dodaj i zarządzaj",
   "repos.searchGithub": "Szukaj na GitHubie",

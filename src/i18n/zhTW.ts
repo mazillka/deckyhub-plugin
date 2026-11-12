@@ -307,6 +307,25 @@ export const zhTW: Record<MessageKey, string> = {
   "settings.exportLogs": "匯出記錄",
   "settings.exportLogsNote":
     "將 DeckyHub 的記錄以 ZIP 格式儲存到 ~/Downloads，可附加到錯誤回報中。你的 GitHub 權杖永遠不會被記錄。",
+  "settings.backups": "備份",
+  "settings.backupBefore": "更新與移除前備份設定",
+  "settings.backupBeforeNote":
+    "DeckyHub 更新、重新安裝或移除外掛之前，會在這裡儲存該外掛設定的副本（每個外掛保留最近 5 份）。若更新出問題，可以還原其中一份。",
+  "settings.backupsEmpty": "尚無備份。",
+  "settings.restore": "還原",
+  "settings.restoreTitle": "還原 {name} 的設定？",
+  "settings.restoreDescription":
+    "這會用 {date} 的備份取代它目前的設定。目前的設定會先備份。之後請重新載入或重啟該外掛以使用它們。",
+  "settings.restored": "已還原 {name} 的設定",
+  "settings.leftovers": "外掛殘留檔案",
+  "settings.leftoversNote": "Decky 為已不再安裝的外掛保留的資料夾。選擇要移除的項目；外掛的設定會先備份。",
+  "settings.leftoversScan": "尋找殘留",
+  "settings.leftoversNone": "沒有殘留。",
+  "settings.leftoverInfo": "{size} · {when}變更",
+  "settings.leftoversRemove": "移除所選 ({count})",
+  "settings.leftoversConfirmTitle": "移除 {count} 個殘留資料夾？",
+  "settings.leftoversConfirm": "這會從此裝置刪除它們的設定、資料與記錄。設定會先備份，可從「備份」還原。",
+  "settings.leftoversRemoved": "已移除 {count} 個資料夾，釋放 {size}",
 
   "repos.addManage": "加入與管理",
   "repos.searchGithub": "搜尋 GitHub",
