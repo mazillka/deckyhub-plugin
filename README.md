@@ -302,6 +302,10 @@ You do this once per browser.
 2. Scan the QR code with your phone, or choose **Copy pairing link** and open the link on your computer. It opens the [Paired devices](https://deckyhub.com/develop/paired-devices/) page. Allow local network access if the browser asks.
 3. Back on your device, **Approve** the browser under **Pairing requests**.
 
+<table><tr>
+<td align="center"><img src="screenshots/remote-pair-mode.jpg" width="400" alt="DeckyHub's Quick Access tab with Pair mode on, a six-digit code and a QR code"><br><sub>Step 1: Pair mode on, with the QR code</sub></td><td align="center"><img src="screenshots/remote-pairing-request.jpg" width="400" alt="A pairing request in DeckyHub's Quick Access tab with Approve and Reject buttons"><br><sub>Step 3: approve the browser</sub></td>
+</tr></table>
+
 The pairing is kept after a restart, a reload or turning Pair mode off. A browser you haven't used for 30 days is forgotten.
 
 #### Send a plugin to your device
@@ -310,6 +314,10 @@ The pairing is kept after a restart, a reload or turning Pair mode off. A browse
 2. Under **Send to device**, pick your device and press **Send**. Only devices the browser can reach right now are listed, so keep **Pair mode** on.
 3. On your device, the request appears at the top of the Remote Install section. Press **Approve**, then confirm Decky Loader's own install prompt.
 
+<table><tr>
+<td align="center"><img src="screenshots/remote-send-to-device.jpg" width="400" alt="A plugin's page on deckyhub.com with a device picker and a Send button"><br><sub>Step 2: pick your device and press Send</sub></td><td align="center"><img src="screenshots/remote-request.jpg" width="400" alt="An install request in DeckyHub's Quick Access tab with Approve and Reject buttons"><br><sub>Step 3: approve the request</sub></td>
+</tr></table>
+
 A request that isn't approved within two minutes expires. Send it again if that happens.
 
 #### Manage installed plugins
@@ -317,6 +325,10 @@ A request that isn't approved within two minutes expires. Send it again if that 
 1. Open [Paired devices](https://deckyhub.com/develop/paired-devices/) in the paired browser and pick your device. Its installed plugins are listed.
 2. Press **Update** or **Uninstall** next to a plugin, or **Browse plugins to install** to add one.
 3. Approve the request on your device, as above.
+
+<table><tr>
+<td align="center"><img src="screenshots/remote-paired-devices.jpg" width="400" alt="The Paired devices page listing a device's installed plugins"><br><sub>Your device and its installed plugins</sub></td>
+</tr></table>
 
 Install and update work for plugins DeckyHub can match to its list. Uninstall works for any installed plugin whose name is unique. DeckyHub itself can only be managed on the device.
 

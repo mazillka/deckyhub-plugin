@@ -174,9 +174,9 @@ def structured_data(page: str, latest: dict | None, uk: bool = False) -> str:
         "applicationSubCategory": "Decky Loader plugin",
         "operatingSystem": "SteamOS",
         "description": (
-            "Магазин плагінів Decky Loader: знаходьте, встановлюйте й оновлюйте 500+ плагінів Decky Loader в ігровому режимі, зокрема тих, яких немає в офіційному магазині Decky."
+            "Магазин плагінів Decky Loader: знаходьте, встановлюйте й оновлюйте 600+ плагінів Decky Loader в ігровому режимі, зокрема тих, яких немає в офіційному магазині Decky."
             if uk
-            else "A Decky Loader plugin store: find, install and update 500+ Decky Loader plugins from Gaming Mode, including plugins not on the official Decky store."
+            else "A Decky Loader plugin store: find, install and update 600+ Decky Loader plugins from Gaming Mode, including plugins not on the official Decky store."
         ),
         "downloadUrl": f"{REPO_URL}/releases/latest",
         "installUrl": f"{SITE}uk/#install" if uk else f"{SITE}#install",
