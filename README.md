@@ -68,7 +68,7 @@ Tired of tabbing out to Desktop Mode, hunting through GitHub releases, and manua
 - **Any plugin on GitHub, one search away** — **Search & Install** finds Decky plugins that aren't in the Decky store or DeckyHub's list and installs them right from Gaming Mode. No Desktop Mode, no browser, no Developer Mode URL pasting.
 - **Never miss an update** — DeckyHub checks your installed plugins against their latest GitHub releases every few hours and pings you with a toast when something new is available.
 - **Built for the couch** — full gamepad navigation, color-coded status at a glance, and one-tap downloads designed for Gaming Mode, not a desktop browser squeezed onto a small screen.
-- **You stay in control** — DeckyHub never installs or runs anything on its own. Nothing touches your system until you say so (a browser you mark as **Trusted** under [Remote Install](#remote-install) is the one exception, and you choose it), and installs go through Decky Loader's own installer and confirmation dialog (see [Manage](#manage)).
+- **You stay in control** — DeckyHub never installs or runs anything on its own. Nothing touches your system until you say so (a browser you mark as **Trusted** under [Remote Install](#remote-install-experimental) is the one exception, and you choose it), and installs go through Decky Loader's own installer and confirmation dialog (see [Manage](#manage)).
 
 ## What it does
 
@@ -286,27 +286,57 @@ Repositories is a tab in **Settings**. Add a repository from **Search** with the
 
 Under **Custom Registries**, add someone else's app list by its GitHub `owner/repo` (DeckyHub reads its `registry/apps.json`) or any HTTPS `.json` URL. Its apps join Discover alongside DeckyHub's own; up to 10 registries are allowed, and **Refresh registries** downloads them all again. An added registry can only add apps: it can't change or replace one DeckyHub already lists, including the plugins you have installed.
 
-### Remote Install
+### Remote Install (experimental)
 
-Manage plugins on your device from a computer or phone on the same network. Open [deckyhub.com](https://deckyhub.com/develop/paired-devices/) (or any plugin's page) in **Chrome, Edge or another Chromium browser**, pick your device, and send an **install**, **update** or **uninstall** request.
+Install, update or uninstall plugins on your device from a computer or phone on the same network, without picking up the device.
 
-**Pair a browser once:**
+- **Experimental:** it is new and only in DeckyHub's pre-releases for now, so expect rough edges.
+- **Fully local:** your browser talks straight to your device over your own network. Nothing goes through a server, and nothing is collected or sent anywhere.
+- **You need:** DeckyHub on your device, a second device on the same network, and **Chrome, Edge or another Chromium browser** on it (Firefox and Safari can't make this kind of connection yet).
 
-1. In DeckyHub's Quick Access tab, turn on **Pair mode** under **Remote Install**. A QR code and a six-digit code appear.
-2. Scan the QR code with the browser's device, or open the pairing link (**Copy pairing link**). Allow local network access if the browser asks.
-3. Approve the browser on your device.
+#### Pair a browser
 
-The pairing is kept, so you don't pair again after a restart, a reload or turning Pair mode off. A browser you haven't used for 30 days is forgotten. Remove a browser from the list in the same section to forget it. Pair mode only needs to be on while you pair or while you send requests.
+You do this once per browser.
 
-**What happens to a request:**
+1. On your device, open DeckyHub's Quick Access tab and turn on **Pair mode** under **Remote Install**. A QR code appears.
+2. Scan the QR code with your phone, or choose **Copy pairing link** and open the link on your computer. It opens the [Paired devices](https://deckyhub.com/develop/paired-devices/) page. Allow local network access if the browser asks.
+3. Back on your device, **Approve** the browser under **Pairing requests**.
 
-- It appears at the top of the Remote Install section in the Quick Access tab. **Approve** or **Reject** it there. Install and update still show Decky Loader's own confirmation.
-- **Install** and **update** work for plugins DeckyHub can match to its list. **Uninstall** works for any installed plugin whose name is unique, including plugins DeckyHub can't match. DeckyHub itself can only be managed on the device.
-- A request that isn't approved within two minutes expires.
+The pairing is kept after a restart, a reload or turning Pair mode off. A browser you haven't used for 30 days is forgotten.
 
-**Trusted browsers:** turn on **Trusted** next to a paired browser and its requests run without asking: no approval in DeckyHub, and DeckyHub confirms Decky Loader's install prompt for you. This can only be switched on from the device itself, after a warning. Plugins can run with full access to your device, so only trust a browser you control; turn **Trusted** off, or remove the browser, to go back to asking every time.
+#### Send a plugin to your device
 
-Everything stays on your network: the device talks directly to the browser over an encrypted connection pinned to the device's own certificate, nothing goes through a server, and a request can only name a plugin or release, never a file or a command. If the browser can't reach the device, check that both are on the same network, that Pair mode is on, and that the address hasn't changed (open DeckyHub's Quick Access tab to see it, or pair again).
+1. In the paired browser, open a plugin's page on [deckyhub.com](https://deckyhub.com/develop/plugins/).
+2. Under **Send to device**, pick your device and press **Send**. Only devices the browser can reach right now are listed, so keep **Pair mode** on.
+3. On your device, the request appears at the top of the Remote Install section. Press **Approve**, then confirm Decky Loader's own install prompt.
+
+A request that isn't approved within two minutes expires. Send it again if that happens.
+
+#### Manage installed plugins
+
+1. Open [Paired devices](https://deckyhub.com/develop/paired-devices/) in the paired browser and pick your device. Its installed plugins are listed.
+2. Press **Update** or **Uninstall** next to a plugin, or **Browse plugins to install** to add one.
+3. Approve the request on your device, as above.
+
+Install and update work for plugins DeckyHub can match to its list. Uninstall works for any installed plugin whose name is unique. DeckyHub itself can only be managed on the device.
+
+#### Trusted browsers
+
+Turn on **Trusted** next to a paired browser and its requests run without asking: no approval in DeckyHub, and DeckyHub confirms Decky Loader's install prompt for you. It can only be switched on from the device itself, after a warning. Plugins can run with full access to your device, so only trust a browser you control. Turn **Trusted** off to go back to approving every request.
+
+#### Stop using it
+
+- **One browser:** remove it under **Paired browsers** on your device, and press **Forget device** on the Paired devices page.
+- **Everything:** turn **Pair mode** off. Nothing listens on your network while it's off.
+
+#### If it doesn't work
+
+- **The device isn't listed, or the browser can't connect:** check that both are on the same network, that **Pair mode** is on, and that the browser was allowed local network access.
+- **It worked before and stopped:** your router may have given the device a new address. Open the Quick Access tab to see it, or pair again.
+- **Remote Install isn't supported on this system:** the device's Decky Loader runs a Python version DeckyHub has no network library for. Nothing else in DeckyHub is affected.
+- **The browser says it needs Chrome or Edge:** open the page in a Chromium browser.
+
+How it stays safe: the connection is encrypted and pinned to your device's own certificate, and a request can only name a plugin or a release, never a file or a command.
 
 ### Keeping DeckyHub itself updated
 

@@ -352,7 +352,7 @@ def remote_device_panel() -> str:
 <div class="remote-device-overview">
 <div class="remote-device-heading"><h2 id="remote-title">Your devices</h2><a class="btn ghost" href="#remote-pair-form">Pair a new device</a></div>
 <p>Choose a paired device or set up a new one below. Approve pairing and plugin changes on your device.</p>
-<p class="note"><strong>Experimental.</strong> Remote Install works only on your local network: this page talks straight to your device. Nothing is collected or sent anywhere.</p>
+<p class="note"><strong>Experimental.</strong> Remote Install works only on your local network: this page talks straight to your device. Nothing is collected or sent anywhere. <a href="/help.html#remote">How to use it</a></p>
 <p><label for="remote-device-picker">Paired device</label><br><select id="remote-device-picker" disabled><option value="">Pair a device</option></select></p>
 <p class="remote-actions"><button type="button" id="remote-request" disabled hidden>Send install request</button> <button type="button" id="remote-cancel" disabled>Cancel request</button></p>
 <p id="remote-status" role="status" aria-live="polite">Not connected.</p>
@@ -400,7 +400,7 @@ def remote_install_picker(plugin_id: str) -> str:
 <a id="remote-pair-new" class="btn ghost" href="/remote-install/">Pair new</a>
 </div>
 <p id="remote-status" role="status" aria-live="polite" hidden></p>
-<p class="note">Experimental, and fully local: your browser talks straight to your device on your network. Nothing is collected or sent anywhere.</p>
+<p class="note">Experimental, and fully local: your browser talks straight to your device on your network. Nothing is collected or sent anywhere. <a href="/help.html#remote">How to use it</a></p>
 <script type="module" src="/remote-install.js"></script>
 </section>"""
 
