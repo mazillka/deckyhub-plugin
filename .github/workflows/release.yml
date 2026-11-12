@@ -34,9 +34,10 @@ jobs:
           python3 -m unittest discover -s tests
       - name: Package Decky plugin
         run: |
-          # Decky loads only dist/index.js; the source map would be ~85% of the ZIP.
+          # Decky loads dist/index.js plus the per-language chunks it imports (dist/*.js);
+          # the source maps would be most of the ZIP.
           mkdir -p release/DeckyHub/dist
-          cp dist/index.js release/DeckyHub/dist/
+          cp dist/*.js release/DeckyHub/dist/
           cp LICENSE.md main.py package.json plugin.json release/DeckyHub/
           # The backend's modules; Decky Loader puts py_modules/ on sys.path. The tests
           # above left bytecode caches in it, which don't belong in the ZIP.
@@ -51,6 +52,7 @@ jobs:
           unzip -Z1 "DeckyHub-${GITHUB_REF_NAME}.zip" | grep -Fx "DeckyHub/py_modules/deckyhub/registry.py"
           if unzip -Z1 "DeckyHub-${GITHUB_REF_NAME}.zip" | grep -F ".pyc"; then echo "bytecode in the ZIP"; exit 1; fi
           unzip -Z1 "DeckyHub-${GITHUB_REF_NAME}.zip" | grep -Fx "DeckyHub/dist/index.js"
+          unzip -Z1 "DeckyHub-${GITHUB_REF_NAME}.zip" | grep -E "^DeckyHub/dist/de-[A-Za-z0-9_-]+\.js$"
           if unzip -Z1 "DeckyHub-${GITHUB_REF_NAME}.zip" | grep -F ".map"; then echo "source map in the ZIP"; exit 1; fi
           sha256sum "DeckyHub-${GITHUB_REF_NAME}.zip"
       # The same ZIP under a fixed name, for one link that always gets the newest stable

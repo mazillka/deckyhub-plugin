@@ -382,6 +382,29 @@ test("Cleanup shows only when the downloads folder has files, and clearing requi
   await expect(app.getByText("Cleanup", { exact: true })).toHaveCount(0);
 });
 
+test("Switching the language loads that language's chunk, and English comes back", async ({ page }) => {
+  const app = mock(page);
+  const save = (language: string) =>
+    bridgeCall(page, "save_settings", {
+      overwriteExisting: true,
+      updateChannel: "stable",
+      language,
+      columnsPerRow: 3,
+      githubToken: "",
+    });
+  try {
+    await save("uk");
+    await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+    await expect(app.getByText("Мова", { exact: true }).first()).toBeVisible();
+    await save("en");
+    await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+    await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+    await expect(app.getByText("Language", { exact: true }).first()).toBeVisible();
+  } finally {
+    await save("auto");
+  }
+});
+
 test("Export Logs zips the backend log into Downloads", async ({ page }) => {
   // dev-server.py logs to .dev-data/logs/ and points Downloads at .dev-data/home/Downloads.
   const downloads = new URL("../.dev-data/home/Downloads/", import.meta.url);
