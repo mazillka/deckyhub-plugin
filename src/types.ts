@@ -25,6 +25,8 @@ export type App = {
   releaseNotes?: string;
   assets: Asset[];
   updateAvailable?: boolean | null;
+  // Pinned by the user (hydrate): its updates are hidden.
+  pinned?: boolean;
   // From the registry's stats.json (fetchPluginStats); absent for repos it doesn't list.
   stats?: PluginStats;
   // The virus scan report for the ZIP the card installs (Discover only; null: not scanned yet).
@@ -139,6 +141,8 @@ export type UiStyle = "default" | "experimental";
 
 export type Settings = {
   overwriteExisting: boolean;
+  // Save a plugin's settings before updating, reinstalling or removing it (backups.py).
+  backupBeforeChange: boolean;
   updateChannel: UpdateChannel;
   registryChannel: UpdateChannel;
   language: string;
@@ -200,7 +204,8 @@ export type View = "updates" | "discover" | "installed";
 export type SearchRepo = { full_name: string; description?: string; stargazers_count?: number };
 
 // skipVersion: a release tag the user chose to skip; that release stops counting as an update.
-export type RepoPreference = { channel: "stable" | "prerelease"; skipVersion?: string };
+// pinVersion: the version the plugin is pinned at; while it is set no update is offered for it.
+export type RepoPreference = { channel: "stable" | "prerelease"; skipVersion?: string; pinVersion?: string };
 
 export type RemoteInstallRequest = {
   id: string;

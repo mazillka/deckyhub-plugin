@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { fileURLToPath } from "node:url";
-import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 
 const deckyHubVersion = JSON.parse(readFileSync(new URL("../../../package.json", import.meta.url), "utf8")).version;
 const deckyHubTag = `v${deckyHubVersion}`;
@@ -421,6 +421,85 @@ test("Plugin packs: importing one adds unknown repositories and installs nothing
     await bridgeCall(page, "remove_custom_repo", "e2e-owner/e2e-pack-plugin");
     expect((await bridgeCall(page, "get_settings")).result.customRepos).toEqual(before);
     rmSync(file, { force: true });
+  }
+});
+
+test("Backups: a plugin's settings are saved before a change and can be restored from Settings", async ({ page }) => {
+  const data = new URL("../.dev-data/", import.meta.url);
+  const plugin = new URL("plugins/e2e-backup/", data);
+  const settings = new URL("settings/e2e-backup/", data);
+  mkdirSync(plugin, { recursive: true });
+  mkdirSync(settings, { recursive: true });
+  writeFileSync(new URL("plugin.json", plugin), JSON.stringify({ name: "E2E Backup Plugin", version: "1.0.0" }));
+  writeFileSync(new URL("config.json", settings), '{"volume": 7}');
+  const app = mock(page);
+  try {
+    // What DeckyHub calls before an update or removal.
+    expect((await bridgeCall(page, "backup_plugin_settings", "E2E Backup Plugin")).result.file).toMatch(
+      /^e2e-backup--\d{8}-\d{6}\.tar\.gz$/,
+    );
+    writeFileSync(new URL("config.json", settings), '{"volume": 1}');
+
+    await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+    await settingsTab(page, "Logs");
+    await expect(app.getByText("Backups", { exact: true })).toBeVisible();
+    await expect(app.getByText("Back up settings before updates and removal")).toBeVisible();
+    await app.getByRole("button", { name: "Restore", exact: true }).first().click();
+    await expect(app.getByText("Restore e2e-backup's settings?")).toBeVisible();
+    await app.locator(".steam-modal").getByRole("button", { name: "Restore", exact: true }).click();
+    await expect.poll(() => readFileSync(new URL("config.json", settings), "utf8")).toBe('{"volume": 7}');
+
+    // The settings it replaced were backed up first, and a backup can be removed.
+    const { backups } = (await bridgeCall(page, "list_settings_backups")).result;
+    expect(backups.filter((item: { plugin: string }) => item.plugin === "e2e-backup")).toHaveLength(2);
+    expect(
+      (await bridgeCall(page, "restore_settings_backup", "e2e-backup", "../../x.tar.gz")).result.error,
+    ).toBeTruthy();
+  } finally {
+    rmSync(new URL("settings/backups/", data), {
+      recursive: true,
+      force: true,
+      maxRetries: 10,
+      retryDelay: 100,
+    });
+    rmSync(plugin, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+    rmSync(settings, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  }
+});
+
+test("Leftovers: folders of plugins that are gone are found, picked and removed with their settings backed up", async ({
+  page,
+}) => {
+  const data = new URL("../.dev-data/", import.meta.url);
+  for (const area of ["settings", "data"]) {
+    mkdirSync(new URL(`${area}/ghost-plugin/`, data), { recursive: true });
+    writeFileSync(new URL(`${area}/ghost-plugin/file.txt`, data), "x".repeat(2048));
+  }
+  const app = mock(page);
+  try {
+    await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+    await settingsTab(page, "Logs");
+    await app.getByRole("button", { name: "Look for leftovers", exact: true }).click();
+    const ghost = app.getByRole("checkbox", { name: /ghost-plugin/ });
+    await expect(ghost).toBeVisible();
+    // Nothing is picked for the user.
+    await expect(app.getByRole("button", { name: /^Remove selected/ })).toHaveCount(0);
+    await ghost.click();
+    await app.getByRole("button", { name: "Remove selected (1)", exact: true }).click();
+    await expect(app.getByText("Remove 1 leftover folders?")).toBeVisible();
+    await app.locator(".steam-modal").getByRole("button", { name: "Remove selected (1)", exact: true }).click();
+    await expect.poll(() => existsSync(new URL("settings/ghost-plugin/", data))).toBe(false);
+    expect(existsSync(new URL("data/ghost-plugin/", data))).toBe(false);
+    // The settings were backed up first, so a mistaken pick can be undone.
+    const { backups } = (await bridgeCall(page, "list_settings_backups")).result;
+    expect(backups.some((item: { plugin: string }) => item.plugin === "ghost-plugin")).toBe(true);
+    // An installed plugin's folder, DeckyHub's own and a name that climbs out are refused.
+    const refused = (await bridgeCall(page, "remove_leftovers", ["DeckyHub", "../data", ".hidden"])).result;
+    expect(refused.removed).toBe(0);
+  } finally {
+    for (const area of ["settings", "data"])
+      rmSync(new URL(`${area}/ghost-plugin/`, data), { recursive: true, force: true });
+    rmSync(new URL("settings/backups/", data), { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
   }
 });
 
@@ -2446,6 +2525,41 @@ test("Skip this version hides one release's update until the user stops skipping
 
     await makoCard.getByRole("button", { name: "Manage", exact: true }).click();
     await modal.getByRole("button", { name: "Stop skipping v1.3.0", exact: true }).click();
+    await modal.getByRole("button", { name: "Close", exact: true }).click();
+    await expect(makoCard.getByRole("button", { name: "Update to v1.3.0", exact: true })).toBeVisible();
+  } finally {
+    await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "stable" });
+    rmSync(pluginDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  }
+});
+
+test("Pin freezes a plugin: no update is offered until it is unpinned", async ({ page }) => {
+  const pluginDir = new URL("../.dev-data/plugins/e2e-mako-pin/", import.meta.url);
+  mkdirSync(pluginDir, { recursive: true });
+  writeFileSync(
+    new URL("plugin.json", pluginDir),
+    JSON.stringify({ name: "MAKO - Frame Generation", version: "1.0.0", repository: "eugeniosegala/MAKO" }),
+  );
+  await mockMakoReleases(page, [makoRelease("plugin-v1.3.0", "b".repeat(64))]);
+
+  try {
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+    await expect(makoCard.getByRole("button", { name: "Update to v1.3.0", exact: true })).toBeVisible();
+    await makoCard.getByRole("button", { name: "Manage", exact: true }).click();
+    const modal = app.locator(".steam-modal");
+    await modal.getByRole("button", { name: "Pin at v1.0.0", exact: true }).click();
+    await expect(modal.getByRole("button", { name: "Unpin v1.0.0", exact: true })).toBeVisible();
+    await expect
+      .poll(async () => (await bridgeCall(page, "get_settings")).result.repoSettings["eugeniosegala/MAKO"])
+      .toEqual({ channel: "stable", pinVersion: "1.0.0" });
+    await modal.getByRole("button", { name: "Close", exact: true }).click();
+    await expect(makoCard.getByRole("button", { name: /^Update to v/ })).toHaveCount(0);
+    await expect(makoCard.getByText("Pinned", { exact: true })).toBeVisible();
+
+    await makoCard.getByRole("button", { name: "Manage", exact: true }).click();
+    await modal.getByRole("button", { name: "Unpin v1.0.0", exact: true }).click();
     await modal.getByRole("button", { name: "Close", exact: true }).click();
     await expect(makoCard.getByRole("button", { name: "Update to v1.3.0", exact: true })).toBeVisible();
   } finally {

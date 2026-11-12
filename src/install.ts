@@ -1,4 +1,4 @@
-import { stageInstall } from "./api";
+import { backupPluginSettings, getSettings, stageInstall } from "./api";
 import { showInstallDownloadModal } from "./components/DownloadProgress";
 import { stopHaptics } from "./haptics";
 import { type TFunc } from "./i18n/en";
@@ -80,6 +80,20 @@ function reloadIfStillOld() {
   }, 15_000);
 }
 
+// Saves the plugin's settings first (backups.py), unless turned off in Settings: Decky deletes a removed
+// plugin's settings, and a bad update can spoil them. Whatever goes wrong here never stops the change itself.
+async function backUpFirst(...names: string[]) {
+  try {
+    if ((await getSettings()).backupBeforeChange === false) return;
+    for (const name of names) {
+      const result = await backupPluginSettings(name);
+      if (result.error) log(`Couldn't back up ${name}'s settings: ${result.error}`);
+    }
+  } catch (error) {
+    log(`Backing up before the change failed: ${error}`);
+  }
+}
+
 // Hands a release ZIP to Decky Loader's own installer — the route the Decky
 // Store uses. The loader shows its native confirm/progress dialog and does the
 // SHA-256 check and install itself. DeckyHub's backend downloads the ZIP first
@@ -130,8 +144,9 @@ export async function installDeckyPlugin(
   try {
     // Before any uninstall, so a failed download leaves the plugin as it was.
     const artifact = await localZip(asset, repo, handedOver);
+    if (installType !== PLUGIN_INSTALL_TYPE.INSTALL) await backUpFirst(pluginName);
     if (needsFreshInstall(pluginName, installType)) {
-      await uninstallDeckyPlugin(pluginName);
+      await uninstallDeckyPlugin(pluginName, false);
       log(`Decky Loader uninstalled ${pluginName} before a fresh install`);
       installType = PLUGIN_INSTALL_TYPE.INSTALL;
     }
@@ -170,6 +185,7 @@ export async function updateDeckyPlugins(
     const artifacts: string[] = [];
     for (const [index, { asset, repo }] of updates.entries())
       artifacts.push(await localZip(asset, repo, index === updates.length - 1 ? handedOver : undefined));
+    if (installType !== PLUGIN_INSTALL_TYPE.INSTALL) await backUpFirst(...updates.map(({ name }) => name));
     for (const { name, version } of updates) traceDeckyInstall(name, version);
     return await callDeckyLoader(
       "utilities/install_plugins",
@@ -291,7 +307,8 @@ function confirmDeckyPrompt(pluginName: string, version: string, hash: string) {
   return () => backend.removeEventListener("loader/add_plugin_install_prompt", onPrompt);
 }
 
-export function uninstallDeckyPlugin(pluginName: string) {
+export async function uninstallDeckyPlugin(pluginName: string, backUp = true) {
+  if (backUp) await backUpFirst(pluginName);
   return callDeckyLoader("utilities/uninstall_plugin", pluginName);
 }
 

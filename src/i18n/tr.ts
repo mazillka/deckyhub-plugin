@@ -71,6 +71,7 @@ export const tr: Record<MessageKey, string> = {
 
   "status.updateAvailable": "Güncelleme var",
   "status.upToDate": "Güncel",
+  "status.pinned": "Sabitlendi",
 
   "appcard.downloadComplete": "İndirme tamamlandı",
   "appcard.latest": "En son ({name})",
@@ -92,6 +93,8 @@ export const tr: Record<MessageKey, string> = {
   "appcard.knownIssues": "Bu eklentinin bilinen sorunları",
   "appcard.skipVersion": "{version} sürümünü atla",
   "appcard.unskipVersion": "{version} sürümünü atlama",
+  "appcard.pinVersion": "{version} sürümüne sabitle",
+  "appcard.unpinVersion": "{version} sabitlemesini kaldır",
   "appcard.fork": "Fork",
   "appcard.forkHint":
     "Orijinali durduktan sonra bir eklentiyi sürdüren bir fork. DeckyHub onu yalnızca etkin olan sürüm olduğu sürece listeler.",
@@ -315,6 +318,27 @@ export const tr: Record<MessageKey, string> = {
   "settings.exportLogs": "Günlükleri dışa aktar",
   "settings.exportLogsNote":
     "DeckyHub günlüklerini ~/Downloads içine ZIP olarak kaydeder — bir hata raporuna ekle. GitHub token'ın asla günlüğe yazılmaz.",
+  "settings.backups": "Yedekler",
+  "settings.backupBefore": "Güncelleme ve kaldırmadan önce ayarları yedekle",
+  "settings.backupBeforeNote":
+    "DeckyHub bir eklentiyi güncellemeden, yeniden yüklemeden veya kaldırmadan önce ayarlarının bir kopyasını buraya kaydeder (eklenti başına son 5). Bir güncelleme bir şeyi bozarsa birini geri yükleyin.",
+  "settings.backupsEmpty": "Henüz yedek yok.",
+  "settings.restore": "Geri yükle",
+  "settings.restoreTitle": "{name} ayarları geri yüklensin mi?",
+  "settings.restoreDescription":
+    "Bu, geçerli ayarlarını {date} tarihli yedekle değiştirir. Geçerli ayarlar önce yedeklenir. Sonrasında eklentiyi yeniden yükleyin veya başlatın ki kullansın.",
+  "settings.restored": "{name} ayarları geri yüklendi",
+  "settings.leftovers": "Eklentilerden kalan dosyalar",
+  "settings.leftoversNote":
+    "Artık yüklü olmayan eklentiler için Decky'nin tuttuğu klasörler. Neyi kaldıracağınızı seçin; eklentinin ayarları önce yedeklenir.",
+  "settings.leftoversScan": "Kalıntıları ara",
+  "settings.leftoversNone": "Geriye bir şey kalmadı.",
+  "settings.leftoverInfo": "{size} · değişti {when}",
+  "settings.leftoversRemove": "Seçilenleri kaldır ({count})",
+  "settings.leftoversConfirmTitle": "{count} kalıntı klasör kaldırılsın mı?",
+  "settings.leftoversConfirm":
+    "Bunların ayarlarını, verilerini ve günlüklerini bu cihazdan siler. Ayarlar önce yedeklenir ve Yedekler'den geri yüklenebilir.",
+  "settings.leftoversRemoved": "{count} klasör kaldırıldı, {size} boşaldı",
 
   "repos.addManage": "Ekle ve yönet",
   "repos.searchGithub": "GitHub'da ara",

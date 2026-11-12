@@ -72,6 +72,7 @@ export const it: Record<MessageKey, string> = {
 
   "status.updateAvailable": "Aggiornamento disponibile",
   "status.upToDate": "Aggiornato",
+  "status.pinned": "Bloccato",
 
   "appcard.downloadComplete": "Download completato",
   "appcard.latest": "Ultima ({name})",
@@ -94,6 +95,8 @@ export const it: Record<MessageKey, string> = {
   "appcard.knownIssues": "Problemi noti di questo plugin",
   "appcard.skipVersion": "Salta {version}",
   "appcard.unskipVersion": "Non saltare più {version}",
+  "appcard.pinVersion": "Blocca a {version}",
+  "appcard.unpinVersion": "Sblocca {version}",
   "appcard.fork": "Fork",
   "appcard.forkHint":
     "Un fork che porta avanti un plugin dopo che l'originale si è fermato. DeckyHub lo elenca solo finché è quello attivo.",
@@ -323,6 +326,27 @@ export const it: Record<MessageKey, string> = {
   "settings.exportLogs": "Esporta log",
   "settings.exportLogsNote":
     "Salva i log di DeckyHub come ZIP in ~/Downloads — allegalo a una segnalazione di bug. Il tuo token GitHub non viene mai registrato.",
+  "settings.backups": "Backup",
+  "settings.backupBefore": "Salva le impostazioni prima di aggiornare o rimuovere",
+  "settings.backupBeforeNote":
+    "Prima di aggiornare, reinstallare o rimuovere un plugin, DeckyHub salva qui una copia delle sue impostazioni (le ultime 5 per plugin). Ripristinane una se un aggiornamento rompe qualcosa.",
+  "settings.backupsEmpty": "Ancora nessun backup.",
+  "settings.restore": "Ripristina",
+  "settings.restoreTitle": "Ripristinare le impostazioni di {name}?",
+  "settings.restoreDescription":
+    "Le impostazioni attuali vengono sostituite con il backup del {date}. Quelle attuali vengono salvate prima. Ricarica o riavvia poi il plugin perché le usi.",
+  "settings.restored": "Impostazioni di {name} ripristinate",
+  "settings.leftovers": "File rimasti dei plugin",
+  "settings.leftoversNote":
+    "Cartelle che Decky conserva per plugin non più installati. Scegli cosa rimuovere; le impostazioni di un plugin vengono prima salvate.",
+  "settings.leftoversScan": "Cerca file rimasti",
+  "settings.leftoversNone": "Non è rimasto nulla.",
+  "settings.leftoverInfo": "{size} · modificato {when}",
+  "settings.leftoversRemove": "Rimuovi selezionati ({count})",
+  "settings.leftoversConfirmTitle": "Rimuovere {count} cartelle rimaste?",
+  "settings.leftoversConfirm":
+    "Elimina le loro impostazioni, dati e log da questo dispositivo. Le impostazioni vengono prima salvate e si possono ripristinare da Backup.",
+  "settings.leftoversRemoved": "{count} cartelle rimosse, {size} liberati",
 
   "repos.addManage": "Aggiungi e gestisci",
   "repos.searchGithub": "Cerca su GitHub",

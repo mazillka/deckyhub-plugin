@@ -71,6 +71,7 @@ export const ko: Record<MessageKey, string> = {
 
   "status.updateAvailable": "업데이트 있음",
   "status.upToDate": "최신 상태",
+  "status.pinned": "고정됨",
 
   "appcard.downloadComplete": "다운로드 완료",
   "appcard.latest": "최신 ({name})",
@@ -93,6 +94,8 @@ export const ko: Record<MessageKey, string> = {
   "appcard.knownIssues": "이 플러그인의 알려진 문제",
   "appcard.skipVersion": "{version} 건너뛰기",
   "appcard.unskipVersion": "{version} 건너뛰기 해제",
+  "appcard.pinVersion": "{version}에 고정",
+  "appcard.unpinVersion": "{version} 고정 해제",
   "appcard.fork": "포크",
   "appcard.forkHint": "원본이 중단된 뒤 플러그인을 이어 가는 포크입니다. 활발한 포크인 동안에만 DeckyHub에 표시됩니다.",
   "appcard.forkOf": "{repo}의 포크",
@@ -313,6 +316,27 @@ export const ko: Record<MessageKey, string> = {
   "settings.exportLogs": "로그 내보내기",
   "settings.exportLogsNote":
     "DeckyHub 로그를 ~/Downloads에 ZIP으로 저장합니다. 버그 신고에 첨부하세요. GitHub 토큰은 기록되지 않습니다.",
+  "settings.backups": "백업",
+  "settings.backupBefore": "업데이트·제거 전에 설정 백업",
+  "settings.backupBeforeNote":
+    "DeckyHub가 플러그인을 업데이트, 재설치 또는 제거하기 전에 해당 플러그인 설정의 사본을 여기에 저장합니다(플러그인당 최근 5개). 업데이트로 문제가 생기면 복원하세요.",
+  "settings.backupsEmpty": "아직 백업이 없습니다.",
+  "settings.restore": "복원",
+  "settings.restoreTitle": "{name}의 설정을 복원할까요?",
+  "settings.restoreDescription":
+    "현재 설정을 {date}의 백업으로 바꿉니다. 현재 설정은 먼저 백업됩니다. 이후 플러그인을 다시 불러오거나 재시작해야 적용됩니다.",
+  "settings.restored": "{name}의 설정을 복원했습니다",
+  "settings.leftovers": "남은 플러그인 파일",
+  "settings.leftoversNote":
+    "더 이상 설치되지 않은 플러그인을 위해 Decky가 보관 중인 폴더입니다. 삭제할 항목을 고르세요. 플러그인 설정은 먼저 백업됩니다.",
+  "settings.leftoversScan": "남은 파일 찾기",
+  "settings.leftoversNone": "남은 것이 없습니다.",
+  "settings.leftoverInfo": "{size} · {when} 변경",
+  "settings.leftoversRemove": "선택 항목 삭제 ({count})",
+  "settings.leftoversConfirmTitle": "남은 폴더 {count}개를 삭제할까요?",
+  "settings.leftoversConfirm":
+    "이 기기에서 해당 설정, 데이터, 로그를 삭제합니다. 설정은 먼저 백업되며 백업에서 복원할 수 있습니다.",
+  "settings.leftoversRemoved": "폴더 {count}개를 삭제하고 {size}를 확보했습니다",
 
   "repos.addManage": "추가 및 관리",
   "repos.searchGithub": "GitHub 검색",

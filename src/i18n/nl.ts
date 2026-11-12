@@ -72,6 +72,7 @@ export const nl: Record<MessageKey, string> = {
 
   "status.updateAvailable": "Update beschikbaar",
   "status.upToDate": "Up-to-date",
+  "status.pinned": "Vastgezet",
 
   "appcard.downloadComplete": "Download voltooid",
   "appcard.latest": "Nieuwste ({name})",
@@ -94,6 +95,8 @@ export const nl: Record<MessageKey, string> = {
   "appcard.knownIssues": "Bekende problemen met deze plugin",
   "appcard.skipVersion": "{version} overslaan",
   "appcard.unskipVersion": "{version} niet meer overslaan",
+  "appcard.pinVersion": "Vastzetten op {version}",
+  "appcard.unpinVersion": "{version} losmaken",
   "appcard.fork": "Fork",
   "appcard.forkHint":
     "Een fork die een plugin voortzet nadat het origineel is gestopt. DeckyHub toont hem alleen zolang hij de actieve is.",
@@ -323,6 +326,27 @@ export const nl: Record<MessageKey, string> = {
   "settings.exportLogs": "Logs exporteren",
   "settings.exportLogsNote":
     "Slaat de logs van DeckyHub op als ZIP in ~/Downloads — voeg die toe aan een bugmelding. Je GitHub-token wordt nooit gelogd.",
+  "settings.backups": "Back-ups",
+  "settings.backupBefore": "Instellingen back-uppen voor updates en verwijderen",
+  "settings.backupBeforeNote":
+    "Voordat DeckyHub een plugin bijwerkt, opnieuw installeert of verwijdert, bewaart het hier een kopie van de instellingen (de laatste 5 per plugin). Zet er een terug als een update iets kapotmaakt.",
+  "settings.backupsEmpty": "Nog geen back-ups.",
+  "settings.restore": "Herstellen",
+  "settings.restoreTitle": "Instellingen van {name} herstellen?",
+  "settings.restoreDescription":
+    "Dit vervangt de huidige instellingen door de back-up van {date}. De huidige worden eerst geback-upt. Laad de plugin daarna opnieuw of start hem opnieuw zodat hij ze gebruikt.",
+  "settings.restored": "Instellingen van {name} hersteld",
+  "settings.leftovers": "Overgebleven pluginbestanden",
+  "settings.leftoversNote":
+    "Mappen die Decky bewaart voor plugins die niet meer geïnstalleerd zijn. Kies wat je wilt verwijderen; de instellingen van een plugin worden eerst geback-upt.",
+  "settings.leftoversScan": "Zoeken naar restanten",
+  "settings.leftoversNone": "Niets over.",
+  "settings.leftoverInfo": "{size} · gewijzigd {when}",
+  "settings.leftoversRemove": "Geselecteerde verwijderen ({count})",
+  "settings.leftoversConfirmTitle": "{count} overgebleven mappen verwijderen?",
+  "settings.leftoversConfirm":
+    "Dit verwijdert hun instellingen, gegevens en logs van dit apparaat. Instellingen worden eerst geback-upt en kunnen worden hersteld via Back-ups.",
+  "settings.leftoversRemoved": "{count} mappen verwijderd, {size} vrijgemaakt",
 
   "repos.addManage": "Toevoegen en beheren",
   "repos.searchGithub": "Zoeken op GitHub",
