@@ -76,7 +76,7 @@ Tired of tabbing out to Desktop Mode, hunting through GitHub releases, and manua
 - **[Search & Install](#search--install)** — search GitHub for Decky plugins and install one in a tap, or add it to track its updates.
 - **[Updates](#updates)** — see which of your tracked, installed tools have a newer release available and what each one brings, and update the Decky plugins among them in one go with **Update All**. DeckyHub checks in the background every few hours, so the dot on its icon and a toast tell you when new updates show up, and each card says **Installing…** until Decky finishes, then a toast confirms it.
 - **[Settings](#settings)** — language, display, an optional GitHub token, downloads, your tracked repositories and custom registries, and log export.
-- **Quick Access Menu** — DeckyHub has its own tab (the four-square DeckyHub icon, with a dot when updates are waiting) in the Quick Access tab strip, next to Decky's, and still opens from Decky's plugin list too. It shows **Discover**, **Search** and **Settings**, plus **Updates** with a count whenever updates are waiting. Below them: DeckyHub's own version and update check, and a **Cleanup** section (shown when the download folder has files) that empties it after confirmation.
+- **Quick Access Menu** — DeckyHub opens from Decky's plugin list. Turn on **Settings → General → DeckyHub tab in Quick Access** (off by default) to also give it its own tab (the four-square DeckyHub icon, with a dot when updates are waiting) in the Quick Access tab strip, next to Decky's. It shows **Discover**, **Search** and **Settings**, plus **Updates** with a count whenever updates are waiting. Below them: DeckyHub's own version and update check, and a **Cleanup** section (shown when the download folder has files) that empties it after confirmation.
 
 If you'd rather install a plugin yourself, **Download ZIP** saves the release instead, and you install it the same way as DeckyHub itself (see [Option 2: Manual ZIP](#option-2-manual-zip)).
 
@@ -268,7 +268,7 @@ Settings is split into tabs; **L1** / **R1** switch between them.
 
 | Tab | What's in it |
 | --- | --- |
-| **General** | The language, and the display: **Grid** or **List**, **Default** or **Compact** density, **OLED black** (true black backgrounds for OLED screens), items per row, haptics, whether DeckyHub has its own tab in Quick Access, and which Manage-window buttons to hide. |
+| **General** | The language, and the display: **Grid** or **List**, **Default** or **Compact** density, **OLED black** (true black backgrounds for OLED screens), items per row, haptics, whether DeckyHub has its own tab in Quick Access (off by default), and which Manage-window buttons to hide. |
 | **GitHub** | An optional personal access token that raises GitHub's rate limit (see [Troubleshooting](#troubleshooting)). Type it, or load it from a text file in Downloads. Builds with GitHub sign-in set up also have **Sign in with GitHub**: DeckyHub shows a short code, you open `github.com/login/device` on any device (a QR code is there for your phone), enter it and approve, and DeckyHub saves the token it gets, with no token to create or copy. That token asks for no permissions: it only reads public data and lifts the rate limit. Revoke it any time under GitHub's Settings → Applications. |
 | **Downloads** | The download folder and the **Overwrite Existing** toggle (see [Downloads](#downloads)). |
 | **Repositories** | Your tracked repositories, export and import, and **Custom Registries** (see [Repositories](#repositories)). |

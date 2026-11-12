@@ -319,7 +319,7 @@ export const en = {
   "settings.itemsPerRow": "Items Per Row",
   "settings.haptics": "Haptic feedback when navigating",
   "settings.quickAccessTab": "DeckyHub tab in Quick Access",
-  "settings.quickAccessTabHint": "When off, open DeckyHub from Decky's plugin list.",
+  "settings.quickAccessTabHint": "Off by default. When off, open DeckyHub from Decky's plugin list.",
   "settings.uiStyle": "UI Style",
   "settings.uiStyleHint": "Experimental is a new look for DeckyHub that's still being worked on.",
   "settings.uiStyleDefault": "Default",

@@ -1756,6 +1756,10 @@ test("A GitHub rate limit surfaces a friendly message instead of a raw status co
 });
 
 test("DeckyHub adds its own Quick Access tab after Decky's", async ({ page }) => {
+  // Off on a fresh install, so turn it on first.
+  const { result: saved } = await bridgeCall(page, "get_settings");
+  await bridgeCall(page, "save_settings", { ...saved, quickAccessTab: true });
+  await page.reload();
   const app = mock(page);
   const tabs = app.getByRole("navigation", { name: "Quick Access tabs" }).getByRole("button");
   await expect(tabs).toHaveCount(2);
@@ -1768,6 +1772,7 @@ test("DeckyHub adds its own Quick Access tab after Decky's", async ({ page }) =>
 test("Settings can hide DeckyHub's Quick Access tab, and it stays hidden after a reload", async ({ page }) => {
   const { result: before } = await bridgeCall(page, "get_settings");
   try {
+    await bridgeCall(page, "save_settings", { ...before, quickAccessTab: true });
     await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
     const app = mock(page);
     const toggle = app

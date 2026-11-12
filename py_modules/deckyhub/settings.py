@@ -129,7 +129,13 @@ class SettingsMixin:
         except (AttributeError, OSError, json.JSONDecodeError) as error:
             if self.settings_path.exists():
                 decky.logger.error("Can't read %s, using defaults: %s", self.settings_path, error)
-            return {**coerce_settings({}), "customRepos": [], "customRegistries": [], "repoSettings": {}}
+            # Fresh install: the tab would repeat the Decky plugin-list entry, so start it off.
+            return {
+                **coerce_settings({"quickAccessTab": False}),
+                "customRepos": [],
+                "customRegistries": [],
+                "repoSettings": {},
+            }
 
     def _save_settings(self):
         # Write-then-rename, so a Deck losing power mid-save keeps the old file.
