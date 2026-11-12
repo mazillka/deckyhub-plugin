@@ -20,6 +20,11 @@ export const addCustomRepo = callable<[repo: string], { added: boolean; repo: st
 export const removeCustomRepo = callable<[repo: string], { removed: boolean; repo: string }>("remove_custom_repo");
 export const exportCustomRepos = callable<[], { path: string }>("export_custom_repos");
 export const importCustomRepos = callable<[path: string], { added: string[] }>("import_custom_repos");
+// Plugin packs (packs.py): a shareable list of plugins; importing one only queues the install offer.
+export const exportPluginPack = callable<[], { path: string | null; count: number }>("export_plugin_pack");
+export const importPluginPack = callable<[path: string], { name: string | null; count: number; added: string[] }>(
+  "import_plugin_pack",
+);
 export const readTokenFile = callable<[path: string], { token: string | null }>("read_token_file");
 export const addCustomRegistry = callable<
   [url: string],
