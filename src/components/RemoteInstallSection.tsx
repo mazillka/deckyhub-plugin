@@ -164,7 +164,7 @@ export function RemoteInstallSection() {
     pairingTicket.code === code &&
     (() => {
       const device = new URL(status.address).host;
-      const details = new URLSearchParams({ device, fingerprint: status.fingerprint, pair: pairingTicket.token });
+      const details = new URLSearchParams({ device, fingerprint: status.fingerprint, pair: pairingTicket.token, code });
       if (status.deviceName) details.set("name", status.deviceName);
       return `https://deckyhub.com/develop/remote-install/#${details}`;
     })();
