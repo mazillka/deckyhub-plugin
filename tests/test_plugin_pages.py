@@ -38,7 +38,7 @@ class PluginPageTests(unittest.TestCase):
         page = self.page({"downloads": 1500, "store": {"downloads": 40000}})
         self.assertIn(">In Decky store</span>", page)
         self.assertIn("GitHub downloads", page)
-        self.assertIn("Decky store downloads", page)
+        self.assertIn("Decky store</a> downloads", page)
         data = {"stats": {APP["repo"].casefold(): {"store": {"downloads": 1}}}, "scans": {}}
         self.assertIn('data-store="1"', plugin_pages.card(APP, data))
         self.assertNotIn("data-store", plugin_pages.card(APP, {"stats": {}, "scans": {}}))
