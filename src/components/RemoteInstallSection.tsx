@@ -216,21 +216,24 @@ export function RemoteInstallSection() {
                     </PanelSectionRow>
                     {status.pairings.map((p) => (
                       <PanelSectionRow key={p.id}>
-                        <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <span style={{ flex: 1 }}>{p.name}</span>
-                          <Button
-                            style={{ ...compactButtonStyle, background: colors.success, marginBottom: 0 }}
-                            onClick={() => void onDecidePairing(p.id, true)}
-                          >
-                            <FaCheck /> {t("remote.approve")}
-                          </Button>
-                          <Button
-                            style={{ ...compactButtonStyle, background: colors.danger, marginBottom: 0 }}
-                            onClick={() => void onDecidePairing(p.id, false)}
-                          >
-                            <FaTimes /> {t("remote.reject")}
-                          </Button>
-                        </Focusable>
+                        {/* The browser's name on its own line, like a plugin request below. */}
+                        <div style={{ display: "grid", gap: 6 }}>
+                          <span style={{ minWidth: 0, overflowWrap: "anywhere" }}>{p.name}</span>
+                          <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <Button
+                              style={{ ...compactButtonStyle, background: colors.success, marginBottom: 0 }}
+                              onClick={() => void onDecidePairing(p.id, true)}
+                            >
+                              <FaCheck /> {t("remote.approve")}
+                            </Button>
+                            <Button
+                              style={{ ...compactButtonStyle, background: colors.danger, marginBottom: 0 }}
+                              onClick={() => void onDecidePairing(p.id, false)}
+                            >
+                              <FaTimes /> {t("remote.reject")}
+                            </Button>
+                          </Focusable>
+                        </div>
                       </PanelSectionRow>
                     ))}
                   </>
@@ -245,8 +248,10 @@ export function RemoteInstallSection() {
                     </PanelSectionRow>
                     {status.requests.map((r) => (
                       <PanelSectionRow key={r.id}>
-                        <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <div style={{ flex: 1, minWidth: 0 }}>
+                        {/* What is asked on its own line, the buttons under it: beside them, in the narrow
+                            Quick Access panel, the plugin's name had no room and the buttons covered it. */}
+                        <div style={{ display: "grid", gap: 6 }}>
+                          <div style={{ minWidth: 0, overflowWrap: "anywhere" }}>
                             <div style={{ fontWeight: "bold" }}>
                               {t(
                                 r.action === "uninstall"
@@ -262,21 +267,23 @@ export function RemoteInstallSection() {
                               {r.releaseTag ? ` (${r.releaseTag})` : ""}
                             </div>
                           </div>
-                          <Button
-                            style={{ ...compactButtonStyle, background: colors.success, marginBottom: 0 }}
-                            disabled={loading}
-                            onClick={() => void onDecideRequest(r, true)}
-                          >
-                            <FaCheck /> {t("remote.approve")}
-                          </Button>
-                          <Button
-                            style={{ ...compactButtonStyle, background: colors.danger, marginBottom: 0 }}
-                            disabled={loading}
-                            onClick={() => void onDecideRequest(r, false)}
-                          >
-                            <FaTimes /> {t("remote.reject")}
-                          </Button>
-                        </Focusable>
+                          <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <Button
+                              style={{ ...compactButtonStyle, background: colors.success, marginBottom: 0 }}
+                              disabled={loading}
+                              onClick={() => void onDecideRequest(r, true)}
+                            >
+                              <FaCheck /> {t("remote.approve")}
+                            </Button>
+                            <Button
+                              style={{ ...compactButtonStyle, background: colors.danger, marginBottom: 0 }}
+                              disabled={loading}
+                              onClick={() => void onDecideRequest(r, false)}
+                            >
+                              <FaTimes /> {t("remote.reject")}
+                            </Button>
+                          </Focusable>
+                        </div>
                       </PanelSectionRow>
                     ))}
                   </>
