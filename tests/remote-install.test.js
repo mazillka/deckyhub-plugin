@@ -77,7 +77,7 @@ test('the device picker sends only to the selected device with its own pin and t
   const elements = new Map();
   const querySelector = id => {
     if (!elements.has(id)) elements.set(id, {
-      value: '', handlers: {}, replaceChildren() {}, add() {},
+      value: '', handlers: {}, dataset: {}, replaceChildren() {}, add() {}, setAttribute(name, value) { this[name] = value; }, scrollIntoView() { this.scrolled = true; },
       addEventListener(event, handler) { this.handlers[event] = handler; },
     });
     return elements.get(id);

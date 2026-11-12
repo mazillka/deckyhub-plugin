@@ -146,7 +146,18 @@ export function init(root, details) {
     ).slice(0, 16).map(device => /^[a-f0-9]{64}$/.test(device.nextFingerprint) ? device : { ...device, nextFingerprint: undefined });
     selectedFingerprint = localStorage.getItem(SELECTED_DEVICE_KEY);
   } catch { /* Pairing remains available without browser storage. */ }
-  const say = message => { status.textContent = message; if (compact) status.hidden = !message; };
+  // A message that says something went wrong is an alert: announced at once, styled red, and scrolled into view
+  // (on a phone it can be below the fold). Everything else stays a quiet status.
+  const ERROR_STATES = ['unreachable', 'unsupported', 'declined', 'error', 'failed'];
+  const say = (message, isError = false) => {
+    const alert = Boolean(message) && (isError || ERROR_STATES.includes(root.dataset.state));
+    status.textContent = message;
+    if (compact) status.hidden = !message;
+    status.dataset.kind = alert ? 'error' : '';
+    status.setAttribute('role', alert ? 'alert' : 'status');
+    status.setAttribute('aria-live', alert ? 'assertive' : 'polite');
+    if (alert) status.scrollIntoView({ block: 'center', behavior: globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  };
   const closeTransport = () => {
     const current = transport;
     transport = undefined;
@@ -201,7 +212,7 @@ export function init(root, details) {
     saveDevices();
     rememberDevice(device);
   };
-  const showError = error => say(error instanceof Error ? error.message : 'Unable to contact the device.');
+  const showError = error => say(error instanceof Error ? error.message : 'Unable to contact the device.', true);
   if (pluginId && !/^[a-z0-9][a-z0-9-]{0,127}$/.test(pluginId)) { say('Invalid plugin identifier.'); if (pairButton) pairButton.disabled = true; return; }
   if (typeof WebTransport === 'undefined' || !globalThis.isSecureContext) {
     setState('unsupported');
