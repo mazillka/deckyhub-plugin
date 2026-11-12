@@ -484,6 +484,7 @@ def plugin_page(
 <h2>Safety information</h2>
 <p class="note">{NOT_REVIEWED}</p>
 {"<ul class='badges'>" + "".join(badges) + "</ul>" if badges else "<p>No badges: it doesn't run as root, and no audit warnings or virus scan findings are known for it.</p>"}
+<p class="note">Browsing this plugin on GitHub? The free <a href="https://github.com/mazillka/deckyhub-ext">Deckyhub browser extension</a> shows these badges and scans there.</p>
 <h2>Security scans</h2>
 <p>Every ZIP DeckyHub offers is scanned with ClamAV and with YARA rules (YARA Forge's core set), and the same scans are shown in the app. The registry also sends each ZIP to VirusTotal and MetaDefender, uploading it if they haven't seen it yet, and their results are matched by the file's SHA-256.</p>
 {security_scans(scans, reports or {}, vt_reports)}
