@@ -326,6 +326,17 @@ export const ru: Record<MessageKey, string> = {
   "settings.restoreDescription":
     "Текущие настройки будут заменены копией от {date}. Сначала они сохраняются в резервную копию. После этого перезагрузите или перезапустите плагин, чтобы он их использовал.",
   "settings.restored": "Настройки {name} восстановлены",
+  "settings.leftovers": "Остатки файлов плагинов",
+  "settings.leftoversNote":
+    "Папки, которые Decky хранит для уже не установленных плагинов. Выберите, что удалить; настройки плагина сначала сохраняются.",
+  "settings.leftoversScan": "Найти остатки",
+  "settings.leftoversNone": "Ничего не осталось.",
+  "settings.leftoverInfo": "{size} · изменено {when}",
+  "settings.leftoversRemove": "Удалить выбранное ({count})",
+  "settings.leftoversConfirmTitle": "Удалить оставшиеся папки ({count})?",
+  "settings.leftoversConfirm":
+    "Это удалит их настройки, данные и журналы с этого устройства. Настройки сначала сохраняются и восстанавливаются из резервных копий.",
+  "settings.leftoversRemoved": "Удалено папок: {count}, освобождено {size}",
 
   "repos.addManage": "Добавить и управлять",
   "repos.searchGithub": "Поиск на GitHub",

@@ -328,6 +328,17 @@ export const pl: Record<MessageKey, string> = {
   "settings.restoreDescription":
     "To zastąpi jej bieżące ustawienia kopią z {date}. Bieżące zostaną najpierw zapisane. Potem przeładuj lub uruchom ponownie wtyczkę, aby ich użyła.",
   "settings.restored": "Przywrócono ustawienia {name}",
+  "settings.leftovers": "Pozostałości po wtyczkach",
+  "settings.leftoversNote":
+    "Foldery, które Decky trzyma dla wtyczek, które nie są już zainstalowane. Wybierz, co usunąć; ustawienia wtyczki są najpierw kopiowane.",
+  "settings.leftoversScan": "Szukaj pozostałości",
+  "settings.leftoversNone": "Nic nie zostało.",
+  "settings.leftoverInfo": "{size} · zmieniono {when}",
+  "settings.leftoversRemove": "Usuń zaznaczone ({count})",
+  "settings.leftoversConfirmTitle": "Usunąć {count} pozostałych folderów?",
+  "settings.leftoversConfirm":
+    "To usuwa ich ustawienia, dane i logi z tego urządzenia. Ustawienia są najpierw kopiowane i można je przywrócić w Kopiach zapasowych.",
+  "settings.leftoversRemoved": "Usunięto folderów: {count}, zwolniono {size}",
 
   "repos.addManage": "Dodaj i zarządzaj",
   "repos.searchGithub": "Szukaj na GitHubie",

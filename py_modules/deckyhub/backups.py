@@ -135,7 +135,10 @@ def restore_backup(folder: str, file: str) -> dict:
         with tarfile.open(path, "r:gz") as archive:
             members = _safe_members(archive)
             staging.mkdir(parents=True)
-            archive.extractall(staging, members=members)  # noqa: S202 - the members were checked above
+            # The members were checked above; Python's own "data" filter (3.12+, and later 3.11 patches) checks again.
+            archive.extractall(
+                staging, members=members, **({"filter": "data"} if hasattr(tarfile, "data_filter") else {})
+            )  # noqa: S202
         before = make_backup(folder)
         if "error" in before:
             raise OSError(f"Couldn't back up the current settings first: {before['error']}")

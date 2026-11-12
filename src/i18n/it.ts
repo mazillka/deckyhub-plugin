@@ -333,6 +333,17 @@ export const it: Record<MessageKey, string> = {
   "settings.restoreDescription":
     "Le impostazioni attuali vengono sostituite con il backup del {date}. Quelle attuali vengono salvate prima. Ricarica o riavvia poi il plugin perché le usi.",
   "settings.restored": "Impostazioni di {name} ripristinate",
+  "settings.leftovers": "File rimasti dei plugin",
+  "settings.leftoversNote":
+    "Cartelle che Decky conserva per plugin non più installati. Scegli cosa rimuovere; le impostazioni di un plugin vengono prima salvate.",
+  "settings.leftoversScan": "Cerca file rimasti",
+  "settings.leftoversNone": "Non è rimasto nulla.",
+  "settings.leftoverInfo": "{size} · modificato {when}",
+  "settings.leftoversRemove": "Rimuovi selezionati ({count})",
+  "settings.leftoversConfirmTitle": "Rimuovere {count} cartelle rimaste?",
+  "settings.leftoversConfirm":
+    "Elimina le loro impostazioni, dati e log da questo dispositivo. Le impostazioni vengono prima salvate e si possono ripristinare da Backup.",
+  "settings.leftoversRemoved": "{count} cartelle rimosse, {size} liberati",
 
   "repos.addManage": "Aggiungi e gestisci",
   "repos.searchGithub": "Cerca su GitHub",

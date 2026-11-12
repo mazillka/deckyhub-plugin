@@ -314,6 +314,15 @@ export const zhTW: Record<MessageKey, string> = {
   "settings.restoreDescription":
     "這會用 {date} 的備份取代它目前的設定。目前的設定會先備份。之後請重新載入或重啟該外掛以使用它們。",
   "settings.restored": "已還原 {name} 的設定",
+  "settings.leftovers": "外掛殘留檔案",
+  "settings.leftoversNote": "Decky 為已不再安裝的外掛保留的資料夾。選擇要移除的項目；外掛的設定會先備份。",
+  "settings.leftoversScan": "尋找殘留",
+  "settings.leftoversNone": "沒有殘留。",
+  "settings.leftoverInfo": "{size} · {when}變更",
+  "settings.leftoversRemove": "移除所選 ({count})",
+  "settings.leftoversConfirmTitle": "移除 {count} 個殘留資料夾？",
+  "settings.leftoversConfirm": "這會從此裝置刪除它們的設定、資料與記錄。設定會先備份，可從「備份」還原。",
+  "settings.leftoversRemoved": "已移除 {count} 個資料夾，釋放 {size}",
 
   "repos.addManage": "加入與管理",
   "repos.searchGithub": "搜尋 GitHub",

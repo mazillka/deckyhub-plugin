@@ -331,6 +331,17 @@ export const pt: Record<MessageKey, string> = {
   "settings.restoreDescription":
     "Isto substitui as configurações atuais pelo backup de {date}. As atuais são salvas antes. Recarregue ou reinicie o plugin depois para que ele as use.",
   "settings.restored": "Configurações de {name} restauradas",
+  "settings.leftovers": "Arquivos restantes de plugins",
+  "settings.leftoversNote":
+    "Pastas que o Decky guarda de plugins que não estão mais instalados. Escolha o que remover; as configurações do plugin são salvas antes.",
+  "settings.leftoversScan": "Procurar restos",
+  "settings.leftoversNone": "Não sobrou nada.",
+  "settings.leftoverInfo": "{size} · alterado {when}",
+  "settings.leftoversRemove": "Remover selecionados ({count})",
+  "settings.leftoversConfirmTitle": "Remover {count} pastas restantes?",
+  "settings.leftoversConfirm":
+    "Isto apaga as configurações, os dados e os registros delas deste dispositivo. As configurações são salvas antes e podem ser restauradas em Backups.",
+  "settings.leftoversRemoved": "{count} pastas removidas, {size} liberados",
 
   "repos.addManage": "Adicionar e gerenciar",
   "repos.searchGithub": "Buscar no GitHub",

@@ -327,6 +327,17 @@ export const cs: Record<MessageKey, string> = {
   "settings.restoreDescription":
     "Tím se jeho aktuální nastavení nahradí zálohou z {date}. Aktuální nastavení se nejdřív zazálohuje. Poté plugin znovu načtěte nebo restartujte, aby je použil.",
   "settings.restored": "Nastavení pluginu {name} obnoveno",
+  "settings.leftovers": "Zbytky po pluginech",
+  "settings.leftoversNote":
+    "Složky, které Decky drží pro už nenainstalované pluginy. Vyberte, co odstranit; nastavení pluginu se předtím zazálohuje.",
+  "settings.leftoversScan": "Vyhledat zbytky",
+  "settings.leftoversNone": "Nic nezbylo.",
+  "settings.leftoverInfo": "{size} · změněno {when}",
+  "settings.leftoversRemove": "Odstranit vybrané ({count})",
+  "settings.leftoversConfirmTitle": "Odstranit {count} zbylých složek?",
+  "settings.leftoversConfirm":
+    "Smaže jejich nastavení, data a logy z tohoto zařízení. Nastavení se předtím zazálohuje a lze je obnovit v Zálohách.",
+  "settings.leftoversRemoved": "Odstraněno složek: {count}, uvolněno {size}",
 
   "repos.addManage": "Přidat a spravovat",
   "repos.searchGithub": "Hledat na GitHubu",

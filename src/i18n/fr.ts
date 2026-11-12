@@ -334,6 +334,17 @@ export const fr: Record<MessageKey, string> = {
   "settings.restoreDescription":
     "Cela remplace ses réglages actuels par la sauvegarde du {date}. Les réglages actuels sont sauvegardés d’abord. Rechargez ou redémarrez ensuite le plugin pour qu’il les utilise.",
   "settings.restored": "Réglages de {name} restaurés",
+  "settings.leftovers": "Fichiers de plugins restants",
+  "settings.leftoversNote":
+    "Dossiers que Decky garde pour des plugins qui ne sont plus installés. Choisissez ce qu’il faut supprimer ; les réglages d’un plugin sont d’abord sauvegardés.",
+  "settings.leftoversScan": "Chercher les restes",
+  "settings.leftoversNone": "Rien de resté.",
+  "settings.leftoverInfo": "{size} · modifié {when}",
+  "settings.leftoversRemove": "Supprimer la sélection ({count})",
+  "settings.leftoversConfirmTitle": "Supprimer {count} dossiers restants ?",
+  "settings.leftoversConfirm":
+    "Cela supprime leurs réglages, données et journaux de cet appareil. Les réglages sont d’abord sauvegardés et restaurables depuis Sauvegardes.",
+  "settings.leftoversRemoved": "{count} dossiers supprimés, {size} libérés",
 
   "repos.addManage": "Ajouter et gérer",
   "repos.searchGithub": "Rechercher sur GitHub",

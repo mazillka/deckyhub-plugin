@@ -40,6 +40,13 @@ export const listSettingsBackups = callable<[], { backups: SettingsBackup[] }>("
 export const restoreSettingsBackup = callable<[folder: string, file: string], { restored?: boolean; error?: string }>(
   "restore_settings_backup",
 );
+// Folders Decky keeps for plugins that are no longer installed (leftovers.py); `modified` is in milliseconds.
+export type Leftover = { name: string; areas: string[]; size: number; modified: number };
+export const scanLeftovers = callable<[], { items: Leftover[] }>("scan_leftovers");
+export const removeLeftovers = callable<
+  [names: string[]],
+  { removed?: number; freed?: number; skipped?: string[]; error?: string }
+>("remove_leftovers");
 export const deleteSettingsBackup = callable<[folder: string, file: string], { deleted?: boolean; error?: string }>(
   "delete_settings_backup",
 );

@@ -325,6 +325,17 @@ export const tr: Record<MessageKey, string> = {
   "settings.restoreDescription":
     "Bu, geçerli ayarlarını {date} tarihli yedekle değiştirir. Geçerli ayarlar önce yedeklenir. Sonrasında eklentiyi yeniden yükleyin veya başlatın ki kullansın.",
   "settings.restored": "{name} ayarları geri yüklendi",
+  "settings.leftovers": "Eklentilerden kalan dosyalar",
+  "settings.leftoversNote":
+    "Artık yüklü olmayan eklentiler için Decky'nin tuttuğu klasörler. Neyi kaldıracağınızı seçin; eklentinin ayarları önce yedeklenir.",
+  "settings.leftoversScan": "Kalıntıları ara",
+  "settings.leftoversNone": "Geriye bir şey kalmadı.",
+  "settings.leftoverInfo": "{size} · değişti {when}",
+  "settings.leftoversRemove": "Seçilenleri kaldır ({count})",
+  "settings.leftoversConfirmTitle": "{count} kalıntı klasör kaldırılsın mı?",
+  "settings.leftoversConfirm":
+    "Bunların ayarlarını, verilerini ve günlüklerini bu cihazdan siler. Ayarlar önce yedeklenir ve Yedekler'den geri yüklenebilir.",
+  "settings.leftoversRemoved": "{count} klasör kaldırıldı, {size} boşaldı",
 
   "repos.addManage": "Ekle ve yönet",
   "repos.searchGithub": "GitHub'da ara",

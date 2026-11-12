@@ -333,6 +333,17 @@ export const nl: Record<MessageKey, string> = {
   "settings.restoreDescription":
     "Dit vervangt de huidige instellingen door de back-up van {date}. De huidige worden eerst geback-upt. Laad de plugin daarna opnieuw of start hem opnieuw zodat hij ze gebruikt.",
   "settings.restored": "Instellingen van {name} hersteld",
+  "settings.leftovers": "Overgebleven pluginbestanden",
+  "settings.leftoversNote":
+    "Mappen die Decky bewaart voor plugins die niet meer geïnstalleerd zijn. Kies wat je wilt verwijderen; de instellingen van een plugin worden eerst geback-upt.",
+  "settings.leftoversScan": "Zoeken naar restanten",
+  "settings.leftoversNone": "Niets over.",
+  "settings.leftoverInfo": "{size} · gewijzigd {when}",
+  "settings.leftoversRemove": "Geselecteerde verwijderen ({count})",
+  "settings.leftoversConfirmTitle": "{count} overgebleven mappen verwijderen?",
+  "settings.leftoversConfirm":
+    "Dit verwijdert hun instellingen, gegevens en logs van dit apparaat. Instellingen worden eerst geback-upt en kunnen worden hersteld via Back-ups.",
+  "settings.leftoversRemoved": "{count} mappen verwijderd, {size} vrijgemaakt",
 
   "repos.addManage": "Toevoegen en beheren",
   "repos.searchGithub": "Zoeken op GitHub",

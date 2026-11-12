@@ -18,6 +18,7 @@ import { useLayout } from "../components/LayoutToggle";
 import { LOCALE_CHANGED, useT } from "../i18n";
 import type { Settings } from "../types";
 import { BackupsSection } from "../components/BackupsSection";
+import { LeftoversSection } from "../components/LeftoversSection";
 import { setQuickAccessTab } from "../components/QuickAccessTab";
 import { DEFAULT_COLUMNS_PER_ROW, githubCoreQuota, setGithubToken } from "../utils";
 
@@ -138,6 +139,7 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
         title: t("settings.tabTroubleshoot"),
         content: stack(
           <BackupsSection key="backups" settings={settings} update={update} />,
+          <LeftoversSection key="leftovers" />,
           <TroubleshootingSection key="troubleshooting" />,
         ),
       },

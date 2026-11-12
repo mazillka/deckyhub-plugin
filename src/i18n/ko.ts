@@ -323,6 +323,17 @@ export const ko: Record<MessageKey, string> = {
   "settings.restoreDescription":
     "현재 설정을 {date}의 백업으로 바꿉니다. 현재 설정은 먼저 백업됩니다. 이후 플러그인을 다시 불러오거나 재시작해야 적용됩니다.",
   "settings.restored": "{name}의 설정을 복원했습니다",
+  "settings.leftovers": "남은 플러그인 파일",
+  "settings.leftoversNote":
+    "더 이상 설치되지 않은 플러그인을 위해 Decky가 보관 중인 폴더입니다. 삭제할 항목을 고르세요. 플러그인 설정은 먼저 백업됩니다.",
+  "settings.leftoversScan": "남은 파일 찾기",
+  "settings.leftoversNone": "남은 것이 없습니다.",
+  "settings.leftoverInfo": "{size} · {when} 변경",
+  "settings.leftoversRemove": "선택 항목 삭제 ({count})",
+  "settings.leftoversConfirmTitle": "남은 폴더 {count}개를 삭제할까요?",
+  "settings.leftoversConfirm":
+    "이 기기에서 해당 설정, 데이터, 로그를 삭제합니다. 설정은 먼저 백업되며 백업에서 복원할 수 있습니다.",
+  "settings.leftoversRemoved": "폴더 {count}개를 삭제하고 {size}를 확보했습니다",
 
   "repos.addManage": "추가 및 관리",
   "repos.searchGithub": "GitHub 검색",

@@ -337,6 +337,17 @@ export const de: Record<MessageKey, string> = {
   "settings.restoreDescription":
     "Dadurch werden die aktuellen Einstellungen durch die Sicherung vom {date} ersetzt. Die aktuellen werden vorher gesichert. Lade oder starte das Plugin danach neu, damit es sie verwendet.",
   "settings.restored": "Einstellungen von {name} wiederhergestellt",
+  "settings.leftovers": "Übrig gebliebene Plugin-Dateien",
+  "settings.leftoversNote":
+    "Ordner, die Decky für nicht mehr installierte Plugins behält. Wähle, was entfernt werden soll; die Einstellungen eines Plugins werden vorher gesichert.",
+  "settings.leftoversScan": "Nach Resten suchen",
+  "settings.leftoversNone": "Nichts übrig.",
+  "settings.leftoverInfo": "{size} · geändert {when}",
+  "settings.leftoversRemove": "Ausgewählte entfernen ({count})",
+  "settings.leftoversConfirmTitle": "{count} übrige Ordner entfernen?",
+  "settings.leftoversConfirm":
+    "Das löscht ihre Einstellungen, Daten und Protokolle von diesem Gerät. Die Einstellungen werden vorher gesichert und lassen sich unter Sicherungen wiederherstellen.",
+  "settings.leftoversRemoved": "{count} Ordner entfernt, {size} frei",
 
   "repos.addManage": "Hinzufügen & Verwalten",
   "repos.searchGithub": "Auf GitHub suchen",
