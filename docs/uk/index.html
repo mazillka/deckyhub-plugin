@@ -48,6 +48,7 @@ h2{font-size:clamp(1.6rem,4vw,2.2rem);margin:0 0 10px;letter-spacing:-.01em}
 .card h3{margin:0 0 8px;font-size:1.1rem}.card p{margin:0;color:var(--muted)}
 .card .ico{font-size:1.6rem;margin-bottom:10px}
 figure{margin:0}figcaption{color:var(--muted);margin-top:10px;font-size:.92rem}
+.promo{display:grid;gap:32px;align-items:center;grid-template-columns:1fr;background:linear-gradient(135deg,#1b3254 0%,var(--panel) 70%);border:1px solid var(--accent);border-radius:16px;padding:28px}.promo .tag{display:inline-block;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--accent2);border:1px solid var(--accent2);border-radius:999px;padding:2px 10px;margin-bottom:12px}.promo h2{margin-bottom:12px}.promo p{color:var(--muted);margin:0 0 16px}.promo .cta{justify-content:flex-start}.promo .soon{font-size:.92rem;color:var(--dim);margin:16px 0 0}@media(min-width:860px){.promo{grid-template-columns:5fr 6fr;padding:40px}}
 .shot{border-radius:12px;overflow:hidden;border:1px solid var(--line);aspect-ratio:16/10;background:#0b0f16}
 ol.steps{counter-reset:s;list-style:none;padding:0;display:grid;gap:10px}
 ol.steps li{counter-increment:s;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 20px 16px 64px;position:relative;color:var(--text);line-height:1.6;font-size:1.02rem}
@@ -153,10 +154,15 @@ footer .wrap{display:grid;gap:10px}
 <p class="sub">Перевірки й попередження лише інформують і нічого не блокують. Перевірки сигнатурні: вони знаходять лише відоме шкідливе ПЗ, а шкідливе ПЗ можна створити так, щоб воно їх оминуло, тож чиста перевірка не доводить, що плагін безпечний. Плагіни вручну переглядає лише <a href="https://plugins.deckbrew.xyz/">магазин плагінів Decky</a>; перевірки DeckyHub — крок уперед порівняно із завантаженням просто з GitHub, а не заміна такого перегляду. Подробиці — у <a href="https://github.com/mazillka/deckyhub-plugin/blob/main/README.uk.md#як-deckyhub-контролює-якість">README</a>.</p>
 </div></section>
 
-<section id="extension"><div class="wrap">
-<h2>Перевіряйте плагіни просто на GitHub</h2>
-<p class="sub">Deckyhub — безкоштовне розширення для Chrome, Edge, Opera, Brave, Vivaldi і Firefox. На сторінці плагіна на GitHub воно додає позначки безпеки (працює від root, попередження аудиту, форк, є в магазині Decky, створено з ШІ, остання перевірка) і посилання на його сторінку в DeckyHub. На сторінці випусків воно додає під кожним випуском блок із попередженнями аудиту, результатами ClamAV, YARA, VirusTotal і MetaDefender та посиланнями, що відкривають саме цю версію тут, зокрема «Надіслати на пристрій (експериментально)». Воно лише читає публічні файли реєстру й нічого не збирає. У магазинах браузерів його ще немає: завантажте його зі <a href="https://github.com/mazillka/deckyhub-ext/releases">сторінки випусків на GitHub</a>; <a href="https://github.com/mazillka/deckyhub-ext">код</a> відкритий (GPL-3.0-or-later). <a href="/uk/help.html#extension">Докладніше в довідці</a>.</p>
-</div></section>
+<section id="extension"><div class="wrap"><div class="promo">
+<div><span class="tag">Розширення для браузера</span>
+<h2>Бачте результати перевірок просто на GitHub</h2>
+<p>Deckyhub — безкоштовне розширення для браузера. Воно додає позначки безпеки на сторінку плагіна на GitHub, а під кожним випуском — попередження аудиту та результати ClamAV, YARA, VirusTotal і MetaDefender із посиланням, що відкриває саме цю версію тут. Воно лише читає публічні файли реєстру й нічого не збирає.</p>
+<p>Працює в Chrome, Edge, Opera, Brave, Vivaldi і Firefox.</p>
+<div class="cta"><a class="btn" href="https://github.com/mazillka/deckyhub-ext/releases">Завантажити зі сторінки випусків</a><a class="btn ghost" href="https://github.com/mazillka/deckyhub-ext#readme">Прочитати README</a><a class="btn ghost" href="/uk/help.html#extension">Докладніше в довідці</a></div>
+<p class="soon">Сторінки в магазинах браузерів незабаром з'являться. А поки встановіть його з GitHub; код відкритий (GPL-3.0-or-later).</p></div>
+<figure><div class="shot"><img src="../img/extension.webp" srcset="../img/extension-640.webp 640w, ../img/extension.webp 1280w" sizes="(max-width:860px) 100vw, 560px" width="1280" height="800" loading="lazy" alt="Сторінка випуску на GitHub із блоком Deckyhub: ClamAV і YARA не знайшли загроз, VirusTotal і MetaDefender ще не перевіряли, є кнопки «Відкрити в DeckyHub» і «Надіслати на пристрій»."></div></figure>
+</div></div></section>
 
 <!-- featured-in -->
 <section id="faq"><div class="wrap">
