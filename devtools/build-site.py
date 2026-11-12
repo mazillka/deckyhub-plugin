@@ -32,6 +32,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 import markdown
+import media_coverage
 import plugin_pages
 import site_shell
 from PIL import Image
@@ -205,6 +206,7 @@ shutil.copytree(ROOT / "docs", out, dirs_exist_ok=True)
 with urllib.request.urlopen(REGISTRY_URL) as response:
     apps = json.load(response)["apps"]
 data = plugin_pages.load_data()
+coverage = media_coverage.load(ROOT / "docs" / "media-coverage.json")
 index = out / "index.html"
 page = index.read_text(encoding="utf-8")
 if "<!-- popular -->" not in page:
@@ -217,6 +219,8 @@ for placeholder in ("<!-- structured-data -->", "<!-- latest -->"):
 page = (
     page.replace("<!-- popular -->", plugin_pages.popular_cards(apps, data))
     .replace("<!-- plugin-count -->", str(len(apps)))
+    .replace("<!-- featured-in -->", media_coverage.featured_in(coverage, "press"))
+    .replace("</style>", media_coverage.CSS + "</style>", 1)
     .replace("<!-- structured-data -->", structured_data(page, latest))
 )
 if latest:
@@ -238,6 +242,9 @@ if latest:
     )
 uk_page = uk_page.replace("<!-- popular -->", plugin_pages.popular_cards(apps, data, prefix="../plugins/")).replace(
     "<!-- plugin-count -->", str(len(apps))
+)
+uk_page = uk_page.replace("<!-- featured-in -->", media_coverage.featured_in(coverage, "../press", uk=True)).replace(
+    "</style>", media_coverage.CSS + "</style>", 1
 )
 uk_page = uk_page.replace("<!-- structured-data -->", structured_data(uk_page, latest, uk=True))
 readme_uk = (ROOT / "README.uk.md").read_text(encoding="utf-8")
@@ -313,11 +320,28 @@ if llms.exists():
 
 today = time.strftime("%Y-%m-%d", time.gmtime())
 newest = (releases[0].get("published_at") or "")[:10] if releases else today
+# deckyhub.com/press: independent coverage (docs/media-coverage.json), also at /press/ for links with the slash.
+press_shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
+press_shell = {**press_shell, "style": press_shell["style"] + media_coverage.CSS}
+press_page = plugin_pages.page(
+    press_shell,
+    "DeckyHub in the Media | Press & Reviews",
+    "Independent articles, reviews, tutorials and videos about DeckyHub, with links to the original publications.",
+    "press",
+    media_coverage.press_body(coverage),
+    [],
+    current="press",
+)
+(out / "press.html").write_text(press_page, encoding="utf-8")
+(out / "press").mkdir(exist_ok=True)
+(out / "press" / "index.html").write_text(press_page, encoding="utf-8")
+
 (out / "sitemap.xml").write_text(
     '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     f"<url><loc>{SITE}</loc><lastmod>{today}</lastmod></url>\n"
     f"<url><loc>{SITE}uk/</loc><lastmod>{today}</lastmod></url>\n"
     f"<url><loc>{SITE}releases.html</loc><lastmod>{newest}</lastmod></url>\n"
+    f"<url><loc>{SITE}press</loc><lastmod>{media_coverage.newest_date(coverage) or today}</lastmod></url>\n"
     + "".join(f"<url><loc>{SITE}{path}</loc><lastmod>{today}</lastmod></url>\n" for path in HELP_ABOUT + CONTRIBUTE)
     + "".join(f"<url><loc>{escape(url)}</loc><lastmod>{date}</lastmod></url>\n" for url, date in plugin_urls)
     + "</urlset>\n",

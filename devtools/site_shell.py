@@ -48,7 +48,7 @@ footer a{display:inline-block;padding:4px 0}"""
 FOOTER = (
     '<footer><div class="wrap">\n'
     f'<div>DeckyHub is open source under GPL-3.0-or-later · <a href="{REPO}">Source</a> · <a href="{SITE}releases.html">Release notes</a> · '
-    f'<a href="{REPO}/issues">Report an issue</a> · <a href="{REPO}/releases.atom">Releases feed</a></div>\n'
+    f'<a href="{SITE}press">Press</a> · <a href="{REPO}/issues">Report an issue</a> · <a href="{REPO}/releases.atom">Releases feed</a></div>\n'
     "<div><strong>Disclaimer:</strong> Not affiliated with Valve or the Decky Loader project. Plugin information comes from public GitHub "
     "repositories, and every plugin belongs to its own authors; DeckyHub doesn't review, own or endorse them. Plugins are installed at your own "
     "risk, so look at a plugin's repository before you install it.</div>\n"
@@ -59,7 +59,7 @@ FOOTER = (
 FOOTER_UK = (
     '<footer><div class="wrap">\n'
     f'<div>DeckyHub має відкритий код за ліцензією GPL-3.0-or-later · <a href="{REPO}">Код</a> · <a href="{SITE}releases.html">Нотатки до релізів</a> · '
-    f'<a href="{REPO}/issues">Повідомити про проблему</a> · <a href="{REPO}/releases.atom">Стрічка релізів</a></div>\n'
+    f'<a href="{SITE}press">Преса</a> · <a href="{REPO}/issues">Повідомити про проблему</a> · <a href="{REPO}/releases.atom">Стрічка релізів</a></div>\n'
     "<div><strong>Відмова від відповідальності:</strong> Не пов'язаний із Valve чи проєктом Decky Loader. Інформація про плагіни надходить із публічних "
     "репозиторіїв GitHub, а кожен плагін належить його авторам; DeckyHub не перевіряє, не володіє й не схвалює їх. Плагіни встановлюються на ваш "
     "власний ризик, тож перегляньте репозиторій плагіна перед встановленням.</div>\n"
