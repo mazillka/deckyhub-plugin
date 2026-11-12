@@ -34,6 +34,26 @@ class PluginPageTests(unittest.TestCase):
         self.assertNotIn("Pre-release only", page)
         self.assertNotIn("No description", page)
 
+    def test_decky_store_listing_shows_a_badge_counts_and_a_catalog_filter(self):
+        page = self.page({"downloads": 1500, "store": {"downloads": 40000}})
+        self.assertIn(">In Decky store</span>", page)
+        self.assertIn("GitHub downloads", page)
+        self.assertIn("Decky store downloads", page)
+        data = {"stats": {APP["repo"].casefold(): {"store": {"downloads": 1}}}, "scans": {}}
+        self.assertIn('data-store="1"', plugin_pages.card(APP, data))
+        self.assertNotIn("data-store", plugin_pages.card(APP, {"stats": {}, "scans": {}}))
+
+    def test_a_store_only_entry_says_so_and_offers_no_github_install_or_device_request(self):
+        page = self.page()
+        self.assertIn("nobody reviews these plugins", page)
+        self.assertIn("Send to device", page)
+        shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
+        store_only = {**APP, "store": True}
+        page = plugin_pages.plugin_page(shell, store_only, {}, {}, {}, [store_only])
+        self.assertIn("install it from the store", page)
+        self.assertNotIn("Send to device", page)
+        self.assertNotIn('id="remote-install"', page)
+
     def test_remote_install_handoff_has_plugin_id_and_no_secrets_in_url(self):
         page = self.page()
         self.assertIn('id="remote-install"', page)

@@ -444,6 +444,8 @@ export async function installedRisk(app: App, force = false): Promise<App["insta
 // Fills in a card's latest release for its channel and whether it's newer
 // than what's installed.
 export async function hydrate(app: App, force: boolean, preference?: RepoPreference): Promise<App> {
+  // Its author distributes it through the Decky store: no GitHub release is offered, so the card says where to get it.
+  if (app.store) return { ...app, assets: [], updateAvailable: null, error: tr("release.inStore") };
   const { items, error } = await listAppReleases(app, force);
   // The saved channel stays as it is, so a first stable release brings the card back to it.
   const prereleaseOnly = items.length > 0 && items.every((item) => item.prerelease);

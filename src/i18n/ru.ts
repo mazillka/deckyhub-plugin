@@ -87,6 +87,10 @@ export const ru: Record<MessageKey, string> = {
   "appcard.install": "Установить",
   "appcard.installVersion": "Установить v{version}",
   "appcard.downloads": "{count} загрузок",
+  "appcard.githubDownloads": "{count} загрузок с GitHub",
+  "appcard.inStore": "В магазине Decky",
+  "appcard.inStoreHint":
+    "В магазине Decky есть плагин с таким названием ({count} загрузок там). Магазин не указывает репозиторий, поэтому убедитесь, что это тот самый.",
   "appcard.stars": "{count} звёзд на GitHub",
   "appcard.runsAsRoot": "Работает от root",
   "appcard.runsAsRootHint":
@@ -389,6 +393,9 @@ export const ru: Record<MessageKey, string> = {
 
   "github.error": "GitHub API вернул {status}",
   "release.noMatch": "Подходящий релиз не найден.",
+  "release.inStore": "Автор распространяет его через магазин Decky. Установите его оттуда.",
+  "scan.notReviewed":
+    "DeckyHub не магазин Decky, и эти плагины никто не проверяет. Чистая проверка лишь означает, что известного вредоносного ПО не найдено.",
   "release.noChecksum": "Не найден ZIP-релиз DeckyHub с контрольной суммой SHA-256.",
   "error.loaderUnavailable": "Decky Loader сейчас недоступен.",
   "toast.updatesAvailable": "Доступны обновления: {count}",

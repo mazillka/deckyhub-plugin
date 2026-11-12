@@ -87,6 +87,9 @@ export const zhTW: Record<MessageKey, string> = {
   "appcard.install": "安裝",
   "appcard.installVersion": "安裝 v{version}",
   "appcard.downloads": "{count} 次下載",
+  "appcard.githubDownloads": "GitHub 下載 {count} 次",
+  "appcard.inStore": "已在 Decky 商店",
+  "appcard.inStoreHint": "Decky 商店中有同名外掛(在那裡下載 {count} 次)。商店不會標明儲存庫,請確認是否就是這個。",
   "appcard.stars": "{count} 個 GitHub 星號",
   "appcard.runsAsRoot": "以 root 執行",
   "appcard.runsAsRootHint": "其後端以 root 執行，可完整存取系統。僅在信任作者時安裝。",
@@ -375,6 +378,8 @@ export const zhTW: Record<MessageKey, string> = {
 
   "github.error": "GitHub API 傳回了 {status}",
   "release.noMatch": "找不到相符的版本。",
+  "release.inStore": "作者透過 Decky 商店發佈。請從那裡安裝。",
+  "scan.notReviewed": "DeckyHub 不是 Decky 商店,也沒有人審核這些外掛。掃描無異常只表示未發現已知惡意軟體。",
   "release.noChecksum": "找不到附有 SHA-256 總和檢查碼的 DeckyHub 發行版本 ZIP。",
   "error.loaderUnavailable": "Decky Loader 目前無法使用。",
   "toast.updatesAvailable": "可用更新：{count}",

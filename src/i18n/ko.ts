@@ -87,6 +87,10 @@ export const ko: Record<MessageKey, string> = {
   "appcard.install": "설치",
   "appcard.installVersion": "v{version} 설치",
   "appcard.downloads": "다운로드 {count}회",
+  "appcard.githubDownloads": "GitHub 다운로드 {count}회",
+  "appcard.inStore": "Decky 스토어에 있음",
+  "appcard.inStoreHint":
+    "Decky 스토어에 같은 이름의 플러그인이 있습니다(그곳에서 {count}회 다운로드). 스토어는 저장소를 알려 주지 않으므로 이것이 맞는지 확인하세요.",
   "appcard.stars": "GitHub 스타 {count}개",
   "appcard.runsAsRoot": "루트 권한으로 실행",
   "appcard.runsAsRootHint":
@@ -386,6 +390,9 @@ export const ko: Record<MessageKey, string> = {
 
   "github.error": "GitHub API가 {status}을(를) 반환했습니다",
   "release.noMatch": "일치하는 릴리스가 없습니다.",
+  "release.inStore": "제작자가 Decky 스토어로 배포합니다. 거기서 설치하세요.",
+  "scan.notReviewed":
+    "DeckyHub는 Decky 스토어가 아니며 이 플러그인들을 검토하는 사람은 없습니다. 검사 결과가 깨끗하다는 것은 알려진 악성코드가 없다는 뜻일 뿐입니다.",
   "release.noChecksum": "SHA-256 체크섬이 있는 DeckyHub 릴리스 ZIP을 찾지 못했습니다.",
   "error.loaderUnavailable": "지금은 Decky Loader를 사용할 수 없습니다.",
   "toast.updatesAvailable": "업데이트 {count}개 있음",

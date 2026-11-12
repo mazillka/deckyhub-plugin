@@ -276,6 +276,7 @@ export function AppDetailsModal({
             closeModal={closeModal}
             showZipActions={false}
           />
+          <small style={{ opacity: 0.7 }}>{t("scan.notReviewed")}</small>
         </>
       }
       channel={channel}

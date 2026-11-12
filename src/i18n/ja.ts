@@ -87,6 +87,10 @@ export const ja: Record<MessageKey, string> = {
   "appcard.install": "インストール",
   "appcard.installVersion": "v{version} をインストール",
   "appcard.downloads": "{count} ダウンロード",
+  "appcard.githubDownloads": "GitHub ダウンロード {count} 回",
+  "appcard.inStore": "Decky ストアにあり",
+  "appcard.inStoreHint":
+    "Decky ストアに同名のプラグインがあります(ストアでのダウンロード {count} 回)。ストアはリポジトリを示さないため、これと同じものか確認してください。",
   "appcard.stars": "GitHub スター {count}",
   "appcard.runsAsRoot": "root で実行",
   "appcard.runsAsRootHint":
@@ -390,6 +394,9 @@ export const ja: Record<MessageKey, string> = {
 
   "github.error": "GitHub API がエラー {status} を返しました",
   "release.noMatch": "該当するリリースが見つかりません。",
+  "release.inStore": "作者は Decky ストアで配布しています。そちらからインストールしてください。",
+  "scan.notReviewed":
+    "DeckyHub は Decky ストアではなく、これらのプラグインは誰も審査していません。スキャン結果が問題なしでも、既知のマルウェアが見つからなかったという意味にすぎません。",
   "release.noChecksum": "SHA-256 チェックサム付きの DeckyHub リリース ZIP が見つかりません。",
   "error.loaderUnavailable": "現在 Decky Loader を利用できません。",
   "toast.updatesAvailable": "利用可能なアップデート: {count}",

@@ -87,6 +87,10 @@ export const tr: Record<MessageKey, string> = {
   "appcard.install": "Yükle",
   "appcard.installVersion": "v{version} yükle",
   "appcard.downloads": "{count} indirme",
+  "appcard.githubDownloads": "{count} GitHub indirmesi",
+  "appcard.inStore": "Decky mağazasında",
+  "appcard.inStoreHint":
+    "Decky mağazasında bu adda bir eklenti var (orada {count} indirme). Mağaza depo belirtmez, bu yüzden bunun doğru olduğundan emin olun.",
   "appcard.stars": "{count} GitHub yıldızı",
   "appcard.runsAsRoot": "Root olarak çalışır",
   "appcard.runsAsRootHint": "Arka ucu root olarak, sisteme tam erişimle çalışır. Yalnızca yazara güveniyorsan yükle.",
@@ -388,6 +392,9 @@ export const tr: Record<MessageKey, string> = {
 
   "github.error": "GitHub API {status} döndürdü",
   "release.noMatch": "Uygun sürüm bulunamadı.",
+  "release.inStore": "Yazarı bunu Decky mağazası üzerinden dağıtıyor. Oradan kurun.",
+  "scan.notReviewed":
+    "DeckyHub, Decky mağazası değildir ve bu eklentileri kimse incelemez. Temiz bir tarama yalnızca bilinen bir zararlı yazılımın bulunmadığı anlamına gelir.",
   "release.noChecksum": "SHA-256 sağlama toplamı olan bir DeckyHub sürüm ZIP'i bulunamadı.",
   "error.loaderUnavailable": "Decky Loader şu anda kullanılamıyor.",
   "toast.updatesAvailable": "Mevcut güncellemeler: {count}",
