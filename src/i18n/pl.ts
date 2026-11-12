@@ -318,6 +318,16 @@ export const pl: Record<MessageKey, string> = {
   "settings.exportLogs": "Eksportuj logi",
   "settings.exportLogsNote":
     "Zapisuje logi DeckyHub jako ZIP w ~/Downloads — dołącz go do zgłoszenia błędu. Twój token GitHub nigdy nie trafia do logów.",
+  "settings.backups": "Kopie zapasowe",
+  "settings.backupBefore": "Kopiuj ustawienia przed aktualizacją i usunięciem",
+  "settings.backupBeforeNote":
+    "Zanim DeckyHub zaktualizuje, zainstaluje ponownie lub usunie wtyczkę, zapisze tu kopię jej ustawień (ostatnie 5 na wtyczkę). Przywróć jedną, jeśli aktualizacja coś zepsuje.",
+  "settings.backupsEmpty": "Brak kopii zapasowych.",
+  "settings.restore": "Przywróć",
+  "settings.restoreTitle": "Przywrócić ustawienia {name}?",
+  "settings.restoreDescription":
+    "To zastąpi jej bieżące ustawienia kopią z {date}. Bieżące zostaną najpierw zapisane. Potem przeładuj lub uruchom ponownie wtyczkę, aby ich użyła.",
+  "settings.restored": "Przywrócono ustawienia {name}",
 
   "repos.addManage": "Dodaj i zarządzaj",
   "repos.searchGithub": "Szukaj na GitHubie",

@@ -65,6 +65,8 @@ def coerce_settings(settings: dict) -> dict:
             if isinstance(settings.get("hiddenButtons"), list) and name in settings["hiddenButtons"]
         ],
         # Preserve the off state of installations that used the old two-switch setup.
+        # Save a plugin's settings before DeckyHub updates, reinstalls or removes it (backups.py).
+        "backupBeforeChange": settings.get("backupBeforeChange") is not False,
         "remoteInstall": settings.get("remoteInstall") is True and settings.get("remoteInstallFeature", True) is True,
     }
 

@@ -324,6 +324,16 @@ export const fr: Record<MessageKey, string> = {
   "settings.exportLogs": "Exporter les journaux",
   "settings.exportLogsNote":
     "Enregistre les journaux de DeckyHub dans un ZIP dans ~/Downloads — joignez-le à un rapport de bug. Votre jeton GitHub n'est jamais journalisé.",
+  "settings.backups": "Sauvegardes",
+  "settings.backupBefore": "Sauvegarder les réglages avant mise à jour et suppression",
+  "settings.backupBeforeNote":
+    "Avant de mettre à jour, réinstaller ou supprimer un plugin, DeckyHub enregistre ici une copie de ses réglages (les 5 dernières par plugin). Restaurez-en une si une mise à jour casse quelque chose.",
+  "settings.backupsEmpty": "Aucune sauvegarde pour l’instant.",
+  "settings.restore": "Restaurer",
+  "settings.restoreTitle": "Restaurer les réglages de {name} ?",
+  "settings.restoreDescription":
+    "Cela remplace ses réglages actuels par la sauvegarde du {date}. Les réglages actuels sont sauvegardés d’abord. Rechargez ou redémarrez ensuite le plugin pour qu’il les utilise.",
+  "settings.restored": "Réglages de {name} restaurés",
 
   "repos.addManage": "Ajouter et gérer",
   "repos.searchGithub": "Rechercher sur GitHub",

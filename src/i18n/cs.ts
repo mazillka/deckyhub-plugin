@@ -317,6 +317,16 @@ export const cs: Record<MessageKey, string> = {
   "settings.exportLogs": "Exportovat protokoly",
   "settings.exportLogsNote":
     "Uloží protokoly DeckyHub jako ZIP do ~/Downloads — přiložte ho k hlášení chyby. Váš token GitHub se nikdy nezaznamenává.",
+  "settings.backups": "Zálohy",
+  "settings.backupBefore": "Zálohovat nastavení před aktualizací a odebráním",
+  "settings.backupBeforeNote":
+    "Než DeckyHub plugin aktualizuje, přeinstaluje nebo odebere, uloží sem kopii jeho nastavení (posledních 5 na plugin). Pokud aktualizace něco pokazí, jednu z nich obnovte.",
+  "settings.backupsEmpty": "Zatím žádné zálohy.",
+  "settings.restore": "Obnovit",
+  "settings.restoreTitle": "Obnovit nastavení pluginu {name}?",
+  "settings.restoreDescription":
+    "Tím se jeho aktuální nastavení nahradí zálohou z {date}. Aktuální nastavení se nejdřív zazálohuje. Poté plugin znovu načtěte nebo restartujte, aby je použil.",
+  "settings.restored": "Nastavení pluginu {name} obnoveno",
 
   "repos.addManage": "Přidat a spravovat",
   "repos.searchGithub": "Hledat na GitHubu",

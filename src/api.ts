@@ -30,6 +30,19 @@ export const removeCustomRegistry = callable<[url: string], { removed: boolean; 
 );
 export const refreshRegistry = callable<[], { apps: number }>("refresh_registry");
 export const exportLogs = callable<[], { path: string }>("export_logs");
+
+// Backups of other plugins' settings (backups.py); `created` is in milliseconds.
+export type SettingsBackup = { plugin: string; file: string; created: number; size: number };
+export const backupPluginSettings = callable<[name: string], { file?: string; skipped?: boolean; error?: string }>(
+  "backup_plugin_settings",
+);
+export const listSettingsBackups = callable<[], { backups: SettingsBackup[] }>("list_settings_backups");
+export const restoreSettingsBackup = callable<[folder: string, file: string], { restored?: boolean; error?: string }>(
+  "restore_settings_backup",
+);
+export const deleteSettingsBackup = callable<[folder: string, file: string], { deleted?: boolean; error?: string }>(
+  "delete_settings_backup",
+);
 export const logFrontend = callable<[message: string], void>("log_frontend");
 export const clearDownloads = callable<[], { removed: number }>("clear_downloads");
 export const listDownloads = callable<[], { items: { name: string; directory: boolean }[] }>("list_downloads");

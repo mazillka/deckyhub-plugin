@@ -324,6 +324,16 @@ export const ptPT: Record<MessageKey, string> = {
   "settings.exportLogs": "Exportar registos",
   "settings.exportLogsNote":
     "Guarda os registos do DeckyHub como ZIP em ~/Downloads — anexe-o a um relatório de erro. O seu token do GitHub nunca é registado.",
+  "settings.backups": "Cópias de segurança",
+  "settings.backupBefore": "Guardar as definições antes de atualizar e remover",
+  "settings.backupBeforeNote":
+    "Antes de atualizar, reinstalar ou remover um plugin, o DeckyHub guarda aqui uma cópia das suas definições (as últimas 5 por plugin). Restaure uma se uma atualização estragar algo.",
+  "settings.backupsEmpty": "Ainda não há cópias de segurança.",
+  "settings.restore": "Restaurar",
+  "settings.restoreTitle": "Restaurar as definições de {name}?",
+  "settings.restoreDescription":
+    "Isto substitui as definições atuais pela cópia de {date}. As atuais são guardadas primeiro. Recarregue ou reinicie o plugin depois para que as use.",
+  "settings.restored": "Definições de {name} restauradas",
 
   "repos.addManage": "Adicionar e gerir",
   "repos.searchGithub": "Pesquisar no GitHub",

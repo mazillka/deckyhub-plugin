@@ -139,6 +139,8 @@ export type UiStyle = "default" | "experimental";
 
 export type Settings = {
   overwriteExisting: boolean;
+  // Save a plugin's settings before updating, reinstalling or removing it (backups.py).
+  backupBeforeChange: boolean;
   updateChannel: UpdateChannel;
   registryChannel: UpdateChannel;
   language: string;

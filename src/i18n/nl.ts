@@ -323,6 +323,16 @@ export const nl: Record<MessageKey, string> = {
   "settings.exportLogs": "Logs exporteren",
   "settings.exportLogsNote":
     "Slaat de logs van DeckyHub op als ZIP in ~/Downloads — voeg die toe aan een bugmelding. Je GitHub-token wordt nooit gelogd.",
+  "settings.backups": "Back-ups",
+  "settings.backupBefore": "Instellingen back-uppen voor updates en verwijderen",
+  "settings.backupBeforeNote":
+    "Voordat DeckyHub een plugin bijwerkt, opnieuw installeert of verwijdert, bewaart het hier een kopie van de instellingen (de laatste 5 per plugin). Zet er een terug als een update iets kapotmaakt.",
+  "settings.backupsEmpty": "Nog geen back-ups.",
+  "settings.restore": "Herstellen",
+  "settings.restoreTitle": "Instellingen van {name} herstellen?",
+  "settings.restoreDescription":
+    "Dit vervangt de huidige instellingen door de back-up van {date}. De huidige worden eerst geback-upt. Laad de plugin daarna opnieuw of start hem opnieuw zodat hij ze gebruikt.",
+  "settings.restored": "Instellingen van {name} hersteld",
 
   "repos.addManage": "Toevoegen en beheren",
   "repos.searchGithub": "Zoeken op GitHub",

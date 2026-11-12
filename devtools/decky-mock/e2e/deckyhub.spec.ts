@@ -389,6 +389,49 @@ test("Export Logs zips the backend log into Downloads", async ({ page }) => {
   rmSync(downloads, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
 });
 
+test("Backups: a plugin's settings are saved before a change and can be restored from Settings", async ({ page }) => {
+  const data = new URL("../.dev-data/", import.meta.url);
+  const plugin = new URL("plugins/e2e-backup/", data);
+  const settings = new URL("settings/e2e-backup/", data);
+  mkdirSync(plugin, { recursive: true });
+  mkdirSync(settings, { recursive: true });
+  writeFileSync(new URL("plugin.json", plugin), JSON.stringify({ name: "E2E Backup Plugin", version: "1.0.0" }));
+  writeFileSync(new URL("config.json", settings), '{"volume": 7}');
+  const app = mock(page);
+  try {
+    // What DeckyHub calls before an update or removal.
+    expect((await bridgeCall(page, "backup_plugin_settings", "E2E Backup Plugin")).result.file).toMatch(
+      /^e2e-backup--\d{8}-\d{6}\.tar\.gz$/,
+    );
+    writeFileSync(new URL("config.json", settings), '{"volume": 1}');
+
+    await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+    await settingsTab(page, "Logs");
+    await expect(app.getByText("Backups", { exact: true })).toBeVisible();
+    await expect(app.getByText("Back up settings before updates and removal")).toBeVisible();
+    await app.getByRole("button", { name: "Restore", exact: true }).first().click();
+    await expect(app.getByText("Restore e2e-backup's settings?")).toBeVisible();
+    await app.locator(".steam-modal").getByRole("button", { name: "Restore", exact: true }).click();
+    await expect.poll(() => readFileSync(new URL("config.json", settings), "utf8")).toBe('{"volume": 7}');
+
+    // The settings it replaced were backed up first, and a backup can be removed.
+    const { backups } = (await bridgeCall(page, "list_settings_backups")).result;
+    expect(backups.filter((item: { plugin: string }) => item.plugin === "e2e-backup")).toHaveLength(2);
+    expect(
+      (await bridgeCall(page, "restore_settings_backup", "e2e-backup", "../../x.tar.gz")).result.error,
+    ).toBeTruthy();
+  } finally {
+    rmSync(new URL("settings/backups/", data), {
+      recursive: true,
+      force: true,
+      maxRetries: 10,
+      retryDelay: 100,
+    });
+    rmSync(plugin, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+    rmSync(settings, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  }
+});
+
 test("DeckyHub automatically notifies about an available update", async ({ page }) => {
   const newerRelease = deckyHubRelease("v9.9.9", { sha: "b" });
   await mockDeckyHubReleases(page, [newerRelease]);

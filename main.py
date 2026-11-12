@@ -17,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent / "py_modules"))
 import decky
 from deckyhub import paths
 from deckyhub.apps import AppsMixin
+from deckyhub.backups import BackupsMixin
 from deckyhub.downloads import DownloadsMixin
 from deckyhub.registry import RegistryMixin
 from deckyhub.remote_install import RemoteInstallMixin
@@ -27,7 +28,7 @@ from deckyhub.validation import REPOSITORY_NAME
 PENDING_INSTALLS_FILE = "pending-installs.json"
 
 
-class Plugin(SettingsMixin, RegistryMixin, AppsMixin, DownloadsMixin, RemoteInstallMixin):
+class Plugin(SettingsMixin, RegistryMixin, AppsMixin, DownloadsMixin, RemoteInstallMixin, BackupsMixin):
     async def _main(self):
         self.settings_path = Path(decky.DECKY_PLUGIN_SETTINGS_DIR) / "settings.json"
         self.settings = self._load_settings()

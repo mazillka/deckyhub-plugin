@@ -313,6 +313,16 @@ export const ko: Record<MessageKey, string> = {
   "settings.exportLogs": "로그 내보내기",
   "settings.exportLogsNote":
     "DeckyHub 로그를 ~/Downloads에 ZIP으로 저장합니다. 버그 신고에 첨부하세요. GitHub 토큰은 기록되지 않습니다.",
+  "settings.backups": "백업",
+  "settings.backupBefore": "업데이트·제거 전에 설정 백업",
+  "settings.backupBeforeNote":
+    "DeckyHub가 플러그인을 업데이트, 재설치 또는 제거하기 전에 해당 플러그인 설정의 사본을 여기에 저장합니다(플러그인당 최근 5개). 업데이트로 문제가 생기면 복원하세요.",
+  "settings.backupsEmpty": "아직 백업이 없습니다.",
+  "settings.restore": "복원",
+  "settings.restoreTitle": "{name}의 설정을 복원할까요?",
+  "settings.restoreDescription":
+    "현재 설정을 {date}의 백업으로 바꿉니다. 현재 설정은 먼저 백업됩니다. 이후 플러그인을 다시 불러오거나 재시작해야 적용됩니다.",
+  "settings.restored": "{name}의 설정을 복원했습니다",
 
   "repos.addManage": "추가 및 관리",
   "repos.searchGithub": "GitHub 검색",

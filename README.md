@@ -267,7 +267,7 @@ Settings is split into tabs; **L1** / **R1** switch between them.
 | **GitHub** | An optional personal access token that raises GitHub's rate limit (see [Troubleshooting](#troubleshooting)). Type it, or load it from a text file in Downloads. |
 | **Downloads** | The download folder and the **Overwrite Existing** toggle (see [Downloads](#downloads)). |
 | **Repositories** | Your tracked repositories, export and import, and **Custom Registries** (see [Repositories](#repositories)). |
-| **Logs** | **Export Logs**, for bug reports. |
+| **Logs** | **Backups** and **Export Logs**, for bug reports. **Backups**: before DeckyHub updates, reinstalls or removes a Decky plugin, it saves a copy of that plugin's settings (the folder Decky keeps under `settings/`; Decky deletes it when a plugin is removed). The last 5 per plugin are kept in DeckyHub's own settings folder. Here you can **Restore** one (the settings it replaces are backed up first, so a restore can be undone; reload the plugin afterwards) or remove it, and turn the automatic backup off. Settings over 50 MB are not backed up. |
 | **About** | What DeckyHub is, and the catalogs it builds on. |
 
 DeckyHub comes in English, Ukrainian, Russian, Spanish, German, French, Portuguese (Brazil and Portugal), Italian, Polish, Turkish, Dutch, Czech, Japanese, Korean, and Chinese (Simplified and Traditional). Translations other than English are made automatically, so they may have mistakes; corrections are welcome.
