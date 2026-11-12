@@ -453,7 +453,9 @@ def plugin_page(
     if stats.get("downloads") is not None:
         facts.append(f"<li><strong>{compact(stats['downloads'])}</strong>GitHub downloads</li>")
     if stats.get("store"):
-        facts.append(f"<li><strong>{compact(stats['store']['downloads'])}</strong><a href=\"https://plugins.deckbrew.xyz/plugins\">Decky store</a> downloads</li>")
+        facts.append(
+            f'<li><strong>{compact(stats["store"]["downloads"])}</strong><a href="https://plugins.deckbrew.xyz/plugins">Decky store</a> downloads</li>'
+        )
     if stats.get("stars") is not None:
         facts.append(f"<li><strong>{compact(stats['stars'])}</strong>GitHub stars</li>")
     if stats.get("updated"):
