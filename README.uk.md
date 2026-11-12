@@ -411,6 +411,13 @@ Copyright © 2026 Andrii Shevchuk-Yuhanets ([mazillka](https://github.com/mazill
 
 GPL-3.0-or-later — див. [LICENSE.md](LICENSE.md).
 
+## Публікації про DeckyHub
+
+- [Steam Deck HQ — DeckyHub Offers An Easy Way To Get Plugins That Aren't On The Official Store](https://steamdeckhq.com/news/deckyhub-offers-an-easy-way-to-get-plugins-that-arent-on-the-official-store/)
+- [Steam Deck HQ — DeckyHub Adds Virus Scans And More Transparency On Its Plugin Store](https://steamdeckhq.com/news/deckyhub-adds-virus-scans-more-transparency/)
+
+Більше публікацій: https://deckyhub.com/press. Це незалежні видання; DeckyHub не пов’язаний із ними.
+
 ## Допомога
 
 Знайшли помилку або маєте ідею? Відкрийте issue в [репозиторії GitHub](https://github.com/mazillka/deckyhub-plugin/issues) з описом того, що сталося; допоможе ZIP з **Експортувати журнали** (**Налаштування** → **Журнали**). Відгуки та пропозиції завжди вітаються.
