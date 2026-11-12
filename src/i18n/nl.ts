@@ -70,6 +70,7 @@ export const nl: Record<MessageKey, string> = {
 
   "status.updateAvailable": "Update beschikbaar",
   "status.upToDate": "Up-to-date",
+  "status.pinned": "Vastgezet",
 
   "appcard.downloadComplete": "Download voltooid",
   "appcard.latest": "Nieuwste ({name})",
@@ -92,6 +93,8 @@ export const nl: Record<MessageKey, string> = {
   "appcard.knownIssues": "Bekende problemen met deze plugin",
   "appcard.skipVersion": "{version} overslaan",
   "appcard.unskipVersion": "{version} niet meer overslaan",
+  "appcard.pinVersion": "Vastzetten op {version}",
+  "appcard.unpinVersion": "{version} losmaken",
   "appcard.fork": "Fork",
   "appcard.forkHint":
     "Een fork die een plugin voortzet nadat het origineel is gestopt. DeckyHub toont hem alleen zolang hij de actieve is.",

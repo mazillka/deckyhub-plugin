@@ -69,6 +69,7 @@ export const tr: Record<MessageKey, string> = {
 
   "status.updateAvailable": "Güncelleme var",
   "status.upToDate": "Güncel",
+  "status.pinned": "Sabitlendi",
 
   "appcard.downloadComplete": "İndirme tamamlandı",
   "appcard.latest": "En son ({name})",
@@ -90,6 +91,8 @@ export const tr: Record<MessageKey, string> = {
   "appcard.knownIssues": "Bu eklentinin bilinen sorunları",
   "appcard.skipVersion": "{version} sürümünü atla",
   "appcard.unskipVersion": "{version} sürümünü atlama",
+  "appcard.pinVersion": "{version} sürümüne sabitle",
+  "appcard.unpinVersion": "{version} sabitlemesini kaldır",
   "appcard.fork": "Fork",
   "appcard.forkHint":
     "Orijinali durduktan sonra bir eklentiyi sürdüren bir fork. DeckyHub onu yalnızca etkin olan sürüm olduğu sürece listeler.",

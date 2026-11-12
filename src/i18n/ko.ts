@@ -69,6 +69,7 @@ export const ko: Record<MessageKey, string> = {
 
   "status.updateAvailable": "업데이트 있음",
   "status.upToDate": "최신 상태",
+  "status.pinned": "고정됨",
 
   "appcard.downloadComplete": "다운로드 완료",
   "appcard.latest": "최신 ({name})",
@@ -91,6 +92,8 @@ export const ko: Record<MessageKey, string> = {
   "appcard.knownIssues": "이 플러그인의 알려진 문제",
   "appcard.skipVersion": "{version} 건너뛰기",
   "appcard.unskipVersion": "{version} 건너뛰기 해제",
+  "appcard.pinVersion": "{version}에 고정",
+  "appcard.unpinVersion": "{version} 고정 해제",
   "appcard.fork": "포크",
   "appcard.forkHint": "원본이 중단된 뒤 플러그인을 이어 가는 포크입니다. 활발한 포크인 동안에만 DeckyHub에 표시됩니다.",
   "appcard.forkOf": "{repo}의 포크",

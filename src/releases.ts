@@ -463,7 +463,11 @@ export async function hydrate(app: App, force: boolean, preference?: RepoPrefere
     releaseUrl: release.url,
     releaseNotes: release.notes,
     assets: release.assets,
-    // A skipped release counts as up to date until a newer one comes out.
-    updateAvailable: app.identityUnverified || cmp === null ? null : cmp > 0 && preference?.skipVersion !== release.tag,
+    pinned: Boolean(preference?.pinVersion),
+    // A skipped release counts as up to date until a newer one comes out; a pinned plugin never has an update.
+    updateAvailable:
+      app.identityUnverified || cmp === null
+        ? null
+        : cmp > 0 && preference?.skipVersion !== release.tag && !preference?.pinVersion,
   };
 }

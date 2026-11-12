@@ -69,6 +69,7 @@ export const pl: Record<MessageKey, string> = {
 
   "status.updateAvailable": "Dostępna aktualizacja",
   "status.upToDate": "Aktualne",
+  "status.pinned": "Przypięta",
 
   "appcard.downloadComplete": "Pobieranie zakończone",
   "appcard.latest": "Najnowsze ({name})",
@@ -91,6 +92,8 @@ export const pl: Record<MessageKey, string> = {
   "appcard.knownIssues": "Znane problemy tej wtyczki",
   "appcard.skipVersion": "Pomiń {version}",
   "appcard.unskipVersion": "Nie pomijaj {version}",
+  "appcard.pinVersion": "Przypnij do {version}",
+  "appcard.unpinVersion": "Odepnij {version}",
   "appcard.fork": "Fork",
   "appcard.forkHint":
     "Fork, który rozwija wtyczkę po tym, jak oryginał został porzucony. DeckyHub pokazuje go tylko, dopóki jest aktywną wersją.",

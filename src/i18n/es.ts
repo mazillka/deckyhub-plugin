@@ -70,6 +70,7 @@ export const es: Record<MessageKey, string> = {
 
   "status.updateAvailable": "Actualización disponible",
   "status.upToDate": "Actualizado",
+  "status.pinned": "Fijado",
 
   "appcard.downloadComplete": "Descarga completa",
   "appcard.latest": "Última versión ({name})",
@@ -92,6 +93,8 @@ export const es: Record<MessageKey, string> = {
   "appcard.knownIssues": "Problemas conocidos de este plugin",
   "appcard.skipVersion": "Omitir {version}",
   "appcard.unskipVersion": "Dejar de omitir {version}",
+  "appcard.pinVersion": "Fijar en {version}",
+  "appcard.unpinVersion": "Desfijar {version}",
   "appcard.fork": "Fork",
   "appcard.forkHint":
     "Un fork que continúa un plugin después de que el original se detuvo. DeckyHub lo muestra solo mientras sea el activo.",

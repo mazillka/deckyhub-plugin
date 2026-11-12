@@ -68,6 +68,7 @@ export const zh: Record<MessageKey, string> = {
 
   "status.updateAvailable": "有更新",
   "status.upToDate": "已是最新",
+  "status.pinned": "已固定",
 
   "appcard.downloadComplete": "下载完成",
   "appcard.latest": "最新版本（{name}）",
@@ -89,6 +90,8 @@ export const zh: Record<MessageKey, string> = {
   "appcard.knownIssues": "此插件的已知问题",
   "appcard.skipVersion": "跳过 {version}",
   "appcard.unskipVersion": "取消跳过 {version}",
+  "appcard.pinVersion": "固定在 {version}",
+  "appcard.unpinVersion": "取消固定 {version}",
   "appcard.fork": "分支",
   "appcard.forkHint": "在原插件停止后继续维护的分支。仅在它仍是活跃分支时由 DeckyHub 列出。",
   "appcard.forkOf": "{repo} 的分支",

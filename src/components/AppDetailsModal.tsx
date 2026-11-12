@@ -8,6 +8,8 @@ import {
   FaArrowUp,
   FaEye,
   FaEyeSlash,
+  FaLock,
+  FaUnlock,
   FaFileArchive,
   FaPlus,
   FaRedo,
@@ -109,6 +111,13 @@ export function AppDetailsModal({
   const toggleSkip = () => {
     const { skipVersion: _, ...rest } = preference;
     changePreference(skipped ? rest : { ...rest, skipVersion: latest! });
+  };
+
+  // Pin: keep the installed version; no update is offered until it is unpinned.
+  const pinned = Boolean(preference.pinVersion);
+  const togglePin = () => {
+    const { pinVersion: _, ...rest } = preference;
+    changePreference(pinned ? rest : { ...rest, pinVersion: app.installedVersion! });
   };
 
   const versionOptions = buildVersionOptions(releases, app.installedVersion, t);
@@ -295,6 +304,14 @@ export function AppDetailsModal({
             <Button style={modalButtonStyle} onClick={toggleSkip}>
               {skipped ? <FaEye /> : <FaEyeSlash />}{" "}
               {t(skipped ? "appcard.unskipVersion" : "appcard.skipVersion", { version: displayVersion(latest!) })}
+            </Button>
+          )}
+          {app.installedVersion && (
+            <Button style={modalButtonStyle} onClick={togglePin}>
+              {pinned ? <FaUnlock /> : <FaLock />}{" "}
+              {t(pinned ? "appcard.unpinVersion" : "appcard.pinVersion", {
+                version: displayVersion(pinned ? preference.pinVersion! : app.installedVersion),
+              })}
             </Button>
           )}
           {canUninstall && (

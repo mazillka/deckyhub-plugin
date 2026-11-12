@@ -584,6 +584,16 @@ class PluginStatusTests(unittest.TestCase):
         for values in ({"channel": "stable"}, {"skipVersion": ""}, {"skipVersion": 45}, {"skipVersion": "v" * 201}):
             self.assertNotIn("skipVersion", coerce_repo_settings(values))
 
+    def test_repo_settings_keep_a_pinned_version_and_drop_a_bad_one(self):
+        from deckyhub.settings import coerce_repo_settings
+
+        self.assertEqual(
+            coerce_repo_settings({"channel": "stable", "pinVersion": " v1.2.0 "}),
+            {"channel": "stable", "pinVersion": "v1.2.0"},
+        )
+        for values in ({"channel": "stable"}, {"pinVersion": ""}, {"pinVersion": 12}, {"pinVersion": "v" * 201}):
+            self.assertNotIn("pinVersion", coerce_repo_settings(values))
+
     def test_save_repo_settings_rejects_invalid_repo(self):
         plugin = Plugin()
         plugin.settings = {"repoSettings": {}}

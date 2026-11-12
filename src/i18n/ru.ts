@@ -69,6 +69,7 @@ export const ru: Record<MessageKey, string> = {
 
   "status.updateAvailable": "Есть обновление",
   "status.upToDate": "Последняя версия",
+  "status.pinned": "Закреплён",
 
   "appcard.downloadComplete": "Загрузка завершена",
   "appcard.latest": "Последняя версия ({name})",
@@ -91,6 +92,8 @@ export const ru: Record<MessageKey, string> = {
   "appcard.knownIssues": "Известные проблемы этого плагина",
   "appcard.skipVersion": "Пропустить {version}",
   "appcard.unskipVersion": "Не пропускать {version}",
+  "appcard.pinVersion": "Закрепить на {version}",
+  "appcard.unpinVersion": "Открепить {version}",
   "appcard.fork": "Форк",
   "appcard.forkHint":
     "Форк, который продолжает плагин после того, как оригинал остановился. DeckyHub показывает его, только пока он активен.",
