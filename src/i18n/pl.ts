@@ -10,6 +10,8 @@ export const pl: Record<MessageKey, string> = {
   "remote.pairMode": "Tryb parowania",
   "remote.scanPairingQr": "Zeskanuj, aby otworzyć sparowane urządzenia",
   "remote.pair": "Sparuj przeglądarkę",
+  "remote.expiresIn": "Wygasa za {time}",
+  "remote.expired": "Kod wygasł. Naciśnij Sparuj przeglądarkę, aby otrzymać nowy.",
   "remote.pairings": "Prośby o parowanie",
   "remote.requests": "Żądania zmian wtyczek",
   "remote.from": "Od {name}",

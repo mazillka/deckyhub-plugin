@@ -10,6 +10,8 @@ export const es: Record<MessageKey, string> = {
   "remote.pairMode": "Modo de vinculación",
   "remote.scanPairingQr": "Escanea para abrir Dispositivos vinculados",
   "remote.pair": "Vincular navegador",
+  "remote.expiresIn": "Caduca en {time}",
+  "remote.expired": "El código ha caducado. Pulsa Vincular navegador para obtener uno nuevo.",
   "remote.pairings": "Solicitudes de vinculación",
   "remote.requests": "Solicitudes de complementos",
   "remote.from": "De {name}",

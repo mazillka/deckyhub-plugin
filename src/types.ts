@@ -222,6 +222,8 @@ export type RemoteInstallStatus = {
   fingerprint?: string | null;
   error?: string | null;
   pairingCode?: string | null;
+  // Seconds the pairing code has left.
+  pairingExpiresIn?: number | null;
   pairings: { id: string; name: string }[];
   devices: { id: string; name: string; trusted?: boolean }[];
   requests: RemoteInstallRequest[];

@@ -10,6 +10,8 @@ export const cs: Record<MessageKey, string> = {
   "remote.pairMode": "Režim párování",
   "remote.scanPairingQr": "Naskenujte pro otevření spárovaných zařízení",
   "remote.pair": "Spárovat prohlížeč",
+  "remote.expiresIn": "Vyprší za {time}",
+  "remote.expired": "Kód vypršel. Nový získáte tlačítkem Spárovat prohlížeč.",
   "remote.pairings": "Žádosti o spárování",
   "remote.requests": "Požadavky na změny pluginů",
   "remote.from": "Od {name}",

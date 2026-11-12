@@ -10,6 +10,8 @@ export const ru: Record<MessageKey, string> = {
   "remote.pairMode": "Режим сопряжения",
   "remote.scanPairingQr": "Отсканируйте, чтобы открыть сопряжённые устройства",
   "remote.pair": "Подключить браузер",
+  "remote.expiresIn": "Истекает через {time}",
+  "remote.expired": "Код истёк. Нажмите «Подключить браузер», чтобы получить новый.",
   "remote.pairings": "Запросы на подключение",
   "remote.requests": "Запросы на изменение плагинов",
   "remote.from": "От {name}",

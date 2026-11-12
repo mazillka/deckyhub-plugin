@@ -38,35 +38,147 @@
 .remote-plugins li { display: grid; gap: 4px; padding: 12px 0; border-top: 1px solid var(--line); overflow-wrap: anywhere; }
 .remote-plugins li > span { font-size: .9em; color: var(--muted); }
 
+/* The Paired devices page. data-state (remote-install.js) says what is going on: new (nothing paired yet),
+   connecting, approve (waiting for the device), unreachable, unsupported, error, paired. */
 .remote-device-dashboard {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 24px;
+  gap: 20px;
   padding: 0;
   border: 0;
   background: transparent;
 }
-.remote-device-dashboard .remote-device-overview,
-.remote-device-dashboard form {
-  min-width: 0;
+.remote-device-dashboard > * { min-width: 0; }
+.remote-device-dashboard { margin-top: 0; }
+.rd-hero h2 { margin: 6px 0 8px; font-size: clamp(1.5rem, 5vw, 2.1rem); line-height: 1.15; }
+.rd-hero p { margin: 0 0 8px; color: var(--muted); max-width: 46rem; }
+.rd-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: .85rem;
+  font-weight: 600;
+}
+.remote-install .rd-steps { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+@media (min-width: 760px) { .rd-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.rd-steps li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  opacity: .62;
+}
+.rd-steps li + li { margin-top: 0; }
+.rd-steps strong { display: block; }
+.rd-steps small { display: block; margin-top: 2px; color: var(--muted); font-size: .85rem; }
+.rd-dot {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: .9rem;
+}
+/* the step in progress, the ones finished, and the one that failed */
+[data-state="new"] .rd-steps li:nth-child(1),
+[data-state="connecting"] .rd-steps li:nth-child(2),
+[data-state="approve"] .rd-steps li:nth-child(3) { opacity: 1; border-color: var(--accent2); }
+[data-state="new"] .rd-steps li:nth-child(1) .rd-dot,
+[data-state="connecting"] .rd-steps li:nth-child(2) .rd-dot,
+[data-state="approve"] .rd-steps li:nth-child(3) .rd-dot { border-color: var(--accent2); color: var(--accent2); }
+[data-state="connecting"] .rd-steps li:nth-child(1),
+[data-state="approve"] .rd-steps li:nth-child(-n+2),
+[data-state="declined"] .rd-steps li:nth-child(-n+2),
+[data-state="unreachable"] .rd-steps li:nth-child(1),
+[data-state="unsupported"] .rd-steps li:nth-child(1) { opacity: 1; }
+[data-state="connecting"] .rd-steps li:nth-child(1) .rd-dot,
+[data-state="approve"] .rd-steps li:nth-child(-n+2) .rd-dot,
+[data-state="declined"] .rd-steps li:nth-child(-n+2) .rd-dot,
+[data-state="unreachable"] .rd-steps li:nth-child(1) .rd-dot,
+[data-state="unsupported"] .rd-steps li:nth-child(1) .rd-dot { background: #2e9e5b; border-color: #2e9e5b; color: #fff; font-size: 0; }
+[data-state="connecting"] .rd-steps li:nth-child(1) .rd-dot::before,
+[data-state="approve"] .rd-steps li:nth-child(-n+2) .rd-dot::before,
+[data-state="declined"] .rd-steps li:nth-child(-n+2) .rd-dot::before,
+[data-state="unreachable"] .rd-steps li:nth-child(1) .rd-dot::before,
+[data-state="unsupported"] .rd-steps li:nth-child(1) .rd-dot::before { content: "✓"; font-size: .9rem; }
+[data-state="unreachable"] .rd-steps li:nth-child(2),
+[data-state="unsupported"] .rd-steps li:nth-child(2),
+[data-state="error"] .rd-steps li:nth-child(2),
+[data-state="declined"] .rd-steps li:nth-child(3) { opacity: 1; border-color: #e5645c; }
+[data-state="unreachable"] .rd-steps li:nth-child(2) .rd-dot,
+[data-state="unsupported"] .rd-steps li:nth-child(2) .rd-dot,
+[data-state="error"] .rd-steps li:nth-child(2) .rd-dot,
+[data-state="declined"] .rd-steps li:nth-child(3) .rd-dot { border-color: #e5645c; color: #e5645c; }
+[data-state="paired"] .rd-steps,
+[data-state="paired"] #remote-pair-form,
+[data-state="paired"] #remote-trouble { display: none; }
+
+.rd-status {
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-inline-start: 4px solid var(--accent2);
+  border-radius: 12px;
+  background: var(--panel);
+  font-weight: 600;
+}
+[data-state="approve"] .rd-status { border-inline-start-color: #e8b54a; }
+[data-state="unreachable"] .rd-status,
+[data-state="unsupported"] .rd-status,
+[data-state="declined"] .rd-status,
+[data-state="error"] .rd-status { border-inline-start-color: #e5645c; }
+[data-state="connecting"] .rd-status::after,
+[data-state="approve"] .rd-status::after {
+  content: "";
+  display: inline-block;
+  width: .8em;
+  height: .8em;
+  margin-inline-start: .6em;
+  border: 2px solid currentColor;
+  border-inline-end-color: transparent;
+  border-radius: 50%;
+  vertical-align: -.1em;
+  animation: rd-spin 1s linear infinite;
+}
+@keyframes rd-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .rd-status::after { animation: none !important; } }
+
+.rd-trouble { display: none; margin: -8px 0 0; padding: 14px 16px 14px 36px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--muted); }
+[data-state="unreachable"] .rd-trouble { display: block; }
+
+.rd-device, .remote-inventory, .remote-device-dashboard form {
   padding: clamp(14px, 3vw, 22px);
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--panel);
 }
-.remote-device-dashboard form { scroll-margin-top: 72px; }
-.remote-device-dashboard .remote-device-heading {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px 16px;
-}
-.remote-device-dashboard .remote-device-heading .btn { margin: 0; }
-.remote-device-dashboard .remote-inventory { margin-top: 22px; }
+.remote-device-dashboard form { scroll-margin-top: 72px; border-top-width: 1px; padding-top: clamp(14px, 3vw, 22px); }
+.remote-device-dashboard form h3, .remote-inventory h3 { margin: 0 0 8px; }
+.rd-hint { margin: 0 0 12px; color: var(--muted); }
+.rd-device { display: none; }
+[data-has-devices="true"] .rd-device { display: block; }
+.rd-device label { display: block; margin-bottom: 6px; }
+.rd-device .remote-actions .btn { margin: 0; }
+.rd-device p.remote-actions { margin: 12px 0 0; }
+.rd-device p.remote-actions:not(:has(button:not([hidden]):not(:disabled))) { display: none; }
+.remote-inventory { display: none; margin: 0; }
+[data-state="paired"] .remote-inventory { display: block; }
 .remote-device-dashboard .remote-actions { align-items: center; }
 .remote-device-dashboard .remote-actions .btn { margin: 0; }
 .remote-device-dashboard #remote-cancel:disabled { display: none; }
+.remote-device-dashboard #remote-status { margin: 0; }
+.remote-device-dashboard #remote-pair { width: 100%; margin-top: 6px; }
+.rd-link-row .remote-actions { flex-wrap: nowrap; }
+.rd-link-row input { flex: 1 1 auto; min-width: 0; }
 .remote-device-dashboard .remote-plugins li {
   margin-top: 8px;
   padding: 12px;
@@ -75,11 +187,40 @@
   background: var(--bg);
 }
 .remote-device-dashboard .remote-plugins .remote-actions { margin-top: 6px; }
+/* A browser that can't pair (no WebTransport) only needs the link, to copy into one that can. */
+[data-state="unsupported"] #remote-pair-form > :not(.rd-link-row):not(h3) { display: none; }
+[data-state="unsupported"] #remote-pair { display: none; }
 
+/* The Send to device card on a plugin's page. data-state: checking, none, ready, waiting, installing, done, failed. */
+.remote-compact { display: grid; gap: 12px; }
+.remote-compact > * { margin: 0; min-width: 0; }
+.rc-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px 12px; }
+.rc-head h3 { margin: 0; }
 .remote-compact .remote-actions { align-items: center; }
 .remote-compact select { width: min(100%, 24rem); flex: 1 1 12rem; }
 .remote-compact .remote-actions .btn { margin: 0; }
 .remote-compact [hidden] { display: none; }
+.rc-pair { display: none; align-items: center; flex-wrap: wrap; gap: 8px 14px; color: var(--muted); }
+.rc-pair .btn { margin: 0; }
+[data-state="none"] .rc-pair { display: flex; }
+[data-state="none"] .rc-send { display: none; }
+.remote-compact #remote-cancel:disabled { display: none; }
+[data-state="waiting"] #remote-device-picker, [data-state="installing"] #remote-device-picker { opacity: .6; }
+[data-state="waiting"] .rd-status, [data-state="installing"] .rd-status { border-inline-start-color: #e8b54a; }
+[data-state="waiting"] .rd-status::after, [data-state="installing"] .rd-status::after {
+  content: "";
+  display: inline-block;
+  width: .8em;
+  height: .8em;
+  margin-inline-start: .6em;
+  border: 2px solid currentColor;
+  border-inline-end-color: transparent;
+  border-radius: 50%;
+  vertical-align: -.1em;
+  animation: rd-spin 1s linear infinite;
+}
+[data-state="done"] .rd-status { border-inline-start-color: #2e9e5b; }
+[data-state="failed"] .rd-status { border-inline-start-color: #e5645c; }
 .remote-plugins li[hidden] { display: none; }
 .remote-plugins .remote-danger { color: #ff8a80; border-color: currentColor; }
 #remote-plugins-filter { width: min(100%, 24rem); }

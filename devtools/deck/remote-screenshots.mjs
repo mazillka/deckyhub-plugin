@@ -76,7 +76,7 @@ try {
   // Pair browser draws the QR code (turning Pair mode on by hand does that by itself).
   const qr = await connect(TARGETS.quickAccess);
   await qr.eval(
-    `[...document.querySelectorAll("button, .DialogButton")].find((b) => b.textContent.trim() === "Pair browser")?.click(); true`,
+    `(() => { const onTop = (b) => { const r = b.getBoundingClientRect(); const e = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); return !!e && b.contains(e); }; [...document.querySelectorAll("button, .DialogButton")].find((b) => b.textContent.trim() === "Pair browser" && onTop(b))?.click(); return true; })()`,
   );
   await waitFor(qr, `!!document.querySelector('img[src^="data:image"]')`, 15000).catch(() => {});
   qr.close();
