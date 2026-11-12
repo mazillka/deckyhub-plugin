@@ -287,6 +287,13 @@ export const nl: Record<MessageKey, string> = {
   "settings.githubTokenHowTo": "Maak er een aan, met alle scopes uitgevinkt, op:",
   "settings.githubTokenNote":
     "DeckyHub leest alleen openbare repository's en releases. Het token wordt lokaal in deze instellingen bewaard en alleen naar api.github.com gestuurd.",
+  "settings.githubSignIn": "Inloggen met GitHub",
+  "settings.githubSignInNote":
+    "Geen token om te maken of te kopiëren: open de pagina op een willekeurig apparaat, voer de code in en keur goed. DeckyHub krijgt een token dat alleen openbare gegevens leest en de aanvraaglimiet verhoogt.",
+  "settings.githubSignInCode": "Open op een willekeurig apparaat {url} en voer deze code in:",
+  "settings.githubSignedIn": "Ingelogd bij GitHub",
+  "settings.githubSignInExpired": "De code is verlopen. Probeer het opnieuw.",
+  "settings.githubSignInDenied": "Inloggen is geweigerd.",
   "settings.githubToken": "GitHub-token",
   "settings.githubQuota": "GitHub-verzoeken over: {remaining} van {limit} (reset over {minutes} min)",
   "rateLimit.title": "GitHub-limiet bereikt",

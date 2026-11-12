@@ -270,6 +270,13 @@ export const zh: Record<MessageKey, string> = {
   "settings.githubTokenHowTo": "创建时请保持所有权限未勾选，地址为：",
   "settings.githubTokenNote":
     "DeckyHub 只读取公开仓库和发布版本。令牌仅保存在本地设置中，且只会发送给 api.github.com。",
+  "settings.githubSignIn": "使用 GitHub 登录",
+  "settings.githubSignInNote":
+    "无需创建或复制令牌：在任意设备上打开页面，输入代码并批准。DeckyHub 会获得一个只读取公开数据的令牌，并提高请求上限。",
+  "settings.githubSignInCode": "在任意设备上打开 {url} 并输入此代码：",
+  "settings.githubSignedIn": "已登录 GitHub",
+  "settings.githubSignInExpired": "代码已过期。请重试。",
+  "settings.githubSignInDenied": "登录被拒绝。",
   "settings.githubToken": "GitHub 令牌",
   "settings.githubQuota": "GitHub 剩余请求：{remaining} / {limit}(约 {minutes} 分钟后重置)",
   "rateLimit.title": "已达到 GitHub 请求上限",

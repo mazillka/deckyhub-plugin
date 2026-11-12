@@ -282,6 +282,13 @@ export const cs: Record<MessageKey, string> = {
   "settings.githubTokenHowTo": "Vytvořte si ho bez zaškrtnutí jakýchkoli oprávnění na:",
   "settings.githubTokenNote":
     "DeckyHub čte jen veřejné repozitáře a vydání. Token je uložen lokálně v tomto nastavení a odesílá se jen na api.github.com.",
+  "settings.githubSignIn": "Přihlásit se přes GitHub",
+  "settings.githubSignInNote":
+    "Nemusíte vytvářet ani kopírovat token: otevřete stránku na libovolném zařízení, zadejte kód a potvrďte. DeckyHub dostane token, který čte jen veřejná data a zvedne limit požadavků.",
+  "settings.githubSignInCode": "Na libovolném zařízení otevřete {url} a zadejte tento kód:",
+  "settings.githubSignedIn": "Přihlášeno ke GitHubu",
+  "settings.githubSignInExpired": "Kód vypršel. Zkuste to znovu.",
+  "settings.githubSignInDenied": "Přihlášení bylo odmítnuto.",
   "settings.githubToken": "Token GitHub",
   "settings.githubQuota": "Zbývající požadavky na GitHub: {remaining} z {limit} (obnoví se za {minutes} min)",
   "rateLimit.title": "Dosažen limit požadavků GitHubu",

@@ -15,10 +15,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent / "py_modules"))
 
 import decky
-from deckyhub import paths
+from deckyhub import github_auth, paths
 from deckyhub.apps import AppsMixin
 from deckyhub.backups import BackupsMixin
 from deckyhub.downloads import DownloadsMixin
+from deckyhub.github_auth import GithubAuthMixin
 from deckyhub.leftovers import LeftoversMixin
 from deckyhub.packs import PENDING_INSTALLS_FILE, PacksMixin
 from deckyhub.registry import RegistryMixin
@@ -36,6 +37,7 @@ class Plugin(
     BackupsMixin,
     LeftoversMixin,
     PacksMixin,
+    GithubAuthMixin,
 ):
     async def _main(self):
         self.settings_path = Path(decky.DECKY_PLUGIN_SETTINGS_DIR) / "settings.json"
@@ -80,7 +82,12 @@ class Plugin(
         except (KeyError, OSError, json.JSONDecodeError):
             version = "unknown"
         # The file pickers open here; it depends on the device's user.
-        return {"version": version, "downloadDir": paths.DEFAULT_DOWNLOAD_DIR}
+        # githubSignIn: whether this build can offer the device-flow sign-in (it needs an OAuth app's Client ID).
+        return {
+            "version": version,
+            "downloadDir": paths.DEFAULT_DOWNLOAD_DIR,
+            "githubSignIn": bool(github_auth.GITHUB_CLIENT_ID),
+        }
 
     async def get_pending_installs(self):
         """The plugins the Desktop Mode installer's checklist saved for DeckyHub to install

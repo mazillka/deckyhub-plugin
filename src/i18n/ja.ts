@@ -282,6 +282,13 @@ export const ja: Record<MessageKey, string> = {
   "settings.githubTokenHowTo": "権限をすべてチェックしないまま、以下で作成してください:",
   "settings.githubTokenNote":
     "DeckyHubは公開リポジトリとリリースを読み取るだけです。トークンはこの設定にローカル保存され、api.github.comにのみ送信されます。",
+  "settings.githubSignIn": "GitHub でサインイン",
+  "settings.githubSignInNote":
+    "トークンの作成やコピーは不要です。どのデバイスでもページを開き、コードを入力して承認してください。DeckyHub は公開データの読み取りだけに使えるトークンを受け取り、リクエスト制限が緩和されます。",
+  "settings.githubSignInCode": "任意のデバイスで {url} を開き、次のコードを入力してください:",
+  "settings.githubSignedIn": "GitHub にサインインしました",
+  "settings.githubSignInExpired": "コードの有効期限が切れました。もう一度お試しください。",
+  "settings.githubSignInDenied": "サインインが拒否されました。",
   "settings.githubToken": "GitHubトークン",
   "settings.githubQuota": "GitHubリクエスト残り: {remaining} / {limit}(約{minutes}分後にリセット)",
   "rateLimit.title": "GitHubのリクエスト上限に達しました",

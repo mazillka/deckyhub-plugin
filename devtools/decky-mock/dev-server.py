@@ -49,9 +49,28 @@ sys.modules["decky"] = fake_decky
 
 sys.path.insert(0, str(REPO_ROOT))
 sys.path.insert(0, str(REPO_ROOT / "py_modules"))
-from deckyhub import paths, registry
+from deckyhub import github_auth, paths, registry
 
 from main import Plugin
+
+# GitHub's device flow without GitHub: the first poll after a start is approved, so the sign-in's whole
+# path (code, countdown, token saved) can be tried here. The real backend asks for an OAuth app's Client ID.
+github_auth.GITHUB_CLIENT_ID = "mock-client-id"
+
+
+def _fake_github(url, fields):
+    if url == github_auth.DEVICE_CODE_URL:
+        return {
+            "device_code": "mock-device",
+            "user_code": "MOCK-1234",
+            "verification_uri": "https://github.com/login/device",
+            "expires_in": 900,
+            "interval": 5,
+        }
+    return {"access_token": "gho_" + "m" * 36}
+
+
+github_auth._post = _fake_github
 
 # Keep the mock's downloads inside .dev-data instead of a real /home/deck path
 # (which on Windows resolves to <drive>:\home\deck, outside the repo).

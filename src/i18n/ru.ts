@@ -282,6 +282,13 @@ export const ru: Record<MessageKey, string> = {
   "settings.githubTokenHowTo": "Создайте его, не выбирая никаких прав доступа, на:",
   "settings.githubTokenNote":
     "DeckyHub только читает публичные репозитории и релизы. Токен хранится локально в этих настройках и отправляется только на api.github.com.",
+  "settings.githubSignIn": "Войти через GitHub",
+  "settings.githubSignInNote":
+    "Не нужно создавать или копировать токен: откройте страницу на любом устройстве, введите код и подтвердите. DeckyHub получит токен, который читает только публичные данные и повышает лимит запросов.",
+  "settings.githubSignInCode": "На любом устройстве откройте {url} и введите этот код:",
+  "settings.githubSignedIn": "Вход в GitHub выполнен",
+  "settings.githubSignInExpired": "Срок действия кода истёк. Попробуйте снова.",
+  "settings.githubSignInDenied": "Вход отклонён.",
   "settings.githubToken": "Токен GitHub",
   "settings.githubQuota": "Осталось запросов к GitHub: {remaining} из {limit} (сброс через {minutes} мин)",
   "rateLimit.title": "Достигнут лимит запросов GitHub",

@@ -16,6 +16,17 @@ export const stageInstall = callable<[asset: Asset, repo: string, jobId: string]
 export const getDownload = callable<[jobId: string], Download>("get_download");
 export const cancelDownload = callable<[jobId: string], { ok: boolean }>("cancel_download");
 export const getDeckyHubInfo = callable<[], DeckyHubInfo>("get_deckyhub_info");
+
+// GitHub sign-in by device code (github_auth.py).
+export const startGithubSignIn = callable<
+  [],
+  { userCode: string; verificationUri: string; expiresIn: number; interval: number }
+>("start_github_sign_in");
+export const pollGithubSignIn = callable<
+  [],
+  { status: "none" | "pending" | "signed-in" | "expired" | "denied"; interval?: number; token?: string }
+>("poll_github_sign_in");
+export const cancelGithubSignIn = callable<[], { cancelled: boolean }>("cancel_github_sign_in");
 export const addCustomRepo = callable<[repo: string], { added: boolean; repo: string }>("add_custom_repo");
 export const removeCustomRepo = callable<[repo: string], { removed: boolean; repo: string }>("remove_custom_repo");
 export const exportCustomRepos = callable<[], { path: string }>("export_custom_repos");

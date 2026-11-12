@@ -287,6 +287,13 @@ export const fr: Record<MessageKey, string> = {
   "settings.githubTokenHowTo": "Créez-en un en laissant toutes les autorisations décochées sur :",
   "settings.githubTokenNote":
     "DeckyHub ne fait que lire les dépôts et versions publics. Le jeton est stocké localement dans ces paramètres et envoyé uniquement à api.github.com.",
+  "settings.githubSignIn": "Se connecter avec GitHub",
+  "settings.githubSignInNote":
+    "Pas de jeton à créer ni à copier : ouvrez la page sur n’importe quel appareil, saisissez le code et validez. DeckyHub reçoit un jeton qui lit seulement des données publiques et relève la limite de requêtes.",
+  "settings.githubSignInCode": "Sur n’importe quel appareil, ouvrez {url} et saisissez ce code :",
+  "settings.githubSignedIn": "Connecté à GitHub",
+  "settings.githubSignInExpired": "Le code a expiré. Réessayez.",
+  "settings.githubSignInDenied": "La connexion a été refusée.",
   "settings.githubToken": "Jeton GitHub",
   "settings.githubQuota": "Requêtes GitHub restantes : {remaining} sur {limit} (réinitialisation dans {minutes} min)",
   "rateLimit.title": "Limite de requêtes GitHub atteinte",

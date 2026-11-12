@@ -280,6 +280,13 @@ export const tr: Record<MessageKey, string> = {
   "settings.githubTokenHowTo": "Tüm izinleri işaretsiz bırakarak şuradan bir tane oluştur:",
   "settings.githubTokenNote":
     "DeckyHub yalnızca herkese açık depoları ve sürümleri okur. Token bu ayarlarda yerel olarak saklanır ve yalnızca api.github.com'a gönderilir.",
+  "settings.githubSignIn": "GitHub ile giriş yap",
+  "settings.githubSignInNote":
+    "Token oluşturmanız veya kopyalamanız gerekmez: sayfayı herhangi bir cihazda açın, kodu girin ve onaylayın. DeckyHub yalnızca herkese açık verileri okuyan ve istek sınırını artıran bir token alır.",
+  "settings.githubSignInCode": "Herhangi bir cihazda {url} adresini açın ve bu kodu girin:",
+  "settings.githubSignedIn": "GitHub'a giriş yapıldı",
+  "settings.githubSignInExpired": "Kodun süresi doldu. Tekrar deneyin.",
+  "settings.githubSignInDenied": "Giriş reddedildi.",
   "settings.githubToken": "GitHub token'ı",
   "settings.githubQuota": "Kalan GitHub isteği: {remaining} / {limit} ({minutes} dk içinde sıfırlanır)",
   "rateLimit.title": "GitHub istek sınırına ulaşıldı",

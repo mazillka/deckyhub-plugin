@@ -69,6 +69,16 @@ DeckyHub never installs or runs anything without an explicit tap. Four controls 
 ## License
 
 By contributing you agree that your changes are licensed under GPL-3.0-or-later, the same as the rest of the project (see [LICENSE.md](LICENSE.md)).
+## GitHub sign-in
+
+Settings -> GitHub can offer **Sign in with GitHub** (the device flow, `py_modules/deckyhub/github_auth.py`). It stays hidden until an OAuth app's Client ID is set. To turn it on:
+
+1. On GitHub: Settings -> Developer settings -> OAuth Apps -> New OAuth App. Name it DeckyHub, homepage `https://deckyhub.com`, any callback URL (the device flow never uses it).
+2. Open the app and tick **Enable Device Flow**.
+3. Copy its **Client ID** into `GITHUB_CLIENT_ID` in `py_modules/deckyhub/github_auth.py`. It is public, and the device flow needs no client secret: don't create one.
+
+DeckyHub asks for no scopes, so the token only reads public data and lifts the rate limit. Users can revoke it under GitHub's Settings -> Applications. The browser preview (`devtools/decky-mock`) fakes GitHub's two endpoints, so the whole flow can be tried there without an app.
+
 ## Remote Install
 
 Backend in `py_modules/deckyhub/remote_install*.py`: the WebTransport listener and certificate rotation (`remote_install_transport.py`), request authorization and state (`remote_install_service.py`, `remote_install_queue.py`), the settings-folder file for paired devices and the certificate (`remote_install_store.py`) and the RPC surface (`remote_install.py`). The website side is `docs/remote-install.js`, `docs/remote-plugins.js` and `devtools/plugin_pages.py`; the device UI is `src/components/RemoteInstallSection.tsx`, `remoteRequests.tsx` and the background runner `src/remoteRunner.ts`, which runs requests from **Trusted** browsers (trust is set only through a local RPC, never a remote operation). Install and update need a plugin the registry can verify; uninstall also accepts an installed plugin by its unique Decky name. Test it with `tests/test_remote_install_*.py`, `tests/test_remote_uninstall_by_name.py` and `tests/remote-install.test.js`, and on a real device with `devtools/deck/`.
