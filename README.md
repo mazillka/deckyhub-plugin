@@ -286,6 +286,8 @@ Repositories is a tab in **Settings**. Add a repository from **Search** with the
 
 Under **Custom Registries**, add someone else's app list by its GitHub `owner/repo` (DeckyHub reads its `registry/apps.json`) or any HTTPS `.json` URL. Its apps join Discover alongside DeckyHub's own; up to 10 registries are allowed, and **Refresh registries** downloads them all again. An added registry can only add apps: it can't change or replace one DeckyHub already lists, including the plugins you have installed.
 
+Under **Plugin packs**, **Export my plugins as a pack** saves a small `.json` file listing the Decky plugins you have installed (the ones DeckyHub can tie to a GitHub repository; never DeckyHub itself) to your Downloads folder. Send it to a friend, or keep it to set up another device. **Import a pack** picks such a file: DeckyHub adds any repository it doesn't know as a custom one, then shows the plugins you don't have yet, with their badges and the usual notice, and offers to install them in one go. A pack holds repository names only (no code, no links to fetch, no settings), importing installs nothing by itself, and Decky Loader still asks you to confirm.
+
 ### Remote Install (experimental)
 
 Install, update or uninstall plugins on your device from a computer or phone on the same network, without picking up the device.

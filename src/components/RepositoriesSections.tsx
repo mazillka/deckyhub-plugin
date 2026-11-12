@@ -2,6 +2,7 @@ import { DialogButtonPrimary as Button, Focusable, PanelSection, PanelSectionRow
 import { FaFileExport, FaFileImport, FaPlus, FaRedo, FaTrash } from "react-icons/fa";
 import { useT } from "../i18n";
 import { compactButtonStyle, registryLabel } from "../utils";
+import { colors } from "../styles";
 import { Card } from "./Card";
 
 // The Repositories page's sections. The page owns the lists and does the work;
@@ -45,6 +46,35 @@ export function CustomReposSection({
           </PanelSectionRow>
         ))}
         {!repos.length && <PanelSectionRow>{t("repos.noCustomRepos")}</PanelSectionRow>}
+      </PanelSection>
+    </Card>
+  );
+}
+
+// Plugin packs: a small file listing plugins, to share or to set up another device. Importing one
+// offers to install what is missing; every install still asks to confirm.
+export function PacksSection({ onExport, onImport }: { onExport: () => void; onImport: () => void }) {
+  const t = useT();
+  return (
+    <Card>
+      <PanelSection title={t("repos.packs")}>
+        <PanelSectionRow>
+          <div style={{ color: colors.muted, fontSize: "max(12px, 0.85em)" }}>{t("repos.packsNote")}</div>
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <Focusable flow-children="right" style={{ display: "flex", gap: 12 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <Button style={compactButtonStyle} onClick={onExport}>
+                <FaFileExport /> {t("repos.packExport")}
+              </Button>
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <Button style={compactButtonStyle} onClick={onImport}>
+                <FaFileImport /> {t("repos.packImport")}
+              </Button>
+            </div>
+          </Focusable>
+        </PanelSectionRow>
       </PanelSection>
     </Card>
   );

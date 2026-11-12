@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { fileURLToPath } from "node:url";
 import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 
 const deckyHubVersion = JSON.parse(readFileSync(new URL("../../../package.json", import.meta.url), "utf8")).version;
@@ -387,6 +388,40 @@ test("Export Logs zips the backend log into Downloads", async ({ page }) => {
   // Backend actions land in the log the zip is built from.
   expect(readFileSync(new URL("../.dev-data/logs/deckyhub.log", import.meta.url), "utf8")).toContain("Listed");
   rmSync(downloads, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+});
+
+test("Plugin packs: importing one adds unknown repositories and installs nothing", async ({ page }) => {
+  const downloads = new URL("../.dev-data/home/Downloads/", import.meta.url);
+  mkdirSync(downloads, { recursive: true });
+  const file = new URL("e2e-pack.json", downloads);
+  writeFileSync(
+    file,
+    JSON.stringify({
+      schemaVersion: 1,
+      name: "E2E pack",
+      plugins: [{ repo: "eugeniosegala/MAKO" }, { repo: "e2e-owner/e2e-pack-plugin" }, { repo: "../../etc" }],
+    }),
+  );
+  const before = (await bridgeCall(page, "get_settings")).result.customRepos;
+  try {
+    const result = (await bridgeCall(page, "import_plugin_pack", fileURLToPath(file))).result;
+    expect(result).toEqual({ name: "E2E pack", count: 2, added: ["e2e-owner/e2e-pack-plugin"] });
+    expect((await bridgeCall(page, "get_settings")).result.customRepos).toContain("e2e-owner/e2e-pack-plugin");
+    // (The queue it fills is the Desktop Mode installer's; test_packs.py reads it. The running UI consumes it here.)
+    // Nothing is installed by an import.
+    expect(
+      (await bridgeCall(page, "get_apps")).result.apps.find(
+        (app: { repo: string }) => app.repo === "e2e-owner/e2e-pack-plugin",
+      ).installedVersion,
+    ).toBeNull();
+    // A file outside the home folder is refused.
+    expect((await bridgeCall(page, "import_plugin_pack", "/etc/hostname")).error).toBeTruthy();
+  } finally {
+    await bridgeCall(page, "clear_pending_installs");
+    await bridgeCall(page, "remove_custom_repo", "e2e-owner/e2e-pack-plugin");
+    expect((await bridgeCall(page, "get_settings")).result.customRepos).toEqual(before);
+    rmSync(file, { force: true });
+  }
 });
 
 test("DeckyHub automatically notifies about an available update", async ({ page }) => {
