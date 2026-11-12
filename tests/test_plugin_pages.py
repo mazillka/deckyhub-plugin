@@ -41,7 +41,7 @@ class PluginPageTests(unittest.TestCase):
         self.assertNotIn('id="remote-plugins"', page)
         self.assertIn(f'data-plugin-id="{APP["id"]}"', page)
         self.assertIn('src="/remote-install.js"', page)
-        self.assertIn('href="/remote-install/">Pair new</a>', page)
+        self.assertIn('href="/remote-install/">Pair a device</a>', page)
         self.assertNotIn("token=", page)
 
     def test_a_long_repository_name_gets_a_full_width_tile_that_wraps(self):

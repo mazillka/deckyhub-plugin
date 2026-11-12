@@ -10,6 +10,8 @@ export const uk: Record<MessageKey, string> = {
   "remote.pairMode": "Режим сполучення",
   "remote.scanPairingQr": "Відскануйте, щоб відкрити сполучені пристрої",
   "remote.pair": "З’єднати браузер",
+  "remote.expiresIn": "Спливає за {time}",
+  "remote.expired": "Код спливув. Натисніть «З’єднати браузер», щоб отримати новий.",
   "remote.pairings": "Запити на з’єднання",
   "remote.requests": "Запити на зміни плагінів",
   "remote.from": "Від {name}",

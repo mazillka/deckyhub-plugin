@@ -11,6 +11,8 @@ export const zhTW: Record<MessageKey, string> = {
   "remote.pairMode": "配對模式",
   "remote.scanPairingQr": "掃描以開啟已配對裝置",
   "remote.pair": "配對瀏覽器",
+  "remote.expiresIn": "{time} 後過期",
+  "remote.expired": "代碼已過期。按「配對瀏覽器」取得新代碼。",
   "remote.pairings": "配對請求",
   "remote.requests": "外掛操作請求",
   "remote.from": "來自 {name}",

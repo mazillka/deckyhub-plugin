@@ -347,15 +347,32 @@ def page(
 
 
 def remote_device_panel() -> str:
-    return """<section id="remote-install" class="remote-install remote-device-dashboard" aria-labelledby="remote-title" data-plugin-id="">
+    # data-state (set by remote-install.js) picks what the page shows: new, connecting, approve, unreachable,
+    # unsupported, error or paired; see remote-install.css.
+    return """<section id="remote-install" class="remote-install remote-device-dashboard" aria-labelledby="remote-title" data-plugin-id="" data-state="new" data-has-devices="false">
 <link rel="stylesheet" href="/remote-install.css">
-<div class="remote-device-overview">
-<div class="remote-device-heading"><h2 id="remote-title">Your devices</h2><a class="btn ghost" href="#remote-pair-form">Pair a new device</a></div>
-<p>Choose a paired device or set up a new one below. Approve pairing and plugin changes on your device.</p>
-<p class="note"><strong>Experimental.</strong> Remote Install works only on your local network: this page talks straight to your device. Nothing is collected or sent anywhere. <a href="/help.html#remote">How to use it</a></p>
-<p><label for="remote-device-picker">Paired device</label><br><select id="remote-device-picker" disabled><option value="">Pair a device</option></select></p>
+<header class="rd-hero">
+<p class="rd-badge">Experimental · fully local</p>
+<h2 id="remote-title">Manage your device from this browser</h2>
+<p>Install, update and remove Decky plugins without picking up your device. This page talks straight to your device on your network: nothing is collected or sent anywhere. <a href="/help.html#remote">How to use it</a></p>
+</header>
+<ol class="rd-steps" aria-label="Pairing steps">
+<li><span class="rd-dot" aria-hidden="true">1</span><div><strong>Turn on Pair mode</strong><small>In DeckyHub’s Quick Access tab on your device</small></div></li>
+<li><span class="rd-dot" aria-hidden="true">2</span><div><strong>Open the pairing link</strong><small>Scan the QR code with this device, or paste the link below</small></div></li>
+<li><span class="rd-dot" aria-hidden="true">3</span><div><strong>Approve this browser</strong><small>Press Approve under Pairing requests on your device</small></div></li>
+</ol>
+<p id="remote-status" role="status" aria-live="polite" class="rd-status">Not connected.</p>
+<ul id="remote-trouble" class="rd-trouble">
+<li>Allow local network access when your browser asks.</li>
+<li>Check that Pair mode is on, on your device.</li>
+<li>Use the same Wi-Fi as your device, not mobile data or a guest network.</li>
+<li>Your router may have given the device a new address: open the Quick Access tab to see it, or pair again.</li>
+</ul>
+<div class="rd-device">
+<label for="remote-device-picker">Your device</label>
+<div class="remote-actions"><select id="remote-device-picker" disabled><option value="">Pair a device</option></select><a id="remote-pair-another" class="btn ghost" href="#remote-pair-form">Pair another</a></div>
 <p class="remote-actions"><button type="button" id="remote-request" disabled hidden>Send install request</button> <button type="button" id="remote-cancel" disabled>Cancel request</button></p>
-<p id="remote-status" role="status" aria-live="polite">Not connected.</p>
+</div>
 <section class="remote-inventory" aria-labelledby="remote-plugins-title">
 <h3 id="remote-plugins-title">Installed plugins</h3>
 <p class="remote-actions"><a class="btn" href="/plugins/">Browse plugins to install</a> <button type="button" id="remote-plugins-refresh" disabled>Refresh list</button></p>
@@ -363,17 +380,10 @@ def remote_device_panel() -> str:
 <p><input id="remote-plugins-filter" type="search" aria-label="Search installed plugins" placeholder="Search installed plugins" autocomplete="off" hidden></p>
 <ul id="remote-plugins" class="remote-plugins"></ul>
 </section>
-</div>
 <form id="remote-pair-form" aria-labelledby="remote-pair-title">
-<h3 id="remote-pair-title">Pair a new device</h3>
-<ol>
-<li>Turn on <strong>Pair mode</strong> in DeckyHub’s Quick Access Menu.</li>
-<li>Select <strong>Pair browser</strong> in DeckyHub, then scan the QR code or open the copied pairing link.</li>
-<li>Allow local network access if asked, then approve the browser on your device.</li>
-</ol>
-<p>Keep both devices on the same network.</p>
-<p>Enter the six-digit code below if your pairing link only fills in the connection details.</p>
-<p><label for="remote-pairing-link">Pairing link</label><br><input id="remote-pairing-link" type="text" autocomplete="off" spellcheck="false" placeholder="Paste the link from DeckyHub"></p>
+<h3 id="remote-pair-title">Pair with a link or code</h3>
+<p class="rd-hint">Scanning the QR code fills these in and pairs by itself. Use them to paste a link, or to try again.</p>
+<p class="rd-link-row"><label for="remote-pairing-link">Pairing link</label><br><span class="remote-actions"><input id="remote-pairing-link" type="text" autocomplete="off" spellcheck="false" placeholder="Paste the link from DeckyHub"><button type="button" id="remote-copy-link">Copy link</button></span></p>
 <p><label for="remote-code">Six-digit pairing code</label><br><input id="remote-code" autocomplete="off" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" required></p>
 <details id="remote-manual">
 <summary>Enter connection details manually or rename this device</summary>
@@ -392,15 +402,19 @@ def remote_device_panel() -> str:
 
 
 def remote_install_picker(plugin_id: str) -> str:
-    return f"""<section id="remote-install" class="remote-install remote-compact" aria-label="Send to device" data-plugin-id="{escape(plugin_id, quote=True)}">
+    # data-state (remote-install.js): checking, none (no device to send to), ready, waiting (for approval on the
+    # device), installing, done, failed; see remote-install.css.
+    return f"""<section id="remote-install" class="remote-install remote-compact" aria-labelledby="remote-send-title" data-plugin-id="{escape(plugin_id, quote=True)}" data-state="checking">
 <link rel="stylesheet" href="/remote-install.css">
-<div class="remote-actions">
+<div class="rc-head"><h3 id="remote-send-title">Install on your device</h3><span class="rd-badge">Experimental · fully local</span></div>
+<div class="remote-actions rc-send">
 <select id="remote-device-picker" aria-label="Paired device" disabled><option value="">Select a device</option></select>
-<button type="button" id="remote-request" disabled>Send</button>
-<a id="remote-pair-new" class="btn ghost" href="/remote-install/">Pair new</a>
+<button type="button" id="remote-request" disabled>Send to device</button>
+<button type="button" id="remote-cancel" disabled>Cancel</button>
 </div>
-<p id="remote-status" role="status" aria-live="polite" hidden></p>
-<p class="note">Experimental, and fully local: your browser talks straight to your device on your network. Nothing is collected or sent anywhere. <a href="/help.html#remote">How to use it</a></p>
+<p id="remote-status" class="rd-status" role="status" aria-live="polite" hidden></p>
+<p class="rc-pair"><a id="remote-pair-new" class="btn" href="/remote-install/">Pair a device</a><span>Pair once, then install from any plugin page.</span></p>
+<p class="rd-hint">Your browser talks straight to your device on your network. Nothing is collected or sent anywhere. <a href="/help.html#remote">How to use it</a></p>
 <script type="module" src="/remote-install.js"></script>
 </section>"""
 

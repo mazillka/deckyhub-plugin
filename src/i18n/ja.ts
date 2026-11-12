@@ -10,6 +10,8 @@ export const ja: Record<MessageKey, string> = {
   "remote.pairMode": "ペアリングモード",
   "remote.scanPairingQr": "スキャンしてペアリング済みデバイスを開く",
   "remote.pair": "ブラウザーをペアリング",
+  "remote.expiresIn": "有効期限まで {time}",
+  "remote.expired": "コードの有効期限が切れました。「ブラウザーをペアリング」を押すと新しいコードが表示されます。",
   "remote.pairings": "ペアリング要求",
   "remote.requests": "プラグイン操作のリクエスト",
   "remote.from": "送信元: {name}",

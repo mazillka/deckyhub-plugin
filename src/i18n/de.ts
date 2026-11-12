@@ -10,6 +10,8 @@ export const de: Record<MessageKey, string> = {
   "remote.pairMode": "Kopplungsmodus",
   "remote.scanPairingQr": "Scannen, um gekoppelte Geräte zu öffnen",
   "remote.pair": "Browser koppeln",
+  "remote.expiresIn": "Läuft ab in {time}",
+  "remote.expired": "Code abgelaufen. Mit „Browser koppeln“ erhältst du einen neuen.",
   "remote.pairings": "Kopplungsanfragen",
   "remote.requests": "Plugin-Anfragen",
   "remote.from": "Von {name}",

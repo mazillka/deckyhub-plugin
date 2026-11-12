@@ -10,6 +10,8 @@ export const ko: Record<MessageKey, string> = {
   "remote.pairMode": "페어링 모드",
   "remote.scanPairingQr": "스캔하여 페어링된 기기 열기",
   "remote.pair": "브라우저 연결",
+  "remote.expiresIn": "{time} 후 만료",
+  "remote.expired": "코드가 만료되었습니다. 새 코드를 받으려면 브라우저 연결을 누르세요.",
   "remote.pairings": "연결 요청",
   "remote.requests": "플러그인 변경 요청",
   "remote.from": "요청자: {name}",

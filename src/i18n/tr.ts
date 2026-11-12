@@ -10,6 +10,8 @@ export const tr: Record<MessageKey, string> = {
   "remote.pairMode": "Eşleştirme modu",
   "remote.scanPairingQr": "Eşleştirilmiş cihazları açmak için tarayın",
   "remote.pair": "Tarayıcıyı eşleştir",
+  "remote.expiresIn": "{time} sonra sona erer",
+  "remote.expired": "Kodun süresi doldu. Yenisi için Tarayıcıyı eşleştir düğmesine bas.",
   "remote.pairings": "Eşleştirme istekleri",
   "remote.requests": "Eklenti istekleri",
   "remote.from": "{name} tarafından",

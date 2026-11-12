@@ -120,6 +120,8 @@ class RemoteInstallMixin:
             "deviceName": re.sub(r"[^\w .-]", "", socket.gethostname())[:40] or None,
             "error": self.remote_install_error,
             "pairingCode": code,
+            # Seconds the code has left, for the countdown beside the QR code.
+            "pairingExpiresIn": max(0, round(service.code_expiry - service.clock())) if code else None,
             "pairings": service.list_pairings(),
             "devices": service.list_devices(),
             "requests": service.list_requests(),

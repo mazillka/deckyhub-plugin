@@ -167,6 +167,7 @@ class RemoteInstallMixinTests(unittest.TestCase):
             # Status reflects pairing code
             status = run_coro(self.plugin.get_remote_install_status())
             self.assertEqual(status["pairingCode"], pairing["code"])
+            self.assertIn(status["pairingExpiresIn"], range(118, 121))
 
             # Device pairs remotely
             pair_res = self.plugin.remote_install_service.pair(pairing["code"], "TestBrowser", "a" * 43)

@@ -10,6 +10,8 @@ export const nl: Record<MessageKey, string> = {
   "remote.pairMode": "Koppelmodus",
   "remote.scanPairingQr": "Scan om gekoppelde apparaten te openen",
   "remote.pair": "Browser koppelen",
+  "remote.expiresIn": "Verloopt over {time}",
+  "remote.expired": "Code verlopen. Druk op Browser koppelen voor een nieuwe.",
   "remote.pairings": "Koppelverzoeken",
   "remote.requests": "Verzoeken voor plug-ins",
   "remote.from": "Van {name}",
