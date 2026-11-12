@@ -275,6 +275,13 @@ export const ko: Record<MessageKey, string> = {
   "settings.githubTokenHowTo": "모든 권한을 선택하지 않은 채로 여기에서 만드세요:",
   "settings.githubTokenNote":
     "DeckyHub는 공개 저장소와 릴리스만 읽습니다. 토큰은 이 설정에 로컬로 저장되며 api.github.com에만 전송됩니다.",
+  "settings.githubSignIn": "GitHub로 로그인",
+  "settings.githubSignInNote":
+    "토큰을 만들거나 복사할 필요가 없습니다. 아무 기기에서나 페이지를 열고 코드를 입력해 승인하세요. DeckyHub는 공개 데이터만 읽는 토큰을 받아 요청 한도를 늘립니다.",
+  "settings.githubSignInCode": "아무 기기에서나 {url} 을(를) 열고 다음 코드를 입력하세요:",
+  "settings.githubSignedIn": "GitHub에 로그인했습니다",
+  "settings.githubSignInExpired": "코드가 만료되었습니다. 다시 시도하세요.",
+  "settings.githubSignInDenied": "로그인이 거부되었습니다.",
   "settings.githubToken": "GitHub 토큰",
   "settings.githubQuota": "남은 GitHub 요청: {limit}회 중 {remaining}회 ({minutes}분 후 초기화)",
   "rateLimit.title": "GitHub 요청 한도에 도달했습니다",

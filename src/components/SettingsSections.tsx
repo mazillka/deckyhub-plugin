@@ -9,7 +9,7 @@ import {
 } from "@decky/ui";
 import { openExternalWeb } from "../external";
 import { FileSelectionType, openFilePicker, toaster } from "@decky/api";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   FaExternalLinkAlt,
   FaFileExport,
@@ -25,6 +25,7 @@ import type { MessageKey } from "../i18n/en";
 import type { HideableButton, Settings } from "../types";
 import { compactButtonStyle, sectionDividerStyle, type githubCoreQuota } from "../utils";
 import { Card, IconNote } from "./Card";
+import { GitHubSignIn } from "./GitHubSignIn";
 import type { Layout } from "./LayoutToggle";
 import { colors } from "../styles";
 
@@ -79,6 +80,13 @@ export function GitHubAccessSection({
 }) {
   const t = useT();
   const [why, setWhy] = useState(false);
+  const [canSignIn, setCanSignIn] = useState(false);
+  useEffect(() => {
+    void getDeckyHubInfo().then(
+      (info) => setCanSignIn(Boolean(info.githubSignIn)),
+      () => undefined,
+    );
+  }, []);
   // Same green/yellow/red as the app cards' status colors.
   const quotaColor =
     !quota || quota.remaining > quota.limit / 2
@@ -156,6 +164,17 @@ export function GitHubAccessSection({
             )}
           </div>
         </PanelSectionRow>
+        {canSignIn && (
+          <>
+            <div aria-hidden style={sectionDividerStyle} />
+            <GitHubSignIn
+              onToken={(token) => {
+                onTokenDraft(token);
+                update({ githubToken: token });
+              }}
+            />
+          </>
+        )}
         <div aria-hidden style={sectionDividerStyle} />
         <PanelSectionRow>
           <TextField

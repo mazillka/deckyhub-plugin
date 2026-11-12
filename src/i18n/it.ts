@@ -283,6 +283,13 @@ export const it: Record<MessageKey, string> = {
   "settings.githubTokenHowTo": "Creane uno lasciando deselezionati tutti gli ambiti su:",
   "settings.githubTokenNote":
     "DeckyHub legge solo repository e release pubblici. Il token è salvato localmente in queste impostazioni e inviato solo ad api.github.com.",
+  "settings.githubSignIn": "Accedi con GitHub",
+  "settings.githubSignInNote":
+    "Nessun token da creare o copiare: apri la pagina su qualsiasi dispositivo, inserisci il codice e approva. DeckyHub riceve un token che legge solo dati pubblici e alza il limite di richieste.",
+  "settings.githubSignInCode": "Su qualsiasi dispositivo apri {url} e inserisci questo codice:",
+  "settings.githubSignedIn": "Accesso a GitHub effettuato",
+  "settings.githubSignInExpired": "Il codice è scaduto. Riprova.",
+  "settings.githubSignInDenied": "L’accesso è stato rifiutato.",
   "settings.githubToken": "Token GitHub",
   "settings.githubQuota": "Richieste GitHub rimaste: {remaining} di {limit} (si azzerano tra {minutes} min)",
   "rateLimit.title": "Limite di richieste GitHub raggiunto",

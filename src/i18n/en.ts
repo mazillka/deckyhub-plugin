@@ -277,6 +277,13 @@ export const en = {
   "settings.githubTokenHowTo": "Create one with every scope left unchecked at:",
   "settings.githubTokenNote":
     "DeckyHub only reads public repos and releases. The token is stored locally in these settings and sent only to api.github.com.",
+  "settings.githubSignIn": "Sign in with GitHub",
+  "settings.githubSignInNote":
+    "No token to create or copy: open the page on any device, enter the code and approve. DeckyHub gets a token that only reads public data and lifts the rate limit.",
+  "settings.githubSignInCode": "On any device, open {url} and enter this code:",
+  "settings.githubSignedIn": "Signed in to GitHub",
+  "settings.githubSignInExpired": "The code expired. Try again.",
+  "settings.githubSignInDenied": "Sign-in was declined.",
   "settings.githubToken": "GitHub Token",
   "settings.githubQuota": "GitHub requests left: {remaining} of {limit} (resets in {minutes} min)",
   "rateLimit.title": "GitHub rate limit reached",

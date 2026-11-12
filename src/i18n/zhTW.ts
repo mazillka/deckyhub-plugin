@@ -268,6 +268,13 @@ export const zhTW: Record<MessageKey, string> = {
   "settings.githubTokenHowTo": "建立時請保持所有權限未勾選，網址為：",
   "settings.githubTokenNote":
     "DeckyHub 只讀取公開儲存庫和發行版本。權杖僅儲存在本機設定中，且只會傳送給 api.github.com。",
+  "settings.githubSignIn": "使用 GitHub 登入",
+  "settings.githubSignInNote":
+    "無需建立或複製權杖：在任何裝置上開啟頁面，輸入代碼並核准。DeckyHub 會取得只讀取公開資料的權杖，並提高請求上限。",
+  "settings.githubSignInCode": "在任何裝置上開啟 {url} 並輸入此代碼：",
+  "settings.githubSignedIn": "已登入 GitHub",
+  "settings.githubSignInExpired": "代碼已過期。請再試一次。",
+  "settings.githubSignInDenied": "登入被拒絕。",
   "settings.githubToken": "GitHub 權杖",
   "settings.githubQuota": "GitHub 剩餘請求：{remaining} / {limit}（約 {minutes} 分鐘後重設）",
   "rateLimit.title": "已達 GitHub 請求上限",

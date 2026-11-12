@@ -283,6 +283,13 @@ export const es: Record<MessageKey, string> = {
   "settings.githubTokenHowTo": "Créalo dejando todos los permisos sin marcar en:",
   "settings.githubTokenNote":
     "DeckyHub solo lee repositorios y lanzamientos públicos. El token se guarda localmente en estos ajustes y solo se envía a api.github.com.",
+  "settings.githubSignIn": "Iniciar sesión con GitHub",
+  "settings.githubSignInNote":
+    "Sin crear ni copiar un token: abre la página en cualquier dispositivo, introduce el código y aprueba. DeckyHub recibe un token que solo lee datos públicos y sube el límite de solicitudes.",
+  "settings.githubSignInCode": "En cualquier dispositivo, abre {url} e introduce este código:",
+  "settings.githubSignedIn": "Sesión iniciada en GitHub",
+  "settings.githubSignInExpired": "El código ha caducado. Inténtalo de nuevo.",
+  "settings.githubSignInDenied": "Se rechazó el inicio de sesión.",
   "settings.githubToken": "Token de GitHub",
   "settings.githubQuota": "Solicitudes a GitHub restantes: {remaining} de {limit} (se restablece en {minutes} min)",
   "rateLimit.title": "Se alcanzó el límite de GitHub",

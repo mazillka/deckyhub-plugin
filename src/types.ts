@@ -166,7 +166,8 @@ export type Download = {
   error?: string;
 };
 
-export type DeckyHubInfo = { version: string; downloadDir: string };
+// githubSignIn: this build can offer the GitHub device-code sign-in (it needs an OAuth app's Client ID).
+export type DeckyHubInfo = { version: string; downloadDir: string; githubSignIn?: boolean };
 
 export type DeckyHubRelease = {
   version?: string;

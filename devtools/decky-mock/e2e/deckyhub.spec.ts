@@ -389,6 +389,32 @@ test("Export Logs zips the backend log into Downloads", async ({ page }) => {
   rmSync(downloads, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
 });
 
+test("Sign in with GitHub shows a code and saves the token GitHub hands over", async ({ page }) => {
+  const app = mock(page);
+  try {
+    await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+    await settingsTab(page, "GitHub");
+    // Cancelling forgets the sign-in.
+    await app.getByRole("button", { name: "Sign in with GitHub", exact: true }).click();
+    await expect(app.getByText("MOCK-1234", { exact: true })).toBeVisible();
+    await expect(app.getByText(/^Expires in \d+:\d\d$/)).toBeVisible();
+    await app.getByRole("button", { name: "Cancel", exact: true }).click();
+    await expect(app.getByRole("button", { name: "Sign in with GitHub", exact: true })).toBeVisible();
+    expect((await bridgeCall(page, "poll_github_sign_in")).result).toEqual({ status: "none" });
+
+    // Approving on github.com (the mock approves the first poll) saves the token.
+    await app.getByRole("button", { name: "Sign in with GitHub", exact: true }).click();
+    await expect(app.getByText("MOCK-1234", { exact: true })).toBeVisible();
+    await expect
+      .poll(async () => (await bridgeCall(page, "get_settings")).result.githubToken, { timeout: 20_000 })
+      .toBe("gho_" + "m".repeat(36));
+    await expect(app.getByRole("button", { name: "Sign in with GitHub", exact: true })).toBeVisible();
+  } finally {
+    const current = (await bridgeCall(page, "get_settings")).result;
+    await bridgeCall(page, "save_settings", { ...current, githubToken: "" });
+  }
+});
+
 test("DeckyHub automatically notifies about an available update", async ({ page }) => {
   const newerRelease = deckyHubRelease("v9.9.9", { sha: "b" });
   await mockDeckyHubReleases(page, [newerRelease]);
