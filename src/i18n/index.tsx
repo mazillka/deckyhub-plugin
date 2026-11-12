@@ -11,22 +11,6 @@ import {
 } from "../utils";
 import { setUiStyle } from "../uiStyle";
 import { en, type MessageKey, type TFunc } from "./en";
-import { uk } from "./uk";
-import { ru } from "./ru";
-import { es } from "./es";
-import { de } from "./de";
-import { fr } from "./fr";
-import { ja } from "./ja";
-import { zh } from "./zh";
-import { ko } from "./ko";
-import { pt } from "./pt";
-import { zhTW } from "./zhTW";
-import { it } from "./it";
-import { pl } from "./pl";
-import { tr } from "./tr";
-import { nl } from "./nl";
-import { cs } from "./cs";
-import { ptPT } from "./ptPT";
 
 type Locale =
   | "en"
@@ -67,30 +51,36 @@ export const LOCALES: { code: Locale; label: string }[] = [
   { code: "zh-TW", label: "繁體中文" },
 ];
 
-const MESSAGES: Record<Locale, Record<MessageKey, string>> = {
-  en,
-  uk,
-  ru,
-  es,
-  de,
-  fr,
-  pt,
-  "pt-PT": ptPT,
-  it,
-  pl,
-  tr,
-  nl,
-  cs,
-  ja,
-  ko,
-  zh,
-  "zh-TW": zhTW,
+type Messages = Record<MessageKey, string>;
+
+// English stays in the main bundle (it is the fallback); every other language is its own
+// chunk, fetched only when it is the active one. A failed fetch leaves English showing.
+const LOADERS: Record<Exclude<Locale, "en">, () => Promise<Messages>> = {
+  uk: () => import("./uk").then((m) => m.uk),
+  ru: () => import("./ru").then((m) => m.ru),
+  es: () => import("./es").then((m) => m.es),
+  de: () => import("./de").then((m) => m.de),
+  fr: () => import("./fr").then((m) => m.fr),
+  pt: () => import("./pt").then((m) => m.pt),
+  "pt-PT": () => import("./ptPT").then((m) => m.ptPT),
+  it: () => import("./it").then((m) => m.it),
+  pl: () => import("./pl").then((m) => m.pl),
+  tr: () => import("./tr").then((m) => m.tr),
+  nl: () => import("./nl").then((m) => m.nl),
+  cs: () => import("./cs").then((m) => m.cs),
+  ja: () => import("./ja").then((m) => m.ja),
+  ko: () => import("./ko").then((m) => m.ko),
+  zh: () => import("./zh").then((m) => m.zh),
+  "zh-TW": () => import("./zhTW").then((m) => m.zhTW),
 };
+
+// Shared by every route's provider so each language loads once.
+const loaded = new Map<Locale, Messages>([["en", en]]);
 
 export const LOCALE_CHANGED = "deckyhub-locale-changed";
 
 function isLocale(value: unknown): value is Locale {
-  return typeof value === "string" && value in MESSAGES;
+  return (typeof value === "string" && value in LOADERS) || value === "en";
 }
 
 function detectLocale(): Locale {
@@ -132,9 +122,26 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const locale = preference === "auto" ? detectLocale() : isLocale(preference) ? preference : "en";
-  const t: TFunc = (key, vars) => substitute(MESSAGES[locale][key], vars);
+  const [, setLoadedCount] = useState(loaded.size);
 
-  useEffect(() => setTranslator(t), [locale]);
+  useEffect(() => {
+    if (loaded.has(locale) || locale === "en") return;
+    let alive = true;
+    LOADERS[locale]()
+      .then((messages) => {
+        loaded.set(locale, messages);
+        if (alive) setLoadedCount(loaded.size);
+      })
+      .catch(() => undefined); // keep English
+    return () => {
+      alive = false;
+    };
+  }, [locale]);
+
+  const messages = loaded.get(locale) ?? en;
+  const t: TFunc = (key, vars) => substitute(messages[key], vars);
+
+  useEffect(() => setTranslator(t), [messages]);
 
   return <I18nContext.Provider value={t}>{children}</I18nContext.Provider>;
 }

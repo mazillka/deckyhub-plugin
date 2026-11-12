@@ -25,7 +25,7 @@ pnpm run test:backend
 
 `pnpm run test:backend` runs `python -m unittest discover -s tests`. `python` is Python 3 on Windows, SteamOS and Arch; on a distribution without that command, run `python3 -m unittest discover -s tests` instead (as CI does).
 
-The build produces `dist/index.js`. Decky Loader requires `plugin.json`, `main.py`, `py_modules/`, `package.json` and `dist/` together in the plugin folder.
+The build produces `dist/index.js` plus one small chunk per non-English language (`dist/<lang>-<hash>.js`, loaded on demand by `src/i18n/index.tsx`; Decky Loader serves everything under `dist/`). Decky Loader requires `plugin.json`, `main.py`, `py_modules/`, `package.json` and `dist/` together in the plugin folder.
 
 ## Local Steam Deck test
 
