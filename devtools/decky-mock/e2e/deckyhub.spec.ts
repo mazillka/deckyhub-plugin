@@ -301,19 +301,29 @@ test("Repository search and action share one row", async ({ page }) => {
   await expect(search).toBeVisible();
   await expect(action).toBeVisible();
   await expect(clear).toBeVisible();
-  const [searchBox, actionBox, clearBox] = await Promise.all([
-    search.boundingBox(),
-    action.boundingBox(),
-    clear.boundingBox(),
-  ]);
-  expect(searchBox).not.toBeNull();
-  expect(actionBox).not.toBeNull();
+  const measure = async () => {
+    const [searchBox, actionBox, clearBox] = await Promise.all([
+      search.boundingBox(),
+      action.boundingBox(),
+      clear.boundingBox(),
+    ]);
+    expect(searchBox).not.toBeNull();
+    expect(actionBox).not.toBeNull();
+    expect(clearBox).not.toBeNull();
+    return { searchBox: searchBox!, actionBox: actionBox!, clearBox: clearBox! };
+  };
   // One centre line for the field and both buttons (seen off by a few px on a Deck).
   const middle = (box: { y: number; height: number }) => box.y + box.height / 2;
-  expect(Math.abs(middle(searchBox!) - middle(actionBox!))).toBeLessThan(2);
-  expect(actionBox!.x).toBeGreaterThan(searchBox!.x);
-  expect(Math.abs(middle(actionBox!) - middle(clearBox!))).toBeLessThan(2);
-  expect(clearBox!.x).toBeGreaterThan(actionBox!.x);
+  // The page animates in, so the first reading can be a few px off: poll until the layout settles.
+  await expect
+    .poll(async () => {
+      const { searchBox, actionBox, clearBox } = await measure();
+      return Math.max(Math.abs(middle(searchBox) - middle(actionBox)), Math.abs(middle(actionBox) - middle(clearBox)));
+    })
+    .toBeLessThan(2);
+  const { searchBox, actionBox, clearBox } = await measure();
+  expect(actionBox.x).toBeGreaterThan(searchBox.x);
+  expect(clearBox.x).toBeGreaterThan(actionBox.x);
 });
 
 test("Repository search stays enabled but skips blank queries", async ({ page }) => {
