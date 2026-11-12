@@ -72,6 +72,7 @@ export const uk: Record<MessageKey, string> = {
 
   "status.updateAvailable": "Є оновлення",
   "status.upToDate": "Останньої версії",
+  "status.pinned": "Закріплено",
 
   "appcard.downloadComplete": "Завантаження завершено",
   "appcard.latest": "Остання версія ({name})",
@@ -94,6 +95,8 @@ export const uk: Record<MessageKey, string> = {
   "appcard.knownIssues": "Відомі проблеми цього плагіна",
   "appcard.skipVersion": "Пропустити {version}",
   "appcard.unskipVersion": "Не пропускати {version}",
+  "appcard.pinVersion": "Закріпити на {version}",
+  "appcard.unpinVersion": "Відкріпити {version}",
   "appcard.fork": "Форк",
   "appcard.forkHint":
     "Форк, що продовжує плагін після того, як оригінал зупинився. DeckyHub показує його, лише поки він активний.",

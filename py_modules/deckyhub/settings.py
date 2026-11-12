@@ -77,6 +77,10 @@ def coerce_repo_settings(values) -> dict:
     skip = values.get("skipVersion")
     if isinstance(skip, str) and skip.strip() and len(skip) <= 200:
         item["skipVersion"] = skip.strip()
+    # The version the user pinned the plugin at (Manage -> Pin): no update is offered for it until it is unpinned.
+    pin = values.get("pinVersion")
+    if isinstance(pin, str) and pin.strip() and len(pin) <= 200:
+        item["pinVersion"] = pin.strip()
     return item
 
 

@@ -71,6 +71,7 @@ export const zhTW: Record<MessageKey, string> = {
 
   "status.updateAvailable": "有更新",
   "status.upToDate": "已是最新",
+  "status.pinned": "已固定",
 
   "appcard.downloadComplete": "下載完成",
   "appcard.latest": "最新版本（{name}）",
@@ -92,6 +93,8 @@ export const zhTW: Record<MessageKey, string> = {
   "appcard.knownIssues": "此插件的已知問題",
   "appcard.skipVersion": "略過 {version}",
   "appcard.unskipVersion": "取消略過 {version}",
+  "appcard.pinVersion": "固定在 {version}",
+  "appcard.unpinVersion": "取消固定 {version}",
   "appcard.fork": "分支",
   "appcard.forkHint": "在原外掛停止後繼續維護的分支。僅在它仍是活躍分支時由 DeckyHub 列出。",
   "appcard.forkOf": "{repo} 的分支",

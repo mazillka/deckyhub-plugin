@@ -73,6 +73,7 @@ export const ptPT: Record<MessageKey, string> = {
 
   "status.updateAvailable": "Atualização disponível",
   "status.upToDate": "Atualizado",
+  "status.pinned": "Fixado",
 
   "appcard.downloadComplete": "Transferência concluída",
   "appcard.latest": "Mais recente ({name})",
@@ -95,6 +96,8 @@ export const ptPT: Record<MessageKey, string> = {
   "appcard.knownIssues": "Problemas conhecidos deste plugin",
   "appcard.skipVersion": "Ignorar {version}",
   "appcard.unskipVersion": "Deixar de ignorar {version}",
+  "appcard.pinVersion": "Fixar em {version}",
+  "appcard.unpinVersion": "Desafixar {version}",
   "appcard.fork": "Fork",
   "appcard.forkHint":
     "Um fork que dá continuidade a um plugin depois de o original ter parado. O DeckyHub só o lista enquanto for o ativo.",

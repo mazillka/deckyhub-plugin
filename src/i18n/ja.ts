@@ -71,6 +71,7 @@ export const ja: Record<MessageKey, string> = {
 
   "status.updateAvailable": "更新あり",
   "status.upToDate": "最新",
+  "status.pinned": "固定済み",
 
   "appcard.downloadComplete": "ダウンロード完了",
   "appcard.latest": "最新版（{name}）",
@@ -93,6 +94,8 @@ export const ja: Record<MessageKey, string> = {
   "appcard.knownIssues": "このプラグインの既知の問題",
   "appcard.skipVersion": "{version} をスキップ",
   "appcard.unskipVersion": "{version} のスキップを解除",
+  "appcard.pinVersion": "{version} に固定",
+  "appcard.unpinVersion": "{version} の固定を解除",
   "appcard.fork": "フォーク",
   "appcard.forkHint":
     "元のプラグインが止まった後も開発を続けているフォークです。活発なフォークである間だけ DeckyHub に表示されます。",

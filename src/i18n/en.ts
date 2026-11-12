@@ -71,6 +71,7 @@ export const en = {
 
   "status.updateAvailable": "Update Available",
   "status.upToDate": "Up To Date",
+  "status.pinned": "Pinned",
 
   "appcard.downloadComplete": "Download Complete",
   "appcard.latest": "Latest ({name})",
@@ -93,6 +94,8 @@ export const en = {
   "appcard.knownIssues": "Known issues with this plugin",
   "appcard.skipVersion": "Skip {version}",
   "appcard.unskipVersion": "Stop skipping {version}",
+  "appcard.pinVersion": "Pin at {version}",
+  "appcard.unpinVersion": "Unpin {version}",
   "appcard.fork": "Fork",
   "appcard.forkHint":
     "A fork that carries a plugin on after its original stopped. DeckyHub lists it only while it's the active one.",

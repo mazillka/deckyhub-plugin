@@ -71,6 +71,7 @@ export const cs: Record<MessageKey, string> = {
 
   "status.updateAvailable": "K dispozici aktualizace",
   "status.upToDate": "Aktuální",
+  "status.pinned": "Připnuto",
 
   "appcard.downloadComplete": "Stahování dokončeno",
   "appcard.latest": "Nejnovější ({name})",
@@ -93,6 +94,8 @@ export const cs: Record<MessageKey, string> = {
   "appcard.knownIssues": "Známé problémy tohoto pluginu",
   "appcard.skipVersion": "Přeskočit {version}",
   "appcard.unskipVersion": "Nepřeskakovat {version}",
+  "appcard.pinVersion": "Připnout na {version}",
+  "appcard.unpinVersion": "Odepnout {version}",
   "appcard.fork": "Fork",
   "appcard.forkHint":
     "Fork, který pokračuje ve vývoji pluginu poté, co originál skončil. DeckyHub ho uvádí jen, dokud je aktivní verzí.",

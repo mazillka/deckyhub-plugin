@@ -2419,6 +2419,41 @@ test("Skip this version hides one release's update until the user stops skipping
   }
 });
 
+test("Pin freezes a plugin: no update is offered until it is unpinned", async ({ page }) => {
+  const pluginDir = new URL("../.dev-data/plugins/e2e-mako-pin/", import.meta.url);
+  mkdirSync(pluginDir, { recursive: true });
+  writeFileSync(
+    new URL("plugin.json", pluginDir),
+    JSON.stringify({ name: "MAKO - Frame Generation", version: "1.0.0", repository: "eugeniosegala/MAKO" }),
+  );
+  await mockMakoReleases(page, [makoRelease("plugin-v1.3.0", "b".repeat(64))]);
+
+  try {
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+    await expect(makoCard.getByRole("button", { name: "Update to v1.3.0", exact: true })).toBeVisible();
+    await makoCard.getByRole("button", { name: "Manage", exact: true }).click();
+    const modal = app.locator(".steam-modal");
+    await modal.getByRole("button", { name: "Pin at v1.0.0", exact: true }).click();
+    await expect(modal.getByRole("button", { name: "Unpin v1.0.0", exact: true })).toBeVisible();
+    await expect
+      .poll(async () => (await bridgeCall(page, "get_settings")).result.repoSettings["eugeniosegala/MAKO"])
+      .toEqual({ channel: "stable", pinVersion: "1.0.0" });
+    await modal.getByRole("button", { name: "Close", exact: true }).click();
+    await expect(makoCard.getByRole("button", { name: /^Update to v/ })).toHaveCount(0);
+    await expect(makoCard.getByText("Pinned", { exact: true })).toBeVisible();
+
+    await makoCard.getByRole("button", { name: "Manage", exact: true }).click();
+    await modal.getByRole("button", { name: "Unpin v1.0.0", exact: true }).click();
+    await modal.getByRole("button", { name: "Close", exact: true }).click();
+    await expect(makoCard.getByRole("button", { name: "Update to v1.3.0", exact: true })).toBeVisible();
+  } finally {
+    await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "stable" });
+    rmSync(pluginDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  }
+});
+
 test("A plugin's known issues from the registry are listed in its Manage window, each opening its report", async ({
   page,
 }) => {
