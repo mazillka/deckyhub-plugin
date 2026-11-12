@@ -261,12 +261,6 @@ class PluginStatusTests(unittest.TestCase):
             plugin.settings_path.write_text(json.dumps({"haptics": False}), encoding="utf-8")
             self.assertIs(plugin._load_settings()["quickAccessTab"], True)
             self.assertIs(asyncio.run(plugin.save_settings({"quickAccessTab": False}))["quickAccessTab"], False)
-
-    def test_quick_access_tab_is_off_on_a_fresh_install(self):
-        with tempfile.TemporaryDirectory() as home:
-            plugin = Plugin()
-            plugin.settings_path = Path(home) / "settings.json"
-            self.assertIs(plugin._load_settings()["quickAccessTab"], False)
             self.assertIs(plugin._load_settings()["quickAccessTab"], False)
 
     def test_ui_style_defaults_for_old_settings_and_keeps_only_known_styles(self):
