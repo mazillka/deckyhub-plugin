@@ -729,9 +729,14 @@ def versions_section(releases: list) -> str:
         zips = [
             f'<a href="{escape(asset["browser_download_url"])}">{escape(str(asset.get("name")))}</a>'
             for asset in item.get("assets") or []
-            if str(asset.get("name", "")).lower().endswith(".zip") and str(asset.get("browser_download_url", "")).startswith("https://")
+            if str(asset.get("name", "")).lower().endswith(".zip")
+            and str(asset.get("browser_download_url", "")).startswith("https://")
         ]
-        anchor, when, files = escape(str(item["tag_name"]), quote=True), nice_date(item.get("published_at")), ", ".join(zips)
+        anchor, when, files = (
+            escape(str(item["tag_name"]), quote=True),
+            nice_date(item.get("published_at")),
+            ", ".join(zips),
+        )
         rows.append(f'<li id="v-{anchor}">{title}{badge}<small>{when}{" · " if zips else ""}{files}</small></li>')
     if not rows:
         return ""

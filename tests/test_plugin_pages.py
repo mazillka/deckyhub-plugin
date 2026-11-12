@@ -37,8 +37,18 @@ class PluginPageTests(unittest.TestCase):
     def test_versions_lists_each_release_with_its_zip(self):
         shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
         releases = [
-            {"tag_name": "v2", "prerelease": True, "published_at": "2026-02-03T00:00:00Z", "html_url": "https://github.com/a/b/releases/tag/v2", "assets": [{"name": "p.zip", "browser_download_url": "https://github.com/a/b/p.zip"}]},
-            {"tag_name": "v1<x>", "published_at": "2026-01-01T00:00:00Z", "assets": [{"name": "p.zip", "browser_download_url": "http://evil/p.zip"}]},
+            {
+                "tag_name": "v2",
+                "prerelease": True,
+                "published_at": "2026-02-03T00:00:00Z",
+                "html_url": "https://github.com/a/b/releases/tag/v2",
+                "assets": [{"name": "p.zip", "browser_download_url": "https://github.com/a/b/p.zip"}],
+            },
+            {
+                "tag_name": "v1<x>",
+                "published_at": "2026-01-01T00:00:00Z",
+                "assets": [{"name": "p.zip", "browser_download_url": "http://evil/p.zip"}],
+            },
             {"tag_name": "draft", "draft": True},
         ]
         page = plugin_pages.plugin_page(shell, APP, {}, {}, {}, [APP], releases=releases)
