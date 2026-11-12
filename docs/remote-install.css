@@ -224,3 +224,30 @@
 .remote-plugins li[hidden] { display: none; }
 .remote-plugins .remote-danger { color: #ff8a80; border-color: currentColor; }
 #remote-plugins-filter { width: min(100%, 24rem); }
+
+/* Errors: unmistakable next to the quieter info boxes (role="alert", set by remote-install.js). */
+.rd-status[data-kind="error"], .remote-install #remote-status[data-kind="error"] {
+  padding: 14px 16px 14px 46px;
+  border: 2px solid #ff6b63;
+  border-radius: 12px;
+  background: #3d1618;
+  color: #ffe4e1;
+  font-weight: 700;
+  position: relative;
+  scroll-margin-top: 72px;
+}
+.rd-status[data-kind="error"]::before, .remote-install #remote-status[data-kind="error"]::before {
+  content: "!";
+  position: absolute;
+  inset-inline-start: 14px;
+  top: 13px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ff6b63;
+  color: #3d1618;
+  font-weight: 800;
+}
+.rd-status[data-kind="error"]::after { display: none; }
