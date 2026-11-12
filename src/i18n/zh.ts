@@ -70,6 +70,7 @@ export const zh: Record<MessageKey, string> = {
 
   "status.updateAvailable": "有更新",
   "status.upToDate": "已是最新",
+  "status.pinned": "已固定",
 
   "appcard.downloadComplete": "下载完成",
   "appcard.latest": "最新版本（{name}）",
@@ -91,6 +92,8 @@ export const zh: Record<MessageKey, string> = {
   "appcard.knownIssues": "此插件的已知问题",
   "appcard.skipVersion": "跳过 {version}",
   "appcard.unskipVersion": "取消跳过 {version}",
+  "appcard.pinVersion": "固定在 {version}",
+  "appcard.unpinVersion": "取消固定 {version}",
   "appcard.fork": "分支",
   "appcard.forkHint": "在原插件停止后继续维护的分支。仅在它仍是活跃分支时由 DeckyHub 列出。",
   "appcard.forkOf": "{repo} 的分支",
@@ -310,6 +313,25 @@ export const zh: Record<MessageKey, string> = {
   "settings.exportLogs": "导出日志",
   "settings.exportLogsNote":
     "将 DeckyHub 的日志以 ZIP 格式保存到 ~/Downloads，可附加到错误报告中。你的 GitHub 令牌永远不会被记录。",
+  "settings.backups": "备份",
+  "settings.backupBefore": "更新和移除前备份设置",
+  "settings.backupBeforeNote":
+    "DeckyHub 更新、重新安装或移除插件之前，会在这里保存该插件设置的副本（每个插件保留最近 5 份）。如果更新出问题，可以恢复其中一份。",
+  "settings.backupsEmpty": "还没有备份。",
+  "settings.restore": "恢复",
+  "settings.restoreTitle": "恢复 {name} 的设置？",
+  "settings.restoreDescription":
+    "这会用 {date} 的备份替换它当前的设置。当前设置会先备份。之后请重新加载或重启该插件以使用它们。",
+  "settings.restored": "已恢复 {name} 的设置",
+  "settings.leftovers": "插件残留文件",
+  "settings.leftoversNote": "Decky 为已不再安装的插件保留的文件夹。选择要移除的项目；插件的设置会先备份。",
+  "settings.leftoversScan": "查找残留",
+  "settings.leftoversNone": "没有残留。",
+  "settings.leftoverInfo": "{size} · {when}更改",
+  "settings.leftoversRemove": "移除所选 ({count})",
+  "settings.leftoversConfirmTitle": "移除 {count} 个残留文件夹？",
+  "settings.leftoversConfirm": "这会从此设备删除它们的设置、数据和日志。设置会先备份，可从“备份”中恢复。",
+  "settings.leftoversRemoved": "已移除 {count} 个文件夹，释放 {size}",
 
   "repos.addManage": "添加与管理",
   "repos.searchGithub": "搜索 GitHub",
@@ -367,6 +389,14 @@ export const zh: Record<MessageKey, string> = {
   "repos.exportedTo": "已导出到 {path}",
   "repos.imported": "已导入：{repos}",
   "repos.nothingToImport": "没有可导入的新仓库。",
+  "repos.packs": "插件包",
+  "repos.packsNote":
+    "插件包是列出插件的小文件。你可以分享自己的，也可以导入一个来设置另一台设备：DeckyHub 会提议安装缺少的插件，每次安装仍需你确认。",
+  "repos.packExport": "将我的插件导出为插件包",
+  "repos.packImport": "导入插件包",
+  "repos.packExported": "已将 {count} 个插件保存到 {path}",
+  "repos.packEmpty": "还没有 DeckyHub 能识别的已安装插件。",
+  "pending.nothing": "该插件包中的内容都已安装。",
   "notice.more": "更多",
   "notice.less": "收起",
   "filter.filters": "筛选",

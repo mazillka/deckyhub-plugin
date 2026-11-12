@@ -72,6 +72,7 @@ export const fr: Record<MessageKey, string> = {
 
   "status.updateAvailable": "Mise à jour disponible",
   "status.upToDate": "À jour",
+  "status.pinned": "Épinglé",
 
   "appcard.downloadComplete": "Téléchargement terminé",
   "appcard.latest": "Dernière version ({name})",
@@ -94,6 +95,8 @@ export const fr: Record<MessageKey, string> = {
   "appcard.knownIssues": "Problèmes connus de ce plugin",
   "appcard.skipVersion": "Ignorer {version}",
   "appcard.unskipVersion": "Ne plus ignorer {version}",
+  "appcard.pinVersion": "Épingler à {version}",
+  "appcard.unpinVersion": "Désépingler {version}",
   "appcard.fork": "Fork",
   "appcard.forkHint":
     "Un fork qui poursuit un plugin après l'arrêt de l'original. DeckyHub ne le liste que tant qu'il est le fork actif.",
@@ -331,6 +334,27 @@ export const fr: Record<MessageKey, string> = {
   "settings.exportLogs": "Exporter les journaux",
   "settings.exportLogsNote":
     "Enregistre les journaux de DeckyHub dans un ZIP dans ~/Downloads — joignez-le à un rapport de bug. Votre jeton GitHub n'est jamais journalisé.",
+  "settings.backups": "Sauvegardes",
+  "settings.backupBefore": "Sauvegarder les réglages avant mise à jour et suppression",
+  "settings.backupBeforeNote":
+    "Avant de mettre à jour, réinstaller ou supprimer un plugin, DeckyHub enregistre ici une copie de ses réglages (les 5 dernières par plugin). Restaurez-en une si une mise à jour casse quelque chose.",
+  "settings.backupsEmpty": "Aucune sauvegarde pour l’instant.",
+  "settings.restore": "Restaurer",
+  "settings.restoreTitle": "Restaurer les réglages de {name} ?",
+  "settings.restoreDescription":
+    "Cela remplace ses réglages actuels par la sauvegarde du {date}. Les réglages actuels sont sauvegardés d’abord. Rechargez ou redémarrez ensuite le plugin pour qu’il les utilise.",
+  "settings.restored": "Réglages de {name} restaurés",
+  "settings.leftovers": "Fichiers de plugins restants",
+  "settings.leftoversNote":
+    "Dossiers que Decky garde pour des plugins qui ne sont plus installés. Choisissez ce qu’il faut supprimer ; les réglages d’un plugin sont d’abord sauvegardés.",
+  "settings.leftoversScan": "Chercher les restes",
+  "settings.leftoversNone": "Rien de resté.",
+  "settings.leftoverInfo": "{size} · modifié {when}",
+  "settings.leftoversRemove": "Supprimer la sélection ({count})",
+  "settings.leftoversConfirmTitle": "Supprimer {count} dossiers restants ?",
+  "settings.leftoversConfirm":
+    "Cela supprime leurs réglages, données et journaux de cet appareil. Les réglages sont d’abord sauvegardés et restaurables depuis Sauvegardes.",
+  "settings.leftoversRemoved": "{count} dossiers supprimés, {size} libérés",
 
   "repos.addManage": "Ajouter et gérer",
   "repos.searchGithub": "Rechercher sur GitHub",
@@ -388,6 +412,14 @@ export const fr: Record<MessageKey, string> = {
   "repos.exportedTo": "Exporté vers {path}",
   "repos.imported": "Importés : {repos}",
   "repos.nothingToImport": "Aucun nouveau dépôt à importer.",
+  "repos.packs": "Packs de plugins",
+  "repos.packsNote":
+    "Un pack est un petit fichier qui liste des plugins. Partagez le vôtre ou importez-en un pour configurer un autre appareil : DeckyHub propose d’installer ce qui manque, et chaque installation demande toujours votre confirmation.",
+  "repos.packExport": "Exporter mes plugins en pack",
+  "repos.packImport": "Importer un pack",
+  "repos.packExported": "{count} plugins enregistrés dans {path}",
+  "repos.packEmpty": "Aucun plugin installé que DeckyHub sache identifier pour l’instant.",
+  "pending.nothing": "Tout ce qui est dans ce pack est déjà installé.",
   "notice.more": "Plus",
   "notice.less": "Moins",
   "filter.filters": "Filtres",

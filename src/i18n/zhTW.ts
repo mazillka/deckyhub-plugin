@@ -71,6 +71,7 @@ export const zhTW: Record<MessageKey, string> = {
 
   "status.updateAvailable": "有更新",
   "status.upToDate": "已是最新",
+  "status.pinned": "已固定",
 
   "appcard.downloadComplete": "下載完成",
   "appcard.latest": "最新版本（{name}）",
@@ -92,6 +93,8 @@ export const zhTW: Record<MessageKey, string> = {
   "appcard.knownIssues": "此插件的已知問題",
   "appcard.skipVersion": "略過 {version}",
   "appcard.unskipVersion": "取消略過 {version}",
+  "appcard.pinVersion": "固定在 {version}",
+  "appcard.unpinVersion": "取消固定 {version}",
   "appcard.fork": "分支",
   "appcard.forkHint": "在原外掛停止後繼續維護的分支。僅在它仍是活躍分支時由 DeckyHub 列出。",
   "appcard.forkOf": "{repo} 的分支",
@@ -311,6 +314,25 @@ export const zhTW: Record<MessageKey, string> = {
   "settings.exportLogs": "匯出記錄",
   "settings.exportLogsNote":
     "將 DeckyHub 的記錄以 ZIP 格式儲存到 ~/Downloads，可附加到錯誤回報中。你的 GitHub 權杖永遠不會被記錄。",
+  "settings.backups": "備份",
+  "settings.backupBefore": "更新與移除前備份設定",
+  "settings.backupBeforeNote":
+    "DeckyHub 更新、重新安裝或移除外掛之前，會在這裡儲存該外掛設定的副本（每個外掛保留最近 5 份）。若更新出問題，可以還原其中一份。",
+  "settings.backupsEmpty": "尚無備份。",
+  "settings.restore": "還原",
+  "settings.restoreTitle": "還原 {name} 的設定？",
+  "settings.restoreDescription":
+    "這會用 {date} 的備份取代它目前的設定。目前的設定會先備份。之後請重新載入或重啟該外掛以使用它們。",
+  "settings.restored": "已還原 {name} 的設定",
+  "settings.leftovers": "外掛殘留檔案",
+  "settings.leftoversNote": "Decky 為已不再安裝的外掛保留的資料夾。選擇要移除的項目；外掛的設定會先備份。",
+  "settings.leftoversScan": "尋找殘留",
+  "settings.leftoversNone": "沒有殘留。",
+  "settings.leftoverInfo": "{size} · {when}變更",
+  "settings.leftoversRemove": "移除所選 ({count})",
+  "settings.leftoversConfirmTitle": "移除 {count} 個殘留資料夾？",
+  "settings.leftoversConfirm": "這會從此裝置刪除它們的設定、資料與記錄。設定會先備份，可從「備份」還原。",
+  "settings.leftoversRemoved": "已移除 {count} 個資料夾，釋放 {size}",
 
   "repos.addManage": "加入與管理",
   "repos.searchGithub": "搜尋 GitHub",
@@ -368,6 +390,14 @@ export const zhTW: Record<MessageKey, string> = {
   "repos.exportedTo": "已匯出至 {path}",
   "repos.imported": "已匯入：{repos}",
   "repos.nothingToImport": "沒有可匯入的新儲存庫。",
+  "repos.packs": "外掛包",
+  "repos.packsNote":
+    "外掛包是列出外掛的小檔案。你可以分享自己的，也可以匯入一個來設定另一台裝置：DeckyHub 會提議安裝缺少的外掛，每次安裝仍需你確認。",
+  "repos.packExport": "將我的外掛匯出為外掛包",
+  "repos.packImport": "匯入外掛包",
+  "repos.packExported": "已將 {count} 個外掛儲存到 {path}",
+  "repos.packEmpty": "還沒有 DeckyHub 能辨識的已安裝外掛。",
+  "pending.nothing": "該外掛包中的內容都已安裝。",
   "notice.more": "更多",
   "notice.less": "收合",
   "filter.filters": "篩選",

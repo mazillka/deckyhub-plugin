@@ -71,6 +71,7 @@ export const cs: Record<MessageKey, string> = {
 
   "status.updateAvailable": "K dispozici aktualizace",
   "status.upToDate": "Aktuální",
+  "status.pinned": "Připnuto",
 
   "appcard.downloadComplete": "Stahování dokončeno",
   "appcard.latest": "Nejnovější ({name})",
@@ -93,6 +94,8 @@ export const cs: Record<MessageKey, string> = {
   "appcard.knownIssues": "Známé problémy tohoto pluginu",
   "appcard.skipVersion": "Přeskočit {version}",
   "appcard.unskipVersion": "Nepřeskakovat {version}",
+  "appcard.pinVersion": "Připnout na {version}",
+  "appcard.unpinVersion": "Odepnout {version}",
   "appcard.fork": "Fork",
   "appcard.forkHint":
     "Fork, který pokračuje ve vývoji pluginu poté, co originál skončil. DeckyHub ho uvádí jen, dokud je aktivní verzí.",
@@ -324,6 +327,27 @@ export const cs: Record<MessageKey, string> = {
   "settings.exportLogs": "Exportovat protokoly",
   "settings.exportLogsNote":
     "Uloží protokoly DeckyHub jako ZIP do ~/Downloads — přiložte ho k hlášení chyby. Váš token GitHub se nikdy nezaznamenává.",
+  "settings.backups": "Zálohy",
+  "settings.backupBefore": "Zálohovat nastavení před aktualizací a odebráním",
+  "settings.backupBeforeNote":
+    "Než DeckyHub plugin aktualizuje, přeinstaluje nebo odebere, uloží sem kopii jeho nastavení (posledních 5 na plugin). Pokud aktualizace něco pokazí, jednu z nich obnovte.",
+  "settings.backupsEmpty": "Zatím žádné zálohy.",
+  "settings.restore": "Obnovit",
+  "settings.restoreTitle": "Obnovit nastavení pluginu {name}?",
+  "settings.restoreDescription":
+    "Tím se jeho aktuální nastavení nahradí zálohou z {date}. Aktuální nastavení se nejdřív zazálohuje. Poté plugin znovu načtěte nebo restartujte, aby je použil.",
+  "settings.restored": "Nastavení pluginu {name} obnoveno",
+  "settings.leftovers": "Zbytky po pluginech",
+  "settings.leftoversNote":
+    "Složky, které Decky drží pro už nenainstalované pluginy. Vyberte, co odstranit; nastavení pluginu se předtím zazálohuje.",
+  "settings.leftoversScan": "Vyhledat zbytky",
+  "settings.leftoversNone": "Nic nezbylo.",
+  "settings.leftoverInfo": "{size} · změněno {when}",
+  "settings.leftoversRemove": "Odstranit vybrané ({count})",
+  "settings.leftoversConfirmTitle": "Odstranit {count} zbylých složek?",
+  "settings.leftoversConfirm":
+    "Smaže jejich nastavení, data a logy z tohoto zařízení. Nastavení se předtím zazálohuje a lze je obnovit v Zálohách.",
+  "settings.leftoversRemoved": "Odstraněno složek: {count}, uvolněno {size}",
 
   "repos.addManage": "Přidat a spravovat",
   "repos.searchGithub": "Hledat na GitHubu",
@@ -381,6 +405,14 @@ export const cs: Record<MessageKey, string> = {
   "repos.exportedTo": "Exportováno do {path}",
   "repos.imported": "Importováno: {repos}",
   "repos.nothingToImport": "Žádné nové repozitáře k importu.",
+  "repos.packs": "Balíčky pluginů",
+  "repos.packsNote":
+    "Balíček je malý soubor se seznamem pluginů. Sdílejte svůj, nebo jeden importujte a nastavte jiné zařízení: DeckyHub nabídne instalaci toho, co chybí, a každou instalaci stále potvrzujete.",
+  "repos.packExport": "Exportovat moje pluginy jako balíček",
+  "repos.packImport": "Importovat balíček",
+  "repos.packExported": "Uloženo {count} pluginů do {path}",
+  "repos.packEmpty": "Zatím žádné nainstalované pluginy, které DeckyHub umí určit.",
+  "pending.nothing": "Vše z toho balíčku je už nainstalováno.",
   "notice.more": "Více",
   "notice.less": "Méně",
   "filter.filters": "Filtry",

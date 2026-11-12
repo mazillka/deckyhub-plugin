@@ -71,6 +71,7 @@ export const ru: Record<MessageKey, string> = {
 
   "status.updateAvailable": "Есть обновление",
   "status.upToDate": "Последняя версия",
+  "status.pinned": "Закреплён",
 
   "appcard.downloadComplete": "Загрузка завершена",
   "appcard.latest": "Последняя версия ({name})",
@@ -93,6 +94,8 @@ export const ru: Record<MessageKey, string> = {
   "appcard.knownIssues": "Известные проблемы этого плагина",
   "appcard.skipVersion": "Пропустить {version}",
   "appcard.unskipVersion": "Не пропускать {version}",
+  "appcard.pinVersion": "Закрепить на {version}",
+  "appcard.unpinVersion": "Открепить {version}",
   "appcard.fork": "Форк",
   "appcard.forkHint":
     "Форк, который продолжает плагин после того, как оригинал остановился. DeckyHub показывает его, только пока он активен.",
@@ -323,6 +326,27 @@ export const ru: Record<MessageKey, string> = {
   "settings.exportLogs": "Экспортировать журналы",
   "settings.exportLogsNote":
     "Сохраняет журналы DeckyHub в ZIP в ~/Downloads — приложите его к отчёту об ошибке. Ваш токен GitHub никогда не попадает в журналы.",
+  "settings.backups": "Резервные копии",
+  "settings.backupBefore": "Копировать настройки перед обновлением и удалением",
+  "settings.backupBeforeNote":
+    "Перед обновлением, переустановкой или удалением плагина DeckyHub сохраняет здесь копию его настроек (последние 5 на плагин). Восстановите одну, если обновление что-то сломает.",
+  "settings.backupsEmpty": "Резервных копий пока нет.",
+  "settings.restore": "Восстановить",
+  "settings.restoreTitle": "Восстановить настройки {name}?",
+  "settings.restoreDescription":
+    "Текущие настройки будут заменены копией от {date}. Сначала они сохраняются в резервную копию. После этого перезагрузите или перезапустите плагин, чтобы он их использовал.",
+  "settings.restored": "Настройки {name} восстановлены",
+  "settings.leftovers": "Остатки файлов плагинов",
+  "settings.leftoversNote":
+    "Папки, которые Decky хранит для уже не установленных плагинов. Выберите, что удалить; настройки плагина сначала сохраняются.",
+  "settings.leftoversScan": "Найти остатки",
+  "settings.leftoversNone": "Ничего не осталось.",
+  "settings.leftoverInfo": "{size} · изменено {when}",
+  "settings.leftoversRemove": "Удалить выбранное ({count})",
+  "settings.leftoversConfirmTitle": "Удалить оставшиеся папки ({count})?",
+  "settings.leftoversConfirm":
+    "Это удалит их настройки, данные и журналы с этого устройства. Настройки сначала сохраняются и восстанавливаются из резервных копий.",
+  "settings.leftoversRemoved": "Удалено папок: {count}, освобождено {size}",
 
   "repos.addManage": "Добавить и управлять",
   "repos.searchGithub": "Поиск на GitHub",
@@ -380,6 +404,14 @@ export const ru: Record<MessageKey, string> = {
   "repos.exportedTo": "Экспортировано в {path}",
   "repos.imported": "Импортировано: {repos}",
   "repos.nothingToImport": "Нет новых репозиториев для импорта.",
+  "repos.packs": "Наборы плагинов",
+  "repos.packsNote":
+    "Набор — это небольшой файл со списком плагинов. Поделитесь своим или импортируйте чужой, чтобы настроить другое устройство: DeckyHub предложит установить недостающее, и каждая установка по-прежнему требует подтверждения.",
+  "repos.packExport": "Экспортировать мои плагины как набор",
+  "repos.packImport": "Импортировать набор",
+  "repos.packExported": "Сохранено плагинов: {count} в {path}",
+  "repos.packEmpty": "Пока нет установленных плагинов, которые DeckyHub может определить.",
+  "pending.nothing": "Всё из этого набора уже установлено.",
   "notice.more": "Подробнее",
   "notice.less": "Скрыть",
   "filter.filters": "Фильтры",

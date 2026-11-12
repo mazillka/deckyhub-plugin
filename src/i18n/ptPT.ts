@@ -73,6 +73,7 @@ export const ptPT: Record<MessageKey, string> = {
 
   "status.updateAvailable": "Atualização disponível",
   "status.upToDate": "Atualizado",
+  "status.pinned": "Fixado",
 
   "appcard.downloadComplete": "Transferência concluída",
   "appcard.latest": "Mais recente ({name})",
@@ -95,6 +96,8 @@ export const ptPT: Record<MessageKey, string> = {
   "appcard.knownIssues": "Problemas conhecidos deste plugin",
   "appcard.skipVersion": "Ignorar {version}",
   "appcard.unskipVersion": "Deixar de ignorar {version}",
+  "appcard.pinVersion": "Fixar em {version}",
+  "appcard.unpinVersion": "Desafixar {version}",
   "appcard.fork": "Fork",
   "appcard.forkHint":
     "Um fork que dá continuidade a um plugin depois de o original ter parado. O DeckyHub só o lista enquanto for o ativo.",
@@ -331,6 +334,27 @@ export const ptPT: Record<MessageKey, string> = {
   "settings.exportLogs": "Exportar registos",
   "settings.exportLogsNote":
     "Guarda os registos do DeckyHub como ZIP em ~/Downloads — anexe-o a um relatório de erro. O seu token do GitHub nunca é registado.",
+  "settings.backups": "Cópias de segurança",
+  "settings.backupBefore": "Guardar as definições antes de atualizar e remover",
+  "settings.backupBeforeNote":
+    "Antes de atualizar, reinstalar ou remover um plugin, o DeckyHub guarda aqui uma cópia das suas definições (as últimas 5 por plugin). Restaure uma se uma atualização estragar algo.",
+  "settings.backupsEmpty": "Ainda não há cópias de segurança.",
+  "settings.restore": "Restaurar",
+  "settings.restoreTitle": "Restaurar as definições de {name}?",
+  "settings.restoreDescription":
+    "Isto substitui as definições atuais pela cópia de {date}. As atuais são guardadas primeiro. Recarregue ou reinicie o plugin depois para que as use.",
+  "settings.restored": "Definições de {name} restauradas",
+  "settings.leftovers": "Ficheiros restantes de plugins",
+  "settings.leftoversNote":
+    "Pastas que o Decky guarda de plugins que já não estão instalados. Escolha o que remover; as definições do plugin são guardadas antes.",
+  "settings.leftoversScan": "Procurar restos",
+  "settings.leftoversNone": "Não sobrou nada.",
+  "settings.leftoverInfo": "{size} · alterado {when}",
+  "settings.leftoversRemove": "Remover selecionados ({count})",
+  "settings.leftoversConfirmTitle": "Remover {count} pastas restantes?",
+  "settings.leftoversConfirm":
+    "Isto apaga as definições, os dados e os registos delas deste dispositivo. As definições são guardadas antes e podem ser restauradas em Cópias de segurança.",
+  "settings.leftoversRemoved": "{count} pastas removidas, {size} libertados",
 
   "repos.addManage": "Adicionar e gerir",
   "repos.searchGithub": "Pesquisar no GitHub",
@@ -389,6 +413,14 @@ export const ptPT: Record<MessageKey, string> = {
   "repos.exportedTo": "Exportado para {path}",
   "repos.imported": "Importados: {repos}",
   "repos.nothingToImport": "Nenhum repositório novo para importar.",
+  "repos.packs": "Pacotes de plugins",
+  "repos.packsNote":
+    "Um pacote é um ficheiro pequeno que lista plugins. Partilhe o seu ou importe um para configurar outro dispositivo: o DeckyHub oferece-se para instalar o que falta, e cada instalação continua a pedir confirmação.",
+  "repos.packExport": "Exportar os meus plugins como pacote",
+  "repos.packImport": "Importar um pacote",
+  "repos.packExported": "{count} plugins guardados em {path}",
+  "repos.packEmpty": "Ainda não há plugins instalados que o DeckyHub consiga identificar.",
+  "pending.nothing": "Tudo nesse pacote já está instalado.",
   "notice.more": "Mais",
   "notice.less": "Menos",
   "filter.filters": "Filtros",

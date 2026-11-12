@@ -71,6 +71,7 @@ export const ja: Record<MessageKey, string> = {
 
   "status.updateAvailable": "更新あり",
   "status.upToDate": "最新",
+  "status.pinned": "固定済み",
 
   "appcard.downloadComplete": "ダウンロード完了",
   "appcard.latest": "最新版（{name}）",
@@ -93,6 +94,8 @@ export const ja: Record<MessageKey, string> = {
   "appcard.knownIssues": "このプラグインの既知の問題",
   "appcard.skipVersion": "{version} をスキップ",
   "appcard.unskipVersion": "{version} のスキップを解除",
+  "appcard.pinVersion": "{version} に固定",
+  "appcard.unpinVersion": "{version} の固定を解除",
   "appcard.fork": "フォーク",
   "appcard.forkHint":
     "元のプラグインが止まった後も開発を続けているフォークです。活発なフォークである間だけ DeckyHub に表示されます。",
@@ -324,6 +327,27 @@ export const ja: Record<MessageKey, string> = {
   "settings.exportLogs": "ログをエクスポート",
   "settings.exportLogsNote":
     "DeckyHub のログを ZIP として ~/Downloads に保存します。バグ報告に添付してください。GitHub トークンはログに記録されません。",
+  "settings.backups": "バックアップ",
+  "settings.backupBefore": "更新・削除の前に設定をバックアップ",
+  "settings.backupBeforeNote":
+    "DeckyHub がプラグインを更新・再インストール・削除する前に、そのプラグインの設定のコピーをここに保存します（プラグインごとに直近 5 件）。更新で問題が起きたら復元できます。",
+  "settings.backupsEmpty": "バックアップはまだありません。",
+  "settings.restore": "復元",
+  "settings.restoreTitle": "{name} の設定を復元しますか？",
+  "settings.restoreDescription":
+    "現在の設定を {date} のバックアップで置き換えます。現在の設定は先にバックアップされます。その後、プラグインを再読み込みまたは再起動してください。",
+  "settings.restored": "{name} の設定を復元しました",
+  "settings.leftovers": "残ったプラグインのファイル",
+  "settings.leftoversNote":
+    "インストールされていないプラグイン用に Decky が保持しているフォルダーです。削除するものを選んでください。プラグインの設定は先にバックアップされます。",
+  "settings.leftoversScan": "残りを探す",
+  "settings.leftoversNone": "残っているものはありません。",
+  "settings.leftoverInfo": "{size} · 更新 {when}",
+  "settings.leftoversRemove": "選択したものを削除 ({count})",
+  "settings.leftoversConfirmTitle": "残った {count} 個のフォルダーを削除しますか？",
+  "settings.leftoversConfirm":
+    "それらの設定・データ・ログをこのデバイスから削除します。設定は先にバックアップされ、「バックアップ」から復元できます。",
+  "settings.leftoversRemoved": "{count} 個のフォルダーを削除し、{size} を解放しました",
 
   "repos.addManage": "追加と管理",
   "repos.searchGithub": "GitHubを検索",
@@ -381,6 +405,14 @@ export const ja: Record<MessageKey, string> = {
   "repos.exportedTo": "{path} にエクスポートしました",
   "repos.imported": "インポートしました: {repos}",
   "repos.nothingToImport": "インポートする新しいリポジトリはありません。",
+  "repos.packs": "プラグインパック",
+  "repos.packsNote":
+    "パックはプラグインの一覧を記した小さなファイルです。自分のパックを共有したり、別のデバイスのセットアップ用にインポートしたりできます。DeckyHub は足りないものをインストールするよう提案し、インストールのたびに確認を求めます。",
+  "repos.packExport": "自分のプラグインをパックとしてエクスポート",
+  "repos.packImport": "パックをインポート",
+  "repos.packExported": "{count} 個のプラグインを {path} に保存しました",
+  "repos.packEmpty": "DeckyHub が識別できるインストール済みプラグインはまだありません。",
+  "pending.nothing": "そのパックの内容はすべてインストール済みです。",
   "notice.more": "詳しく",
   "notice.less": "閉じる",
   "filter.filters": "フィルター",

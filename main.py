@@ -17,18 +17,28 @@ sys.path.insert(0, str(Path(__file__).resolve().parent / "py_modules"))
 import decky
 from deckyhub import github_auth, paths
 from deckyhub.apps import AppsMixin
+from deckyhub.backups import BackupsMixin
 from deckyhub.downloads import DownloadsMixin
 from deckyhub.github_auth import GithubAuthMixin
+from deckyhub.leftovers import LeftoversMixin
+from deckyhub.packs import PENDING_INSTALLS_FILE, PacksMixin
 from deckyhub.registry import RegistryMixin
 from deckyhub.remote_install import RemoteInstallMixin
 from deckyhub.settings import SettingsMixin
 from deckyhub.validation import REPOSITORY_NAME
 
-# Written by the Desktop Mode installer (installer/install-deckyhub.sh) in the settings folder.
-PENDING_INSTALLS_FILE = "pending-installs.json"
 
-
-class Plugin(SettingsMixin, RegistryMixin, AppsMixin, DownloadsMixin, RemoteInstallMixin, GithubAuthMixin):
+class Plugin(
+    SettingsMixin,
+    RegistryMixin,
+    AppsMixin,
+    DownloadsMixin,
+    RemoteInstallMixin,
+    BackupsMixin,
+    LeftoversMixin,
+    PacksMixin,
+    GithubAuthMixin,
+):
     async def _main(self):
         self.settings_path = Path(decky.DECKY_PLUGIN_SETTINGS_DIR) / "settings.json"
         self.settings = self._load_settings()
@@ -81,15 +91,17 @@ class Plugin(SettingsMixin, RegistryMixin, AppsMixin, DownloadsMixin, RemoteInst
 
     async def get_pending_installs(self):
         """The plugins the Desktop Mode installer's checklist saved for DeckyHub to install
-        (pending-installs.json in the settings folder): repositories the registry list
-        has loaded, in the registry's spelling. Nothing else gets through, and it never raises."""
+        (pending-installs.json in the settings folder, which an imported plugin pack writes too):
+        repositories the registry list or the user's own list has loaded, in its spelling. Nothing else gets through, and it never raises."""
         try:
             saved = json.loads(
                 (Path(decky.DECKY_PLUGIN_SETTINGS_DIR) / PENDING_INSTALLS_FILE).read_text(encoding="utf-8")
             )
         except (OSError, ValueError):
             return []
-        listed = {app["repo"].casefold(): app["repo"] for app in getattr(self, "apps", [])}
+        # The registry's plugins and the user's own repositories (a plugin pack can add some).
+        custom = self._custom_apps() if hasattr(self, "settings") else []
+        listed = {app["repo"].casefold(): app["repo"] for app in [*getattr(self, "apps", []), *custom]}
         repos: list[str] = []
         for repo in saved if isinstance(saved, list) else []:
             match = listed.get(repo.casefold()) if isinstance(repo, str) and REPOSITORY_NAME.fullmatch(repo) else None

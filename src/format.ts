@@ -8,22 +8,26 @@ export const readableBytes = (bytes = 0) =>
 export const statusKey = (app: App): MessageKey =>
   !app.installedVersion
     ? "filter.notInstalled"
-    : app.updateAvailable
-      ? "status.updateAvailable"
-      : app.updateAvailable === false
-        ? "status.upToDate"
-        : "filter.installed";
+    : app.pinned
+      ? "status.pinned"
+      : app.updateAvailable
+        ? "status.updateAvailable"
+        : app.updateAvailable === false
+          ? "status.upToDate"
+          : "filter.installed";
 
 export const statusColor = (app: App) =>
   app.error
     ? colors.danger
     : !app.installedVersion
       ? "#8b929a"
-      : app.updateAvailable
-        ? colors.warning
-        : app.updateAvailable === false
-          ? colors.success
-          : undefined;
+      : app.pinned
+        ? colors.accent
+        : app.updateAvailable
+          ? colors.warning
+          : app.updateAvailable === false
+            ? colors.success
+            : undefined;
 
 // "2 days ago", "3 months ago": how long ago a card's plugin was last released.
 export function timeAgo(time: number) {
