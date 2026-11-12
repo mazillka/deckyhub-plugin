@@ -130,6 +130,8 @@ class SettingsMixin:
             if self.settings_path.exists():
                 decky.logger.error("Can't read %s, using defaults: %s", self.settings_path, error)
             # Fresh install: the tab would repeat the Decky plugin-list entry, so start it off.
+            # TEMP: off because Decky Loader repeats plugin tab icons in the Quick Access strip on every
+            # render (https://github.com/SteamDeckHomebrew/decky-loader/issues/1014); back to on once fixed.
             return {
                 **coerce_settings({"quickAccessTab": False}),
                 "customRepos": [],
