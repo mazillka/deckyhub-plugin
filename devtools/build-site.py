@@ -278,6 +278,12 @@ for name in ("help.html", "about.html"):
         page_file = out / path
         text = page_file.read_text(encoding="utf-8")
         if name == "help.html":
+            # The Remote Install manual's steps come from the README, like the home page's install steps.
+            text = re.sub(
+                r"<!-- steps: (.+?) -->",
+                lambda match: plugin_pages.readme_steps(readme if lang == "en" else readme_uk, match.group(1)),
+                text,
+            )
             if "<!-- structured-data -->" not in text:
                 sys.exit(f"docs/{path} is missing the <!-- structured-data --> placeholder")
             text = text.replace(
@@ -416,6 +422,9 @@ if PREVIEW:
     for html_file in out.rglob("*.html"):
         text = html_file.read_text(encoding="utf-8")
         # Root-relative links first: done after SITE they'd get the preview path twice (/develop/develop/).
+        # A link that already names the preview (the README's Remote Install steps do) is taken back to the
+        # site root first, or it would get the path twice too.
+        text = text.replace(SITE + base.lstrip("/"), SITE)
         text = text.replace('href="/', f'href="{base}').replace('src="/', f'src="{base}').replace(SITE, base)
         if f'"{base}{base.lstrip("/")}' in text:
             sys.exit(f"{html_file}: a link got the preview path twice")
