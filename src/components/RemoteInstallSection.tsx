@@ -28,11 +28,18 @@ import { compactButtonStyle, sectionDividerStyle } from "../utils";
 import { runRemoteRequest } from "./remoteRequests";
 import { WideConfirmModal } from "./WideModal";
 
+// How long a pairing code lasts (RemoteInstallService.begin_pairing), for the countdown bar.
+const PAIRING_SECONDS = 120;
+const formatClock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+
 export function RemoteInstallSection() {
   const t = useT();
   const [status, setStatus] = useState<RemoteInstallStatus | null>(null);
   const [code, setCode] = useState<string | null>(null);
   const [pairingTicket, setPairingTicket] = useState<{ code: string; token: string } | null>(null);
+  // When the pairing code runs out (from the backend's seconds left), and the clock that counts down to it.
+  const [expiresAt, setExpiresAt] = useState<number | null>(null);
+  const [now, setNow] = useState(Date.now());
   const [loading, setLoading] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
 
@@ -41,6 +48,10 @@ export function RemoteInstallSection() {
       const current = await getRemoteInstallStatus();
       setStatus(current);
       setCode(current.pairingCode ?? null);
+      setNow(Date.now());
+      setExpiresAt(
+        current.pairingCode && current.pairingExpiresIn != null ? Date.now() + current.pairingExpiresIn * 1000 : null,
+      );
       setPairingTicket((ticket) => (ticket?.code === current.pairingCode ? ticket : null));
     } catch {
       // Ignored if plugin is unloading
@@ -53,6 +64,12 @@ export function RemoteInstallSection() {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    if (expiresAt === null) return;
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [expiresAt]);
+
   const onToggle = async (enabled: boolean) => {
     setLoading(true);
     try {
@@ -61,6 +78,7 @@ export function RemoteInstallSection() {
       if (!enabled) {
         setCode(null);
         setPairingTicket(null);
+        setExpiresAt(null);
         setShowDetails(false);
       } else if (next.active) {
         // Turning pairing on shows the QR straight away; there is nothing else to press.
@@ -78,6 +96,8 @@ export function RemoteInstallSection() {
       const res = await beginRemotePairing();
       setCode(res.code);
       setPairingTicket({ code: res.code, token: res.pairingToken });
+      setNow(Date.now());
+      setExpiresAt(Date.now() + res.expiresInSeconds * 1000);
       if (!quiet) toaster.toast({ title: t("remote.pair"), body: res.code });
       void refresh();
     } catch (error) {
@@ -155,6 +175,7 @@ export function RemoteInstallSection() {
     }
   };
 
+  const remaining = expiresAt === null ? 0 : Math.max(0, Math.ceil((expiresAt - now) / 1000));
   const isEnabled = Boolean(status?.enabled);
   const isActive = Boolean(status?.active);
   const pairingLink =
@@ -180,12 +201,6 @@ export function RemoteInstallSection() {
   return (
     <Card>
       <PanelSection title={t("remote.title")}>
-        <PanelSectionRow>
-          <div style={{ display: "grid", gap: 8 }}>
-            <IconNote icon={<FaMobileAlt />}>{t("remote.description")}</IconNote>
-          </div>
-        </PanelSectionRow>
-        <div aria-hidden style={sectionDividerStyle} />
         <PanelSectionRow>
           <ToggleField
             label={t("remote.pairMode")}
@@ -289,6 +304,108 @@ export function RemoteInstallSection() {
                   </>
                 )}
 
+                {/* Pairing: the code with its countdown, the QR code, and the buttons */}
+                <div aria-hidden style={sectionDividerStyle} />
+                <PanelSectionRow>
+                  <div style={{ display: "grid", gap: 10, width: "100%" }}>
+                    {code ? (
+                      <>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                          <div
+                            style={{
+                              fontSize: "1.2em",
+                              fontWeight: "bold",
+                              letterSpacing: 2,
+                              color: colors.success,
+                              padding: "2px 8px",
+                              border: `1px solid ${colors.success}`,
+                              borderRadius: 4,
+                            }}
+                          >
+                            {code}
+                          </div>
+                          <span
+                            style={{
+                              color: remaining <= 20 ? colors.warning : colors.muted,
+                              fontVariantNumeric: "tabular-nums",
+                            }}
+                          >
+                            {t("remote.expiresIn", { time: formatClock(remaining) })}
+                          </span>
+                        </div>
+                        <div aria-hidden style={{ height: 4, borderRadius: 2, background: "rgba(255,255,255,0.12)" }}>
+                          <div
+                            style={{
+                              height: "100%",
+                              width: `${Math.min(100, (remaining / PAIRING_SECONDS) * 100)}%`,
+                              borderRadius: 2,
+                              background: remaining <= 20 ? colors.warning : colors.success,
+                              transition: "width 1s linear",
+                            }}
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <IconNote icon={<FaInfoCircle />}>{t("remote.expired")}</IconNote>
+                    )}
+                    {pairingQr && (
+                      <div style={{ display: "grid", justifyItems: "center", gap: 8, textAlign: "center" }}>
+                        <img src={pairingQr} alt="" style={{ maxWidth: "100%", height: "auto" }} />
+                        <span>{t("remote.scanPairingQr")}</span>
+                      </div>
+                    )}
+                  </div>
+                </PanelSectionRow>
+                <PanelSectionRow>
+                  <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <Button style={{ ...compactButtonStyle, marginBottom: 0 }} onClick={() => void onPair()}>
+                      {t("remote.pair")}
+                    </Button>
+                    {pairingLink && (
+                      <Button
+                        style={{ ...compactButtonStyle, marginBottom: 0 }}
+                        onClick={() =>
+                          void copyText(pairingLink).then((copied) => {
+                            toaster.toast({
+                              title: copied ? t("remote.copyPairingLink") : t("scan.copyFailed"),
+                              body: "",
+                            });
+                          })
+                        }
+                      >
+                        {t("remote.copyPairingLink")}
+                      </Button>
+                    )}
+                  </Focusable>
+                </PanelSectionRow>
+
+                {/* Paired Browsers */}
+                {Boolean(status.devices?.length) && (
+                  <>
+                    <div aria-hidden style={sectionDividerStyle} />
+                    <PanelSectionRow>
+                      <span style={{ fontSize: "0.9em", color: colors.muted }}>{t("remote.devices")}</span>
+                    </PanelSectionRow>
+                    {status.devices.map((d) => (
+                      <PanelSectionRow key={d.id}>
+                        <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <span style={{ flex: 1 }}>{d.name}</span>
+                          <ToggleField
+                            label={t("remote.trusted")}
+                            checked={Boolean(d.trusted)}
+                            onChange={(checked) => void onTrustDevice(d, checked)}
+                          />
+                          <Button
+                            style={{ ...compactButtonStyle, marginBottom: 0 }}
+                            onClick={() => void onRevokeDevice(d.id)}
+                          >
+                            <FaTrash /> {t("repos.removeConfirm")}
+                          </Button>
+                        </Focusable>
+                      </PanelSectionRow>
+                    ))}
+                  </>
+                )}
                 <div aria-hidden style={sectionDividerStyle} />
                 <PanelSectionRow>
                   <ToggleField label={t("remote.address")} checked={showDetails} onChange={setShowDetails} />
@@ -321,88 +438,16 @@ export function RemoteInstallSection() {
                     </div>
                   </PanelSectionRow>
                 )}
-
-                <PanelSectionRow>
-                  <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <div style={{ flex: 1 }}>
-                      <Button style={{ ...compactButtonStyle, marginBottom: 0 }} onClick={() => void onPair()}>
-                        {t("remote.pair")}
-                      </Button>
-                    </div>
-                    {code && (
-                      <div
-                        style={{
-                          fontSize: "1.2em",
-                          fontWeight: "bold",
-                          letterSpacing: 2,
-                          color: colors.success,
-                          padding: "2px 8px",
-                          border: `1px solid ${colors.success}`,
-                          borderRadius: 4,
-                        }}
-                      >
-                        {code}
-                      </div>
-                    )}
-                  </Focusable>
-                </PanelSectionRow>
-
-                {pairingQr && (
-                  <PanelSectionRow>
-                    <div style={{ display: "grid", justifyItems: "center", gap: 8, textAlign: "center" }}>
-                      <img src={pairingQr} alt="" style={{ maxWidth: "100%", height: "auto" }} />
-                      <span>{t("remote.scanPairingQr")}</span>
-                    </div>
-                  </PanelSectionRow>
-                )}
-                {pairingLink && (
-                  <PanelSectionRow>
-                    <Button
-                      onClick={() =>
-                        void copyText(pairingLink).then((copied) => {
-                          toaster.toast({
-                            title: copied ? t("remote.copyPairingLink") : t("scan.copyFailed"),
-                            body: "",
-                          });
-                        })
-                      }
-                    >
-                      {t("remote.copyPairingLink")}
-                    </Button>
-                  </PanelSectionRow>
-                )}
-
-                {/* Paired Browsers */}
-                {Boolean(status.devices?.length) && (
-                  <>
-                    <div aria-hidden style={sectionDividerStyle} />
-                    <PanelSectionRow>
-                      <span style={{ fontSize: "0.9em", color: colors.muted }}>{t("remote.devices")}</span>
-                    </PanelSectionRow>
-                    {status.devices.map((d) => (
-                      <PanelSectionRow key={d.id}>
-                        <Focusable flow-children="right" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <span style={{ flex: 1 }}>{d.name}</span>
-                          <ToggleField
-                            label={t("remote.trusted")}
-                            checked={Boolean(d.trusted)}
-                            onChange={(checked) => void onTrustDevice(d, checked)}
-                          />
-                          <Button
-                            style={{ ...compactButtonStyle, marginBottom: 0 }}
-                            onClick={() => void onRevokeDevice(d.id)}
-                          >
-                            <FaTrash /> {t("repos.removeConfirm")}
-                          </Button>
-                        </Focusable>
-                      </PanelSectionRow>
-                    ))}
-                  </>
-                )}
               </>
             )}
           </>
         )}
+        <div aria-hidden style={sectionDividerStyle} />
+        <PanelSectionRow>
+          <div style={{ display: "grid", gap: 8 }}>
+            <IconNote icon={<FaMobileAlt />}>{t("remote.description")}</IconNote>
+          </div>
+        </PanelSectionRow>
       </PanelSection>
     </Card>
   );

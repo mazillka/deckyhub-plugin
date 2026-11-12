@@ -11,6 +11,8 @@ export const ptPT: Record<MessageKey, string> = {
   "remote.pairMode": "Modo de emparelhamento",
   "remote.scanPairingQr": "Leia para abrir os dispositivos emparelhados",
   "remote.pair": "Associar navegador",
+  "remote.expiresIn": "Expira em {time}",
+  "remote.expired": "O código expirou. Prima Associar navegador para obter um novo.",
   "remote.pairings": "Pedidos de associação",
   "remote.requests": "Pedidos de alterações de plugins",
   "remote.from": "De {name}",

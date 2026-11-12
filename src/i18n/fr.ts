@@ -10,6 +10,8 @@ export const fr: Record<MessageKey, string> = {
   "remote.pairMode": "Mode d’association",
   "remote.scanPairingQr": "Scannez pour ouvrir les appareils associés",
   "remote.pair": "Associer un navigateur",
+  "remote.expiresIn": "Expire dans {time}",
+  "remote.expired": "Code expiré. Appuyez sur Associer un navigateur pour en obtenir un nouveau.",
   "remote.pairings": "Demandes d’association",
   "remote.requests": "Demandes de modification des plugins",
   "remote.from": "De {name}",

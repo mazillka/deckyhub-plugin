@@ -114,6 +114,16 @@ export function init(root, details) {
   // can't pair still gets the link to copy into one that can). The address bar no longer has it.
   if (details?.link && byId('pairing-link')) byId('pairing-link').value = details.link;
   if (details?.code && byId('code')) byId('code').value = details.code;
+  // What the page shows follows root.dataset.state (remote-install.css): new, connecting, approve, unreachable,
+  // unsupported, error, declined or paired.
+  const setState = state => { root.dataset.state = state; };
+  // The send card's own states; the Paired devices page keeps its own (and ignores these).
+  const flow = state => { if (!byId('pair-form')) setState(state); };
+  byId('copy-link')?.addEventListener('click', async () => {
+    const field = byId('pairing-link');
+    try { await navigator.clipboard.writeText(field.value); say('Link copied. Paste it into Chrome or Edge.'); }
+    catch { field.select(); say('Select the link, copy it, then paste it into Chrome or Edge.'); }
+  });
   const pluginId = root.dataset.pluginId;
   const compact = Boolean(pluginId && !form);
   const pairNew = compact ? byId('pair-new') : null;
@@ -165,7 +175,7 @@ export function init(root, details) {
       try {
         await timeout(current.ready, 45000);
       } catch {
-        throw new Error('Could not connect. Allow local network access in your browser, make sure Pair mode is on, and check the device address; it can change when your router hands out a new one. Open DeckyHub on your device and pair again if it did, or if you have not used this device for a week or more.');
+        throw Object.assign(new Error('Could not reach your device. Check that Pair mode is on and that it is on the same network as this browser.'), { unreachable: true });
       }
       const result = await exchange(current, message);
       const used = activeDevice();
@@ -190,7 +200,12 @@ export function init(root, details) {
   };
   const showError = error => say(error instanceof Error ? error.message : 'Unable to contact the device.');
   if (pluginId && !/^[a-z0-9][a-z0-9-]{0,127}$/.test(pluginId)) { say('Invalid plugin identifier.'); if (pairButton) pairButton.disabled = true; return; }
-  if (typeof WebTransport === 'undefined' || !globalThis.isSecureContext) { say('Remote install needs Chrome, Edge or another Chromium-based browser. Open this page there.'); if (pairButton) pairButton.disabled = true; return; }
+  if (typeof WebTransport === 'undefined' || !globalThis.isSecureContext) {
+    setState('unsupported');
+    say(details?.link ? 'This browser can’t connect to your device. Copy the pairing link below and open it in Chrome or Edge.' : 'Remote install needs Chrome, Edge or another Chromium-based browser. Open this page there.');
+    if (pairButton) pairButton.disabled = true;
+    return;
+  }
   const activeDevice = () => devices.find(device => device.token === token);
   const saveDevices = () => {
     try { localStorage.setItem(PAIRED_DEVICES_KEY, JSON.stringify(devices)); } catch { /* Keep pairings in this page. */ }
@@ -210,7 +225,7 @@ export function init(root, details) {
   const updateActions = () => {
     requestButton.disabled = !token || busy;
     if (!compact) requestButton.hidden = !pluginId && !idempotencyKey;
-    requestButton.textContent = idempotencyKey ? 'Retry request status' : compact ? 'Send' : 'Send install request';
+    requestButton.textContent = idempotencyKey ? 'Retry request status' : compact ? 'Send to device' : 'Send install request';
     if (pairButton) pairButton.disabled = Boolean(idempotencyKey);
     inventory?.setEnabled(Boolean(token) && !busy && !idempotencyKey);
   };
@@ -226,14 +241,16 @@ export function init(root, details) {
     }
     picker.value = selected === undefined ? '' : String(selected);
     picker.disabled = false;
+    root.dataset.hasDevices = String(devices.length > 0);
   };
   const selectDevice = index => {
     disconnect();
     requestId = idempotencyKey = requestPluginId = requestName = undefined;
     const device = devices[index];
     rememberDevice(device);
-    if (!device) { updateActions(); say('Enter the details for the device you want to pair.'); return; }
+    if (!device) { setState(compact ? 'none' : 'new'); updateActions(); say(compact ? '' : 'Turn on Pair mode on your device, then scan its QR code or paste the pairing link.'); return; }
     try {
+      setState(compact ? 'ready' : 'paired');
       endpoint = { url: deviceUrl(device.address), hashes: pinnedHashes(device) };
       token = device.token;
       ({ id: requestId, key: idempotencyKey, pluginId: requestPluginId } = device.pending || {});
@@ -254,12 +271,19 @@ export function init(root, details) {
     } catch (error) { showError(error); }
   };
   picker.addEventListener('change', () => selectDevice(picker.value));
+  byId('pair-another')?.addEventListener('click', () => {
+    disconnect();
+    renderPicker();
+    setState('new');
+    say('Turn on Pair mode on your device, then scan its QR code or paste the pairing link.');
+  });
   const selectedIndex = Math.max(0, devices.findIndex(device => device.fingerprint === selectedFingerprint));
   if (!compact) {
     renderPicker(devices.length && !details ? selectedIndex : undefined);
     if (devices.length && !details) selectDevice(selectedIndex);
   } else {
     renderPicker();
+    setState(devices.length ? 'checking' : 'none');
     if (devices.length) {
       say('Checking paired devices…');
       void Promise.all(devices.map(async (device, index) => {
@@ -281,7 +305,7 @@ export function init(root, details) {
         const selected = reachable.has(selectedIndex) ? selectedIndex : reachable.values().next().value;
         renderPicker(selected);
         if (selected !== undefined) selectDevice(selected);
-        else say('No paired devices are reachable.');
+        else { setState('none'); say(compact ? 'No paired device is reachable. Turn on Pair mode on your device, on the same network as this browser.' : 'No paired devices are reachable.'); }
       });
     }
   }
@@ -309,6 +333,7 @@ export function init(root, details) {
   const pairDevice = async (link) => {
     if (idempotencyKey || pairing) return;
     pairing = true;
+    setState('connecting');
     // The device took the code and token: both fields are emptied once the pairing is over, not before, so
     // a request that never reached the device can be tried again from them.
     let consumed = false;
@@ -331,14 +356,15 @@ export function init(root, details) {
       const code = byId('code').value.trim(), name = byId('name').value.trim();
       if ((!pairingToken && !/^\d{6}$/.test(code)) || !name || name.length > 64) throw new Error('Enter the six-digit pairing code and a browser name.');
       endpoint = { url, hashes: [{ algorithm: 'sha-256', value: fingerprint }] };
-      say('Connecting. Allow local network access if your browser asks.');
+      say('Connecting to your device. Allow local network access if your browser asks.');
       const secret = crypto.getRandomValues(new Uint8Array(32));
       const pairingSecret = btoa(String.fromCharCode(...secret)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
       const credential = pairingToken ? { pairingToken } : { code };
       const result = await send({ op: 'pair', ...credential, name, pairingSecret });
       if (typeof result.pairingId !== 'string' || !result.pairingId) throw new Error('Invalid pairing response.');
       consumed = true;
-      say('Approve this browser on your device.');
+      setState('approve');
+      say('Approve this browser on your device: press Approve under Pairing requests.');
       const deadline = Date.now() + 120000;
       while (Date.now() < deadline) {
         await sleep(2000);
@@ -356,6 +382,7 @@ export function init(root, details) {
           try { sessionStorage.removeItem(PAIRING_DETAILS_KEY); } catch { /* Pairing is already complete. */ }
           renderPicker(devices.length - 1);
           if (reconnectButton) reconnectButton.hidden = false;
+          setState('paired');
           say('Paired. You can now manage this device.');
           updateActions();
           if (!pluginId) void inventory?.load();
@@ -368,6 +395,7 @@ export function init(root, details) {
     } catch (error) {
       disconnect();
       renderPicker();
+      setState(error.unreachable ? 'unreachable' : consumed ? 'declined' : 'error');
       if (link?.pairingToken && error.message === 'The device rejected the request.')
         say('This pairing link was rejected. Generate a new QR code or pairing link on your device.');
       else showError(error);
@@ -395,6 +423,7 @@ export function init(root, details) {
     disconnect();
     rememberDevice(undefined);
     renderPicker();
+    setState('new');
     say(`${device.name} forgotten in this browser. Remove it from Paired devices in DeckyHub too.`);
   });
   reconnectButton?.addEventListener('click', () => {
@@ -422,6 +451,7 @@ export function init(root, details) {
     if (!endpoint || !token || busy || !target) return;
     if (idempotencyKey && (target !== requestPluginId || action !== requestAction)) return;
     busy = true;
+    flow('waiting');
     requestButton.disabled = true;
     if (pairButton) pairButton.disabled = true;
     picker.disabled = true;
@@ -445,6 +475,7 @@ export function init(root, details) {
       const deadline = Date.now() + 120000;
       while (!TERMINAL.has(state) && !cancelled && Date.now() < deadline) {
         if (cancelButton) cancelButton.disabled = state !== 'pending_confirmation';
+        flow(state === 'pending_confirmation' ? 'waiting' : 'installing');
         say(state === 'pending_confirmation' ? 'Waiting for approval on your device.' : state === 'approved' ? 'Approved; waiting for your device.' : requestAction === 'uninstall' ? 'Uninstalling…' : 'Installing…');
         await sleep(delay);
         if (cancelled) return;
@@ -460,6 +491,7 @@ export function init(root, details) {
       }
       if (cancelled) return;
       if (!TERMINAL.has(state)) throw new Error('Status unknown. Retry request status before starting another change.');
+      flow(state === 'installed' || state === 'uninstalled' ? 'done' : 'failed');
       say(state === 'installed' ? 'Installed on your device.' : state === 'uninstalled' ? 'Uninstalled from your device.' : state === 'unknown' ? 'Outcome unknown. Check your device before trying again.' : `Request ${state}.`);
       idempotencyKey = undefined;
       requestId = undefined;
@@ -468,6 +500,7 @@ export function init(root, details) {
       if (state === 'installed' || state === 'uninstalled' || state === 'unknown') inventory?.reset();
       if (cancelButton) cancelButton.disabled = true;
     } catch (_) {
+      flow('failed');
       say('Status unknown. The request may still be active; retry request status before starting another change.');
     } finally {
       busy = false;
@@ -493,6 +526,7 @@ export function init(root, details) {
       if (result.requestId !== requestId || result.status !== 'cancelled') throw new Error('The request could not be cancelled.');
       cancelled = true; requestId = undefined; idempotencyKey = undefined; requestPluginId = requestName = undefined;
       saveRequest();
+      flow('ready');
       say('Request cancelled.');
     } catch (error) { showError(error); }
   });

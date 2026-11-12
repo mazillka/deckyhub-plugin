@@ -10,6 +10,8 @@ export const zh: Record<MessageKey, string> = {
   "remote.pairMode": "配对模式",
   "remote.scanPairingQr": "扫码打开已配对设备",
   "remote.pair": "配对浏览器",
+  "remote.expiresIn": "{time} 后过期",
+  "remote.expired": "代码已过期。点击“配对浏览器”获取新代码。",
   "remote.pairings": "配对请求",
   "remote.requests": "插件操作请求",
   "remote.from": "来自 {name}",

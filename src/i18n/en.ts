@@ -9,6 +9,8 @@ export const en = {
   "remote.pairMode": "Pair mode",
   "remote.scanPairingQr": "Scan to open Paired devices",
   "remote.pair": "Pair browser",
+  "remote.expiresIn": "Expires in {time}",
+  "remote.expired": "Code expired. Press Pair browser for a new one.",
   "remote.pairings": "Pairing requests",
   "remote.requests": "Plugin requests",
   "remote.from": "From {name}",
