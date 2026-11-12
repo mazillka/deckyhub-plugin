@@ -1,6 +1,6 @@
 {
   "name": "deckyhub",
-  "version": "3.4.0-rc.9",
+  "version": "3.4.0-rc.10",
   "description": "Discover, track, and safely download GitHub releases for Decky plugins from Gaming Mode.",
   "author": "Andrii Shevchuk-Yuhanets",
   "private": true,
