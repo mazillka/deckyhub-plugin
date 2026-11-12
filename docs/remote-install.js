@@ -126,6 +126,9 @@ export function init(root, details) {
   });
   const pluginId = root.dataset.pluginId;
   const compact = Boolean(pluginId && !form);
+  // A plugin page opened with ?tag=<release> asks the device for that release (same rules as the device's own check).
+  const wantedTag = compact ? new URLSearchParams(location.search).get('tag') || '' : '';
+  const releaseTag = /^[A-Za-z0-9][A-Za-z0-9._+/-]{0,127}$/.test(wantedTag) && !wantedTag.includes('..') && !wantedTag.includes('//') && !wantedTag.endsWith('/') ? wantedTag : undefined;
   const pairNew = compact ? byId('pair-new') : null;
   let reachable = null;
   let transport, endpoint, token, requestId, idempotencyKey, requestPluginId, cancelled = false;
@@ -465,7 +468,7 @@ export function init(root, details) {
     try {
       const result = requestId
         ? await send({ op: 'status', token, requestId })
-        : await send({ op: 'request', token, idempotencyKey, action: requestAction, ...(requestName ? { pluginName: requestName } : { pluginId: requestPluginId }) });
+        : await send({ op: 'request', token, idempotencyKey, action: requestAction, ...(requestName ? { pluginName: requestName } : { pluginId: requestPluginId, ...(releaseTag && requestAction === 'install' ? { releaseTag } : {}) }) });
       if (typeof result.requestId !== 'string' || !result.requestId ||
           (requestId && result.requestId !== requestId) || !REQUEST_STATES.has(result.status)) throw new Error('Invalid request response.');
       requestId = result.requestId;

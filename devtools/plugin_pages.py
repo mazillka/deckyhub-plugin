@@ -481,6 +481,7 @@ def plugin_page(
 <p class="note">Before updating an installed plugin, check that its GitHub owner and repository match the source shown here. Plugin names alone may not identify the correct project.</p>
 <p>{escape(name)} is a <a href="https://decky.xyz/">Decky Loader</a> plugin. With <a href="/">DeckyHub</a> installed, open DeckyHub's <strong>Discover</strong> tab in Gaming Mode, search for <strong>{escape(name)}</strong> and press <strong>Install</strong>. DeckyHub hands the release to Decky Loader's own installer and checks its SHA-256 whenever GitHub publishes one. You can also download the ZIP from its <a href="{escape(repo_url)}/releases">releases</a> and install it by hand from Decky's developer settings.</p>
 {"" if app.get("store") else remote_install_picker(app["id"])}
+{versions_section(releases or [])}
 <h2>Safety information</h2>
 <p class="note">{NOT_REVIEWED}</p>
 {"<ul class='badges'>" + "".join(badges) + "</ul>" if badges else "<p>No badges: it doesn't run as root, and no audit warnings or virus scan findings are known for it.</p>"}
@@ -713,6 +714,28 @@ def catalog_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
         body,
         [trail, listing],
     )
+
+
+def versions_section(releases: list) -> str:
+    """Every release the index keeps for the plugin: its tag, date, pre-release badge and ZIP downloads."""
+    rows = []
+    for item in releases:
+        if not isinstance(item, dict) or item.get("draft") or not item.get("tag_name"):
+            continue
+        url = item.get("html_url") or ""
+        tag = escape(str(item["tag_name"]))
+        title = f'<a href="{escape(url)}">{tag}</a>' if url.startswith("https://github.com/") else tag
+        badge = ' <span class="badge warn">Pre-release</span>' if item.get("prerelease") else ""
+        zips = [
+            f'<a href="{escape(asset["browser_download_url"])}">{escape(str(asset.get("name")))}</a>'
+            for asset in item.get("assets") or []
+            if str(asset.get("name", "")).lower().endswith(".zip") and str(asset.get("browser_download_url", "")).startswith("https://")
+        ]
+        anchor, when, files = escape(str(item["tag_name"]), quote=True), nice_date(item.get("published_at")), ", ".join(zips)
+        rows.append(f'<li id="v-{anchor}">{title}{badge}<small>{when}{" · " if zips else ""}{files}</small></li>')
+    if not rows:
+        return ""
+    return f'<h2>Versions</h2><p>The latest releases DeckyHub can install. Security scans below cover only the newest stable and pre-release ZIPs.</p><ul class="list">{"".join(rows)}</ul>'
 
 
 def prerelease_only(releases: list) -> bool:
