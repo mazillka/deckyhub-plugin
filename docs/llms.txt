@@ -29,6 +29,7 @@ DeckyHub runs inside Decky Loader on any device that runs it. It lists the plugi
 - [Help](https://deckyhub.com/help.html): installing, updates, badges, virus scans and troubleshooting, as questions and answers (in Ukrainian: https://deckyhub.com/uk/help.html)
 - [About](https://deckyhub.com/about.html): who makes DeckyHub, where its plugin list comes from, and how it's built and tested (in Ukrainian: https://deckyhub.com/uk/about.html)
 - [Full documentation](https://github.com/mazillka/deckyhub-plugin#readme): every screen, settings, troubleshooting, privacy
+- [Browser extension](https://github.com/mazillka/deckyhub-ext): Deckyhub, a free extension for Chrome, Edge, Opera, Brave, Vivaldi and Firefox that shows DeckyHub safety badges and per-release scan results on GitHub plugin pages (install from its GitHub releases; not in browser stores yet; https://deckyhub.com/help.html#extension)
 - [Plugin catalog](https://deckyhub.com/plugins/): every plugin DeckyHub lists, with descriptions, stats and safety badges (each listed below)
 - [Contribute](https://deckyhub.com/contribute/): suggest a plugin, add it yourself, or run your own list (in Ukrainian: https://deckyhub.com/uk/contribute/)
 - [Registry editor](https://deckyhub.com/contribute/editor.html): build your own plugin list for DeckyHub
