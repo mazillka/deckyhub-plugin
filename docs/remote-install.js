@@ -24,6 +24,8 @@ export function pairingDetails(fragment) {
   const address = params.get('device');
   const fingerprint = params.get('fingerprint');
   const pairingToken = params.get('pair');
+  // The six-digit code shown beside the QR code; the QR link carries it so the form can show it too.
+  const code = /^\d{6}$/.test(params.get('code') || '') ? params.get('code') : undefined;
   if (!address || !fingerprint) return null;
   if (pairingToken !== null && !/^[A-Za-z0-9_-]{43}$/.test(pairingToken)) return null;
   // The device's own name, shown instead of its address; ignored if it looks odd.
@@ -31,7 +33,7 @@ export function pairingDetails(fragment) {
   try {
     deviceUrl(address);
     fingerprintBytes(fingerprint);
-    return { address, fingerprint, ...(pairingToken && { pairingToken }), ...(name && { name }) };
+    return { address, fingerprint, ...(pairingToken && { pairingToken }), ...(code && { code }), ...(name && { name }) };
   } catch {
     return null;
   }
@@ -108,6 +110,10 @@ export function init(root, details) {
   const reconnectButton = byId('reconnect');
   const forgetButton = byId('forget');
   const picker = byId('device-picker');
+  // What the QR code carried, shown in the form before anything else can stop the page (a browser that
+  // can't pair still gets the link to copy into one that can). The address bar no longer has it.
+  if (details?.link && byId('pairing-link')) byId('pairing-link').value = details.link;
+  if (details?.code && byId('code')) byId('code').value = details.code;
   const pluginId = root.dataset.pluginId;
   const compact = Boolean(pluginId && !form);
   const pairNew = compact ? byId('pair-new') : null;
@@ -303,6 +309,9 @@ export function init(root, details) {
   const pairDevice = async (link) => {
     if (idempotencyKey || pairing) return;
     pairing = true;
+    // The device took the code and token: both fields are emptied once the pairing is over, not before, so
+    // a request that never reached the device can be tried again from them.
+    let consumed = false;
     if (pairButton) pairButton.disabled = true;
     picker.disabled = true;
     disconnect();
@@ -328,7 +337,7 @@ export function init(root, details) {
       const credential = pairingToken ? { pairingToken } : { code };
       const result = await send({ op: 'pair', ...credential, name, pairingSecret });
       if (typeof result.pairingId !== 'string' || !result.pairingId) throw new Error('Invalid pairing response.');
-      byId('code').value = '';
+      consumed = true;
       say('Approve this browser on your device.');
       const deadline = Date.now() + 120000;
       while (Date.now() < deadline) {
@@ -363,7 +372,10 @@ export function init(root, details) {
         say('This pairing link was rejected. Generate a new QR code or pairing link on your device.');
       else showError(error);
     }
-    finally { pairing = false; updateActions(); picker.disabled = false; }
+    finally {
+      pairing = false; updateActions(); picker.disabled = false;
+      if (consumed) { byId('code').value = ''; linkInput.value = ''; }
+    }
   };
   linkInput?.addEventListener('change', () => {
     try {
@@ -497,7 +509,10 @@ if (typeof document !== 'undefined') {
     }).toString());
     else details = pairingDetails(sessionStorage.getItem(PAIRING_DETAILS_KEY) || '');
   } catch { /* Manual pairing is still available when browser storage is disabled. */ }
-  if (fromLink) history.replaceState(history.state, '', location.pathname + location.search);
+  if (fromLink) {
+    fromLink.link = location.href;
+    history.replaceState(history.state, '', location.pathname + location.search);
+  }
   const root = document.querySelector('#remote-install');
   if (root) init(root, details);
   else if (fromLink) {

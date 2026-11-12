@@ -11,6 +11,9 @@ test('pairing links accept only a private device address and a complete fingerpr
   assert.equal(pairingDetails('#remote-install'), null);
   assert.equal(pairingDetails(fragment('192.168.1.20:8765') + '&name=Steam%20Deck').name, 'Steam Deck');
   assert.equal('name' in pairingDetails(fragment('192.168.1.20:8765') + '&name=%3Cb%3E'), false);
+  // The QR link's six-digit code is kept only when it is six digits.
+  assert.equal(pairingDetails(fragment('192.168.1.20:8765') + '&code=123456').code, '123456');
+  assert.equal('code' in pairingDetails(fragment('192.168.1.20:8765') + '&code=12345a'), false);
 });
 
 test('pasted DeckyHub links fill device details without navigating away from the selected plugin', () => {
