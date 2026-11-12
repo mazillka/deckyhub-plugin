@@ -37,6 +37,14 @@
 .remote-plugins { list-style: none; padding: 0; }
 .remote-plugins li { display: grid; gap: 4px; padding: 12px 0; border-top: 1px solid var(--line); overflow-wrap: anywhere; }
 .remote-plugins li > span { font-size: .9em; color: var(--muted); }
+.remote-info { display: grid; gap: 4px; font-size: .9em; color: var(--muted); }
+.remote-info a { justify-self: start; }
+.remote-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.remote-badge { padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; font-size: .8rem; white-space: nowrap; }
+.remote-badge-ok { color: #6bcb6b; }
+.remote-badge-warn { color: #ffb35c; }
+.remote-badge-bad { color: #ff8a8a; }
+.remote-badge-info { color: #c49bff; }
 
 /* The Paired devices page. data-state (remote-install.js) says what is going on: new (nothing paired yet),
    connecting, approve (waiting for the device), unreachable, unsupported, error, paired. */
