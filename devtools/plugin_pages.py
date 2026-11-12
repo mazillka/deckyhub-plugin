@@ -205,7 +205,7 @@ def badges_of(
         )
     if stats.get("store"):
         items.append(
-            f'<li><span class="badge store">In Decky store</span> The <a href="https://plugins.deckbrew.xyz/plugins">Decky store</a> lists a plugin with this name ({compact(stats["store"]["downloads"])} downloads there). The store names no repository, so check that it is this one. The store is where Decky installs it from; DeckyHub installs from GitHub.</li>'
+            f'<li><span class="badge store">In Decky store</span> The <a href="https://plugins.deckbrew.xyz/plugins">Decky store</a> lists a plugin with this name ({compact(stats["store"]["downloads"])} downloads there). The store names no repository, so check that it is this one. The store is where Decky installs it from; DeckyHub installs from GitHub. The download count comes from the Decky store.</li>'
         )
     if stats.get("ai"):
         items.append(
@@ -453,7 +453,7 @@ def plugin_page(
     if stats.get("downloads") is not None:
         facts.append(f"<li><strong>{compact(stats['downloads'])}</strong>GitHub downloads</li>")
     if stats.get("store"):
-        facts.append(f"<li><strong>{compact(stats['store']['downloads'])}</strong>Decky store downloads</li>")
+        facts.append(f"<li><strong>{compact(stats['store']['downloads'])}</strong><a href=\"https://plugins.deckbrew.xyz/plugins\">Decky store</a> downloads</li>")
     if stats.get("stars") is not None:
         facts.append(f"<li><strong>{compact(stats['stars'])}</strong>GitHub stars</li>")
     if stats.get("updated"):
