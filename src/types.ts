@@ -13,6 +13,8 @@ export type App = {
   releaseTagInclude?: string;
   // From the registry: known problems with this plugin itself, each with a link to its report.
   knownIssues?: { title: string; url: string }[];
+  // From the registry: its author distributes it through the Decky store, so no GitHub download is offered.
+  store?: boolean;
   asset: { include: string[]; exclude: string[] };
   installedVersion?: string | null;
   detect?: { type: string; names?: string[] };
@@ -56,6 +58,8 @@ export type PluginStats = {
   updated?: string | null;
   root?: boolean | null;
   fork?: string;
+  // The Decky store lists a plugin of this name (matched by name): its downloads there.
+  store?: { downloads: number };
   ai?: string[];
   warnings?: string[];
   prereleaseWarnings?: string[];

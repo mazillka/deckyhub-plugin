@@ -88,6 +88,10 @@ export const fr: Record<MessageKey, string> = {
   "appcard.install": "Installer",
   "appcard.installVersion": "Installer v{version}",
   "appcard.downloads": "{count} téléchargements",
+  "appcard.githubDownloads": "{count} téléchargements GitHub",
+  "appcard.inStore": "Dans la boutique Decky",
+  "appcard.inStoreHint":
+    "La boutique Decky propose un plugin portant ce nom ({count} téléchargements là-bas). La boutique n'indique pas de dépôt : vérifiez que c'est bien celui-ci.",
   "appcard.stars": "{count} étoiles GitHub",
   "appcard.runsAsRoot": "S'exécute en root",
   "appcard.runsAsRootHint":
@@ -397,6 +401,9 @@ export const fr: Record<MessageKey, string> = {
 
   "github.error": "L’API GitHub a renvoyé {status}",
   "release.noMatch": "Aucune version correspondante trouvée.",
+  "release.inStore": "Son auteur le distribue via la boutique Decky. Installez-le depuis là.",
+  "scan.notReviewed":
+    "DeckyHub n'est pas la boutique Decky et personne ne vérifie ces plugins. Une analyse propre signifie seulement qu'aucun malware connu n'a été trouvé.",
   "release.noChecksum": "Aucun ZIP de version DeckyHub avec somme de contrôle SHA-256 trouvé.",
   "error.loaderUnavailable": "Decky Loader est indisponible pour le moment.",
   "toast.updatesAvailable": "Mises à jour disponibles : {count}",

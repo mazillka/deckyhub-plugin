@@ -79,6 +79,16 @@ export const ForkBadge = ({ t, repo }: { t: TFunc; repo?: string }) => (
   </span>
 );
 
+// The Decky store lists a plugin with this name (the registry matches by name; the store names no repository).
+export const StoreBadge = ({ t, downloads }: { t: TFunc; downloads: number }) => (
+  <span
+    title={t("appcard.inStoreHint", { count: downloads.toLocaleString() })}
+    style={{ ...pillStyle, ...tint(colors.blue) }}
+  >
+    {t("appcard.inStore")}
+  </span>
+);
+
 // The AI badge: the plugin's repository has files that set it up for AI coding assistants
 // (the registry's stats.json lists them), so it's likely developed with AI help. Also shown
 // in Discover's legend, which says what it does and doesn't mean.
@@ -173,6 +183,7 @@ export function AppBadges({ app, t }: { app: App; t: TFunc }) {
       )}
       {app.stats?.root && <RootBadge t={t} />}
       {app.stats?.fork && <ForkBadge t={t} repo={app.stats.fork} />}
+      {app.stats?.store && <StoreBadge t={t} downloads={app.stats.store.downloads} />}
       {app.stats?.ai?.length ? <AiBadge t={t} files={app.stats.ai} /> : null}
       {app.prereleaseOnly && <PrereleaseOnlyBadge t={t} />}
       {!app.description?.trim() && <NoDescriptionBadge t={t} />}
@@ -203,7 +214,9 @@ export function AppStats({ app, t, noUpdated }: { app: App; t: TFunc; noUpdated?
         <span title={new Date(released).toLocaleDateString()}>{t("appcard.updated", { when: timeAgo(released) })}</span>
       )}
       {downloads !== undefined && (
-        <span title={t("appcard.downloads", { count: downloads.toLocaleString() })}>↓ {compactNumber(downloads)}</span>
+        <span title={t("appcard.githubDownloads", { count: downloads.toLocaleString() })}>
+          ↓ {compactNumber(downloads)}
+        </span>
       )}
       {stars != null && (
         <span title={t("appcard.stars", { count: stars.toLocaleString() })}>★ {compactNumber(stars)}</span>

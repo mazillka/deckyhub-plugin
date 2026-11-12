@@ -87,6 +87,10 @@ export const cs: Record<MessageKey, string> = {
   "appcard.install": "Instalovat",
   "appcard.installVersion": "Instalovat v{version}",
   "appcard.downloads": "Stažení: {count}",
+  "appcard.githubDownloads": "{count} stažení z GitHubu",
+  "appcard.inStore": "V obchodě Decky",
+  "appcard.inStoreHint":
+    "Obchod Decky nabízí plugin se stejným názvem ({count} stažení tam). Obchod neuvádí repozitář, ověřte tedy, že jde o tento.",
   "appcard.stars": "Hvězdičky na GitHubu: {count}",
   "appcard.runsAsRoot": "Běží jako root",
   "appcard.runsAsRootHint":
@@ -390,6 +394,9 @@ export const cs: Record<MessageKey, string> = {
 
   "github.error": "GitHub API vrátilo {status}",
   "release.noMatch": "Nenalezeno žádné odpovídající vydání.",
+  "release.inStore": "Jeho autor ho šíří přes obchod Decky. Nainstalujte ho odtud.",
+  "scan.notReviewed":
+    "DeckyHub není obchod Decky a tyto pluginy nikdo nekontroluje. Čistý sken jen znamená, že nebyl nalezen žádný známý malware.",
   "release.noChecksum": "Nenalezen žádný ZIP vydání DeckyHub s kontrolním součtem SHA-256.",
   "error.loaderUnavailable": "Decky Loader teď není dostupný.",
   "toast.updatesAvailable": "Dostupné aktualizace: {count}",

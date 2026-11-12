@@ -87,6 +87,10 @@ export const en = {
   "appcard.install": "Install",
   "appcard.installVersion": "Install v{version}",
   "appcard.downloads": "{count} downloads",
+  "appcard.githubDownloads": "{count} GitHub downloads",
+  "appcard.inStore": "In Decky store",
+  "appcard.inStoreHint":
+    "The Decky store lists a plugin with this name ({count} downloads there). The store names no repository, so check that it is this one.",
   "appcard.stars": "{count} GitHub stars",
   "appcard.runsAsRoot": "Runs as root",
   "appcard.runsAsRootHint":
@@ -388,6 +392,9 @@ export const en = {
 
   "github.error": "GitHub API returned {status}",
   "release.noMatch": "No matching release found.",
+  "release.inStore": "Its author distributes it through the Decky store. Install it from there.",
+  "scan.notReviewed":
+    "DeckyHub is not the Decky store and nobody reviews these plugins. A clean scan only means no known malware was found.",
   "release.noChecksum": "No DeckyHub release ZIP with a SHA-256 checksum was found.",
   "error.loaderUnavailable": "Decky Loader is unavailable right now.",
   "toast.updatesAvailable": "Updates available: {count}",

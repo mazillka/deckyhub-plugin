@@ -72,7 +72,7 @@ EXTRA_STYLE = """
 .app{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;text-decoration:none;color:var(--text);display:flex;flex-direction:column;gap:2px}
 .app:hover{border-color:var(--accent2)}.app small{color:var(--accent2);font-size:.75rem;text-transform:uppercase;letter-spacing:.05em}
 .app p{margin:4px 0 0;color:var(--muted);font-size:.9rem;flex:1}.app .meta{color:var(--dim);font-size:.82rem;margin-top:8px}
-.app .flags{display:flex;flex-wrap:wrap;gap:4px 8px;font-size:.78rem;margin-top:4px}.flag-ai{color:#b79cff}.flag-warn{color:var(--warn)}.flag-bad{color:#ff8a8a}.flag-ok{color:#6bcb6b}
+.app .flags{display:flex;flex-wrap:wrap;gap:4px 8px;font-size:.78rem;margin-top:4px}.flag-ai{color:#b79cff}.flag-warn{color:var(--warn)}.flag-bad{color:#ff8a8a}.flag-ok{color:#6bcb6b}.flag-store{color:#7cc4ff}
 .app[hidden]{display:none}
 .catalog{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
 .filters{display:grid;gap:12px;margin:18px 0 8px}.filters input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:1rem}
@@ -84,7 +84,7 @@ EXTRA_STYLE = """
 .facts{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin:0;padding:0;list-style:none}
 .facts li{min-width:0;overflow-wrap:anywhere;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;color:var(--muted);font-size:.9rem}.facts li.wide{grid-column:1/-1}.facts strong{display:block;color:var(--text);font-size:1.05rem}
 .badges{display:grid;gap:8px;margin:0;padding:0;list-style:none}.badges li{color:var(--muted)}
-.badge{padding:1px 8px;border-radius:999px;border:1px solid currentColor;font-size:.8rem;white-space:nowrap;margin-right:6px}
+.badge{padding:1px 8px;border-radius:999px;border:1px solid currentColor;font-size:.8rem;white-space:nowrap;margin-right:6px}.badge.store{color:#7cc4ff}
 .root{color:#ffb35c}.stale{color:#ff8a8a}.warn{color:var(--warn)}.fork{color:var(--muted)}.clean{color:#6bcb6b}.ai{color:#c49bff}
 .btn{display:inline-block;padding:11px 18px;border-radius:8px;background:var(--accent);color:#fff;text-decoration:none;font-weight:600;margin:4px 8px 4px 0}.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
 .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;padding:0;list-style:none}
@@ -187,6 +187,10 @@ def json_ld(data: dict) -> str:
     )
 
 
+NOT_REVIEWED = "DeckyHub is not the Decky store and nobody reviews these plugins, DeckyHub included. A clean scan only means no known malware was found."
+STORE_ONLY_NOTE = '<p class="note">Its author distributes it through the <a href="https://plugins.deckbrew.xyz/plugins">Decky store</a>. DeckyHub lists it but offers no GitHub download: install it from the store inside Decky.</p>'
+
+
 def badges_of(
     stats: dict, scans: dict, warnings: dict, reports: dict | None = None, vt_reports: dict | None = None
 ) -> list[str]:
@@ -198,6 +202,10 @@ def badges_of(
     if stats.get("fork"):
         items.append(
             f'<li><span class="badge fork">Fork</span> A fork of <a href="https://github.com/{escape(stats["fork"])}">{escape(stats["fork"].split("/")[1])}</a> by <a href="https://github.com/{escape(stats["fork"].split("/")[0])}">{escape(stats["fork"].split("/")[0])}</a>: its code started as a copy of that project.</li>'
+        )
+    if stats.get("store"):
+        items.append(
+            f'<li><span class="badge store">In Decky store</span> The <a href="https://plugins.deckbrew.xyz/plugins">Decky store</a> lists a plugin with this name ({compact(stats["store"]["downloads"])} downloads there). The store names no repository, so check that it is this one. The store is where Decky installs it from; DeckyHub installs from GitHub.</li>'
         )
     if stats.get("ai"):
         items.append(
@@ -443,7 +451,9 @@ def plugin_page(
     repo_url = f"https://github.com/{repo}"
     facts = [f"<li><strong>{escape(category)}</strong>Category</li>"]
     if stats.get("downloads") is not None:
-        facts.append(f"<li><strong>{compact(stats['downloads'])}</strong>Downloads</li>")
+        facts.append(f"<li><strong>{compact(stats['downloads'])}</strong>GitHub downloads</li>")
+    if stats.get("store"):
+        facts.append(f"<li><strong>{compact(stats['store']['downloads'])}</strong>Decky store downloads</li>")
     if stats.get("stars") is not None:
         facts.append(f"<li><strong>{compact(stats['stars'])}</strong>GitHub stars</li>")
     if stats.get("updated"):
@@ -464,14 +474,15 @@ def plugin_page(
     body = f"""{crumbs}
 <h1>{escape(name)}</h1>
 <p class="lead">{escape(description)}</p>
-<p><a class="btn" href="/#install">Install with DeckyHub</a><a class="btn ghost" href="{escape(repo_url)}">Source on GitHub</a></p>
+{STORE_ONLY_NOTE if app.get("store") else ""}<p><a class="btn" href="/#install">Install with DeckyHub</a><a class="btn ghost" href="{escape(repo_url)}">Source on GitHub</a></p>
 <ul class="facts">{"".join(facts)}<li class="wide"><strong><a href="{escape(repo_url)}">{escape(repo)}</a></strong>Repository</li></ul>
 <h2>Install {escape(name)}</h2>
-<p><a class="btn ghost" href="#remote-install">Send to device (experimental)</a></p>
+{"" if app.get("store") else '<p><a class="btn ghost" href="#remote-install">Send to device (experimental)</a></p>'}
 <p class="note">Before updating an installed plugin, check that its GitHub owner and repository match the source shown here. Plugin names alone may not identify the correct project.</p>
 <p>{escape(name)} is a <a href="https://decky.xyz/">Decky Loader</a> plugin. With <a href="/">DeckyHub</a> installed, open DeckyHub's <strong>Discover</strong> tab in Gaming Mode, search for <strong>{escape(name)}</strong> and press <strong>Install</strong>. DeckyHub hands the release to Decky Loader's own installer and checks its SHA-256 whenever GitHub publishes one. You can also download the ZIP from its <a href="{escape(repo_url)}/releases">releases</a> and install it by hand from Decky's developer settings.</p>
-{remote_install_picker(app["id"])}
+{"" if app.get("store") else remote_install_picker(app["id"])}
 <h2>Safety information</h2>
+<p class="note">{NOT_REVIEWED}</p>
 {"<ul class='badges'>" + "".join(badges) + "</ul>" if badges else "<p>No badges: it doesn't run as root, and no audit warnings or virus scan findings are known for it.</p>"}
 <h2>Security scans</h2>
 <p>Every ZIP DeckyHub offers is scanned with ClamAV and with YARA rules (YARA Forge's core set), and the same scans are shown in the app. The registry also sends each ZIP to VirusTotal and MetaDefender, uploading it if they haven't seen it yet, and their results are matched by the file's SHA-256.</p>
@@ -577,6 +588,8 @@ def flags_of(stats: dict, scans: dict, reports: dict | None = None, vt_reports: 
     flags = []
     if stats.get("ai"):
         flags.append('<span class="flag-ai">✦ AI</span>')
+    if stats.get("store"):
+        flags.append('<span class="flag-store">In Decky store</span>')
     if stats.get("root"):
         flags.append('<span class="flag-warn">⚠ Root</span>')
     if stats.get("warnings"):
@@ -600,15 +613,18 @@ def card(app: dict, data: dict, prefix: str = "/plugins/") -> str:
     meta = " · ".join(
         part
         for part in (
-            f"↓ {compact(stats['downloads'])}" if stats.get("downloads") is not None else "",
+            f'<span title="GitHub downloads">↓ {compact(stats["downloads"])}</span>'
+            if stats.get("downloads") is not None
+            else "",
             f"★ {compact(stats['stars'])}" if stats.get("stars") is not None else "",
         )
         if part
     )
     description = app.get("description") or ""
     text = escape(f"{app['name']} {description} {app['category']} {app['repo']}".lower())
+    in_store = ' data-store="1"' if stats.get("store") else ""
     return (
-        f'<a class="app" href="{prefix}{escape(app["id"])}.html" data-text="{text}" data-cat="{slug(app["category"])}">'
+        f'<a class="app" href="{prefix}{escape(app["id"])}.html" data-text="{text}" data-cat="{slug(app["category"])}"{in_store}>'
         f"<small>{escape(app['category'])}</small><strong>{escape(app['name'])}</strong><p>{escape(description)}</p>"
         f'<span class="meta">{meta}</span><span class="flags">{flags_of(stats, scans, data.get("reports"), data.get("vt"))}</span></a>'
     )
@@ -623,10 +639,11 @@ def popular_cards(apps: list[dict], data: dict, count: int = 12, prefix: str = "
     return "\n".join(card(app, data, prefix) for app in by_downloads(apps, data)[:count])
 
 
-FILTER_JS = """(function(){var q=document.getElementById("q"),cards=[].slice.call(document.querySelectorAll("#list .app")),chips=[].slice.call(document.querySelectorAll(".chips button")),count=document.getElementById("count"),cat="";
-function run(){var t=q.value.trim().toLowerCase(),n=0;cards.forEach(function(c){var ok=(!cat||c.dataset.cat===cat)&&(!t||c.dataset.text.indexOf(t)>-1);c.hidden=!ok;if(ok)n++});count.textContent=n+" of "+cards.length+" plugins";chips.forEach(function(b){b.setAttribute("aria-pressed",String((b.dataset.cat||"")===cat))})}
+FILTER_JS = """(function(){var q=document.getElementById("q"),cards=[].slice.call(document.querySelectorAll("#list .app")),chips=[].slice.call(document.querySelectorAll(".chips button[data-cat]")),store=document.getElementById("store-only"),count=document.getElementById("count"),cat="",inStore=false;
+function run(){var t=q.value.trim().toLowerCase(),n=0;cards.forEach(function(c){var ok=(!cat||c.dataset.cat===cat)&&(!inStore||c.dataset.store)&&(!t||c.dataset.text.indexOf(t)>-1);c.hidden=!ok;if(ok)n++});count.textContent=n+" of "+cards.length+" plugins";chips.forEach(function(b){b.setAttribute("aria-pressed",String((b.dataset.cat||"")===cat))})}
 function fromHash(){var m=/^#cat=([a-z0-9-]+)/.exec(location.hash);cat=m?m[1]:"";run()}
 chips.forEach(function(b){b.addEventListener("click",function(){cat=b.dataset.cat||"";history.replaceState(null,"",cat?"#cat="+cat:location.pathname);run()})});
+if(store)store.addEventListener("click",function(){inStore=!inStore;store.setAttribute("aria-pressed",String(inStore));run()});
 q.addEventListener("input",run);window.addEventListener("hashchange",fromHash);fromHash()})();"""
 
 
@@ -641,6 +658,9 @@ def catalog_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
         f'<button type="button" data-cat="{slug(name)}" aria-pressed="false">{escape(name)} {count}</button>'
         for name, count in sorted(categories.items(), key=lambda item: (-item[1], item[0]))
     )
+    in_store = sum(1 for app in apps if (data["stats"].get(app["repo"].casefold()) or {}).get("store"))
+    if in_store:
+        chips += f'<button type="button" id="store-only" aria-pressed="false">In Decky store {in_store}</button>'
     body = f"""<p class="crumbs"><a href="/">DeckyHub</a> › Plugins</p>
 <h1>Decky plugins</h1>
 <p><a class="btn ghost" href="/remote-install/">Paired devices</a></p>

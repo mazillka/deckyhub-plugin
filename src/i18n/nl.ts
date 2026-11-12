@@ -88,6 +88,10 @@ export const nl: Record<MessageKey, string> = {
   "appcard.install": "Installeren",
   "appcard.installVersion": "v{version} installeren",
   "appcard.downloads": "{count} downloads",
+  "appcard.githubDownloads": "{count} GitHub-downloads",
+  "appcard.inStore": "In de Decky-store",
+  "appcard.inStoreHint":
+    "De Decky-store heeft een plugin met deze naam ({count} downloads daar). De store noemt geen repository, controleer dus of het deze is.",
   "appcard.stars": "{count} GitHub-sterren",
   "appcard.runsAsRoot": "Draait als root",
   "appcard.runsAsRootHint":
@@ -396,6 +400,9 @@ export const nl: Record<MessageKey, string> = {
 
   "github.error": "GitHub API gaf {status} terug",
   "release.noMatch": "Geen passende release gevonden.",
+  "release.inStore": "De auteur verspreidt hem via de Decky-store. Installeer hem daar.",
+  "scan.notReviewed":
+    "DeckyHub is niet de Decky-store en niemand beoordeelt deze plugins. Een schone scan betekent alleen dat er geen bekende malware is gevonden.",
   "release.noChecksum": "Geen DeckyHub-release-ZIP met een SHA-256-checksum gevonden.",
   "error.loaderUnavailable": "Decky Loader is nu niet beschikbaar.",
   "toast.updatesAvailable": "Updates beschikbaar: {count}",
