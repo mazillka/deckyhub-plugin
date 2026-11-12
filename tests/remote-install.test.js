@@ -94,6 +94,47 @@ test('the device picker sends only to the selected device with its own pin and t
   assert.equal(querySelector('#remote-status').textContent, 'Installed on your device.');
 });
 
+test('the Paired devices page lists one card per paired device and forgets one', async (t) => {
+  const devices = [
+    { name: 'Living room Deck', address: '192.168.1.20:8765', fingerprint: 'aa'.repeat(32), token: 'a'.repeat(43), lastUsed: Date.now() },
+    { name: 'Steam Deck OLED', address: '192.168.1.21:8765', fingerprint: 'bb'.repeat(32), token: 'b'.repeat(43), lastUsed: Date.now() },
+  ];
+  let saved = JSON.stringify(devices);
+  const globals = {
+    isSecureContext: true,
+    localStorage: { getItem: key => key.endsWith('pairedDevices') ? saved : null, setItem: (key, value) => { if (key.endsWith('pairedDevices')) saved = value; }, removeItem() {} },
+    Option: class { constructor(text, value) { Object.assign(this, { text, value }); } },
+    addEventListener() {},
+    WebTransport: class { ready = Promise.resolve(); closed = new Promise(() => {}); close() {} },
+  };
+  for (const [key, value] of Object.entries(globals)) {
+    const original = Object.getOwnPropertyDescriptor(globalThis, key);
+    Object.defineProperty(globalThis, key, { value, configurable: true });
+    t.after(() => original ? Object.defineProperty(globalThis, key, original) : delete globalThis[key]);
+  }
+  const node = () => ({
+    children: [], dataset: {}, handlers: {}, value: '', className: '', textContent: '', hidden: false,
+    append(...items) { this.children.push(...items); }, replaceChildren(...items) { this.children = items; }, add() {},
+    setAttribute() {}, scrollIntoView() {}, focus() {}, select() {},
+    addEventListener(event, handler) { this.handlers[event] = handler; },
+  });
+  const document = { createElement: node };
+  const elements = new Map();
+  const querySelector = id => (elements.has(id) ? elements.get(id) : elements.set(id, node()).get(id));
+  const root = { querySelector, ownerDocument: document, dataset: {} };
+  init(root);
+  const cards = querySelector('#remote-device-cards');
+  const names = () => cards.children.map(card => card.children[0].children[0].textContent);
+  assert.deepEqual(names(), ['Living room Deck', 'Steam Deck OLED']);
+  assert.equal(cards.children[0].dataset.selected, 'true');
+  assert.equal(cards.children[1].dataset.selected, 'false');
+  // Forget the second device from its card: it leaves the list and the saved pairings, the first stays selected.
+  cards.children[1].children[2].children[1].handlers.click();
+  assert.deepEqual(names(), ['Living room Deck']);
+  assert.deepEqual(JSON.parse(saved).map(device => device.name), ['Living room Deck']);
+  assert.equal(cards.children[0].dataset.selected, 'true');
+});
+
 test('sends one JSON request and accepts a successful response', async () => {
   const sent = [];
   const result = await exchange(transportReturning('{"ok":true,"status":"pending"}', sent), { op: 'pair_status', pairingId: 'abc' });
