@@ -315,8 +315,6 @@ export const zhTW: Record<MessageKey, string> = {
   "settings.density": "介面",
   "settings.densityDefault": "預設",
   "settings.densityCompact": "緊湊",
-  "settings.oled": "OLED 純黑",
-  "settings.oledHint": "使用純黑背景，讓 OLED 螢幕可以關閉這些像素。",
   "settings.itemsPerRow": "每列顯示數量",
   "settings.haptics": "瀏覽時的觸覺回饋",
   "settings.quickAccessTab": "快速存取中的 DeckyHub 分頁",

@@ -58,7 +58,9 @@ export function SearchPage() {
 
   const [hiddenButtons, setHiddenButtons] = useState<HideableButton[]>([]);
   // Shared with Discover and Updates; both show every result.
-  const [layout, setLayout] = useLayout();
+  const [chosenLayout, setLayout] = useLayout();
+  // The Experimental style has no grid: its results are always rows.
+  const layout = experimental ? "list" : chosenLayout;
   // Slides new results, pages and layouts in.
   const resultsRef = useSwapAnimation([results, layout]);
 
@@ -177,8 +179,6 @@ export function SearchPage() {
           searching={searching}
           onSearch={() => void search()}
           onClear={clear}
-          layout={layout}
-          onLayout={setLayout}
           error={searchError}
         />
       )}

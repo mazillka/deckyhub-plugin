@@ -49,8 +49,6 @@ def coerce_settings(settings: dict) -> dict:
         # Only the frontend's api.github.com calls send it (githubHeaders() in src/utils.ts).
         "githubToken": settings["githubToken"].strip()[:255] if isinstance(settings.get("githubToken"), str) else "",
         "density": "compact" if settings.get("density") == "compact" else "default",
-        # True black backgrounds for OLED screens (applyOled() in src/styles.ts). Off for older settings files.
-        "oled": settings.get("oled") is True,
         # A haptic tick on the Deck's trackpads as focus moves (hapticTick() in src/utils.ts).
         "haptics": bool(settings.get("haptics", True)),
         # DeckyHub's own icon in Steam's Quick Access tab strip (QuickAccessTab.tsx).

@@ -268,7 +268,7 @@ Settings is split into tabs; **L1** / **R1** switch between them.
 
 | Tab | What's in it |
 | --- | --- |
-| **General** | The language, and the display: **Grid** or **List**, **Default** or **Compact** density, **OLED black** (true black backgrounds for OLED screens), items per row, haptics, whether DeckyHub has its own tab in Quick Access (off by default), and which Manage-window buttons to hide. |
+| **General** | The language, and the display: **Grid** or **List**, **Default** or **Compact** density, items per row, haptics, whether DeckyHub has its own tab in Quick Access (off by default), and which Manage-window buttons to hide. |
 | **GitHub** | An optional personal access token that raises GitHub's rate limit (see [Troubleshooting](#troubleshooting)). Type it, or load it from a text file in Downloads. Builds with GitHub sign-in set up also have **Sign in with GitHub**: DeckyHub shows a short code, you open `github.com/login/device` on any device (a QR code is there for your phone), enter it and approve, and DeckyHub saves the token it gets, with no token to create or copy. That token asks for no permissions: it only reads public data and lifts the rate limit. Revoke it any time under GitHub's Settings → Applications. |
 | **Downloads** | The download folder and the **Overwrite Existing** toggle (see [Downloads](#downloads)). |
 | **Repositories** | Your tracked repositories, export and import, and **Custom Registries** (see [Repositories](#repositories)). |

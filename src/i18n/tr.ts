@@ -327,8 +327,6 @@ export const tr: Record<MessageKey, string> = {
   "settings.density": "Arayüz",
   "settings.densityDefault": "Varsayılan",
   "settings.densityCompact": "Sıkı",
-  "settings.oled": "OLED siyahı",
-  "settings.oledHint": "Tam siyah arka planlar; böylece OLED ekran bu pikselleri kapatabilir.",
   "settings.itemsPerRow": "Satır başına öğe",
   "settings.haptics": "Gezinirken dokunsal geri bildirim",
   "settings.quickAccessTab": "Hızlı Erişim'de DeckyHub sekmesi",

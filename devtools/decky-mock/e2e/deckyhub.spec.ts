@@ -2868,22 +2868,16 @@ test("Release Page closes the Manage window before opening the page", async ({ p
   await expect(app.locator(".steam-modal")).toHaveCount(0);
 });
 
-test("OLED black turns DeckyHub's pages and cards true black, and off restores them", async ({ page }) => {
+test("DeckyHub's pages and cards are true black, and Settings has no OLED switch", async ({ page }) => {
   const app = mock(page);
   const card = app.locator(".deckyhub-card").first();
-  const look = () =>
-    card.evaluate((el) => getComputedStyle(el).backgroundColor + " " + getComputedStyle(el).backgroundImage);
-  try {
-    await bridgeCall(page, "save_settings", { ...defaultSettings, oled: false });
-    await app.getByRole("button", { name: "/deckyhub/settings" }).click();
-    await expect.poll(look).toContain("linear-gradient");
-    await app.getByRole("checkbox", { name: /OLED black/ }).click();
-    await expect.poll(look).toBe("rgb(0, 0, 0) none");
-    await app.getByRole("checkbox", { name: /OLED black/ }).click();
-    await expect.poll(look).toContain("linear-gradient");
-  } finally {
-    await bridgeCall(page, "save_settings", { ...defaultSettings, oled: false });
-  }
+  await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+  await expect
+    .poll(() =>
+      card.evaluate((el) => getComputedStyle(el).backgroundColor + " " + getComputedStyle(el).backgroundImage),
+    )
+    .toBe("rgb(0, 0, 0) none");
+  await expect(app.getByRole("checkbox", { name: /OLED/ })).toHaveCount(0);
 });
 
 test("Compact interface shrinks DeckyHub's buttons and spacing, Default restores them", async ({ page }) => {
@@ -3642,7 +3636,6 @@ const defaultSettings = {
   columnsPerRow: 3,
   githubToken: "",
   density: "default",
-  oled: false,
   haptics: true,
   hiddenButtons: [],
 };

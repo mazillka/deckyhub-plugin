@@ -325,8 +325,6 @@ export const ko: Record<MessageKey, string> = {
   "settings.density": "인터페이스",
   "settings.densityDefault": "기본",
   "settings.densityCompact": "간결",
-  "settings.oled": "OLED 블랙",
-  "settings.oledHint": "배경을 완전한 검정으로 바꿔 OLED 화면이 해당 픽셀을 끌 수 있게 합니다.",
   "settings.itemsPerRow": "한 줄당 항목 수",
   "settings.haptics": "탐색할 때 햅틱 피드백",
   "settings.quickAccessTab": "빠른 액세스의 DeckyHub 탭",

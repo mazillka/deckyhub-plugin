@@ -327,8 +327,6 @@ export const en = {
   "settings.density": "Interface",
   "settings.densityDefault": "Default",
   "settings.densityCompact": "Compact",
-  "settings.oled": "OLED black",
-  "settings.oledHint": "True black backgrounds, so an OLED screen can switch those pixels off.",
   "settings.itemsPerRow": "Items Per Row",
   "settings.haptics": "Haptic feedback when navigating",
   "settings.quickAccessTab": "DeckyHub tab in Quick Access",

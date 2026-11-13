@@ -328,8 +328,6 @@ export const ru: Record<MessageKey, string> = {
   "settings.density": "Интерфейс",
   "settings.densityDefault": "Стандартный",
   "settings.densityCompact": "Компактный",
-  "settings.oled": "Чёрный для OLED",
-  "settings.oledHint": "Полностью чёрный фон, чтобы OLED-экран мог отключать эти пиксели.",
   "settings.itemsPerRow": "Элементов в строке",
   "settings.haptics": "Тактильный отклик при навигации",
   "settings.quickAccessTab": "Вкладка DeckyHub в быстром доступе",

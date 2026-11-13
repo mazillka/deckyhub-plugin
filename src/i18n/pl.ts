@@ -330,8 +330,6 @@ export const pl: Record<MessageKey, string> = {
   "settings.density": "Interfejs",
   "settings.densityDefault": "Domyślny",
   "settings.densityCompact": "Kompaktowy",
-  "settings.oled": "Czerń OLED",
-  "settings.oledHint": "Czysto czarne tła, aby ekran OLED mógł wyłączyć te piksele.",
   "settings.itemsPerRow": "Elementów w wierszu",
   "settings.haptics": "Wibracje podczas nawigacji",
   "settings.quickAccessTab": "Karta DeckyHub w Szybkim dostępie",
