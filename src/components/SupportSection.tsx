@@ -11,8 +11,9 @@ import { Card } from "./Card";
 import { WideModalRoot } from "./WideModal";
 
 const KOFI_URL = "https://ko-fi.com/mazillka";
-// Ko-fi's own colour, so the button reads as theirs.
+// Ko-fi's own colour, so the button reads as theirs, with dark text: white on it is only 2.4:1.
 const KOFI_COLOR = "#ff5e5b";
+const KOFI_TEXT = "#15100f";
 
 // The Ko-fi page as a QR code to scan with a phone, and an Open button for this device's own browser.
 function SupportModal({ t, closeModal }: { t: TFunc; closeModal?: () => void }) {
@@ -31,7 +32,7 @@ function SupportModal({ t, closeModal }: { t: TFunc; closeModal?: () => void }) 
         <code style={{ color: colors.accent, overflowWrap: "anywhere" }}>{KOFI_URL.replace("https://", "")}</code>
         <Focusable flow-children="right" style={{ display: "flex", gap: 10, width: "100%", flexWrap: "wrap" }}>
           <Button
-            style={{ ...iconRow, margin: 0, flex: 1, minWidth: 150, background: KOFI_COLOR }}
+            style={{ ...iconRow, margin: 0, flex: 1, minWidth: 150, background: KOFI_COLOR, color: KOFI_TEXT }}
             onClick={() => {
               closeModal?.();
               openExternalWeb(KOFI_URL);
@@ -56,7 +57,7 @@ export function SupportSection() {
       <PanelSection>
         <PanelSectionRow>
           <Button
-            style={{ ...iconRow, margin: 0, width: "100%", background: KOFI_COLOR }}
+            style={{ ...iconRow, margin: 0, width: "100%", background: KOFI_COLOR, color: KOFI_TEXT }}
             onClick={(event) => {
               rememberOpener(event.currentTarget);
               showModal(<SupportModal t={t} />);
