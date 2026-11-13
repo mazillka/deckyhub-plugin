@@ -334,6 +334,9 @@
 [data-state="failed"] .rd-status { border-inline-start-color: #e5645c; }
 .remote-plugins li[hidden] { display: none; }
 .remote-plugins .remote-danger { color: #ff8a80; border-color: currentColor; }
+.remote-pack { margin: 0 0 12px; }
+.remote-pack summary { cursor: pointer; font-weight: 600; }
+.remote-pack p { margin: 8px 0 0; }
 #remote-plugins-filter { width: min(100%, 24rem); }
 
 /* Errors: unmistakable next to the quieter info boxes (role="alert", set by remote-install.js). */

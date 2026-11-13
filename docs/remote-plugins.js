@@ -69,21 +69,75 @@ export function describe(document, record, labels) {
   return parts;
 }
 
+// A DeckyHub pack file: { kind: 'deckyhub-pack', name, plugins: [{ repo }] }, or a repositories list { repos: [...] }.
+export function readPack(text) {
+  const data = JSON.parse(text);
+  const items = Array.isArray(data?.plugins) ? data.plugins.map(item => item?.repo) : Array.isArray(data?.repos) ? data.repos : null;
+  if (!items) throw new Error('This is not a DeckyHub plugin pack.');
+  const repos = [...new Set(items.filter(repo => typeof repo === 'string' && /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repo)).map(repo => repo.toLowerCase()))].slice(0, 200);
+  if (!repos.length) throw new Error('This plugin pack has no plugins in it.');
+  return { name: typeof data.name === 'string' && data.name.trim() ? data.name.trim().slice(0, 60) : 'Pack', repos };
+}
+
+// The pack's plugins that are installed on the device (never DeckyHub), and which of them are off or on.
+export function packTargets(pack, installed) {
+  const repos = new Set(pack?.repos || []);
+  const match = installed.filter(plugin => plugin.repo && repos.has(plugin.repo.toLowerCase()) &&
+    typeof plugin.pluginName === 'string' && plugin.pluginName.toLowerCase() !== 'deckyhub');
+  return {
+    found: match.length,
+    enable: match.filter(plugin => plugin.disabled).map(plugin => plugin.pluginName),
+    disable: match.filter(plugin => !plugin.disabled).map(plugin => plugin.pluginName),
+  };
+}
+
 export function createPluginList(root, { loadPage, request }) {
   const list = root.querySelector('#remote-plugins');
   const status = root.querySelector('#remote-plugins-status');
   const refresh = root.querySelector('#remote-plugins-refresh');
   const filter = root.querySelector('#remote-plugins-filter');
+  const packFile = root.querySelector('#remote-pack');
+  const packInfo = root.querySelector('#remote-pack-info');
+  const packEnable = root.querySelector('#remote-pack-enable');
+  const packDisable = root.querySelector('#remote-pack-disable');
   const document = root.ownerDocument;
   if (!list || !status || !refresh || !document) return { reset() {}, setEnabled() {}, load() {} };
   let generation = 0;
   let enabled = false;
   let loading = false;
+  let installed = [];
+  let pack; // { name, repos } from the picked pack file
   const actionButtons = [];
   const updateButtons = () => {
     refresh.disabled = !enabled || loading;
     actionButtons.forEach(button => { button.disabled = !enabled || loading; });
+    if (packFile) packFile.disabled = !enabled || loading;
+    const targets = packTargets(pack, installed);
+    if (packEnable) packEnable.disabled = !enabled || loading || !targets.enable.length;
+    if (packDisable) packDisable.disabled = !enabled || loading || !targets.disable.length;
+    if (packInfo && pack) {
+      packInfo.textContent = `${pack.name}: ${targets.found} of ${pack.repos.length} plugins are installed on this device (${targets.enable.length} off, ${targets.disable.length} on).`;
+    }
   };
+  packFile?.addEventListener('change', async () => {
+    const file = packFile.files?.[0];
+    if (!file) return;
+    try {
+      if (file.size > 256 * 1024) throw new Error('This file is too large to be a plugin pack.');
+      pack = readPack(await file.text());
+      updateButtons();
+    } catch (error) {
+      pack = undefined;
+      if (packInfo) packInfo.textContent = error instanceof SyntaxError ? 'This is not a DeckyHub plugin pack.' : error.message;
+      updateButtons();
+    }
+  });
+  for (const [button, action] of [[packEnable, 'enable'], [packDisable, 'disable']]) {
+    button?.addEventListener('click', () => {
+      const names = packTargets(pack, installed)[action];
+      if (names.length) request(null, action, names.slice(0, 50));
+    });
+  }
   const applyFilter = () => {
     const words = (filter?.value || '').toLowerCase().split(/\s+/).filter(Boolean);
     let shown = 0;
@@ -110,14 +164,25 @@ export function createPluginList(root, { loadPage, request }) {
     }
     applyFilter();
   };
+  const toggleButton = plugin => {
+    const action = plugin.disabled ? 'enable' : 'disable';
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = plugin.disabled ? 'Request enable' : 'Request disable';
+    button.setAttribute('aria-label', `${button.textContent} for ${plugin.name}`);
+    button.addEventListener('click', () => request(null, action, [plugin.pluginName]));
+    actionButtons.push(button);
+    return button;
+  };
   const render = plugins => {
     list.replaceChildren();
     actionButtons.length = 0;
     const pending = [];
+    installed = plugins;
     for (const plugin of plugins) {
       const row = document.createElement('li');
       const title = document.createElement('strong');
-      title.textContent = plugin.name;
+      title.textContent = plugin.disabled ? `${plugin.name} (disabled)` : plugin.name;
       const version = document.createElement('span');
       version.textContent = `Installed version · ${plugin.version}`;
       const repository = document.createElement('span');
@@ -129,6 +194,7 @@ export function createPluginList(root, { loadPage, request }) {
       if (verified) {
         const actions = document.createElement('div');
         actions.className = 'remote-actions';
+        actions.append(toggleButton(plugin));
         for (const [action, label] of [['update', 'Request update'], ['uninstall', 'Request uninstall']]) {
           const button = document.createElement('button');
           button.type = 'button';
@@ -145,6 +211,7 @@ export function createPluginList(root, { loadPage, request }) {
         // update it from here. Removing it only needs the name Decky Loader uses.
         const actions = document.createElement('div');
         actions.className = 'remote-actions';
+        actions.append(toggleButton(plugin));
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'remote-danger';
@@ -183,7 +250,8 @@ export function createPluginList(root, { loadPage, request }) {
         if (current !== generation) return;
         if (!Array.isArray(result.plugins) || result.plugins.length > 20 ||
             result.plugins.some(plugin => !plugin || typeof plugin.name !== 'string' || typeof plugin.version !== 'string' ||
-              (plugin.pluginName !== null && typeof plugin.pluginName !== 'string'))) {
+              (plugin.pluginName !== null && typeof plugin.pluginName !== 'string') ||
+              (plugin.disabled !== undefined && typeof plugin.disabled !== 'boolean'))) {
           throw new Error('Invalid plugin list from the device.');
         }
         plugins.push(...result.plugins);
@@ -198,6 +266,7 @@ export function createPluginList(root, { loadPage, request }) {
       if (current !== generation) return;
       list.replaceChildren();
       actionButtons.length = 0;
+      installed = [];
       status.textContent = error instanceof Error ? error.message : 'Unable to load installed plugins.';
     } finally {
       if (current === generation) { loading = false; updateButtons(); }
@@ -210,6 +279,7 @@ export function createPluginList(root, { loadPage, request }) {
       loading = false;
       list.replaceChildren();
       actionButtons.length = 0;
+      installed = [];
       status.textContent = 'Pair a device to see its installed plugins.';
       updateButtons();
     },

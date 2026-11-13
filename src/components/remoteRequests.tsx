@@ -11,6 +11,7 @@ import { listAppReleases, fetchPluginStats } from "../releases";
 import { getDeckyBackend, installAction, installDeckyPlugin, needsFreshInstall, PLUGIN_INSTALL_TYPE } from "../install";
 import { manifestName } from "../utils";
 import { confirmPluginInstall } from "./InstallFlow";
+import { approveRemoteToggle } from "./RemotePluginToggle";
 import { approveRemoteUninstall } from "./RemotePluginUninstall";
 
 // Runs one remote request on this device. `auto` is true for a trusted browser, whose
@@ -22,6 +23,10 @@ export async function runRemoteRequest(request: RemoteInstallRequest, t: TFunc, 
     if (!getDeckyBackend()) throw new Error(t("settings.selfUpdateUnavailable"));
     if (request.action === "uninstall") {
       await approveRemoteUninstall(request, t, auto);
+      return;
+    }
+    if (request.action === "enable" || request.action === "disable") {
+      await approveRemoteToggle(request, t, auto);
       return;
     }
     const { apps } = await getApps();

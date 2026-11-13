@@ -218,10 +218,12 @@ export type RemoteInstallRequest = {
   releaseTag?: string | null;
   ownerName: string;
   status: string;
-  action?: "install" | "update" | "uninstall";
+  action?: "install" | "update" | "uninstall" | "enable" | "disable";
   repo?: string | null;
   pluginName?: string | null;
   installedVersion?: string | null;
+  // enable / disable: the Decky Loader names of the plugins to switch (a whole pack in one request).
+  pluginNames?: string[];
 };
 
 export type RemoteInstallStatus = {

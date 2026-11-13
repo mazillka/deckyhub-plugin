@@ -93,17 +93,18 @@ export const claimRemoteRequest = callable<
     pluginId: string | null;
     releaseTag?: string | null;
     status: string;
-    action?: "install" | "update" | "uninstall";
+    action?: "install" | "update" | "uninstall" | "enable" | "disable";
     repo?: string | null;
     pluginName?: string | null;
     installedVersion?: string | null;
+    pluginNames?: string[];
   }
 >("claim_remote_request");
 export const finishRemoteRequest = callable<[requestId: string, success: boolean], { id: string; status: string }>(
   "finish_remote_request",
 );
 
-export const getRemoteInstalledVersion = callable<[pluginName: string], { version: string | null }>(
+export const getRemoteInstalledVersion = callable<[pluginName: string], { version: string | null; disabled: boolean }>(
   "get_remote_installed_version",
 );
 
