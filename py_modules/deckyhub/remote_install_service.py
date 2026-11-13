@@ -16,6 +16,7 @@ import time
 from .remote_install_queue import MAX_TOGGLE_PLUGINS, RemoteInstallQueue
 
 DEVICE_IDLE_SECONDS = 30 * 24 * 3600
+MAX_SUMMARY = 30
 _SECRET = re.compile(r"[A-Za-z0-9_-]{43}\Z")
 
 
@@ -50,6 +51,24 @@ class RemoteInstallService:
         self.attempts = []
         # Called when a trusted device's request is approved on arrival, so the device can run it.
         self.on_trusted_request = None
+        # Plugins with an update waiting, as the device's frontend last reported them (memory only).
+        self.updates = None
+
+    def set_updates(self, items):
+        """Remember which plugins have updates, for paired browsers to ask about (op "summary")."""
+        if not isinstance(items, list):
+            raise ValueError("invalid updates")
+        clean = [
+            {"name": item["name"], "version": item["version"]}
+            for item in items[:MAX_SUMMARY]
+            if isinstance(item, dict)
+            and isinstance(item.get("name"), str)
+            and isinstance(item.get("version"), str)
+            and 0 < len(item["name"]) <= 100
+            and len(item["version"]) <= 40
+        ]
+        self.updates = {"updates": clean, "checkedAt": int(self.wall())}
+        return {"count": len(clean)}
 
     def persist(self):
         if self.store:
@@ -324,6 +343,8 @@ class RemoteInstallService:
         if op == "pair_status":
             return self.pair_status(message.get("pairingId"), message.get("pairingSecret"))
         owner = self.owner(message.get("token"))
+        if op == "summary":
+            return self.updates or {"updates": [], "checkedAt": None}
         if op == "plugins":
             return self._plugins_page(message, self.installed() if installed is None else installed)
         if op == "request":

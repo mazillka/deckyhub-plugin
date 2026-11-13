@@ -2,6 +2,7 @@ import { tr } from "./translate";
 import { isAuditWarning, type App } from "./types";
 import type { TFunc } from "./i18n/en";
 import { toaster } from "@decky/api";
+import { setRemoteUpdates } from "./api";
 
 // What flagged the installed version (installedRisk), for its card badge and the toast.
 export const installedRiskReasons = (t: TFunc, risk: NonNullable<App["installedRisk"]>) =>
@@ -46,6 +47,8 @@ export function notifyInstalledRisks(apps: App[]) {
 export function notifyUpdates(apps: App[]) {
   const updates = apps.filter((app) => app.updateAvailable && app.latestVersion);
   setUpdateCount(updates.length);
+  // Paired browsers ask the device for this (Remote Install); the device owner is not asked and nothing is sent out.
+  void setRemoteUpdates(updates.map((app) => ({ name: app.name, version: app.latestVersion! }))).catch(() => undefined);
   const notice = updates
     .map((app) => `${app.repo}:${app.latestVersion}`)
     .sort()

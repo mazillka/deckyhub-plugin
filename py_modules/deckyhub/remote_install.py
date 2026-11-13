@@ -150,6 +150,14 @@ class RemoteInstallMixin:
             raise ValueError(self.remote_install_error or "Remote install transport unavailable")
         return self.remote_install_service.begin_pairing()
 
+    async def set_remote_updates(self, updates: list):
+        """The frontend's list of plugins with updates, for paired browsers to be told about."""
+        service = getattr(self, "remote_install_service", None)
+        if service is None:
+            self._init_remote_install()
+            service = self.remote_install_service
+        return service.set_updates(updates)
+
     async def decide_remote_pairing(self, pair_id: str, approve: bool):
         return self.remote_install_service.decide_pairing(pair_id, approve)
 
