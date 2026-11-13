@@ -472,7 +472,13 @@ def paired_devices_page(
     description: str = "Pair a device and manage its installed Decky plugins.",
 ) -> str:
     body = "<h1>Paired devices</h1>" + remote_device_panel()
-    return page(shell, title, description, "remote-install/", body, [], current="paired-devices")
+    # An installable app (docs/remote-install/manifest.webmanifest, sw.js), scoped to this page.
+    app = [
+        '<link rel="manifest" href="/remote-install/manifest.webmanifest">',
+        '<link rel="apple-touch-icon" href="/icon-192.png">',
+        '<meta name="mobile-web-app-capable" content="yes">',
+    ]
+    return page(shell, title, description, "remote-install/", body, app, current="paired-devices")
 
 
 def plugin_page(

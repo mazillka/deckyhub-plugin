@@ -104,6 +104,11 @@ export const finishRemoteRequest = callable<[requestId: string, success: boolean
   "finish_remote_request",
 );
 
+// The plugins with an update waiting, which a paired browser can ask about (Remote Install, op "summary").
+export const setRemoteUpdates = callable<[updates: { name: string; version: string }[]], { count: number }>(
+  "set_remote_updates",
+);
+
 export const getRemoteInstalledVersion = callable<[pluginName: string], { version: string | null; disabled: boolean }>(
   "get_remote_installed_version",
 );

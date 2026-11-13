@@ -1,4 +1,5 @@
 import { createPluginList } from './remote-plugins.js';
+import { createUpdates } from './remote-updates.js';
 
 // Remote requests use WebTransport with the certificate fingerprint displayed on the device.
 // The user must enter the fingerprint through this trusted HTTPS page, not a network response.
@@ -133,7 +134,7 @@ export function init(root, details) {
   let reachable = null;
   let transport, endpoint, token, requestId, idempotencyKey, requestPluginId, cancelled = false;
   let requestAction = 'install', requestName, requestNames, busy = false;
-  let inventory;
+  let inventory, updates;
   let devices = [];
   let selectedFingerprint;
   try {
@@ -393,7 +394,7 @@ export function init(root, details) {
       }
       if (forgetButton) forgetButton.hidden = false;
       updateActions();
-      if (!pluginId) void inventory?.load();
+      if (!pluginId) { void inventory?.load(); void updates?.check(); }
       say(requestPluginId
         ? 'This device has a pending request. Retry its status before starting another change.'
         : compact ? '' : `${device.name} selected.`);
@@ -650,8 +651,12 @@ export function init(root, details) {
       return runRequest(id, action, name);
     },
   });
+  // Update notices and the installed app (docs/remote-updates.js): the Paired devices page only.
+  if (!compact && !pluginId) {
+    updates = createUpdates(root, { summary: () => send({ op: 'summary', token }), device: () => (token ? activeDevice() : undefined) });
+  }
   updateActions();
-  if (!pluginId && token) void inventory.load();
+  if (!pluginId && token) { void inventory.load(); void updates?.check(); }
   cancelButton?.addEventListener('click', async () => {
     if (!endpoint || !token || !requestId) return;
     if (cancelButton) cancelButton.disabled = true;
