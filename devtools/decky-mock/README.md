@@ -27,6 +27,8 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
+Remote Install runs for real behind a fake listener: `dev-server.py` swaps the QUIC transport for a stand-in (address 192.168.1.50) and adds `mock_remote_browser_pair` / `mock_remote_browser_send` / `mock_remote_browser_forget`, a paired browser's side, so `e2e/remote-install.spec.ts` can pair, approve and send requests through the real service code. Turn Pair mode on and call those routes to try the pairing window by hand.
+
 The tests run one at a time: they share the bridge's `settings.json` and `.dev-data/plugins`. CI splits them over four parallel jobs instead (`--shard=N/4` in `.github/workflows/e2e.yml`), each with its own bridge, so a test mustn't rely on one that ran before it. To try a shard locally: `npx playwright test --shard=2/4`.
 
 ![Discover page in the dev-mock, at Steam Deck density](screenshot.png)
