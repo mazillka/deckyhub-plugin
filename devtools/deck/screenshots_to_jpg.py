@@ -26,9 +26,11 @@ def with_panel(background: Path, panel_file: Path) -> Image.Image:
 
 
 if sys.argv[2:] == ["remote"]:
-    for name in ("remote-pair-mode", "remote-pairing-request", "remote-request"):
-        with_panel(src / f"{name}-background.png", src / f"{name}-panel.png").save(out / f"{name}.jpg", quality=88)
-    for name in ("remote-paired-devices", "remote-send-to-device"):
+    with_panel(src / "remote-request-background.png", src / "remote-request-panel.png").save(
+        out / "remote-request.jpg", quality=88
+    )
+    # The pairing window and the two pages of the website are whole screens.
+    for name in ("remote-pair-mode", "remote-pairing-request", "remote-paired-devices", "remote-send-to-device"):
         Image.open(src / f"{name}.png").convert("RGB").resize(SIZE, Image.LANCZOS).save(out / f"{name}.jpg", quality=88)
     sys.exit()
 
