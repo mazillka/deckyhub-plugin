@@ -26,7 +26,7 @@ export const pageStyle = {
   height: "100%",
   overflowY: "auto" as const,
   padding: "64px 12px 96px",
-  // Black with Display Settings' OLED option (applyOled), else Steam's own background.
+  // Black (applyOled).
   background: "var(--dh-page-bg, transparent)",
   scrollPaddingBottom: 96,
   scrollPaddingTop: 64,
@@ -129,16 +129,16 @@ export function applyDensity(density: string) {
   }
 }
 
-// Display Settings' OLED option: true black behind DeckyHub's pages, cards and windows, so an
-// OLED screen can switch those pixels off. Cards keep their border to stay visible. Like
-// applyDensity, it also styles the main window the Quick Access popup was opened from.
+// True black behind DeckyHub's pages, cards and windows, always, so an OLED screen can switch those
+// pixels off. Cards keep their border to stay visible. Like applyDensity, it also styles the main
+// window the Quick Access popup was opened from.
 const OLED_STYLE_ID = "deckyhub-oled";
 const OLED_CSS = `
   :root { --dh-page-bg: #000; --dh-surface: #000; }
   .deckyhub-wide-modal .GenericDialogBase { background: #000 !important; }
   html .deckyhub-exp { --exp-surface: #000; --exp-surface-2: rgba(255, 255, 255, 0.04); }
 `;
-export function applyOled(on: boolean) {
+export function applyOled() {
   let opener: Document | undefined;
   try {
     opener = window.opener?.document;
@@ -147,9 +147,7 @@ export function applyOled(on: boolean) {
   }
   for (const doc of [document, opener]) {
     if (!doc) continue;
-    const existing = doc.getElementById(OLED_STYLE_ID);
-    if (!on) existing?.remove();
-    else if (!existing) {
+    if (!doc.getElementById(OLED_STYLE_ID)) {
       const style = doc.createElement("style");
       style.id = OLED_STYLE_ID;
       style.textContent = OLED_CSS;

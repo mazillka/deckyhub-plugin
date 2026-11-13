@@ -90,7 +90,9 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const [thenBy, setThenBy] = useState<SortOrder>((restored?.thenBy as SortOrder) ?? "az");
   // Discover opens on its shelves; a category chip or See all browses the whole list, a page at a time.
   const [browsing, setBrowsing] = useState(restored?.browsing ?? false);
-  const [layout, setLayout] = useLayout();
+  const [chosenLayout, setLayout] = useLayout();
+  // The Experimental style has no grid: its cards are always rows.
+  const layout = experimental ? "list" : chosenLayout;
   const [updatingAll, setUpdatingAll] = useState(false);
   const quickAccessRef = useRef<HTMLDivElement>(null);
   const pageRef = useRef<HTMLDivElement>(null);

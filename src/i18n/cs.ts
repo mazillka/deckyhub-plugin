@@ -329,8 +329,6 @@ export const cs: Record<MessageKey, string> = {
   "settings.density": "Rozhraní",
   "settings.densityDefault": "Výchozí",
   "settings.densityCompact": "Kompaktní",
-  "settings.oled": "Černá pro OLED",
-  "settings.oledHint": "Pozadí v čistě černé, aby OLED displej mohl tyto pixely vypnout.",
   "settings.itemsPerRow": "Položek na řádek",
   "settings.haptics": "Haptická odezva při navigaci",
   "settings.quickAccessTab": "Karta DeckyHub v Rychlém přístupu",

@@ -112,7 +112,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         setGithubToken(settings.githubToken || "");
         setRegistryChannel(settings.registryChannel);
         applyDensity(settings.density);
-        applyOled(settings.oled === true);
+        applyOled();
         setHaptics(settings.haptics !== false);
         setUiStyle(settings.uiStyle);
       });

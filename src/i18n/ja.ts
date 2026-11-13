@@ -329,8 +329,6 @@ export const ja: Record<MessageKey, string> = {
   "settings.density": "インターフェース",
   "settings.densityDefault": "標準",
   "settings.densityCompact": "コンパクト",
-  "settings.oled": "OLED ブラック",
-  "settings.oledHint": "背景を完全な黒にして、OLED 画面がその画素を消灯できるようにします。",
   "settings.itemsPerRow": "1行あたりの項目数",
   "settings.haptics": "移動時の触覚フィードバック",
   "settings.quickAccessTab": "クイックアクセスの DeckyHub タブ",

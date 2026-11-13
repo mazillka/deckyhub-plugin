@@ -334,8 +334,6 @@ export const es: Record<MessageKey, string> = {
   "settings.density": "Interfaz",
   "settings.densityDefault": "Predeterminada",
   "settings.densityCompact": "Compacta",
-  "settings.oled": "Negro OLED",
-  "settings.oledHint": "Fondos negro puro, para que una pantalla OLED pueda apagar esos píxeles.",
   "settings.itemsPerRow": "Elementos por fila",
   "settings.haptics": "Respuesta háptica al navegar",
   "settings.quickAccessTab": "Pestaña de DeckyHub en Acceso rápido",

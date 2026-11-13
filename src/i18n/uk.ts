@@ -329,8 +329,6 @@ export const uk: Record<MessageKey, string> = {
   "settings.density": "Інтерфейс",
   "settings.densityDefault": "Стандартний",
   "settings.densityCompact": "Компактний",
-  "settings.oled": "Чорний для OLED",
-  "settings.oledHint": "Повністю чорне тло, щоб OLED-екран міг вимикати ці пікселі.",
   "settings.itemsPerRow": "Елементів у рядку",
   "settings.haptics": "Тактильний відгук під час навігації",
   "settings.quickAccessTab": "Вкладка DeckyHub у швидкому доступі",

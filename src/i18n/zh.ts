@@ -314,8 +314,6 @@ export const zh: Record<MessageKey, string> = {
   "settings.density": "界面",
   "settings.densityDefault": "默认",
   "settings.densityCompact": "紧凑",
-  "settings.oled": "OLED 纯黑",
-  "settings.oledHint": "使用纯黑背景，让 OLED 屏幕可以关闭这些像素。",
   "settings.itemsPerRow": "每行显示数量",
   "settings.haptics": "导航时的触觉反馈",
   "settings.quickAccessTab": "快速访问中的 DeckyHub 标签页",

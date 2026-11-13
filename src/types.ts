@@ -153,7 +153,6 @@ export type Settings = {
   columnsPerRow: 1 | 2 | 3 | 4;
   githubToken: string;
   density: "default" | "compact";
-  oled: boolean;
   haptics: boolean;
   quickAccessTab: boolean;
   uiStyle: UiStyle;

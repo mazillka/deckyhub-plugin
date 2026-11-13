@@ -335,8 +335,6 @@ export const nl: Record<MessageKey, string> = {
   "settings.density": "Interface",
   "settings.densityDefault": "Standaard",
   "settings.densityCompact": "Compact",
-  "settings.oled": "OLED-zwart",
-  "settings.oledHint": "Echt zwarte achtergronden, zodat een OLED-scherm die pixels kan uitschakelen.",
   "settings.itemsPerRow": "Items per rij",
   "settings.haptics": "Haptische feedback bij navigeren",
   "settings.quickAccessTab": "DeckyHub-tabblad in Snelle toegang",

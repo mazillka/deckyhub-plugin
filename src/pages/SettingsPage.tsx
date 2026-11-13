@@ -41,7 +41,6 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
     columnsPerRow: DEFAULT_COLUMNS_PER_ROW,
     githubToken: "",
     density: "default",
-    oled: false,
     haptics: true,
     quickAccessTab: true,
     uiStyle: "default",
@@ -80,7 +79,7 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
       if ("quickAccessTab" in next) setQuickAccessTab(saved.quickAccessTab);
       // Every mounted I18nProvider (one per route) re-syncs both the locale
       // and the GitHub token off this event — see i18n/index.tsx.
-      if ("language" in next || "githubToken" in next || "density" in next || "oled" in next || "haptics" in next)
+      if ("language" in next || "githubToken" in next || "density" in next || "haptics" in next)
         window.dispatchEvent(new Event(LOCALE_CHANGED));
     });
   };
@@ -106,7 +105,14 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
         title: t("settings.tabGeneral"),
         content: stack(
           <LanguageSection key="language" settings={settings} update={update} />,
-          <DisplaySection key="display" settings={settings} update={update} layout={layout} onLayout={setLayout} />,
+          <DisplaySection
+            key="display"
+            settings={settings}
+            update={update}
+            layout={layout}
+            onLayout={setLayout}
+            listOnly={experimental}
+          />,
         ),
       },
       {

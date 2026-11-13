@@ -4,7 +4,6 @@ import { FaArrowLeft, FaArrowUp, FaSync } from "react-icons/fa";
 import { useT } from "../../i18n";
 import { ContentHeader, HeaderNotices } from "../ContentHeader";
 import { keepInView, KeepInView } from "../KeepInView";
-import { LayoutToggle } from "../LayoutToggle";
 
 // Experimental: Updates', Discover's and Installed's header as a glowing banner, with
 // the same actions and notices as the Default one (ContentHeader).
@@ -13,8 +12,6 @@ export function ExpHeader({
   badge,
   description,
   onBack,
-  layout,
-  onLayout,
   onRefresh,
   updateAllCount,
   updatingAll,
@@ -37,11 +34,6 @@ export function ExpHeader({
               <Button onClick={onBack}>
                 <FaArrowLeft /> {t("nav.discover")}
               </Button>
-            </div>
-          )}
-          {layout && (
-            <div style={{ width: 120 }}>
-              <LayoutToggle layout={layout} onChange={onLayout} />
             </div>
           )}
           <div>

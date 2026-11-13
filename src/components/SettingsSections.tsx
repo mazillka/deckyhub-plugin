@@ -263,7 +263,7 @@ export function LanguageSection({ settings, update }: { settings: Settings; upda
   );
 }
 
-// Layout (shared with the Grid / List switches), density, OLED black, items per row, haptics,
+// Layout (shared with the Grid / List switches), density, items per row, haptics,
 // DeckyHub's Quick Access tab,
 // and the Manage-window buttons to hide.
 export function DisplaySection({
@@ -271,27 +271,32 @@ export function DisplaySection({
   update,
   layout,
   onLayout,
+  listOnly,
 }: {
   settings: Settings;
   update: Update;
   layout: Layout;
   onLayout: (layout: Layout) => void;
+  // The Experimental style is always a list: no layout or items-per-row choice.
+  listOnly?: boolean;
 }) {
   const t = useT();
   return (
     <Card>
       <PanelSection title={t("settings.displaySettings")}>
-        <PanelSectionRow>
-          <DropdownItem
-            label={t("settings.layout")}
-            rgOptions={[
-              { label: t("discover.grid"), data: "grid" },
-              { label: t("discover.list"), data: "list" },
-            ]}
-            selectedOption={layout}
-            onChange={({ data }) => onLayout(data)}
-          />
-        </PanelSectionRow>
+        {!listOnly && (
+          <PanelSectionRow>
+            <DropdownItem
+              label={t("settings.layout")}
+              rgOptions={[
+                { label: t("discover.grid"), data: "grid" },
+                { label: t("discover.list"), data: "list" },
+              ]}
+              selectedOption={layout}
+              onChange={({ data }) => onLayout(data)}
+            />
+          </PanelSectionRow>
+        )}
         <PanelSectionRow>
           <DropdownItem
             label={t("settings.density")}
@@ -303,22 +308,16 @@ export function DisplaySection({
             onChange={({ data }) => update({ density: data })}
           />
         </PanelSectionRow>
-        <PanelSectionRow>
-          <ToggleField
-            label={t("settings.oled")}
-            description={t("settings.oledHint")}
-            checked={settings.oled}
-            onChange={(checked) => update({ oled: checked })}
-          />
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <DropdownItem
-            label={t("settings.itemsPerRow")}
-            rgOptions={[1, 2, 3, 4].map((count) => ({ label: String(count), data: count }))}
-            selectedOption={settings.columnsPerRow}
-            onChange={({ data }) => update({ columnsPerRow: data })}
-          />
-        </PanelSectionRow>
+        {!listOnly && (
+          <PanelSectionRow>
+            <DropdownItem
+              label={t("settings.itemsPerRow")}
+              rgOptions={[1, 2, 3, 4].map((count) => ({ label: String(count), data: count }))}
+              selectedOption={settings.columnsPerRow}
+              onChange={({ data }) => update({ columnsPerRow: data })}
+            />
+          </PanelSectionRow>
+        )}
         <PanelSectionRow>
           <ToggleField
             label={t("settings.haptics")}
