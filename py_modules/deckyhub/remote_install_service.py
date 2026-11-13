@@ -13,7 +13,7 @@ import re
 import secrets
 import time
 
-from .remote_install_queue import RemoteInstallQueue
+from .remote_install_queue import MAX_TOGGLE_PLUGINS, RemoteInstallQueue
 
 DEVICE_IDLE_SECONDS = 30 * 24 * 3600
 _SECRET = re.compile(r"[A-Za-z0-9_-]{43}\Z")
@@ -269,6 +269,15 @@ class RemoteInstallService:
             raise ValueError("DeckyHub must be managed locally")
         return row.get("repo"), row["pluginName"], row.get("version")
 
+    def _snapshot_toggle(self, names, installed: list) -> tuple:
+        """The Decky Loader names to switch on or off: each one an installed plugin, once, DeckyHub never."""
+        if not isinstance(names, list) or not 0 < len(names) <= MAX_TOGGLE_PLUGINS:
+            raise ValueError("invalid plugin names")
+        found = {}
+        for name in names:
+            found.setdefault(str(name).casefold(), self._snapshot_installed_name(name, installed)[1])
+        return tuple(found.values())
+
     def _plugins_page(self, message: dict, installed: list) -> dict:
         offset = message.get("offset", 0)
         if type(offset) is not int or offset < 0:
@@ -290,6 +299,7 @@ class RemoteInstallService:
             {
                 "id": row.get("id"),
                 "identityUnverified": bool(row.get("identityUnverified")),
+                "disabled": bool(row.get("disabled")),
                 **{key: bounded(row.get(key)) for key in ("name", "repo", "version", "pluginName")},
             }
             for row in visible[offset : offset + 20]
@@ -318,24 +328,34 @@ class RemoteInstallService:
             return self._plugins_page(message, self.installed() if installed is None else installed)
         if op == "request":
             action = message.get("action", "install")
-            if action not in ("install", "update", "uninstall"):
+            if action not in ("install", "update", "uninstall", "enable", "disable"):
                 raise ValueError("invalid action")
+            toggle = action in ("enable", "disable")
             plugin_id = message.get("pluginId")
             plugin_name = message.get("pluginName")
-            by_name = plugin_id is None and action == "uninstall" and plugin_name is not None
-            if not by_name and not isinstance(plugin_id, str):
+            by_name = not toggle and plugin_id is None and action == "uninstall" and plugin_name is not None
+            if not toggle and not by_name and not isinstance(plugin_id, str):
                 raise ValueError("plugin not in registry")
             key, tag = message.get("idempotencyKey"), message.get("releaseTag")
-            previous = self.queue.retry(owner, key, None if by_name else plugin_id, tag, action, plugin_name)
+            names = ()
+            if toggle:
+                raw = message.get("pluginNames")
+                if not isinstance(raw, list) or not all(isinstance(n, str) for n in raw):
+                    raise ValueError("invalid plugin names")
+                names = tuple({n.casefold(): n for n in raw}.values())
+            lookup_id = None if (by_name or toggle) else plugin_id
+            previous = self.queue.retry(owner, key, lookup_id, tag, action, plugin_name, names)
             if previous:
                 return {"requestId": previous.id, "status": previous.status}
             current = self.installed() if installed is None else installed
-            snapshot = (
-                self._snapshot_installed_name(plugin_name, current)
-                if by_name
-                else self._snapshot(plugin_id, action, current)
-            )
-            plugin_id = None if by_name else plugin_id
+            if toggle:
+                names = self._snapshot_toggle(list(names), current)
+                snapshot = (None, None, None)
+            elif by_name:
+                snapshot = self._snapshot_installed_name(plugin_name, current)
+            else:
+                snapshot = self._snapshot(plugin_id, action, current)
+            plugin_id = lookup_id
             r = self.queue.create(
                 owner,
                 key,
@@ -345,6 +365,7 @@ class RemoteInstallService:
                 repository=snapshot[0],
                 plugin_name=snapshot[1],
                 installed_version=snapshot[2],
+                plugin_names=names,
             )
             if self.devices[owner]["trusted"]:
                 r = self.queue.transition_local(r.id, "approved")
@@ -376,6 +397,7 @@ class RemoteInstallService:
             "repo": r.repository,
             "pluginName": r.plugin_name,
             "installedVersion": r.installed_version,
+            "pluginNames": list(r.plugin_names),
             "ownerName": self.devices.get(r.owner, {}).get("name", "Revoked browser"),
             "status": r.status,
         }
@@ -390,13 +412,17 @@ class RemoteInstallService:
         r = self.queue.transition_local(request_id, "installing")
         try:
             current = self.installed() if installed is None else installed
-            snapshot = (
-                self._snapshot(r.plugin_id, r.action, current)
-                if r.plugin_id
-                else self._snapshot_installed_name(r.plugin_name, current)
-            )
-            if snapshot != (r.repository, r.plugin_name, r.installed_version):
-                raise ValueError("installed plugin or registry changed")
+            if r.action in ("enable", "disable"):
+                if self._snapshot_toggle(list(r.plugin_names), current) != r.plugin_names:
+                    raise ValueError("installed plugin or registry changed")
+            else:
+                snapshot = (
+                    self._snapshot(r.plugin_id, r.action, current)
+                    if r.plugin_id
+                    else self._snapshot_installed_name(r.plugin_name, current)
+                )
+                if snapshot != (r.repository, r.plugin_name, r.installed_version):
+                    raise ValueError("installed plugin or registry changed")
         except ValueError:
             self.queue.transition_local(request_id, "failed")
             raise
@@ -409,13 +435,16 @@ class RemoteInstallService:
             "repo": r.repository,
             "pluginName": r.plugin_name,
             "installedVersion": r.installed_version,
+            "pluginNames": list(r.plugin_names),
         }
 
     def finish(self, request_id, success):
         if type(success) is not bool:
             raise ValueError("invalid outcome")
         request = self.queue.get_local(request_id)
-        outcome = "uninstalled" if request and request.action == "uninstall" else "installed"
+        outcome = {"uninstall": "uninstalled", "enable": "enabled", "disable": "disabled"}.get(
+            request.action if request else "", "installed"
+        )
         r = self.queue.transition_local(request_id, outcome if success else "failed")
         return {"id": r.id, "status": r.status}
 

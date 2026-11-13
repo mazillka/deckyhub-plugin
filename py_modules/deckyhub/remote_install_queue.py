@@ -18,7 +18,11 @@ _KEY = re.compile(r"[A-Za-z0-9_-]{1,128}\Z")
 # How long a claimed request may stay "installing" before its outcome is called unknown.
 # The claim only covers the download and the handover to Decky Loader, never the install itself.
 INSTALLING_SECONDS = 15 * 60
-_TERMINAL = frozenset({"rejected", "expired", "cancelled", "installed", "uninstalled", "failed", "unknown"})
+MAX_TOGGLE_PLUGINS = 50
+_ACTIONS = ("install", "update", "uninstall", "enable", "disable")
+_TERMINAL = frozenset(
+    {"rejected", "expired", "cancelled", "installed", "uninstalled", "enabled", "disabled", "failed", "unknown"}
+)
 
 
 class QueueFullError(Exception):
@@ -46,6 +50,8 @@ class InstallRequest:
     repository: str | None = None
     plugin_name: str | None = None
     installed_version: str | None = None
+    # enable / disable: the Decky Loader names of the plugins to switch, one request for a whole pack.
+    plugin_names: tuple[str, ...] = ()
 
 
 class RemoteInstallQueue:
@@ -93,16 +99,30 @@ class RemoteInstallQueue:
         repository: str | None = None,
         plugin_name: str | None = None,
         installed_version: str | None = None,
+        plugin_names: tuple[str, ...] = (),
     ) -> InstallRequest:
-        if action not in ("install", "update", "uninstall"):
+        if action not in _ACTIONS:
             raise ValueError("invalid action")
-        if action == "uninstall" and release_tag is not None:
-            raise ValueError("uninstall cannot select a release")
+        if action in ("uninstall", "enable", "disable") and release_tag is not None:
+            raise ValueError(f"{action} cannot select a release")
+        toggle = action in ("enable", "disable")
+        if toggle:
+            if not (
+                isinstance(plugin_names, tuple)
+                and 0 < len(plugin_names) <= MAX_TOGGLE_PLUGINS
+                and all(isinstance(n, str) and 0 < len(n) <= 100 for n in plugin_names)
+            ):
+                raise ValueError("invalid plugin names")
+        elif plugin_names:
+            raise ValueError("only enable and disable take plugin names")
         if not isinstance(owner, str) or not _KEY.fullmatch(owner):
             raise ValueError("invalid owner")
         if not isinstance(key, str) or not _KEY.fullmatch(key):
             raise ValueError("invalid idempotency key")
-        if plugin_id is None:
+        if toggle:
+            if plugin_id is not None:
+                raise ValueError("invalid plugin ID")
+        elif plugin_id is None:
             # An installed plugin outside the registry can only be uninstalled, by its own name.
             if action != "uninstall" or not isinstance(plugin_name, str) or not plugin_name:
                 raise ValueError("invalid plugin ID")
@@ -129,7 +149,8 @@ class RemoteInstallQueue:
                     previous.repository,
                     previous.plugin_name,
                     previous.installed_version,
-                ) != (plugin_id, release_tag, action, repository, plugin_name, installed_version):
+                    previous.plugin_names,
+                ) != (plugin_id, release_tag, action, repository, plugin_name, installed_version, plugin_names):
                     raise RequestConflictError("idempotency key already used")
                 return previous
             if len(self._requests) >= self._capacity:
@@ -149,6 +170,7 @@ class RemoteInstallQueue:
                 repository,
                 plugin_name,
                 installed_version,
+                plugin_names,
             )
             self._requests[request_id] = request
             self._keys[(owner, key)] = request_id
@@ -168,6 +190,7 @@ class RemoteInstallQueue:
         release_tag: str | None,
         action: str,
         plugin_name: str | None = None,
+        plugin_names: tuple[str, ...] = (),
     ) -> InstallRequest | None:
         if not isinstance(key, str) or not _KEY.fullmatch(key):
             raise ValueError("invalid idempotency key")
@@ -177,8 +200,14 @@ class RemoteInstallQueue:
             if request_id is None:
                 return None
             request = self._requests[request_id]
-            if (request.plugin_id, request.release_tag, request.action) != (plugin_id, release_tag, action) or (
-                plugin_id is None and str(request.plugin_name).casefold() != str(plugin_name).casefold()
+            if (
+                (request.plugin_id, request.release_tag, request.action) != (plugin_id, release_tag, action)
+                or (
+                    plugin_id is None
+                    and action == "uninstall"
+                    and str(request.plugin_name).casefold() != str(plugin_name).casefold()
+                )
+                or tuple(n.casefold() for n in request.plugin_names) != tuple(n.casefold() for n in plugin_names)
             ):
                 raise RequestConflictError("idempotency key already used")
             return request
@@ -229,6 +258,8 @@ class RemoteInstallQueue:
             "failed": {"approved", "installing"},
             "installed": {"installing"},
             "uninstalled": {"installing"},
+            "enabled": {"installing"},
+            "disabled": {"installing"},
             "unknown": {"installing"},
         }
         if status not in allowed:

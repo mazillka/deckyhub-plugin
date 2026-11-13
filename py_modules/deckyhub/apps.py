@@ -114,9 +114,18 @@ class AppsMixin:
             ]
         }
 
+    def _disabled_plugins(self) -> set[str]:
+        """The names Decky Loader has switched off (its own settings/loader.json), for the remote plugin list."""
+        try:
+            names = json.loads((Path(decky.DECKY_HOME) / "settings" / "loader.json").read_text(encoding="utf-8"))
+            return {n for n in names.get("disabled_plugins", []) if isinstance(n, str)}
+        except (OSError, ValueError, AttributeError):
+            return set()
+
     def _remote_installed_plugins(self) -> list[dict]:
         scanned = self._scan_installed_plugins()
         apps = self._apps_with_installed_plugins(scanned)["apps"]
+        disabled = self._disabled_plugins()
         rows = [
             {
                 "id": app["id"],
@@ -125,6 +134,7 @@ class AppsMixin:
                 "version": app["installedVersion"],
                 "pluginName": app["pluginName"],
                 "identityUnverified": app["identityUnverified"],
+                "disabled": app["pluginName"] in disabled,
             }
             for app in apps
             if app["installedVersion"] is not None
@@ -141,6 +151,7 @@ class AppsMixin:
                         "version": self._decky_plugin_version((manifest, package)),
                         "pluginName": name,
                         "identityUnverified": True,
+                        "disabled": name in disabled,
                     }
                 )
         return rows

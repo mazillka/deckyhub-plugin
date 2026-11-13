@@ -431,6 +431,13 @@ def remote_device_panel() -> str:
 <p class="remote-actions"><a class="btn" href="/plugins/">Browse plugins to install</a> <button type="button" id="remote-plugins-refresh" disabled>Refresh list</button></p>
 </div>
 <p id="remote-plugins-status" role="status" aria-live="polite">Pair a device to see its installed plugins.</p>
+<details class="remote-pack" id="remote-pack-box">
+<summary>Switch a plugin pack on or off</summary>
+<p class="rd-hint">Pick a DeckyHub plugin pack file. Its plugins that are installed on your device are switched together, with one approval on the device. Nothing is installed or removed.</p>
+<p><input id="remote-pack" type="file" accept=".json,application/json" aria-label="Plugin pack file" disabled></p>
+<p id="remote-pack-info" role="status" aria-live="polite"></p>
+<p class="remote-actions"><button type="button" id="remote-pack-enable" disabled>Enable pack</button> <button type="button" id="remote-pack-disable" disabled>Disable pack</button></p>
+</details>
 <p><input id="remote-plugins-filter" type="search" aria-label="Search installed plugins" placeholder="Search installed plugins" autocomplete="off" hidden></p>
 <ul id="remote-plugins" class="remote-plugins"></ul>
 </section>

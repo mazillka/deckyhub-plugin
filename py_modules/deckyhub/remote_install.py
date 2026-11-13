@@ -177,8 +177,8 @@ class RemoteInstallMixin:
         installed = await asyncio.to_thread(self._remote_inventory)
         for row in installed:
             if isinstance(row.get("pluginName"), str) and row["pluginName"].casefold() == str(plugin_name).casefold():
-                return {"version": row.get("version")}
-        return {"version": None}
+                return {"version": row.get("version"), "disabled": bool(row.get("disabled"))}
+        return {"version": None, "disabled": False}
 
     async def finish_remote_request(self, request_id: str, success: bool):
         return self.remote_install_service.finish(request_id, success)

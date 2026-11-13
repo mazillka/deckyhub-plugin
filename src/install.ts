@@ -312,6 +312,10 @@ export async function uninstallDeckyPlugin(pluginName: string, backUp = true) {
   return callDeckyLoader("utilities/uninstall_plugin", pluginName);
 }
 
+// Decky Loader's own switch for a plugin: it stops or starts the plugin and remembers the choice (nothing is deleted).
+export const setDeckyPluginEnabled = (pluginName: string, enabled: boolean) =>
+  callDeckyLoader(enabled ? "utilities/enable_plugin" : "utilities/disable_plugin", pluginName);
+
 function callDeckyLoader(route: string, ...args: unknown[]) {
   const backend = getDeckyBackend();
   log(`Decky Loader ${route} ${JSON.stringify(args)}${backend ? "" : " (loader unavailable)"}`);

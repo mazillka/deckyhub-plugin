@@ -9,6 +9,7 @@ import type { RemoteInstallRequest, RemoteInstallStatus } from "../types";
 import { useT } from "../i18n";
 import { compactButtonStyle, iconRow, sectionDividerStyle } from "../utils";
 import { runRemoteRequest } from "./remoteRequests";
+import { toggleSubject } from "./RemotePluginToggle";
 import { openPairDevice, openPairedBrowsers } from "./RemoteModals";
 
 // Remote Install in Quick Access stays short: the switch, one button that opens the pairing window (the QR
@@ -149,9 +150,16 @@ export function RemoteInstallSection() {
                               ? "appcard.uninstall"
                               : r.action === "update"
                                 ? "appcard.update"
-                                : "appcard.install",
+                                : r.action === "enable"
+                                  ? "remote.enable"
+                                  : r.action === "disable"
+                                    ? "remote.disable"
+                                    : "appcard.install",
                           )}{" "}
-                          · {r.pluginName || r.pluginId}
+                          ·{" "}
+                          {r.action === "enable" || r.action === "disable"
+                            ? toggleSubject(r, t)
+                            : r.pluginName || r.pluginId}
                         </div>
                         <div style={{ fontSize: "0.8em", color: colors.muted }}>
                           {t("remote.from", { name: r.ownerName })}

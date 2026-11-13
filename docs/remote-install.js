@@ -100,8 +100,8 @@ export async function exchange(transport, message) {
 }
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
-const REQUEST_STATES = new Set(['pending_confirmation', 'approved', 'installing', 'installed', 'uninstalled', 'rejected', 'expired', 'cancelled', 'failed', 'unknown']);
-const TERMINAL = new Set(['installed', 'uninstalled', 'rejected', 'expired', 'cancelled', 'failed', 'unknown']);
+const REQUEST_STATES = new Set(['pending_confirmation', 'approved', 'installing', 'installed', 'uninstalled', 'enabled', 'disabled', 'rejected', 'expired', 'cancelled', 'failed', 'unknown']);
+const TERMINAL = new Set(['installed', 'uninstalled', 'enabled', 'disabled', 'rejected', 'expired', 'cancelled', 'failed', 'unknown']);
 
 export function init(root, details) {
   const byId = id => root.querySelector(`#remote-${id}`);
@@ -132,7 +132,7 @@ export function init(root, details) {
   const pairNew = compact ? byId('pair-new') : null;
   let reachable = null;
   let transport, endpoint, token, requestId, idempotencyKey, requestPluginId, cancelled = false;
-  let requestAction = 'install', requestName, busy = false;
+  let requestAction = 'install', requestName, requestNames, busy = false;
   let inventory;
   let devices = [];
   let selectedFingerprint;
@@ -233,7 +233,7 @@ export function init(root, details) {
   const saveRequest = () => {
     const device = activeDevice();
     if (!device) return;
-    device.pending = idempotencyKey ? { key: idempotencyKey, id: requestId, pluginId: requestPluginId, name: requestName, action: requestAction } : undefined;
+    device.pending = idempotencyKey ? { key: idempotencyKey, id: requestId, pluginId: requestPluginId, name: requestName, names: requestNames, action: requestAction } : undefined;
     saveDevices();
   };
   const updateActions = () => {
@@ -373,7 +373,7 @@ export function init(root, details) {
   };
   const selectDevice = index => {
     disconnect();
-    requestId = idempotencyKey = requestPluginId = requestName = undefined;
+    requestId = idempotencyKey = requestPluginId = requestName = requestNames = undefined;
     const device = devices[index];
     rememberDevice(device);
     if (!device) { setState(compact ? 'none' : 'new'); updateActions(); say(compact ? '' : 'Turn on Pair mode on your device, then scan its QR code or paste the pairing link.'); return; }
@@ -384,6 +384,7 @@ export function init(root, details) {
       ({ id: requestId, key: idempotencyKey, pluginId: requestPluginId } = device.pending || {});
       requestAction = device.pending?.action || 'install';
       requestName = typeof device.pending?.name === 'string' ? device.pending.name : undefined;
+      requestNames = Array.isArray(device.pending?.names) && device.pending.names.every(name => typeof name === 'string') ? device.pending.names : undefined;
       if (form) {
         byId('address').value = device.address;
         byId('fingerprint').value = device.fingerprint;
@@ -575,8 +576,11 @@ export function init(root, details) {
     } catch (error) { showError(error); }
   });
   // A plugin DeckyHub cannot match to the registry has no id; it is identified by its name.
+  // enable / disable pass the Decky Loader names of the plugins to switch (a whole pack at once) as an array.
   const runRequest = async (selectedPluginId = pluginId, action = 'install', pluginName) => {
-    const target = selectedPluginId || pluginName;
+    const names = Array.isArray(pluginName) ? pluginName : undefined;
+    if (names) pluginName = undefined;
+    const target = selectedPluginId || pluginName || (names && names.join('\n'));
     if (!endpoint || !token || busy || !target) return;
     if (idempotencyKey && (target !== requestPluginId || action !== requestAction)) return;
     busy = true;
@@ -588,13 +592,14 @@ export function init(root, details) {
     idempotencyKey ||= crypto.randomUUID();
     requestPluginId = target;
     requestName = selectedPluginId ? undefined : pluginName;
+    requestNames = names;
     requestAction = action;
     saveRequest();
     inventory?.setEnabled(false);
     try {
       const result = requestId
         ? await send({ op: 'status', token, requestId })
-        : await send({ op: 'request', token, idempotencyKey, action: requestAction, ...(requestName ? { pluginName: requestName } : { pluginId: requestPluginId, ...(releaseTag && requestAction === 'install' ? { releaseTag } : {}) }) });
+        : await send({ op: 'request', token, idempotencyKey, action: requestAction, ...(requestNames ? { pluginNames: requestNames } : requestName ? { pluginName: requestName } : { pluginId: requestPluginId, ...(releaseTag && requestAction === 'install' ? { releaseTag } : {}) }) });
       if (typeof result.requestId !== 'string' || !result.requestId ||
           (requestId && result.requestId !== requestId) || !REQUEST_STATES.has(result.status)) throw new Error('Invalid request response.');
       requestId = result.requestId;
@@ -605,7 +610,7 @@ export function init(root, details) {
       while (!TERMINAL.has(state) && !cancelled && Date.now() < deadline) {
         if (cancelButton) cancelButton.disabled = state !== 'pending_confirmation';
         flow(state === 'pending_confirmation' ? 'waiting' : 'installing');
-        say(state === 'pending_confirmation' ? 'Waiting for approval on your device.' : state === 'approved' ? 'Approved; waiting for your device.' : requestAction === 'uninstall' ? 'Uninstalling…' : 'Installing…');
+        say(state === 'pending_confirmation' ? 'Waiting for approval on your device.' : state === 'approved' ? 'Approved; waiting for your device.' : requestAction === 'uninstall' ? 'Uninstalling…' : requestAction === 'enable' ? 'Enabling…' : requestAction === 'disable' ? 'Disabling…' : 'Installing…');
         await sleep(delay);
         if (cancelled) return;
         try {
@@ -620,13 +625,13 @@ export function init(root, details) {
       }
       if (cancelled) return;
       if (!TERMINAL.has(state)) throw new Error('Status unknown. Retry request status before starting another change.');
-      flow(state === 'installed' || state === 'uninstalled' ? 'done' : 'failed');
-      say(state === 'installed' ? 'Installed on your device.' : state === 'uninstalled' ? 'Uninstalled from your device.' : state === 'unknown' ? 'Outcome unknown. Check your device before trying again.' : `Request ${state}.`);
+      flow(state === 'installed' || state === 'uninstalled' || state === 'enabled' || state === 'disabled' ? 'done' : 'failed');
+      say(state === 'installed' ? 'Installed on your device.' : state === 'uninstalled' ? 'Uninstalled from your device.' : state === 'enabled' ? 'Enabled on your device.' : state === 'disabled' ? 'Disabled on your device.' : state === 'unknown' ? 'Outcome unknown. Check your device before trying again.' : `Request ${state}.`);
       idempotencyKey = undefined;
       requestId = undefined;
-      requestPluginId = requestName = undefined;
+      requestPluginId = requestName = requestNames = undefined;
       saveRequest();
-      if (state === 'installed' || state === 'uninstalled' || state === 'unknown') inventory?.reset();
+      if (['installed', 'uninstalled', 'enabled', 'disabled', 'unknown'].includes(state)) inventory?.reset();
       if (cancelButton) cancelButton.disabled = true;
     } catch (_) {
       flow('failed');
@@ -637,7 +642,7 @@ export function init(root, details) {
       renderPicker(devices.indexOf(activeDevice()));
     }
   };
-  requestButton.addEventListener('click', () => runRequest(requestName ? null : requestPluginId || pluginId, idempotencyKey ? requestAction : 'install', requestName));
+  requestButton.addEventListener('click', () => runRequest(requestName || requestNames ? null : requestPluginId || pluginId, idempotencyKey ? requestAction : 'install', requestNames || requestName));
   inventory = createPluginList(root, {
     loadPage: offset => send({ op: 'plugins', token, offset }),
     request: (id, action, name) => {
@@ -653,7 +658,7 @@ export function init(root, details) {
     try {
       const result = await send({ op: 'cancel', token, requestId });
       if (result.requestId !== requestId || result.status !== 'cancelled') throw new Error('The request could not be cancelled.');
-      cancelled = true; requestId = undefined; idempotencyKey = undefined; requestPluginId = requestName = undefined;
+      cancelled = true; requestId = undefined; idempotencyKey = undefined; requestPluginId = requestName = requestNames = undefined;
       saveRequest();
       flow('ready');
       say('Request cancelled.');
