@@ -137,17 +137,36 @@ const WINDOWS = [
   ["Support Development", "the Support window", true],
   ["Manage", "the DeckyHub update window", false],
 ];
+// Opens a window the way a player does: into DeckyHub's Quick Access panel with Right, Down to the button, A.
+async function openWithDpad(label) {
+  const focusIn = `document.querySelector(".deckyhub-motion .gpfocus")`;
+  for (let i = 0; i < 4 && !(await quickAccess.eval(`!!${focusIn}`)); i++) await press(shared, BUTTON.RIGHT, 700);
+  // Focus starts where the last window left it, so look down the panel and then back up it.
+  for (const [direction, steps] of [
+    [BUTTON.DOWN, 25],
+    [BUTTON.UP, 50],
+  ]) {
+    for (let i = 0; i < steps; i++) {
+      const text = await quickAccess.eval(`${focusIn}?.textContent?.trim() ?? ""`);
+      if (text.startsWith(label)) {
+        await press(shared, BUTTON.OK, 1500);
+        return true;
+      }
+      await press(shared, direction, 350);
+    }
+  }
+  return false;
+}
+
 async function auditWindows(scenario) {
   for (const [button, label, mustFit] of WINDOWS) {
     await resetFocus(shared, "/library/home");
     await shared.eval(`DFL.Navigation.OpenQuickAccessMenu(${TAB_ID}); true`);
     await sleep(3000);
-    const clicked = await quickAccess.eval(
-      `(() => { const b = [...document.querySelectorAll("button, .DialogButton")].filter((x) => x.textContent.trim().startsWith(${JSON.stringify(button)})).at(-1); b?.click(); return !!b; })()`,
-    );
+    const clicked = await openWithDpad(button);
     if (!clicked) {
       record(scenario, label, [
-        `no "${button}" button in Quick Access (is Remote access on, and DeckyHub's tab shown?)`,
+        `the D-pad never reached "${button}" in Quick Access (is Remote access on, and DeckyHub's tab shown?)`,
       ]);
       continue;
     }
