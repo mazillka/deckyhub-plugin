@@ -361,49 +361,81 @@ def remote_device_panel() -> str:
 <link rel="stylesheet" href="/remote-install.css">
 <header class="rd-hero">
 <p class="rd-badge">Experimental · fully local</p>
-<h2 id="remote-title">Manage your device from this browser</h2>
-<p>Install, update and remove Decky plugins without picking up your device. This page talks straight to your device on your network: nothing is collected or sent anywhere. <a href="/help.html#remote">How to use it</a></p>
+<h2 id="remote-title">Manage your devices from this browser</h2>
+<p>Install, update and remove Decky plugins without picking up your device. This page talks straight to your device on your network: nothing is collected or sent anywhere. <a href="/help.html#remote">How it works</a></p>
 </header>
-<ol class="rd-steps" aria-label="Pairing steps">
-<li><span class="rd-dot" aria-hidden="true">1</span><div><strong>Turn on Pair mode</strong><small>In DeckyHub’s Quick Access tab on your device</small></div></li>
-<li><span class="rd-dot" aria-hidden="true">2</span><div><strong>Open the pairing link</strong><small>Scan the QR code with this device, or paste the link below</small></div></li>
-<li><span class="rd-dot" aria-hidden="true">3</span><div><strong>Approve this browser</strong><small>Press Approve under Pairing requests on your device</small></div></li>
-</ol>
+<div class="rd-layout">
+<aside class="rd-devices" aria-labelledby="rd-devices-title">
+<div class="rd-devices-head"><h3 id="rd-devices-title">Your devices</h3><a id="remote-pair-another" class="btn" href="#remote-pairing">+ Add device</a></div>
+<ul id="remote-device-cards" class="rd-cards" aria-label="Paired devices"></ul>
+<p class="rd-empty">No device yet. Follow the three steps to add your first one.</p>
+<div class="rd-sr"><label for="remote-device-picker">Selected device</label><select id="remote-device-picker" disabled><option value="">Pair a device</option></select></div>
+<details class="rd-multi">
+<summary>Using more than one device?</summary>
+<ul>
+<li><strong>Several Decks in one browser:</strong> press <em>Add device</em> and repeat the steps for each Deck. They all stay in the list above.</li>
+<li><strong>One Deck in several browsers:</strong> open this page on your phone and on your laptop and pair each of them with the Deck. Every browser is approved separately on the Deck, and you can remove any of them under Paired browsers in DeckyHub.</li>
+</ul>
+</details>
+</aside>
+<div class="rd-main">
 <p id="remote-status" role="status" aria-live="polite" class="rd-status">Not connected.</p>
+<div class="rd-pairing" id="remote-pairing">
+<div class="rd-pairing-head">
+<h3>Add a device in 3 steps</h3>
+<p class="rd-wifi"><span aria-hidden="true">⚑</span> Both devices must be on the <strong>same Wi-Fi</strong> (not mobile data, not a guest network).</p>
+</div>
+<ol class="rd-steps" aria-label="Pairing steps">
+<li>
+<span class="rd-dot" aria-hidden="true">1</span>
+<div><span class="rd-where">On your Steam Deck</span><strong>Turn on Pair mode</strong><small>Open DeckyHub in the Quick Access menu and switch on <em>Pair mode</em>. A QR code appears.</small></div>
+</li>
+<li>
+<span class="rd-dot" aria-hidden="true">2</span>
+<div><span class="rd-where">On this device</span><strong>Scan the QR code</strong><small>Point the camera at the QR code and open the link. No camera? Paste the link below.</small></div>
+</li>
+<li>
+<span class="rd-dot" aria-hidden="true">3</span>
+<div><span class="rd-where">On your Steam Deck</span><strong>Press Approve</strong><small>A pairing request appears under <em>Remote Install</em>. Press <em>Approve</em>.</small></div>
+</li>
+</ol>
 <ul id="remote-trouble" class="rd-trouble">
 <li>Allow local network access when your browser asks.</li>
 <li>Check that Pair mode is on, on your device.</li>
 <li>Use the same Wi-Fi as your device, not mobile data or a guest network.</li>
 <li>Your router may have given the device a new address: open the Quick Access tab to see it, or pair again.</li>
 </ul>
-<div class="rd-device">
-<label for="remote-device-picker">Your device</label>
-<div class="remote-actions"><select id="remote-device-picker" disabled><option value="">Pair a device</option></select><a id="remote-pair-another" class="btn ghost" href="#remote-pair-form">Pair another</a></div>
-<p class="remote-actions"><button type="button" id="remote-request" disabled hidden>Send install request</button> <button type="button" id="remote-cancel" disabled>Cancel request</button></p>
-</div>
-<section class="remote-inventory" aria-labelledby="remote-plugins-title">
-<h3 id="remote-plugins-title">Installed plugins</h3>
-<p class="remote-actions"><a class="btn" href="/plugins/">Browse plugins to install</a> <button type="button" id="remote-plugins-refresh" disabled>Refresh list</button></p>
-<p id="remote-plugins-status" role="status" aria-live="polite">Pair a device to see its installed plugins.</p>
-<p><input id="remote-plugins-filter" type="search" aria-label="Search installed plugins" placeholder="Search installed plugins" autocomplete="off" hidden></p>
-<ul id="remote-plugins" class="remote-plugins"></ul>
-</section>
 <form id="remote-pair-form" aria-labelledby="remote-pair-title">
-<h3 id="remote-pair-title">Pair with a link or code</h3>
+<h3 id="remote-pair-title">No camera or QR code? Paste the link</h3>
 <p class="rd-hint">Scanning the QR code fills these in and pairs by itself. Use them to paste a link, or to try again.</p>
-<p class="rd-link-row"><label for="remote-pairing-link">Pairing link</label><br><span class="remote-actions"><input id="remote-pairing-link" type="text" autocomplete="off" spellcheck="false" placeholder="Paste the link from DeckyHub"><button type="button" id="remote-copy-link">Copy link</button></span></p>
-<p><label for="remote-code">Six-digit pairing code</label><br><input id="remote-code" autocomplete="off" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" required></p>
+<p class="rd-link-row"><label for="remote-pairing-link">Pairing link</label><span class="remote-actions"><input id="remote-pairing-link" type="text" autocomplete="off" spellcheck="false" placeholder="Paste the link from DeckyHub"><button type="button" id="remote-copy-link">Copy link</button></span></p>
+<p><label for="remote-code">Six-digit pairing code</label><input id="remote-code" autocomplete="off" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" required></p>
 <details id="remote-manual">
-<summary>Enter connection details manually or rename this device</summary>
-<p><label for="remote-address">Device address and port</label><br><input id="remote-address" placeholder="192.168.1.50:8765" autocomplete="off"></p>
-<p><label for="remote-fingerprint">Certificate fingerprint</label><br><input id="remote-fingerprint" autocomplete="off" spellcheck="false"></p>
-<p><label for="remote-device-name">Device name (optional)</label><br><input id="remote-device-name" maxlength="64" autocomplete="off" placeholder="Living room device"></p>
-<p><label for="remote-name">Browser name shown on your device</label><br><input id="remote-name" value="Browser" maxlength="64"></p>
+<summary>More options: connection details, device name</summary>
+<p><label for="remote-address">Device address and port</label><input id="remote-address" placeholder="192.168.1.50:8765" autocomplete="off"></p>
+<p><label for="remote-fingerprint">Certificate fingerprint</label><input id="remote-fingerprint" autocomplete="off" spellcheck="false"></p>
+<p><label for="remote-device-name">Device name (optional)</label><input id="remote-device-name" maxlength="64" autocomplete="off" placeholder="Living room Deck"></p>
+<p><label for="remote-name">Browser name shown on your device</label><input id="remote-name" value="Browser" maxlength="64"></p>
 <p><button type="button" id="remote-reconnect" hidden>Use new device address</button></p>
 <p><button type="button" id="remote-forget" hidden>Forget this device in this browser</button></p>
 </details>
 <button type="submit" id="remote-pair" disabled>Pair browser</button>
 </form>
+</div>
+<div class="rd-device">
+<p class="remote-actions"><button type="button" id="remote-request" disabled hidden>Send install request</button> <button type="button" id="remote-cancel" disabled>Cancel request</button></p>
+</div>
+<section class="remote-inventory" aria-labelledby="remote-plugins-title">
+<div class="rd-inv-head">
+<h3 id="remote-plugins-title">Installed plugins</h3>
+<p class="remote-actions"><a class="btn" href="/plugins/">Browse plugins to install</a> <button type="button" id="remote-plugins-refresh" disabled>Refresh list</button></p>
+</div>
+<p id="remote-plugins-status" role="status" aria-live="polite">Pair a device to see its installed plugins.</p>
+<p><input id="remote-plugins-filter" type="search" aria-label="Search installed plugins" placeholder="Search installed plugins" autocomplete="off" hidden></p>
+<ul id="remote-plugins" class="remote-plugins"></ul>
+</section>
+</div>
+</div>
 <noscript>Enable JavaScript to connect to your device.</noscript>
 <script type="module" src="/remote-install.js"></script>
 </section>"""

@@ -243,6 +243,119 @@ export function init(root, details) {
     if (pairButton) pairButton.disabled = Boolean(idempotencyKey);
     inventory?.setEnabled(Boolean(token) && !busy && !idempotencyKey);
   };
+  // The devices list: one card per paired device. A browser can hold several devices, and a device can be paired with
+  // several browsers: each pairing is its own entry here, and each browser keeps its own list.
+  const cards = byId('device-cards');
+  const doc = root.ownerDocument;
+  const online = new Map(); // fingerprint -> whether the device answered when this page opened
+  const currentIndex = () => {
+    const index = devices.indexOf(activeDevice());
+    return index < 0 ? undefined : index;
+  };
+  const ago = time => {
+    const minutes = Math.round((Date.now() - time) / 60000);
+    if (!(minutes >= 0)) return '';
+    if (minutes < 2) return 'just now';
+    if (minutes < 60) return `${minutes} minutes ago`;
+    const hours = Math.round(minutes / 60);
+    return hours < 48 ? `${hours} hours ago` : `${Math.round(hours / 24)} days ago`;
+  };
+  const cardButton = (label, onClick, className = '') => {
+    const button = doc.createElement('button');
+    button.type = 'button';
+    button.textContent = label;
+    if (className) button.className = className;
+    button.addEventListener('click', onClick);
+    return button;
+  };
+  const forgetDevice = device => {
+    const wasActive = device === activeDevice();
+    if (wasActive && idempotencyKey) return;
+    devices = devices.filter(other => other !== device);
+    saveDevices();
+    online.delete(device.fingerprint);
+    if (wasActive) {
+      disconnect();
+      rememberDevice(undefined);
+      setState('new');
+    }
+    renderPicker(currentIndex());
+    say(`${device.name} forgotten in this browser. Remove this browser under Paired browsers in DeckyHub on the device too.`);
+  };
+  const startRename = (device, actions) => {
+    const input = doc.createElement('input');
+    input.value = device.name;
+    input.maxLength = 64;
+    input.setAttribute('aria-label', 'Device name');
+    const save = () => {
+      const value = input.value.trim().slice(0, 64);
+      if (value) { device.name = value; saveDevices(); }
+      renderPicker(currentIndex());
+    };
+    input.addEventListener('keydown', event => {
+      if (event.key === 'Enter') { event.preventDefault(); save(); }
+      if (event.key === 'Escape') renderPicker(currentIndex());
+    });
+    actions.replaceChildren(input, cardButton('Save', save));
+    input.focus();
+    input.select();
+  };
+  const renderCards = selected => {
+    if (compact || !cards || !doc) return;
+    cards.replaceChildren(...devices.map((device, index) => {
+      const item = doc.createElement('li');
+      item.className = 'rd-card';
+      item.dataset.selected = String(index === selected);
+      const open = doc.createElement('button');
+      open.type = 'button';
+      open.className = 'rd-card-main';
+      open.setAttribute('aria-pressed', String(index === selected));
+      const name = doc.createElement('strong');
+      name.textContent = device.name;
+      const address = doc.createElement('small');
+      address.textContent = device.address;
+      open.append(name, address);
+      open.addEventListener('click', () => {
+        if (picker.disabled) return;
+        renderPicker(index);
+        selectDevice(index);
+      });
+      const meta = doc.createElement('div');
+      meta.className = 'rd-card-meta';
+      const pill = doc.createElement('span');
+      pill.className = 'rd-pill';
+      const state = online.get(device.fingerprint);
+      pill.dataset.kind = state === true ? 'online' : state === false ? 'offline' : 'checking';
+      pill.textContent = state === true ? 'Online' : state === false ? 'Not reachable' : 'Checking…';
+      meta.append(pill);
+      if (device.lastUsed) {
+        const used = doc.createElement('span');
+        used.textContent = `Used ${ago(device.lastUsed)}`;
+        meta.append(used);
+      }
+      const actions = doc.createElement('div');
+      actions.className = 'rd-card-actions';
+      actions.append(cardButton('Rename', () => startRename(device, actions)), cardButton('Forget', () => forgetDevice(device), 'rd-forget'));
+      item.append(open, meta, actions);
+      return item;
+    }));
+  };
+  // Which of the paired devices answer right now: checked once when the page opens, in parallel.
+  const checkOnline = () => {
+    void Promise.all(devices.slice().map(async device => {
+      let connection;
+      try {
+        connection = new WebTransport(deviceUrl(device.address), { serverCertificateHashes: pinnedHashes(device) });
+        void connection.closed.catch(() => {});
+        await timeout(connection.ready, 5000);
+        online.set(device.fingerprint, true);
+      } catch {
+        online.set(device.fingerprint, false);
+      } finally {
+        connection?.close();
+      }
+    })).then(() => renderCards(currentIndex()));
+  };
   const renderPicker = selected => {
     picker.replaceChildren(new Option(compact ? 'Select a device' : devices.length ? 'Pair another device' : 'Pair a device', ''));
     devices.forEach((device, index) => {
@@ -256,6 +369,7 @@ export function init(root, details) {
     picker.value = selected === undefined ? '' : String(selected);
     picker.disabled = false;
     root.dataset.hasDevices = String(devices.length > 0);
+    renderCards(selected);
   };
   const selectDevice = index => {
     disconnect();
@@ -295,6 +409,7 @@ export function init(root, details) {
   if (!compact) {
     renderPicker(devices.length && !details ? selectedIndex : undefined);
     if (devices.length && !details) selectDevice(selectedIndex);
+    if (doc && devices.length && !details) checkOnline();
   } else {
     renderPicker();
     setState(devices.length ? 'checking' : 'none');

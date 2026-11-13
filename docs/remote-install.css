@@ -46,18 +46,19 @@
 .remote-badge-bad { color: #ff8a8a; }
 .remote-badge-info { color: #c49bff; }
 
-/* The Paired devices page. data-state (remote-install.js) says what is going on: new (nothing paired yet),
-   connecting, approve (waiting for the device), unreachable, unsupported, error, paired. */
+/* The Paired devices page. data-state (remote-install.js) says what is going on: new (adding a device),
+   connecting, approve (waiting for the device), unreachable, unsupported, error, declined, paired.
+   Phone first: one column, the devices as a swipeable row of cards; from 900px the devices sit in a left column. */
 .remote-device-dashboard {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 20px;
+  gap: 22px;
+  margin-top: 0;
   padding: 0;
   border: 0;
   background: transparent;
 }
 .remote-device-dashboard > * { min-width: 0; }
-.remote-device-dashboard { margin-top: 0; }
 .rd-hero h2 { margin: 6px 0 8px; font-size: clamp(1.5rem, 5vw, 2.1rem); line-height: 1.15; }
 .rd-hero p { margin: 0 0 8px; color: var(--muted); max-width: 46rem; }
 .rd-badge {
@@ -70,36 +71,136 @@
   font-size: .85rem;
   font-weight: 600;
 }
-.remote-install .rd-steps { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
-@media (min-width: 760px) { .rd-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.rd-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.rd-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; }
+.rd-layout > * { min-width: 0; }
+@media (min-width: 900px) {
+  .rd-layout { grid-template-columns: 300px minmax(0, 1fr); gap: 24px; }
+  .rd-devices { position: sticky; top: 72px; }
+}
+.rd-main { display: grid; gap: 16px; }
+.rd-main > * { margin: 0; min-width: 0; }
+
+/* Your devices */
+.rd-devices, .rd-pairing, .rd-device, .remote-inventory {
+  padding: clamp(14px, 3vw, 20px);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+}
+.rd-devices { display: grid; gap: 12px; }
+.rd-devices-head, .rd-inv-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 12px; }
+.rd-devices h3, .rd-inv-head h3 { margin: 0; font-size: 1.1rem; }
+.rd-devices-head .btn, .rd-inv-head .btn { margin: 0; }
+.rd-cards { display: flex; gap: 10px; margin: 0; padding: 0 0 4px; list-style: none; overflow-x: auto; scroll-snap-type: x mandatory; }
+.rd-cards:empty { display: none; }
+@media (min-width: 900px) { .rd-cards { flex-direction: column; overflow: visible; padding: 0; } }
+.rd-cards li + li { margin-top: 0; }
+.rd-card {
+  flex: 0 0 min(80%, 270px);
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg);
+  scroll-snap-align: start;
+}
+@media (min-width: 900px) { .rd-card { flex: none; } }
+.rd-card[data-selected="true"] { border-color: var(--accent2); box-shadow: inset 0 0 0 1px var(--accent2); }
+.remote-install .rd-card-main {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+.rd-card-main strong { font-size: 1.02rem; }
+.rd-card-main small, .rd-card-meta { color: var(--muted); font-size: .85rem; }
+.rd-card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.rd-pill { display: inline-block; padding: 1px 9px; border: 1px solid currentColor; border-radius: 99px; font-size: .78rem; font-weight: 650; white-space: nowrap; }
+.rd-pill[data-kind="online"] { color: #6bcb6b; }
+.rd-pill[data-kind="offline"] { color: var(--muted); }
+.rd-pill[data-kind="selected"] { color: var(--accent2); }
+.rd-card-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.remote-install .rd-card-actions button, .remote-install .rd-card-actions input { min-height: 36px; padding: 4px 12px; font-size: .9rem; }
+.remote-install .rd-card-actions input { flex: 1 1 8rem; width: auto; }
+.remote-install .rd-card-actions .rd-forget { color: #ff8a80; }
+.rd-empty { display: none; margin: 0; color: var(--muted); }
+[data-has-devices="false"] .rd-empty { display: block; }
+.rd-multi { margin: 0; color: var(--muted); font-size: .92rem; }
+.rd-multi summary { color: var(--text); }
+.rd-multi ul { margin: 8px 0 0; padding-inline-start: 18px; }
+.rd-multi li + li { margin-top: 8px; }
+
+/* Adding a device: three big steps, the current one lit */
+.rd-pairing { display: grid; gap: 14px; }
+[data-state="paired"] .rd-pairing { display: none; }
+.rd-pairing-head h3 { margin: 0 0 8px; font-size: 1.25rem; }
+.rd-wifi {
+  margin: 0;
+  padding: 10px 12px;
+  border-inline-start: 4px solid #e8b54a;
+  border-radius: 8px;
+  background: var(--bg);
+}
+.remote-install .rd-steps { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
 .rd-steps li {
+  position: relative;
   display: flex;
   gap: 12px;
   align-items: flex-start;
-  padding: 14px;
+  padding: 16px;
   border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--panel);
-  opacity: .62;
+  border-radius: 14px;
+  background: var(--bg);
+  opacity: .72;
 }
 .rd-steps li + li { margin-top: 0; }
-.rd-steps strong { display: block; }
-.rd-steps small { display: block; margin-top: 2px; color: var(--muted); font-size: .85rem; }
+.rd-steps strong { display: block; font-size: 1.05rem; }
+.rd-steps small { display: block; margin-top: 4px; color: var(--muted); font-size: .9rem; }
+.rd-where { display: block; margin-bottom: 2px; color: var(--muted); font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 .rd-dot {
   flex: none;
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   border: 2px solid var(--line);
   border-radius: 50%;
   font-weight: 700;
-  font-size: .9rem;
 }
-/* the step in progress, the ones finished, and the one that failed */
+/* the step to do now, the ones finished, and the one that failed */
 [data-state="new"] .rd-steps li:nth-child(1),
 [data-state="connecting"] .rd-steps li:nth-child(2),
-[data-state="approve"] .rd-steps li:nth-child(3) { opacity: 1; border-color: var(--accent2); }
+[data-state="approve"] .rd-steps li:nth-child(3) { opacity: 1; border-color: var(--accent2); background: var(--panel); }
+[data-state="new"] .rd-steps li:nth-child(1)::after,
+[data-state="connecting"] .rd-steps li:nth-child(2)::after,
+[data-state="approve"] .rd-steps li:nth-child(3)::after {
+  content: "Do this now";
+  position: absolute;
+  top: -10px;
+  inset-inline-end: 12px;
+  padding: 1px 10px;
+  border-radius: 99px;
+  background: var(--accent2);
+  color: var(--bg);
+  font-size: .75rem;
+  font-weight: 700;
+}
 [data-state="new"] .rd-steps li:nth-child(1) .rd-dot,
 [data-state="connecting"] .rd-steps li:nth-child(2) .rd-dot,
 [data-state="approve"] .rd-steps li:nth-child(3) .rd-dot { border-color: var(--accent2); color: var(--accent2); }
@@ -117,7 +218,7 @@
 [data-state="approve"] .rd-steps li:nth-child(-n+2) .rd-dot::before,
 [data-state="declined"] .rd-steps li:nth-child(-n+2) .rd-dot::before,
 [data-state="unreachable"] .rd-steps li:nth-child(1) .rd-dot::before,
-[data-state="unsupported"] .rd-steps li:nth-child(1) .rd-dot::before { content: "✓"; font-size: .9rem; }
+[data-state="unsupported"] .rd-steps li:nth-child(1) .rd-dot::before { content: "✓"; font-size: 1rem; }
 [data-state="unreachable"] .rd-steps li:nth-child(2),
 [data-state="unsupported"] .rd-steps li:nth-child(2),
 [data-state="error"] .rd-steps li:nth-child(2),
@@ -126,9 +227,6 @@
 [data-state="unsupported"] .rd-steps li:nth-child(2) .rd-dot,
 [data-state="error"] .rd-steps li:nth-child(2) .rd-dot,
 [data-state="declined"] .rd-steps li:nth-child(3) .rd-dot { border-color: #e5645c; color: #e5645c; }
-[data-state="paired"] .rd-steps,
-[data-state="paired"] #remote-pair-form,
-[data-state="paired"] #remote-trouble { display: none; }
 
 .rd-status {
   margin: 0;
@@ -160,41 +258,46 @@
 @keyframes rd-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .rd-status::after { animation: none !important; } }
 
-.rd-trouble { display: none; margin: -8px 0 0; padding: 14px 16px 14px 36px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--muted); }
+.rd-trouble { display: none; margin: 0; padding: 14px 16px 14px 36px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); color: var(--muted); }
 [data-state="unreachable"] .rd-trouble { display: block; }
 
-.rd-device, .remote-inventory, .remote-device-dashboard form {
-  padding: clamp(14px, 3vw, 22px);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--panel);
-}
-.remote-device-dashboard form { scroll-margin-top: 72px; border-top-width: 1px; padding-top: clamp(14px, 3vw, 22px); }
-.remote-device-dashboard form h3, .remote-inventory h3 { margin: 0 0 8px; }
 .rd-hint { margin: 0 0 12px; color: var(--muted); }
-.rd-device { display: none; }
-[data-has-devices="true"] .rd-device { display: block; }
-.rd-device label { display: block; margin-bottom: 6px; }
-.rd-device .remote-actions .btn { margin: 0; }
-.rd-device p.remote-actions { margin: 12px 0 0; }
-.rd-device p.remote-actions:not(:has(button:not([hidden]):not(:disabled))) { display: none; }
-.remote-inventory { display: none; margin: 0; }
-[data-state="paired"] .remote-inventory { display: block; }
+.rd-pairing form { display: grid; gap: 12px; margin: 0; padding: 14px 0 0; border-top: 1px solid var(--line); scroll-margin-top: 72px; }
+.rd-pairing form > * { margin: 0; }
+.rd-pairing form h3 { font-size: 1.05rem; }
+.rd-pairing label { display: block; margin-bottom: 6px; }
+.rd-pairing details input { margin-bottom: 4px; }
+.rd-link-row .remote-actions { flex-wrap: nowrap; }
+.rd-link-row input { flex: 1 1 auto; min-width: 0; }
+.remote-device-dashboard #remote-pair { width: 100%; min-height: 48px; }
 .remote-device-dashboard .remote-actions { align-items: center; }
 .remote-device-dashboard .remote-actions .btn { margin: 0; }
 .remote-device-dashboard #remote-cancel:disabled { display: none; }
 .remote-device-dashboard #remote-status { margin: 0; }
-.remote-device-dashboard #remote-pair { width: 100%; margin-top: 6px; }
-.rd-link-row .remote-actions { flex-wrap: nowrap; }
-.rd-link-row input { flex: 1 1 auto; min-width: 0; }
+
+/* The device you picked: its request buttons (hidden until there is something to press) */
+.rd-device { display: none; }
+[data-state="paired"] .rd-device { display: block; }
+.rd-device p.remote-actions { margin: 0; }
+.rd-device:not(:has(button:not([hidden]):not(:disabled))) { display: none; }
+
+/* Installed plugins of the picked device */
+.remote-inventory { display: none; }
+[data-state="paired"] .remote-inventory { display: block; }
+.remote-inventory > p, .remote-inventory > .rd-inv-head { margin: 0 0 12px; }
+.remote-device-dashboard .remote-plugins { margin: 0; }
 .remote-device-dashboard .remote-plugins li {
-  margin-top: 8px;
-  padding: 12px;
+  margin-top: 10px;
+  padding: 14px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 12px;
   background: var(--bg);
 }
-.remote-device-dashboard .remote-plugins .remote-actions { margin-top: 6px; }
+.remote-device-dashboard .remote-plugins .remote-actions { margin-top: 8px; }
+@media (pointer: coarse) {
+  .remote-install button, .remote-install .btn, .remote-install input, .remote-install select { min-height: 46px; }
+  .remote-install .rd-card-actions button, .remote-install .rd-card-actions input { min-height: 40px; }
+}
 /* A browser that can't pair (no WebTransport) only needs the link, to copy into one that can. */
 [data-state="unsupported"] #remote-pair-form > :not(.rd-link-row):not(h3) { display: none; }
 [data-state="unsupported"] #remote-pair { display: none; }
