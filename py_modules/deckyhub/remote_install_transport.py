@@ -182,6 +182,7 @@ async def start_transport(service):
         def quic_event_received(self, event):
             if isinstance(event, ProtocolNegotiated):
                 _log("Remote Install: %s connected (%s)", self._peer(), event.alpn_protocol)
+                service.note_connection(self._peer(), "connected")
             if isinstance(event, ConnectionTerminated):
                 _log(
                     "Remote Install: %s closed the connection (code %s, %s)",
@@ -189,6 +190,7 @@ async def start_transport(service):
                     event.error_code,
                     event.reason_phrase or "no reason",
                 )
+                service.note_connection(self._peer(), "closed")
                 active_connections.discard(self)
                 self.sessions.clear()
                 self.streams.clear()
@@ -219,6 +221,7 @@ async def start_transport(service):
                         self._peer(),
                         "accepted" if allowed else "refused",
                     )
+                    service.note_connection(self._peer(), "session" if allowed else "refused")
                     self.http.send_headers(
                         e.stream_id,
                         [(b":status", b"200" if allowed else b"403"), (b"sec-webtransport-http3-draft", b"draft02")],

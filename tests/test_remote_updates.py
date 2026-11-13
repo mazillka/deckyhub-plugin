@@ -47,3 +47,19 @@ class SummaryTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ConnectionTests(unittest.TestCase):
+    def test_the_last_few_connections_are_kept_newest_first_with_how_long_ago(self):
+        now = [100.0]
+        service = RemoteInstallService(apps=lambda: [], installed=lambda: [], clock=lambda: now[0])
+        self.assertEqual(service.list_connections(), [])
+        for index in range(7):
+            service.note_connection(f"192.168.1.{index}", "connected")
+            now[0] += 10
+        shown = service.list_connections()
+        self.assertEqual(len(shown), 5)
+        self.assertEqual((shown[0]["peer"], shown[0]["ago"]), ("192.168.1.6", 10))
+        self.assertEqual(shown[-1]["peer"], "192.168.1.2")
+        service.note_connection("x" * 200, "refused")
+        self.assertEqual(len(service.list_connections()[0]["peer"]), 64)

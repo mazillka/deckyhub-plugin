@@ -74,6 +74,7 @@ export function PairDeviceModal({ t, closeModal }: { t: TFunc; closeModal?: () =
   const remaining = ticket ? Math.max(0, Math.ceil((ticket.expiresAt - now) / 1000)) : 0;
   const expired = Boolean(ticket) && remaining === 0;
   const request = status?.pairings?.[0];
+  const last = status?.connections?.[0];
 
   const link =
     status?.address && status.fingerprint && ticket
@@ -213,7 +214,15 @@ export function PairDeviceModal({ t, closeModal }: { t: TFunc; closeModal?: () =
               </div>
             )}
             <small style={{ color: colors.accent }}>{t("remote.sameWifi")}</small>
-            <small style={{ color: colors.dim }}>{t("remote.waiting")}</small>
+            <small style={{ color: colors.dim }}>
+              {last
+                ? t("remote.lastAttempt", {
+                    peer: last.peer,
+                    what: t(`remote.attempt.${last.what}`),
+                    time: formatClock(last.ago),
+                  })
+                : t("remote.waiting")}
+            </small>
             {status?.address && (
               <small style={{ color: colors.dim, overflowWrap: "anywhere" }}>
                 {status.address.replace(/^https?:\/\//, "").replace(/\/remote-install$/, "")}

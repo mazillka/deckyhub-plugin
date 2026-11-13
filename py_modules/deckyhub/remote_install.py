@@ -131,6 +131,7 @@ class RemoteInstallMixin:
             "devices": service.list_devices(),
             "requests": service.list_requests(),
             "trustedRequests": service.list_trusted_requests(),
+            "connections": service.list_connections(),
         }
 
     async def set_remote_install_enabled(self, enabled: bool):
