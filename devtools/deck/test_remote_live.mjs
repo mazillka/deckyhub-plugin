@@ -1,90 +1,57 @@
-import { connect, TARGETS, DECK, goTo, sleep } from "./cdp.mjs";
-import { writeFileSync, mkdirSync } from "node:fs";
+import { connect, TARGETS, DECK } from "./cdp.mjs";
 
+// Remote Install's backend on a real device, through Decky Loader's plugin API: Pair mode on, a pairing code,
+// the update summary paired browsers ask for, and Pair mode off again. The pairing window and the panel's
+// buttons are covered by the browser mock (decky-mock/e2e/remote-install.spec.ts); pairing a real phone is manual.
 async function main() {
   console.log(`Connecting to ${DECK}...`);
   const shared = await connect(TARGETS.shared);
-  const screen = await connect(TARGETS.main);
 
-  // Connect through Decky Loader's plugin API
-  const testRes = await shared.eval(`
-    (async () => {
-      const init = window.__DECKY_SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED_deckyLoaderAPIInit;
-      if (!init) return { error: "No decky loader API init" };
-      const api = init.connect(2, "DeckyHub");
-      const settings = await api.call("get_settings");
-      return { ok: true, settings };
-    })()
-  `);
-  console.log("get_settings via API:", JSON.stringify(testRes, null, 2));
+  const call = async (route, ...args) => {
+    const result = await shared.eval(`
+      (async () => {
+        const init = window.__DECKY_SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED_deckyLoaderAPIInit;
+        if (!init) return { error: "No decky loader API init" };
+        return await init.connect(2, "DeckyHub").call(${JSON.stringify(route)}, ...${JSON.stringify(args)});
+      })()
+    `);
+    console.log(`${route}:`, JSON.stringify(result, null, 2));
+    return result;
+  };
 
-  // Test get_remote_install_status
-  const statusRes = await shared.eval(`
-    (async () => {
-      const init = window.__DECKY_SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED_deckyLoaderAPIInit;
-      const api = init.connect(2, "DeckyHub");
-      return await api.call("get_remote_install_status");
-    })()
-  `);
-  console.log("get_remote_install_status:", JSON.stringify(statusRes, null, 2));
+  const failures = [];
+  const check = (name, ok) => {
+    console.log(`${ok ? "ok  " : "FAIL"} ${name}`);
+    if (!ok) failures.push(name);
+  };
 
-  // Test set_remote_install_enabled(true)
-  console.log("Enabling remote install...");
-  const enableRes = await shared.eval(`
-    (async () => {
-      const init = window.__DECKY_SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED_deckyLoaderAPIInit;
-      const api = init.connect(2, "DeckyHub");
-      return await api.call("set_remote_install_enabled", true);
-    })()
-  `);
-  console.log("set_remote_install_enabled(true):", JSON.stringify(enableRes, null, 2));
+  try {
+    const enabled = await call("set_remote_install_enabled", true);
+    check("Pair mode starts and has an address", Boolean(enabled?.enabled && enabled.active && enabled.address));
 
-  // Test begin_remote_pairing
-  console.log("Beginning remote pairing...");
-  const pairRes = await shared.eval(`
-    (async () => {
-      const init = window.__DECKY_SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED_deckyLoaderAPIInit;
-      const api = init.connect(2, "DeckyHub");
-      return await api.call("begin_remote_pairing");
-    })()
-  `);
-  console.log("begin_remote_pairing:", JSON.stringify(pairRes, null, 2));
+    const pairing = await call("begin_remote_pairing");
+    check(
+      "a six-digit pairing code and a token",
+      /^\d{6}$/.test(pairing?.code ?? "") && Boolean(pairing?.pairingToken),
+    );
 
-  // Query status again to verify pairingCode is returned
-  const statusAfterPair = await shared.eval(`
-    (async () => {
-      const init = window.__DECKY_SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED_deckyLoaderAPIInit;
-      const api = init.connect(2, "DeckyHub");
-      return await api.call("get_remote_install_status");
-    })()
-  `);
-  console.log("Status after pairing:", JSON.stringify(statusAfterPair, null, 2));
+    const status = await call("get_remote_install_status");
+    check(
+      "the status shows the code and its countdown",
+      status?.pairingCode === pairing?.code && status.pairingExpiresIn > 0,
+    );
 
-  // Navigate Steam Big Picture Mode to DeckyHub settings
-  console.log("Navigating to DeckyHub Settings in Gaming Mode...");
-  await goTo(shared, "/deckyhub/settings");
-  await sleep(3000);
+    const reported = await call("set_remote_updates", [{ name: "Test plugin", version: "1.0.0" }]);
+    check("the update summary is stored", reported?.count === 1);
+    await call("set_remote_updates", []);
+  } finally {
+    await call("set_remote_install_enabled", false);
+  }
 
-  // Take screenshot of Steam Deck screen
-  mkdirSync("devtools/deck/screenshots", { recursive: true });
-  const shot = await screen.send("Page.captureScreenshot", { format: "png" });
-  writeFileSync("devtools/deck/screenshots/deck_settings_remote_install.png", Buffer.from(shot.data, "base64"));
-  console.log("Saved screenshot: devtools/deck/screenshots/deck_settings_remote_install.png");
-
-  // Verify DOM on main screen
-  const domInfo = await screen.eval(`
-    (() => {
-      const body = document.body.innerText;
-      return {
-        hasRemoteInstall: body.includes("Remote Install"),
-        hasPairButton: body.includes("Pair New Browser"),
-        hasAddress: body.includes("Device Address"),
-        textSnippet: body.slice(0, 500)
-      };
-    })()
-  `);
-  console.log("Screen DOM info:", JSON.stringify(domInfo, null, 2));
-
+  if (failures.length) {
+    console.error(`${failures.length} check(s) failed`);
+    process.exit(1);
+  }
   process.exit(0);
 }
 

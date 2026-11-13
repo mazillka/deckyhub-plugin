@@ -13,6 +13,7 @@ Run from the repo root: python devtools/decky-mock/dev-server.py
 import asyncio
 import json
 import logging
+import secrets
 import sys
 import threading
 import types
@@ -105,6 +106,27 @@ def _fetch_registry(url, *args, **kwargs):
 
 registry.fetch_remote_registry = _fetch_registry
 
+# Remote Install without a network: the QUIC listener is a stand-in (its library isn't bundled here), so the real
+# pairing, approval and request code runs behind a UI that thinks the device is reachable. The transport itself is
+# covered by tests/test_remote_install_transport.py.
+from deckyhub import remote_install
+
+MOCK_ADDRESS = "192.168.1.50"
+
+
+class _FakeServer:
+    def close(self):
+        pass
+
+
+async def _start_transport(service):
+    return _FakeServer(), f"https://{MOCK_ADDRESS}:8765/remote-install", "ab" * 32
+
+
+remote_install.start_transport = _start_transport
+remote_install.lan_address = lambda: MOCK_ADDRESS
+remote_install.identity_rotated = lambda service, fingerprint: False
+
 loop = asyncio.new_event_loop()
 plugin = Plugin()
 
@@ -130,6 +152,36 @@ async def _stage_install(asset, repo=None, job_id=None):
 
 
 plugin.stage_install = _stage_install
+
+# A paired browser's side of Remote Install (the real one speaks WebTransport): E2E drives it through these routes.
+_browser = {}
+
+
+async def mock_remote_browser_pair(name):
+    service = plugin.remote_install_service
+    grant = service.begin_pairing()
+    secret = secrets.token_urlsafe(32)
+    pairing = service.remote(
+        {"op": "pair", "name": name, "pairingSecret": secret, "pairingToken": grant["pairingToken"]}
+    )
+    _browser.update(secret=secret, pairing=pairing["pairingId"])
+    return pairing
+
+
+async def mock_remote_browser_send(message):
+    service = plugin.remote_install_service
+    if "token" not in _browser:  # the first message after the device approved the pairing
+        _browser["token"] = service.pair_status(_browser["pairing"], _browser["secret"])["token"]
+    return await service.remote_async({**message, "token": _browser["token"]})
+
+
+async def mock_remote_browser_forget():
+    _browser.clear()
+
+
+plugin.mock_remote_browser_pair = mock_remote_browser_pair
+plugin.mock_remote_browser_send = mock_remote_browser_send
+plugin.mock_remote_browser_forget = mock_remote_browser_forget
 
 # Fixed, never-completing job for the DevShell's "Download progress modal" preview button.
 plugin.downloads["preview-job"] = {
