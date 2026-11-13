@@ -184,6 +184,8 @@ class RemoteInstallMixinTests(unittest.TestCase):
 
             # Device submits request remotely
             token = self.plugin.remote_install_service.pair_status(pair_id, "a" * 43)["token"]
+            # No event loop in this test: the confirmation wake-up (an emit) is covered by the service tests.
+            self.plugin.remote_install_service.on_pending_request = None
             req_res = self.plugin.remote_install_service.remote(
                 {
                     "op": "request",

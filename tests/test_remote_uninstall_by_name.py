@@ -159,6 +159,20 @@ class AuditFixTests(Base):
         self.request(action="uninstall", pluginName="KDE Connect", idempotencyKey="second-key")
         self.assertEqual(woken, [True])
 
+    def test_a_request_left_for_the_owner_wakes_the_confirmation_but_a_trusted_one_does_not(self):
+        asked = []
+        self.service.on_pending_request = lambda: asked.append(True)
+        self.request(action="uninstall", pluginName="KDE Connect")
+        self.assertEqual(asked, [True])
+        # The same request sent again (a retry) doesn't ask twice.
+        key = "again"
+        self.request(action="uninstall", pluginName="KDE Connect", idempotencyKey=key)
+        self.request(action="uninstall", pluginName="KDE Connect", idempotencyKey=key)
+        self.assertEqual(len(asked), 2)
+        self.service.set_trusted(self.device, True)
+        self.request(action="uninstall", pluginName="KDE Connect", idempotencyKey="trusted")
+        self.assertEqual(len(asked), 2)
+
     def test_approving_restarts_the_request_clock(self):
         result = self.request(action="uninstall", pluginName="KDE Connect")
         self.now += 100
