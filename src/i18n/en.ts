@@ -458,6 +458,11 @@ export const en = {
   "remote.trustTitle": "Trust {name}?",
   "remote.trustWarning":
     "This browser will be able to install, update and remove plugins on this device without asking you first. Plugins can run with full access to your device. Only trust a browser you control.",
+  "support.button": "Support Development & Maintenance",
+  "support.title": "Support DeckyHub",
+  "support.text":
+    "DeckyHub is free and open source. If it helps you, you can support its development and maintenance on Ko-fi. Scan the code with your phone, or open the page here.",
+  "support.open": "Open",
 };
 
 export type MessageKey = keyof typeof en;

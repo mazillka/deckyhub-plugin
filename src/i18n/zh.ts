@@ -442,4 +442,9 @@ export const zh: Record<MessageKey, string> = {
   "remote.trustTitle": "Trust {name}?",
   "remote.trustWarning":
     "This browser will be able to install, update and remove plugins on this device without asking you first. Plugins can run with full access to your device. Only trust a browser you control.",
+  "support.button": "支持开发与维护",
+  "support.title": "支持 DeckyHub",
+  "support.text":
+    "DeckyHub 免费且开源。如果它对您有帮助，可以在 Ko-fi 上支持它的开发与维护。用手机扫描二维码，或在此处打开页面。",
+  "support.open": "打开",
 };

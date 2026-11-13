@@ -456,4 +456,9 @@ export const ko: Record<MessageKey, string> = {
   "remote.trustTitle": "Trust {name}?",
   "remote.trustWarning":
     "This browser will be able to install, update and remove plugins on this device without asking you first. Plugins can run with full access to your device. Only trust a browser you control.",
+  "support.button": "개발 및 유지보수 후원하기",
+  "support.title": "DeckyHub 후원하기",
+  "support.text":
+    "DeckyHub는 무료 오픈 소스입니다. 도움이 되었다면 Ko-fi에서 개발과 유지보수를 후원할 수 있습니다. 휴대폰으로 코드를 스캔하거나 여기서 페이지를 여세요.",
+  "support.open": "열기",
 };
