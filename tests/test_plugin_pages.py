@@ -1,5 +1,6 @@
 """deckyhub.com's plugin pages (devtools/plugin_pages.py), built from data passed in: no network."""
 
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -257,6 +258,59 @@ class PluginPageTests(unittest.TestCase):
 
     def test_inline_markdown_escapes_html(self):
         self.assertEqual(plugin_pages.inline_markdown("a <b> & **c**"), "a &lt;b&gt; &amp; <strong>c</strong>")
+
+
+class PluginInfoTests(unittest.TestCase):
+    def test_a_record_per_repository_with_numbers_badges_and_scan(self):
+        data = {
+            "stats": {
+                "mwgih/deckymultiframegen": {
+                    "downloads": 4908,
+                    "stars": 27,
+                    "updated": "2026-11-12T10:51:51Z",
+                    "root": True,
+                    "ai": ["x"],
+                    "warnings": ["obfuscated"],
+                    "store": {"downloads": 12},
+                }
+            },
+            "scans": {
+                "mwgih/deckymultiframegen": {
+                    "stable": {
+                        "tag": "v1.5.0",
+                        "file": "a.zip",
+                        "sha256": SHA,
+                        "clamav": {"result": "clean"},
+                        "yara": {"result": "infected"},
+                    }
+                }
+            },
+            "reports": {SHA: {"state": "complete", "flagged": 0, "total": 21}},
+            "vt": {
+                SHA: {"state": "complete", "stats": {"malicious": 1, "suspicious": 0, "harmless": 60, "undetected": 6}}
+            },
+            "releases": {
+                "mwgih/deckymultiframegen": [{"tag_name": "v1.6.0-rc", "prerelease": True}, {"tag_name": "v1.5.0"}]
+            },
+            "warnings": {"obfuscated": ("Hidden code", "The audit found obfuscated code.")},
+        }
+        info = plugin_pages.plugin_info([APP], data)
+        record = info["plugins"]["mwgih/deckymultiframegen"]
+        self.assertEqual(
+            (record["id"], record["downloads"], record["stars"], record["storeDownloads"]), (APP["id"], 4908, 27, 12)
+        )
+        self.assertTrue(record["root"] and record["ai"])
+        self.assertEqual(record["warnings"], ["obfuscated"])
+        self.assertEqual(record["latest"], "v1.5.0")
+        self.assertEqual(record["scan"]["kind"], "infected")
+        self.assertEqual((record["scan"]["clamav"], record["scan"]["yara"]), ("clean", "infected"))
+        self.assertEqual((record["scan"]["virusTotal"], record["scan"]["metaDefender"]), ([1, 67], [0, 21]))
+        self.assertEqual(info["warnings"]["obfuscated"], ["Hidden code", "The audit found obfuscated code."])
+        json.dumps(info)  # the whole thing must be plain JSON
+
+    def test_a_plugin_with_no_data_still_gets_its_id_and_name(self):
+        info = plugin_pages.plugin_info([APP], {"stats": {}, "scans": {}, "reports": {}, "warnings": {}})
+        self.assertEqual(info["plugins"]["mwgih/deckymultiframegen"], {"id": APP["id"], "name": APP["name"]})
 
 
 if __name__ == "__main__":

@@ -1,4 +1,74 @@
-// Installed versions come from the selected paired device.
+// Installed versions come from the selected paired device. What DeckyHub knows about each plugin (downloads, audit
+// warnings, virus scans) comes from plugins/info.json, built with the site; a plugin it can't match shows no extra line.
+const compact = number => (number >= 1e6 ? `${(number / 1e6).toFixed(1)}M` : number >= 1e3 ? `${(number / 1e3).toFixed(1)}K` : String(number)).replace('.0', '');
+const SCAN_WORDS = { clean: 'no threats found', infected: 'threat found', incomplete: 'only partly scanned', error: "couldn't be scanned" };
+let infoRequest;
+function loadInfo() {
+  infoRequest ||= fetch(new URL('plugins/info.json', import.meta.url))
+    .then(response => (response.ok ? response.json() : null))
+    .then(info => (info && typeof info === 'object' && info.plugins && typeof info.plugins === 'object' ? info : null))
+    .catch(() => null);
+  return infoRequest;
+}
+function badge(document, text, kind, title) {
+  const item = document.createElement('span');
+  item.className = `remote-badge remote-badge-${kind}`;
+  item.textContent = text;
+  if (title) item.title = title;
+  return item;
+}
+export function describe(document, record, labels) {
+  const parts = [];
+  const badges = document.createElement('span');
+  badges.className = 'remote-badges';
+  if (record.root) badges.append(badge(document, 'Runs as root', 'warn', 'Its backend runs as root, with full access to the device.'));
+  for (const [field, prefix] of [['warnings', ''], ['prereleaseWarnings', 'Pre-release: ']]) {
+    for (const code of record[field] || []) {
+      if (field === 'prereleaseWarnings' && (record.warnings || []).includes(code)) continue;
+      const [label, hint] = labels[code] || [code, 'The registry reported this audit finding.'];
+      badges.append(badge(document, prefix + label, code === 'blocked' ? 'bad' : 'warn', hint));
+    }
+  }
+  if (record.ai) badges.append(badge(document, 'AI', 'info', 'Likely developed with AI help. That says nothing about its quality or safety.'));
+  if (record.fork) badges.append(badge(document, 'Fork', 'info', `A fork of ${record.fork}`));
+  const scan = record.scan;
+  if (scan) {
+    const text = { clean: 'No threats', infected: 'Threat found', partial: 'Not fully scanned' }[scan.kind] || 'Scanned';
+    badges.append(badge(document, (scan.prerelease ? 'Pre-release: ' : '') + text, scan.kind === 'clean' ? 'ok' : scan.kind === 'infected' ? 'bad' : 'warn'));
+  }
+  if (badges.childElementCount) parts.push(badges);
+  const facts = [];
+  if (Number.isFinite(record.downloads)) facts.push(`${compact(record.downloads)} GitHub downloads`);
+  if (Number.isFinite(record.storeDownloads)) facts.push(`${compact(record.storeDownloads)} Decky store downloads`);
+  if (Number.isFinite(record.stars)) facts.push(`${compact(record.stars)} stars`);
+  if (record.latest) facts.push(`latest release ${record.latest}`);
+  if (typeof record.updated === 'string' && record.updated.length >= 10) facts.push(`updated ${record.updated.slice(0, 10)}`);
+  if (facts.length) {
+    const line = document.createElement('span');
+    line.textContent = facts.join(' · ');
+    parts.push(line);
+  }
+  if (scan) {
+    const results = [];
+    if (scan.clamav) results.push(`ClamAV: ${SCAN_WORDS[scan.clamav] || scan.clamav}`);
+    if (scan.yara) results.push(`YARA: ${SCAN_WORDS[scan.yara] || scan.yara}`);
+    if (Array.isArray(scan.virusTotal)) results.push(`VirusTotal: ${scan.virusTotal[0]} of ${scan.virusTotal[1]} engines flagged it`);
+    if (Array.isArray(scan.metaDefender)) results.push(`MetaDefender: ${scan.metaDefender[0]} of ${scan.metaDefender[1]} engines flagged it`);
+    const line = document.createElement('span');
+    line.textContent = `Virus scan of ${scan.tag || 'the latest release'}: ${results.join('; ')}. A clean scan isn't proof of safety.`;
+    parts.push(line);
+  }
+  if (typeof record.id === 'string' && /^[a-z0-9][a-z0-9-]*$/.test(record.id)) {
+    const link = document.createElement('a');
+    link.href = new URL(`plugins/${record.id}.html`, import.meta.url).href;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = 'All details on DeckyHub';
+    parts.push(link);
+  }
+  return parts;
+}
+
 export function createPluginList(root, { loadPage, request }) {
   const list = root.querySelector('#remote-plugins');
   const status = root.querySelector('#remote-plugins-status');
@@ -27,9 +97,23 @@ export function createPluginList(root, { loadPage, request }) {
     }
   };
   filter?.addEventListener('input', applyFilter);
+  const decorate = async (rows, current) => {
+    const info = await loadInfo();
+    if (!info || current !== generation) return;
+    for (const { row, plugin } of rows) {
+      const record = typeof plugin.repo === 'string' ? info.plugins[plugin.repo.toLowerCase()] : null;
+      if (!record || !row.isConnected) continue;
+      const note = document.createElement('div');
+      note.className = 'remote-info';
+      note.append(...describe(document, record, info.warnings || {}));
+      row.insertBefore(note, row.querySelector('.remote-actions'));
+    }
+    applyFilter();
+  };
   const render = plugins => {
     list.replaceChildren();
     actionButtons.length = 0;
+    const pending = [];
     for (const plugin of plugins) {
       const row = document.createElement('li');
       const title = document.createElement('strong');
@@ -78,10 +162,12 @@ export function createPluginList(root, { loadPage, request }) {
         row.append(note);
       }
       list.append(row);
+      pending.push({ row, plugin });
     }
     status.textContent = plugins.length ? `${plugins.length} installed ${plugins.length === 1 ? 'plugin' : 'plugins'}` : 'No installed plugins found.';
     updateButtons();
     applyFilter();
+    decorate(pending, generation);
   };
   const load = async () => {
     if (!enabled || loading) return;

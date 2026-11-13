@@ -854,6 +854,49 @@ def issues_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
     )
 
 
+def plugin_info(apps: list[dict], data: dict) -> dict:
+    """What the Paired devices page shows for each installed plugin it can match to the registry: one compact record
+    per repository (lowercase owner/name) with its numbers, badges and virus scan, plus the audit warnings' labels."""
+    stats, scans, reports, vt = data["stats"], data["scans"], data["reports"], data.get("vt")
+    plugins = {}
+    for app in apps:
+        key = app["repo"].casefold()
+        stat, scan = stats.get(key) or {}, scans.get(key) or {}
+        record: dict = {"id": app["id"], "name": app["name"]}
+        for field in ("downloads", "stars", "updated", "root", "fork"):
+            if stat.get(field) not in (None, False, ""):
+                record[field] = stat[field]
+        if (stat.get("store") or {}).get("downloads") is not None:
+            record["storeDownloads"] = stat["store"]["downloads"]
+        if stat.get("ai"):
+            record["ai"] = True
+        for field in ("warnings", "prereleaseWarnings"):
+            if stat.get(field):
+                record[field] = list(stat[field])
+        stable = next(
+            (item for item in (data.get("releases") or {}).get(key) or [] if not item.get("prerelease")), None
+        )
+        if stable and stable.get("tag_name"):
+            record["latest"] = stable["tag_name"]
+        for channel_name in ("stable", "prerelease"):
+            channel = scan.get(channel_name)
+            if channel and channel.get("clamav"):
+                found = {
+                    "tag": channel.get("tag", ""),
+                    "kind": scan_kind(channel, reports, vt),
+                    "prerelease": channel_name == "prerelease",
+                }
+                for name, item in (("clamav", channel.get("clamav")), ("yara", channel.get("yara"))):
+                    if item:
+                        found[name] = item.get("result")
+                for name, flagged, total in external_results(channel, reports, vt):
+                    found["virusTotal" if name == "VirusTotal" else "metaDefender"] = [flagged, total]
+                record["scan"] = found
+                break
+        plugins[key] = record
+    return {"warnings": {code: list(pair) for code, pair in data["warnings"].items()}, "plugins": plugins}
+
+
 def write_pages(out, apps: list[dict], releases_page: str, data: dict) -> list[tuple[str, str]]:
     """Writes plugins/index.html and plugins/<id>.html for every plugin; returns (url, lastmod) for the sitemap."""
     shell = shell_of(releases_page)
@@ -862,6 +905,9 @@ def write_pages(out, apps: list[dict], releases_page: str, data: dict) -> list[t
     today = time.strftime("%Y-%m-%d", time.gmtime())
     (out / "plugins" / "index.html").write_text(catalog_page(shell, apps, data), encoding="utf-8")
     (out / "plugins" / "known-issues.html").write_text(issues_page(shell, apps, data), encoding="utf-8")
+    (out / "plugins" / "info.json").write_text(
+        json.dumps(plugin_info(apps, data), separators=(",", ":"), sort_keys=True), encoding="utf-8"
+    )
     remote_page = paired_devices_page(shell)
     (out / "remote-install").mkdir(exist_ok=True)
     (out / "remote-install" / "index.html").write_text(remote_page, encoding="utf-8")
