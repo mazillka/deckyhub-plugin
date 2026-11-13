@@ -11,7 +11,6 @@ sys.modules.setdefault("decky", types.SimpleNamespace(logger=logging.getLogger("
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "py_modules"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import test_remote_uninstall_by_name as by_name
-
 from deckyhub import apps as apps_module
 from deckyhub.apps import AppsMixin
 
