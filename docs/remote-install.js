@@ -56,6 +56,25 @@ const PAIRING_DETAILS_KEY = 'deckyhub.remoteInstall.device';
 const PAIRED_DEVICES_KEY = 'deckyhub.remoteInstall.pairedDevices';
 const SELECTED_DEVICE_KEY = 'deckyhub.remoteInstall.selectedDevice';
 
+// What goes into a bug report when the device can't be reached: the browser, what it supports, the network it
+// reports, the device's address and the start of its certificate pin, and the browser's own error. Never a token,
+// a pairing code or a secret.
+export function connectionDiagnostics({ when, page, browser, secure, webTransport, online, network, permission, address, pin, error }) {
+  const yes = value => (value ? 'yes' : 'no');
+  return [
+    'DeckyHub connection details',
+    `Time: ${when}`,
+    `Page: ${page}`,
+    `Browser: ${browser}`,
+    `WebTransport: ${yes(webTransport)}, secure page: ${yes(secure)}, online: ${yes(online)}`,
+    `Network the browser reports: ${network || 'unknown'}`,
+    `Local network permission: ${permission || 'unknown'}`,
+    `Device address: ${address || 'none'}`,
+    `Certificate pin starts with: ${pin ? pin.slice(0, 8) : 'none'}`,
+    `Error: ${error || 'none'}`,
+  ].join('\n');
+}
+
 function timeout(promise, ms) {
   let timer;
   return Promise.race([promise, new Promise((_, reject) => {
@@ -198,6 +217,29 @@ export function init(root, details) {
     inventory?.reset();
     inventory?.setEnabled(false);
   };
+  // The details of the last failed connection, shown under the tips so they can go with a bug report.
+  const diagnostics = byId('diagnostics'), diagnosticsText = byId('diagnostics-text');
+  const showDiagnostics = async error => {
+    if (!diagnostics || !diagnosticsText) return;
+    // Read before the first await: the failed pairing disconnects, which forgets the endpoint.
+    const tried = endpoint, device = activeDevice();
+    let permission;
+    try { permission = (await navigator.permissions.query({ name: 'local-network-access' })).state; } catch { /* not every browser has it */ }
+    const connection = navigator.connection;
+    diagnosticsText.textContent = connectionDiagnostics({
+      when: new Date().toISOString(), page: location.origin + location.pathname, browser: navigator.userAgent,
+      secure: Boolean(globalThis.isSecureContext), webTransport: typeof WebTransport !== 'undefined', online: navigator.onLine,
+      network: connection ? [connection.type, connection.effectiveType].filter(Boolean).join(' ') : '',
+      // From the endpoint being tried: during a first pairing there is no saved device yet.
+      permission, address: tried ? new URL(tried.url).host : device?.address, error,
+      pin: tried?.hashes?.[0] ? [...tried.hashes[0].value.slice(0, 4)].map(byte => byte.toString(16).padStart(2, "0")).join("") : device?.fingerprint,
+    });
+    diagnostics.hidden = false;
+  };
+  byId('copy-diagnostics')?.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(diagnosticsText.textContent); say('Details copied.'); }
+    catch { say('Select the details, copy them, then paste them into your bug report.'); }
+  });
   const send = async message => {
     if (!endpoint) throw new Error('Pair with your device first.');
     if (!transport) {
@@ -212,13 +254,17 @@ export function init(root, details) {
     try {
       try {
         await timeout(current.ready, 45000);
-      } catch {
-        throw Object.assign(new Error('Could not reach your device. Check that Remote access is on and that it is on the same network as this browser.'), { unreachable: true });
+      } catch (reason) {
+        // The browser's own words (WebTransportError: "Opening handshake failed.", say) tell a blocked network from a refused certificate.
+        const detail = [reason?.name, reason?.message].filter(Boolean).join(': ') || 'no details';
+        void showDiagnostics(detail);
+        throw Object.assign(new Error(`Could not reach your device. Check that Remote access is on and that it is on the same network as this browser. (${detail})`), { unreachable: true });
       }
       const result = await exchange(current, message);
       const used = activeDevice();
       if (used && !(Date.now() - used.lastUsed < 3600000)) { used.lastUsed = Date.now(); saveDevices(); }
       learnPins(result);
+      if (diagnostics) diagnostics.hidden = true;
       return result;
     } catch (error) {
       if (transport === current) closeTransport();

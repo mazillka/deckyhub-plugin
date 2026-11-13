@@ -59,14 +59,31 @@ PANEL = [
         "Запит на сполучення з’явиться в розділі <em>Віддалене керування</em>. Натисніть <em>Підтвердити</em>.",
     ),
     (
-        "Allow local network access when your browser asks.",
-        "Дозвольте доступ до локальної мережі, коли браузер запитає.",
+        "Allow local network access when your browser asks. In Chrome: menu, Settings, Site settings, Local network, then set deckyhub.com to Allow.",
+        "Дозвольте доступ до локальної мережі, коли браузер запитає. У Chrome: меню, Налаштування, Налаштування сайтів, Локальна мережа, і поставте для deckyhub.com «Дозволити».",
     ),
-    ("Check that Remote access is on, on your device.", "Перевірте, що на пристрої ввімкнено віддалений доступ."),
     (
-        "Use the same Wi-Fi as your device, not mobile data or a guest network.",
-        "Використовуйте ту саму мережу Wi-Fi, що й пристрій, а не мобільний інтернет чи гостьову мережу.",
+        "Check that Remote access is on and that your device is awake: it stops listening when it sleeps.",
+        "Перевірте, що віддалений доступ ввімкнено і що пристрій не спить: у режимі сну він перестає слухати.",
     ),
+    (
+        "Use the same Wi-Fi as your device, not mobile data, a guest network or a VPN. Turn off mobile data while you pair.",
+        "Використовуйте ту саму мережу Wi-Fi, що й пристрій, а не мобільний інтернет, гостьову мережу чи VPN. На час сполучення вимкніть мобільні дані.",
+    ),
+    (
+        'If your router has "AP isolation" or "client isolation", it stops phones from reaching other devices: turn it off for this network.',
+        "Якщо на роутері ввімкнено «AP isolation» чи «client isolation», телефони не бачать інших пристроїв: вимкніть це для цієї мережі.",
+    ),
+    (
+        'To tell the network from the browser, open https://the-device-address:8765/ in this browser. "Refused to connect" at once means the network is fine; a long wait means this browser can\'t reach the device.',
+        "Щоб відрізнити мережу від браузера, відкрийте в цьому браузері https://адреса-пристрою:8765/. Негайне «Refused to connect» означає, що з мережею все гаразд; довге очікування означає, що цей браузер не бачить пристрій.",
+    ),
+    (
+        "Still stuck? Try Chrome or Edge on a computer on the same Wi-Fi, and send the details below with your bug report.",
+        "Не виходить? Спробуйте Chrome чи Edge на комп’ютері в тій самій мережі Wi-Fi і додайте подані нижче дані до повідомлення про помилку.",
+    ),
+    ("Technical details for a bug report", "Технічні дані для повідомлення про помилку"),
+    (">Copy details<", ">Копіювати дані<"),
     (
         "Your router may have given the device a new address: open the Quick Access tab to see it, or pair again.",
         "Роутер міг дати пристрою нову адресу: відкрийте вкладку швидкого доступу, щоб її побачити, або з’єднайтеся знову.",

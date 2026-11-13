@@ -1,7 +1,9 @@
 import hashlib
 import importlib.util
 import sys
+import types
 import unittest
+import unittest.mock
 from pathlib import Path
 from unittest.mock import patch
 
@@ -37,3 +39,18 @@ class RemoteInstallTransportTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(first_pin, second_pin)
         self.assertEqual(first_url, "https://192.168.1.20:8765/remote-install")
         self.assertEqual(second_url, "https://192.168.1.21:8765/remote-install")
+
+
+class ConnectionLogTests(unittest.TestCase):
+    def test_a_log_line_goes_to_deckyhubs_logger_and_never_raises(self):
+        logger = unittest.mock.MagicMock()
+        with patch.dict(sys.modules, {"decky": types.SimpleNamespace(logger=logger)}):
+            remote_install_transport._log("Remote Install: %s connected (%s)", "192.168.1.50", "h3")
+        logger.info.assert_called_once_with("Remote Install: %s connected (%s)", "192.168.1.50", "h3")
+        # No logger, or one that breaks: the listener carries on.
+        with patch.dict(sys.modules, {"decky": types.SimpleNamespace()}):
+            remote_install_transport._log("x")
+        broken = unittest.mock.MagicMock()
+        broken.info.side_effect = RuntimeError("disk full")
+        with patch.dict(sys.modules, {"decky": types.SimpleNamespace(logger=broken)}):
+            remote_install_transport._log("x")

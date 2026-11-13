@@ -260,6 +260,10 @@
 
 .rd-trouble { display: none; margin: 0; padding: 14px 16px 14px 36px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); color: var(--muted); }
 [data-state="unreachable"] .rd-trouble { display: block; }
+.rd-trouble li + li { margin-top: 6px; }
+.rd-diagnostics { margin: 0; color: var(--muted); }
+.rd-diagnostics pre { margin: 8px 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); font-size: .8rem; white-space: pre-wrap; overflow-wrap: anywhere; user-select: all; }
+.rd-diagnostics[hidden] { display: none; }
 
 .rd-hint { margin: 0 0 12px; color: var(--muted); }
 .rd-pairing form { display: grid; gap: 12px; margin: 0; padding: 14px 0 0; border-top: 1px solid var(--line); scroll-margin-top: 72px; }

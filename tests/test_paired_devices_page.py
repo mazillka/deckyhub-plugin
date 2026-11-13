@@ -40,6 +40,16 @@ class UkrainianPageTests(unittest.TestCase):
         self.assertIn("+ Додати пристрій", ukrainian)
         self.assertIn('href="/uk/help.html#remote"', ukrainian)
 
+    def test_the_tips_and_the_details_for_a_bug_report_are_in_both_languages(self):
+        english, ukrainian = plugin_pages.remote_device_panel(), plugin_pages.remote_device_panel("uk")
+        for page in (english, ukrainian):
+            self.assertIn('id="remote-diagnostics"', page)
+            self.assertIn('id="remote-copy-diagnostics"', page)
+        self.assertIn("AP isolation", english)
+        self.assertIn("AP isolation", ukrainian)
+        self.assertNotIn("stops phones from reaching", ukrainian)
+        self.assertIn("Технічні дані для повідомлення про помилку", ukrainian)
+
     def test_a_changed_english_sentence_fails_the_build(self):
         with self.assertRaises(ValueError):
             remote_page_uk.translate("<p>nothing here</p>")

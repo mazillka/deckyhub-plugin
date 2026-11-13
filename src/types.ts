@@ -240,4 +240,6 @@ export type RemoteInstallStatus = {
   requests: RemoteInstallRequest[];
   // Approved requests from trusted browsers; this device runs them without asking.
   trustedRequests?: RemoteInstallRequest[];
+  // The last browsers that reached the device, newest first (seconds ago), to tell a blocked network from a refused one.
+  connections?: { peer: string; what: "connected" | "session" | "refused" | "closed"; ago: number }[];
 };

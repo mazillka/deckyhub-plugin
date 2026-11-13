@@ -17,6 +17,7 @@ from .remote_install_queue import MAX_TOGGLE_PLUGINS, RemoteInstallQueue
 
 DEVICE_IDLE_SECONDS = 30 * 24 * 3600
 MAX_SUMMARY = 30
+MAX_CONNECTIONS_SHOWN = 5
 _SECRET = re.compile(r"[A-Za-z0-9_-]{43}\Z")
 
 
@@ -53,6 +54,8 @@ class RemoteInstallService:
         self.on_trusted_request = None
         # Called when a request is left for the device owner to answer, so the device can put it in front of them.
         self.on_pending_request = None
+        # The last few browsers that reached the listener, newest first, for the pairing window (memory only).
+        self.connections = []
         # Plugins with an update waiting, as the device's frontend last reported them (memory only).
         self.updates = None
 
@@ -190,6 +193,15 @@ class RemoteInstallService:
         else:
             p["status"] = "rejected"
         return {"status": p["status"]}
+
+    def note_connection(self, peer, what):
+        """A browser reached the listener: its address and what it did (connected, session, refused, closed)."""
+        entry = {"peer": str(peer)[:64], "what": what, "at": self.clock()}
+        self.connections = [entry, *self.connections][:MAX_CONNECTIONS_SHOWN]
+
+    def list_connections(self):
+        now = self.clock()
+        return [{"peer": c["peer"], "what": c["what"], "ago": max(0, round(now - c["at"]))} for c in self.connections]
 
     def list_devices(self):
         return [{"id": k, "name": d["name"], "trusted": d["trusted"]} for k, d in self.devices.items()]
