@@ -2771,6 +2771,14 @@ test("Display Settings can hide the Manage window's buttons", async ({ page }) =
     for (const name of ["Download ZIP", "Install", "Release Page"])
       await app.getByText(`Hide “${name}”`, { exact: true }).click();
     await expect(app.getByLabel("Hide “Release Page”")).toBeChecked();
+    // The three clicks save one after another: open Manage only once all of them have reached the backend.
+    await expect
+      .poll(
+        async () =>
+          ((await bridgeCall(page, "get_settings")) as { result: { hiddenButtons: string[] } }).result.hiddenButtons
+            .length,
+      )
+      .toBe(3);
 
     modal = await openManage();
     await expect(modal.getByLabel("Version").locator("option").first()).toBeAttached();
