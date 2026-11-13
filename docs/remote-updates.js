@@ -29,7 +29,7 @@ const write = (key, value) => { try { localStorage.setItem(key, value); } catch 
 export function createUpdates(root, { summary, device }) {
   const doc = root.ownerDocument;
   const anchor = root.querySelector('.remote-inventory');
-  if (!doc || !anchor || !globalThis.navigator) return { check() {} };
+  if (!doc || typeof anchor?.before !== 'function' || !globalThis.navigator) return { check() {} };
   const section = doc.createElement('section');
   section.className = 'rd-updates';
   section.hidden = true;
