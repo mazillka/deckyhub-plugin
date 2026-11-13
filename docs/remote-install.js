@@ -1,5 +1,6 @@
 import { createPluginList } from './remote-plugins.js';
 import { createUpdates } from './remote-updates.js';
+import { translate } from './remote-i18n.js';
 
 // Remote requests use WebTransport with the certificate fingerprint displayed on the device.
 // The user must enter the fingerprint through this trusted HTTPS page, not a network response.
@@ -117,7 +118,21 @@ export function init(root, details) {
   if (details?.code && byId('code')) byId('code').value = details.code;
   // What the page shows follows root.dataset.state (remote-install.css): new, connecting, approve, unreachable,
   // unsupported, error, declined or paired.
-  const setState = state => { root.dataset.state = state; };
+  const addDialog = byId('add-dialog');
+  const dialogStatus = byId('dialog-status');
+  const openAdd = () => {
+    if (!addDialog || addDialog.open) return;
+    if (typeof addDialog.showModal === 'function') addDialog.showModal();
+    else addDialog.setAttribute('open', '');
+  };
+  const closeAdd = () => {
+    if (!addDialog?.open) return;
+    if (typeof addDialog.close === 'function') addDialog.close();
+    else addDialog.removeAttribute('open');
+  };
+  byId('add-close')?.addEventListener('click', closeAdd);
+  // A device that is paired needs no window any more.
+  const setState = state => { root.dataset.state = state; if (state === 'paired') closeAdd(); };
   // The send card's own states; the Paired devices page keeps its own (and ignores these).
   const flow = state => { if (!byId('pair-form')) setState(state); };
   byId('copy-link')?.addEventListener('click', async () => {
@@ -152,12 +167,20 @@ export function init(root, details) {
   const ERROR_STATES = ['unreachable', 'unsupported', 'declined', 'error', 'failed'];
   const say = (message, isError = false) => {
     const alert = Boolean(message) && (isError || ERROR_STATES.includes(root.dataset.state));
-    status.textContent = message;
-    if (compact) status.hidden = !message;
+    const text = translate(message);
+    status.textContent = text;
+    if (compact) status.hidden = !text;
     status.dataset.kind = alert ? 'error' : '';
     status.setAttribute('role', alert ? 'alert' : 'status');
     status.setAttribute('aria-live', alert ? 'assertive' : 'polite');
-    if (alert) status.scrollIntoView({ block: 'center', behavior: globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    const inDialog = Boolean(addDialog?.open && dialogStatus);
+    if (dialogStatus) {
+      dialogStatus.textContent = text;
+      dialogStatus.hidden = !text;
+      dialogStatus.dataset.kind = alert ? 'error' : '';
+      dialogStatus.setAttribute('role', alert ? 'alert' : 'status');
+    }
+    if (alert) (inDialog ? dialogStatus : status).scrollIntoView({ block: 'center', behavior: globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   };
   const closeTransport = () => {
     const current = transport;
@@ -240,7 +263,7 @@ export function init(root, details) {
   const updateActions = () => {
     requestButton.disabled = !token || busy;
     if (!compact) requestButton.hidden = !pluginId && !idempotencyKey;
-    requestButton.textContent = idempotencyKey ? 'Retry request status' : compact ? 'Send to device' : 'Send install request';
+    requestButton.textContent = translate(idempotencyKey ? 'Retry request status' : compact ? 'Send to device' : 'Send install request');
     if (pairButton) pairButton.disabled = Boolean(idempotencyKey);
     inventory?.setEnabled(Boolean(token) && !busy && !idempotencyKey);
   };
@@ -264,7 +287,7 @@ export function init(root, details) {
   const cardButton = (label, onClick, className = '') => {
     const button = doc.createElement('button');
     button.type = 'button';
-    button.textContent = label;
+    button.textContent = translate(label);
     if (className) button.className = className;
     button.addEventListener('click', onClick);
     return button;
@@ -287,7 +310,7 @@ export function init(root, details) {
     const input = doc.createElement('input');
     input.value = device.name;
     input.maxLength = 64;
-    input.setAttribute('aria-label', 'Device name');
+    input.setAttribute('aria-label', translate('Device name'));
     const save = () => {
       const value = input.value.trim().slice(0, 64);
       if (value) { device.name = value; saveDevices(); }
@@ -327,11 +350,11 @@ export function init(root, details) {
       pill.className = 'rd-pill';
       const state = online.get(device.fingerprint);
       pill.dataset.kind = state === true ? 'online' : state === false ? 'offline' : 'checking';
-      pill.textContent = state === true ? 'Online' : state === false ? 'Not reachable' : 'Checking…';
+      pill.textContent = translate(state === true ? 'Online' : state === false ? 'Not reachable' : 'Checking…');
       meta.append(pill);
       if (device.lastUsed) {
         const used = doc.createElement('span');
-        used.textContent = `Used ${ago(device.lastUsed)}`;
+        used.textContent = translate(`Used ${ago(device.lastUsed)}`);
         meta.append(used);
       }
       const actions = doc.createElement('div');
@@ -358,7 +381,7 @@ export function init(root, details) {
     })).then(() => renderCards(currentIndex()));
   };
   const renderPicker = selected => {
-    picker.replaceChildren(new Option(compact ? 'Select a device' : devices.length ? 'Pair another device' : 'Pair a device', ''));
+    picker.replaceChildren(new Option(translate(compact ? 'Select a device' : devices.length ? 'Pair another device' : 'Pair a device'), ''));
     devices.forEach((device, index) => {
       if (!compact || reachable?.has(index)) picker.add(new Option(device.name, String(index)));
     });
@@ -402,9 +425,11 @@ export function init(root, details) {
   };
   picker.addEventListener('change', () => selectDevice(picker.value));
   byId('pair-another')?.addEventListener('click', () => {
+    if (pairing) return openAdd();
     disconnect();
     renderPicker();
     setState('new');
+    openAdd();
     say('Turn on Remote access on your device, then scan its QR code or paste the pairing link.');
   });
   const selectedIndex = Math.max(0, devices.findIndex(device => device.fingerprint === selectedFingerprint));
@@ -670,6 +695,7 @@ export function init(root, details) {
     } catch (error) { showError(error); }
   });
   updateActions();
+  if (form && details) openAdd();
   if (form && details?.pairingToken) void pairDevice(details);
   addEventListener('pagehide', disconnect, { once: true });
 }

@@ -1,3 +1,5 @@
+import { translate } from './remote-i18n.js';
+
 // Installed versions come from the selected paired device. What DeckyHub knows about each plugin (downloads, audit
 // warnings, virus scans) comes from plugins/info.json, built with the site; a plugin it can't match shows no extra line.
 const compact = number => (number >= 1e6 ? `${(number / 1e6).toFixed(1)}M` : number >= 1e3 ? `${(number / 1e3).toFixed(1)}K` : String(number)).replace('.0', '');
@@ -13,8 +15,8 @@ function loadInfo() {
 function badge(document, text, kind, title) {
   const item = document.createElement('span');
   item.className = `remote-badge remote-badge-${kind}`;
-  item.textContent = text;
-  if (title) item.title = title;
+  item.textContent = translate(text);
+  if (title) item.title = translate(title);
   return item;
 }
 export function describe(document, record, labels) {
@@ -45,7 +47,7 @@ export function describe(document, record, labels) {
   if (typeof record.updated === 'string' && record.updated.length >= 10) facts.push(`updated ${record.updated.slice(0, 10)}`);
   if (facts.length) {
     const line = document.createElement('span');
-    line.textContent = facts.join(' · ');
+    line.textContent = facts.map(fact => translate(fact)).join(' · ');
     parts.push(line);
   }
   if (scan) {
@@ -55,7 +57,7 @@ export function describe(document, record, labels) {
     if (Array.isArray(scan.virusTotal)) results.push(`VirusTotal: ${scan.virusTotal[0]} of ${scan.virusTotal[1]} engines flagged it`);
     if (Array.isArray(scan.metaDefender)) results.push(`MetaDefender: ${scan.metaDefender[0]} of ${scan.metaDefender[1]} engines flagged it`);
     const line = document.createElement('span');
-    line.textContent = `Virus scan of ${scan.tag || 'the latest release'}: ${results.join('; ')}. A clean scan isn't proof of safety.`;
+    line.textContent = translate(`Virus scan of ${scan.tag || 'the latest release'}: ${results.map(result => translate(result)).join('; ')}. A clean scan isn't proof of safety.`);
     parts.push(line);
   }
   if (typeof record.id === 'string' && /^[a-z0-9][a-z0-9-]*$/.test(record.id)) {
@@ -63,7 +65,7 @@ export function describe(document, record, labels) {
     link.href = new URL(`plugins/${record.id}.html`, import.meta.url).href;
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
-    link.textContent = 'All details on DeckyHub';
+    link.textContent = translate('All details on DeckyHub');
     parts.push(link);
   }
   return parts;
@@ -116,7 +118,7 @@ export function createPluginList(root, { loadPage, request }) {
     if (packEnable) packEnable.disabled = !enabled || loading || !targets.enable.length;
     if (packDisable) packDisable.disabled = !enabled || loading || !targets.disable.length;
     if (packInfo && pack) {
-      packInfo.textContent = `${pack.name}: ${targets.found} of ${pack.repos.length} plugins are installed on this device (${targets.enable.length} off, ${targets.disable.length} on).`;
+      packInfo.textContent = translate(`${pack.name}: ${targets.found} of ${pack.repos.length} plugins are installed on this device (${targets.enable.length} off, ${targets.disable.length} on).`);
     }
   };
   packFile?.addEventListener('change', async () => {
@@ -128,7 +130,7 @@ export function createPluginList(root, { loadPage, request }) {
       updateButtons();
     } catch (error) {
       pack = undefined;
-      if (packInfo) packInfo.textContent = error instanceof SyntaxError ? 'This is not a DeckyHub plugin pack.' : error.message;
+      if (packInfo) packInfo.textContent = translate(error instanceof SyntaxError ? 'This is not a DeckyHub plugin pack.' : error.message);
       updateButtons();
     }
   });
@@ -147,7 +149,7 @@ export function createPluginList(root, { loadPage, request }) {
     }
     if (filter) {
       filter.hidden = list.children.length < 6;
-      status.textContent = words.length ? `${shown} of ${list.children.length} plugins` : `${list.children.length} installed ${list.children.length === 1 ? 'plugin' : 'plugins'}`;
+      status.textContent = translate(words.length ? `${shown} of ${list.children.length} plugins` : `${list.children.length} installed ${list.children.length === 1 ? 'plugin' : 'plugins'}`);
     }
   };
   filter?.addEventListener('input', applyFilter);
@@ -168,8 +170,9 @@ export function createPluginList(root, { loadPage, request }) {
     const action = plugin.disabled ? 'enable' : 'disable';
     const button = document.createElement('button');
     button.type = 'button';
-    button.textContent = plugin.disabled ? 'Request enable' : 'Request disable';
-    button.setAttribute('aria-label', `${button.textContent} for ${plugin.name}`);
+    const label = plugin.disabled ? 'Request enable' : 'Request disable';
+    button.textContent = translate(label);
+    button.setAttribute('aria-label', translate(`${label} for ${plugin.name}`));
     button.addEventListener('click', () => request(null, action, [plugin.pluginName]));
     actionButtons.push(button);
     return button;
@@ -182,11 +185,11 @@ export function createPluginList(root, { loadPage, request }) {
     for (const plugin of plugins) {
       const row = document.createElement('li');
       const title = document.createElement('strong');
-      title.textContent = plugin.disabled ? `${plugin.name} (disabled)` : plugin.name;
+      title.textContent = plugin.disabled ? translate(`${plugin.name} (disabled)`) : plugin.name;
       const version = document.createElement('span');
-      version.textContent = `Installed version · ${plugin.version}`;
+      version.textContent = translate(`Installed version · ${plugin.version}`);
       const repository = document.createElement('span');
-      repository.textContent = plugin.repo || 'Repository unavailable';
+      repository.textContent = plugin.repo || translate('Repository unavailable');
       row.append(title, version, repository);
       const verified = plugin.identityUnverified === false &&
         typeof plugin.id === 'string' && /^[a-z0-9][a-z0-9-]{0,127}$/.test(plugin.id) &&
@@ -198,8 +201,8 @@ export function createPluginList(root, { loadPage, request }) {
         for (const [action, label] of [['update', 'Request update'], ['uninstall', 'Request uninstall']]) {
           const button = document.createElement('button');
           button.type = 'button';
-          button.textContent = label;
-          button.setAttribute('aria-label', `${label} for ${plugin.name}`);
+          button.textContent = translate(label);
+          button.setAttribute('aria-label', translate(`${label} for ${plugin.name}`));
           if (action === 'uninstall') button.className = 'remote-danger';
           button.addEventListener('click', () => request(plugin.id, action));
           actions.append(button);
@@ -215,23 +218,23 @@ export function createPluginList(root, { loadPage, request }) {
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'remote-danger';
-        button.textContent = 'Request uninstall';
-        button.setAttribute('aria-label', `Request uninstall for ${plugin.name}`);
+        button.textContent = translate('Request uninstall');
+        button.setAttribute('aria-label', translate(`Request uninstall for ${plugin.name}`));
         button.addEventListener('click', () => request(null, 'uninstall', plugin.pluginName));
         actions.append(button);
         actionButtons.push(button);
         const note = document.createElement('span');
-        note.textContent = 'Updates for this plugin come from its own page or your device.';
+        note.textContent = translate('Updates for this plugin come from its own page or your device.');
         row.append(actions, note);
       } else {
         const note = document.createElement('span');
-        note.textContent = 'Manage DeckyHub on your device.';
+        note.textContent = translate('Manage DeckyHub on your device.');
         row.append(note);
       }
       list.append(row);
       pending.push({ row, plugin });
     }
-    status.textContent = plugins.length ? `${plugins.length} installed ${plugins.length === 1 ? 'plugin' : 'plugins'}` : 'No installed plugins found.';
+    status.textContent = translate(plugins.length ? `${plugins.length} installed ${plugins.length === 1 ? 'plugin' : 'plugins'}` : 'No installed plugins found.');
     updateButtons();
     applyFilter();
     decorate(pending, generation);
@@ -241,7 +244,7 @@ export function createPluginList(root, { loadPage, request }) {
     const current = ++generation;
     loading = true;
     updateButtons();
-    status.textContent = 'Loading installed plugins…';
+    status.textContent = translate('Loading installed plugins…');
     const plugins = [];
     let offset = 0;
     try {
@@ -267,7 +270,7 @@ export function createPluginList(root, { loadPage, request }) {
       list.replaceChildren();
       actionButtons.length = 0;
       installed = [];
-      status.textContent = error instanceof Error ? error.message : 'Unable to load installed plugins.';
+      status.textContent = translate(error instanceof Error ? error.message : 'Unable to load installed plugins.');
     } finally {
       if (current === generation) { loading = false; updateButtons(); }
     }
@@ -280,7 +283,7 @@ export function createPluginList(root, { loadPage, request }) {
       list.replaceChildren();
       actionButtons.length = 0;
       installed = [];
-      status.textContent = 'Pair a device to see its installed plugins.';
+      status.textContent = translate('Pair a device to see its installed plugins.');
       updateButtons();
     },
     setEnabled(value) { enabled = value; updateButtons(); },
