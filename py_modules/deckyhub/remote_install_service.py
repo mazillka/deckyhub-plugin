@@ -51,6 +51,8 @@ class RemoteInstallService:
         self.attempts = []
         # Called when a trusted device's request is approved on arrival, so the device can run it.
         self.on_trusted_request = None
+        # Called when a request is left for the device owner to answer, so the device can put it in front of them.
+        self.on_pending_request = None
         # Plugins with an update waiting, as the device's frontend last reported them (memory only).
         self.updates = None
 
@@ -392,6 +394,8 @@ class RemoteInstallService:
                 r = self.queue.transition_local(r.id, "approved")
                 if self.on_trusted_request:
                     self.on_trusted_request()
+            elif self.on_pending_request:
+                self.on_pending_request()
         elif op == "status":
             r = self.queue.get(owner, message.get("requestId"))
         elif op == "cancel":

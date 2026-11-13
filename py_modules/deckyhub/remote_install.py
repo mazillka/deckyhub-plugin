@@ -28,6 +28,7 @@ class RemoteInstallMixin:
             store=RemoteInstallStore(path.with_name("remote-install.json")) if path else None,
         )
         self.remote_install_service.on_trusted_request = self._announce_trusted_request
+        self.remote_install_service.on_pending_request = self._announce_pending_request
         self.remote_install_server = None
         self.remote_install_address = None
         self.remote_install_fingerprint = None
@@ -38,6 +39,10 @@ class RemoteInstallMixin:
         # Wakes the frontend's runner (src/remoteRunner.ts), which otherwise never polls.
         # Kept on self: the event loop holds only a weak reference to a running task.
         self._trusted_request_event = asyncio.ensure_future(decky.emit("remote_trusted_request"))
+
+    def _announce_pending_request(self):
+        # Wakes the frontend (src/remoteRunner.ts), which opens the confirmation for a request that waits for an answer.
+        self._pending_request_event = asyncio.ensure_future(decky.emit("remote_pending_request"))
 
     async def _start_remote_transport(self):
         async with self._remote_transport_lock:

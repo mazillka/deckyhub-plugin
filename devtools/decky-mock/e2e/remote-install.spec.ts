@@ -152,3 +152,51 @@ test("A paired browser reads the updates the device reported", async ({ page }) 
   const summary = await bridge(page, "mock_remote_browser_send", { op: "summary" });
   expect(summary.updates).toEqual([{ name: "E2E Toggle", version: "2.0.0" }]);
 });
+
+test("A remote install request opens the usual confirmation on its own, and Cancel rejects it", async ({ page }) => {
+  const sha = "a".repeat(64);
+  const url = "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v1.2.3/mako-decky.zip";
+  await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases**", (route) =>
+    route.fulfill({
+      json: [
+        {
+          tag_name: "plugin-v1.2.3",
+          prerelease: false,
+          draft: false,
+          published_at: "2026-01-01T00:00:00Z",
+          html_url: "https://github.com/eugeniosegala/MAKO/releases/tag/plugin-v1.2.3",
+          assets: [{ name: "mako-decky.zip", browser_download_url: url, size: 1024, digest: `sha256:${sha}` }],
+        },
+      ],
+    }),
+  );
+  await bridge(page, "set_remote_install_enabled", true);
+  const { pairingId } = (await bridge(page, "mock_remote_browser_pair", "E2E phone")) as { pairingId: string };
+  await bridge(page, "decide_remote_pairing", pairingId, true);
+  const apps = (await bridge(page, "get_apps")) as unknown as { apps: { id: string; repo: string }[] };
+  const mako = apps.apps.find((app) => app.repo === "eugeniosegala/MAKO")!;
+  const { requestId } = (await bridge(page, "mock_remote_browser_send", {
+    op: "request",
+    idempotencyKey: "e2e-install",
+    action: "install",
+    pluginId: mako.id,
+  })) as { requestId: string };
+
+  await recordLoader(page);
+  await page.goto(`/?bridge=${BRIDGE}`);
+  const app = mock(page);
+  // Nobody pressed Approve: the confirmation, with its disclaimer and what the plugin is, is just there.
+  const confirm = app.locator(".steam-modal", { hasText: "MAKO" });
+  await expect(confirm.getByText(/vouch for these plugins/)).toBeVisible();
+  await expect(confirm.getByText(/E2E phone/)).toBeVisible();
+  expect(await loaderCalls(page)).toEqual([]);
+
+  await confirm.getByRole("button", { name: "Cancel" }).click();
+  await expect
+    .poll(
+      async () =>
+        ((await bridge(page, "mock_remote_browser_send", { op: "status", requestId })) as { status: string }).status,
+    )
+    .toBe("rejected");
+  expect(await loaderCalls(page)).toEqual([]);
+});
