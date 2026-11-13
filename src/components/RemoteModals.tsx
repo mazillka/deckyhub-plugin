@@ -52,7 +52,6 @@ export function PairDeviceModal({ t, closeModal }: { t: TFunc; closeModal?: () =
   const [ticket, setTicket] = useState<{ code: string; token: string; expiresAt: number } | null>(null);
   const [now, setNow] = useState(Date.now());
   const [pairedName, setPairedName] = useState<string | null>(null);
-  const [showDetails, setShowDetails] = useState(false);
 
   const newCode = async () => {
     try {
@@ -162,47 +161,66 @@ export function PairDeviceModal({ t, closeModal }: { t: TFunc; closeModal?: () =
   } else {
     body = (
       <div style={{ display: "grid", gap: 12, justifyItems: "center", textAlign: "center" }}>
-        <span style={{ color: colors.muted }}>{t("remote.scanPairingQr")}</span>
-        {qr && !expired ? (
-          <img src={qr} alt="" style={{ width: "min(100%, 300px)", height: "auto", imageRendering: "pixelated" }} />
-        ) : (
-          <div style={{ color: colors.warning }}>{t("remote.expired")}</div>
-        )}
-        {ticket && !expired && (
-          <div style={{ display: "grid", gap: 6, width: "min(100%, 300px)" }}>
-            <div
-              style={{
-                fontSize: "1.5em",
-                fontWeight: "bold",
-                letterSpacing: 4,
-                color: colors.success,
-                padding: "2px 8px",
-                border: `1px solid ${colors.success}`,
-                borderRadius: 4,
-              }}
-            >
-              {ticket.code}
-            </div>
-            <div aria-hidden style={{ height: 4, borderRadius: 2, background: "rgba(255,255,255,0.12)" }}>
-              <div
-                style={{
-                  height: "100%",
-                  width: `${Math.min(100, (remaining / PAIRING_SECONDS) * 100)}%`,
-                  borderRadius: 2,
-                  background: remaining <= 20 ? colors.warning : colors.success,
-                  transition: "width 1s linear",
-                }}
-              />
-            </div>
-            <small
-              style={{ color: remaining <= 20 ? colors.warning : colors.muted, fontVariantNumeric: "tabular-nums" }}
-            >
-              {t("remote.expiresIn", { time: formatClock(remaining) })}
-            </small>
+        {/* The QR code beside its code, so the window fits a 1280x800 screen with its buttons */}
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 20,
+            alignItems: "center",
+            justifyContent: "center",
+            width: "100%",
+          }}
+        >
+          {qr && !expired ? (
+            <img src={qr} alt="" style={{ width: 220, height: 220, imageRendering: "pixelated" }} />
+          ) : (
+            <div style={{ color: colors.warning }}>{t("remote.expired")}</div>
+          )}
+          <div style={{ display: "grid", gap: 8, justifyItems: "center", flex: "1 1 240px", maxWidth: 340 }}>
+            <span style={{ color: colors.muted }}>{t("remote.scanPairingQr")}</span>
+            {ticket && !expired && (
+              <div style={{ display: "grid", gap: 6, width: "100%" }}>
+                <div
+                  style={{
+                    fontSize: "1.5em",
+                    fontWeight: "bold",
+                    letterSpacing: 4,
+                    color: colors.success,
+                    padding: "2px 8px",
+                    border: `1px solid ${colors.success}`,
+                    borderRadius: 4,
+                  }}
+                >
+                  {ticket.code}
+                </div>
+                <div aria-hidden style={{ height: 4, borderRadius: 2, background: "rgba(255,255,255,0.12)" }}>
+                  <div
+                    style={{
+                      height: "100%",
+                      width: `${Math.min(100, (remaining / PAIRING_SECONDS) * 100)}%`,
+                      borderRadius: 2,
+                      background: remaining <= 20 ? colors.warning : colors.success,
+                      transition: "width 1s linear",
+                    }}
+                  />
+                </div>
+                <small
+                  style={{ color: remaining <= 20 ? colors.warning : colors.muted, fontVariantNumeric: "tabular-nums" }}
+                >
+                  {t("remote.expiresIn", { time: formatClock(remaining) })}
+                </small>
+              </div>
+            )}
+            <small style={{ color: colors.accent }}>{t("remote.sameWifi")}</small>
+            <small style={{ color: colors.dim }}>{t("remote.waiting")}</small>
+            {status?.address && (
+              <small style={{ color: colors.dim, overflowWrap: "anywhere" }}>
+                {status.address.replace(/^https?:\/\//, "").replace(/\/remote-install$/, "")}
+              </small>
+            )}
           </div>
-        )}
-        <small style={{ color: colors.accent }}>{t("remote.sameWifi")}</small>
-        <small style={{ color: colors.dim }}>{t("remote.waiting")}</small>
+        </div>
         <Focusable flow-children="right" style={{ ...buttonRow, width: "100%" }}>
           <Button style={bigButton} onClick={() => void newCode()}>
             <FaSyncAlt /> {t("remote.newCode")}
@@ -220,21 +238,6 @@ export function PairDeviceModal({ t, closeModal }: { t: TFunc; closeModal?: () =
             </Button>
           )}
         </Focusable>
-        {status?.address && (
-          <div style={{ width: "100%", textAlign: "start" }}>
-            <ToggleField label={t("remote.address")} checked={showDetails} onChange={setShowDetails} />
-            {showDetails && (
-              <div style={{ display: "grid", gap: 4, marginTop: 6 }}>
-                <code style={{ color: colors.accent }}>
-                  {status.address.replace(/^https?:\/\//, "").replace(/\/remote-install$/, "")}
-                </code>
-                {status.fingerprint && (
-                  <code style={{ fontSize: "0.75em", wordBreak: "break-all" }}>{status.fingerprint}</code>
-                )}
-              </div>
-            )}
-          </div>
-        )}
       </div>
     );
   }
