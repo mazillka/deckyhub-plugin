@@ -4,8 +4,9 @@
 // Needs devtools/decky-mock's packages (npm ci there) and its Chromium (npx playwright install chromium).
 // Writes PNGs to out-dir (default devtools/deck/screenshots/remote/); turn them into the JPGs in
 // screenshots/ with `python devtools/deck/screenshots_to_jpg.py <out-dir> remote`.
-// It turns Remote access on, pairs this browser, sends an install request for plugin-id and REJECTS it,
-// then removes the pairing and puts Remote access back: nothing is installed and nothing stays paired.
+// It turns Remote access on, opens the pairing window, pairs this browser, sends an install request for
+// plugin-id and REJECTS it, then removes the pairing and puts Remote access back: nothing is installed and
+// nothing stays paired. The pairing window is a window of the main screen, so its two pictures are whole screens.
 import { mkdirSync, writeFileSync } from "node:fs";
 import { chromium } from "../decky-mock/node_modules/@playwright/test/index.mjs";
 import { connect, resetFocus, sleep, TARGETS, waitFor } from "./cdp.mjs";
@@ -52,6 +53,17 @@ const panelShot = async (name, top) => {
   console.log("saved", name);
 };
 
+// A window opening fades in over the blurred screen: take a few frames and keep the sharpest (the biggest PNG).
+const sharpShot = async () => {
+  let best = await main.screenshot();
+  for (let i = 0; i < 7; i++) {
+    await sleep(700);
+    const next = await main.screenshot();
+    if (next.length > best.length) best = next;
+  }
+  return best;
+};
+
 const before = await status();
 const pairedBefore = new Set(before.devices.map((device) => device.id));
 let browser;
@@ -67,21 +79,21 @@ try {
     const panel = await connect(TARGETS.quickAccess);
     const found = await waitFor(
       panel,
-      `[...document.querySelectorAll("div")].map((x) => x.children.length === 0 && x.textContent.trim()).find((text) => text && /^Remote Install/.test(text)) || null`,
+      `[...document.querySelectorAll("div")].map((x) => x.children.length === 0 && x.textContent.trim()).find((text) => text && /^Remote control/.test(text)) || null`,
       20000,
     );
     panel.close();
     return found;
   })();
-  // Pair browser draws the QR code (turning Remote access on by hand does that by itself).
+  // Pair a device opens the pairing window (QR code, code and countdown) on the main screen.
   const qr = await connect(TARGETS.quickAccess);
   await qr.eval(
-    `(() => { const onTop = (b) => { const r = b.getBoundingClientRect(); const e = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); return !!e && b.contains(e); }; [...document.querySelectorAll("button, .DialogButton")].find((b) => b.textContent.trim() === "Pair browser" && onTop(b))?.click(); return true; })()`,
+    `(() => { [...document.querySelectorAll("button, .DialogButton")].filter((b) => b.textContent.trim() === "Pair a device").at(-1)?.click(); return true; })()`,
   );
-  await waitFor(qr, `!!document.querySelector('img[src^="data:image"]')`, 15000).catch(() => {});
   qr.close();
-  await sleep(1500);
-  await panelShot("remote-pair-mode", "Remote access");
+  await waitFor(main, `document.body.innerText.includes("Scan to open")`, 15000);
+  writeFileSync(new URL("remote-pair-mode.png", out), await sharpShot());
+  console.log("saved remote-pair-mode");
 
   // A pairing link of our own, like the one behind the QR code.
   const ticket = await callPlugin("begin_remote_pairing");
@@ -108,8 +120,15 @@ try {
   }, BROWSER_NAME);
   await page.goto(`${SITE}paired-devices/#${link}`);
   const pairing = await until("the pairing request", (now) => now.pairings[0]);
-  await panelShot("remote-pairing-request", title);
+  // The same window turns into the question.
+  await waitFor(main, `document.body.innerText.includes("wants to pair")`, 15000);
+  writeFileSync(new URL("remote-pairing-request.png", out), await sharpShot());
+  console.log("saved remote-pairing-request");
   await callPlugin("decide_remote_pairing", pairing.id, true);
+  await sleep(1500);
+  await main.eval(
+    `[...document.querySelectorAll("button, .DialogButton")].filter((b) => b.textContent.trim() === "Close").forEach((b) => b.click()); true`,
+  );
   await page.waitForSelector("#remote-plugins li", { timeout: 60000 });
   // The preview site's banner isn't part of what a user of the live site sees.
   const hideBanner = () =>
@@ -130,6 +149,9 @@ try {
   console.log("saved remote-send-to-device");
   await page.click("#remote-request");
   const request = await until("the install request", (now) => now.requests[0]);
+  await resetFocus(shared, "/library/home");
+  await shared.eval(`DFL.Navigation.OpenQuickAccessMenu(${TAB_ID}); true`);
+  await sleep(4000);
   await panelShot("remote-request", title);
   await callPlugin("decide_remote_request", request.id, false);
   await page.waitForFunction(
