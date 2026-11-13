@@ -470,4 +470,9 @@ export const de: Record<MessageKey, string> = {
   "remote.trustTitle": "Trust {name}?",
   "remote.trustWarning":
     "This browser will be able to install, update and remove plugins on this device without asking you first. Plugins can run with full access to your device. Only trust a browser you control.",
+  "support.button": "Entwicklung & Wartung unterstützen",
+  "support.title": "DeckyHub unterstützen",
+  "support.text":
+    "DeckyHub ist kostenlos und Open Source. Wenn es Ihnen hilft, können Sie Entwicklung und Wartung auf Ko-fi unterstützen. Scannen Sie den Code mit dem Smartphone oder öffnen Sie die Seite hier.",
+  "support.open": "Öffnen",
 };
