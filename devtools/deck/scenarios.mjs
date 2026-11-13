@@ -4,7 +4,7 @@
 //   DECK=192.168.1.209:8081 node devtools/deck/scenarios.mjs [scenario …]
 import { readFileSync } from "node:fs";
 import { connect, goTo, resetFocus, sleep, TARGETS, waitFor } from "./cdp.mjs";
-import { BUTTON, press } from "./navigation.mjs";
+import { BUTTON, explore, press } from "./navigation.mjs";
 
 const AUDIT = readFileSync(new URL("./audit.js", import.meta.url), "utf8");
 const LANGUAGES = [
@@ -114,7 +114,66 @@ async function auditAllPlugins(scenario) {
   record(scenario, "all-plugins (a category, Filters open)", await audit(main, ".deckyhub-motion"));
 }
 
+// DeckyHub's windows (a window of the main screen, opened from a Quick Access button): each must fit the
+// 1280x800 screen without being cut, and pass the same audit as a page. A window that is only a few controls
+// (mustFit) must not scroll at all: its content opens scrolled to the middle otherwise (the pairing window
+// did, with its title and QR code off the top). Long content (release notes) may scroll inside its window.
+const FIT = (mustFit) => `(() => {
+  const modal = document.querySelector(".ModalOverlayContent.active");
+  if (!modal) return ["no window open"];
+  const problems = [];
+  if (${mustFit}) for (const el of modal.querySelectorAll("*")) if (/auto|scroll/.test(getComputedStyle(el).overflowY) && el.scrollHeight > el.clientHeight + 2) problems.push("scrolls: " + el.scrollHeight + "px of content in a " + el.clientHeight + "px window");
+  const scrolls = (el) => { for (let n = el; n && n !== modal; n = n.parentElement) if (/auto|scroll/.test(getComputedStyle(n).overflowY)) return true; return false; };
+  for (const el of modal.querySelectorAll("button, .DialogButton, img, h1, h2, h3, strong, span, div")) {
+    const r = el.getBoundingClientRect();
+    const own = el.matches("button, .DialogButton, img") || [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
+    if (!own || r.width < 2 || r.height < 2 || scrolls(el)) continue;
+    if (r.top < -1 || r.bottom > innerHeight + 1) problems.push("off screen vertically: " + (el.getAttribute("aria-label") || el.textContent || el.tagName).trim().replace(/\\s+/g, " ").slice(0, 40));
+  }
+  return problems.slice(0, 6);
+})()`;
+const WINDOWS = [
+  ["Pair a device", "the pairing window", true],
+  ["Support Development", "the Support window", true],
+  ["Manage", "the DeckyHub update window", false],
+];
+async function auditWindows(scenario) {
+  for (const [button, label, mustFit] of WINDOWS) {
+    await resetFocus(shared, "/library/home");
+    await shared.eval(`DFL.Navigation.OpenQuickAccessMenu(${TAB_ID}); true`);
+    await sleep(3000);
+    const clicked = await quickAccess.eval(
+      `(() => { const b = [...document.querySelectorAll("button, .DialogButton")].filter((x) => x.textContent.trim().startsWith(${JSON.stringify(button)})).at(-1); b?.click(); return !!b; })()`,
+    );
+    if (!clicked) {
+      record(scenario, label, [
+        `no "${button}" button in Quick Access (is Remote access on, and DeckyHub's tab shown?)`,
+      ]);
+      continue;
+    }
+    await waitFor(main, `!!document.querySelector(".ModalOverlayContent.active")`, 15000).catch(() => {});
+    await sleep(4000);
+    record(scenario, label, [
+      ...JSON.parse(await main.eval(`JSON.stringify(${FIT(mustFit)})`)),
+      ...(await audit(main, ".ModalOverlayContent.active")),
+    ]);
+    // The D-pad reaches every button in it, and B closes it.
+    const { missed } = await explore(shared, main, { root: ".ModalOverlayContent.active" });
+    record(scenario, `${label}: D-pad`, missed);
+    await press(shared, BUTTON.BACK, 1200);
+    const stillOpen = await main.eval(`!!document.querySelector(".ModalOverlayContent.active")`);
+    record(scenario, `${label}: B`, stillOpen ? ["B did not close it"] : []);
+    await main.eval(
+      `[...document.querySelectorAll(".ModalOverlayContent.active button, .ModalOverlayContent.active .DialogButton")].filter((b) => ["Close", "Cancel"].includes(b.textContent.trim())).forEach((b) => b.click()); true`,
+    );
+    await sleep(800);
+  }
+}
+
 const SCENARIOS = {
+  async windows() {
+    await auditWindows("windows");
+  },
   async languages() {
     for (const language of LANGUAGES) {
       await settings({ language });
