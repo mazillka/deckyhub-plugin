@@ -350,7 +350,7 @@ Turn on **Trusted** next to a paired browser and its requests run without asking
 
 #### If it doesn't work
 
-- **The device isn't listed, or the browser can't connect:** check that both are on the same network, that **Remote access** is on, and that the browser was allowed local network access.
+- **The device isn't listed, or the browser can't connect:** check that **Remote access** is on and the device is awake (it stops listening when it sleeps), that both are on the same Wi-Fi (not mobile data, a guest network or a VPN: turn mobile data off while you pair), that the browser may use the local network (in Chrome: Settings, Site settings, Local network, deckyhub.com set to Allow), and that your router's "AP isolation" / "client isolation" is off for this network. To tell the network from the browser, open `https://the-device-address:8765/` in the same browser: "refused to connect" at once means the network is fine, a long wait means the browser can't reach the device. When pairing fails the page shows technical details with a Copy button; add them, and DeckyHub's log (Settings, Logs, Export: it lists each connection a browser tried), to a bug report.
 - **It worked before and stopped:** your router may have given the device a new address. Open the Quick Access tab to see it, or pair again.
 - **Remote Install isn't supported on this system:** the device's Decky Loader runs a Python version DeckyHub has no network library for. Nothing else in DeckyHub is affected.
 - **The browser says it needs Chrome or Edge:** open the page in a Chromium browser.

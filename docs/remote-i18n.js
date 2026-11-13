@@ -115,6 +115,8 @@ const UK = new Map(Object.entries({
   'Notify me about updates': 'Сповіщати про оновлення',
   'Notices appear while this page or app is open, or running in the background. Your device is only reached from your own network.': 'Сповіщення з’являються, поки ця сторінка чи застосунок відкриті або працюють у фоні. До вашого пристрою звертаються лише з вашої власної мережі.',
   'Invalid summary from the device.': 'Недійсний підсумок від пристрою.',
+  'Details copied.': 'Дані скопійовано.',
+  'Select the details, copy them, then paste them into your bug report.': 'Виділіть дані, скопіюйте їх і вставте в повідомлення про помилку.',
   'Notices are blocked. Allow them for this site in your browser settings.': 'Сповіщення заблоковано. Дозвольте їх для цього сайту в налаштуваннях браузера.',
 }));
 
@@ -126,6 +128,7 @@ const plural = (count, one, few, many) => {
 };
 // Messages with a name or a number in them.
 const RULES = [
+  [/^(Could not reach your device\. Check that Remote access is on and that it is on the same network as this browser\.) \((.+)\)$/, (message, detail) => `${ukrainian(message)} (${detail})`],
   [/^Pre-release: (.+)$/, rest => `Попередній випуск: ${ukrainian(rest)}`],
   [/^(.+) selected\.$/, name => `${name} вибрано.`],
   [/^(.+) forgotten in this browser\. Remove this browser under Paired browsers in DeckyHub on the device too\.$/, name => `${name} забуто в цьому браузері. Видаліть цей браузер і в розділі «З’єднані браузери» DeckyHub на пристрої.`],

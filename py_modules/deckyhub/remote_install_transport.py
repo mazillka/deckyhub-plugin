@@ -134,6 +134,16 @@ def lan_address():
     return address
 
 
+def _log(message, *args):
+    """A line in DeckyHub's log about a browser's connection (its address, never a token or a code)."""
+    try:
+        import decky
+
+        decky.logger.info(message, *args)
+    except Exception:  # a log line must never stop the listener
+        pass
+
+
 async def start_transport(service):
     major, minor = sys.version_info[:2]
     vendor = Path(__file__).resolve().parent.parent / "deckyhub_vendor" / f"cp{major}{minor}"
@@ -163,8 +173,22 @@ async def start_transport(service):
             if not self.over_limit:
                 active_connections.add(self)
 
+        def _peer(self):
+            try:
+                return self._quic._network_paths[0].addr[0]
+            except Exception:  # a private attribute of aioquic: only for the log line
+                return "an unknown address"
+
         def quic_event_received(self, event):
+            if isinstance(event, ProtocolNegotiated):
+                _log("Remote Install: %s connected (%s)", self._peer(), event.alpn_protocol)
             if isinstance(event, ConnectionTerminated):
+                _log(
+                    "Remote Install: %s closed the connection (code %s, %s)",
+                    self._peer(),
+                    event.error_code,
+                    event.reason_phrase or "no reason",
+                )
                 active_connections.discard(self)
                 self.sessions.clear()
                 self.streams.clear()
@@ -189,6 +213,11 @@ async def start_transport(service):
                         and headers.get(b"origin") == b"https://deckyhub.com"
                         and sum(name == b"origin" for name, _ in e.headers) == 1
                         and len(self.sessions) < 2
+                    )
+                    _log(
+                        "Remote Install: %s asked for a session (%s)",
+                        self._peer(),
+                        "accepted" if allowed else "refused",
                     )
                     self.http.send_headers(
                         e.stream_id,

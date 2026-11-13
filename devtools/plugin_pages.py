@@ -434,11 +434,19 @@ def remote_device_panel(lang: str = "en") -> str:
 </li>
 </ol>
 <ul id="remote-trouble" class="rd-trouble">
-<li>Allow local network access when your browser asks.</li>
-<li>Check that Remote access is on, on your device.</li>
-<li>Use the same Wi-Fi as your device, not mobile data or a guest network.</li>
+<li>Allow local network access when your browser asks. In Chrome: menu, Settings, Site settings, Local network, then set deckyhub.com to Allow.</li>
+<li>Check that Remote access is on and that your device is awake: it stops listening when it sleeps.</li>
+<li>Use the same Wi-Fi as your device, not mobile data, a guest network or a VPN. Turn off mobile data while you pair.</li>
+<li>If your router has "AP isolation" or "client isolation", it stops phones from reaching other devices: turn it off for this network.</li>
 <li>Your router may have given the device a new address: open the Quick Access tab to see it, or pair again.</li>
+<li>To tell the network from the browser, open https://the-device-address:8765/ in this browser. "Refused to connect" at once means the network is fine; a long wait means this browser can't reach the device.</li>
+<li>Still stuck? Try Chrome or Edge on a computer on the same Wi-Fi, and send the details below with your bug report.</li>
 </ul>
+<details id="remote-diagnostics" class="rd-diagnostics" hidden>
+<summary>Technical details for a bug report</summary>
+<pre id="remote-diagnostics-text"></pre>
+<p><button type="button" id="remote-copy-diagnostics">Copy details</button></p>
+</details>
 <form id="remote-pair-form" aria-labelledby="remote-pair-title">
 <h3 id="remote-pair-title">No camera or QR code? Paste the link</h3>
 <p class="rd-hint">Scanning the QR code fills these in and pairs by itself. Use them to paste a link, or to try again.</p>

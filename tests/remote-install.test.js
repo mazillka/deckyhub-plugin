@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { detailsFromPairingLink, deviceUrl, exchange, fingerprintBytes, init, pairingDetails } from '../docs/remote-install.js';
+import { connectionDiagnostics, detailsFromPairingLink, deviceUrl, exchange, fingerprintBytes, init, pairingDetails } from '../docs/remote-install.js';
 
 test('pairing links accept only a private device address and a complete fingerprint', () => {
   const fingerprint = 'ab'.repeat(32);
@@ -146,4 +146,19 @@ test('rejects malformed, rejected and oversized device responses', async () => {
   for (const body of ['oops', '{"ok":false}', 'x'.repeat(16385)]) {
     await assert.rejects(exchange(transportReturning(body, []), { op: 'status' }));
   }
+});
+
+test('the connection details name the browser, the network and the error, but never a token, code or whole pin', () => {
+  const pin = 'ab'.repeat(32);
+  const text = connectionDiagnostics({
+    when: '2026-11-13T12:00:00Z', page: 'https://deckyhub.com/remote-install/', browser: 'Chrome/130 Android', secure: true,
+    webTransport: true, online: true, network: 'wifi 4g', permission: 'granted', address: '192.168.1.213:8765', pin,
+    error: 'WebTransportError: Opening handshake failed.',
+  });
+  for (const part of ['Chrome/130 Android', 'WebTransport: yes, secure page: yes, online: yes', 'wifi 4g', 'granted', '192.168.1.213:8765', 'abababab', 'Opening handshake failed.']) assert.ok(text.includes(part), part);
+  assert.ok(!text.includes(pin), 'the whole pin is not part of a bug report');
+  const empty = connectionDiagnostics({ when: 'now', page: '/', browser: '?', secure: false, webTransport: false, online: false });
+  assert.match(empty, /Network the browser reports: unknown/);
+  assert.match(empty, /Local network permission: unknown/);
+  assert.match(empty, /Device address: none/);
 });

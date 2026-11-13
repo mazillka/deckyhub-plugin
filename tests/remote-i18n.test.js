@@ -9,6 +9,12 @@ test('English stays as it is, and so does anything unknown', () => {
   assert.equal(translate(undefined, 'uk'), undefined);
 });
 
+test("the browser's own reason stays after the translated message", () => {
+  const base = 'Could not reach your device. Check that Remote access is on and that it is on the same network as this browser.';
+  assert.equal(translate(`${base} (WebTransportError: Opening handshake failed.)`, 'uk'), `${translate(base, 'uk')} (WebTransportError: Opening handshake failed.)`);
+  assert.notEqual(translate(base, 'uk'), base);
+});
+
 test('messages with a name or a number are translated too', () => {
   assert.equal(translate('Steam Deck selected.', 'uk'), 'Steam Deck вибрано.');
   assert.equal(translate('Used 5 minutes ago', 'uk'), 'Використано 5 хв тому');
@@ -30,7 +36,8 @@ test('messages with a name or a number are translated too', () => {
 
 // Every sentence the page's scripts write must have a Ukrainian text, or the Ukrainian page shows English.
 test('every plain English sentence in the page scripts is translated', () => {
-  const NOT_SHOWN = new Set(['prefers-reduced-motion']);
+  // The bug-report details stay in English: they are for whoever reads the report.
+  const NOT_SHOWN = new Set(['prefers-reduced-motion', 'DeckyHub connection details']);
   const missing = [];
   for (const file of ['remote-install.js', 'remote-plugins.js', 'remote-updates.js']) {
     const source = readFileSync(new URL(`../docs/${file}`, import.meta.url), 'utf8');
