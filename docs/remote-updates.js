@@ -1,6 +1,8 @@
 // Paired devices as an installed app: registers the service worker, offers "Install app", and tells the user when
 // the selected device has plugin updates waiting (a line on the page and, once allowed, a notification).
 // The device reports its updates over the same pinned connection as everything else (op "summary").
+import { translate } from './remote-i18n.js';
+
 const NOTIFY_KEY = 'deckyhub.remoteInstall.notify';
 const NOTIFIED_KEY = 'deckyhub.remoteInstall.notified';
 const EVERY = 5 * 60 * 1000;
@@ -41,7 +43,7 @@ export function createUpdates(root, { summary, device }) {
   notifyButton.type = 'button';
   const installButton = doc.createElement('button');
   installButton.type = 'button';
-  installButton.textContent = 'Install app';
+  installButton.textContent = translate('Install app');
   installButton.hidden = true;
   actions.append(notifyButton, installButton);
   const hint = doc.createElement('p');
@@ -59,12 +61,12 @@ export function createUpdates(root, { summary, device }) {
     const current = device();
     section.hidden = !current && !deferredInstall;
     line.hidden = !current || !last;
-    if (current && last) line.textContent = updateLine(last, current.name);
+    if (current && last) line.textContent = translate(updateLine(last, current.name));
     notifyButton.hidden = typeof Notification === 'undefined' || !current;
-    notifyButton.textContent = notificationsOn() ? 'Turn off update notices' : 'Notify me about updates';
+    notifyButton.textContent = translate(notificationsOn() ? 'Turn off update notices' : 'Notify me about updates');
     installButton.hidden = !deferredInstall;
     hint.textContent = !notifyButton.hidden && !notificationsOn()
-      ? 'Notices appear while this page or app is open, or running in the background. Your device is only reached from your own network.'
+      ? translate('Notices appear while this page or app is open, or running in the background. Your device is only reached from your own network.')
       : '';
   };
   const announce = async (current, result) => {
@@ -75,7 +77,7 @@ export function createUpdates(root, { summary, device }) {
     if (seen[current.fingerprint] === signature) return;
     seen[current.fingerprint] = signature;
     write(NOTIFIED_KEY, JSON.stringify(seen));
-    const title = `${current.name}: ${result.updates.length} plugin ${result.updates.length === 1 ? 'update' : 'updates'}`;
+    const title = translate(`${current.name}: ${result.updates.length} plugin ${result.updates.length === 1 ? 'update' : 'updates'}`);
     const options = { body: result.updates.slice(0, 5).map(item => `${item.name} ${item.version}`).join(', '), tag: 'deckyhub-updates', icon: new URL('../icon-192.png', location.href).href };
     const worker = await registration;
     try { if (worker) await worker.showNotification(title, options); else new Notification(title, options); } catch { /* blocked */ }
@@ -102,7 +104,7 @@ export function createUpdates(root, { summary, device }) {
     write(NOTIFY_KEY, permission === 'granted' ? '1' : '0');
     paint();
     if (permission === 'granted') void check();
-    else hint.textContent = 'Notices are blocked. Allow them for this site in your browser settings.';
+    else hint.textContent = translate('Notices are blocked. Allow them for this site in your browser settings.');
   });
   installButton.addEventListener('click', async () => {
     if (!deferredInstall) return;

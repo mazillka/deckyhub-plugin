@@ -16,6 +16,7 @@ import time
 import urllib.request
 from html import escape
 
+import remote_page_uk
 import site_shell
 
 SITE = "https://deckyhub.com/"
@@ -324,11 +325,20 @@ def shell_of(releases_page: str) -> dict[str, str]:
 
 
 def page(
-    shell: dict[str, str], title: str, description: str, path: str, body: str, data: list[str], current: str = "plugins"
+    shell: dict[str, str],
+    title: str,
+    description: str,
+    path: str,
+    body: str,
+    data: list[str],
+    current: str = "plugins",
+    lang: str = "en",
+    switch: tuple[str, str, str] | None = None,
 ) -> str:
     url = SITE + path
+    uk = lang == "uk"
     return f"""<!doctype html>
-<html lang="en">
+<html lang="{lang}">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{escape(title)}</title>
@@ -343,21 +353,21 @@ def page(
 <style>{shell["style"]}</style>
 </head>
 <body>
-<a class="skip" href="#main">Skip to content</a>
-{site_shell.nav(current)}
+<a class="skip" href="#main">{"До змісту" if uk else "Skip to content"}</a>
+{site_shell.nav(current, lang, switch)}
 <main id="main"><div class="wrap plugin">
 {body}
 </div></main>
-{shell["footer"]}
+{site_shell.FOOTER_UK if uk else shell["footer"]}
 </body>
 </html>
 """
 
 
-def remote_device_panel() -> str:
+def remote_device_panel(lang: str = "en") -> str:
     # data-state (set by remote-install.js) picks what the page shows: new, connecting, approve, unreachable,
     # unsupported, error or paired; see remote-install.css.
-    return """<section id="remote-install" class="remote-install remote-device-dashboard" aria-labelledby="remote-title" data-plugin-id="" data-state="new" data-has-devices="false">
+    html = """<section id="remote-install" class="remote-install remote-device-dashboard" aria-labelledby="remote-title" data-plugin-id="" data-state="new" data-has-devices="false">
 <link rel="stylesheet" href="/remote-install.css">
 <header class="rd-hero">
 <p class="rd-badge">Experimental · fully local</p>
@@ -366,9 +376,9 @@ def remote_device_panel() -> str:
 </header>
 <div class="rd-layout">
 <aside class="rd-devices" aria-labelledby="rd-devices-title">
-<div class="rd-devices-head"><h3 id="rd-devices-title">Your devices</h3><a id="remote-pair-another" class="btn" href="#remote-pairing">+ Add device</a></div>
+<div class="rd-devices-head"><h3 id="rd-devices-title">Your devices</h3><button type="button" id="remote-pair-another" class="btn">+ Add device</button></div>
 <ul id="remote-device-cards" class="rd-cards" aria-label="Paired devices"></ul>
-<p class="rd-empty">No device yet. Follow the three steps to add your first one.</p>
+<p class="rd-empty">No device yet. Press Add device to connect your first one.</p>
 <div class="rd-sr"><label for="remote-device-picker">Selected device</label><select id="remote-device-picker" disabled><option value="">Pair a device</option></select></div>
 <details class="rd-multi">
 <summary>Using more than one device?</summary>
@@ -380,9 +390,33 @@ def remote_device_panel() -> str:
 </aside>
 <div class="rd-main">
 <p id="remote-status" role="status" aria-live="polite" class="rd-status">Not connected.</p>
+<div class="rd-device">
+<p class="remote-actions"><button type="button" id="remote-request" disabled hidden>Send install request</button> <button type="button" id="remote-cancel" disabled>Cancel request</button></p>
+</div>
+<section class="remote-inventory" aria-labelledby="remote-plugins-title">
+<div class="rd-inv-head">
+<h3 id="remote-plugins-title">Installed plugins</h3>
+<p class="remote-actions"><a class="btn" href="/plugins/">Browse plugins to install</a> <button type="button" id="remote-plugins-refresh" disabled>Refresh list</button></p>
+</div>
+<p id="remote-plugins-status" role="status" aria-live="polite">Pair a device to see its installed plugins.</p>
+<details class="remote-pack" id="remote-pack-box">
+<summary>Switch a plugin pack on or off</summary>
+<p class="rd-hint">Pick a DeckyHub plugin pack file. Its plugins that are installed on your device are switched together, with one approval on the device. Nothing is installed or removed.</p>
+<p><input id="remote-pack" type="file" accept=".json,application/json" aria-label="Plugin pack file" disabled></p>
+<p id="remote-pack-info" role="status" aria-live="polite"></p>
+<p class="remote-actions"><button type="button" id="remote-pack-enable" disabled>Enable pack</button> <button type="button" id="remote-pack-disable" disabled>Disable pack</button></p>
+</details>
+<p><input id="remote-plugins-filter" type="search" aria-label="Search installed plugins" placeholder="Search installed plugins" autocomplete="off" hidden></p>
+<ul id="remote-plugins" class="remote-plugins"></ul>
+</section>
+</div>
+</div>
+<dialog id="remote-add-dialog" class="rd-dialog" aria-labelledby="remote-add-title">
+<div class="rd-dialog-head"><h3 id="remote-add-title">Add a device</h3><button type="button" id="remote-add-close" class="rd-close" aria-label="Close">×</button></div>
+<div class="rd-dialog-body">
+<p id="remote-dialog-status" role="status" aria-live="polite" class="rd-status" hidden></p>
 <div class="rd-pairing" id="remote-pairing">
 <div class="rd-pairing-head">
-<h3>Add a device in 3 steps</h3>
 <p class="rd-wifi"><span aria-hidden="true">⚑</span> Both devices must be on the <strong>same Wi-Fi</strong> (not mobile data, not a guest network).</p>
 </div>
 <ol class="rd-steps" aria-label="Pairing steps">
@@ -396,7 +430,7 @@ def remote_device_panel() -> str:
 </li>
 <li>
 <span class="rd-dot" aria-hidden="true">3</span>
-<div><span class="rd-where">On your Steam Deck</span><strong>Press Approve</strong><small>A pairing request appears under <em>Remote Install</em>. Press <em>Approve</em>.</small></div>
+<div><span class="rd-where">On your Steam Deck</span><strong>Press Approve</strong><small>A pairing request appears under <em>Remote control</em>. Press <em>Approve</em>.</small></div>
 </li>
 </ol>
 <ul id="remote-trouble" class="rd-trouble">
@@ -422,30 +456,12 @@ def remote_device_panel() -> str:
 <button type="submit" id="remote-pair" disabled>Pair browser</button>
 </form>
 </div>
-<div class="rd-device">
-<p class="remote-actions"><button type="button" id="remote-request" disabled hidden>Send install request</button> <button type="button" id="remote-cancel" disabled>Cancel request</button></p>
 </div>
-<section class="remote-inventory" aria-labelledby="remote-plugins-title">
-<div class="rd-inv-head">
-<h3 id="remote-plugins-title">Installed plugins</h3>
-<p class="remote-actions"><a class="btn" href="/plugins/">Browse plugins to install</a> <button type="button" id="remote-plugins-refresh" disabled>Refresh list</button></p>
-</div>
-<p id="remote-plugins-status" role="status" aria-live="polite">Pair a device to see its installed plugins.</p>
-<details class="remote-pack" id="remote-pack-box">
-<summary>Switch a plugin pack on or off</summary>
-<p class="rd-hint">Pick a DeckyHub plugin pack file. Its plugins that are installed on your device are switched together, with one approval on the device. Nothing is installed or removed.</p>
-<p><input id="remote-pack" type="file" accept=".json,application/json" aria-label="Plugin pack file" disabled></p>
-<p id="remote-pack-info" role="status" aria-live="polite"></p>
-<p class="remote-actions"><button type="button" id="remote-pack-enable" disabled>Enable pack</button> <button type="button" id="remote-pack-disable" disabled>Disable pack</button></p>
-</details>
-<p><input id="remote-plugins-filter" type="search" aria-label="Search installed plugins" placeholder="Search installed plugins" autocomplete="off" hidden></p>
-<ul id="remote-plugins" class="remote-plugins"></ul>
-</section>
-</div>
-</div>
+</dialog>
 <noscript>Enable JavaScript to connect to your device.</noscript>
 <script type="module" src="/remote-install.js"></script>
 </section>"""
+    return remote_page_uk.translate(html) if lang == "uk" else html
 
 
 def remote_install_picker(plugin_id: str) -> str:
@@ -470,15 +486,23 @@ def paired_devices_page(
     shell: dict[str, str],
     title: str = "Paired devices | DeckyHub",
     description: str = "Pair a device and manage its installed Decky plugins.",
+    lang: str = "en",
+    path: str = "remote-install/",
 ) -> str:
-    body = "<h1>Paired devices</h1>" + remote_device_panel()
+    uk = lang == "uk"
+    body = f"<h1>{'Сполучені пристрої' if uk else 'Paired devices'}</h1>" + remote_device_panel(lang)
+    # The same page in the other language, for the menu's language link and for search engines.
+    base = path.removeprefix("uk/")
+    other = SITE + (base if uk else "uk/" + base)
     # An installable app (docs/remote-install/manifest.webmanifest, sw.js), scoped to this page.
     app = [
         '<link rel="manifest" href="/remote-install/manifest.webmanifest">',
         '<link rel="apple-touch-icon" href="/icon-192.png">',
         '<meta name="mobile-web-app-capable" content="yes">',
     ]
-    return page(shell, title, description, "remote-install/", body, app, current="paired-devices")
+    app.append(f'<link rel="alternate" hreflang="{"en" if uk else "uk"}" href="{other}">')
+    switch = ("English", other, "en") if uk else ("Українська", other, "uk")
+    return page(shell, title, description, path, body, app, current="paired-devices", lang=lang, switch=switch)
 
 
 def plugin_page(
@@ -965,6 +989,19 @@ def write_pages(out, apps: list[dict], releases_page: str, data: dict) -> list[t
         ),
         encoding="utf-8",
     )
+    # The same page in Ukrainian, under /uk/ like the rest of the Ukrainian site.
+    for folder in ("paired-devices", "remote-install"):
+        (out / "uk" / folder).mkdir(parents=True, exist_ok=True)
+        (out / "uk" / folder / "index.html").write_text(
+            paired_devices_page(
+                shell,
+                "Сполучені пристрої | DeckyHub",
+                "Сполучіть пристрій і керуйте його встановленими плагінами Decky.",
+                lang="uk",
+                path=f"uk/{folder}/",
+            ),
+            encoding="utf-8",
+        )
     (out / "paired-devices.html").write_text(
         paired_devices_page(
             shell,
@@ -979,6 +1016,8 @@ def write_pages(out, apps: list[dict], releases_page: str, data: dict) -> list[t
         (f"{SITE}remote-install/", today),
         (f"{SITE}paired-devices/", today),
         (f"{SITE}paired-devices.html", today),
+        (f"{SITE}uk/paired-devices/", today),
+        (f"{SITE}uk/remote-install/", today),
     ]
     for app in apps:
         key = app["repo"].casefold()

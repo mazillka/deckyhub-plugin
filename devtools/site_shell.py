@@ -26,7 +26,7 @@ LINKS = [
 LINKS_UK = [
     ("home", "Головна", SITE + "uk/"),
     ("plugins", "Плагіни", SITE + "plugins/"),
-    ("paired-devices", "Сполучені пристрої", SITE + "paired-devices/"),
+    ("paired-devices", "Сполучені пристрої", SITE + "uk/paired-devices/"),
     ("install", "Встановлення", SITE + "uk/#install"),
     ("releases", "Нотатки до релізів", SITE + "releases.html"),
     ("help", "Довідка", SITE + "uk/help.html"),
