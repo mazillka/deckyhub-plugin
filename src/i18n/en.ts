@@ -1,12 +1,12 @@
 // Canonical key source — every other locale must cover the same keys.
 export const en = {
-  "remote.title": "Remote Install (experimental)",
+  "remote.title": "Remote control (experimental)",
   "remote.description":
-    "Pair a browser on the same network. Every installation requires approval on this device. It works only on your local network: nothing is collected or sent anywhere.",
+    "Lets a paired phone or computer manage plugins here. Changes need your approval. Local network only; nothing is sent anywhere. Off: nothing listens.",
   "remote.address": "Device address",
   "remote.fingerprint": "Certificate fingerprint (SHA-256)",
   "remote.copyPairingLink": "Copy pairing link",
-  "remote.pairMode": "Pair mode",
+  "remote.pairMode": "Remote access",
   "remote.scanPairingQr": "Scan to open Paired devices",
   "remote.pair": "Pair browser",
   "remote.pairDevice": "Pair a device",
@@ -15,7 +15,7 @@ export const en = {
   "remote.pairingWants": "{name} wants to pair",
   "remote.sameWifi": "Both devices must be on the same Wi-Fi.",
   "remote.noBrowsers": "No paired browsers yet.",
-  "remote.notRunning": "Pair mode isn't running. Turn it on and try again.",
+  "remote.notRunning": "Remote access isn't running. Turn it on and try again.",
   "remote.waiting": "Waiting for the browser…",
   "remote.expiresIn": "Expires in {time}",
   "remote.expired": "Code expired. Press Pair browser for a new one.",

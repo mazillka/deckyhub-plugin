@@ -1,13 +1,13 @@
 import type { MessageKey } from "./en";
 
 export const ja: Record<MessageKey, string> = {
-  "remote.title": "リモートインストール（試験的）",
+  "remote.title": "リモート操作（試験機能）",
   "remote.description":
-    "同じネットワークのブラウザーをペアリングします。インストールごとにこのデバイスでの承認が必要です。ローカルネットワーク内だけで動作し、データの収集や外部への送信は一切ありません。",
+    "ペアリング済みのスマートフォンやパソコンから、ここのプラグインを管理できます。変更にはこの端末での承認が必要です。ローカルネットワーク内のみで、外部には何も送信されません。オフのときは何も待ち受けません。",
   "remote.address": "デバイスのアドレス",
   "remote.fingerprint": "証明書のフィンガープリント (SHA-256)",
   "remote.copyPairingLink": "ペアリングリンクをコピー",
-  "remote.pairMode": "ペアリングモード",
+  "remote.pairMode": "リモートアクセス",
   "remote.scanPairingQr": "スキャンしてペアリング済みデバイスを開く",
   "remote.pair": "ブラウザーをペアリング",
   "remote.pairDevice": "デバイスをペアリング",
@@ -16,7 +16,7 @@ export const ja: Record<MessageKey, string> = {
   "remote.pairingWants": "{name} がペアリングを求めています",
   "remote.sameWifi": "両方のデバイスが同じ Wi-Fi に接続されている必要があります。",
   "remote.noBrowsers": "ペアリング済みのブラウザーはまだありません。",
-  "remote.notRunning": "ペアリングモードが動作していません。オンにして、もう一度お試しください。",
+  "remote.notRunning": "リモートアクセスが動作していません。オンにして、もう一度お試しください。",
   "remote.waiting": "ブラウザーを待っています…",
   "remote.expiresIn": "有効期限まで {time}",
   "remote.expired": "コードの有効期限が切れました。「ブラウザーをペアリング」を押すと新しいコードが表示されます。",

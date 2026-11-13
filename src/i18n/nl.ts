@@ -1,13 +1,13 @@
 import type { MessageKey } from "./en";
 
 export const nl: Record<MessageKey, string> = {
-  "remote.title": "Installatie op afstand (experimenteel)",
+  "remote.title": "Afstandsbediening (experimenteel)",
   "remote.description":
-    "Koppel een browser op hetzelfde netwerk. Elke installatie vereist goedkeuring op dit apparaat. Werkt alleen op het lokale netwerk: er wordt niets verzameld of ergens naartoe gestuurd.",
+    "Een gekoppelde telefoon of computer kan hier plug-ins beheren. Wijzigingen hebben jouw goedkeuring nodig. Alleen lokaal netwerk; er wordt niets verzonden. Uit: er luistert niets.",
   "remote.address": "Apparaatadres",
   "remote.fingerprint": "Certificaatvingerafdruk (SHA-256)",
   "remote.copyPairingLink": "Koppelingslink kopiëren",
-  "remote.pairMode": "Koppelmodus",
+  "remote.pairMode": "Toegang op afstand",
   "remote.scanPairingQr": "Scan om gekoppelde apparaten te openen",
   "remote.pair": "Browser koppelen",
   "remote.pairDevice": "Apparaat koppelen",
@@ -16,7 +16,7 @@ export const nl: Record<MessageKey, string> = {
   "remote.pairingWants": "{name} wil koppelen",
   "remote.sameWifi": "Beide apparaten moeten op hetzelfde wifi-netwerk zitten.",
   "remote.noBrowsers": "Nog geen gekoppelde browsers.",
-  "remote.notRunning": "Koppelmodus draait niet. Zet hem aan en probeer het opnieuw.",
+  "remote.notRunning": "Toegang op afstand staat niet aan. Zet het aan en probeer het opnieuw.",
   "remote.waiting": "Wachten op de browser…",
   "remote.expiresIn": "Verloopt over {time}",
   "remote.expired": "Code verlopen. Druk op Browser koppelen voor een nieuwe.",

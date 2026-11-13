@@ -1,13 +1,13 @@
 import type { MessageKey } from "./en";
 
 export const ko: Record<MessageKey, string> = {
-  "remote.title": "원격 설치 (실험적)",
+  "remote.title": "원격 제어 (실험적)",
   "remote.description":
-    "같은 네트워크의 브라우저를 연결하세요. 설치할 때마다 이 기기에서 승인해야 합니다. 로컬 네트워크에서만 작동하며, 어떤 정보도 수집하거나 외부로 보내지 않습니다.",
+    "페어링된 휴대폰이나 컴퓨터가 여기서 플러그인을 관리할 수 있습니다. 변경에는 승인이 필요합니다. 로컬 네트워크에서만 작동하며 외부로 아무것도 전송되지 않습니다. 끄면 아무것도 대기하지 않습니다.",
   "remote.address": "기기 주소",
   "remote.fingerprint": "인증서 지문 (SHA-256)",
   "remote.copyPairingLink": "페어링 링크 복사",
-  "remote.pairMode": "페어링 모드",
+  "remote.pairMode": "원격 접속",
   "remote.scanPairingQr": "스캔하여 페어링된 기기 열기",
   "remote.pair": "브라우저 연결",
   "remote.pairDevice": "기기 연결",
@@ -16,7 +16,7 @@ export const ko: Record<MessageKey, string> = {
   "remote.pairingWants": "{name}이(가) 연결을 요청합니다",
   "remote.sameWifi": "두 기기가 같은 Wi-Fi에 있어야 합니다.",
   "remote.noBrowsers": "연결된 브라우저가 아직 없습니다.",
-  "remote.notRunning": "페어링 모드가 실행되지 않았습니다. 켠 뒤 다시 시도하세요.",
+  "remote.notRunning": "원격 접속이 실행되지 않았습니다. 켠 뒤 다시 시도하세요.",
   "remote.waiting": "브라우저를 기다리는 중…",
   "remote.expiresIn": "{time} 후 만료",
   "remote.expired": "코드가 만료되었습니다. 새 코드를 받으려면 브라우저 연결을 누르세요.",

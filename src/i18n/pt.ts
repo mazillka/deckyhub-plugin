@@ -2,13 +2,13 @@ import type { MessageKey } from "./en";
 
 // Portuguese, written for Brazil (Steam's "Português-Brasil"); Portugal reads it fine.
 export const pt: Record<MessageKey, string> = {
-  "remote.title": "Instalação remota (experimental)",
+  "remote.title": "Controle remoto (experimental)",
   "remote.description":
-    "Vincule um navegador na mesma rede. Cada instalação precisa de aprovação neste dispositivo. Funciona só na rede local: nada é coletado nem enviado para lugar nenhum.",
+    "Um celular ou computador vinculado pode gerenciar os plugins aqui. As mudanças precisam da sua aprovação. Somente rede local; nada é enviado a lugar nenhum. Desligado: nada escuta.",
   "remote.address": "Endereço do dispositivo",
   "remote.fingerprint": "Impressão digital do certificado (SHA-256)",
   "remote.copyPairingLink": "Copiar link de pareamento",
-  "remote.pairMode": "Modo de pareamento",
+  "remote.pairMode": "Acesso remoto",
   "remote.scanPairingQr": "Escaneie para abrir os dispositivos pareados",
   "remote.pair": "Vincular navegador",
   "remote.pairDevice": "Vincular um dispositivo",
@@ -17,7 +17,7 @@ export const pt: Record<MessageKey, string> = {
   "remote.pairingWants": "{name} quer vincular",
   "remote.sameWifi": "Os dois dispositivos precisam estar na mesma rede Wi-Fi.",
   "remote.noBrowsers": "Ainda não há navegadores vinculados.",
-  "remote.notRunning": "O modo de pareamento não está ativo. Ative-o e tente de novo.",
+  "remote.notRunning": "O acesso remoto não está ativo. Ative-o e tente de novo.",
   "remote.waiting": "Aguardando o navegador…",
   "remote.expiresIn": "Expira em {time}",
   "remote.expired": "O código expirou. Pressione Vincular navegador para gerar um novo.",

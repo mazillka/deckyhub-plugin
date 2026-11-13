@@ -1,13 +1,13 @@
 import type { MessageKey } from "./en";
 
 export const fr: Record<MessageKey, string> = {
-  "remote.title": "Installation à distance (expérimental)",
+  "remote.title": "Contrôle à distance (expérimental)",
   "remote.description":
-    "Associez un navigateur sur le même réseau. Chaque installation nécessite une approbation sur cet appareil. Fonctionne uniquement sur le réseau local : rien n’est collecté ni envoyé où que ce soit.",
+    "Un téléphone ou un ordinateur associé peut gérer les plugins ici. Les changements demandent votre accord. Réseau local uniquement ; rien n’est envoyé ailleurs. Désactivé : rien n’écoute.",
   "remote.address": "Adresse de l’appareil",
   "remote.fingerprint": "Empreinte du certificat (SHA-256)",
   "remote.copyPairingLink": "Copier le lien d’association",
-  "remote.pairMode": "Mode d’association",
+  "remote.pairMode": "Accès à distance",
   "remote.scanPairingQr": "Scannez pour ouvrir les appareils associés",
   "remote.pair": "Associer un navigateur",
   "remote.pairDevice": "Associer un appareil",
@@ -16,7 +16,7 @@ export const fr: Record<MessageKey, string> = {
   "remote.pairingWants": "{name} souhaite s’associer",
   "remote.sameWifi": "Les deux appareils doivent être sur le même Wi-Fi.",
   "remote.noBrowsers": "Aucun navigateur associé pour le moment.",
-  "remote.notRunning": "Le mode d’association n’est pas actif. Activez-le et réessayez.",
+  "remote.notRunning": "L’accès à distance n’est pas actif. Activez-le et réessayez.",
   "remote.waiting": "En attente du navigateur…",
   "remote.expiresIn": "Expire dans {time}",
   "remote.expired": "Code expiré. Appuyez sur Associer un navigateur pour en obtenir un nouveau.",

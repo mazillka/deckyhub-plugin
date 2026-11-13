@@ -1,13 +1,13 @@
 import type { MessageKey } from "./en";
 
 export const pl: Record<MessageKey, string> = {
-  "remote.title": "Zdalna instalacja (eksperymentalne)",
+  "remote.title": "Zdalne sterowanie (eksperymentalne)",
   "remote.description":
-    "Sparuj przeglądarkę w tej samej sieci. Każda instalacja wymaga zatwierdzenia na tym urządzeniu. Działa tylko w sieci lokalnej: nic nie jest zbierane ani nigdzie wysyłane.",
+    "Sparowany telefon lub komputer może tu zarządzać wtyczkami. Zmiany wymagają Twojej zgody. Tylko sieć lokalna; nic nie jest nigdzie wysyłane. Po wyłączeniu nic nie nasłuchuje.",
   "remote.address": "Adres urządzenia",
   "remote.fingerprint": "Odcisk certyfikatu (SHA-256)",
   "remote.copyPairingLink": "Skopiuj link do parowania",
-  "remote.pairMode": "Tryb parowania",
+  "remote.pairMode": "Dostęp zdalny",
   "remote.scanPairingQr": "Zeskanuj, aby otworzyć sparowane urządzenia",
   "remote.pair": "Sparuj przeglądarkę",
   "remote.pairDevice": "Sparuj urządzenie",
@@ -16,7 +16,7 @@ export const pl: Record<MessageKey, string> = {
   "remote.pairingWants": "{name} chce się sparować",
   "remote.sameWifi": "Oba urządzenia muszą być w tej samej sieci Wi-Fi.",
   "remote.noBrowsers": "Brak sparowanych przeglądarek.",
-  "remote.notRunning": "Tryb parowania nie działa. Włącz go i spróbuj ponownie.",
+  "remote.notRunning": "Dostęp zdalny nie działa. Włącz go i spróbuj ponownie.",
   "remote.waiting": "Czekanie na przeglądarkę…",
   "remote.expiresIn": "Wygasa za {time}",
   "remote.expired": "Kod wygasł. Naciśnij Sparuj przeglądarkę, aby otrzymać nowy.",

@@ -305,20 +305,20 @@ Install, update or uninstall plugins on your device from a computer or phone on 
 
 You do this once per browser.
 
-1. On your device, open DeckyHub's Quick Access tab and turn on **Pair mode** under **Remote Install**. A QR code appears.
+1. On your device, open DeckyHub's Quick Access tab and turn on **Remote access** under **Remote control**. A QR code appears.
 2. Scan the QR code with your phone, or choose **Copy pairing link** and open the link on your computer. It opens the [Paired devices](https://deckyhub.com/develop/paired-devices/) page. Allow local network access if the browser asks.
 3. Back on your device, **Approve** the browser under **Pairing requests**.
 
 <table><tr>
-<td align="center"><img src="screenshots/remote-pair-mode.jpg" width="400" alt="DeckyHub's Quick Access tab with Pair mode on, a six-digit code and a QR code"><br><sub>Step 1: Pair mode on, with the QR code</sub></td><td align="center"><img src="screenshots/remote-pairing-request.jpg" width="400" alt="A pairing request in DeckyHub's Quick Access tab with Approve and Reject buttons"><br><sub>Step 3: approve the browser</sub></td>
+<td align="center"><img src="screenshots/remote-pair-mode.jpg" width="400" alt="DeckyHub's Quick Access tab with Remote access on, a six-digit code and a QR code"><br><sub>Step 1: Remote access on, with the QR code</sub></td><td align="center"><img src="screenshots/remote-pairing-request.jpg" width="400" alt="A pairing request in DeckyHub's Quick Access tab with Approve and Reject buttons"><br><sub>Step 3: approve the browser</sub></td>
 </tr></table>
 
-The pairing is kept after a restart, a reload or turning Pair mode off. A browser you haven't used for 30 days is forgotten.
+The pairing is kept after a restart, a reload or turning Remote access off. A browser you haven't used for 30 days is forgotten.
 
 #### Send a plugin to your device
 
 1. In the paired browser, open a plugin's page on [deckyhub.com](https://deckyhub.com/develop/plugins/).
-2. Under **Send to device**, pick your device and press **Send**. Only devices the browser can reach right now are listed, so keep **Pair mode** on.
+2. Under **Send to device**, pick your device and press **Send**. Only devices the browser can reach right now are listed, so keep **Remote access** on.
 3. On your device, the request appears at the top of the Remote Install section. Press **Approve**, then confirm Decky Loader's own install prompt.
 
 <table><tr>
@@ -346,11 +346,11 @@ Turn on **Trusted** next to a paired browser and its requests run without asking
 #### Stop using it
 
 - **One browser:** remove it under **Paired browsers** on your device, and press **Forget device** on the Paired devices page.
-- **Everything:** turn **Pair mode** off. Nothing listens on your network while it's off.
+- **Everything:** turn **Remote access** off. Nothing listens on your network while it's off.
 
 #### If it doesn't work
 
-- **The device isn't listed, or the browser can't connect:** check that both are on the same network, that **Pair mode** is on, and that the browser was allowed local network access.
+- **The device isn't listed, or the browser can't connect:** check that both are on the same network, that **Remote access** is on, and that the browser was allowed local network access.
 - **It worked before and stopped:** your router may have given the device a new address. Open the Quick Access tab to see it, or pair again.
 - **Remote Install isn't supported on this system:** the device's Decky Loader runs a Python version DeckyHub has no network library for. Nothing else in DeckyHub is affected.
 - **The browser says it needs Chrome or Edge:** open the page in a Chromium browser.

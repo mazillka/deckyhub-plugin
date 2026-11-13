@@ -190,7 +190,7 @@ export function init(root, details) {
       try {
         await timeout(current.ready, 45000);
       } catch {
-        throw Object.assign(new Error('Could not reach your device. Check that Pair mode is on and that it is on the same network as this browser.'), { unreachable: true });
+        throw Object.assign(new Error('Could not reach your device. Check that Remote access is on and that it is on the same network as this browser.'), { unreachable: true });
       }
       const result = await exchange(current, message);
       const used = activeDevice();
@@ -377,7 +377,7 @@ export function init(root, details) {
     requestId = idempotencyKey = requestPluginId = requestName = requestNames = undefined;
     const device = devices[index];
     rememberDevice(device);
-    if (!device) { setState(compact ? 'none' : 'new'); updateActions(); say(compact ? '' : 'Turn on Pair mode on your device, then scan its QR code or paste the pairing link.'); return; }
+    if (!device) { setState(compact ? 'none' : 'new'); updateActions(); say(compact ? '' : 'Turn on Remote access on your device, then scan its QR code or paste the pairing link.'); return; }
     try {
       setState(compact ? 'ready' : 'paired');
       endpoint = { url: deviceUrl(device.address), hashes: pinnedHashes(device) };
@@ -405,7 +405,7 @@ export function init(root, details) {
     disconnect();
     renderPicker();
     setState('new');
-    say('Turn on Pair mode on your device, then scan its QR code or paste the pairing link.');
+    say('Turn on Remote access on your device, then scan its QR code or paste the pairing link.');
   });
   const selectedIndex = Math.max(0, devices.findIndex(device => device.fingerprint === selectedFingerprint));
   if (!compact) {
@@ -436,7 +436,7 @@ export function init(root, details) {
         const selected = reachable.has(selectedIndex) ? selectedIndex : reachable.values().next().value;
         renderPicker(selected);
         if (selected !== undefined) selectDevice(selected);
-        else { setState('none'); say(compact ? 'No paired device is reachable. Turn on Pair mode on your device, on the same network as this browser.' : 'No paired devices are reachable.'); }
+        else { setState('none'); say(compact ? 'No paired device is reachable. Turn on Remote access on your device, on the same network as this browser.' : 'No paired devices are reachable.'); }
       });
     }
   }
