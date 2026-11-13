@@ -2,7 +2,7 @@
 
 This file provides guidance to coding agents (including Claude Code) working in this repository.
 
-Repository skills live only in `.agents/skills/`; `.claude/skills` is a symlink to it for Claude Code (on Windows, run `git config core.symlinks true` before checking out). Subagents live the same way in `.agents/agents/` (`.claude/agents` links to it): `review`, `testing`, `qa`, `security`, `debugging`, `documentation` and `release`, each loading the skills its job needs. Edit them there; apply a skill when it is relevant to the task. For multi-file changes use `plan-then-implement`: plan with the strongest model, implement with a cheaper one. `CLAUDE.md` points here so both tools use the same project rules.
+Repository skills live only in `.agents/skills/`; `.claude/skills` is a symlink to it for Claude Code (on Windows, run `git config core.symlinks true` before checking out). Subagents live the same way in `.agents/agents/` (`.claude/agents` links to it): `review`, `testing`, `qa`, `security`, `debugging`, `documentation` and `release`, each loading the skills its job needs. Edit them there; apply a skill when it is relevant to the task. For multi-file changes use `plan-then-implement`: plan with the strongest model, implement with a cheaper one. `CLAUDE.md` points here so both tools use the same project rules. `tests/test_skills.py` checks every skill's front matter.
 
 ## What this is
 
