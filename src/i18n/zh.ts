@@ -1,13 +1,13 @@
 import type { MessageKey } from "./en";
 
 export const zh: Record<MessageKey, string> = {
-  "remote.title": "远程安装（实验性）",
+  "remote.title": "远程控制（实验性）",
   "remote.description":
-    "配对同一网络上的浏览器。每次安装都需要在此设备上批准。仅在本地网络内运行：不会收集任何信息，也不会发送到任何地方。",
+    "已配对的手机或电脑可以在这里管理插件。更改需要您的批准。仅限本地网络，不会向任何地方发送内容。关闭时不会监听任何连接。",
   "remote.address": "设备地址",
   "remote.fingerprint": "证书指纹 (SHA-256)",
   "remote.copyPairingLink": "复制配对链接",
-  "remote.pairMode": "配对模式",
+  "remote.pairMode": "远程访问",
   "remote.scanPairingQr": "扫码打开已配对设备",
   "remote.pair": "配对浏览器",
   "remote.pairDevice": "配对设备",
@@ -16,7 +16,7 @@ export const zh: Record<MessageKey, string> = {
   "remote.pairingWants": "{name} 请求配对",
   "remote.sameWifi": "两台设备必须连接同一个 Wi-Fi。",
   "remote.noBrowsers": "还没有已配对的浏览器。",
-  "remote.notRunning": "配对模式未运行。请开启后重试。",
+  "remote.notRunning": "远程访问未运行。请开启后重试。",
   "remote.waiting": "正在等待浏览器…",
   "remote.expiresIn": "{time} 后过期",
   "remote.expired": "代码已过期。点击“配对浏览器”获取新代码。",

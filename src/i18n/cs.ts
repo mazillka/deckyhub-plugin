@@ -1,13 +1,13 @@
 import type { MessageKey } from "./en";
 
 export const cs: Record<MessageKey, string> = {
-  "remote.title": "Vzdálená instalace (experimentální)",
+  "remote.title": "Vzdálené ovládání (experimentální)",
   "remote.description":
-    "Spárujte prohlížeč ve stejné síti. Každou instalaci je třeba potvrdit na tomto zařízení. Funguje jen v místní síti: nic se neshromažďuje ani nikam neodesílá.",
+    "Spárovaný telefon nebo počítač může odsud spravovat pluginy. Změny potřebují vaše schválení. Jen místní síť; nic se nikam neposílá. Když je vypnuto, nic neposlouchá.",
   "remote.address": "Adresa zařízení",
   "remote.fingerprint": "Otisk certifikátu (SHA-256)",
   "remote.copyPairingLink": "Zkopírovat odkaz pro párování",
-  "remote.pairMode": "Režim párování",
+  "remote.pairMode": "Vzdálený přístup",
   "remote.scanPairingQr": "Naskenujte pro otevření spárovaných zařízení",
   "remote.pair": "Spárovat prohlížeč",
   "remote.pairDevice": "Spárovat zařízení",
@@ -16,7 +16,7 @@ export const cs: Record<MessageKey, string> = {
   "remote.pairingWants": "{name} se chce spárovat",
   "remote.sameWifi": "Obě zařízení musí být ve stejné síti Wi-Fi.",
   "remote.noBrowsers": "Zatím žádné spárované prohlížeče.",
-  "remote.notRunning": "Režim párování neběží. Zapněte ho a zkuste to znovu.",
+  "remote.notRunning": "Vzdálený přístup neběží. Zapněte ho a zkuste to znovu.",
   "remote.waiting": "Čekání na prohlížeč…",
   "remote.expiresIn": "Vyprší za {time}",
   "remote.expired": "Kód vypršel. Nový získáte tlačítkem Spárovat prohlížeč.",

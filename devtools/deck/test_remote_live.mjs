@@ -1,7 +1,7 @@
 import { connect, TARGETS, DECK } from "./cdp.mjs";
 
-// Remote Install's backend on a real device, through Decky Loader's plugin API: Pair mode on, a pairing code,
-// the update summary paired browsers ask for, and Pair mode off again. The pairing window and the panel's
+// Remote Install's backend on a real device, through Decky Loader's plugin API: Remote access on, a pairing code,
+// the update summary paired browsers ask for, and Remote access off again. The pairing window and the panel's
 // buttons are covered by the browser mock (decky-mock/e2e/remote-install.spec.ts); pairing a real phone is manual.
 async function main() {
   console.log(`Connecting to ${DECK}...`);
@@ -27,7 +27,7 @@ async function main() {
 
   try {
     const enabled = await call("set_remote_install_enabled", true);
-    check("Pair mode starts and has an address", Boolean(enabled?.enabled && enabled.active && enabled.address));
+    check("Remote access starts and has an address", Boolean(enabled?.enabled && enabled.active && enabled.address));
 
     const pairing = await call("begin_remote_pairing");
     check(

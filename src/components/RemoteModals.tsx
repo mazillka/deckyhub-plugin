@@ -45,7 +45,7 @@ function useRemoteStatus(): [RemoteInstallStatus | null, () => Promise<void>] {
 /**
  * Pair a device: one window with everything the pairing needs, so Quick Access stays short.
  * It shows the QR code first; when a browser asks to pair it turns into a single question
- * (approve or reject), and then into a confirmation. Opening it never changes Pair mode.
+ * (approve or reject), and then into a confirmation. Opening it never changes Remote access.
  */
 export function PairDeviceModal({ t, closeModal }: { t: TFunc; closeModal?: () => void }) {
   const [status, refresh] = useRemoteStatus();

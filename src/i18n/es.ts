@@ -1,13 +1,13 @@
 import type { MessageKey } from "./en";
 
 export const es: Record<MessageKey, string> = {
-  "remote.title": "Instalación remota (experimental)",
+  "remote.title": "Control remoto (experimental)",
   "remote.description":
-    "Vincula un navegador en la misma red. Cada instalación requiere aprobación en este dispositivo. Funciona solo en la red local: no se recopila ni se envía nada a ningún sitio.",
+    "Un teléfono u ordenador vinculado puede gestionar los complementos aquí. Los cambios necesitan tu aprobación. Solo red local; no se envía nada a ningún sitio. Apagado: nada escucha.",
   "remote.address": "Dirección del dispositivo",
   "remote.fingerprint": "Huella del certificado (SHA-256)",
   "remote.copyPairingLink": "Copiar enlace de vinculación",
-  "remote.pairMode": "Modo de vinculación",
+  "remote.pairMode": "Acceso remoto",
   "remote.scanPairingQr": "Escanea para abrir Dispositivos vinculados",
   "remote.pair": "Vincular navegador",
   "remote.pairDevice": "Vincular un dispositivo",
@@ -16,7 +16,7 @@ export const es: Record<MessageKey, string> = {
   "remote.pairingWants": "{name} quiere vincularse",
   "remote.sameWifi": "Ambos dispositivos deben estar en la misma red Wi-Fi.",
   "remote.noBrowsers": "Aún no hay navegadores vinculados.",
-  "remote.notRunning": "El modo de vinculación no está activo. Actívalo e inténtalo de nuevo.",
+  "remote.notRunning": "El acceso remoto no está activo. Actívalo e inténtalo de nuevo.",
   "remote.waiting": "Esperando al navegador…",
   "remote.expiresIn": "Caduca en {time}",
   "remote.expired": "El código ha caducado. Pulsa Vincular navegador para obtener uno nuevo.",

@@ -388,7 +388,7 @@ def remote_device_panel() -> str:
 <ol class="rd-steps" aria-label="Pairing steps">
 <li>
 <span class="rd-dot" aria-hidden="true">1</span>
-<div><span class="rd-where">On your Steam Deck</span><strong>Turn on Pair mode</strong><small>Open DeckyHub in the Quick Access menu and switch on <em>Pair mode</em>. A QR code appears.</small></div>
+<div><span class="rd-where">On your Steam Deck</span><strong>Turn on Remote access</strong><small>Open DeckyHub in the Quick Access menu and switch on <em>Remote access</em>. A QR code appears.</small></div>
 </li>
 <li>
 <span class="rd-dot" aria-hidden="true">2</span>
@@ -401,7 +401,7 @@ def remote_device_panel() -> str:
 </ol>
 <ul id="remote-trouble" class="rd-trouble">
 <li>Allow local network access when your browser asks.</li>
-<li>Check that Pair mode is on, on your device.</li>
+<li>Check that Remote access is on, on your device.</li>
 <li>Use the same Wi-Fi as your device, not mobile data or a guest network.</li>
 <li>Your router may have given the device a new address: open the Quick Access tab to see it, or pair again.</li>
 </ul>

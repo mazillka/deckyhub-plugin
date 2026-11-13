@@ -2,13 +2,13 @@ import type { MessageKey } from "./en";
 
 // Traditional Chinese, with Taiwan's terms (Steam's "繁體中文").
 export const zhTW: Record<MessageKey, string> = {
-  "remote.title": "遠端安裝（實驗性）",
+  "remote.title": "遠端控制（實驗性）",
   "remote.description":
-    "配對同一網路上的瀏覽器。每次安裝都需要在此裝置上核准。僅在區域網路內運作：不會收集任何資訊，也不會傳送到任何地方。",
+    "已配對的手機或電腦可以在這裡管理外掛。變更需要您的批准。僅限區域網路，不會向任何地方傳送內容。關閉時不會監聽任何連線。",
   "remote.address": "裝置位址",
   "remote.fingerprint": "憑證指紋 (SHA-256)",
   "remote.copyPairingLink": "複製配對連結",
-  "remote.pairMode": "配對模式",
+  "remote.pairMode": "遠端存取",
   "remote.scanPairingQr": "掃描以開啟已配對裝置",
   "remote.pair": "配對瀏覽器",
   "remote.pairDevice": "配對裝置",
@@ -17,7 +17,7 @@ export const zhTW: Record<MessageKey, string> = {
   "remote.pairingWants": "{name} 要求配對",
   "remote.sameWifi": "兩部裝置必須連上同一個 Wi-Fi。",
   "remote.noBrowsers": "尚無已配對的瀏覽器。",
-  "remote.notRunning": "配對模式未執行。請開啟後再試。",
+  "remote.notRunning": "遠端存取未執行。請開啟後再試。",
   "remote.waiting": "正在等候瀏覽器…",
   "remote.expiresIn": "{time} 後過期",
   "remote.expired": "代碼已過期。按「配對瀏覽器」取得新代碼。",

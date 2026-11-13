@@ -1,13 +1,13 @@
 import type { MessageKey } from "./en";
 
 export const it: Record<MessageKey, string> = {
-  "remote.title": "Installazione remota (sperimentale)",
+  "remote.title": "Controllo remoto (sperimentale)",
   "remote.description":
-    "Associa un browser sulla stessa rete. Ogni installazione richiede conferma su questo dispositivo. Funziona solo sulla rete locale: nulla viene raccolto o inviato altrove.",
+    "Un telefono o un computer associato può gestire i plugin qui. Le modifiche richiedono la tua approvazione. Solo rete locale; non viene inviato nulla altrove. Disattivato: nessuno è in ascolto.",
   "remote.address": "Indirizzo del dispositivo",
   "remote.fingerprint": "Impronta del certificato (SHA-256)",
   "remote.copyPairingLink": "Copia link di abbinamento",
-  "remote.pairMode": "Modalità di abbinamento",
+  "remote.pairMode": "Accesso remoto",
   "remote.scanPairingQr": "Scansiona per aprire i dispositivi associati",
   "remote.pair": "Associa browser",
   "remote.pairDevice": "Associa un dispositivo",
@@ -16,7 +16,7 @@ export const it: Record<MessageKey, string> = {
   "remote.pairingWants": "{name} vuole associarsi",
   "remote.sameWifi": "Entrambi i dispositivi devono essere sulla stessa rete Wi-Fi.",
   "remote.noBrowsers": "Nessun browser associato per ora.",
-  "remote.notRunning": "La modalità di abbinamento non è attiva. Attivala e riprova.",
+  "remote.notRunning": "L’accesso remoto non è attivo. Attivalo e riprova.",
   "remote.waiting": "In attesa del browser…",
   "remote.expiresIn": "Scade tra {time}",
   "remote.expired": "Codice scaduto. Premi Associa browser per ottenerne uno nuovo.",

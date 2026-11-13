@@ -1,13 +1,13 @@
 import type { MessageKey } from "./en";
 
 export const tr: Record<MessageKey, string> = {
-  "remote.title": "Uzaktan yükleme (deneysel)",
+  "remote.title": "Uzaktan kontrol (deneysel)",
   "remote.description":
-    "Aynı ağdaki bir tarayıcıyı eşleştir. Her yükleme bu cihazda onay gerektirir. Yalnızca yerel ağda çalışır: hiçbir şey toplanmaz ve hiçbir yere gönderilmez.",
+    "Eşleştirilmiş bir telefon veya bilgisayar buradaki eklentileri yönetebilir. Değişiklikler onayınızı gerektirir. Yalnızca yerel ağ; hiçbir yere bir şey gönderilmez. Kapalıyken hiçbir şey dinlemez.",
   "remote.address": "Cihaz adresi",
   "remote.fingerprint": "Sertifika parmak izi (SHA-256)",
   "remote.copyPairingLink": "Eşleştirme bağlantısını kopyala",
-  "remote.pairMode": "Eşleştirme modu",
+  "remote.pairMode": "Uzaktan erişim",
   "remote.scanPairingQr": "Eşleştirilmiş cihazları açmak için tarayın",
   "remote.pair": "Tarayıcıyı eşleştir",
   "remote.pairDevice": "Cihaz eşleştir",
@@ -16,7 +16,7 @@ export const tr: Record<MessageKey, string> = {
   "remote.pairingWants": "{name} eşleşmek istiyor",
   "remote.sameWifi": "Her iki cihaz da aynı Wi-Fi ağında olmalı.",
   "remote.noBrowsers": "Henüz eşleştirilmiş tarayıcı yok.",
-  "remote.notRunning": "Eşleştirme modu çalışmıyor. Açıp yeniden deneyin.",
+  "remote.notRunning": "Uzaktan erişim çalışmıyor. Açıp yeniden deneyin.",
   "remote.waiting": "Tarayıcı bekleniyor…",
   "remote.expiresIn": "{time} sonra sona erer",
   "remote.expired": "Kodun süresi doldu. Yenisi için Tarayıcıyı eşleştir düğmesine bas.",

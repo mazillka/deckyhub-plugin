@@ -1,13 +1,13 @@
 import type { MessageKey } from "./en";
 
 export const de: Record<MessageKey, string> = {
-  "remote.title": "Remote-Installation (experimentell)",
+  "remote.title": "Fernsteuerung (experimentell)",
   "remote.description":
-    "Verbinde einen Browser im selben Netzwerk. Jede Installation muss auf diesem Gerät bestätigt werden. Funktioniert nur im lokalen Netzwerk: Es wird nichts gesammelt oder irgendwohin gesendet.",
+    "Ein gekoppeltes Smartphone oder ein Computer kann hier Plugins verwalten. Änderungen brauchen Ihre Zustimmung. Nur im lokalen Netzwerk; nichts wird irgendwohin gesendet. Ausgeschaltet lauscht nichts.",
   "remote.address": "Geräteadresse",
   "remote.fingerprint": "Zertifikat-Fingerabdruck (SHA-256)",
   "remote.copyPairingLink": "Kopplungslink kopieren",
-  "remote.pairMode": "Kopplungsmodus",
+  "remote.pairMode": "Fernzugriff",
   "remote.scanPairingQr": "Scannen, um gekoppelte Geräte zu öffnen",
   "remote.pair": "Browser koppeln",
   "remote.pairDevice": "Gerät koppeln",
@@ -16,7 +16,7 @@ export const de: Record<MessageKey, string> = {
   "remote.pairingWants": "{name} möchte sich koppeln",
   "remote.sameWifi": "Beide Geräte müssen im selben WLAN sein.",
   "remote.noBrowsers": "Noch keine gekoppelten Browser.",
-  "remote.notRunning": "Der Kopplungsmodus läuft nicht. Schalten Sie ihn ein und versuchen Sie es erneut.",
+  "remote.notRunning": "Der Fernzugriff läuft nicht. Schalten Sie ihn ein und versuchen Sie es erneut.",
   "remote.waiting": "Warte auf den Browser …",
   "remote.expiresIn": "Läuft ab in {time}",
   "remote.expired": "Code abgelaufen. Mit „Browser koppeln“ erhältst du einen neuen.",

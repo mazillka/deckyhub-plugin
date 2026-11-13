@@ -4,8 +4,8 @@
 // Needs devtools/decky-mock's packages (npm ci there) and its Chromium (npx playwright install chromium).
 // Writes PNGs to out-dir (default devtools/deck/screenshots/remote/); turn them into the JPGs in
 // screenshots/ with `python devtools/deck/screenshots_to_jpg.py <out-dir> remote`.
-// It turns Pair mode on, pairs this browser, sends an install request for plugin-id and REJECTS it,
-// then removes the pairing and puts Pair mode back: nothing is installed and nothing stays paired.
+// It turns Remote access on, pairs this browser, sends an install request for plugin-id and REJECTS it,
+// then removes the pairing and puts Remote access back: nothing is installed and nothing stays paired.
 import { mkdirSync, writeFileSync } from "node:fs";
 import { chromium } from "../decky-mock/node_modules/@playwright/test/index.mjs";
 import { connect, resetFocus, sleep, TARGETS, waitFor } from "./cdp.mjs";
@@ -73,7 +73,7 @@ try {
     panel.close();
     return found;
   })();
-  // Pair browser draws the QR code (turning Pair mode on by hand does that by itself).
+  // Pair browser draws the QR code (turning Remote access on by hand does that by itself).
   const qr = await connect(TARGETS.quickAccess);
   await qr.eval(
     `(() => { const onTop = (b) => { const r = b.getBoundingClientRect(); const e = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); return !!e && b.contains(e); }; [...document.querySelectorAll("button, .DialogButton")].find((b) => b.textContent.trim() === "Pair browser" && onTop(b))?.click(); return true; })()`,
@@ -81,7 +81,7 @@ try {
   await waitFor(qr, `!!document.querySelector('img[src^="data:image"]')`, 15000).catch(() => {});
   qr.close();
   await sleep(1500);
-  await panelShot("remote-pair-mode", "Pair mode");
+  await panelShot("remote-pair-mode", "Remote access");
 
   // A pairing link of our own, like the one behind the QR code.
   const ticket = await callPlugin("begin_remote_pairing");

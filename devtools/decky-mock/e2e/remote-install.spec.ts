@@ -39,7 +39,7 @@ const loaderCalls = (page: Page) =>
 const settingsDir = new URL("../.dev-data/settings/", import.meta.url);
 const pluginDir = new URL("../.dev-data/plugins/e2e-remote-toggle/", import.meta.url);
 
-// Pair mode off and no paired browsers, so the next test starts clean.
+// Remote access off and no paired browsers, so the next test starts clean.
 async function cleanUp(page: Page) {
   const status = await bridge(page, "get_remote_install_status");
   for (const device of status.devices ?? []) await bridge(page, "revoke_remote_device", device.id);

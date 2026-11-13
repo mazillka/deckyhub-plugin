@@ -2,13 +2,13 @@ import type { MessageKey } from "./en";
 
 // Portuguese, written for Portugal; Brazil has its own in pt.ts.
 export const ptPT: Record<MessageKey, string> = {
-  "remote.title": "Instalação remota (experimental)",
+  "remote.title": "Controlo remoto (experimental)",
   "remote.description":
-    "Associe um navegador na mesma rede. Cada instalação requer aprovação neste dispositivo. Funciona apenas na rede local: nada é recolhido nem enviado para lado nenhum.",
+    "Um telemóvel ou computador associado pode gerir os plugins aqui. As alterações precisam da sua aprovação. Apenas rede local; nada é enviado para lado nenhum. Desligado: nada escuta.",
   "remote.address": "Endereço do dispositivo",
   "remote.fingerprint": "Impressão digital do certificado (SHA-256)",
   "remote.copyPairingLink": "Copiar ligação de emparelhamento",
-  "remote.pairMode": "Modo de emparelhamento",
+  "remote.pairMode": "Acesso remoto",
   "remote.scanPairingQr": "Leia para abrir os dispositivos emparelhados",
   "remote.pair": "Associar navegador",
   "remote.pairDevice": "Associar um dispositivo",
@@ -17,7 +17,7 @@ export const ptPT: Record<MessageKey, string> = {
   "remote.pairingWants": "{name} quer associar-se",
   "remote.sameWifi": "Ambos os dispositivos têm de estar na mesma rede Wi-Fi.",
   "remote.noBrowsers": "Ainda não há navegadores associados.",
-  "remote.notRunning": "O modo de emparelhamento não está ativo. Ative-o e tente novamente.",
+  "remote.notRunning": "O acesso remoto não está ativo. Ative-o e tente novamente.",
   "remote.waiting": "A aguardar o navegador…",
   "remote.expiresIn": "Expira em {time}",
   "remote.expired": "O código expirou. Prima Associar navegador para obter um novo.",
