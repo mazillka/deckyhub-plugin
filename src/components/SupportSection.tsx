@@ -27,9 +27,14 @@ function SupportModal({ t, closeModal }: { t: TFunc; closeModal?: () => void }) 
     <WideModalRoot closeModal={closeModal}>
       <div style={{ display: "grid", gap: 14, justifyItems: "center", textAlign: "center" }}>
         <strong style={{ fontSize: "1.25em" }}>{t("support.title")}</strong>
-        <span style={{ color: colors.muted }}>{t("support.text")}</span>
-        <img src={qr} alt="" style={{ width: "min(100%, 260px)", height: "auto", imageRendering: "pixelated" }} />
-        <code style={{ color: colors.accent, overflowWrap: "anywhere" }}>{KOFI_URL.replace("https://", "")}</code>
+        {/* The QR code beside the text, so the window fits a 1280x800 screen without scrolling */}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 20, alignItems: "center", justifyContent: "center" }}>
+          <img src={qr} alt="" style={{ width: 200, height: 200, imageRendering: "pixelated" }} />
+          <div style={{ display: "grid", gap: 10, flex: "1 1 240px", maxWidth: 360 }}>
+            <span style={{ color: colors.muted }}>{t("support.text")}</span>
+            <code style={{ color: colors.accent, overflowWrap: "anywhere" }}>{KOFI_URL.replace("https://", "")}</code>
+          </div>
+        </div>
         <Focusable flow-children="right" style={{ display: "flex", gap: 10, width: "100%", flexWrap: "wrap" }}>
           <Button
             style={{ ...iconRow, margin: 0, flex: 1, minWidth: 150, background: KOFI_COLOR, color: KOFI_TEXT }}

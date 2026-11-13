@@ -52,7 +52,6 @@ export function PairDeviceModal({ t, closeModal }: { t: TFunc; closeModal?: () =
   const [ticket, setTicket] = useState<{ code: string; token: string; expiresAt: number } | null>(null);
   const [now, setNow] = useState(Date.now());
   const [pairedName, setPairedName] = useState<string | null>(null);
-  const [showDetails, setShowDetails] = useState(false);
 
   const newCode = async () => {
     try {
@@ -215,6 +214,11 @@ export function PairDeviceModal({ t, closeModal }: { t: TFunc; closeModal?: () =
             )}
             <small style={{ color: colors.accent }}>{t("remote.sameWifi")}</small>
             <small style={{ color: colors.dim }}>{t("remote.waiting")}</small>
+            {status?.address && (
+              <small style={{ color: colors.dim, overflowWrap: "anywhere" }}>
+                {status.address.replace(/^https?:\/\//, "").replace(/\/remote-install$/, "")}
+              </small>
+            )}
           </div>
         </div>
         <Focusable flow-children="right" style={{ ...buttonRow, width: "100%" }}>
@@ -234,21 +238,6 @@ export function PairDeviceModal({ t, closeModal }: { t: TFunc; closeModal?: () =
             </Button>
           )}
         </Focusable>
-        {status?.address && (
-          <div style={{ width: "100%", textAlign: "start" }}>
-            <ToggleField label={t("remote.address")} checked={showDetails} onChange={setShowDetails} />
-            {showDetails && (
-              <div style={{ display: "grid", gap: 4, marginTop: 6 }}>
-                <code style={{ color: colors.accent }}>
-                  {status.address.replace(/^https?:\/\//, "").replace(/\/remote-install$/, "")}
-                </code>
-                {status.fingerprint && (
-                  <code style={{ fontSize: "0.75em", wordBreak: "break-all" }}>{status.fingerprint}</code>
-                )}
-              </div>
-            )}
-          </div>
-        )}
       </div>
     );
   }
