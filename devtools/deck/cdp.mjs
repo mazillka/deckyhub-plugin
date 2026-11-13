@@ -8,7 +8,12 @@ export const TARGETS = { shared: "SharedJSContext", main: "Steam Big Picture Mod
 
 export async function connect(title) {
   const targets = await (await fetch(`http://${DECK}/json`, { signal: AbortSignal.timeout(15000) })).json();
-  const target = targets.find((candidate) => candidate.title === title);
+  // Steam numbers its windows (QuickAccess_uid2) and counts up each time its UI reloads, so match the name without the number too.
+  const target =
+    targets.find((candidate) => candidate.title === title) ??
+    (/_uid\d+$/.test(title)
+      ? targets.find((candidate) => candidate.title.startsWith(title.replace(/\d+$/, "")))
+      : undefined);
   if (!target) throw new Error(`No "${title}" page on ${DECK}; is the Deck in Gaming Mode with Decky Loader?`);
   const ws = new WebSocket(target.webSocketDebuggerUrl);
   await new Promise((resolve, reject) => {
