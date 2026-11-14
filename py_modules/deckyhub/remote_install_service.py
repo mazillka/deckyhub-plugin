@@ -18,6 +18,8 @@ from .remote_install_queue import MAX_TOGGLE_PLUGINS, RemoteInstallQueue
 DEVICE_IDLE_SECONDS = 30 * 24 * 3600
 MAX_SUMMARY = 30
 MAX_CONNECTIONS_SHOWN = 5
+# How long a pairing link made by a paired browser works.
+PAIR_LINK_SECONDS = 300
 _SECRET = re.compile(r"[A-Za-z0-9_-]{43}\Z")
 
 
@@ -99,12 +101,12 @@ class RemoteInstallService:
         self.attempts = []
         self.queue = RemoteInstallQueue(clock=self.clock)
 
-    def begin_pairing(self):
+    def begin_pairing(self, seconds=120):
         self.code = f"{secrets.randbelow(1000000):06d}"
         token = secrets.token_urlsafe(32)
         self.pairing_token_hash = hashlib.sha256(token.encode()).digest()
-        self.code_expiry = self.clock() + 120
-        return {"code": self.code, "pairingToken": token, "expiresInSeconds": 120}
+        self.code_expiry = self.clock() + seconds
+        return {"code": self.code, "pairingToken": token, "expiresInSeconds": seconds}
 
     def _sweep(self):
         # A browser unused for 30 days is forgotten, so an old token cannot linger for good.
@@ -359,6 +361,11 @@ class RemoteInstallService:
         owner = self.owner(message.get("token"))
         if op == "summary":
             return self.updates or {"updates": [], "checkedAt": None}
+        if op == "pair_link":
+            # A paired browser hands out a one-time link for another browser; the owner still approves that one
+            # on the device. The six-digit code is not given out: the link alone carries the token.
+            ticket = self.begin_pairing(PAIR_LINK_SECONDS)
+            return {"pairingToken": ticket["pairingToken"], "expiresInSeconds": ticket["expiresInSeconds"]}
         if op == "plugins":
             return self._plugins_page(message, self.installed() if installed is None else installed)
         if op == "request":

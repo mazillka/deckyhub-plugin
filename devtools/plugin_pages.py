@@ -381,6 +381,13 @@ def remote_device_panel(lang: str = "en") -> str:
 <aside class="rd-devices" aria-labelledby="rd-devices-title">
 <div class="rd-devices-head"><h3 id="rd-devices-title">Your devices</h3><button type="button" id="remote-pair-another" class="btn">+ Add device</button></div>
 <ul id="remote-device-cards" class="rd-cards" aria-label="Paired devices"></ul>
+<div class="rd-share">
+<button type="button" id="remote-share-button" class="btn">Pair another browser with a link</button>
+<div id="remote-share-box" hidden>
+<p class="rd-hint">Open this link in the other browser (Chrome or Edge, on the same Wi-Fi). It works once, for five minutes, and your device asks you to approve that browser.</p>
+<p class="rd-link-row"><label for="remote-share-link">Link for the other browser</label><span class="remote-actions"><input id="remote-share-link" type="text" readonly spellcheck="false"><button type="button" id="remote-share-copy">Copy link</button></span></p>
+</div>
+</div>
 <p class="rd-empty">No device yet. Press Add device to connect your first one.</p>
 <div class="rd-sr"><label for="remote-device-picker">Selected device</label><select id="remote-device-picker" disabled><option value="">Pair a device</option></select></div>
 <details class="rd-multi">

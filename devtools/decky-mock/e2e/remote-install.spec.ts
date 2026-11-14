@@ -153,6 +153,20 @@ test("A paired browser reads the updates the device reported", async ({ page }) 
   expect(summary.updates).toEqual([{ name: "E2E Toggle", version: "2.0.0" }]);
 });
 
+test("A paired browser hands out a pairing link that a new browser uses, and the device still asks to approve it", async ({
+  page,
+}) => {
+  await bridge(page, "set_remote_install_enabled", true);
+  const { pairingId } = (await bridge(page, "mock_remote_browser_pair", "E2E phone")) as { pairingId: string };
+  await bridge(page, "decide_remote_pairing", pairingId, true);
+  const link = (await bridge(page, "mock_remote_browser_send", { op: "pair_link" })) as {
+    pairingToken: string;
+    code?: string;
+  };
+  expect(link.pairingToken).toMatch(/^[A-Za-z0-9_-]{43}$/);
+  expect(link.code).toBeUndefined();
+});
+
 test("A remote install request opens the usual confirmation on its own, and Cancel rejects it", async ({ page }) => {
   const sha = "a".repeat(64);
   const url = "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v1.2.3/mako-decky.zip";

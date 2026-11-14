@@ -13,6 +13,7 @@ const UK = new Map(Object.entries({
   'Link copied. Paste it into Chrome or Edge.': 'Посилання скопійовано. Вставте його в Chrome або Edge.',
   'Select the link, copy it, then paste it into Chrome or Edge.': 'Виділіть посилання, скопіюйте його й вставте в Chrome або Edge.',
   'Pair with your device first.': 'Спершу сполучіться з пристроєм.',
+  'Link ready. Open it in the other browser.': 'Посилання готове. Відкрийте його в іншому браузері.',
   'Could not reach your device. Check that Remote access is on and that it is on the same network as this browser.': 'Не вдалося зв’язатися з пристроєм. Перевірте, що віддалений доступ увімкнено і що пристрій у тій самій мережі, що й цей браузер.',
   'Unable to contact the device.': 'Не вдалося зв’язатися з пристроєм.',
   'Invalid plugin identifier.': 'Недійсний ідентифікатор плагіна.',
