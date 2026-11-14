@@ -70,6 +70,9 @@ EXTERNAL_STATUS = {
 }
 
 EXTRA_STYLE = """
+.versions{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;padding:0;list-style:none}
+.versions li{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;overflow-wrap:anywhere}
+.versions li small{display:block;margin-top:4px;color:var(--muted)}
 .app{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;text-decoration:none;color:var(--text);display:flex;flex-direction:column;gap:2px}
 .app:hover{border-color:var(--accent2)}.app small{color:var(--accent2);font-size:.75rem;text-transform:uppercase;letter-spacing:.05em}
 .app p{margin:4px 0 0;color:var(--muted);font-size:.9rem;flex:1}.app .meta{color:var(--dim);font-size:.82rem;margin-top:8px}
@@ -819,7 +822,7 @@ def versions_section(releases: list) -> str:
         rows.append(f'<li id="v-{anchor}">{title}{badge}<small>{when}{" · " if zips else ""}{files}</small></li>')
     if not rows:
         return ""
-    return f'<h2>Versions</h2><p>The latest releases DeckyHub can install. Security scans below cover only the newest stable and pre-release ZIPs.</p><ul class="list">{"".join(rows)}</ul>'
+    return f'<h2>Versions</h2><p>The latest releases DeckyHub can install. Security scans below cover only the newest stable and pre-release ZIPs.</p><ul class="versions">{"".join(rows)}</ul>'
 
 
 def prerelease_only(releases: list) -> bool:
