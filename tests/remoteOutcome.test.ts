@@ -35,3 +35,22 @@ test("nothing changing is an unknown outcome, after every attempt", async () => 
 test("a failed read is tried again, not taken for a result", async () => {
   assert.deepEqual(await run([new Error("backend busy"), "2.0.0"], "1.0.0"), { calls: ["succeeded"], reads: 2 });
 });
+
+test("the number of attempts can grow while waiting, as when Decky asks the owner for a password", async () => {
+  const calls: string[] = [];
+  let read = 0;
+  let limit = 2;
+  await settleInstall({
+    installedVersion: async () => {
+      read++;
+      if (read === 2) limit = 6; // the password prompt appeared
+      return "1.0.0";
+    },
+    before: "1.0.0",
+    succeeded: async () => void calls.push("succeeded"),
+    unknown: async () => void calls.push("unknown"),
+    wait: async () => undefined,
+    attempts: () => limit,
+  });
+  assert.deepEqual({ calls, read }, { calls: ["unknown"], read: 6 });
+});

@@ -421,6 +421,8 @@ export const cs: Record<MessageKey, string> = {
   "toast.installedFlagged": "Označené nainstalované pluginy: {count}",
   "toast.installStalledTitle": "Decky nedokončil instalaci {name}",
   "toast.installStalledBody": "Znovu načtěte Decky a zkuste to znovu.",
+  "toast.installNeedsPassword":
+    "{name} potřebuje vaše heslo. Zadejte ho v okně Decky na Steam Decku a dokončete instalaci.",
   "dl.failedTitle": "Stahování DeckyHub selhalo",
   "dl.failedNoReason": "Stahování selhalo bez uvedení důvodu.",
   "dl.missing": "Toto stahování se už nesleduje. Zkontrolujte složku deckyhub ve Stažených souborech.",

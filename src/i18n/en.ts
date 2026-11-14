@@ -419,6 +419,8 @@ export const en = {
   "toast.installedFlagged": "Installed plugins flagged: {count}",
   "toast.installStalledTitle": "Decky couldn't finish installing {name}",
   "toast.installStalledBody": "Reload Decky and try again.",
+  "toast.installNeedsPassword":
+    "{name} needs your password. Enter it in Decky's window on your Steam Deck to finish installing.",
   "dl.failedTitle": "DeckyHub download failed",
   "dl.failedNoReason": "The download failed without a reported reason.",
   "dl.missing": "This download is no longer tracked. Check the deckyhub folder in Downloads.",

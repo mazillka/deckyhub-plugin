@@ -402,6 +402,7 @@ export const zh: Record<MessageKey, string> = {
   "toast.installedFlagged": "被标记的已安装插件：{count}",
   "toast.installStalledTitle": "Decky 未能完成 {name} 的安装",
   "toast.installStalledBody": "请重新加载 Decky 后重试。",
+  "toast.installNeedsPassword": "{name} 需要您的密码。请在 Steam Deck 上的 Decky 窗口中输入密码以完成安装。",
   "dl.failedTitle": "DeckyHub 下载失败",
   "dl.failedNoReason": "下载失败，未报告原因。",
   "dl.missing": "此下载已不再跟踪。请查看下载中的 deckyhub 文件夹。",

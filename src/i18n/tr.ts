@@ -419,6 +419,8 @@ export const tr: Record<MessageKey, string> = {
   "toast.installedFlagged": "İşaretlenen yüklü eklentiler: {count}",
   "toast.installStalledTitle": "Decky, {name} yüklemesini tamamlayamadı",
   "toast.installStalledBody": "Decky'yi yeniden yükle ve tekrar dene.",
+  "toast.installNeedsPassword":
+    "{name} parolanıza ihtiyaç duyuyor. Kurulumu bitirmek için Steam Deck'inizdeki Decky penceresine girin.",
   "dl.failedTitle": "DeckyHub indirmesi başarısız oldu",
   "dl.failedNoReason": "İndirme, bir neden bildirilmeden başarısız oldu.",
   "dl.missing": "Bu indirme artık takip edilmiyor. İndirilenler'deki deckyhub klasörünü denetle.",

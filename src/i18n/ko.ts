@@ -417,6 +417,7 @@ export const ko: Record<MessageKey, string> = {
   "toast.installedFlagged": "경고가 있는 설치된 플러그인: {count}개",
   "toast.installStalledTitle": "Decky가 {name} 설치를 끝내지 못했습니다",
   "toast.installStalledBody": "Decky를 다시 불러온 뒤 다시 시도하세요.",
+  "toast.installNeedsPassword": "{name}에 비밀번호가 필요합니다. 설치를 마치려면 Steam Deck의 Decky 창에 입력하세요.",
   "dl.failedTitle": "DeckyHub 다운로드 실패",
   "dl.failedNoReason": "알 수 없는 이유로 다운로드에 실패했습니다.",
   "dl.missing": "이 다운로드는 더 이상 추적되지 않습니다. Downloads의 deckyhub 폴더를 확인하세요.",

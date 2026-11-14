@@ -403,6 +403,7 @@ export const zhTW: Record<MessageKey, string> = {
   "toast.installedFlagged": "被標記的已安裝外掛：{count}",
   "toast.installStalledTitle": "Decky 未能完成 {name} 的安裝",
   "toast.installStalledBody": "請重新載入 Decky 後重試。",
+  "toast.installNeedsPassword": "{name} 需要您的密碼。請在 Steam Deck 上的 Decky 視窗中輸入密碼以完成安裝。",
   "dl.failedTitle": "DeckyHub 下載失敗",
   "dl.failedNoReason": "下載失敗，未回報原因。",
   "dl.missing": "此下載已不再追蹤。請查看「下載」中的 deckyhub 資料夾。",

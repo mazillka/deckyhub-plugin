@@ -422,6 +422,8 @@ export const pl: Record<MessageKey, string> = {
   "toast.installedFlagged": "Oznaczone zainstalowane wtyczki: {count}",
   "toast.installStalledTitle": "Decky nie dokończył instalacji {name}",
   "toast.installStalledBody": "Przeładuj Decky i spróbuj ponownie.",
+  "toast.installNeedsPassword":
+    "{name} potrzebuje Twojego hasła. Wpisz je w oknie Decky na Steam Decku, aby dokończyć instalację.",
   "dl.failedTitle": "Pobieranie DeckyHub nie powiodło się",
   "dl.failedNoReason": "Pobieranie nie powiodło się bez podania przyczyny.",
   "dl.missing": "To pobieranie nie jest już śledzone. Sprawdź folder deckyhub w Pobranych.",

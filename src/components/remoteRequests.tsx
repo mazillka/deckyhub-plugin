@@ -105,19 +105,30 @@ export async function runRemoteRequest(request: RemoteInstallRequest, t: TFunc, 
     // Loader's confirmation can be cancelled, and its events lack request IDs. A handoff
     // cannot prove success: report unknown unless a future correlated result is available.
     handedOver = true;
-    await installDeckyPlugin(asset, current.repo, name, refreshed.tag, freshAction.type, auto);
-    // Decky reports no result: look at what is installed (a minute and a half), so the browser hears "Installed".
-    await settleInstall({
-      installedVersion: async () => (await getRemoteInstalledVersion(name)).version,
-      before: request.installedVersion ?? null,
-      succeeded: () => {
-        // Decky's own window can stay open while it fetches a plugin's extra files, after the plugin is there.
-        toaster.toast({ title: "DeckyHub", body: t("remote.extraFilesHint", { name }) });
-        return finishRemoteRequest(request.id, true);
-      },
-      unknown: () => finishRemoteRequestUnknown(request.id),
-      wait: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
-    });
+    // A plugin that needs root: Decky asks the owner for the sudo password (up to five minutes), so wait longer.
+    let askedForPassword = false;
+    const onRootPrompt = (promptName: string) => {
+      if (promptName === name) askedForPassword = true;
+    };
+    getDeckyBackend()?.addEventListener("loader/root_plugin_install_prompt", onRootPrompt);
+    try {
+      await installDeckyPlugin(asset, current.repo, name, refreshed.tag, freshAction.type, auto);
+      // Decky reports no result: look at what is installed (a minute and a half), so the browser hears "Installed".
+      await settleInstall({
+        attempts: () => (askedForPassword ? 170 : 45),
+        installedVersion: async () => (await getRemoteInstalledVersion(name)).version,
+        before: request.installedVersion ?? null,
+        succeeded: () => {
+          // Decky's own window can stay open while it fetches a plugin's extra files, after the plugin is there.
+          toaster.toast({ title: "DeckyHub", body: t("remote.extraFilesHint", { name }) });
+          return finishRemoteRequest(request.id, true);
+        },
+        unknown: () => finishRemoteRequestUnknown(request.id),
+        wait: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+      });
+    } finally {
+      getDeckyBackend()?.removeEventListener("loader/root_plugin_install_prompt", onRootPrompt);
+    }
   } catch (error) {
     if (approved || auto) {
       if (handedOver) await finishRemoteRequestUnknown(request.id).catch(() => undefined);

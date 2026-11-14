@@ -420,6 +420,8 @@ export const ru: Record<MessageKey, string> = {
   "toast.installedFlagged": "Отмечены установленные плагины: {count}",
   "toast.installStalledTitle": "Decky не удалось завершить установку {name}",
   "toast.installStalledBody": "Перезагрузите Decky и попробуйте снова.",
+  "toast.installNeedsPassword":
+    "{name} требует ваш пароль. Введите его в окне Decky на Steam Deck, чтобы завершить установку.",
   "dl.failedTitle": "Не удалось скачать в DeckyHub",
   "dl.failedNoReason": "Загрузка не удалась без указания причины.",
   "dl.missing": "Эта загрузка больше не отслеживается. Проверьте папку deckyhub в «Загрузках».",

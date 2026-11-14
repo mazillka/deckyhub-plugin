@@ -421,6 +421,8 @@ export const ja: Record<MessageKey, string> = {
   "toast.installedFlagged": "警告のあるインストール済みプラグイン: {count}",
   "toast.installStalledTitle": "Decky は {name} のインストールを完了できませんでした",
   "toast.installStalledBody": "Decky を再読み込みしてもう一度お試しください。",
+  "toast.installNeedsPassword":
+    "{name} にはパスワードが必要です。Steam Deck の Decky のウィンドウで入力して、インストールを完了してください。",
   "dl.failedTitle": "DeckyHub のダウンロードに失敗しました",
   "dl.failedNoReason": "理由不明のままダウンロードに失敗しました。",
   "dl.missing": "このダウンロードは追跡されなくなりました。ダウンロード内の deckyhub フォルダーを確認してください。",

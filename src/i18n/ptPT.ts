@@ -429,6 +429,8 @@ export const ptPT: Record<MessageKey, string> = {
   "toast.installedFlagged": "Plugins instalados assinalados: {count}",
   "toast.installStalledTitle": "O Decky não conseguiu terminar de instalar {name}",
   "toast.installStalledBody": "Recarregue o Decky e tente novamente.",
+  "toast.installNeedsPassword":
+    "{name} precisa da sua palavra-passe. Introduza-a na janela do Decky na sua Steam Deck para concluir a instalação.",
   "dl.failedTitle": "Falha na transferência do DeckyHub",
   "dl.failedNoReason": "A transferência falhou sem indicar o motivo.",
   "dl.missing": "Esta transferência já não é acompanhada. Veja a pasta deckyhub em Transferências.",

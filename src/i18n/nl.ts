@@ -427,6 +427,8 @@ export const nl: Record<MessageKey, string> = {
   "toast.installedFlagged": "Geïnstalleerde plugins gemarkeerd: {count}",
   "toast.installStalledTitle": "Decky kon de installatie van {name} niet voltooien",
   "toast.installStalledBody": "Herlaad Decky en probeer het opnieuw.",
+  "toast.installNeedsPassword":
+    "{name} heeft je wachtwoord nodig. Voer het in het Decky-venster op je Steam Deck in om de installatie af te ronden.",
   "dl.failedTitle": "DeckyHub-download mislukt",
   "dl.failedNoReason": "De download is mislukt zonder opgegeven reden.",
   "dl.missing": "Deze download wordt niet meer gevolgd. Kijk in de map deckyhub in Downloads.",

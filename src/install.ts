@@ -230,7 +230,7 @@ function traceDeckyInstall(pluginName: string, version?: string) {
   // download error leaves it at 95%), so warn once its events go quiet.
   // Remote binaries download with no progress events, so that stage gets longer.
   let idleTimer = 0;
-  const armIdle = (stage?: string) => {
+  const armIdle = (stage?: string, waitMs?: number) => {
     window.clearTimeout(idleTimer);
     idleTimer = window.setTimeout(
       () => {
@@ -241,7 +241,7 @@ function traceDeckyInstall(pluginName: string, version?: string) {
         });
         stop();
       },
-      stage?.endsWith("download_remote") ? 120_000 : 45_000,
+      waitMs ?? (stage?.endsWith("download_remote") ? 120_000 : 45_000),
     );
   };
   const onStart = (name: string) => {
@@ -254,7 +254,23 @@ function traceDeckyInstall(pluginName: string, version?: string) {
     log(`Decky install ${pluginName} ${progress}% ${stage} at ${elapsed()}`);
     armIdle(stage);
   };
+  // A plugin that needs root: Decky asks for the sudo password in its own window (up to `seconds`), and
+  // sends nothing meanwhile. That is a wait for the owner, not a stalled install.
+  const onRootPrompt = (
+    name: string,
+    _version: string,
+    _id: string,
+    _type: unknown,
+    _host: unknown,
+    seconds: unknown,
+  ) => {
+    if (name !== pluginName) return;
+    log(`Decky install ${pluginName}: asking for the sudo password at ${elapsed()}`);
+    toaster.toast({ title: "DeckyHub", body: tr("toast.installNeedsPassword", { name }) });
+    armIdle(undefined, ((Number(seconds) || 300) + 30) * 1000);
+  };
   const stop = () => {
+    backend.removeEventListener("loader/root_plugin_install_prompt", onRootPrompt);
     setInstalling(pluginName, false);
     window.clearTimeout(timer);
     window.clearTimeout(idleTimer);
@@ -284,6 +300,7 @@ function traceDeckyInstall(pluginName: string, version?: string) {
     10 * 60 * 1000,
   );
   backend.addEventListener("loader/plugin_download_start", onStart);
+  backend.addEventListener("loader/root_plugin_install_prompt", onRootPrompt);
   backend.addEventListener("loader/plugin_download_info", onInfo);
   backend.addEventListener("loader/plugin_download_finish", onFinish);
 }

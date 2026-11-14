@@ -15,10 +15,11 @@ export async function settleInstall({
   succeeded: () => Promise<unknown>;
   unknown: () => Promise<unknown>;
   wait: (ms: number) => Promise<void>;
-  attempts?: number;
+  // A function is asked again before each look, for a wait that grows (Decky asking for a password).
+  attempts?: number | (() => number);
   everyMs?: number;
 }) {
-  for (let attempt = 0; attempt < attempts; attempt++) {
+  for (let attempt = 0; attempt < (typeof attempts === "function" ? attempts() : attempts); attempt++) {
     await wait(everyMs);
     const version = await installedVersion().catch(() => null);
     if (version !== null && version !== before) return succeeded();
