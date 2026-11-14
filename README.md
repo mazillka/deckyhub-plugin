@@ -384,6 +384,25 @@ Files DeckyHub saved to Downloads aren't removed: release ZIPs in `~/Downloads/d
 
 Downloads only ever happen over HTTPS.
 
+## Performance
+
+Measured on a real Steam Deck (Gaming Mode, DeckyHub 3.4.0-rc.24, 630 plugins listed), with `node devtools/deck/perf.mjs`: it opens each page for 15 seconds and counts the frames Steam drew slower than 50 ms, the browser's long tasks (over 50 ms) and the changes made to the page.
+
+| Page | Slow frames | Slowest frame | Long tasks | Page changes |
+|---|---|---|---|---|
+| Discover (all plugins) | 1 | 183 ms | 1 (138 ms) | 20 |
+| Installed | 1 | 133 ms | 1 (98 ms) | 22 |
+| Updates | 1 | 84 ms | 1 (69 ms) | 23 |
+| Search | 1 | 83 ms | 1 (104 ms) | 22 |
+| Settings | 2 | 100 ms | 1 (111 ms) | 29 |
+
+- **Opening a page** costs one slow frame, when it first draws. About 900 frames are drawn in the 15 seconds, and the rest are on time.
+- **Idle:** no long tasks in 10 seconds with DeckyHub loaded and no page open.
+- **The backend** answers 7.2 seconds after a plugin reload, which is mostly Decky Loader restarting it, then `get_settings` in about 35 ms and `get_apps` in about 47 ms.
+- **Size:** the release ZIP is 16 MB, most of it the packages Remote Install needs. The plugin's own script is 474 KB (120 KB compressed).
+
+Numbers vary with the Deck, its load and the network; run the script on yours to compare. These are one run each, not averages.
+
 ## How DeckyHub controls quality
 
 DeckyHub installs software on your Deck, so every change, every release and every listed plugin goes through checks before it reaches you. All of it is open, in this repository and in [mazillka/deckyhub-registry](https://github.com/mazillka/deckyhub-registry).
