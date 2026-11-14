@@ -28,6 +28,8 @@ export const ja: Record<MessageKey, string> = {
   "remote.pairings": "ペアリング要求",
   "remote.requests": "プラグイン操作のリクエスト",
   "remote.from": "送信元: {name}",
+  "remote.extraFilesHint":
+    "Decky Loader が {name} の追加ファイルをまだダウンロードしている可能性があります。数分かかることがあります。完了したらそのウィンドウを閉じて構いません。",
   "remote.enable": "有効にする",
   "remote.disable": "無効にする",
   "remote.enableTitle": "{name} を有効にしますか？",

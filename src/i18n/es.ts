@@ -28,6 +28,8 @@ export const es: Record<MessageKey, string> = {
   "remote.pairings": "Solicitudes de vinculación",
   "remote.requests": "Solicitudes de complementos",
   "remote.from": "De {name}",
+  "remote.extraFilesHint":
+    "Es posible que Decky Loader siga descargando archivos adicionales de {name}. Puede tardar unos minutos; después puedes cerrar su ventana.",
   "remote.enable": "Activar",
   "remote.disable": "Desactivar",
   "remote.enableTitle": "¿Activar {name}?",

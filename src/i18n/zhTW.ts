@@ -29,6 +29,7 @@ export const zhTW: Record<MessageKey, string> = {
   "remote.pairings": "配對請求",
   "remote.requests": "外掛操作請求",
   "remote.from": "來自 {name}",
+  "remote.extraFilesHint": "Decky Loader 可能仍在下載 {name} 的額外檔案。這可能需要幾分鐘；完成後即可關閉它的視窗。",
   "remote.enable": "啟用",
   "remote.disable": "停用",
   "remote.enableTitle": "啟用 {name}？",

@@ -1,3 +1,4 @@
+import { toaster } from "@decky/api";
 import {
   finishRemoteRequest,
   finishRemoteRequestUnknown,
@@ -109,7 +110,11 @@ export async function runRemoteRequest(request: RemoteInstallRequest, t: TFunc, 
     await settleInstall({
       installedVersion: async () => (await getRemoteInstalledVersion(name)).version,
       before: request.installedVersion ?? null,
-      succeeded: () => finishRemoteRequest(request.id, true),
+      succeeded: () => {
+        // Decky's own window can stay open while it fetches a plugin's extra files, after the plugin is there.
+        toaster.toast({ title: "DeckyHub", body: t("remote.extraFilesHint", { name }) });
+        return finishRemoteRequest(request.id, true);
+      },
       unknown: () => finishRemoteRequestUnknown(request.id),
       wait: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
     });

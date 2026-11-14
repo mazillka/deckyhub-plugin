@@ -735,7 +735,7 @@ export function init(root, details) {
       if (cancelled) return;
       if (!TERMINAL.has(state)) throw new Error('Status unknown. Retry request status before starting another change.');
       flow(state === 'installed' || state === 'uninstalled' || state === 'enabled' || state === 'disabled' ? 'done' : 'failed');
-      say(state === 'installed' ? 'Installed on your device.' : state === 'uninstalled' ? 'Uninstalled from your device.' : state === 'enabled' ? 'Enabled on your device.' : state === 'disabled' ? 'Disabled on your device.' : state === 'unknown' ? 'Outcome unknown. Check your device before trying again.' : `Request ${state}.`);
+      say(state === 'installed' ? 'Installed on your device. If Decky Loader still shows its install window, it may be downloading extra files; this can take a few minutes, then you can close the window.' : state === 'uninstalled' ? 'Uninstalled from your device.' : state === 'enabled' ? 'Enabled on your device.' : state === 'disabled' ? 'Disabled on your device.' : state === 'unknown' ? 'Outcome unknown. Check your device before trying again.' : `Request ${state}.`);
       idempotencyKey = undefined;
       requestId = undefined;
       requestPluginId = requestName = requestNames = undefined;
