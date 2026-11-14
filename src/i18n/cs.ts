@@ -470,6 +470,6 @@ export const cs: Record<MessageKey, string> = {
   "support.button": "Podpořit vývoj a údržbu",
   "support.title": "Podpořte DeckyHub",
   "support.text":
-    "DeckyHub je zdarma a open source. Pokud vám pomáhá, můžete podpořit jeho vývoj a údržbu na Ko-fi. Naskenujte kód telefonem, nebo stránku otevřete tady.",
+    "DeckyHub je zdarma a open source a dar nic neodemyká ani nikdy nemění seznam pluginů. Pokud vám pomáhá, můžete podpořit jeho vývoj a údržbu na Ko-fi. Naskenujte kód telefonem nebo otevřete stránku zde. Podrobnosti: deckyhub.com/about.html#support",
   "support.open": "Otevřít",
 };

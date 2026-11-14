@@ -88,7 +88,7 @@ class UkrainianPageTests(unittest.TestCase):
         self.assertIn("До змісту", page)
         self.assertIn('<link rel="alternate" hreflang="en" href="https://deckyhub.com/paired-devices/">', page)
         self.assertIn('href="https://deckyhub.com/paired-devices/" hreflang="en" lang="en">English</a>', page)
-        self.assertIn("Підтримати на Ko-fi", page)
+        self.assertIn("uk/about.html#support", page)
 
     def test_the_english_page_links_to_the_ukrainian_one(self):
         page = plugin_pages.paired_devices_page(SHELL)

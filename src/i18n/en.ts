@@ -468,7 +468,7 @@ export const en = {
   "support.button": "Support Development & Maintenance",
   "support.title": "Support DeckyHub",
   "support.text":
-    "DeckyHub is free and open source. If it helps you, you can support its development and maintenance on Ko-fi. Scan the code with your phone, or open the page here.",
+    "DeckyHub is free and open source, and a donation unlocks nothing and never changes the plugin list. If it helps you, you can support its development and maintenance on Ko-fi. Scan the code with your phone, or open the page here. Details: deckyhub.com/about.html#support",
   "support.open": "Open",
 };
 

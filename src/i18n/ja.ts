@@ -470,6 +470,6 @@ export const ja: Record<MessageKey, string> = {
   "support.button": "開発とメンテナンスを支援する",
   "support.title": "DeckyHub を支援する",
   "support.text":
-    "DeckyHub は無料のオープンソースです。役に立ったら、Ko-fi で開発とメンテナンスを支援できます。スマートフォンでコードを読み取るか、ここでページを開いてください。",
+    "DeckyHub は無料のオープンソースで、寄付で何かが解放されることも、プラグイン一覧が変わることもありません。役に立ったら、Ko-fi で開発とメンテナンスを支援できます。スマートフォンでコードを読み取るか、ここでページを開いてください。詳細: deckyhub.com/about.html#support",
   "support.open": "開く",
 };

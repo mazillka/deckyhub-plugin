@@ -452,6 +452,6 @@ export const zhTW: Record<MessageKey, string> = {
   "support.button": "支持開發與維護",
   "support.title": "支持 DeckyHub",
   "support.text":
-    "DeckyHub 免費且開源。如果它對您有幫助，可以在 Ko-fi 上支持它的開發與維護。用手機掃描 QR 碼，或在此處開啟頁面。",
+    "DeckyHub 免費開源，捐贈不會解鎖任何功能，也絕不會改變外掛清單。如果它對您有幫助，可以在 Ko-fi 上支持其開發與維護。用手機掃描 QR 碼，或在此開啟頁面。詳情：deckyhub.com/about.html#support",
   "support.open": "開啟",
 };
