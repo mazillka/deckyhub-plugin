@@ -109,6 +109,7 @@ export const ko: Record<MessageKey, string> = {
   "appcard.downloads": "다운로드 {count}회",
   "appcard.githubDownloads": "GitHub 다운로드 {count}회",
   "appcard.storeDownloads": "Decky 스토어 다운로드 {count}회",
+  "appcard.downloadsBreakdown": "GitHub: {github} · Decky 스토어: {store}",
   "appcard.inStore": "Decky 스토어에 있음",
   "appcard.inStoreHint":
     "Decky 스토어에 같은 이름의 플러그인이 있습니다(그곳에서 {count}회 다운로드). 스토어는 저장소를 알려 주지 않으므로 이것이 맞는지 확인하세요.",

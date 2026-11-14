@@ -109,6 +109,7 @@ export const ru: Record<MessageKey, string> = {
   "appcard.downloads": "{count} загрузок",
   "appcard.githubDownloads": "{count} загрузок с GitHub",
   "appcard.storeDownloads": "{count} загрузок из магазина Decky",
+  "appcard.downloadsBreakdown": "GitHub: {github} · магазин Decky: {store}",
   "appcard.inStore": "В магазине Decky",
   "appcard.inStoreHint":
     "В магазине Decky есть плагин с таким названием ({count} загрузок там). Магазин не указывает репозиторий, поэтому убедитесь, что это тот самый.",

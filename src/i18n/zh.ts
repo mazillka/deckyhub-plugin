@@ -107,6 +107,7 @@ export const zh: Record<MessageKey, string> = {
   "appcard.downloads": "{count} 次下载",
   "appcard.githubDownloads": "GitHub 下载 {count} 次",
   "appcard.storeDownloads": "Decky 商店下载 {count} 次",
+  "appcard.downloadsBreakdown": "GitHub：{github} · Decky 商店：{store}",
   "appcard.inStore": "已在 Decky 商店",
   "appcard.inStoreHint": "Decky 商店中有同名插件(在那里下载 {count} 次)。商店不会标明仓库,请确认是否就是这个。",
   "appcard.stars": "{count} 个 GitHub 星标",

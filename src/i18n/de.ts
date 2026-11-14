@@ -111,6 +111,7 @@ export const de: Record<MessageKey, string> = {
   "appcard.downloads": "{count} Downloads",
   "appcard.githubDownloads": "{count} GitHub-Downloads",
   "appcard.storeDownloads": "{count} Downloads aus dem Decky-Store",
+  "appcard.downloadsBreakdown": "GitHub: {github} · Decky-Store: {store}",
   "appcard.inStore": "Im Decky-Store",
   "appcard.inStoreHint":
     "Der Decky-Store führt ein Plugin mit diesem Namen ({count} Downloads dort). Der Store nennt kein Repository, prüfe also, ob es dieses ist.",

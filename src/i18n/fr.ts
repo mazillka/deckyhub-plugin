@@ -110,6 +110,7 @@ export const fr: Record<MessageKey, string> = {
   "appcard.downloads": "{count} téléchargements",
   "appcard.githubDownloads": "{count} téléchargements GitHub",
   "appcard.storeDownloads": "{count} téléchargements depuis la boutique Decky",
+  "appcard.downloadsBreakdown": "GitHub : {github} · boutique Decky : {store}",
   "appcard.inStore": "Dans la boutique Decky",
   "appcard.inStoreHint":
     "La boutique Decky propose un plugin portant ce nom ({count} téléchargements là-bas). La boutique n'indique pas de dépôt : vérifiez que c'est bien celui-ci.",

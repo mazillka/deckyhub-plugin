@@ -193,7 +193,7 @@ export function AppDetailsModal({
               version: app.installedVersion ? displayVersion(app.installedVersion) : "—",
             })}
           </span>
-          <AppStats app={app} t={t} />
+          <AppStats app={app} t={t} detailed />
           {app.identityUnverified && <span style={{ color: colors.warning }}>{t("appcard.identityUnverified")}</span>}
           <AppBadges app={app} t={t} />
           {/* What Runs as root means, right where you decide to install. */}

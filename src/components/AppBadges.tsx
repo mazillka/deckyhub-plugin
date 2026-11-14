@@ -206,7 +206,19 @@ export function AppBadges({ app, t }: { app: App; t: TFunc }) {
 
 // Updated / downloads / stars, shared by the card and its Manage window. A list row
 // leaves out Updated (noUpdated): beside the latest version it cut the counts short.
-export function AppStats({ app, t, noUpdated }: { app: App; t: TFunc; noUpdated?: boolean }) {
+// `detailed` (the details window, where a tooltip can't be read with a controller) says where the downloads
+// came from: GitHub and the Decky store.
+export function AppStats({
+  app,
+  t,
+  noUpdated,
+  detailed,
+}: {
+  app: App;
+  t: TFunc;
+  noUpdated?: boolean;
+  detailed?: boolean;
+}) {
   const released = releasedAt(app);
   const { stars } = app.stats ?? {};
   const downloads = totalDownloads(app.stats);
@@ -227,6 +239,14 @@ export function AppStats({ app, t, noUpdated }: { app: App; t: TFunc; noUpdated?
             .join("\n")}
         >
           ↓ {compactNumber(downloads)}
+        </span>
+      )}
+      {detailed && store !== undefined && (
+        <span>
+          {t("appcard.downloadsBreakdown", {
+            github: compactNumber(github ?? 0),
+            store: compactNumber(store),
+          })}
         </span>
       )}
       {stars != null && (
