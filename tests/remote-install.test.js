@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { connectionDiagnostics, detailsFromPairingLink, deviceUrl, exchange, fingerprintBytes, init, pairingDetails } from '../docs/remote-install.js';
+import { browserIdFor, connectionDiagnostics, defaultBrowserName, detailsFromPairingLink, deviceUrl, exchange, fingerprintBytes, init, pairingDetails } from '../docs/remote-install.js';
 
 test('pairing links accept only a private device address and a complete fingerprint', () => {
   const fingerprint = 'ab'.repeat(32);
@@ -14,6 +14,38 @@ test('pairing links accept only a private device address and a complete fingerpr
   // The QR link's six-digit code is kept only when it is six digits.
   assert.equal(pairingDetails(fragment('192.168.1.20:8765') + '&code=123456').code, '123456');
   assert.equal('code' in pairingDetails(fragment('192.168.1.20:8765') + '&code=12345a'), false);
+});
+
+test('the browser is named by what it is, and an unknown one stays "Browser"', () => {
+  const ua = {
+    chromeAndroid: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36',
+    chromeWindows: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+    edgeWindows: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0',
+    firefoxLinux: 'Mozilla/5.0 (X11; Linux x86_64; rv:130.0) Gecko/20100101 Firefox/130.0',
+    safariIos: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+    samsung: 'Mozilla/5.0 (Linux; Android 14; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/25.0 Chrome/121.0.0.0 Mobile Safari/537.36',
+  };
+  assert.equal(defaultBrowserName(ua.chromeAndroid), 'Chrome · Android');
+  assert.equal(defaultBrowserName(ua.chromeWindows), 'Chrome · Windows');
+  assert.equal(defaultBrowserName(ua.edgeWindows), 'Edge · Windows');
+  assert.equal(defaultBrowserName(ua.firefoxLinux), 'Firefox · Linux');
+  assert.equal(defaultBrowserName(ua.safariIos), 'Safari · iOS');
+  assert.equal(defaultBrowserName(ua.samsung), 'Samsung Internet · Android');
+  assert.equal(defaultBrowserName(''), 'Browser');
+  assert.equal(defaultBrowserName(undefined), 'Browser');
+});
+
+test('a browser keeps one random id per device, different between devices, and works without storage', () => {
+  const data = new Map();
+  const storage = { getItem: key => data.get(key) ?? null, setItem: (key, value) => data.set(key, value) };
+  let counter = 0;
+  const random = () => new Uint8Array(32).fill(++counter);
+  const first = browserIdFor('aa'.repeat(32), storage, random);
+  assert.match(first, /^[A-Za-z0-9_-]{43}$/);
+  assert.equal(browserIdFor('aa'.repeat(32), storage, random), first, 'the same device gets the same id again');
+  assert.notEqual(browserIdFor('bb'.repeat(32), storage, random), first, 'another device gets another id');
+  const broken = { getItem() { throw new Error('blocked'); }, setItem() { throw new Error('blocked'); } };
+  assert.match(browserIdFor('aa'.repeat(32), broken, random), /^[A-Za-z0-9_-]{43}$/);
 });
 
 test('pasted DeckyHub links fill device details without navigating away from the selected plugin', () => {

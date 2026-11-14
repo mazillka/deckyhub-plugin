@@ -36,6 +36,43 @@ class DeviceManagementTests(unittest.TestCase):
         self.service.decide_pairing(pair, True)
         self.assertEqual(len(self.service.devices), 2)
 
+    def pair_as(self, browser_id, name="Phone"):
+        secret = secrets.token_urlsafe(32)
+        pairing = self.service.begin_pairing()
+        pair = self.service.pair(None, name, secret, pairing["pairingToken"], browser_id)["pairingId"]
+        self.service.decide_pairing(pair, True)
+        return self.service.pair_status(pair, secret)["token"]
+
+    def test_the_same_browser_pairing_again_replaces_its_old_entry_and_the_old_token_stops_working(self):
+        browser = secrets.token_urlsafe(32)
+        first = self.pair_as(browser)
+        second = self.pair_as(browser)
+        self.assertEqual(len(self.service.devices), 2)  # the one from setUp, and one for this browser
+        with self.assertRaises(ValueError):
+            self.service.remote({"op": "summary", "token": first})
+        self.service.remote({"op": "summary", "token": second})
+
+    def test_another_browser_or_one_without_an_id_is_a_separate_entry(self):
+        self.pair_as(secrets.token_urlsafe(32))
+        self.pair_as(secrets.token_urlsafe(32))
+        self.pair_as(None)
+        self.pair_as(None)
+        self.assertEqual(len(self.service.devices), 5)
+
+    def test_a_bad_browser_id_is_refused_and_a_rejected_pairing_replaces_nothing(self):
+        with self.assertRaises(ValueError):
+            self.service.pair(
+                None, "Phone", secrets.token_urlsafe(32), self.service.begin_pairing()["pairingToken"], "x"
+            )
+        browser = secrets.token_urlsafe(32)
+        kept = self.pair_as(browser)
+        pairing = self.service.begin_pairing()
+        pair = self.service.pair(None, "Phone", secrets.token_urlsafe(32), pairing["pairingToken"], browser)[
+            "pairingId"
+        ]
+        self.service.decide_pairing(pair, False)
+        self.service.remote({"op": "summary", "token": kept})
+
     def test_asking_about_a_request_the_device_does_not_have_is_told_apart_from_other_rejections(self):
         with self.assertRaises(RequestNotFound):
             self.remote(op="status", requestId="not-a-request")
