@@ -128,6 +128,9 @@ export const uk: Record<MessageKey, string> = {
   "appcard.rating": "{average}/5",
   "appcard.ratingTitle": "{average} з 5 за {count} оцінками",
   "appcard.ratingWorks": "Працює у {works} із {total}",
+  "rating.uiYes": "Зручний інтерфейс",
+  "rating.uiNo": "Незручний інтерфейс",
+  "appcard.ratingUi": "Зручний інтерфейс у {easy} із {total}",
   "appcard.inStore": "У магазині Decky",
   "appcard.inStoreHint":
     "У магазині Decky є плагін із такою назвою ({count} завантажень там). Магазин не вказує репозиторій, тож переконайтеся, що це саме той.",

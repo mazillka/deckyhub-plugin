@@ -127,6 +127,9 @@ export const en = {
   "appcard.rating": "{average}/5",
   "appcard.ratingTitle": "{average} out of 5 from {count} ratings",
   "appcard.ratingWorks": "Works for {works} of {total}",
+  "rating.uiYes": "Convenient interface",
+  "rating.uiNo": "Inconvenient interface",
+  "appcard.ratingUi": "Convenient interface for {easy} of {total}",
   "appcard.inStore": "In Decky store",
   "appcard.inStoreHint":
     "The Decky store lists a plugin with this name ({count} downloads there). The store names no repository, so check that it is this one.",

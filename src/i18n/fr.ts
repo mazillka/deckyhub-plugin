@@ -128,6 +128,9 @@ export const fr: Record<MessageKey, string> = {
   "appcard.rating": "{average}/5",
   "appcard.ratingTitle": "{average} sur 5 d’après {count} évaluations",
   "appcard.ratingWorks": "Fonctionne pour {works} sur {total}",
+  "rating.uiYes": "Interface pratique",
+  "rating.uiNo": "Interface peu pratique",
+  "appcard.ratingUi": "Interface pratique pour {easy} sur {total}",
   "appcard.inStore": "Dans la boutique Decky",
   "appcard.inStoreHint":
     "La boutique Decky propose un plugin portant ce nom ({count} téléchargements là-bas). La boutique n'indique pas de dépôt : vérifiez que c'est bien celui-ci.",

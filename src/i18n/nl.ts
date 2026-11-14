@@ -128,6 +128,9 @@ export const nl: Record<MessageKey, string> = {
   "appcard.rating": "{average}/5",
   "appcard.ratingTitle": "{average} van de 5 uit {count} beoordelingen",
   "appcard.ratingWorks": "Werkt bij {works} van de {total}",
+  "rating.uiYes": "Handige interface",
+  "rating.uiNo": "Onhandige interface",
+  "appcard.ratingUi": "Handige interface voor {easy} van de {total}",
   "appcard.inStore": "In de Decky-store",
   "appcard.inStoreHint":
     "De Decky-store heeft een plugin met deze naam ({count} downloads daar). De store noemt geen repository, controleer dus of het deze is.",

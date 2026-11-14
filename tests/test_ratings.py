@@ -43,15 +43,16 @@ class RatingTests(unittest.TestCase):
 
     def test_a_rating_goes_out_with_a_random_device_id_that_is_kept(self):
         self.plugin.settings["shareRatings"] = True
-        result = self.run_async(self.plugin.rate_plugin("o/p", "1.2.3", 4, False))
-        self.assertEqual(result, {"sent": True, "rating": {"stars": 4, "works": False}})
+        result = self.run_async(self.plugin.rate_plugin("o/p", "1.2.3", 4, False, True))
+        self.assertEqual(result, {"sent": True, "rating": {"stars": 4, "works": False, "ui": True}})
         method, body = self.sent[0]
         self.assertEqual(
             (method, body["plugin"], body["stars"], body["works"], body["version"]), ("POST", "o/p", 4, False, "1.2.3")
         )
         self.assertRegex(body["device"], r"^[A-Za-z0-9_-]{43}$")
         self.assertEqual(self.plugin.settings["ratingDevice"], body["device"])
-        self.assertEqual(self.plugin.settings["myRatings"], {"o/p": {"stars": 4, "works": False}})
+        self.assertEqual(body["ui"], True)
+        self.assertEqual(self.plugin.settings["myRatings"], {"o/p": {"stars": 4, "works": False, "ui": True}})
         # The same device again: the same id, and the rating is replaced.
         self.run_async(self.plugin.rate_plugin("o/p", None, 5, None))
         self.assertEqual(self.sent[1][1]["device"], body["device"])
@@ -72,6 +73,16 @@ class RatingTests(unittest.TestCase):
             with self.assertRaises(ValueError, msg=(repo, stars, works)):
                 self.run_async(self.plugin.rate_plugin(repo, None, stars, works))
         self.assertEqual(self.sent, [])
+
+    def test_the_interface_answer_alone_is_a_rating_and_it_must_be_true_or_false(self):
+        self.plugin.settings["shareRatings"] = True
+        self.assertEqual(
+            self.run_async(self.plugin.rate_plugin("o/p", None, None, None, False))["rating"], {"ui": False}
+        )
+        with self.assertRaises(ValueError):
+            self.run_async(self.plugin.rate_plugin("o/p", None, None, None, "yes"))
+        settings = coerce_settings({"myRatings": {"o/p": {"ui": "no", "works": True}, "o/q": {"ui": True}}})
+        self.assertEqual(settings["myRatings"], {"o/p": {"works": True}, "o/q": {"ui": True}})
 
     def test_a_failed_send_keeps_nothing_and_says_so(self):
         self.plugin.settings["shareRatings"] = True

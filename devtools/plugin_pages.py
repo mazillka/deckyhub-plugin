@@ -587,6 +587,9 @@ def plugin_page(
     works, broken = rating.get("works") or 0, rating.get("broken") or 0
     if works + broken:
         facts.append(f"<li><strong>{works} of {works + broken}</strong>users say it works on their device</li>")
+    easy, hard = rating.get("easy") or 0, rating.get("hard") or 0
+    if easy + hard:
+        facts.append(f"<li><strong>{easy} of {easy + hard}</strong>users find its interface convenient</li>")
     if stats.get("stars") is not None:
         facts.append(f"<li><strong>{compact(stats['stars'])}</strong>GitHub stars</li>")
     if stats.get("updated"):

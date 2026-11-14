@@ -127,6 +127,9 @@ export const ko: Record<MessageKey, string> = {
   "appcard.rating": "{average}/5",
   "appcard.ratingTitle": "{count}개 평가 기준 5점 만점에 {average}",
   "appcard.ratingWorks": "{total}명 중 {works}명에게서 작동",
+  "rating.uiYes": "편리한 인터페이스",
+  "rating.uiNo": "불편한 인터페이스",
+  "appcard.ratingUi": "{total}명 중 {easy}명이 편리하다고 응답",
   "appcard.inStore": "Decky 스토어에 있음",
   "appcard.inStoreHint":
     "Decky 스토어에 같은 이름의 플러그인이 있습니다(그곳에서 {count}회 다운로드). 스토어는 저장소를 알려 주지 않으므로 이것이 맞는지 확인하세요.",

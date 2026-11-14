@@ -129,6 +129,9 @@ export const ptPT: Record<MessageKey, string> = {
   "appcard.rating": "{average}/5",
   "appcard.ratingTitle": "{average} de 5 em {count} avaliações",
   "appcard.ratingWorks": "Funciona para {works} de {total}",
+  "rating.uiYes": "Interface prática",
+  "rating.uiNo": "Interface pouco prática",
+  "appcard.ratingUi": "Interface prática para {easy} de {total}",
   "appcard.inStore": "Na loja do Decky",
   "appcard.inStoreHint":
     "A loja do Decky tem um plugin com este nome ({count} transferências lá). A loja não indica o repositório, por isso confirme que é este.",

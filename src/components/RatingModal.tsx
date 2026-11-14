@@ -9,7 +9,7 @@ import type { Settings } from "../types";
 import { iconRow } from "../utils";
 import { WideModalRoot } from "./WideModal";
 
-type Mine = { stars?: number; works?: boolean };
+type Mine = { stars?: number; works?: boolean; ui?: boolean };
 
 const choiceStyle = (chosen: boolean) => ({
   ...iconRow,
@@ -38,6 +38,7 @@ export function RatingModal({
   const [mine, setMine] = useState<Mine>({});
   const [stars, setStars] = useState<number | null>(null);
   const [works, setWorks] = useState<boolean | null>(null);
+  const [ui, setUi] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -47,6 +48,7 @@ export function RatingModal({
       setMine(existing);
       setStars(existing.stars ?? null);
       setWorks(existing.works ?? null);
+      setUi(existing.ui ?? null);
     });
   }, [repo]);
 
@@ -63,7 +65,7 @@ export function RatingModal({
   const send = async () => {
     setBusy(true);
     try {
-      const result = await ratePlugin(repo, version ?? null, stars, works);
+      const result = await ratePlugin(repo, version ?? null, stars, works, ui);
       if (result.sent) {
         toaster.toast({ title: "DeckyHub", body: t("rating.sent") });
         closeModal?.();
@@ -91,7 +93,7 @@ export function RatingModal({
   };
 
   const enabled = settings?.shareRatings === true;
-  const hasRating = mine.stars !== undefined || mine.works !== undefined;
+  const hasRating = mine.stars !== undefined || mine.works !== undefined || mine.ui !== undefined;
   return (
     <WideModalRoot closeModal={closeModal}>
       <div style={{ display: "grid", gap: 14 }}>
@@ -133,10 +135,18 @@ export function RatingModal({
                 <FaTimes /> {t("rating.broken")}
               </DialogButton>
             </Focusable>
+            <Focusable flow-children="right" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <DialogButton style={choiceStyle(ui === true)} onClick={() => setUi(ui === true ? null : true)}>
+                <FaCheck /> {t("rating.uiYes")}
+              </DialogButton>
+              <DialogButton style={choiceStyle(ui === false)} onClick={() => setUi(ui === false ? null : false)}>
+                <FaTimes /> {t("rating.uiNo")}
+              </DialogButton>
+            </Focusable>
             <Focusable flow-children="right" style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
               <Button
                 style={{ ...iconRow, margin: 0, flex: 1, minWidth: 150 }}
-                disabled={busy || !settings || (stars === null && works === null)}
+                disabled={busy || !settings || (stars === null && works === null && ui === null)}
                 onClick={send}
               >
                 {t("rating.send")}

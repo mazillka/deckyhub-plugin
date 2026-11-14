@@ -127,6 +127,9 @@ export const pl: Record<MessageKey, string> = {
   "appcard.rating": "{average}/5",
   "appcard.ratingTitle": "{average} na 5 z {count} ocen",
   "appcard.ratingWorks": "Działa u {works} z {total}",
+  "rating.uiYes": "Wygodny interfejs",
+  "rating.uiNo": "Niewygodny interfejs",
+  "appcard.ratingUi": "Wygodny interfejs dla {easy} z {total}",
   "appcard.inStore": "W sklepie Decky",
   "appcard.inStoreHint":
     "Sklep Decky ma wtyczkę o tej nazwie ({count} pobrań tam). Sklep nie podaje repozytorium, więc sprawdź, czy to ta.",

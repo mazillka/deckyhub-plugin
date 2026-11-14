@@ -127,6 +127,9 @@ export const cs: Record<MessageKey, string> = {
   "appcard.rating": "{average}/5",
   "appcard.ratingTitle": "{average} z 5 podle {count} hodnocení",
   "appcard.ratingWorks": "Funguje u {works} z {total}",
+  "rating.uiYes": "Pohodlné rozhraní",
+  "rating.uiNo": "Nepohodlné rozhraní",
+  "appcard.ratingUi": "Pohodlné rozhraní u {easy} z {total}",
   "appcard.inStore": "V obchodě Decky",
   "appcard.inStoreHint":
     "Obchod Decky nabízí plugin se stejným názvem ({count} stažení tam). Obchod neuvádí repozitář, ověřte tedy, že jde o tento.",

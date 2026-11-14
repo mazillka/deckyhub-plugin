@@ -129,6 +129,9 @@ export const de: Record<MessageKey, string> = {
   "appcard.rating": "{average}/5",
   "appcard.ratingTitle": "{average} von 5 aus {count} Bewertungen",
   "appcard.ratingWorks": "Funktioniert bei {works} von {total}",
+  "rating.uiYes": "Praktische Oberfläche",
+  "rating.uiNo": "Unpraktische Oberfläche",
+  "appcard.ratingUi": "Praktische Oberfläche bei {easy} von {total}",
   "appcard.inStore": "Im Decky-Store",
   "appcard.inStoreHint":
     "Der Decky-Store führt ein Plugin mit diesem Namen ({count} Downloads dort). Der Store nennt kein Repository, prüfe also, ob es dieses ist.",

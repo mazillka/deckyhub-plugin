@@ -230,6 +230,8 @@ export function AppStats({
   const rating = app.stats?.rating;
   const works = rating?.works ?? 0;
   const broken = rating?.broken ?? 0;
+  const easy = rating?.easy ?? 0;
+  const hard = rating?.hard ?? 0;
   return (
     <>
       {!noUpdated && released > 0 && !isStale(released) && (
@@ -253,6 +255,7 @@ export function AppStats({
         </span>
       )}
       {detailed && works + broken > 0 && <span>{t("appcard.ratingWorks", { works, total: works + broken })}</span>}
+      {detailed && easy + hard > 0 && <span>{t("appcard.ratingUi", { easy, total: easy + hard })}</span>}
       {detailed && store !== undefined && (
         <span>
           {t("appcard.downloadsBreakdown", {

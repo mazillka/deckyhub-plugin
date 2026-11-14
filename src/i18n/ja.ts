@@ -127,6 +127,9 @@ export const ja: Record<MessageKey, string> = {
   "appcard.rating": "{average}/5",
   "appcard.ratingTitle": "{count} 件の評価で 5 点中 {average}",
   "appcard.ratingWorks": "{total} 人中 {works} 人が動作",
+  "rating.uiYes": "使いやすいインターフェース",
+  "rating.uiNo": "使いにくいインターフェース",
+  "appcard.ratingUi": "{total} 人中 {easy} 人が使いやすいと回答",
   "appcard.inStore": "Decky ストアにあり",
   "appcard.inStoreHint":
     "Decky ストアに同名のプラグインがあります(ストアでのダウンロード {count} 回)。ストアはリポジトリを示さないため、これと同じものか確認してください。",

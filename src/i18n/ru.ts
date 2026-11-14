@@ -127,6 +127,9 @@ export const ru: Record<MessageKey, string> = {
   "appcard.rating": "{average}/5",
   "appcard.ratingTitle": "{average} из 5 по {count} оценкам",
   "appcard.ratingWorks": "Работает у {works} из {total}",
+  "rating.uiYes": "Удобный интерфейс",
+  "rating.uiNo": "Неудобный интерфейс",
+  "appcard.ratingUi": "Удобный интерфейс у {easy} из {total}",
   "appcard.inStore": "В магазине Decky",
   "appcard.inStoreHint":
     "В магазине Decky есть плагин с таким названием ({count} загрузок там). Магазин не указывает репозиторий, поэтому убедитесь, что это тот самый.",

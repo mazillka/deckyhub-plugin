@@ -128,6 +128,9 @@ export const es: Record<MessageKey, string> = {
   "appcard.rating": "{average}/5",
   "appcard.ratingTitle": "{average} de 5 según {count} valoraciones",
   "appcard.ratingWorks": "Funciona en {works} de {total}",
+  "rating.uiYes": "Interfaz cómoda",
+  "rating.uiNo": "Interfaz incómoda",
+  "appcard.ratingUi": "Interfaz cómoda para {easy} de {total}",
   "appcard.inStore": "En la tienda de Decky",
   "appcard.inStoreHint":
     "La tienda de Decky tiene un plugin con este nombre ({count} descargas allí). La tienda no indica el repositorio, así que comprueba que sea este.",

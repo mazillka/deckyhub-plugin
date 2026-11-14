@@ -1,4 +1,4 @@
-"""Community ratings: the user says whether a plugin works on their device and gives it stars.
+"""Community ratings: the user gives a plugin stars and says whether it works on their device and whether its interface is convenient.
 
 Off until the user turns on Share ratings. A rating goes to DeckyHub's ratings Worker (ratings/ in this
 repository) with a random id this device made up for itself: no account, name, address or Steam id. The
@@ -28,7 +28,7 @@ def coerce_device(value) -> str:
 
 
 def coerce_my_ratings(values) -> dict:
-    """The device's own ratings by repository: {stars?: 1-5, works?: bool}. Anything else is dropped."""
+    """The device's own ratings by repository: {stars?: 1-5, works?: bool, ui?: bool}. Anything else is dropped."""
     if not isinstance(values, dict):
         return {}
     ratings = {}
@@ -40,6 +40,8 @@ def coerce_my_ratings(values) -> dict:
             item["stars"] = rating["stars"]
         if isinstance(rating.get("works"), bool):
             item["works"] = rating["works"]
+        if isinstance(rating.get("ui"), bool):
+            item["ui"] = rating["ui"]
         if item:
             ratings[repo] = item
     return dict(list(ratings.items())[:MAX_MY_RATINGS])
@@ -65,7 +67,9 @@ class RatingsMixin:
         with OPENER.open(request, timeout=15) as response:
             response.read(2048)
 
-    async def rate_plugin(self, repo: str, version: str | None, stars: int | None, works: bool | None):
+    async def rate_plugin(
+        self, repo: str, version: str | None, stars: int | None, works: bool | None, ui: bool | None = None
+    ):
         """Sends (or replaces) this device's rating of a plugin. Needs Share ratings on."""
         if self.settings.get("shareRatings") is not True:
             raise ValueError("Share ratings is off")
@@ -75,13 +79,17 @@ class RatingsMixin:
             raise ValueError("Stars are a whole number from 1 to 5")
         if works is not None and not isinstance(works, bool):
             raise ValueError("works is true or false")
-        if stars is None and works is None:
-            raise ValueError("Give stars, works, or both")
+        if ui is not None and not isinstance(ui, bool):
+            raise ValueError("ui is true or false")
+        if stars is None and works is None and ui is None:
+            raise ValueError("Give stars, works or ui")
         body = {"plugin": repo, "device": self._rating_device()}
         if stars is not None:
             body["stars"] = stars
         if works is not None:
             body["works"] = works
+        if ui is not None:
+            body["ui"] = ui
         if isinstance(version, str) and 0 < len(version) <= VERSION_MAX:
             body["version"] = version
         try:
@@ -89,7 +97,7 @@ class RatingsMixin:
         except (OSError, URLError, ValueError) as error:
             decky.logger.warning("Could not send the rating for %s: %s", repo, error)
             return {"sent": False}
-        item = {key: body[key] for key in ("stars", "works") if key in body}
+        item = {key: body[key] for key in ("stars", "works", "ui") if key in body}
         self.settings.setdefault("myRatings", {})[repo] = item
         self.settings["myRatings"] = coerce_my_ratings(self.settings["myRatings"])
         self._save_settings()

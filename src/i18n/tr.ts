@@ -127,6 +127,9 @@ export const tr: Record<MessageKey, string> = {
   "appcard.rating": "{average}/5",
   "appcard.ratingTitle": "{count} puandan 5 üzerinden {average}",
   "appcard.ratingWorks": "{total} kişiden {works} kişide çalışıyor",
+  "rating.uiYes": "Kullanışlı arayüz",
+  "rating.uiNo": "Kullanışsız arayüz",
+  "appcard.ratingUi": "{total} kişiden {easy} kişi için kullanışlı arayüz",
   "appcard.inStore": "Decky mağazasında",
   "appcard.inStoreHint":
     "Decky mağazasında bu adda bir eklenti var (orada {count} indirme). Mağaza depo belirtmez, bu yüzden bunun doğru olduğundan emin olun.",
