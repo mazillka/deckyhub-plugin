@@ -33,7 +33,13 @@ class AddDeviceWindowTests(unittest.TestCase):
 class PairLinkTests(unittest.TestCase):
     def test_a_paired_browser_can_share_a_pairing_link_and_the_ukrainian_page_has_it_too(self):
         english, ukrainian = plugin_pages.remote_device_panel(), plugin_pages.remote_device_panel("uk")
-        for part in ("remote-share-button", "remote-share-box", "remote-share-link", "remote-share-copy"):
+        for part in (
+            "remote-share-button",
+            "remote-share-box",
+            "remote-share-link",
+            "remote-share-copy",
+            "remote-share-status",
+        ):
             self.assertIn(f'id="{part}"', english)
         self.assertNotIn("Pair another browser with a link", ukrainian)
         self.assertIn("Додати інший браузер за посиланням", ukrainian)
