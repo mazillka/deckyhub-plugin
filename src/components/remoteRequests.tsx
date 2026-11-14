@@ -4,7 +4,9 @@ import {
   claimRemoteRequest,
   decideRemoteRequest,
   getApps,
+  getRemoteInstalledVersion,
 } from "../api";
+import { settleInstall } from "../remoteOutcome";
 import { installWarnings, type RemoteInstallRequest } from "../types";
 import type { TFunc } from "../i18n/en";
 import { listAppReleases, fetchPluginStats } from "../releases";
@@ -103,7 +105,14 @@ export async function runRemoteRequest(request: RemoteInstallRequest, t: TFunc, 
     // cannot prove success: report unknown unless a future correlated result is available.
     handedOver = true;
     await installDeckyPlugin(asset, current.repo, name, refreshed.tag, freshAction.type, auto);
-    await finishRemoteRequestUnknown(request.id);
+    // Decky reports no result: look at what is installed (a minute and a half), so the browser hears "Installed".
+    await settleInstall({
+      installedVersion: async () => (await getRemoteInstalledVersion(name)).version,
+      before: request.installedVersion ?? null,
+      succeeded: () => finishRemoteRequest(request.id, true),
+      unknown: () => finishRemoteRequestUnknown(request.id),
+      wait: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+    });
   } catch (error) {
     if (approved || auto) {
       if (handedOver) await finishRemoteRequestUnknown(request.id).catch(() => undefined);
