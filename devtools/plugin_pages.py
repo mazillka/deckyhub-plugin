@@ -73,7 +73,7 @@ EXTRA_STYLE = """
 .versions{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;padding:0;list-style:none}
 .versions li{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;overflow-wrap:anywhere}
 .versions li small{display:block;margin-top:4px;color:var(--muted)}
-.app{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;text-decoration:none;color:var(--text);display:flex;flex-direction:column;gap:2px}
+.app{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;text-decoration:none;color:var(--text);display:flex;flex-direction:column;gap:2px;content-visibility:auto;contain-intrinsic-size:auto 150px}
 .app:hover{border-color:var(--accent2)}.app small{color:var(--accent2);font-size:.75rem;text-transform:uppercase;letter-spacing:.05em}
 .app p{margin:4px 0 0;color:var(--muted);font-size:.9rem;flex:1}.app .meta{color:var(--dim);font-size:.82rem;margin-top:8px}
 .app .flags{display:flex;flex-wrap:wrap;gap:4px 8px;font-size:.78rem;margin-top:4px}.flag-ai{color:#b79cff}.flag-warn{color:var(--warn)}.flag-bad{color:#ff8a8a}.flag-ok{color:#6bcb6b}.flag-store{color:#7cc4ff}
@@ -489,7 +489,7 @@ def remote_device_panel(lang: str = "en") -> str:
 </div>
 </dialog>
 <noscript>Enable JavaScript to connect to your device.</noscript>
-<script type="module" src="/remote-install.js"></script>
+<link rel="modulepreload" href="/remote-core.js"><link rel="modulepreload" href="/remote-i18n.js"><link rel="modulepreload" href="/remote-plugins.js"><link rel="modulepreload" href="/remote-updates.js"><link rel="modulepreload" href="/remote-scan.js"><link rel="modulepreload" href="/remote-share.js"><script type="module" src="/remote-install.js"></script>
 </section>"""
     return remote_page_uk.translate(html) if lang == "uk" else html
 
@@ -527,7 +527,7 @@ def remote_install_picker(plugin_id: str, safety: list[str] | None = None) -> st
 </dialog>
 <p class="rc-pair"><a id="remote-pair-new" class="btn" href="/remote-install/">Pair a device</a><span>Pair once, then install from any plugin page.</span></p>
 <p class="rd-hint">Your browser talks straight to your device on your network. Nothing is collected or sent anywhere. <a href="/help.html#remote">How to use it</a></p>
-<script type="module" src="/remote-install.js"></script>
+<link rel="modulepreload" href="/remote-core.js"><link rel="modulepreload" href="/remote-i18n.js"><link rel="modulepreload" href="/remote-plugins.js"><link rel="modulepreload" href="/remote-updates.js"><link rel="modulepreload" href="/remote-scan.js"><link rel="modulepreload" href="/remote-share.js"><script type="module" src="/remote-install.js"></script>
 </section>"""
 
 
@@ -788,7 +788,7 @@ def catalog_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
 <h1>Decky plugins</h1>
 <p><a class="btn ghost" href="/remote-install/">Paired devices</a></p>
 <p id="remote-device-ready" role="status" hidden>Device details received. Choose a plugin to pair with your device and request installation.</p>
-<script type="module" src="/remote-install.js"></script>
+<link rel="modulepreload" href="/remote-core.js"><link rel="modulepreload" href="/remote-i18n.js"><link rel="modulepreload" href="/remote-plugins.js"><link rel="modulepreload" href="/remote-updates.js"><link rel="modulepreload" href="/remote-scan.js"><link rel="modulepreload" href="/remote-share.js"><script type="module" src="/remote-install.js"></script>
 <p class="lead">{len(apps)} Decky Loader plugins, most downloaded first. Install any of them from Gaming Mode with <a href="/">DeckyHub</a>, which also checks them for updates.</p>
 <p class="note">Every plugin belongs to its authors. DeckyHub doesn't make, review or vouch for them, and a plugin's page shows its notes (AI help, root, audit warnings) and security scans; <a href="/plugins/known-issues.html">Known issues</a> lists every plugin with a warning. Missing one? <a href="/contribute/">Add a plugin</a>.</p>
 <div class="filters"><input id="q" type="search" placeholder="Search plugins" aria-label="Search plugins" autocomplete="off"><div class="chips" role="group" aria-label="Categories">{chips}</div></div>
