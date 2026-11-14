@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { test } from 'node:test';
 import vm from 'node:vm';
+import { fakePage } from './helpers/fakePage.js';
 import { browserIdFor, connectionDiagnostics, defaultBrowserName, detailsFromPairingLink, deviceUrl, exchange, fingerprintBytes, init, pairingDetails } from '../docs/remote-install.js';
 
 test('pairing links accept only a private device address and a complete fingerprint', () => {
@@ -153,28 +154,9 @@ test('the Paired devices page lists one card per paired device and forgets one',
     { name: 'Steam Deck OLED', address: '192.168.1.21:8765', fingerprint: 'bb'.repeat(32), token: 'b'.repeat(43), lastUsed: Date.now() },
   ];
   let saved = JSON.stringify(devices);
-  const globals = {
-    isSecureContext: true,
+  const { querySelector, root } = fakePage(t, {
     localStorage: { getItem: key => key.endsWith('pairedDevices') ? saved : null, setItem: (key, value) => { if (key.endsWith('pairedDevices')) saved = value; }, removeItem() {} },
-    Option: class { constructor(text, value) { Object.assign(this, { text, value }); } },
-    addEventListener() {},
-    WebTransport: class { ready = Promise.resolve(); closed = new Promise(() => {}); close() {} },
-  };
-  for (const [key, value] of Object.entries(globals)) {
-    const original = Object.getOwnPropertyDescriptor(globalThis, key);
-    Object.defineProperty(globalThis, key, { value, configurable: true });
-    t.after(() => original ? Object.defineProperty(globalThis, key, original) : delete globalThis[key]);
-  }
-  const node = () => ({
-    children: [], dataset: {}, handlers: {}, value: '', className: '', textContent: '', hidden: false,
-    append(...items) { this.children.push(...items); }, replaceChildren(...items) { this.children = items; }, add() {},
-    setAttribute() {}, scrollIntoView() {}, focus() {}, select() {},
-    addEventListener(event, handler) { this.handlers[event] = handler; },
   });
-  const document = { createElement: node };
-  const elements = new Map();
-  const querySelector = id => (elements.has(id) ? elements.get(id) : elements.set(id, node()).get(id));
-  const root = { querySelector, ownerDocument: document, dataset: {} };
   init(root);
   const cards = querySelector('#remote-device-cards');
   const names = () => cards.children.map(card => card.children[0].children[0].textContent);
@@ -194,28 +176,8 @@ test('the Paired devices page lists one card per paired device and forgets one',
 
 test('the link for another browser can be shared only where the browser has a share sheet', async (t) => {
   const run = async (share) => {
-    const globals = {
-      isSecureContext: true,
-      navigator: { userAgent: '', share },
-      localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
-      Option: class {},
-      addEventListener() {},
-      WebTransport: class { ready = Promise.resolve(); closed = new Promise(() => {}); close() {} },
-    };
-    for (const [key, value] of Object.entries(globals)) {
-      const original = Object.getOwnPropertyDescriptor(globalThis, key);
-      Object.defineProperty(globalThis, key, { value, configurable: true });
-      t.after(() => original ? Object.defineProperty(globalThis, key, original) : delete globalThis[key]);
-    }
-    const node = () => ({
-      children: [], dataset: {}, handlers: {}, value: '', className: '', textContent: '', hidden: true,
-      append(...items) { this.children.push(...items); }, replaceChildren(...items) { this.children = items; }, add() {},
-      setAttribute() {}, scrollIntoView() {}, focus() {}, select() {},
-      addEventListener(event, handler) { this.handlers[event] = handler; },
-    });
-    const elements = new Map();
-    const querySelector = id => (elements.has(id) ? elements.get(id) : elements.set(id, node()).get(id));
-    init({ querySelector, ownerDocument: { createElement: node }, dataset: {} });
+    const { querySelector, root } = fakePage(t, { navigator: { userAgent: '', share } });
+    init(root);
     return querySelector;
   };
   const shared = [];
@@ -232,33 +194,16 @@ test('the camera reads a pairing QR code and starts pairing with it, and ignores
   const stopped = [];
   const camera = { getTracks: () => [{ stop: () => stopped.push(true) }] };
   let seen = 0;
-  const globals = {
-    isSecureContext: true,
+  const { querySelector, root } = fakePage(t, {
     navigator: { userAgent: '', mediaDevices: { getUserMedia: async () => camera } },
-    // The first QR code is not ours; the second is the device's.
     location: { href: 'https://deckyhub.com/develop/paired-devices/', pathname: '/develop/paired-devices/', search: '', origin: 'https://deckyhub.com' },
+    // The first QR code is not ours; the second is the device's.
     jsQR: () => ({ data: ++seen === 1 ? 'https://example.com/' : link }),
-    localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
-    Option: class {},
-    addEventListener() {},
+    // The device does not answer: the test only needs pairing to have started.
     WebTransport: class { get ready() { return Promise.reject(new Error('unreachable')); } closed = new Promise(() => {}); close() {} },
-  };
-  for (const [key, value] of Object.entries(globals)) {
-    const original = Object.getOwnPropertyDescriptor(globalThis, key);
-    Object.defineProperty(globalThis, key, { value, configurable: true });
-    t.after(() => original ? Object.defineProperty(globalThis, key, original) : delete globalThis[key]);
-  }
-  const node = () => ({
-    children: [], dataset: {}, handlers: {}, value: '', className: '', textContent: '', hidden: true,
-    append(...items) { this.children.push(...items); }, replaceChildren(...items) { this.children = items; }, add() {},
-    setAttribute() {}, scrollIntoView() {}, focus() {}, select() {},
-    getContext: () => ({ drawImage() {}, getImageData: () => ({ data: [] }) }),
-    addEventListener(event, handler) { this.handlers[event] = handler; },
   });
-  const elements = new Map();
-  const querySelector = id => (elements.has(id) ? elements.get(id) : elements.set(id, node()).get(id));
   Object.assign(querySelector('#remote-scan-video'), { videoWidth: 640, videoHeight: 480, play: async () => {} });
-  init({ querySelector, ownerDocument: { createElement: node }, dataset: {} });
+  init(root);
   // Without a pairing form (a plugin page) the camera is not offered; here there is none either, so offer it.
   const scan = querySelector('#remote-scan');
   scan.hidden = false;
