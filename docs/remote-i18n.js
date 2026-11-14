@@ -10,6 +10,7 @@ const UK = new Map(Object.entries({
   'Request is too large.': 'Запит завеликий.',
   'Device response is too large.': 'Відповідь пристрою завелика.',
   'The device rejected the request.': 'Пристрій відхилив запит.',
+  'Could not open the share sheet. Copy the link instead.': 'Не вдалося відкрити меню «Поділитися». Скопіюйте посилання.',
   'Link copied. Paste it into Chrome or Edge.': 'Посилання скопійовано. Вставте його в Chrome або Edge.',
   'Select the link, copy it, then paste it into Chrome or Edge.': 'Виділіть посилання, скопіюйте його й вставте в Chrome або Edge.',
   'Pair with your device first.': 'Спершу сполучіться з пристроєм.',

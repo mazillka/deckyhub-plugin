@@ -541,6 +541,15 @@ export function init(root, details) {
         : error.message, true);
     } finally { shareButton.disabled = false; }
   });
+  // Where the browser has a share sheet (a phone), the link goes to the other browser in one tap: Quick Share, a messenger, mail.
+  const shareSend = byId('share-send');
+  if (shareSend && typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+    shareSend.hidden = false;
+    shareSend.addEventListener('click', async () => {
+      try { await navigator.share({ title: 'DeckyHub', url: shareLink.value }); }
+      catch (error) { if (error?.name !== 'AbortError') say('Could not open the share sheet. Copy the link instead.', true); }
+    });
+  }
   byId('share-copy')?.addEventListener('click', async () => {
     try { await navigator.clipboard.writeText(shareLink.value); say('Link copied. Paste it into Chrome or Edge.'); }
     catch { shareLink.select(); say('Select the link, copy it, then paste it into Chrome or Edge.'); }
