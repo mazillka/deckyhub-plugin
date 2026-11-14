@@ -54,6 +54,9 @@ PANEL = [
         "Open DeckyHub in the Quick Access menu and switch on <em>Remote access</em>. A QR code appears.",
         "Відкрийте DeckyHub у меню швидкого доступу й увімкніть <em>Віддалений доступ</em>. З’явиться QR-код.",
     ),
+    # Before the shorter "Scan the QR code" below, which would change this button's text first.
+    (">Scan the QR code with this device's camera<", ">Зчитати QR-код камерою цього пристрою<"),
+    (">Stop the camera<", ">Вимкнути камеру<"),
     ("Scan the QR code", "Відскануйте QR-код"),
     (
         "Point the camera at the QR code and open the link. No camera? Paste the link below.",

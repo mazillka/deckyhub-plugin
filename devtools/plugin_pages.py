@@ -458,6 +458,11 @@ def remote_device_panel(lang: str = "en") -> str:
 <pre id="remote-diagnostics-text"></pre>
 <p><button type="button" id="remote-copy-diagnostics">Copy details</button></p>
 </details>
+<div id="remote-scan" class="rd-scan" hidden>
+<p class="remote-actions"><button type="button" id="remote-scan-button">Scan the QR code with this device's camera</button><button type="button" id="remote-scan-stop" hidden>Stop the camera</button></p>
+<p id="remote-scan-status" class="rd-hint" role="status" aria-live="polite" hidden></p>
+<video id="remote-scan-video" playsinline muted hidden></video>
+</div>
 <form id="remote-pair-form" aria-labelledby="remote-pair-title">
 <h3 id="remote-pair-title">No camera or QR code? Paste the link</h3>
 <p class="rd-hint">Scanning the QR code fills these in and pairs by itself. Use them to paste a link, or to try again.</p>
