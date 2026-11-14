@@ -38,6 +38,7 @@ class PairLinkTests(unittest.TestCase):
             "remote-share-box",
             "remote-share-link",
             "remote-share-copy",
+            "remote-share-send",
             "remote-share-status",
         ):
             self.assertIn(f'id="{part}"', english)

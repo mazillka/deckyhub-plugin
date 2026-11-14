@@ -102,6 +102,7 @@ PANEL = [
     (">Pairing link<", ">Посилання для сполучення<"),
     ('placeholder="Paste the link from DeckyHub"', 'placeholder="Вставте посилання з DeckyHub"'),
     (">Copy link<", ">Копіювати посилання<"),
+    (">Share link<", ">Поділитися посиланням<"),
     ("Six-digit pairing code", "Шестицифровий код сполучення"),
     ("More options: connection details, device name", "Більше: дані підключення, назва пристрою"),
     (">Device address and port<", ">Адреса й порт пристрою<"),

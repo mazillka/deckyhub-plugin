@@ -189,6 +189,41 @@ test('the Paired devices page lists one card per paired device and forgets one',
   assert.deepEqual(JSON.parse(saved), []);
 });
 
+test('the link for another browser can be shared only where the browser has a share sheet', async (t) => {
+  const run = async (share) => {
+    const globals = {
+      isSecureContext: true,
+      navigator: { userAgent: '', share },
+      localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
+      Option: class {},
+      addEventListener() {},
+      WebTransport: class { ready = Promise.resolve(); closed = new Promise(() => {}); close() {} },
+    };
+    for (const [key, value] of Object.entries(globals)) {
+      const original = Object.getOwnPropertyDescriptor(globalThis, key);
+      Object.defineProperty(globalThis, key, { value, configurable: true });
+      t.after(() => original ? Object.defineProperty(globalThis, key, original) : delete globalThis[key]);
+    }
+    const node = () => ({
+      children: [], dataset: {}, handlers: {}, value: '', className: '', textContent: '', hidden: true,
+      append(...items) { this.children.push(...items); }, replaceChildren(...items) { this.children = items; }, add() {},
+      setAttribute() {}, scrollIntoView() {}, focus() {}, select() {},
+      addEventListener(event, handler) { this.handlers[event] = handler; },
+    });
+    const elements = new Map();
+    const querySelector = id => (elements.has(id) ? elements.get(id) : elements.set(id, node()).get(id));
+    init({ querySelector, ownerDocument: { createElement: node }, dataset: {} });
+    return querySelector;
+  };
+  const shared = [];
+  const withSheet = await run(async data => { shared.push(data); });
+  assert.equal(withSheet('#remote-share-send').hidden, false);
+  withSheet('#remote-share-link').value = 'https://deckyhub.com/develop/paired-devices/#pair=x';
+  await withSheet('#remote-share-send').handlers.click();
+  assert.deepEqual(shared, [{ title: 'DeckyHub', url: 'https://deckyhub.com/develop/paired-devices/#pair=x' }]);
+  assert.equal((await run(undefined))('#remote-share-send').hidden, true, 'a desktop browser without a share sheet keeps only Copy link');
+});
+
 test('sends one JSON request and accepts a successful response', async () => {
   const sent = [];
   const result = await exchange(transportReturning('{"ok":true,"status":"pending"}', sent), { op: 'pair_status', pairingId: 'abc' });
