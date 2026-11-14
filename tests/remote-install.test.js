@@ -145,7 +145,8 @@ test('the device picker sends only to the selected device with its own pin and t
 
 test('the Paired devices page lists one card per paired device and forgets one', async (t) => {
   const devices = [
-    { name: 'Living room Deck', address: '192.168.1.20:8765', fingerprint: 'aa'.repeat(32), token: 'a'.repeat(43), lastUsed: Date.now() },
+    // A request left over from before (the device restarted since): it must not stop the device from being forgotten.
+    { name: 'Living room Deck', address: '192.168.1.20:8765', fingerprint: 'aa'.repeat(32), token: 'a'.repeat(43), lastUsed: Date.now(), pending: { id: 'req', key: 'key', pluginId: 'example', action: 'install' } },
     { name: 'Steam Deck OLED', address: '192.168.1.21:8765', fingerprint: 'bb'.repeat(32), token: 'b'.repeat(43), lastUsed: Date.now() },
   ];
   let saved = JSON.stringify(devices);
@@ -182,6 +183,10 @@ test('the Paired devices page lists one card per paired device and forgets one',
   assert.deepEqual(names(), ['Living room Deck']);
   assert.deepEqual(JSON.parse(saved).map(device => device.name), ['Living room Deck']);
   assert.equal(cards.children[0].dataset.selected, 'true');
+  // The selected device, with its leftover request, can be forgotten too.
+  cards.children[0].children[2].children[1].handlers.click();
+  assert.deepEqual(names(), []);
+  assert.deepEqual(JSON.parse(saved), []);
 });
 
 test('sends one JSON request and accepts a successful response', async () => {

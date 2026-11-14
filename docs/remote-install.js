@@ -368,11 +368,14 @@ export function init(root, details) {
   };
   const forgetDevice = device => {
     const wasActive = device === activeDevice();
-    if (wasActive && idempotencyKey) return;
+    // Only a request that is being followed right now holds a device; one left over from before (the device
+    // restarted, say) goes with it: that is how a stuck "Status unknown" is cleared.
+    if (wasActive && busy) { say('A request is in progress. Wait for it to finish, then forget the device.'); return; }
     devices = devices.filter(other => other !== device);
     saveDevices();
     online.delete(device.fingerprint);
     if (wasActive) {
+      idempotencyKey = requestId = requestPluginId = requestName = requestNames = undefined;
       disconnect();
       rememberDevice(undefined);
       setState('new');
@@ -700,14 +703,7 @@ export function init(root, details) {
   });
   forgetButton?.addEventListener('click', () => {
     const device = activeDevice();
-    if (!device || idempotencyKey) return;
-    devices = devices.filter(other => other !== device);
-    saveDevices();
-    disconnect();
-    rememberDevice(undefined);
-    renderPicker();
-    setState('new');
-    say(`${device.name} forgotten in this browser. Remove it from Paired devices in DeckyHub too.`);
+    if (device) forgetDevice(device);
   });
   reconnectButton?.addEventListener('click', () => {
     if (!endpoint || !token) return;
