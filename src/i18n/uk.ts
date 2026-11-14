@@ -337,7 +337,7 @@ export const uk: Record<MessageKey, string> = {
   "settings.itemsPerRow": "Елементів у рядку",
   "settings.haptics": "Тактильний відгук під час навігації",
   "settings.quickAccessTab": "Вкладка DeckyHub у швидкому доступі",
-  "settings.quickAccessTabHint": "Типово вимкнено. Якщо вимкнено, відкривайте DeckyHub зі списку плагінів Decky.",
+  "settings.quickAccessTabHint": "Якщо вимкнено, відкривайте DeckyHub зі списку плагінів Decky.",
   "settings.uiStyle": "Стиль інтерфейсу",
   "settings.uiStyleHint": "Експериментальний — новий вигляд DeckyHub, над яким ще триває робота.",
   "settings.uiStyleDefault": "Типовий",
