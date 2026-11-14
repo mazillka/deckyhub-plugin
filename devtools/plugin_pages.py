@@ -490,9 +490,7 @@ def safety_block(items: list[str] | None) -> str:
         if items
         else "<p>No badges: it doesn't run as root, and no audit warnings or virus scan findings are known for it.</p>"
     )
-    return (
-        '<div class="rc-safety"><h4>Check before you send</h4>' + listed + f'<p class="note">{NOT_REVIEWED}</p></div>\n'
-    )
+    return '<div class="rc-safety">' + listed + f'<p class="note">{NOT_REVIEWED}</p></div>\n'
 
 
 def remote_install_picker(plugin_id: str, safety: list[str] | None = None) -> str:
@@ -504,12 +502,18 @@ def remote_install_picker(plugin_id: str, safety: list[str] | None = None) -> st
     return f"""<section id="remote-install" class="remote-install remote-compact" aria-labelledby="remote-send-title" data-plugin-id="{escape(plugin_id, quote=True)}" data-state="checking">
 <link rel="stylesheet" href="/remote-install.css">
 <div class="rc-head"><h3 id="remote-send-title">Install on your device</h3><span class="rd-badge">Experimental · fully local</span></div>
-{safety_block(safety)}<div class="remote-actions rc-send">
+<div class="remote-actions rc-send">
 <select id="remote-device-picker" aria-label="Paired device" disabled><option value="">Select a device</option></select>
 <button type="button" id="remote-request" disabled>Send to device</button>
 <button type="button" id="remote-cancel" disabled>Cancel</button>
 </div>
 <p id="remote-status" class="rd-status" role="status" aria-live="polite" hidden></p>
+<dialog id="remote-risk-dialog" class="rd-dialog" aria-labelledby="remote-risk-title">
+<div class="rd-dialog-head"><h3 id="remote-risk-title">Check before you send</h3><button type="button" id="remote-risk-close" class="rd-close" aria-label="Close">×</button></div>
+<div class="rd-dialog-body">
+{safety_block(safety)}<p class="remote-actions"><button type="button" id="remote-risk-send">I understand the risks, send it</button><button type="button" id="remote-risk-cancel">Cancel</button></p>
+</div>
+</dialog>
 <p class="rc-pair"><a id="remote-pair-new" class="btn" href="/remote-install/">Pair a device</a><span>Pair once, then install from any plugin page.</span></p>
 <p class="rd-hint">Your browser talks straight to your device on your network. Nothing is collected or sent anywhere. <a href="/help.html#remote">How to use it</a></p>
 <script type="module" src="/remote-install.js"></script>

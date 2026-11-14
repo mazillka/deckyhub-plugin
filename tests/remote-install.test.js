@@ -78,16 +78,33 @@ test('the device picker sends only to the selected device with its own pin and t
   const querySelector = id => {
     if (!elements.has(id)) elements.set(id, {
       value: '', handlers: {}, dataset: {}, replaceChildren() {}, add() {}, setAttribute(name, value) { this[name] = value; }, scrollIntoView() { this.scrolled = true; },
-      addEventListener(event, handler) { this.handlers[event] = handler; },
+      addEventListener(event, handler) { this.handlers[event] = handler; }, removeEventListener() {},
     });
     return elements.get(id);
   };
+  // The window with the plugin's warnings: open() and close() as a <dialog> does them.
+  const risks = querySelector('#remote-risk-dialog');
+  risks.showModal = () => { risks.open = true; };
+  risks.close = () => { risks.open = false; risks.handlers.close(); };
   init({ querySelector, dataset: { pluginId: 'example-plugin' } });
   const picker = querySelector('#remote-device-picker');
   picker.value = '1';
   picker.handlers.change();
   assert.equal(connections.length, 0);
-  await querySelector('#remote-request').handlers.click();
+  // Send opens the warnings first; Cancel sends nothing, and only agreeing to the risks sends the request.
+  const declined = querySelector('#remote-request').handlers.click();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(risks.open, true);
+  assert.equal(connections.length, 0);
+  querySelector('#remote-risk-cancel').onclick();
+  await declined;
+  assert.equal(connections.length, 0);
+  assert.equal(sent.length, 0);
+  const agreed = querySelector('#remote-request').handlers.click();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(connections.length, 0);
+  querySelector('#remote-risk-send').onclick();
+  await agreed;
   assert.deepEqual(connections, [{ url: 'https://192.168.1.21:8765/remote-install', pin: [new Uint8Array(32).fill(0xbb), new Uint8Array(32).fill(0xcc)] }]);
   assert.deepEqual(JSON.parse(sent[0]).token, devices[1].token);
   assert.equal(JSON.parse(sent[0]).pluginId, 'example-plugin');
@@ -140,6 +157,17 @@ test('sends one JSON request and accepts a successful response', async () => {
   const result = await exchange(transportReturning('{"ok":true,"status":"pending"}', sent), { op: 'pair_status', pairingId: 'abc' });
   assert.equal(result.status, 'pending');
   assert.deepEqual(JSON.parse(sent.join('')), { op: 'pair_status', pairingId: 'abc' });
+});
+
+test('a device that has forgotten a request says so, and any other rejection stays plain', async () => {
+  await assert.rejects(
+    exchange(transportReturning('{"ok":false,"error":"Request rejected","code":"request_not_found"}', []), { op: 'status' }),
+    error => error.code === 'request_not_found',
+  );
+  await assert.rejects(
+    exchange(transportReturning('{"ok":false,"error":"Request rejected","code":"anything else"}', []), { op: 'status' }),
+    error => error.code === undefined,
+  );
 });
 
 test('rejects malformed, rejected and oversized device responses', async () => {

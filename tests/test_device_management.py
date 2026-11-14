@@ -6,7 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "py_modules"))
 from deckyhub.remote_install_queue import RequestConflictError
-from deckyhub.remote_install_service import RemoteInstallService
+from deckyhub.remote_install_service import RemoteInstallService, RequestNotFound
 
 
 class DeviceManagementTests(unittest.TestCase):
@@ -35,6 +35,13 @@ class DeviceManagementTests(unittest.TestCase):
             self.service.pair(None, "Again", secrets.token_urlsafe(32), link["pairingToken"])
         self.service.decide_pairing(pair, True)
         self.assertEqual(len(self.service.devices), 2)
+
+    def test_asking_about_a_request_the_device_does_not_have_is_told_apart_from_other_rejections(self):
+        with self.assertRaises(RequestNotFound):
+            self.remote(op="status", requestId="not-a-request")
+        with self.assertRaises(ValueError) as other:
+            self.remote(op="nothing")
+        self.assertNotIsInstance(other.exception, RequestNotFound)
 
     def test_a_pairing_link_needs_a_paired_browser_and_expires(self):
         with self.assertRaises(ValueError):

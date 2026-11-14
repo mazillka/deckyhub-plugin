@@ -12,6 +12,8 @@ import time
 from collections import deque
 from pathlib import Path
 
+from .remote_install_service import RequestNotFound
+
 MAX_MESSAGE = 16384
 MAX_STREAMS = 16
 MAX_CONNECTIONS = 32
@@ -258,6 +260,10 @@ async def start_transport(service):
                 payload = json.dumps(result).encode()
                 if len(payload) > MAX_MESSAGE:
                     raise ValueError("response is too large")
+            except RequestNotFound:
+                # Only a browser that holds a valid token gets this far; it lets the page stop asking about a request
+                # that a restarted device no longer has.
+                payload = b'{"ok":false,"error":"Request rejected","code":"request_not_found"}'
             except Exception:
                 payload = b'{"ok":false,"error":"Request rejected"}'
             finally:
