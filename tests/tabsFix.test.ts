@@ -15,7 +15,7 @@ class DeckyHook {
     const decky = strip.reduce((n: number, tab: any) => (tab.decky ? n + 1 : n), 0);
     if (decky == this.tabs.length) return void strip.forEach((tab) => tab.decky && (tab.initialVisibility = visible));
     for (const { title, icon, content, id } of this.tabs)
-      strip.push({ key: id, title, tab: icon, decky: true, panel: content, initialVisibility: visible });
+      strip.push({ key: id, title, tab: icon, decky: true, panel: { wrapped: content }, initialVisibility: visible });
   }
 }
 
@@ -44,6 +44,7 @@ test("with the fix, the same sequence keeps one tab of each however often it ren
   for (let i = 0; i < 4; i++) hook.render(strip, true);
   assert.deepEqual(names(strip).sort(), ["Decky", "DeckyHub"]);
   assert.equal(strip[0].title, "Notifications");
+  assert.deepEqual(strip.find((tab) => tab.key === HUB.id).panel, { wrapped: "hub panel" });
 });
 
 test("a tab another plugin's wrapper adds is left alone, with the wrapper installed before or after", () => {
@@ -81,7 +82,7 @@ test("after DeckyHub reloads, its one tab in the strip shows the new panel", () 
   hook.render(strip, true);
   const mine = strip.filter((tab) => tab.key === HUB.id);
   assert.equal(mine.length, 1);
-  assert.equal(mine[0].panel, "new panel");
+  assert.deepEqual(mine[0].panel, { wrapped: "new panel" }, "built by Decky, in its own wrapper");
 });
 
 test("it leaves a hook of an unexpected shape alone and can be taken off again", () => {
