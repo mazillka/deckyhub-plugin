@@ -9,6 +9,7 @@ from pathlib import Path
 import decky
 
 from . import paths
+from .ratings import coerce_device, coerce_my_ratings
 from .registry import MAX_CUSTOM_REGISTRIES
 from .validation import GITHUB_TOKEN, REPOSITORY_NAME, validate_registry_url
 
@@ -66,6 +67,10 @@ def coerce_settings(settings: dict) -> dict:
         # Save a plugin's settings before DeckyHub updates, reinstalls or removes it (backups.py).
         "backupBeforeChange": settings.get("backupBeforeChange") is not False,
         "remoteInstall": settings.get("remoteInstall") is True and settings.get("remoteInstallFeature", True) is True,
+        # Rating plugins (ratings.py): off until the user turns it on. The device id is made up by the backend.
+        "shareRatings": settings.get("shareRatings") is True,
+        "ratingDevice": coerce_device(settings.get("ratingDevice")),
+        "myRatings": coerce_my_ratings(settings.get("myRatings")),
     }
 
 
@@ -160,6 +165,9 @@ class SettingsMixin:
             # The dedicated remote-install RPC owns listener lifecycle. A stale
             # general settings form must not silently change its enabled state.
             "remoteInstall": getattr(self, "settings", {}).get("remoteInstall") is True,
+            # Owned by the ratings calls too: a stale form must not drop this device's id or its ratings.
+            "ratingDevice": getattr(self, "settings", {}).get("ratingDevice", ""),
+            "myRatings": getattr(self, "settings", {}).get("myRatings", {}),
         }
         self._save_settings()
         decky.logger.info("Saved settings: %s", {**self.settings, "githubToken": bool(self.settings["githubToken"])})

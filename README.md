@@ -426,7 +426,7 @@ DeckyHub installs software on your Deck, so every change, every release and ever
 
 ## Privacy
 
-DeckyHub has no account, analytics or telemetry, and sends nothing to its author or to any server of its own.
+DeckyHub has no account, analytics or telemetry, and sends nothing to its author or to any server of its own. The one exception is optional and off by default: if you turn on **Share ratings**, a rating you give a plugin is sent to DeckyHub's ratings service with a random id that is linked to nothing, and no account, name or IP address is kept.
 
 - **What it connects to:** only GitHub — `raw.githubusercontent.com` and `github.com` for the plugin list, release info, virus scan reports and downloads, and `api.github.com` for search and repositories that aren't in the list — plus the HTTPS address of any custom registry you add. GitHub sees these requests as it would any browser's (your IP address and which repositories are looked up), under [GitHub's privacy statement](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement). Links such as a plugin's repository or the audit page open only when you tap them.
 - **What stays on your device:** your settings, tracked repositories, custom registries and the cached plugin list and release info. The settings file is readable only by your user.

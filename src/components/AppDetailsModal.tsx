@@ -13,6 +13,7 @@ import {
   FaFileArchive,
   FaPlus,
   FaRedo,
+  FaStar,
   FaTimes,
   FaTrash,
 } from "react-icons/fa";
@@ -46,6 +47,7 @@ import { VirusScanReport } from "./VirusScanReport";
 import { KnownIssues } from "./KnownIssues";
 import { ReleaseActions, useReleasePicker } from "./VersionPickerPanel";
 import { colors } from "../styles";
+import { RatingModal } from "./RatingModal";
 
 // The window's main action, taller than the rest.
 export const primaryButtonStyle = { ...modalButtonStyle, minHeight: 52, fontSize: "1.1em", fontWeight: 700 };
@@ -248,6 +250,18 @@ export function AppDetailsModal({
               </Button>
             ) : (
               <small style={{ color: colors.danger }}>{t("appcard.noMatchingAsset")}</small>
+            )}
+            {app.installedVersion && (
+              <Button
+                style={modalButtonStyle}
+                onClick={() =>
+                  showModal(
+                    <RatingModal t={t} name={app.name} repo={app.repo} version={app.installedVersion ?? undefined} />,
+                  )
+                }
+              >
+                <FaStar /> {t("rating.button")}
+              </Button>
             )}
             {!hiddenButtons.includes("downloadZip") &&
               selectedRelease.assets.slice(1).map((asset) => (
