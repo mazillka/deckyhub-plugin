@@ -483,13 +483,28 @@ def remote_device_panel(lang: str = "en") -> str:
     return remote_page_uk.translate(html) if lang == "uk" else html
 
 
-def remote_install_picker(plugin_id: str) -> str:
+def safety_block(items: list[str] | None) -> str:
+    """Warnings and scan results for the card that sends a plugin to a device (shown even when there is nothing to warn about)."""
+    listed = (
+        "<ul class='badges'>" + "".join(items) + "</ul>"
+        if items
+        else "<p>No badges: it doesn't run as root, and no audit warnings or virus scan findings are known for it.</p>"
+    )
+    return (
+        '<div class="rc-safety"><h4>Check before you send</h4>' + listed + f'<p class="note">{NOT_REVIEWED}</p></div>\n'
+    )
+
+
+def remote_install_picker(plugin_id: str, safety: list[str] | None = None) -> str:
+    """The card that sends the plugin to a paired device. `safety` is what the page's Safety information lists
+    (runs as root, audit warnings, virus scans): it is shown above the button, as the device shows it before an
+    install, so it is read before anything is sent."""
     # data-state (remote-install.js): checking, none (no device to send to), ready, waiting (for approval on the
     # device), installing, done, failed; see remote-install.css.
     return f"""<section id="remote-install" class="remote-install remote-compact" aria-labelledby="remote-send-title" data-plugin-id="{escape(plugin_id, quote=True)}" data-state="checking">
 <link rel="stylesheet" href="/remote-install.css">
 <div class="rc-head"><h3 id="remote-send-title">Install on your device</h3><span class="rd-badge">Experimental · fully local</span></div>
-<div class="remote-actions rc-send">
+{safety_block(safety)}<div class="remote-actions rc-send">
 <select id="remote-device-picker" aria-label="Paired device" disabled><option value="">Select a device</option></select>
 <button type="button" id="remote-request" disabled>Send to device</button>
 <button type="button" id="remote-cancel" disabled>Cancel</button>
@@ -570,7 +585,7 @@ def plugin_page(
 {"" if app.get("store") else '<p><a class="btn ghost" href="#remote-install">Send to device (experimental)</a></p>'}
 <p class="note">Before updating an installed plugin, check that its GitHub owner and repository match the source shown here. Plugin names alone may not identify the correct project.</p>
 <p>{escape(name)} is a <a href="https://decky.xyz/">Decky Loader</a> plugin. With <a href="/">DeckyHub</a> installed, open DeckyHub's <strong>Discover</strong> tab in Gaming Mode, search for <strong>{escape(name)}</strong> and press <strong>Install</strong>. DeckyHub hands the release to Decky Loader's own installer and checks its SHA-256 whenever GitHub publishes one. You can also download the ZIP from its <a href="{escape(repo_url)}/releases">releases</a> and install it by hand from Decky's developer settings.</p>
-{"" if app.get("store") else remote_install_picker(app["id"])}
+{"" if app.get("store") else remote_install_picker(app["id"], badges)}
 {versions_section(releases or [])}
 <h2>Safety information</h2>
 <p class="note">{NOT_REVIEWED}</p>

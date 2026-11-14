@@ -86,3 +86,20 @@ class UkrainianPageTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PhoneWarningsTests(unittest.TestCase):
+    def test_the_send_card_shows_the_plugins_warnings_and_scans_above_the_button(self):
+        warned = [
+            '<li><span class="badge root">Runs as root</span> x</li>',
+            '<li><span class="badge">Virus scan</span> y</li>',
+        ]
+        card = plugin_pages.remote_install_picker("some-plugin", warned)
+        self.assertLess(card.index("Check before you send"), card.index('id="remote-request"'))
+        for text in ("Runs as root", "Virus scan", "nobody reviews these plugins"):
+            self.assertIn(text, card)
+
+    def test_a_plugin_with_nothing_to_warn_about_still_says_so(self):
+        card = plugin_pages.remote_install_picker("some-plugin", [])
+        self.assertIn("Check before you send", card)
+        self.assertIn("No badges", card)
