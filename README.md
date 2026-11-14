@@ -435,7 +435,7 @@ DeckyHub has no account, analytics or telemetry, and sends nothing to its author
 
 ## Supporting DeckyHub
 
-DeckyHub is free and stays free: every feature works without paying, and nothing is locked behind a donation. If it helps you, you can chip in on [Ko-fi](https://ko-fi.com/mazillka) or [GitHub Sponsors](https://github.com/sponsors/mazillka). It pays for the author's time on maintenance and on testing every release on real hardware, the deckyhub.com domain and, should their free limits ever run out, the services behind the plugin list and the virus scans. A donation doesn't buy a place or a better rank in the plugin list, doesn't influence the security checks and doesn't unlock anything, and DeckyHub never sees who donates. More on [deckyhub.com](https://deckyhub.com/about.html#support).
+DeckyHub is free and stays free: every feature works without paying, and nothing is locked behind a donation. If it helps you, you can chip in on [Ko-fi](https://ko-fi.com/mazillka) or [GitHub Sponsors](https://github.com/sponsors/mazillka). It pays for the author's time on maintenance and on testing every release on real hardware, and for the deckyhub.com domain. The virus scans run on free tools and services with no subscription, so they don't depend on donations. A donation doesn't buy a place or a better rank in the plugin list, doesn't influence the security checks and doesn't unlock anything, and DeckyHub never sees who donates. More on [deckyhub.com](https://deckyhub.com/about.html#support).
 
 ## Disclaimer
 
