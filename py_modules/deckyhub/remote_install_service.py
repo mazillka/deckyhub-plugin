@@ -23,6 +23,10 @@ PAIR_LINK_SECONDS = 300
 _SECRET = re.compile(r"[A-Za-z0-9_-]{43}\Z")
 
 
+class RequestNotFound(ValueError):
+    """A browser asked about a request the device does not have (it restarted, or the request was cleaned up)."""
+
+
 class RemoteInstallService:
     def __init__(self, apps, clock=time.monotonic, installed=None, store=None, wall=time.time):
         self.store = store
@@ -422,7 +426,7 @@ class RemoteInstallService:
         else:
             raise ValueError("unsupported operation")
         if r is None:
-            raise ValueError("request not found")
+            raise RequestNotFound("request not found")
         return {"requestId": r.id, "status": r.status}
 
     def list_requests(self):

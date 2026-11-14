@@ -13,6 +13,7 @@ const UK = new Map(Object.entries({
   'Link copied. Paste it into Chrome or Edge.': 'Посилання скопійовано. Вставте його в Chrome або Edge.',
   'Select the link, copy it, then paste it into Chrome or Edge.': 'Виділіть посилання, скопіюйте його й вставте в Chrome або Edge.',
   'Pair with your device first.': 'Спершу сполучіться з пристроєм.',
+  'Your device no longer has this request, probably because it restarted. Send it again.': 'На пристрої більше нема цього запиту, імовірно, через перезапуск. Надішліть його ще раз.',
   'Link ready. Open it in the other browser.': 'Посилання готове. Відкрийте його в іншому браузері.',
   'Making a link…': 'Створюю посилання…',
   'Your device could not make a link. Update DeckyHub on it to the newest version, then try again.': 'Пристрій не зміг створити посилання. Оновіть на ньому DeckyHub до найновішої версії й спробуйте ще раз.',

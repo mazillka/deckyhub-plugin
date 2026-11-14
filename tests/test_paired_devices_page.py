@@ -89,17 +89,25 @@ if __name__ == "__main__":
 
 
 class PhoneWarningsTests(unittest.TestCase):
-    def test_the_send_card_shows_the_plugins_warnings_and_scans_above_the_button(self):
+    def window_of(self, card):
+        return card.split('<dialog id="remote-risk-dialog"', 1)[1].split("</dialog>", 1)[0]
+
+    def test_the_warnings_and_scans_are_in_a_window_that_asks_for_agreement_not_in_the_card(self):
         warned = [
             '<li><span class="badge root">Runs as root</span> x</li>',
             '<li><span class="badge">Virus scan</span> y</li>',
         ]
         card = plugin_pages.remote_install_picker("some-plugin", warned)
-        self.assertLess(card.index("Check before you send"), card.index('id="remote-request"'))
-        for text in ("Runs as root", "Virus scan", "nobody reviews these plugins"):
-            self.assertIn(text, card)
+        window = self.window_of(card)
+        for text in ("Check before you send", "Runs as root", "Virus scan", "nobody reviews these plugins"):
+            self.assertIn(text, window)
+        for part in ("remote-risk-send", "remote-risk-cancel", "remote-risk-close"):
+            self.assertIn(f'id="{part}"', window)
+        self.assertIn("I understand the risks", window)
+        outside = card.replace(window, "")
+        self.assertNotIn("Runs as root", outside)
+        self.assertNotIn("rc-safety", outside)
 
-    def test_a_plugin_with_nothing_to_warn_about_still_says_so(self):
-        card = plugin_pages.remote_install_picker("some-plugin", [])
-        self.assertIn("Check before you send", card)
-        self.assertIn("No badges", card)
+    def test_a_plugin_with_nothing_to_warn_about_still_says_so_in_the_window(self):
+        window = self.window_of(plugin_pages.remote_install_picker("some-plugin", []))
+        self.assertIn("No badges", window)

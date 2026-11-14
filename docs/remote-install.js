@@ -111,7 +111,7 @@ export async function exchange(transport, message) {
     let position = 0;
     for (const chunk of chunks) { data.set(chunk, position); position += chunk.length; }
     const result = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(data));
-    if (!result || typeof result !== 'object' || result.ok !== true) throw new Error('The device rejected the request.');
+    if (!result || typeof result !== 'object' || result.ok !== true) throw Object.assign(new Error('The device rejected the request.'), { code: result?.code === 'request_not_found' ? 'request_not_found' : undefined });
     return result;
   } finally {
     try { await reader.cancel(); } catch (_) { /* stream already closed */ }
@@ -727,7 +727,8 @@ export function init(root, details) {
           if (next.requestId !== requestId || !REQUEST_STATES.has(next.status)) throw new Error('Invalid request status.');
           state = next.status;
           delay = 3000;
-        } catch (_) {
+        } catch (error) {
+          if (error?.code === 'request_not_found') throw error;
           delay = Math.min(delay * 2, 15000);
           say('Connection interrupted. Retrying status…');
         }
@@ -743,9 +744,19 @@ export function init(root, details) {
       // What the device has installed changed (or may have): the list is read again once the buttons are back.
       reloadInventory = ['installed', 'uninstalled', 'enabled', 'disabled', 'unknown'].includes(state);
       if (cancelButton) cancelButton.disabled = true;
-    } catch (_) {
-      flow('failed');
-      say('Status unknown. The request may still be active; retry request status before starting another change.');
+    } catch (error) {
+      // The device no longer has this request (it restarted, say): nothing is left to wait for or retry.
+      if (error?.code === 'request_not_found') {
+        idempotencyKey = undefined;
+        requestId = undefined;
+        requestPluginId = requestName = requestNames = undefined;
+        saveRequest();
+        flow('failed');
+        say('Your device no longer has this request, probably because it restarted. Send it again.', true);
+      } else {
+        flow('failed');
+        say('Status unknown. The request may still be active; retry request status before starting another change.');
+      }
     } finally {
       busy = false;
       updateActions();
@@ -753,7 +764,25 @@ export function init(root, details) {
       if (reloadInventory) void inventory?.load();
     }
   };
-  requestButton.addEventListener('click', () => runRequest(requestName || requestNames ? null : requestPluginId || pluginId, idempotencyKey ? requestAction : 'install', requestNames || requestName));
+  // A new request from a plugin's page first shows its warnings and virus scans in a window, and is only sent once
+  // the person agrees to the risks again. Asking about a request that is already sent needs no second agreement.
+  const agreeToRisks = () => new Promise(resolve => {
+    const dialog = byId('risk-dialog');
+    if (!dialog || idempotencyKey) return resolve(true);
+    let answer = false;
+    const finish = () => { dialog.removeEventListener('close', finish); resolve(answer); };
+    dialog.addEventListener('close', finish);
+    const end = agreed => () => { answer = agreed; if (typeof dialog.close === 'function') dialog.close(); else { dialog.removeAttribute('open'); finish(); } };
+    byId('risk-send').onclick = end(true);
+    byId('risk-cancel').onclick = end(false);
+    byId('risk-close').onclick = end(false);
+    if (typeof dialog.showModal === 'function') dialog.showModal();
+    else dialog.setAttribute('open', '');
+  });
+  requestButton.addEventListener('click', async () => {
+    if (busy || !(await agreeToRisks())) return;
+    await runRequest(requestName || requestNames ? null : requestPluginId || pluginId, idempotencyKey ? requestAction : 'install', requestNames || requestName);
+  });
   inventory = createPluginList(root, {
     loadPage: offset => send({ op: 'plugins', token, offset }),
     request: (id, action, name) => {
