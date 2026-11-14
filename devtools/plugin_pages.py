@@ -125,6 +125,10 @@ def compact(number: int) -> str:
     return str(number)
 
 
+# Ratings show once this many users have given stars: one opinion says little.
+MIN_RATINGS = 5
+
+
 def total_downloads(stats: dict) -> int | None:
     """GitHub's downloads plus the Decky store's (they count different installs); None when neither is known."""
     github, store = stats.get("downloads"), (stats.get("store") or {}).get("downloads")
@@ -576,6 +580,13 @@ def plugin_page(
         facts.append(
             f'<li><strong>{compact(stats["store"]["downloads"])}</strong><a href="https://plugins.deckbrew.xyz/plugins">Decky store</a> downloads</li>'
         )
+    rating = stats.get("rating") or {}
+    # Users' ratings count once enough people gave stars; "works" reports are shown from the first one.
+    if (rating.get("rated") or 0) >= MIN_RATINGS and rating.get("average") is not None:
+        facts.append(f"<li><strong>{rating['average']:.1f}/5</strong>User rating ({rating['rated']} ratings)</li>")
+    works, broken = rating.get("works") or 0, rating.get("broken") or 0
+    if works + broken:
+        facts.append(f"<li><strong>{works} of {works + broken}</strong>users say it works on their device</li>")
     if stats.get("stars") is not None:
         facts.append(f"<li><strong>{compact(stats['stars'])}</strong>GitHub stars</li>")
     if stats.get("updated"):
