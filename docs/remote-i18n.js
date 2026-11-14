@@ -14,6 +14,8 @@ const UK = new Map(Object.entries({
   'Select the link, copy it, then paste it into Chrome or Edge.': 'Виділіть посилання, скопіюйте його й вставте в Chrome або Edge.',
   'Pair with your device first.': 'Спершу сполучіться з пристроєм.',
   'Link ready. Open it in the other browser.': 'Посилання готове. Відкрийте його в іншому браузері.',
+  'Making a link…': 'Створюю посилання…',
+  'Your device could not make a link. Update DeckyHub on it to the newest version, then try again.': 'Пристрій не зміг створити посилання. Оновіть на ньому DeckyHub до найновішої версії й спробуйте ще раз.',
   'Could not reach your device. Check that Remote access is on and that it is on the same network as this browser.': 'Не вдалося зв’язатися з пристроєм. Перевірте, що віддалений доступ увімкнено і що пристрій у тій самій мережі, що й цей браузер.',
   'Unable to contact the device.': 'Не вдалося зв’язатися з пристроєм.',
   'Invalid plugin identifier.': 'Недійсний ідентифікатор плагіна.',

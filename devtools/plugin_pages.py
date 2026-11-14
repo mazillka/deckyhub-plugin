@@ -383,6 +383,7 @@ def remote_device_panel(lang: str = "en") -> str:
 <ul id="remote-device-cards" class="rd-cards" aria-label="Paired devices"></ul>
 <div class="rd-share">
 <button type="button" id="remote-share-button" class="btn">Pair another browser with a link</button>
+<p id="remote-share-status" class="rd-hint" role="status" aria-live="polite" hidden></p>
 <div id="remote-share-box" hidden>
 <p class="rd-hint">Open this link in the other browser (Chrome or Edge, on the same Wi-Fi). It works once, for five minutes, and your device asks you to approve that browser.</p>
 <p class="rd-link-row"><label for="remote-share-link">Link for the other browser</label><span class="remote-actions"><input id="remote-share-link" type="text" readonly spellcheck="false"><button type="button" id="remote-share-copy">Copy link</button></span></p>

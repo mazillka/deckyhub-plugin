@@ -479,9 +479,18 @@ export function init(root, details) {
     say('Turn on Remote access on your device, then scan its QR code or paste the pairing link.');
   });
   // A paired browser hands out a one-time link: the other browser opens it, pairs by itself, and the device asks for approval.
-  const shareBox = byId('share-box'), shareLink = byId('share-link');
+  const shareBox = byId('share-box'), shareLink = byId('share-link'), shareStatus = byId('share-status'), shareButton = byId('share-button');
   let shareTimer;
-  byId('share-button')?.addEventListener('click', async () => {
+  // Said beside the button, where the person is looking, not only in the status line further up the page.
+  const shareSay = (message, isError = false) => {
+    shareStatus.textContent = translate(message);
+    shareStatus.hidden = !message;
+    shareStatus.dataset.kind = isError ? 'error' : '';
+    say(message, isError);
+  };
+  shareButton?.addEventListener('click', async () => {
+    shareButton.disabled = true;
+    shareSay('Making a link…');
     try {
       const device = activeDevice();
       if (!device) throw new Error('Pair with your device first.');
@@ -493,8 +502,13 @@ export function init(root, details) {
       shareBox.hidden = false;
       clearTimeout(shareTimer);
       shareTimer = setTimeout(() => { shareBox.hidden = true; shareLink.value = ''; }, Math.min(ticket.expiresInSeconds || 300, 300) * 1000);
-      say('Link ready. Open it in the other browser.');
-    } catch (error) { say(error.message, true); }
+      shareSay('Link ready. Open it in the other browser.');
+    } catch (error) {
+      // A device on an older DeckyHub answers any message it doesn't know with a plain rejection.
+      shareSay(error.message === 'The device rejected the request.'
+        ? 'Your device could not make a link. Update DeckyHub on it to the newest version, then try again.'
+        : error.message, true);
+    } finally { shareButton.disabled = false; }
   });
   byId('share-copy')?.addEventListener('click', async () => {
     try { await navigator.clipboard.writeText(shareLink.value); say('Link copied. Paste it into Chrome or Edge.'); }
