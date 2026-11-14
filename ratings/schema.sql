@@ -5,10 +5,11 @@ CREATE TABLE IF NOT EXISTS ratings (
   device  TEXT    NOT NULL,           -- a random id the device made up; it is linked to nothing
   stars   INTEGER CHECK (stars BETWEEN 1 AND 5),
   works   INTEGER CHECK (works IN (0, 1)),  -- "works on my device" (1) or "doesn't work" (0)
+  ui      INTEGER CHECK (ui IN (0, 1)),     -- a convenient interface (1) or an inconvenient one (0)
   version TEXT,
   updated INTEGER NOT NULL,           -- milliseconds since 1970
   PRIMARY KEY (plugin, device),
-  CHECK (stars IS NOT NULL OR works IS NOT NULL)
+  CHECK (stars IS NOT NULL OR works IS NOT NULL OR ui IS NOT NULL)
 );
 
 -- How many requests each hashed address or device made in an hour: the rate limit, and nothing else.

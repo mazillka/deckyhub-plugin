@@ -38,7 +38,8 @@ const setup = (start = Date.UTC(2026, 10, 14, 12)) => {
 
 test('a rating needs a real plugin, a device id, whole stars from 1 to 5 or works, and nothing else', () => {
   const ok = { plugin: 'Owner/Name', device: DEVICE };
-  assert.deepEqual(parseRating(JSON.stringify({ ...ok, stars: 4, works: true, version: '1.2.3' })), { plugin: 'owner/name', device: DEVICE, stars: 4, works: 1, version: '1.2.3' });
+  assert.deepEqual(parseRating(JSON.stringify({ ...ok, stars: 4, works: true, ui: false, version: '1.2.3' })), { plugin: 'owner/name', device: DEVICE, stars: 4, works: 1, ui: 0, version: '1.2.3' });
+  assert.equal(parseRating(JSON.stringify({ ...ok, ui: true })).ui, 1);
   assert.equal(parseRating(JSON.stringify({ ...ok, works: false })).works, 0);
   for (const bad of [
     { ...ok },
@@ -47,6 +48,7 @@ test('a rating needs a real plugin, a device id, whole stars from 1 to 5 or work
     { ...ok, stars: 3.5 },
     { ...ok, stars: '5' },
     { ...ok, works: 'yes' },
+    { ...ok, stars: 5, ui: 'yes' },
     { ...ok, stars: 5, version: 'bad version!' },
     { plugin: '../x', device: DEVICE, stars: 5 },
     { plugin: 'owner', device: DEVICE, stars: 5 },
@@ -63,13 +65,14 @@ test('ratings are summed per plugin: the average of the stars given, and how man
   const rate = (device, plugin, extra) => call('POST', '/v1/rate', { plugin, device, ...extra });
   await rate(DEVICE, 'o/p', { stars: 5, works: true });
   await rate(OTHER, 'o/p', { stars: 2, works: false });
-  await rate('c'.repeat(43), 'o/p', { works: true });
+  await rate('c'.repeat(43), 'o/p', { works: true, ui: true });
+  await rate('d'.repeat(43), 'o/p', { ui: false });
   await rate(DEVICE, 'o/q', { stars: 4 });
   const response = await call('GET', '/v1/aggregate');
   assert.equal(response.status, 200);
   assert.equal(response.headers.get('Cache-Control'), 'public, max-age=300');
   const { plugins } = await response.json();
-  assert.deepEqual(plugins['o/p'], { rated: 2, average: 3.5, works: 2, broken: 1 });
+  assert.deepEqual(plugins['o/p'], { rated: 2, average: 3.5, works: 2, broken: 1, easy: 1, hard: 1 });
   assert.deepEqual(plugins['o/q'], { rated: 1, average: 4 });
 });
 

@@ -2,14 +2,14 @@
 
 export function d1Store(db) {
   return {
-    async save({ plugin, device, stars, works, version }, now) {
+    async save({ plugin, device, stars, works, ui, version }, now) {
       await db
         .prepare(
-          'INSERT INTO ratings (plugin, device, stars, works, version, updated) VALUES (?, ?, ?, ?, ?, ?) ' +
-            'ON CONFLICT (plugin, device) DO UPDATE SET stars = excluded.stars, works = excluded.works, ' +
+          'INSERT INTO ratings (plugin, device, stars, works, ui, version, updated) VALUES (?, ?, ?, ?, ?, ?, ?) ' +
+            'ON CONFLICT (plugin, device) DO UPDATE SET stars = excluded.stars, works = excluded.works, ui = excluded.ui, ' +
             'version = excluded.version, updated = excluded.updated',
         )
-        .bind(plugin, device, stars, works, version, now)
+        .bind(plugin, device, stars, works, ui, version, now)
         .run();
     },
     async withdraw({ plugin, device }) {
@@ -30,7 +30,8 @@ export function d1Store(db) {
       const { results } = await db
         .prepare(
           'SELECT plugin, COUNT(stars) AS rated, COALESCE(SUM(stars), 0) AS total, ' +
-            'COALESCE(SUM(works = 1), 0) AS works, COALESCE(SUM(works = 0), 0) AS broken ' +
+            'COALESCE(SUM(works = 1), 0) AS works, COALESCE(SUM(works = 0), 0) AS broken, ' +
+            'COALESCE(SUM(ui = 1), 0) AS easy, COALESCE(SUM(ui = 0), 0) AS hard ' +
             'FROM ratings GROUP BY plugin',
         )
         .all();

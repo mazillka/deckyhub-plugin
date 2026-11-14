@@ -36,18 +36,22 @@ function identify(body) {
   return { plugin: body.plugin.toLowerCase(), device: body.device };
 }
 
-// A new or changed rating: stars (1 to 5), works (true or false), or both; and the version it is about.
+// A new or changed rating: stars (1 to 5), works (true or false) and ui (a convenient interface, true or false),
+// at least one of them; and the version it is about.
 export function parseRating(text) {
   const body = parseJson(text);
   const { plugin, device } = identify(body);
   const stars = body.stars ?? null;
   const works = body.works ?? null;
+  const ui = body.ui ?? null;
   if (stars !== null && !(Number.isInteger(stars) && stars >= 1 && stars <= 5)) throw bad('Stars are a whole number from 1 to 5.');
   if (works !== null && typeof works !== 'boolean') throw bad('"works" is true or false.');
-  if (stars === null && works === null) throw bad('Send stars, works, or both.');
+  if (ui !== null && typeof ui !== 'boolean') throw bad('"ui" is true or false.');
+  if (stars === null && works === null && ui === null) throw bad('Send stars, works or ui.');
   const version = body.version ?? null;
   if (version !== null && (typeof version !== 'string' || !VERSION.test(version))) throw bad('Invalid version.');
-  return { plugin, device, stars, works: works === null ? null : works ? 1 : 0, version };
+  const flag = (value) => (value === null ? null : value ? 1 : 0);
+  return { plugin, device, stars, works: flag(works), ui: flag(ui), version };
 }
 
 // Taking a rating back.
@@ -55,7 +59,7 @@ export function parseWithdraw(text) {
   return identify(parseJson(text));
 }
 
-// Rows of {plugin, rated, total, works, broken} to what clients read. average: of the stars given, to one decimal.
+// Rows of {plugin, rated, total, works, broken, easy, hard} to what clients read. average: of the stars given, to one decimal.
 export function summarize(rows) {
   const plugins = {};
   for (const row of rows) {
@@ -66,6 +70,8 @@ export function summarize(rows) {
     }
     if (row.works > 0) entry.works = row.works;
     if (row.broken > 0) entry.broken = row.broken;
+    if (row.easy > 0) entry.easy = row.easy;
+    if (row.hard > 0) entry.hard = row.hard;
     plugins[row.plugin] = entry;
   }
   return plugins;
