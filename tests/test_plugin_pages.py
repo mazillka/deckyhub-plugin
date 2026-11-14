@@ -95,6 +95,8 @@ class PluginPageTests(unittest.TestCase):
         self.assertIn(".badges li{min-width:0;overflow-wrap:anywhere}", page)
         self.assertIn(".facts{grid-template-columns:repeat(2,minmax(0,1fr))}", page)
         self.assertNotIn("Safety information", page)
+        # A short screen (the Steam Deck's browser is about 914x520) keeps its room: the menu scrolls away.
+        self.assertIn("@media(max-height:600px){nav.site-nav{position:static}}", page)
         self.assertIn("No known issues", plugin_pages.safety_chips([]))
 
     def test_downloads_are_github_plus_the_decky_store_in_the_page_the_card_and_the_ranking(self):
