@@ -109,6 +109,8 @@ export const uk: Record<MessageKey, string> = {
   "appcard.installVersion": "Встановити v{version}",
   "appcard.downloads": "{count} завантажень",
   "appcard.githubDownloads": "{count} завантажень з GitHub",
+  "appcard.storeDownloads": "{count} завантажень зі сховища Decky",
+  "appcard.downloadsBreakdown": "GitHub: {github} · сховище Decky: {store}",
   "appcard.inStore": "У магазині Decky",
   "appcard.inStoreHint":
     "У магазині Decky є плагін із такою назвою ({count} завантажень там). Магазин не вказує репозиторій, тож переконайтеся, що це саме той.",

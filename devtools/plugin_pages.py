@@ -125,6 +125,12 @@ def compact(number: int) -> str:
     return str(number)
 
 
+def total_downloads(stats: dict) -> int | None:
+    """GitHub's downloads plus the Decky store's (they count different installs); None when neither is known."""
+    github, store = stats.get("downloads"), (stats.get("store") or {}).get("downloads")
+    return None if github is None and store is None else (github or 0) + (store or 0)
+
+
 def nice_date(iso: str | None) -> str:
     if not iso:
         return ""
@@ -562,6 +568,8 @@ def plugin_page(
     name, repo, category, description = app["name"], app["repo"], app["category"], app.get("description") or ""
     repo_url = f"https://github.com/{repo}"
     facts = [f"<li><strong>{escape(category)}</strong>Category</li>"]
+    if stats.get("downloads") is not None and stats.get("store"):
+        facts.append(f"<li><strong>{compact(total_downloads(stats))}</strong>Downloads in total</li>")
     if stats.get("downloads") is not None:
         facts.append(f"<li><strong>{compact(stats['downloads'])}</strong>GitHub downloads</li>")
     if stats.get("store"):
@@ -615,11 +623,11 @@ def plugin_page(
         "sameAs": [repo_url],
         "isAccessibleForFree": True,
     }
-    if stats.get("downloads") is not None:
+    if total_downloads(stats) is not None:
         data["interactionStatistic"] = {
             "@type": "InteractionCounter",
             "interactionType": "https://schema.org/DownloadAction",
-            "userInteractionCount": stats["downloads"],
+            "userInteractionCount": total_downloads(stats),
         }
     if stats.get("updated"):
         data["dateModified"] = stats["updated"]
@@ -728,8 +736,8 @@ def card(app: dict, data: dict, prefix: str = "/plugins/") -> str:
     meta = " · ".join(
         part
         for part in (
-            f'<span title="GitHub downloads">↓ {compact(stats["downloads"])}</span>'
-            if stats.get("downloads") is not None
+            f'<span title="{"GitHub and Decky store downloads" if stats.get("store") else "GitHub downloads"}">↓ {compact(total_downloads(stats))}</span>'
+            if total_downloads(stats) is not None
             else "",
             f"★ {compact(stats['stars'])}" if stats.get("stars") is not None else "",
         )
@@ -746,7 +754,7 @@ def card(app: dict, data: dict, prefix: str = "/plugins/") -> str:
 
 
 def by_downloads(apps: list[dict], data: dict) -> list[dict]:
-    return sorted(apps, key=lambda app: -((data["stats"].get(app["repo"].casefold()) or {}).get("downloads") or 0))
+    return sorted(apps, key=lambda app: -(total_downloads(data["stats"].get(app["repo"].casefold()) or {}) or 0))
 
 
 def popular_cards(apps: list[dict], data: dict, count: int = 12, prefix: str = "plugins/") -> str:

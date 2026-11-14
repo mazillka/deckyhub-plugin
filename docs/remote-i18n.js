@@ -160,6 +160,7 @@ const RULES = [
   [/^(\d+) of (\d+) plugins$/, (shown, total) => `${shown} із ${total} плагінів`],
   [/^(.+): (\d+) of (\d+) plugins are installed on this device \((\d+) off, (\d+) on\)\.$/, (name, found, total, off, on) => `${name}: на цьому пристрої встановлено ${found} із ${total} плагінів (вимкнено: ${off}, увімкнено: ${on}).`],
   [/^A fork of (.+)$/, source => `Форк ${source}`],
+  [/^([\d.]+[MK]?) downloads in total$/, count => `${count} завантажень загалом`],
   [/^([\d.]+[MK]?) GitHub downloads$/, count => `${count} завантажень на GitHub`],
   [/^([\d.]+[MK]?) Decky store downloads$/, count => `${count} завантажень зі сховища Decky`],
   [/^([\d.]+[MK]?) stars$/, count => `${count} зірок`],

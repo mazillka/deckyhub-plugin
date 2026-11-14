@@ -107,6 +107,8 @@ export const zhTW: Record<MessageKey, string> = {
   "appcard.installVersion": "安裝 v{version}",
   "appcard.downloads": "{count} 次下載",
   "appcard.githubDownloads": "GitHub 下載 {count} 次",
+  "appcard.storeDownloads": "Decky 商店下載 {count} 次",
+  "appcard.downloadsBreakdown": "GitHub：{github} · Decky 商店：{store}",
   "appcard.inStore": "已在 Decky 商店",
   "appcard.inStoreHint": "Decky 商店中有同名外掛(在那裡下載 {count} 次)。商店不會標明儲存庫,請確認是否就是這個。",
   "appcard.stars": "{count} 個 GitHub 星號",

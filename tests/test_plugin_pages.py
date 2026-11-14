@@ -69,6 +69,21 @@ class PluginPageTests(unittest.TestCase):
         self.assertIn('data-store="1"', plugin_pages.card(APP, data))
         self.assertNotIn("data-store", plugin_pages.card(APP, {"stats": {}, "scans": {}}))
 
+    def test_downloads_are_github_plus_the_decky_store_in_the_page_the_card_and_the_ranking(self):
+        page = self.page({"downloads": 1500, "store": {"downloads": 40000}})
+        self.assertIn("<strong>41.5K</strong>Downloads in total", page)
+        self.assertIn("<strong>1.5K</strong>GitHub downloads", page)
+        self.assertEqual(plugin_pages.total_downloads({"downloads": 1500, "store": {"downloads": 40000}}), 41500)
+        self.assertEqual(plugin_pages.total_downloads({"store": {"downloads": 7}}), 7)
+        self.assertIsNone(plugin_pages.total_downloads({}))
+        # No total line when only one of the counts is known: it would repeat that number.
+        self.assertNotIn("Downloads in total", self.page({"downloads": 1500}))
+        data = {"stats": {APP["repo"].casefold(): {"downloads": 1500, "store": {"downloads": 40000}}}, "scans": {}}
+        self.assertIn("↓ 41.5K", plugin_pages.card(APP, data))
+        other = {**APP, "id": "other", "repo": "o/other"}
+        data["stats"]["o/other"] = {"downloads": 30000}
+        self.assertEqual([app["id"] for app in plugin_pages.by_downloads([other, APP], data)], [APP["id"], "other"])
+
     def test_a_store_only_entry_says_so_and_offers_no_github_install_or_device_request(self):
         page = self.page()
         self.assertIn("nobody reviews these plugins", page)

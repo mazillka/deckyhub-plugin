@@ -40,6 +40,7 @@ export function describe(document, record, labels) {
   }
   if (badges.childElementCount) parts.push(badges);
   const facts = [];
+  if (Number.isFinite(record.downloads) && Number.isFinite(record.storeDownloads)) facts.push(`${compact(record.downloads + record.storeDownloads)} downloads in total`);
   if (Number.isFinite(record.downloads)) facts.push(`${compact(record.downloads)} GitHub downloads`);
   if (Number.isFinite(record.storeDownloads)) facts.push(`${compact(record.storeDownloads)} Decky store downloads`);
   if (Number.isFinite(record.stars)) facts.push(`${compact(record.stars)} stars`);

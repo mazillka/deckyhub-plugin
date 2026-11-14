@@ -108,6 +108,8 @@ export const ja: Record<MessageKey, string> = {
   "appcard.installVersion": "v{version} をインストール",
   "appcard.downloads": "{count} ダウンロード",
   "appcard.githubDownloads": "GitHub ダウンロード {count} 回",
+  "appcard.storeDownloads": "Decky ストアでのダウンロード {count} 件",
+  "appcard.downloadsBreakdown": "GitHub: {github} · Decky ストア: {store}",
   "appcard.inStore": "Decky ストアにあり",
   "appcard.inStoreHint":
     "Decky ストアに同名のプラグインがあります(ストアでのダウンロード {count} 回)。ストアはリポジトリを示さないため、これと同じものか確認してください。",
