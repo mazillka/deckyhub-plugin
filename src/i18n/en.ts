@@ -99,6 +99,7 @@ export const en = {
   "details.about": "About",
   "details.whatsNew": "What's new in {version}",
   "appcard.repository": "Repository",
+  "appcard.reportProblem": "Report a problem",
   "appcard.deckyhubPage": "DeckyHub page",
   "appcard.channel": "Channel: {channel}",
   "appcard.channelStable": "Stable",

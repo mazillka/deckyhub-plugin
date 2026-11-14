@@ -100,6 +100,7 @@ export const it: Record<MessageKey, string> = {
   "details.about": "Informazioni",
   "details.whatsNew": "Novità della {version}",
   "appcard.repository": "Repository",
+  "appcard.reportProblem": "Segnala un problema",
   "appcard.deckyhubPage": "Pagina DeckyHub",
   "appcard.channel": "Canale: {channel}",
   "appcard.channelStable": "Stabile",

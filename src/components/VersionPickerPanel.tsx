@@ -1,7 +1,7 @@
 import { DialogButtonPrimary as Button, Focusable } from "@decky/ui";
 import { openExternalWeb } from "../external";
 import { useEffect, useRef, useState } from "react";
-import { FaExternalLinkAlt, FaGithub, FaGlobe, FaSync } from "react-icons/fa";
+import { FaExclamationTriangle, FaExternalLinkAlt, FaGithub, FaGlobe, FaSync } from "react-icons/fa";
 import type { TFunc } from "../i18n/en";
 import type { UpdateChannel } from "../types";
 import { modalButtonStyle } from "../utils";
@@ -60,6 +60,7 @@ export function ReleaseActions({
   url,
   repoUrl,
   pageUrl,
+  onReport,
   hideReleasePage,
   checking,
   disabled,
@@ -70,6 +71,8 @@ export function ReleaseActions({
   url?: string;
   repoUrl?: string;
   pageUrl?: string;
+  // Opens a new issue about the plugin on GitHub (src/report.ts); left out where there is no plugin repository.
+  onReport?: () => void;
   hideReleasePage: boolean;
   checking: boolean;
   disabled: boolean;
@@ -97,6 +100,11 @@ export function ReleaseActions({
       {pageUrl && (
         <Button style={actionButtonStyle} onClick={() => open(pageUrl)}>
           <FaGlobe /> {t("appcard.deckyhubPage")}
+        </Button>
+      )}
+      {onReport && (
+        <Button style={actionButtonStyle} onClick={onReport}>
+          <FaExclamationTriangle /> {t("appcard.reportProblem")}
         </Button>
       )}
       <Button style={actionButtonStyle} disabled={disabled} onClick={onCheck}>

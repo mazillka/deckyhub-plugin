@@ -99,6 +99,7 @@ export const cs: Record<MessageKey, string> = {
   "details.about": "O pluginu",
   "details.whatsNew": "Novinky ve verzi {version}",
   "appcard.repository": "Repozitář",
+  "appcard.reportProblem": "Nahlásit problém",
   "appcard.deckyhubPage": "Stránka na DeckyHub",
   "appcard.channel": "Kanál: {channel}",
   "appcard.channelStable": "Stabilní",

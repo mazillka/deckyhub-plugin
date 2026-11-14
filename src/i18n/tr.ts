@@ -99,6 +99,7 @@ export const tr: Record<MessageKey, string> = {
   "details.about": "Hakkında",
   "details.whatsNew": "{version} sürümündeki yenilikler",
   "appcard.repository": "Depo",
+  "appcard.reportProblem": "Sorun bildir",
   "appcard.deckyhubPage": "DeckyHub sayfası",
   "appcard.channel": "Kanal: {channel}",
   "appcard.channelStable": "Kararlı",
