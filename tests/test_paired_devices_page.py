@@ -4,6 +4,7 @@ import re
 import sys
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "devtools"))
@@ -52,6 +53,12 @@ class PairLinkTests(unittest.TestCase):
 
 
 class UkrainianPageTests(unittest.TestCase):
+    def test_the_order_of_the_translations_does_not_matter(self):
+        english = plugin_pages.remote_device_panel()
+        expected = remote_page_uk.translate(english)
+        with mock.patch.object(remote_page_uk, "PANEL", list(reversed(remote_page_uk.PANEL))):
+            self.assertEqual(remote_page_uk.translate(english), expected)
+
     def test_the_ukrainian_panel_has_the_same_elements_and_no_english_left_in_what_it_translates(self):
         english, ukrainian = plugin_pages.remote_device_panel(), plugin_pages.remote_device_panel("uk")
         self.assertEqual(ids(english), ids(ukrainian))
