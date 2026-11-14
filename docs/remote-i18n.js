@@ -68,6 +68,7 @@ const UK = new Map(Object.entries({
   'Connection interrupted. Retrying status…': 'З’єднання перервано. Повторна перевірка стану…',
   'Status unknown. Retry request status before starting another change.': 'Стан невідомий. Повторіть перевірку запиту, перш ніж робити іншу зміну.',
   'Installed on your device.': 'Встановлено на вашому пристрої.',
+  'Installed on your device. If Decky Loader still shows its install window, it may be downloading extra files; this can take a few minutes, then you can close the window.': 'Встановлено на вашому пристрої. Якщо Decky Loader ще показує вікно встановлення, він може докачувати додаткові файли; це може тривати кілька хвилин, після чого вікно можна закрити.',
   'Uninstalled from your device.': 'Видалено з вашого пристрою.',
   'Enabled on your device.': 'Увімкнено на вашому пристрої.',
   'Disabled on your device.': 'Вимкнено на вашому пристрої.',

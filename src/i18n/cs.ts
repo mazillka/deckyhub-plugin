@@ -28,6 +28,8 @@ export const cs: Record<MessageKey, string> = {
   "remote.pairings": "Žádosti o spárování",
   "remote.requests": "Požadavky na změny pluginů",
   "remote.from": "Od {name}",
+  "remote.extraFilesHint":
+    "Decky Loader možná ještě stahuje další soubory pro {name}. Může to trvat několik minut; potom můžete jeho okno zavřít.",
   "remote.enable": "Zapnout",
   "remote.disable": "Vypnout",
   "remote.enableTitle": "Zapnout {name}?",

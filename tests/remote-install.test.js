@@ -91,7 +91,7 @@ test('the device picker sends only to the selected device with its own pin and t
   assert.deepEqual(connections, [{ url: 'https://192.168.1.21:8765/remote-install', pin: [new Uint8Array(32).fill(0xbb), new Uint8Array(32).fill(0xcc)] }]);
   assert.deepEqual(JSON.parse(sent[0]).token, devices[1].token);
   assert.equal(JSON.parse(sent[0]).pluginId, 'example-plugin');
-  assert.equal(querySelector('#remote-status').textContent, 'Installed on your device.');
+  assert.match(querySelector('#remote-status').textContent, /^Installed on your device\./);
 });
 
 test('the Paired devices page lists one card per paired device and forgets one', async (t) => {

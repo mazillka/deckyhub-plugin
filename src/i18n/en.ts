@@ -27,6 +27,8 @@ export const en = {
   "remote.pairings": "Pairing requests",
   "remote.requests": "Plugin requests",
   "remote.from": "From {name}",
+  "remote.extraFilesHint":
+    "Decky Loader may still be downloading extra files for {name}. This can take a few minutes; once it is done you can close its window.",
   "remote.enable": "Enable",
   "remote.disable": "Disable",
   "remote.enableTitle": "Enable {name}?",

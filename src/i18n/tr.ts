@@ -28,6 +28,8 @@ export const tr: Record<MessageKey, string> = {
   "remote.pairings": "Eşleştirme istekleri",
   "remote.requests": "Eklenti istekleri",
   "remote.from": "{name} tarafından",
+  "remote.extraFilesHint":
+    "Decky Loader, {name} için ek dosyaları hâlâ indiriyor olabilir. Bu birkaç dakika sürebilir; bittikten sonra penceresini kapatabilirsin.",
   "remote.enable": "Etkinleştir",
   "remote.disable": "Devre dışı bırak",
   "remote.enableTitle": "{name} etkinleştirilsin mi?",

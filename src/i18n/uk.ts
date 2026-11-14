@@ -28,6 +28,8 @@ export const uk: Record<MessageKey, string> = {
   "remote.pairings": "Запити на з’єднання",
   "remote.requests": "Запити на зміни плагінів",
   "remote.from": "Від {name}",
+  "remote.extraFilesHint":
+    "Decky Loader може ще докачувати додаткові файли для {name}. Це може тривати кілька хвилин; після цього вікно можна закрити.",
   "remote.enable": "Увімкнути",
   "remote.disable": "Вимкнути",
   "remote.enableTitle": "Увімкнути {name}?",

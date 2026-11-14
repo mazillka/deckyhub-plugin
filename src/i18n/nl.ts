@@ -28,6 +28,8 @@ export const nl: Record<MessageKey, string> = {
   "remote.pairings": "Koppelverzoeken",
   "remote.requests": "Verzoeken voor plug-ins",
   "remote.from": "Van {name}",
+  "remote.extraFilesHint":
+    "Decky Loader downloadt mogelijk nog extra bestanden voor {name}. Dat kan enkele minuten duren; daarna kun je het venster sluiten.",
   "remote.enable": "Inschakelen",
   "remote.disable": "Uitschakelen",
   "remote.enableTitle": "{name} inschakelen?",

@@ -28,6 +28,8 @@ export const ko: Record<MessageKey, string> = {
   "remote.pairings": "연결 요청",
   "remote.requests": "플러그인 변경 요청",
   "remote.from": "요청자: {name}",
+  "remote.extraFilesHint":
+    "Decky Loader가 {name}의 추가 파일을 아직 내려받고 있을 수 있습니다. 몇 분 걸릴 수 있으며, 끝나면 창을 닫아도 됩니다.",
   "remote.enable": "켜기",
   "remote.disable": "끄기",
   "remote.enableTitle": "{name}을(를) 켤까요?",
