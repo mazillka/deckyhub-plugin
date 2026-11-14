@@ -687,6 +687,7 @@ export function init(root, details) {
   // enable / disable pass the Decky Loader names of the plugins to switch (a whole pack at once) as an array.
   const runRequest = async (selectedPluginId = pluginId, action = 'install', pluginName) => {
     const names = Array.isArray(pluginName) ? pluginName : undefined;
+    let reloadInventory = false;
     if (names) pluginName = undefined;
     const target = selectedPluginId || pluginName || (names && names.join('\n'));
     if (!endpoint || !token || busy || !target) return;
@@ -739,7 +740,8 @@ export function init(root, details) {
       requestId = undefined;
       requestPluginId = requestName = requestNames = undefined;
       saveRequest();
-      if (['installed', 'uninstalled', 'enabled', 'disabled', 'unknown'].includes(state)) inventory?.reset();
+      // What the device has installed changed (or may have): the list is read again once the buttons are back.
+      reloadInventory = ['installed', 'uninstalled', 'enabled', 'disabled', 'unknown'].includes(state);
       if (cancelButton) cancelButton.disabled = true;
     } catch (_) {
       flow('failed');
@@ -748,6 +750,7 @@ export function init(root, details) {
       busy = false;
       updateActions();
       renderPicker(devices.indexOf(activeDevice()));
+      if (reloadInventory) void inventory?.load();
     }
   };
   requestButton.addEventListener('click', () => runRequest(requestName || requestNames ? null : requestPluginId || pluginId, idempotencyKey ? requestAction : 'install', requestNames || requestName));
