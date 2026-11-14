@@ -19,12 +19,15 @@ class DeckyHook {
   }
 }
 
+// A hook of its own class each time: the fix patches the class's prototype, as it does Decky's.
+const fresh = () => new (class extends DeckyHook {})();
+
 const DECKY = { id: 999, title: "Decky", content: "decky panel" };
 const HUB = { id: 0x444855, title: "DeckyHub", content: "hub panel" };
 const names = (strip: any[]) => strip.filter((tab) => tab.decky).map((tab) => tab.title);
 
 test("without the fix, a tab added after the first render repeats Decky's tabs on every render", () => {
-  const hook = new DeckyHook();
+  const hook = fresh();
   const strip: any[] = [{ key: 1, title: "Notifications" }];
   hook.add(DECKY);
   hook.render(strip, true);
@@ -35,7 +38,7 @@ test("without the fix, a tab added after the first render repeats Decky's tabs o
 });
 
 test("with the fix, the same sequence keeps one tab of each however often it renders", () => {
-  const hook = new DeckyHook();
+  const hook = fresh();
   installTabsFix(hook as any, HUB.id);
   const strip: any[] = [{ key: 1, title: "Notifications" }];
   hook.add(DECKY);
@@ -49,7 +52,7 @@ test("with the fix, the same sequence keeps one tab of each however often it ren
 
 test("a tab another plugin's wrapper adds is left alone, with the wrapper installed before or after", () => {
   for (const order of ["before", "after"]) {
-    const hook = new DeckyHook();
+    const hook = fresh();
     const adapter = (inner: any) =>
       function (this: any, strip: any[], visible: boolean) {
         inner.call(this, strip, visible);
@@ -71,7 +74,7 @@ test("a tab another plugin's wrapper adds is left alone, with the wrapper instal
 });
 
 test("after DeckyHub reloads, its one tab in the strip shows the new panel", () => {
-  const hook = new DeckyHook();
+  const hook = fresh();
   installTabsFix(hook as any, HUB.id);
   const strip: any[] = [];
   hook.add(DECKY);
@@ -85,11 +88,26 @@ test("after DeckyHub reloads, its one tab in the strip shows the new panel", () 
   assert.deepEqual(mine[0].panel, { wrapped: "new panel" }, "built by Decky, in its own wrapper");
 });
 
+test("a tab strip handed in already holding every tab comes back unchanged (Panel de Control checks this before it adds its tab)", () => {
+  const hook = fresh();
+  installTabsFix(hook as any, HUB.id);
+  hook.add(DECKY);
+  hook.add(HUB);
+  const strip: any[] = [{ key: "native" }, ...hook.tabs.map((tab) => ({ decky: true, key: tab.id, panel: {} }))];
+  const before = [...strip];
+  hook.render(strip, false);
+  assert.equal(strip.length, before.length);
+  assert.ok(strip.every((tab, index) => tab === before[index]));
+});
+
 test("it leaves a hook of an unexpected shape alone and can be taken off again", () => {
   for (const odd of [undefined, {}, { render: 1 }]) installTabsFix(odd as any, HUB.id);
-  const hook = new DeckyHook();
+  const hook = fresh();
+  const prototype = Object.getPrototypeOf(hook);
   const restore = installTabsFix(hook as any, HUB.id);
-  assert.ok(Object.prototype.hasOwnProperty.call(hook, "render"));
-  restore();
+  // Patched on the prototype: the hook itself has no render() of its own, so a plugin that checks for one finds none.
   assert.ok(!Object.prototype.hasOwnProperty.call(hook, "render"));
+  assert.ok(Object.prototype.hasOwnProperty.call(prototype, "render"));
+  restore();
+  assert.ok(!Object.prototype.hasOwnProperty.call(prototype, "render"));
 });
