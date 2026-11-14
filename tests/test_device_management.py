@@ -23,6 +23,33 @@ class DeviceManagementTests(unittest.TestCase):
     def remote(self, **message):
         return self.service.remote({"token": self.token, **message})
 
+    def test_a_paired_browser_can_make_a_one_time_pairing_link_that_still_needs_approval(self):
+        link = self.remote(op="pair_link")
+        self.assertEqual(link["expiresInSeconds"], 300)
+        self.assertNotIn("code", link)
+        secret = secrets.token_urlsafe(32)
+        pair = self.service.pair(None, "Laptop", secret, link["pairingToken"])["pairingId"]
+        self.assertEqual(self.service.pair_status(pair, secret)["status"], "pending")
+        self.assertEqual([p["name"] for p in self.service.list_pairings()], ["Laptop"])
+        with self.assertRaises(ValueError):
+            self.service.pair(None, "Again", secrets.token_urlsafe(32), link["pairingToken"])
+        self.service.decide_pairing(pair, True)
+        self.assertEqual(len(self.service.devices), 2)
+
+    def test_a_pairing_link_needs_a_paired_browser_and_expires(self):
+        with self.assertRaises(ValueError):
+            self.service.remote({"op": "pair_link", "token": "x" * 43})
+        now = [0.0]
+        service = RemoteInstallService(lambda: [], clock=lambda: now[0])
+        secret = secrets.token_urlsafe(32)
+        pair = service.pair(service.begin_pairing()["code"], "Browser", secret)["pairingId"]
+        service.decide_pairing(pair, True)
+        token = service.pair_status(pair, secret)["token"]
+        link = service.remote({"op": "pair_link", "token": token})
+        now[0] += 301
+        with self.assertRaises(ValueError):
+            service.pair(None, "Late", secrets.token_urlsafe(32), link["pairingToken"])
+
     def installed(self):
         self.rows[:] = [
             {

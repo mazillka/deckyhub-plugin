@@ -16,6 +16,12 @@ PANEL = [
         '<a href="/uk/help.html#remote">Як це працює</a>',
     ),
     (">Your devices<", ">Ваші пристрої<"),
+    ("Pair another browser with a link", "Додати інший браузер за посиланням"),
+    (
+        "Open this link in the other browser (Chrome or Edge, on the same Wi-Fi). It works once, for five minutes, and your device asks you to approve that browser.",
+        "Відкрийте це посилання в іншому браузері (Chrome або Edge, у тій самій мережі Wi-Fi). Воно діє один раз, п’ять хвилин, і пристрій попросить вас схвалити цей браузер.",
+    ),
+    (">Link for the other browser<", ">Посилання для іншого браузера<"),
     ("+ Add device", "+ Додати пристрій"),
     ('aria-label="Paired devices"', 'aria-label="Сполучені пристрої"'),
     (

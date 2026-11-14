@@ -478,6 +478,28 @@ export function init(root, details) {
     openAdd();
     say('Turn on Remote access on your device, then scan its QR code or paste the pairing link.');
   });
+  // A paired browser hands out a one-time link: the other browser opens it, pairs by itself, and the device asks for approval.
+  const shareBox = byId('share-box'), shareLink = byId('share-link');
+  let shareTimer;
+  byId('share-button')?.addEventListener('click', async () => {
+    try {
+      const device = activeDevice();
+      if (!device) throw new Error('Pair with your device first.');
+      const ticket = await send({ op: 'pair_link' });
+      if (!/^[A-Za-z0-9_-]{43}$/.test(ticket.pairingToken || '') || !/^[a-f0-9]{64}$/.test(ticket.fingerprint || '')) throw new Error('Invalid pairing response.');
+      const params = new URLSearchParams({ device: device.address, fingerprint: ticket.fingerprint, pair: ticket.pairingToken });
+      if (/^[\w .-]{1,40}$/.test(device.name || '')) params.set('name', device.name);
+      shareLink.value = `https://deckyhub.com/develop/paired-devices/#${params}`;
+      shareBox.hidden = false;
+      clearTimeout(shareTimer);
+      shareTimer = setTimeout(() => { shareBox.hidden = true; shareLink.value = ''; }, Math.min(ticket.expiresInSeconds || 300, 300) * 1000);
+      say('Link ready. Open it in the other browser.');
+    } catch (error) { say(error.message, true); }
+  });
+  byId('share-copy')?.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(shareLink.value); say('Link copied. Paste it into Chrome or Edge.'); }
+    catch { shareLink.select(); say('Select the link, copy it, then paste it into Chrome or Edge.'); }
+  });
   const selectedIndex = Math.max(0, devices.findIndex(device => device.fingerprint === selectedFingerprint));
   if (!compact) {
     renderPicker(devices.length && !details ? selectedIndex : undefined);
