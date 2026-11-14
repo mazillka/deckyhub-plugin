@@ -40,7 +40,7 @@ test('every plain English sentence in the page scripts is translated', () => {
   // Browser names ("Samsung Internet") are proper names and stay as they are.
   const NOT_SHOWN = new Set(['prefers-reduced-motion', 'DeckyHub connection details', 'Samsung Internet']);
   const missing = [];
-  for (const file of ['remote-install.js', 'remote-plugins.js', 'remote-updates.js']) {
+  for (const file of ['remote-install.js', 'remote-core.js', 'remote-scan.js', 'remote-share.js', 'remote-plugins.js', 'remote-updates.js']) {
     const source = readFileSync(new URL(`../docs/${file}`, import.meta.url), 'utf8');
     for (const match of source.matchAll(/'((?:[^'\\\n]|\\.)*)'/g)) {
       const text = match[1].replace(/\\'/g, '\'');
