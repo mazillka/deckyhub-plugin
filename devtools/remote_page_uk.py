@@ -6,6 +6,8 @@ the build instead of leaving English on the Ukrainian page. The texts the page's
 docs/remote-i18n.js.
 """
 
+import re
+
 PANEL = [
     ("Experimental · fully local", "Експериментально · повністю локально"),
     ("Manage your devices from this browser", "Керуйте своїми пристроями з цього браузера"),
@@ -139,9 +141,14 @@ PANEL = [
 
 
 def translate(html: str) -> str:
-    """The panel in Ukrainian. Raises if a text of the English markup is no longer there."""
-    for english, ukrainian in PANEL:
+    """The panel in Ukrainian. Raises if a text of the English markup is no longer there.
+
+    One pass over the markup, taking the longest English text at each place, so the order of PANEL
+    doesn't matter: a short text (\"Scan the QR code\") can't change the middle of a longer one
+    (a button that starts with it) before that one is translated."""
+    for english, _ in PANEL:
         if english not in html:
             raise ValueError(f"Ukrainian Paired devices page: this text is no longer in the markup: {english[:60]!r}")
-        html = html.replace(english, ukrainian)
-    return html
+    texts = dict(PANEL)
+    pattern = re.compile("|".join(re.escape(english) for english in sorted(texts, key=len, reverse=True)))
+    return pattern.sub(lambda match: texts[match.group()], html)
