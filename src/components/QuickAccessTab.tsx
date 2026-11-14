@@ -4,6 +4,7 @@ import { useSyncExternalStore, type ReactNode } from "react";
 import { getApps, getSettings } from "../api";
 import { getUpdateCount, notifyInstalledRisks, notifyUpdates, subscribeUpdateCount } from "../notify";
 import { hydrate, installedRisk } from "../releases";
+import { installTabsFix } from "../tabsFix";
 import { DeckyHubIcon } from "./DeckyHubIcon";
 
 // DeckyHub's own icon in Steam's Quick Access tab strip (beside notifications,
@@ -88,6 +89,8 @@ async function checkUpdates() {
 }
 
 let tabContent: ReactNode = null;
+// Decky's tabs hook repeats tab icons when a tab is added late; see tabsFix.ts. Undone when DeckyHub unloads.
+let restoreTabsFix = () => {};
 
 // The background checks run whenever Decky has the tabs hook, shown or not: the
 // "Updates available" toast still comes with the tab hidden.
@@ -95,6 +98,8 @@ export function addQuickAccessTab(content: ReactNode) {
   const hook = tabsHook();
   if (typeof hook?.add !== "function" || typeof hook.removeById !== "function") return;
   tabContent = content;
+  restoreTabsFix();
+  restoreTabsFix = installTabsFix(hook as Parameters<typeof installTabsFix>[0], TAB_ID);
   // Settings' "DeckyHub tab in Quick Access": on unless turned off, and on if they can't be read.
   void getSettings().then(
     (settings) => setQuickAccessTab(settings.quickAccessTab !== false),
@@ -116,5 +121,7 @@ export function setQuickAccessTab(shown: boolean) {
 export function removeQuickAccessTab() {
   window.clearInterval(checkTimer);
   tabsHook()?.removeById?.(TAB_ID);
+  restoreTabsFix();
+  restoreTabsFix = () => {};
   tabContent = null;
 }
