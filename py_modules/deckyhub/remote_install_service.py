@@ -48,6 +48,7 @@ class RemoteInstallService:
                     "token_hash": bytes.fromhex(device["token_hash"]),
                     "trusted": device.get("trusted") is True,
                     "last_used": float(device.get("last_used") or wall()),
+                    "browser_id": device["browser_id"] if _SECRET.fullmatch(str(device.get("browser_id"))) else None,
                 }
             except (KeyError, TypeError, ValueError):
                 continue
@@ -91,6 +92,7 @@ class RemoteInstallService:
                             "token_hash": d["token_hash"].hex(),
                             "trusted": d["trusted"],
                             "last_used": d["last_used"],
+                            "browser_id": d.get("browser_id"),
                         }
                         for k, d in self.devices.items()
                     },
@@ -123,7 +125,7 @@ class RemoteInstallService:
                 del self.pairings[key]
         self.attempts = [t for t in self.attempts if now - t < 60]
 
-    def pair(self, code, name, secret, pairing_token=None):
+    def pair(self, code, name, secret, pairing_token=None, browser_id=None):
         self._sweep()
         # Only guesses of the six-digit code are limited; the one-time token cannot be guessed.
         if pairing_token is None and len(self.attempts) >= 5:
@@ -147,6 +149,9 @@ class RemoteInstallService:
             raise ValueError("invalid browser name")
         if not isinstance(secret, str) or not _SECRET.fullmatch(secret):
             raise ValueError("invalid pairing secret")
+        # A random id the browser keeps for this device: pairing again from the same browser replaces its old entry.
+        if browser_id is not None and not (isinstance(browser_id, str) and _SECRET.fullmatch(browser_id)):
+            raise ValueError("invalid browser id")
         if len(self.pairings) >= 16 or len(self.devices) >= 16:
             raise ValueError("pairing limit reached")
         self.code = None
@@ -158,6 +163,7 @@ class RemoteInstallService:
             "status": "pending",
             "expires": self.clock() + 120,
             "token": None,
+            "browser_id": browser_id,
         }
         return {"pairingId": pair_id}
 
@@ -186,6 +192,10 @@ class RemoteInstallService:
         if not p or p["status"] != "pending" or type(approve) is not bool:
             raise ValueError("pairing not pending")
         if approve:
+            # The same browser pairing again: its earlier entry goes (and its token with it), so there is one.
+            if p.get("browser_id"):
+                for old_id in [k for k, d in self.devices.items() if d.get("browser_id") == p["browser_id"]]:
+                    self.revoke(old_id)
             token = secrets.token_urlsafe(32)
             device_id = secrets.token_urlsafe(16)
             self.devices[device_id] = {
@@ -193,6 +203,7 @@ class RemoteInstallService:
                 "token_hash": hashlib.sha256(token.encode()).digest(),
                 "trusted": False,
                 "last_used": self.wall(),
+                "browser_id": p.get("browser_id"),
             }
             self.persist()
             p["token"], p["status"], p["device_id"] = token, "approved", device_id
@@ -358,7 +369,11 @@ class RemoteInstallService:
         op = message.get("op")
         if op == "pair":
             return self.pair(
-                message.get("code"), message.get("name"), message.get("pairingSecret"), message.get("pairingToken")
+                message.get("code"),
+                message.get("name"),
+                message.get("pairingSecret"),
+                message.get("pairingToken"),
+                message.get("browserId"),
             )
         if op == "pair_status":
             return self.pair_status(message.get("pairingId"), message.get("pairingSecret"))

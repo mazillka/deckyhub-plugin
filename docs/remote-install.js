@@ -21,6 +21,31 @@ export function fingerprintBytes(value) {
   return Uint8Array.from(hex.match(/../g), pair => parseInt(pair, 16));
 }
 
+// What the device's list of paired browsers shows for this one, e.g. "Chrome · Android".
+export function defaultBrowserName(userAgent = '') {
+  const text = String(userAgent);
+  const browser = /\bEdg(?:e|A|iOS)?\//.test(text) ? 'Edge' : /\bOPR\//.test(text) ? 'Opera' : /\bSamsungBrowser\//.test(text) ? 'Samsung Internet'
+    : /\bFirefox\//.test(text) ? 'Firefox' : /\b(?:Chrome|CriOS)\//.test(text) ? 'Chrome' : /\bSafari\//.test(text) ? 'Safari' : 'Browser';
+  const system = /Android/.test(text) ? 'Android' : /\b(?:iPhone|iPad|iPod)\b/.test(text) ? 'iOS' : /Windows/.test(text) ? 'Windows'
+    : /\bCrOS\b/.test(text) ? 'ChromeOS' : /Mac OS X|Macintosh/.test(text) ? 'macOS' : /Linux|X11/.test(text) ? 'Linux' : '';
+  return system ? `${browser} · ${system}` : browser;
+}
+
+const toBase64Url = bytes => btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const BROWSER_IDS_KEY = 'deckyhub.remoteInstall.browserIds';
+
+// A random id this browser keeps for each device it pairs with, and sends only to that device: pairing again from the
+// same browser replaces its old entry on the device instead of adding another. Different devices get different ids.
+export function browserIdFor(pin, storage = globalThis.localStorage, random = () => crypto.getRandomValues(new Uint8Array(32))) {
+  let ids = {};
+  try { ids = JSON.parse(storage.getItem(BROWSER_IDS_KEY)) || {}; } catch { /* none saved yet */ }
+  if (!/^[A-Za-z0-9_-]{43}$/.test(ids[pin] || '')) {
+    ids = { ...ids, [pin]: toBase64Url(random()) };
+    try { storage.setItem(BROWSER_IDS_KEY, JSON.stringify(ids)); } catch { /* pairing still works; it just cannot replace an older entry */ }
+  }
+  return ids[pin];
+}
+
 export function pairingDetails(fragment) {
   const params = new URLSearchParams(fragment.replace(/^#/, ''));
   const address = params.get('device');
@@ -127,6 +152,9 @@ const TERMINAL = new Set(['installed', 'uninstalled', 'enabled', 'disabled', 're
 export function init(root, details) {
   const byId = id => root.querySelector(`#remote-${id}`);
   const form = byId('pair-form'), status = byId('status'), pairButton = byId('pair');
+  // The browser's name on the device's list: what it is, not just "Browser".
+  const nameField = byId('name');
+  if (nameField && (!nameField.value || nameField.value === 'Browser') && typeof navigator !== 'undefined') nameField.value = defaultBrowserName(navigator.userAgent);
   const requestButton = byId('request'), cancelButton = byId('cancel');
   const reconnectButton = byId('reconnect');
   const forgetButton = byId('forget');
@@ -567,6 +595,15 @@ export function init(root, details) {
     linkInput.value = '';
     return device;
   };
+  const pairedAlready = async device => {
+    let connection;
+    try {
+      connection = new WebTransport(deviceUrl(device.address), { serverCertificateHashes: pinnedHashes(device) });
+      await timeout(connection.ready, 5000);
+      await exchange(connection, { op: 'summary', token: device.token });
+      return true;
+    } catch { return false; } finally { connection?.close(); }
+  };
   let pairing = false;
   const pairDevice = async (link) => {
     if (idempotencyKey || pairing) return;
@@ -590,15 +627,23 @@ export function init(root, details) {
       const pin = Array.from(fingerprint, byte => byte.toString(16).padStart(2, '0')).join('');
       const previous = devices.find(device => device.fingerprint === pin);
       if (previous?.pending) throw new Error('Select the existing pairing to check its pending request first.');
+      // A pairing link opened in a browser that is already paired with this device: if the device still knows this
+      // browser there is nothing to pair (Add device is the way to pair again on purpose).
+      if (link?.pairingToken && previous?.token && await pairedAlready(previous)) {
+        try { sessionStorage.removeItem(PAIRING_DETAILS_KEY); } catch { /* nothing kept */ }
+        selectDevice(devices.indexOf(previous));
+        say('Already paired with this device.');
+        return;
+      }
       if (!previous && devices.length >= 16) throw new Error('This tab can pair with up to 16 devices.');
       const code = byId('code').value.trim(), name = byId('name').value.trim();
       if ((!pairingToken && !/^\d{6}$/.test(code)) || !name || name.length > 64) throw new Error('Enter the six-digit pairing code and a browser name.');
       endpoint = { url, hashes: [{ algorithm: 'sha-256', value: fingerprint }] };
       say('Connecting to your device. Allow local network access if your browser asks.');
       const secret = crypto.getRandomValues(new Uint8Array(32));
-      const pairingSecret = btoa(String.fromCharCode(...secret)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      const pairingSecret = toBase64Url(secret);
       const credential = pairingToken ? { pairingToken } : { code };
-      const result = await send({ op: 'pair', ...credential, name, pairingSecret });
+      const result = await send({ op: 'pair', ...credential, name, pairingSecret, browserId: browserIdFor(pin) });
       if (typeof result.pairingId !== 'string' || !result.pairingId) throw new Error('Invalid pairing response.');
       consumed = true;
       setState('approve');

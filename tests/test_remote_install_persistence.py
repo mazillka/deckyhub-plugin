@@ -38,6 +38,27 @@ class PersistenceTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 RemoteInstallService(apps=lambda: [], store=store).owner(token)
 
+    def test_a_browsers_id_survives_a_restart_so_pairing_again_still_replaces_its_entry(self):
+        with tempfile.TemporaryDirectory() as folder:
+            store = RemoteInstallStore(Path(folder) / "remote-install.json")
+            first = RemoteInstallService(apps=lambda: [], store=store)
+            browser = secrets.token_urlsafe(32)
+
+            def pair_with_id(service):
+                secret = secrets.token_urlsafe(32)
+                pairing = service.begin_pairing()["pairingToken"]
+                pair_id = service.pair(None, "Phone", secret, pairing, browser)["pairingId"]
+                service.decide_pairing(pair_id, True)
+                return service.pair_status(pair_id, secret)["token"]
+
+            old = pair_with_id(first)
+            second = RemoteInstallService(apps=lambda: [], store=store)
+            new = pair_with_id(second)
+            self.assertEqual(len(second.devices), 1)
+            with self.assertRaises(ValueError):
+                second.owner(old)
+            second.owner(new)
+
     def test_reset_session_keeps_devices_but_drops_pending_state(self):
         service = RemoteInstallService(apps=lambda: [])
         token = pair(service, token=service.begin_pairing()["pairingToken"])

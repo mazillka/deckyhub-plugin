@@ -37,7 +37,8 @@ test('messages with a name or a number are translated too', () => {
 // Every sentence the page's scripts write must have a Ukrainian text, or the Ukrainian page shows English.
 test('every plain English sentence in the page scripts is translated', () => {
   // The bug-report details stay in English: they are for whoever reads the report.
-  const NOT_SHOWN = new Set(['prefers-reduced-motion', 'DeckyHub connection details']);
+  // Browser names ("Samsung Internet") are proper names and stay as they are.
+  const NOT_SHOWN = new Set(['prefers-reduced-motion', 'DeckyHub connection details', 'Samsung Internet']);
   const missing = [];
   for (const file of ['remote-install.js', 'remote-plugins.js', 'remote-updates.js']) {
     const source = readFileSync(new URL(`../docs/${file}`, import.meta.url), 'utf8');
