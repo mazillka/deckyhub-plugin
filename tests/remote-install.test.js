@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { test } from 'node:test';
+import vm from 'node:vm';
 import { browserIdFor, connectionDiagnostics, defaultBrowserName, detailsFromPairingLink, deviceUrl, exchange, fingerprintBytes, init, pairingDetails } from '../docs/remote-install.js';
 
 test('pairing links accept only a private device address and a complete fingerprint', () => {
@@ -222,6 +225,73 @@ test('the link for another browser can be shared only where the browser has a sh
   await withSheet('#remote-share-send').handlers.click();
   assert.deepEqual(shared, [{ title: 'DeckyHub', url: 'https://deckyhub.com/develop/paired-devices/#pair=x' }]);
   assert.equal((await run(undefined))('#remote-share-send').hidden, true, 'a desktop browser without a share sheet keeps only Copy link');
+});
+
+test('the camera reads a pairing QR code and starts pairing with it, and ignores any other QR code', async (t) => {
+  const link = `https://deckyhub.com/develop/paired-devices/#${new URLSearchParams({ device: '192.168.1.20:8765', fingerprint: 'ab'.repeat(32), pair: 'p'.repeat(43) })}`;
+  const stopped = [];
+  const camera = { getTracks: () => [{ stop: () => stopped.push(true) }] };
+  let seen = 0;
+  const globals = {
+    isSecureContext: true,
+    navigator: { userAgent: '', mediaDevices: { getUserMedia: async () => camera } },
+    // The first QR code is not ours; the second is the device's.
+    location: { href: 'https://deckyhub.com/develop/paired-devices/', pathname: '/develop/paired-devices/', search: '', origin: 'https://deckyhub.com' },
+    jsQR: () => ({ data: ++seen === 1 ? 'https://example.com/' : link }),
+    localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
+    Option: class {},
+    addEventListener() {},
+    WebTransport: class { get ready() { return Promise.reject(new Error('unreachable')); } closed = new Promise(() => {}); close() {} },
+  };
+  for (const [key, value] of Object.entries(globals)) {
+    const original = Object.getOwnPropertyDescriptor(globalThis, key);
+    Object.defineProperty(globalThis, key, { value, configurable: true });
+    t.after(() => original ? Object.defineProperty(globalThis, key, original) : delete globalThis[key]);
+  }
+  const node = () => ({
+    children: [], dataset: {}, handlers: {}, value: '', className: '', textContent: '', hidden: true,
+    append(...items) { this.children.push(...items); }, replaceChildren(...items) { this.children = items; }, add() {},
+    setAttribute() {}, scrollIntoView() {}, focus() {}, select() {},
+    getContext: () => ({ drawImage() {}, getImageData: () => ({ data: [] }) }),
+    addEventListener(event, handler) { this.handlers[event] = handler; },
+  });
+  const elements = new Map();
+  const querySelector = id => (elements.has(id) ? elements.get(id) : elements.set(id, node()).get(id));
+  Object.assign(querySelector('#remote-scan-video'), { videoWidth: 640, videoHeight: 480, play: async () => {} });
+  init({ querySelector, ownerDocument: { createElement: node }, dataset: {} });
+  // Without a pairing form (a plugin page) the camera is not offered; here there is none either, so offer it.
+  const scan = querySelector('#remote-scan');
+  scan.hidden = false;
+  await querySelector('#remote-scan-button').handlers.click();
+  assert.match(querySelector('#remote-scan-status').textContent, /not a DeckyHub pairing code/);
+  assert.equal(querySelector('#remote-address').value, '', 'a foreign QR code starts nothing');
+  await new Promise(resolve => setTimeout(resolve, 400));
+  assert.equal(querySelector('#remote-address').value, '192.168.1.20:8765');
+  assert.equal(querySelector('#remote-fingerprint').value, 'ab'.repeat(32));
+  assert.equal(stopped.length, 1, 'the camera is switched off once the code is read');
+});
+
+test('the bundled QR reader decodes the pairing QR code the device draws', () => {
+  const require = createRequire(import.meta.url);
+  // A classic script in the browser (it sets window.jsQR), so it runs here the same way.
+  const window = {};
+  vm.runInNewContext(readFileSync(new URL('../docs/vendor/jsqr.js', import.meta.url), 'utf8'), window);
+  const jsQR = window.jsQR;
+  const qrcode = require('qrcode-generator');
+  const link = `https://deckyhub.com/develop/paired-devices/#${new URLSearchParams({ device: '192.168.1.20:8765', fingerprint: 'ab'.repeat(32), pair: 'p'.repeat(43) })}`;
+  const code = qrcode(0, 'M');
+  code.addData(link);
+  code.make();
+  // The code as the camera sees it: dark modules on a white page with a margin, each module several pixels.
+  const modules = code.getModuleCount(), cell = 4, margin = 4, size = (modules + margin * 2) * cell;
+  const pixels = new Uint8ClampedArray(size * size * 4).fill(255);
+  for (let row = 0; row < modules; row++)
+    for (let column = 0; column < modules; column++)
+      if (code.isDark(row, column))
+        for (let y = 0; y < cell; y++)
+          for (let x = 0; x < cell; x++) pixels.fill(0, (((row + margin) * cell + y) * size + (column + margin) * cell + x) * 4, (((row + margin) * cell + y) * size + (column + margin) * cell + x) * 4 + 3);
+  assert.equal(jsQR(pixels, size, size)?.data, link);
+  assert.deepEqual(detailsFromPairingLink(link), { address: '192.168.1.20:8765', fingerprint: 'ab'.repeat(32), pairingToken: 'p'.repeat(43) });
 });
 
 test('sends one JSON request and accepts a successful response', async () => {
