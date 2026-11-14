@@ -1,0 +1,12 @@
+name = "deckyhub-ratings"
+main = "src/index.js"
+compatibility_date = "2026-11-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "deckyhub-ratings"
+# Put the id that `wrangler d1 create deckyhub-ratings` prints here.
+database_id = "REPLACE_WITH_THE_DATABASE_ID"
+
+# To serve it from your own domain (the domain must be on this Cloudflare account):
+# routes = [{ pattern = "api.deckyhub.com", custom_domain = true }]
