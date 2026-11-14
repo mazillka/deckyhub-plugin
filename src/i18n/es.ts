@@ -475,6 +475,6 @@ export const es: Record<MessageKey, string> = {
   "support.button": "Apoyar el desarrollo y mantenimiento",
   "support.title": "Apoya DeckyHub",
   "support.text":
-    "DeckyHub es gratuito y de código abierto. Si te ayuda, puedes apoyar su desarrollo y mantenimiento en Ko-fi. Escanea el código con tu teléfono o abre la página aquí.",
+    "DeckyHub es gratuito y de código abierto, y una donación no desbloquea nada ni cambia nunca la lista de plugins. Si te ayuda, puedes apoyar su desarrollo y mantenimiento en Ko-fi. Escanea el código con el móvil o abre la página aquí. Más información: deckyhub.com/about.html#support",
   "support.open": "Abrir",
 };

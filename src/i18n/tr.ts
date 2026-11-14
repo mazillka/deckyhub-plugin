@@ -468,6 +468,6 @@ export const tr: Record<MessageKey, string> = {
   "support.button": "Geliştirmeyi ve bakımı destekle",
   "support.title": "DeckyHub’ı destekle",
   "support.text":
-    "DeckyHub ücretsiz ve açık kaynaklıdır. İşinize yarıyorsa geliştirilmesini ve bakımını Ko-fi’de destekleyebilirsiniz. Kodu telefonunuzla tarayın ya da sayfayı burada açın.",
+    "DeckyHub ücretsiz ve açık kaynaklıdır; bağış hiçbir şeyin kilidini açmaz ve eklenti listesini asla değiştirmez. Size yardımcı oluyorsa geliştirmesini ve bakımını Ko-fi'de destekleyebilirsiniz. Kodu telefonunuzla tarayın ya da sayfayı burada açın. Ayrıntılar: deckyhub.com/about.html#support",
   "support.open": "Aç",
 };

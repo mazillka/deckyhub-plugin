@@ -433,6 +433,10 @@ DeckyHub has no account, analytics or telemetry, and sends nothing to its author
 - **Your GitHub token** is optional, needs no scopes, is only ever sent to `api.github.com`, and is never written to the logs.
 - **Logs** never leave the device on their own. **Export Logs** saves a ZIP to your Downloads folder with what DeckyHub did and any errors (repository names, file paths, versions); you decide whether to attach it to an issue.
 
+## Supporting DeckyHub
+
+DeckyHub is free and stays free: every feature works without paying, and nothing is locked behind a donation. If it helps you, you can chip in on [Ko-fi](https://ko-fi.com/mazillka) or [GitHub Sponsors](https://github.com/sponsors/mazillka). It pays for the author's time on maintenance and on testing every release on real hardware, the deckyhub.com domain and, should their free limits ever run out, the services behind the plugin list and the virus scans. A donation doesn't buy a place or a better rank in the plugin list, doesn't influence the security checks and doesn't unlock anything, and DeckyHub never sees who donates. More on [deckyhub.com](https://deckyhub.com/about.html#support).
+
 ## Disclaimer
 
 Not affiliated with Valve or the Decky Loader project. DeckyHub is a discovery and download tool: plugin information comes from public GitHub repositories, and every plugin belongs to its own authors. DeckyHub doesn't review, own or endorse any third-party plugin or its content, and isn't responsible for what one does. Plugins are installed at your own risk, so look at a plugin's repository before you install it, especially one found through Search.

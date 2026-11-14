@@ -466,6 +466,6 @@ export const ko: Record<MessageKey, string> = {
   "support.button": "개발 및 유지보수 후원하기",
   "support.title": "DeckyHub 후원하기",
   "support.text":
-    "DeckyHub는 무료 오픈 소스입니다. 도움이 되었다면 Ko-fi에서 개발과 유지보수를 후원할 수 있습니다. 휴대폰으로 코드를 스캔하거나 여기서 페이지를 여세요.",
+    "DeckyHub는 무료 오픈 소스이며, 후원해도 기능이 열리거나 플러그인 목록이 바뀌지 않습니다. 도움이 되었다면 Ko-fi에서 개발과 유지보수를 후원할 수 있습니다. 휴대폰으로 코드를 스캔하거나 여기서 페이지를 여세요. 자세히: deckyhub.com/about.html#support",
   "support.open": "열기",
 };
