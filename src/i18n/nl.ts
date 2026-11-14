@@ -109,6 +109,7 @@ export const nl: Record<MessageKey, string> = {
   "appcard.installVersion": "v{version} installeren",
   "appcard.downloads": "{count} downloads",
   "appcard.githubDownloads": "{count} GitHub-downloads",
+  "appcard.storeDownloads": "{count} downloads uit de Decky-store",
   "appcard.inStore": "In de Decky-store",
   "appcard.inStoreHint":
     "De Decky-store heeft een plugin met deze naam ({count} downloads daar). De store noemt geen repository, controleer dus of het deze is.",

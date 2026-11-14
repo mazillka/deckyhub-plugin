@@ -108,6 +108,7 @@ export const pl: Record<MessageKey, string> = {
   "appcard.installVersion": "Zainstaluj v{version}",
   "appcard.downloads": "Pobrania: {count}",
   "appcard.githubDownloads": "{count} pobrań z GitHuba",
+  "appcard.storeDownloads": "{count} pobrań ze sklepu Decky",
   "appcard.inStore": "W sklepie Decky",
   "appcard.inStoreHint":
     "Sklep Decky ma wtyczkę o tej nazwie ({count} pobrań tam). Sklep nie podaje repozytorium, więc sprawdź, czy to ta.",

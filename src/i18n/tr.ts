@@ -108,6 +108,7 @@ export const tr: Record<MessageKey, string> = {
   "appcard.installVersion": "v{version} yükle",
   "appcard.downloads": "{count} indirme",
   "appcard.githubDownloads": "{count} GitHub indirmesi",
+  "appcard.storeDownloads": "Decky mağazasından {count} indirme",
   "appcard.inStore": "Decky mağazasında",
   "appcard.inStoreHint":
     "Decky mağazasında bu adda bir eklenti var (orada {count} indirme). Mağaza depo belirtmez, bu yüzden bunun doğru olduğundan emin olun.",

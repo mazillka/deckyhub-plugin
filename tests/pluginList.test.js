@@ -25,6 +25,11 @@ test('shows badges, numbers and the virus scan of a matched plugin', () => {
   assert.match(out, /isn't proof of safety/);
 });
 
+test('a plugin in the Decky store shows the downloads in total as well as each count', () => {
+  const out = texts(describe(document, { id: 'example', downloads: 1500, storeDownloads: 40000 }, {})).join(' | ');
+  assert.match(out, /41\.5K downloads in total · 1\.5K GitHub downloads · 40K Decky store downloads/);
+});
+
 test('an unknown audit code still shows, and a record with no data adds only its link', () => {
   const unknown = texts(describe(document, { id: 'x', warnings: ['brand-new'] }, {})).join(' | ');
   assert.match(unknown, /brand-new/);

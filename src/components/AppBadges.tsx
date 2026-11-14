@@ -4,6 +4,7 @@ import { FaShieldAlt } from "react-icons/fa";
 import { AUDIT_WARNINGS, isAuditWarning, type App, type AuditWarning, type VirusScan } from "../types";
 import { installedRiskReasons } from "../notify";
 import { compactNumber, timeAgo } from "../utils";
+import { totalDownloads } from "../sorting";
 import { colors, tint } from "../styles";
 
 export const pillStyle = {
@@ -207,14 +208,24 @@ export function AppBadges({ app, t }: { app: App; t: TFunc }) {
 // leaves out Updated (noUpdated): beside the latest version it cut the counts short.
 export function AppStats({ app, t, noUpdated }: { app: App; t: TFunc; noUpdated?: boolean }) {
   const released = releasedAt(app);
-  const { downloads, stars } = app.stats ?? {};
+  const { stars } = app.stats ?? {};
+  const downloads = totalDownloads(app.stats);
+  const github = app.stats?.downloads;
+  const store = app.stats?.store?.downloads;
   return (
     <>
       {!noUpdated && released > 0 && !isStale(released) && (
         <span title={new Date(released).toLocaleDateString()}>{t("appcard.updated", { when: timeAgo(released) })}</span>
       )}
       {downloads !== undefined && (
-        <span title={t("appcard.githubDownloads", { count: downloads.toLocaleString() })}>
+        <span
+          title={[
+            github !== undefined && t("appcard.githubDownloads", { count: github.toLocaleString() }),
+            store !== undefined && t("appcard.storeDownloads", { count: store.toLocaleString() }),
+          ]
+            .filter(Boolean)
+            .join("\n")}
+        >
           ↓ {compactNumber(downloads)}
         </span>
       )}

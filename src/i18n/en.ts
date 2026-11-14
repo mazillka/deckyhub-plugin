@@ -108,6 +108,7 @@ export const en = {
   "appcard.installVersion": "Install v{version}",
   "appcard.downloads": "{count} downloads",
   "appcard.githubDownloads": "{count} GitHub downloads",
+  "appcard.storeDownloads": "{count} Decky store downloads",
   "appcard.inStore": "In Decky store",
   "appcard.inStoreHint":
     "The Decky store lists a plugin with this name ({count} downloads there). The store names no repository, so check that it is this one.",

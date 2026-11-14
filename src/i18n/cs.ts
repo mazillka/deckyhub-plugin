@@ -108,6 +108,7 @@ export const cs: Record<MessageKey, string> = {
   "appcard.installVersion": "Instalovat v{version}",
   "appcard.downloads": "Stažení: {count}",
   "appcard.githubDownloads": "{count} stažení z GitHubu",
+  "appcard.storeDownloads": "{count} stažení z obchodu Decky",
   "appcard.inStore": "V obchodě Decky",
   "appcard.inStoreHint":
     "Obchod Decky nabízí plugin se stejným názvem ({count} stažení tam). Obchod neuvádí repozitář, ověřte tedy, že jde o tento.",
