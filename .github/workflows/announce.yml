@@ -1,0 +1,41 @@
+name: Announce release
+
+# After the Release workflow succeeds for a stable vX.Y.Z tag, posts a short message with a link to the release notes on
+# Telegram, when the TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID secrets exist (a bot from @BotFather, added as an
+# administrator of the channel); without them nothing is sent. Pre-release tags (with a dash) are never announced.
+# The notes are written after the release is built, so the message only links to them. Run it by hand with a tag to
+# send it again.
+on:
+  workflow_run:
+    workflows: [Release DeckyHub]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to announce, for example v3.4.1
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  announce:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.tag || github.event.workflow_run.head_branch }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+    steps:
+      - name: Post to Telegram
+        run: |
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Not a stable release tag ($TAG): nothing to announce."; exit 0; }
+          [[ -n "$TELEGRAM_BOT_TOKEN" && -n "$TELEGRAM_CHAT_ID" ]] || { echo "No Telegram channel is set up."; exit 0; }
+          text="DeckyHub ${TAG#v} is out.
+
+          What's new: https://github.com/${{ github.repository }}/releases/tag/$TAG
+          Update it in Decky Loader's plugin list, or get it at https://deckyhub.com/"
+          curl -fsS "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
+            --data-urlencode "chat_id=$TELEGRAM_CHAT_ID" --data-urlencode "text=$text" \
+            --data-urlencode "disable_web_page_preview=true" -o /dev/null
+          echo "Announced $TAG on Telegram."
