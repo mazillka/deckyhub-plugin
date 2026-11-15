@@ -154,7 +154,7 @@ class PluginPageTests(unittest.TestCase):
         self.assertLessEqual(len(title), 70)
         self.assertLessEqual(len(description), 160)
 
-    def test_scans_show_clean_results_and_a_virustotal_lookup_by_hash(self):
+    def test_scans_show_clean_results_and_no_virustotal_link_without_a_report(self):
         scans = {
             "stable": {
                 "tag": "v1.0.0",
@@ -167,10 +167,12 @@ class PluginPageTests(unittest.TestCase):
         page = self.page(
             scans=scans, reports={SHA: {"state": "complete", "flagged": 0, "total": 21, "dataId": "abc123"}}
         )
+        # VirusTotal has no report for this file: its row says so and links nowhere (its page would be empty).
+        self.assertIn("<tr><td>VirusTotal</td><td>No report yet</td>", page)
+        self.assertNotIn("virustotal.com/gui/file", page)
         for text in (
             "Security scan details",
             "No threats found",
-            f'href="https://www.virustotal.com/gui/file/{SHA}"',
             "0 of 21 engines flagged this file",
             "https://metadefender.opswat.com/results/file/abc123/regular/overview",
         ):
