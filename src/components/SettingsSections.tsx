@@ -333,14 +333,6 @@ export function DisplaySection({
             onChange={(checked) => update({ quickAccessTab: checked })}
           />
         </PanelSectionRow>
-        <PanelSectionRow>
-          <ToggleField
-            label={t("settings.shareRatings")}
-            description={t("settings.shareRatingsHint")}
-            checked={settings.shareRatings === true}
-            onChange={(checked) => update({ shareRatings: checked })}
-          />
-        </PanelSectionRow>
         {HIDEABLE_BUTTONS.map(([name, label]) => (
           <PanelSectionRow key={name}>
             <ToggleField

@@ -22,7 +22,6 @@ from deckyhub.downloads import DownloadsMixin
 from deckyhub.github_auth import GithubAuthMixin
 from deckyhub.leftovers import LeftoversMixin
 from deckyhub.packs import PENDING_INSTALLS_FILE, PacksMixin
-from deckyhub.ratings import RatingsMixin
 from deckyhub.registry import RegistryMixin
 from deckyhub.remote_install import RemoteInstallMixin
 from deckyhub.settings import SettingsMixin
@@ -38,7 +37,6 @@ class Plugin(
     BackupsMixin,
     LeftoversMixin,
     PacksMixin,
-    RatingsMixin,
     GithubAuthMixin,
 ):
     async def _main(self):

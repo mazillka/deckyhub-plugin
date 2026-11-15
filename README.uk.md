@@ -21,7 +21,7 @@
 [![License](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE.md)
 [![Decky Loader plugin](https://img.shields.io/badge/Decky_Loader-plugin-green)](https://decky.xyz/)
 <br>
-[![Plugins in registry](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmazillka%2Fdeckyhub-registry%2Frefs%2Fheads%2Fmain%2Fregistry%2Fapps.json&query=%24.apps.length&label=plugins%20in%20registry&color=1d75cc)](https://registry.deckyhub.com/)
+[![Plugins in registry](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmazillka%2Fdeckyhub-registry%2Frefs%2Fheads%2Fmain%2Fregistry%2Fapps.json&query=%24.apps.length&label=plugins%20in%20registry&color=1d75cc)](https://github.com/mazillka/deckyhub-registry)
 [![Registry release](https://img.shields.io/github/v/release/mazillka/deckyhub-registry?label=registry&color=1d75cc)](https://github.com/mazillka/deckyhub-registry/releases/latest)
 [![Release index updated](https://img.shields.io/github/last-commit/mazillka/deckyhub-registry/release-index?label=release%20index%20updated&color=1d75cc)](https://github.com/mazillka/deckyhub-registry/tree/release-index)
 [![Virus scan](https://img.shields.io/github/last-commit/mazillka/deckyhub-registry/virus-scans?label=virus%20scan&color=1d75cc)](https://github.com/mazillka/deckyhub-registry/tree/virus-scans)
@@ -417,7 +417,7 @@ DeckyHub встановлює програми на ваш Deck, тож кожн
 
 ## Приватність
 
-DeckyHub не має облікових записів, аналітики чи телеметрії та нічого не надсилає ні своєму авторові, ні на жоден власний сервер. Єдиний виняток необов'язковий і вимкнений за замовчуванням: якщо ввімкнути **«Ділитися оцінками»**, оцінка плагіна надсилається до сервісу оцінок DeckyHub із випадковим ідентифікатором, ні з чим не пов'язаним, і ні акаунт, ні ім'я, ні IP-адреса не зберігаються.
+DeckyHub не має облікових записів, аналітики чи телеметрії та нічого не надсилає ні своєму авторові, ні на жоден власний сервер.
 
 - **До чого він підключається:** лише до GitHub — `raw.githubusercontent.com` і `github.com` для списку плагінів, даних про релізи, звітів про перевірки на віруси та завантажень, а `api.github.com` — для пошуку й репозиторіїв, яких немає у списку, — а також до HTTPS-адреси будь-якого власного реєстру, який ви додали. GitHub бачить ці запити так само, як запити будь-якого браузера (вашу IP-адресу й те, які репозиторії запитано), відповідно до [заяви GitHub про конфіденційність](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement). Посилання, як-от репозиторій плагіна чи сторінка перевірки, відкриваються лише коли ви їх торкаєтеся.
 - **Що лишається на вашому пристрої:** ваші налаштування, відстежувані репозиторії, власні реєстри та кешований список плагінів і дані про релізи. Файл налаштувань доступний для читання лише вашому користувачеві.

@@ -259,7 +259,7 @@ notes.write_text(
     site_shell.apply(notes_page.replace("<!-- releases -->", release_articles(releases))), encoding="utf-8"
 )
 
-# deckyhub.com/contribute/: how to add a plugin and the registry editor (moved here from registry.deckyhub.com), each with a Ukrainian twin.
+# deckyhub.com/contribute/: how to add a plugin and the registry editor (they used to be on a separate registry site), each with a Ukrainian twin.
 CONTRIBUTE = ["contribute/", "contribute/editor.html", "uk/contribute/", "uk/contribute/editor.html"]
 for name in ("index.html", "editor.html"):
     path = "" if name == "index.html" else name
