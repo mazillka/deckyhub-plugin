@@ -44,7 +44,7 @@ footer{padding:36px 0;border-top:1px solid var(--line);color:var(--dim);font-siz
 <main id="main"><div class="wrap">
 <header>
 <h1>DeckyHub help</h1>
-<p class="sub">Short answers to what people ask most. Every screen and setting is described in the <a href="https://github.com/mazillka/deckyhub-plugin#readme">full documentation</a>.</p>
+<p class="sub">Short answers to what people ask most. Every screen and setting is described in the <a href="guide.html">guide</a>.</p>
 <ul class="toc">
 <li><a href="#install">Installing and uninstalling</a></li>
 <li><a href="#updates">Updates</a></li>
@@ -74,19 +74,19 @@ footer{padding:36px 0;border-top:1px solid var(--line);color:var(--dim);font-siz
 <p>You need DeckyHub on your device, a second device on the same network, and Chrome, Edge or another Chromium browser on it.</p>
 <h4>1. Pair a browser (once)</h4>
 <ol>
-<!-- steps: #### Pair a browser -->
+<!-- steps: guide#pair-a-browser -->
 </ol>
 <figure><img src="/img/remote-pair-mode.webp" srcset="/img/remote-pair-mode-640.webp 640w, /img/remote-pair-mode.webp 1280w" sizes="(max-width:900px) 100vw, 640px" width="1280" height="800" loading="lazy" alt="DeckyHub's Quick Access tab with Remote access on, a six-digit code and a QR code" style="max-width:100%;height:auto;border-radius:8px"><figcaption>Step 1: Remote access on, with the QR code</figcaption></figure>
 <figure><img src="/img/remote-pairing-request.webp" srcset="/img/remote-pairing-request-640.webp 640w, /img/remote-pairing-request.webp 1280w" sizes="(max-width:900px) 100vw, 640px" width="1280" height="800" loading="lazy" alt="A pairing request in DeckyHub's Quick Access tab with Approve and Reject buttons" style="max-width:100%;height:auto;border-radius:8px"><figcaption>Step 3: approve the browser</figcaption></figure>
 <h4>2. Send a plugin to your device</h4>
 <ol>
-<!-- steps: #### Send a plugin to your device -->
+<!-- steps: guide#send-a-plugin-to-your-device -->
 </ol>
 <figure><img src="/img/remote-send-to-device.webp" srcset="/img/remote-send-to-device-640.webp 640w, /img/remote-send-to-device.webp 1280w" sizes="(max-width:900px) 100vw, 640px" width="1280" height="800" loading="lazy" alt="A plugin's page on deckyhub.com with a device picker and a Send button" style="max-width:100%;height:auto;border-radius:8px"><figcaption>Step 2: pick your device and press Send</figcaption></figure>
 <figure><img src="/img/remote-request.webp" srcset="/img/remote-request-640.webp 640w, /img/remote-request.webp 1280w" sizes="(max-width:900px) 100vw, 640px" width="1280" height="800" loading="lazy" alt="An install request in DeckyHub's Quick Access tab with Approve and Reject buttons" style="max-width:100%;height:auto;border-radius:8px"><figcaption>Step 3: approve the request</figcaption></figure>
 <h4>3. Manage installed plugins</h4>
 <ol>
-<!-- steps: #### Manage installed plugins -->
+<!-- steps: guide#manage-installed-plugins -->
 </ol>
 <figure><img src="/img/remote-paired-devices.webp" srcset="/img/remote-paired-devices-640.webp 640w, /img/remote-paired-devices.webp 1280w" sizes="(max-width:900px) 100vw, 640px" width="1280" height="800" loading="lazy" alt="The Paired devices page listing a device's installed plugins" style="max-width:100%;height:auto;border-radius:8px"><figcaption>Your device and its installed plugins</figcaption></figure>
 <details><summary>What is Remote Install?</summary><p>It lets you install, update or uninstall plugins on your device from a browser on the same network. Open the <a href="/paired-devices/">Paired devices</a> page or any plugin's page in Chrome, Edge or another Chromium browser. It is experimental, so expect rough edges. It is also fully local: your browser talks straight to your device on your network, nothing goes through a server, and nothing about your device or its plugins is collected or sent anywhere.</p></details>
@@ -114,7 +114,8 @@ footer{padding:36px 0;border-top:1px solid var(--line);color:var(--dim);font-siz
 <details><summary>Does DeckyHub collect any data?</summary><p>The plugin: no. It has no account, analytics or telemetry and sends nothing to its author. The <strong>deckyhub.com website</strong> does count visits (page views, country and browser type, without cookies) with Cloudflare Web Analytics; the plugin itself is completely clean: it counts and sends nothing. The plugin only connects to GitHub, plus any custom registry you add. Your settings, token and logs stay on your device.</p></details>
 
 <h2 id="contact">Getting help</h2>
-<details><summary>How do I report a bug or suggest an idea?</summary><p>Open an issue on <a href="https://github.com/mazillka/deckyhub-plugin/issues">GitHub</a> and describe what happened. Attaching the ZIP from Settings, Logs, Export Logs helps. It's saved to your Downloads folder and never sent anywhere on its own.</p></details>
+<details><summary>I have a question or an idea. Where do I ask?</summary><p>Start a thread in <a href="https://github.com/mazillka/deckyhub-plugin/discussions">GitHub Discussions</a>: Q&amp;A for questions, Ideas for suggestions.</p></details>
+<details><summary>How do I report a bug?</summary><p>Open an issue on <a href="https://github.com/mazillka/deckyhub-plugin/issues">GitHub</a> and describe what happened. Attaching the ZIP from Settings, Logs, Export Logs helps. It's saved to your Downloads folder and never sent anywhere on its own.</p></details>
 <details><summary>A plugin is missing. How do I get it added?</summary><p>Suggest it on the <a href="/contribute/">Contribute page</a>. It needs a GitHub release with a plugin ZIP. Until then, DeckyHub's Search can find and install any Decky plugin on GitHub.</p></details>
 </div></main>
 <!-- site-footer -->

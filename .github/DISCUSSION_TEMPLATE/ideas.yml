@@ -1,0 +1,17 @@
+title: "[Idea] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Share an idea for DeckyHub. To get a plugin added to the list, use the [registry](https://github.com/mazillka/deckyhub-registry/issues/new) instead.
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like DeckyHub to do?
+      description: Describe the problem first, then the change you imagine.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: How do you handle it today?

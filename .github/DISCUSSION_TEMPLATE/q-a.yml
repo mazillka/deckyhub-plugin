@@ -1,0 +1,23 @@
+title: "[Question] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ask how DeckyHub works or why something doesn't. For a bug with steps to reproduce, open an [issue](https://github.com/mazillka/deckyhub-plugin/issues/new/choose) instead. Please check the [Help page](https://deckyhub.com/help.html) and the [guide](https://deckyhub.com/guide.html) first.
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+      description: What are you trying to do, and what happens instead?
+    validations:
+      required: true
+  - type: input
+    id: deckyhub-version
+    attributes:
+      label: DeckyHub version
+      description: Shown in Quick Access under DeckyHub, for example 3.4.0.
+  - type: input
+    id: device
+    attributes:
+      label: Device and Decky Loader version
+      description: For example Steam Deck OLED, Decky Loader 3.2.1.
