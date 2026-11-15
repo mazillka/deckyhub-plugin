@@ -84,6 +84,16 @@ class PluginPageTests(unittest.TestCase):
         data["stats"]["o/other"] = {"downloads": 30000}
         self.assertEqual([app["id"] for app in plugin_pages.by_downloads([other, APP], data)], [APP["id"], "other"])
 
+    def test_users_ratings_show_once_enough_people_gave_stars_and_works_reports_from_the_first(self):
+        page = self.page({"rating": {"rated": 12, "average": 4.2, "works": 9, "broken": 1, "easy": 7, "hard": 1}})
+        self.assertIn("<strong>4.2/5</strong>User rating (12 ratings)", page)
+        self.assertIn("<strong>9 of 10</strong>users say it works on their device", page)
+        self.assertIn("<strong>7 of 8</strong>users find its interface convenient", page)
+        few = self.page({"rating": {"rated": 2, "average": 5.0, "works": 1}})
+        self.assertNotIn("User rating", few)
+        self.assertIn("<strong>1 of 1</strong>users say it works", few)
+        self.assertNotIn("User rating", self.page({}))
+
     def test_a_store_only_entry_says_so_and_offers_no_github_install_or_device_request(self):
         page = self.page()
         self.assertIn("nobody reviews these plugins", page)

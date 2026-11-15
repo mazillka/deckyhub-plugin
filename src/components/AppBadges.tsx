@@ -204,6 +204,9 @@ export function AppBadges({ app, t }: { app: App; t: TFunc }) {
   );
 }
 
+// Ratings show once this many users have given stars: one opinion says little.
+const MIN_RATINGS = 5;
+
 // Updated / downloads / stars, shared by the card and its Manage window. A list row
 // leaves out Updated (noUpdated): beside the latest version it cut the counts short.
 // `detailed` (the details window, where a tooltip can't be read with a controller) says where the downloads
@@ -224,6 +227,11 @@ export function AppStats({
   const downloads = totalDownloads(app.stats);
   const github = app.stats?.downloads;
   const store = app.stats?.store?.downloads;
+  const rating = app.stats?.rating;
+  const works = rating?.works ?? 0;
+  const broken = rating?.broken ?? 0;
+  const easy = rating?.easy ?? 0;
+  const hard = rating?.hard ?? 0;
   return (
     <>
       {!noUpdated && released > 0 && !isStale(released) && (
@@ -241,6 +249,13 @@ export function AppStats({
           ↓ {compactNumber(downloads)}
         </span>
       )}
+      {rating?.rated && rating.rated >= MIN_RATINGS && rating.average !== undefined && (
+        <span title={t("appcard.ratingTitle", { average: rating.average.toFixed(1), count: rating.rated })}>
+          {t("appcard.rating", { average: rating.average.toFixed(1) })}
+        </span>
+      )}
+      {detailed && works + broken > 0 && <span>{t("appcard.ratingWorks", { works, total: works + broken })}</span>}
+      {detailed && easy + hard > 0 && <span>{t("appcard.ratingUi", { easy, total: easy + hard })}</span>}
       {detailed && store !== undefined && (
         <span>
           {t("appcard.downloadsBreakdown", {

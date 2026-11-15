@@ -46,6 +46,12 @@ export const removeCustomRegistry = callable<[url: string], { removed: boolean; 
 );
 export const refreshRegistry = callable<[], { apps: number }>("refresh_registry");
 export const exportLogs = callable<[], { path: string }>("export_logs");
+// Community ratings (ratings.py): off until Share ratings is on.
+export const ratePlugin = callable<
+  [repo: string, version: string | null, stars: number | null, works: boolean | null, ui: boolean | null],
+  { sent: boolean; rating?: { stars?: number; works?: boolean; ui?: boolean } }
+>("rate_plugin");
+export const withdrawRating = callable<[repo: string], { removed: boolean }>("withdraw_rating");
 
 // Backups of other plugins' settings (backups.py); `created` is in milliseconds.
 export type SettingsBackup = { plugin: string; file: string; created: number; size: number };
