@@ -53,6 +53,12 @@ class PairLinkTests(unittest.TestCase):
 
 
 class UkrainianPageTests(unittest.TestCase):
+    def test_the_camera_button_is_inside_the_scan_the_qr_code_step(self):
+        panel = plugin_pages.remote_device_panel("en")
+        step = panel.split("<strong>Scan the QR code</strong>")[1].split("</li>")[0]
+        self.assertIn('id="remote-scan-button"', step)
+        self.assertEqual(panel.count('id="remote-scan-button"'), 1)
+
     def test_the_installed_list_has_no_plugin_pack_switch(self):
         panel = plugin_pages.remote_device_panel("en")
         self.assertNotIn("plugin pack", panel.lower())

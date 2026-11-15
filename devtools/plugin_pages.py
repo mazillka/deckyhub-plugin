@@ -216,6 +216,26 @@ NOT_REVIEWED = "DeckyHub is not the Decky store and nobody reviews these plugins
 STORE_ONLY_NOTE = '<p class="note">Its author distributes it through the <a href="https://plugins.deckbrew.xyz/plugins">Decky store</a>. DeckyHub lists it but offers no GitHub download: install it from the store inside Decky.</p>'
 
 
+def install_steps(app: dict, name: str) -> str:
+    """The "How to install" steps: through DeckyHub, or for a plugin only in the Decky store, through Decky's own store."""
+    if app.get("store"):
+        steps = [
+            "Open Decky Loader's Quick Access menu (the plug icon) in Gaming Mode and choose <strong>Store</strong>.",
+            f"Search for <strong>{escape(name)}</strong>.",
+            "Press <strong>Install</strong>. Decky Loader downloads it from its "
+            '<a href="https://plugins.deckbrew.xyz/plugins">store</a>, so the install counts for its author there.',
+        ]
+    else:
+        steps = [
+            'Get <a href="/#install">DeckyHub</a> on your Steam Deck if you do not have it yet.',
+            f"In Gaming Mode open DeckyHub's <strong>Discover</strong> tab and search for <strong>{escape(name)}</strong>.",
+            "Press <strong>Install</strong>. DeckyHub hands the release to "
+            '<a href="https://decky.xyz/">Decky Loader</a>'
+            "'s own installer and checks its SHA-256 whenever GitHub publishes one.",
+        ]
+    return "\n".join(f"<li><span>{step}</span></li>" for step in steps)
+
+
 def badges_of(
     stats: dict, scans: dict, warnings: dict, reports: dict | None = None, vt_reports: dict | None = None
 ) -> list[str]:
@@ -453,7 +473,13 @@ def remote_device_panel(lang: str = "en") -> str:
 </li>
 <li>
 <span class="rd-dot" aria-hidden="true">2</span>
-<div><span class="rd-where">On this device</span><strong>Scan the QR code</strong><small>Point the camera at the QR code and open the link. No camera? Paste the link below.</small></div>
+<div><span class="rd-where">On this device</span><strong>Scan the QR code</strong><small>Point the camera at the QR code and open the link. No camera? Paste the link below.</small>
+<div id="remote-scan" class="rd-scan" hidden>
+<p class="remote-actions"><button type="button" id="remote-scan-button">Scan the QR code with this device's camera</button><button type="button" id="remote-scan-stop" hidden>Stop the camera</button></p>
+<p id="remote-scan-status" class="rd-hint" role="status" aria-live="polite" hidden></p>
+<video id="remote-scan-video" playsinline muted hidden></video>
+</div>
+</div>
 </li>
 <li>
 <span class="rd-dot" aria-hidden="true">3</span>
@@ -474,11 +500,6 @@ def remote_device_panel(lang: str = "en") -> str:
 <pre id="remote-diagnostics-text"></pre>
 <p><button type="button" id="remote-copy-diagnostics">Copy details</button></p>
 </details>
-<div id="remote-scan" class="rd-scan" hidden>
-<p class="remote-actions"><button type="button" id="remote-scan-button">Scan the QR code with this device's camera</button><button type="button" id="remote-scan-stop" hidden>Stop the camera</button></p>
-<p id="remote-scan-status" class="rd-hint" role="status" aria-live="polite" hidden></p>
-<video id="remote-scan-video" playsinline muted hidden></video>
-</div>
 <form id="remote-pair-form" aria-labelledby="remote-pair-title">
 <h3 id="remote-pair-title">No camera or QR code? Paste the link</h3>
 <p class="rd-hint">Scanning the QR code fills these in and pairs by itself. Use them to paste a link, or to try again.</p>
@@ -609,6 +630,13 @@ def plugin_page(
         facts.append(f"<li><strong>{compact(stats['stars'])}</strong>GitHub stars</li>")
     if stats.get("updated"):
         facts.append(f"<li><strong>{nice_date(stats['updated'])}</strong>Latest release</li>")
+    # A plugin only in the Decky store has no release worth judging in its repository (what is left there is an old
+    # build): its scans, audit warnings and root flag would describe something nobody installs, so none are shown.
+    if app.get("store"):
+        scans, reports, vt_reports = {}, {}, {}
+        stats = {
+            key: value for key, value in stats.items() if key not in ("root", "warnings", "prereleaseWarnings", "ai")
+        }
     badges = badges_of(stats, scans, warnings, reports, vt_reports)
     if prerelease_only(releases or []):
         badges.insert(
@@ -622,10 +650,23 @@ def plugin_page(
         )
     related = [other for other in others if other["id"] != app["id"]][:6]
     crumbs = f'<p class="crumbs"><a href="/">DeckyHub</a> › <a href="/plugins/">Plugins</a> › {escape(name)}</p>'
+    store_only = bool(app.get("store"))
+    scan_details = (
+        '<details class="more"><summary>Security</summary>'
+        "<p>DeckyHub has no GitHub release of this plugin to scan, so it shows no scan results here. "
+        'It is distributed through the <a href="https://plugins.deckbrew.xyz/plugins">Decky store</a>, whose team reviews what it lists. '
+        f"Check its repository before installing: DeckyHub doesn't make, review or vouch for {escape(name)}.</p></details>"
+        if store_only
+        else f"""<details class="more"><summary>Security scan details</summary>
+<p>Every ZIP DeckyHub offers is scanned with ClamAV and with YARA rules (YARA Forge's core set), and the same scans are shown in the app. The registry also sends each ZIP to VirusTotal and MetaDefender, uploading it if they haven't seen it yet, and their results are matched by the file's SHA-256.</p>
+{security_scans(scans, reports or {}, vt_reports)}
+<p class="note">DeckyHub doesn't make, review or vouch for {escape(name)}; it installs at your own risk. The scans only catch known malware, and malware can be built to get past them, so a clean scan isn't proof of safety. Only the <a href="https://plugins.deckbrew.xyz/">Decky plugin store</a> reviews plugins by hand. Check its repository before installing.</p>
+</details>"""
+    )
     body = f"""{crumbs}
 <h1>{escape(name)}</h1>
 <p class="lead">{escape(description)}</p>
-{STORE_ONLY_NOTE if app.get("store") else ""}<p class="cta"><a class="btn" href="#how-to-install">Install with DeckyHub</a><a class="btn ghost" href="{escape(repo_url)}">Source on GitHub</a>{"" if app.get("store") else '<button type="button" class="btn ghost" id="remote-open" aria-haspopup="dialog">Send to device (experimental)</button>'}</p>
+{STORE_ONLY_NOTE if app.get("store") else ""}<p class="cta"><a class="btn" href="#how-to-install">{"Install from the Decky store" if app.get("store") else "Install with DeckyHub"}</a><a class="btn ghost" href="{escape(repo_url)}">Source on GitHub</a>{"" if app.get("store") else '<button type="button" class="btn ghost" id="remote-open" aria-haspopup="dialog">Send to device (experimental)</button>'}</p>
 <ul class="facts">{"".join(facts)}<li class="wide"><strong><a href="{escape(repo_url)}">{escape(repo)}</a></strong>Repository</li></ul>
 <h2 id="safety">Safety at a glance</h2>
 {safety_chips(badges)}
@@ -636,17 +677,11 @@ def plugin_page(
 </details>
 <h2 id="how-to-install">How to install</h2>
 <ol class="steps">
-<li><span>Get <a href="/#install">DeckyHub</a> on your Steam Deck if you don't have it yet.</span></li>
-<li><span>In Gaming Mode open DeckyHub's <strong>Discover</strong> tab and search for <strong>{escape(name)}</strong>.</span></li>
-<li><span>Press <strong>Install</strong>. DeckyHub hands the release to <a href="https://decky.xyz/">Decky Loader</a>'s own installer and checks its SHA-256 whenever GitHub publishes one.</span></li>
+{install_steps(app, name)}
 </ol>
 <p class="note">Check that the owner and repository, <strong>{escape(repo)}</strong>, are the ones you expect: a plugin's name alone may not identify the right project. {"You can also download" if app.get("store") else "Prefer your phone or computer? Use <em>Send to device</em> above, or download"} the ZIP from its <a href="{escape(repo_url)}/releases">releases</a> and install it from Decky's developer settings.</p>
 {"" if app.get("store") else remote_install_picker(app["id"], badges)}
-<details class="more"><summary>Security scan details</summary>
-<p>Every ZIP DeckyHub offers is scanned with ClamAV and with YARA rules (YARA Forge's core set), and the same scans are shown in the app. The registry also sends each ZIP to VirusTotal and MetaDefender, uploading it if they haven't seen it yet, and their results are matched by the file's SHA-256.</p>
-{security_scans(scans, reports or {}, vt_reports)}
-<p class="note">DeckyHub doesn't make, review or vouch for {escape(name)}; it installs at your own risk. The scans only catch known malware, and malware can be built to get past them, so a clean scan isn't proof of safety. Only the <a href="https://plugins.deckbrew.xyz/">Decky plugin store</a> reviews plugins by hand. Check its repository before installing.</p>
-</details>
+{scan_details}
 {f'<h2>More {escape(category)} plugins</h2><ul class="list">' + "".join(f'<li><a href="/plugins/{escape(other["id"])}.html">{escape(other["name"])}<small>{escape(other.get("description") or "")}</small></a></li>' for other in related) + "</ul>" if related else ""}"""
     data = {
         "@type": "SoftwareApplication",
