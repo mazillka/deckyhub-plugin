@@ -29,32 +29,22 @@ export function createUpdates(root, { summary, device, onResult = () => {} }) {
   section.hidden = true;
   const line = doc.createElement('p');
   line.setAttribute('role', 'status');
-  const actions = doc.createElement('p');
-  actions.className = 'remote-actions';
-  const installButton = doc.createElement('button');
-  installButton.type = 'button';
-  installButton.textContent = translate('Add to home screen or desktop');
-  installButton.hidden = true;
-  actions.append(installButton);
-  const hint = doc.createElement('p');
-  hint.className = 'rd-hint';
-  section.append(line, actions, hint);
+  section.append(line);
   anchor.before(section);
+  // The button is in the page's header (devtools/plugin_pages.py), where a visitor looks first; it shows only
+  // while the browser offers to install the page.
+  const app = root.querySelector('#remote-app');
+  const installButton = root.querySelector('#remote-app-install');
 
   if ('serviceWorker' in navigator && isSecureContext) navigator.serviceWorker.register('sw.js').catch(() => {});
   let deferredInstall;
   let last;
   const paint = () => {
     const current = device();
-    section.hidden = !current && !deferredInstall;
+    section.hidden = !current;
     line.hidden = !current || !last;
     if (current && last) line.textContent = translate(updateLine(last, current.name));
-    installButton.hidden = !deferredInstall;
-    // What each button does, in a line: "Install app" alone did not say what would be installed.
-    // What the button does, in a line: "Install app" alone did not say what would be installed.
-    hint.textContent = deferredInstall
-      ? translate('Add to home screen or desktop puts this page on your device as an app of its own, with its own icon and window. Nothing else is installed.')
-      : '';
+    if (app) app.hidden = !deferredInstall;
   };
   let checking = false;
   const check = async () => {

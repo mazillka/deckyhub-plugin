@@ -61,6 +61,9 @@
 .remote-device-dashboard > * { min-width: 0; }
 .rd-hero h2 { margin: 6px 0 8px; font-size: clamp(1.5rem, 5vw, 2.1rem); line-height: 1.15; }
 .rd-hero p { margin: 0 0 8px; color: var(--muted); max-width: 46rem; }
+.rd-hero .rd-app { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 12px; }
+.rd-hero .rd-app[hidden] { display: none; }
+.rd-hero .rd-app .rd-hint { margin: 0; }
 .rd-badge {
   display: inline-block;
   padding: 3px 10px;

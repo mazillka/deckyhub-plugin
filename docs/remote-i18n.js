@@ -124,8 +124,6 @@ const UK = new Map(Object.entries({
   'couldn\'t be scanned': 'не вдалося перевірити',
   'All details on DeckyHub': 'Усі подробиці на DeckyHub',
   'the latest release': 'останнього випуску',
-  'Add to home screen or desktop': 'Додати на головний екран або робочий стіл',
-  'Add to home screen or desktop puts this page on your device as an app of its own, with its own icon and window. Nothing else is installed.': 'Ця сторінка з’явиться на вашому пристрої як окремий застосунок зі своєю іконкою й вікном. Більше нічого не встановлюється.',
   'Invalid summary from the device.': 'Недійсний підсумок від пристрою.',
   'Details copied.': 'Дані скопійовано.',
   'Select the details, copy them, then paste them into your bug report.': 'Виділіть дані, скопіюйте їх і вставте в повідомлення про помилку.',
