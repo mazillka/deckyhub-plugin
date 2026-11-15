@@ -324,6 +324,11 @@
 .rc-pair { display: none; align-items: center; flex-wrap: wrap; gap: 8px 14px; color: var(--muted); }
 .rc-pair .btn { margin: 0; }
 [data-state="none"] .rc-pair { display: flex; }
+/* On a plugin's page the card is a window the Send to device button opens: closed, it takes no room. */
+dialog.remote-compact:not([open]) { display: none; }
+dialog.remote-compact { margin: auto; gap: 0; }
+dialog.remote-compact > .rd-dialog-body { margin: 0; }
+dialog.remote-compact .rd-dialog-head .rd-badge { margin-inline: auto 8px; }
 [data-state="none"] .rc-send { display: none; }
 .remote-compact #remote-cancel:disabled { display: none; }
 [data-state="waiting"] #remote-device-picker, [data-state="installing"] #remote-device-picker { opacity: .6; }
