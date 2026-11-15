@@ -68,6 +68,16 @@ jobs:
           mv _preview _site/develop
         env:
           GITHUB_TOKEN: ${{ github.token }}
+      # deckyhub.com/develop/store: the same for DeckyHub's Pre-release registry (the registry's develop branch and its
+      # release index), with pre-releases too. Needs the preview above, and never stops the site.
+      - name: Build the develop Decky store
+        continue-on-error: true
+        run: |
+          [ -d _site/develop ] || exit 0
+          git clone -q --depth 1 --branch develop https://github.com/mazillka/deckyhub-registry.git registry-develop
+          curl -fsSL https://raw.githubusercontent.com/mazillka/deckyhub-registry/refs/heads/release-index-develop/releases.json -o releases-develop.json
+          curl -fsSL https://raw.githubusercontent.com/mazillka/deckyhub-registry/refs/heads/release-index-develop/stats.json -o stats-develop.json
+          python registry-develop/scripts/build_decky_store.py --prereleases releases-develop.json _site/develop/store stats-develop.json
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: _site
