@@ -94,6 +94,7 @@ const UK = new Map(Object.entries({
   'Request update': 'Запит на оновлення',
   'Request uninstall': 'Запит на видалення',
   'Repository unavailable': 'Репозиторій недоступний',
+  'Not in the DeckyHub list': 'Немає в списку DeckyHub',
   'Updates for this plugin come from its own page or your device.': 'Оновлення цього плагіна надходять зі сторінки плагіна або з вашого пристрою.',
   'Manage DeckyHub on your device.': 'Керуйте DeckyHub на вашому пристрої.',
   'No installed plugins found.': 'Встановлених плагінів не знайдено.',

@@ -1,6 +1,7 @@
 """deckyhub.com's plugin pages (devtools/plugin_pages.py), built from data passed in: no network."""
 
 import json
+import re
 import sys
 import unittest
 from pathlib import Path
@@ -241,7 +242,9 @@ class PluginPageTests(unittest.TestCase):
 
     def test_remote_install_preview_link_preserves_plugin(self):
         page = self.page()
-        self.assertIn('href="#remote-install"', page)
+        # The button opens the card as a window; the card is closed until then.
+        self.assertIn('id="remote-open"', page)
+        self.assertIn('<dialog id="remote-install"', page)
         self.assertIn(f'data-plugin-id="{APP["id"]}"', page)
 
     def test_remote_install_prefers_pairing_link_and_code_over_manual_connection_details(self):
@@ -294,6 +297,40 @@ class PluginPageTests(unittest.TestCase):
 
     def test_inline_markdown_escapes_html(self):
         self.assertEqual(plugin_pages.inline_markdown("a <b> & **c**"), "a &lt;b&gt; &amp; <strong>c</strong>")
+
+    def test_a_pending_virustotal_scan_has_no_report_link_but_a_finished_one_does(self):
+        scans = {
+            "stable": {
+                "tag": "v1",
+                "file": "p.zip",
+                "sha256": SHA,
+                "clamav": {"result": "clean"},
+                "yara": {"result": "clean"},
+            }
+        }
+        pending = self.page(scans=scans, vt={SHA: {"state": "pending"}})
+        self.assertIn("<tr><td>VirusTotal</td><td>Scan pending</td>", pending)
+        self.assertNotIn(f"virustotal.com/gui/file/{SHA}", pending)
+        done = self.page(
+            scans=scans,
+            vt={
+                SHA: {
+                    "state": "complete",
+                    "stats": {"malicious": 0, "suspicious": 0, "harmless": 1, "undetected": 60},
+                    "scannedAt": 1793181436,
+                }
+            },
+        )
+        self.assertIn(f'href="https://www.virustotal.com/gui/file/{SHA}"', done)
+
+    def test_build_site_lets_every_remote_install_card_connect_to_a_device(self):
+        # build-site.py widens connect-src for pages that hold the card, by a piece of its HTML; a change to the tag
+        # once left the plugin pages without it and Chrome blocked the connection to the device.
+        marker = re.search(
+            r"if '([^']+)' in text", (ROOT / "devtools" / "build-site.py").read_text(encoding="utf-8")
+        ).group(1)
+        self.assertIn(marker, plugin_pages.remote_install_picker("x"))
+        self.assertIn(marker, plugin_pages.remote_device_panel("en"))
 
 
 class PluginInfoTests(unittest.TestCase):
@@ -351,20 +388,3 @@ class PluginInfoTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
-    def test_a_pending_virustotal_scan_has_no_report_link_but_a_finished_one_does(self):
-        scans = {"a/b": {"stable": {"file": "p.zip", "tag": "v1", "sha256": SHA, "scans": {}}}}
-        pending = self.page(scans=scans, vt={SHA: {"state": "pending"}})
-        self.assertIn("<tr><td>VirusTotal</td><td>Scan pending</td>", pending)
-        self.assertNotIn(f"virustotal.com/gui/file/{SHA}", pending)
-        done = self.page(
-            scans=scans,
-            vt={
-                SHA: {
-                    "state": "complete",
-                    "stats": {"malicious": 0, "suspicious": 0, "harmless": 1, "undetected": 60},
-                    "scannedAt": 1793181436,
-                }
-            },
-        )
-        self.assertIn(f'href="https://www.virustotal.com/gui/file/{SHA}"', done)

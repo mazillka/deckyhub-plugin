@@ -336,7 +336,7 @@ export function init(root, details) {
     requestId = idempotencyKey = requestPluginId = requestName = requestNames = undefined;
     const device = devices[index];
     rememberDevice(device);
-    if (!device) { setState(compact ? 'none' : 'new'); updateActions(); say(compact ? '' : 'Turn on Remote access on your device, then scan its QR code or paste the pairing link.'); return; }
+    if (!device) { setState(compact ? (reachable?.size ? 'ready' : 'none') : 'new'); updateActions(); say(compact ? '' : 'Turn on Remote access on your device, then scan its QR code or paste the pairing link.'); return; }
     try {
       setState(compact ? 'ready' : 'paired');
       endpoint = { url: deviceUrl(device.address), hashes: pinnedHashes(device) };
@@ -652,10 +652,7 @@ export function init(root, details) {
   });
   inventory = createPluginList(root, {
     loadPage: offset => send({ op: 'plugins', token, offset }),
-    request: (id, action, name) => {
-      status.scrollIntoView({ block: 'nearest' });
-      return runRequest(id, action, name);
-    },
+    request: (id, action, name) => runRequest(id, action, name),
   });
   // Update notices and the installed app (docs/remote-updates.js): the Paired devices page only.
   if (!compact && !pluginId) {
@@ -676,6 +673,14 @@ export function init(root, details) {
     } catch (error) { showError(error); }
   });
   updateActions();
+  // A plugin's page: Send to device opens this card as a window; the close button, Escape or a click outside close it.
+  if (compact && root.showModal) {
+    const open = () => { if (!root.open) root.showModal(); };
+    root.ownerDocument.getElementById('remote-open')?.addEventListener('click', open);
+    byId('close')?.addEventListener('click', () => root.close());
+    root.addEventListener('click', event => { if (event.target === root) root.close(); });
+    if (location.hash === '#remote-install') open();
+  }
   if (form && details) openAdd();
   if (form && details?.pairingToken) void pairDevice(details);
   addEventListener('pagehide', disconnect, { once: true });

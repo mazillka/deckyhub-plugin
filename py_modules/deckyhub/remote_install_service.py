@@ -348,6 +348,7 @@ class RemoteInstallService:
         page = [
             {
                 "id": row.get("id"),
+                "pageId": row.get("pageId") if isinstance(row.get("pageId"), str) else None,
                 "identityUnverified": bool(row.get("identityUnverified")),
                 "disabled": bool(row.get("disabled")),
                 **{key: bounded(row.get(key)) for key in ("name", "repo", "version", "pluginName")},
