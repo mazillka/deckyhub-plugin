@@ -329,6 +329,7 @@
 .remote-compact [hidden] { display: none; }
 .rc-pair { display: none; align-items: center; flex-wrap: wrap; gap: 8px 14px; color: var(--muted); }
 .rc-pair .btn { margin: 0; }
+.rc-pair button[hidden] { display: none; }
 [data-state="none"] .rc-pair { display: flex; }
 /* On a plugin's page the card is a window the Send to device button opens: closed, it takes no room. */
 dialog.remote-compact:not([open]) { display: none; }

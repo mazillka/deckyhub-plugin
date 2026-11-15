@@ -379,8 +379,13 @@ export function init(root, details) {
   } else {
     renderPicker();
     setState(devices.length ? 'checking' : 'none');
-    if (devices.length) {
+    // Looks for the paired devices on the network; Refresh runs it again (a device switched on after the page opened).
+    const refreshButton = byId('refresh');
+    const checkDevices = () => {
+      if (!devices.length) return;
+      setState('checking');
       say('Checking paired devices…');
+      if (refreshButton) refreshButton.disabled = true;
       void Promise.all(devices.map(async (device, index) => {
         let connection;
         try {
@@ -401,8 +406,13 @@ export function init(root, details) {
         renderPicker(selected);
         if (selected !== undefined) selectDevice(selected);
         else { setState('none'); say(compact ? 'No paired device is reachable. Turn on Remote access on your device, on the same network as this browser.' : 'No paired devices are reachable.'); }
-      });
+      }).finally(() => { if (refreshButton) refreshButton.disabled = false; });
+    };
+    if (refreshButton) {
+      refreshButton.hidden = !devices.length;
+      refreshButton.addEventListener('click', checkDevices);
     }
+    checkDevices();
   }
   const fillDevice = ({ address, fingerprint, name }) => {
     byId('address').value = address;
