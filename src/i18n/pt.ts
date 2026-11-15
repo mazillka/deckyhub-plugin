@@ -213,6 +213,8 @@ export const pt: Record<MessageKey, string> = {
   "appcard.noReleaseNotes": "Esta release não tem notas.",
   "install.disclaimer":
     "O DeckyHub só baixa releases dos repositórios no GitHub de seus autores. Ele não cria, revisa nem garante esses plugins e não se responsabiliza pelo que eles fazem no seu dispositivo ou com seus dados. Instale por sua conta e risco.",
+  "install.noHash":
+    "O GitHub não publicou um SHA-256 para este arquivo, então o DeckyHub não consegue verificar se ele chegou sem alterações.",
   "pending.title": "Instalar os plugins escolhidos?",
   "pending.description":
     "Você escolheu estes plugins no instalador. O Decky Loader vai pedir mais uma confirmação antes de instalá-los.",

@@ -208,6 +208,7 @@ export const en = {
   "appcard.noReleaseNotes": "This release has no notes.",
   "install.disclaimer":
     "DeckyHub only fetches releases from their authors' GitHub repositories. It doesn't make, review or vouch for these plugins and isn't responsible for anything they do to your device or data. Install at your own risk.",
+  "install.noHash": "GitHub published no SHA-256 for this file, so DeckyHub cannot check that it arrived unchanged.",
   "pending.title": "Install your selected plugins?",
   "pending.description":
     "You picked these plugins in the installer. Decky Loader asks you to confirm once more before it installs them.",

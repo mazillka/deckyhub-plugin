@@ -28,6 +28,7 @@ export function confirmPluginInstall(
     <Focusable flow-children="down">
       {block(<span style={{ color: colors.danger }}>{t("install.disclaimer")}</span>)}
       {note && block(<p>{note}</p>)}
+      {asset && !asset.sha256 && block(<p style={{ color: colors.warning }}>{t("install.noHash")}</p>)}
       {warnings.filter(isAuditWarning).map((warning) =>
         block(
           <p>

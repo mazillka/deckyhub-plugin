@@ -17,9 +17,9 @@ PANEL = [
     ),
     ("Manage your devices from this browser", "Керуйте своїми пристроями з цього браузера"),
     (
-        "Install, update and remove Decky plugins without picking up your device. This page talks straight to your device on your network: nothing is collected or sent anywhere. "
+        "Install, update and remove Decky plugins without picking up your device. This page talks straight to your device on your network: nothing about your device or its plugins is collected or sent anywhere. "
         '<a href="/help.html#remote">How it works</a>',
-        "Встановлюйте, оновлюйте й видаляйте плагіни Decky, не торкаючись пристрою. Ця сторінка спілкується напряму з вашим пристроєм у вашій мережі: нічого не збирається й нікуди не надсилається. "
+        "Встановлюйте, оновлюйте й видаляйте плагіни Decky, не торкаючись пристрою. Ця сторінка спілкується напряму з вашим пристроєм у вашій мережі: нічого про ваш пристрій чи його плагіни не збирається й нікуди не надсилається. "
         '<a href="/uk/help.html#remote">Як це працює</a>',
     ),
     (">Your devices<", ">Ваші пристрої<"),

@@ -199,6 +199,7 @@ export const zhTW: Record<MessageKey, string> = {
   "appcard.noReleaseNotes": "此版本沒有說明。",
   "install.disclaimer":
     "DeckyHub 僅從作者的 GitHub 儲存庫取得發行版本，不製作、不審核也不擔保這些插件，對它們對你的裝置或資料造成的任何影響概不負責。安裝風險自負。",
+  "install.noHash": "GitHub 沒有為此檔案發布 SHA-256，因此 DeckyHub 無法確認它是否未被更動。",
   "pending.title": "安裝你選擇的外掛？",
   "pending.description": "這些是你在安裝程式中選擇的外掛。安裝前，Decky Loader 會再請你確認一次。",
   "pending.install": "安裝所選外掛",
