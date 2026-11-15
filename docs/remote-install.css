@@ -240,6 +240,9 @@
   background: var(--panel);
   font-weight: 600;
 }
+/* On the Paired devices page the status sits above a long list: it stays under the menu while you scroll, so a request
+   made from a row far down is answered where you are instead of the page jumping to the top. */
+.rd-main > .rd-status { position: sticky; top: 64px; z-index: 4; box-shadow: 0 6px 18px rgba(0, 0, 0, .35); }
 [data-state="approve"] .rd-status { border-inline-start-color: #e8b54a; }
 [data-state="unreachable"] .rd-status,
 [data-state="unsupported"] .rd-status,
