@@ -301,8 +301,8 @@ export function init(root, details) {
     }));
   };
   // Which of the paired devices answer right now: checked once when the page opens, in parallel.
-  const checkOnline = () => {
-    void Promise.all(devices.slice().map(async device => {
+  const checkOnline = () =>
+    Promise.all(devices.slice().map(async device => {
       let connection;
       try {
         connection = new WebTransport(deviceUrl(device.address), { serverCertificateHashes: pinnedHashes(device) });
@@ -315,7 +315,12 @@ export function init(root, details) {
         connection?.close();
       }
     })).then(() => renderCards(currentIndex()));
-  };
+  // Refresh: look for the paired devices again (one switched on after the page opened).
+  const devicesRefresh = byId('devices-refresh');
+  devicesRefresh?.addEventListener('click', () => {
+    devicesRefresh.disabled = true;
+    void checkOnline().finally(() => { devicesRefresh.disabled = false; });
+  });
   const renderPicker = selected => {
     picker.replaceChildren(new Option(translate(compact ? 'Select a device' : devices.length ? 'Pair another device' : 'Pair a device'), ''));
     devices.forEach((device, index) => {

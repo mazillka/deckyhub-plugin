@@ -128,6 +128,7 @@ PANEL = [
     (">Installed plugins<", ">Встановлені плагіни<"),
     (">Browse plugins to install<", ">Переглянути плагіни для встановлення<"),
     (">Refresh list<", ">Оновити список<"),
+    (">Refresh<", ">Оновити<"),
     ("Pair a device to see its installed plugins.", "Додайте пристрій, щоб побачити його встановлені плагіни."),
     (
         'aria-label="Search installed plugins" placeholder="Search installed plugins"',

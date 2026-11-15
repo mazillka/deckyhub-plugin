@@ -103,6 +103,8 @@
 .rd-devices-head, .rd-inv-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 12px; }
 .rd-devices h3, .rd-inv-head h3 { margin: 0; font-size: 1.1rem; }
 .rd-devices-head .btn, .rd-inv-head .btn { margin: 0; }
+.rd-devices-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+[data-has-devices="false"] #remote-devices-refresh { display: none; }
 .rd-cards { display: flex; gap: 10px; margin: 0; padding: 0 0 4px; list-style: none; overflow-x: auto; scroll-snap-type: x mandatory; }
 .rd-cards:empty { display: none; }
 @media (min-width: 900px) { .rd-cards { flex-direction: column; overflow: visible; padding: 0; } }

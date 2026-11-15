@@ -402,7 +402,7 @@ def remote_device_panel(lang: str = "en") -> str:
 </header>
 <div class="rd-layout">
 <aside class="rd-devices" aria-labelledby="rd-devices-title">
-<div class="rd-devices-head"><h3 id="rd-devices-title">Your devices</h3><button type="button" id="remote-pair-another" class="btn">+ Add device</button></div>
+<div class="rd-devices-head"><h3 id="rd-devices-title">Your devices</h3><span class="rd-devices-actions"><button type="button" id="remote-devices-refresh">Refresh</button> <button type="button" id="remote-pair-another" class="btn">+ Add device</button></span></div>
 <ul id="remote-device-cards" class="rd-cards" aria-label="Paired devices"></ul>
 <div class="rd-share">
 <button type="button" id="remote-share-button" class="btn">Pair another browser with a link</button>
