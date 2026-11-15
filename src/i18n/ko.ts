@@ -99,6 +99,7 @@ export const ko: Record<MessageKey, string> = {
   "details.about": "정보",
   "details.whatsNew": "{version}의 새로운 기능",
   "appcard.repository": "저장소",
+  "appcard.reportProblem": "문제 신고",
   "appcard.deckyhubPage": "DeckyHub 페이지",
   "appcard.channel": "채널: {channel}",
   "appcard.channelStable": "안정판",

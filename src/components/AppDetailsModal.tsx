@@ -17,7 +17,8 @@ import {
   FaTimes,
   FaTrash,
 } from "react-icons/fa";
-import { saveRepoSettings } from "../api";
+import { getDeckyHubInfo, saveRepoSettings } from "../api";
+import { reportIssueUrl } from "../report";
 import type { TFunc } from "../i18n/en";
 import {
   installWarnings,
@@ -309,6 +310,18 @@ export function AppDetailsModal({
             url={selectedRelease?.url}
             repoUrl={`https://github.com/${app.repo}`}
             pageUrl={app.official ? `https://deckyhub.com/plugins/${encodeURIComponent(app.id)}.html` : undefined}
+            onReport={async () => {
+              const info = await getDeckyHubInfo().catch(() => null);
+              const issue = reportIssueUrl({
+                repo: app.repo,
+                name: app.name,
+                version: app.installedVersion ? displayVersion(app.installedVersion) : undefined,
+                deckyhubVersion: info?.version,
+              });
+              if (!issue) return;
+              closeModal?.();
+              openExternalWeb(issue);
+            }}
             hideReleasePage={hiddenButtons.includes("releasePage")}
             checking={loading}
             disabled={loading}
