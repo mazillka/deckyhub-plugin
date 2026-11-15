@@ -60,8 +60,6 @@ export type PluginStats = {
   fork?: string;
   // The Decky store lists a plugin of this name (matched by name): its downloads there.
   store?: { downloads: number };
-  // Users' ratings (the registry's stats.json): how many gave stars and their average, and how many said it works / doesn't.
-  rating?: { rated?: number; average?: number; works?: number; broken?: number; easy?: number; hard?: number };
   ai?: string[];
   warnings?: string[];
   prereleaseWarnings?: string[];
@@ -160,9 +158,6 @@ export type Settings = {
   uiStyle: UiStyle;
   hiddenButtons: HideableButton[];
   remoteInstall?: boolean;
-  // Rating plugins (ratings.py): off until turned on; the ratings this device gave, by repository.
-  shareRatings?: boolean;
-  myRatings?: Record<string, { stars?: number; works?: boolean; ui?: boolean }>;
   repoSettings?: Record<string, RepoPreference>;
   customRepos?: string[];
   customRegistries?: string[];
