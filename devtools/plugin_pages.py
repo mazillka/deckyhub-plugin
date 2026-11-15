@@ -312,9 +312,8 @@ def security_scans(scans: dict, reports: dict, vt_reports: dict | None = None) -
                 )
             else:
                 status = EXTERNAL_STATUS.get(vt.get("state"), "No report yet")
-                # A scan that is still pending has no page to open yet; with no report at all the link is a lookup by hash.
-                link = "" if status == "Scan pending" else f" ({vt_link})"
-                rows.append(f"<tr><td>VirusTotal</td><td>{status}{link}</td><td></td></tr>")
+                # No link: until VirusTotal has a result its page for this file is empty, pending or not.
+                rows.append(f"<tr><td>VirusTotal</td><td>{status}</td><td></td></tr>")
             report = (reports or {}).get(sha.lower()) or {}
             if md_result(reports, sha):
                 data_id = report.get("dataId")
