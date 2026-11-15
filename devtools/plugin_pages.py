@@ -70,9 +70,6 @@ EXTERNAL_STATUS = {
 }
 
 EXTRA_STYLE = """
-.versions{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;padding:0;list-style:none}
-.versions li{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;overflow-wrap:anywhere}
-.versions li small{display:block;margin-top:4px;color:var(--muted)}
 .app{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;text-decoration:none;color:var(--text);display:flex;flex-direction:column;gap:2px;content-visibility:auto;contain-intrinsic-size:auto 150px}
 .app:hover{border-color:var(--accent2)}.app small{color:var(--accent2);font-size:.75rem;text-transform:uppercase;letter-spacing:.05em}
 .app p{margin:4px 0 0;color:var(--muted);font-size:.9rem;flex:1}.app .meta{color:var(--dim);font-size:.82rem;margin-top:8px}
@@ -109,7 +106,7 @@ details.more[open]>summary{border-bottom:1px solid var(--line);margin-bottom:12p
 .facts{grid-template-columns:repeat(2,minmax(0,1fr))}
 .cta .btn{flex:1 1 100%}
 .plugin h1{font-size:1.8rem}.lead{font-size:1.05rem}
-.versions,.list{grid-template-columns:1fr}
+.list{grid-template-columns:1fr}
 table.scans{display:block;overflow-x:auto}
 .chips button{min-height:40px}
 }
@@ -315,7 +312,9 @@ def security_scans(scans: dict, reports: dict, vt_reports: dict | None = None) -
                 )
             else:
                 status = EXTERNAL_STATUS.get(vt.get("state"), "No report yet")
-                rows.append(f"<tr><td>VirusTotal</td><td>{status} ({vt_link})</td><td></td></tr>")
+                # A scan that is still pending has no page to open yet; with no report at all the link is a lookup by hash.
+                link = "" if status == "Scan pending" else f" ({vt_link})"
+                rows.append(f"<tr><td>VirusTotal</td><td>{status}{link}</td><td></td></tr>")
             report = (reports or {}).get(sha.lower()) or {}
             if md_result(reports, sha):
                 data_id = report.get("dataId")
@@ -648,7 +647,6 @@ def plugin_page(
 </ol>
 <p class="note">Check that the owner and repository, <strong>{escape(repo)}</strong>, are the ones you expect: a plugin's name alone may not identify the right project. {"You can also download" if app.get("store") else "Prefer your phone or computer? Use <em>Send to device</em> below, or download"} the ZIP from its <a href="{escape(repo_url)}/releases">releases</a> and install it from Decky's developer settings.</p>
 {"" if app.get("store") else remote_install_picker(app["id"], badges)}
-{versions_section(releases or [])}
 <details class="more"><summary>Security scan details</summary>
 <p>Every ZIP DeckyHub offers is scanned with ClamAV and with YARA rules (YARA Forge's core set), and the same scans are shown in the app. The registry also sends each ZIP to VirusTotal and MetaDefender, uploading it if they haven't seen it yet, and their results are matched by the file's SHA-256.</p>
 {security_scans(scans, reports or {}, vt_reports)}
@@ -878,33 +876,6 @@ def catalog_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
         body,
         [trail, listing],
     )
-
-
-def versions_section(releases: list) -> str:
-    """Every release the index keeps for the plugin: its tag, date, pre-release badge and ZIP downloads."""
-    rows = []
-    for item in releases:
-        if not isinstance(item, dict) or item.get("draft") or not item.get("tag_name"):
-            continue
-        url = item.get("html_url") or ""
-        tag = escape(str(item["tag_name"]))
-        title = f'<a href="{escape(url)}">{tag}</a>' if url.startswith("https://github.com/") else tag
-        badge = ' <span class="badge warn">Pre-release</span>' if item.get("prerelease") else ""
-        zips = [
-            f'<a href="{escape(asset["browser_download_url"])}">{escape(str(asset.get("name")))}</a>'
-            for asset in item.get("assets") or []
-            if str(asset.get("name", "")).lower().endswith(".zip")
-            and str(asset.get("browser_download_url", "")).startswith("https://")
-        ]
-        anchor, when, files = (
-            escape(str(item["tag_name"]), quote=True),
-            nice_date(item.get("published_at")),
-            ", ".join(zips),
-        )
-        rows.append(f'<li id="v-{anchor}">{title}{badge}<small>{when}{" · " if zips else ""}{files}</small></li>')
-    if not rows:
-        return ""
-    return f'<h2>Versions</h2><p>The latest releases DeckyHub can install. Security scan details below cover only the newest stable and pre-release ZIPs.</p><ul class="versions">{"".join(rows)}</ul>'
 
 
 def prerelease_only(releases: list) -> bool:

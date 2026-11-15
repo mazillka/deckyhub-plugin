@@ -35,30 +35,18 @@ class PluginPageTests(unittest.TestCase):
         self.assertNotIn("Pre-release only", page)
         self.assertNotIn("No description", page)
 
-    def test_versions_lists_each_release_with_its_zip(self):
+    def test_a_plugin_page_has_no_versions_list(self):
         shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
         releases = [
             {
-                "tag_name": "v2",
-                "prerelease": True,
-                "published_at": "2026-02-03T00:00:00Z",
-                "html_url": "https://github.com/a/b/releases/tag/v2",
-                "assets": [{"name": "p.zip", "browser_download_url": "https://github.com/a/b/p.zip"}],
-            },
-            {
-                "tag_name": "v1<x>",
+                "tag_name": "v1",
                 "published_at": "2026-01-01T00:00:00Z",
-                "assets": [{"name": "p.zip", "browser_download_url": "http://evil/p.zip"}],
-            },
-            {"tag_name": "draft", "draft": True},
+                "assets": [{"name": "p.zip", "browser_download_url": "https://github.com/a/b/p.zip"}],
+            }
         ]
         page = plugin_pages.plugin_page(shell, APP, {}, {}, {}, [APP], releases=releases)
-        self.assertIn("<h2>Versions</h2>", page)
-        self.assertIn('href="https://github.com/a/b/p.zip">p.zip', page)
-        self.assertIn("v1&lt;x&gt;", page)
-        self.assertNotIn("evil", page)
-        self.assertNotIn(">draft<", page)
-        self.assertNotIn("<h2>Versions</h2>", self.page())
+        self.assertNotIn("Versions", page)
+        self.assertNotIn("p.zip", page)
 
     def test_decky_store_listing_shows_a_badge_counts_and_a_catalog_filter(self):
         page = self.page({"downloads": 1500, "store": {"downloads": 40000}})
@@ -360,3 +348,20 @@ class PluginInfoTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+    def test_a_pending_virustotal_scan_has_no_report_link_but_a_finished_one_does(self):
+        scans = {"a/b": {"stable": {"file": "p.zip", "tag": "v1", "sha256": SHA, "scans": {}}}}
+        pending = self.page(scans=scans, vt={SHA: {"state": "pending"}})
+        self.assertIn("<tr><td>VirusTotal</td><td>Scan pending</td>", pending)
+        self.assertNotIn(f"virustotal.com/gui/file/{SHA}", pending)
+        done = self.page(
+            scans=scans,
+            vt={
+                SHA: {
+                    "state": "complete",
+                    "stats": {"malicious": 0, "suspicious": 0, "harmless": 1, "undetected": 60},
+                    "scannedAt": 1793181436,
+                }
+            },
+        )
+        self.assertIn(f'href="https://www.virustotal.com/gui/file/{SHA}"', done)
