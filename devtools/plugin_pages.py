@@ -398,6 +398,7 @@ def remote_device_panel(lang: str = "en") -> str:
 <p class="rd-badge">Experimental · fully local</p>
 <h2 id="remote-title">Manage your devices from this browser</h2>
 <p>Install, update and remove Decky plugins without picking up your device. This page talks straight to your device on your network: nothing about your device or its plugins is collected or sent anywhere. <a href="/help.html#remote">How it works</a></p>
+<p class="rd-app" id="remote-app" hidden><button type="button" id="remote-app-install">Add to home screen or desktop</button> <span class="rd-hint">Opens this page as an app of its own, with its own icon and window. Nothing else is installed.</span></p>
 </header>
 <div class="rd-layout">
 <aside class="rd-devices" aria-labelledby="rd-devices-title">

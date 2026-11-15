@@ -10,6 +10,11 @@ import re
 
 PANEL = [
     ("Experimental · fully local", "Експериментально · повністю локально"),
+    (">Add to home screen or desktop<", ">Додати на головний екран або робочий стіл<"),
+    (
+        "Opens this page as an app of its own, with its own icon and window. Nothing else is installed.",
+        "Відкриває цю сторінку як окремий застосунок зі своєю іконкою й вікном. Більше нічого не встановлюється.",
+    ),
     ("Manage your devices from this browser", "Керуйте своїми пристроями з цього браузера"),
     (
         "Install, update and remove Decky plugins without picking up your device. This page talks straight to your device on your network: nothing about your device or its plugins is collected or sent anywhere. "
