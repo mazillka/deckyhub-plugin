@@ -761,6 +761,16 @@ def readme_steps(readme: str, heading: str) -> str:
     return "\n".join(f"<li>{item(step)}</li>" for step in steps)
 
 
+def guide_steps(guide: str, heading_id: str) -> str:
+    """The numbered steps (<li> items) under a heading of the user guide (docs/guide.html), by the heading's id, so the
+    Help page says what the guide says."""
+    section = guide.split(f'id="{heading_id}"', 1)[1]
+    steps = re.search(r"<ol>(.*?)</ol>", section, re.S)
+    if not steps:
+        raise SystemExit(f"the guide has no numbered steps under #{heading_id}")
+    return steps.group(1).strip()
+
+
 def slug(text: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
 

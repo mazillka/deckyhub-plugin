@@ -327,6 +327,12 @@ class PluginPageTests(unittest.TestCase):
         self.assertIn("Install with DeckyHub</a>", normal)
         self.assertIn("DeckyHub's <strong>Discover</strong>", normal)
 
+    def test_help_steps_come_from_a_heading_of_the_guide(self):
+        guide = '<h3 id="pair">Pair</h3><p>x</p><ol><li>One</li><li>Two <code>y</code></li></ol><h3 id="next">Next</h3><ol><li>Other</li></ol>'
+        self.assertEqual(plugin_pages.guide_steps(guide, "pair"), "<li>One</li><li>Two <code>y</code></li>")
+        with self.assertRaises(SystemExit):
+            plugin_pages.guide_steps('<h3 id="a">A</h3><p>none</p>', "a")
+
     def test_a_pending_virustotal_scan_has_no_report_link_but_a_finished_one_does(self):
         scans = {
             "stable": {

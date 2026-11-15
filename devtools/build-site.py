@@ -276,9 +276,9 @@ for name in ("index.html", "editor.html"):
             encoding="utf-8",
         )
 
-# help.html (its questions also as FAQ structured data) and about.html, each with a Ukrainian twin under uk/.
-HELP_ABOUT = ["help.html", "about.html", "uk/help.html", "uk/about.html"]
-for name in ("help.html", "about.html"):
+# help.html (its questions also as FAQ structured data), about.html and guide.html (the user guide), each with a Ukrainian twin under uk/.
+HELP_ABOUT = ["help.html", "about.html", "guide.html", "uk/help.html", "uk/about.html", "uk/guide.html"]
+for name in ("help.html", "about.html", "guide.html"):
     for lang, path, switch in (
         ("en", name, ("Українська", f"{SITE}uk/{name}", "uk")),
         ("uk", f"uk/{name}", ("English", f"{SITE}{name}", "en")),
@@ -286,10 +286,15 @@ for name in ("help.html", "about.html"):
         page_file = out / path
         text = page_file.read_text(encoding="utf-8")
         if name == "help.html":
-            # The Remote Install manual's steps come from the README, like the home page's install steps.
+            # The Remote Install manual's steps come from the guide (docs/guide.html); "#### ..." steps from the README.
+            guide = (ROOT / "docs" / ("guide.html" if lang == "en" else "uk/guide.html")).read_text(encoding="utf-8")
             text = re.sub(
                 r"<!-- steps: (.+?) -->",
-                lambda match: plugin_pages.readme_steps(readme if lang == "en" else readme_uk, match.group(1)),
+                lambda match: (
+                    plugin_pages.guide_steps(guide, match.group(1)[len("guide#") :])
+                    if match.group(1).startswith("guide#")
+                    else plugin_pages.readme_steps(readme if lang == "en" else readme_uk, match.group(1))
+                ),
                 text,
             )
             if "<!-- structured-data -->" not in text:
