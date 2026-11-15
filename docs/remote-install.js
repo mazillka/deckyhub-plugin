@@ -336,7 +336,7 @@ export function init(root, details) {
     requestId = idempotencyKey = requestPluginId = requestName = requestNames = undefined;
     const device = devices[index];
     rememberDevice(device);
-    if (!device) { setState(compact ? 'none' : 'new'); updateActions(); say(compact ? '' : 'Turn on Remote access on your device, then scan its QR code or paste the pairing link.'); return; }
+    if (!device) { setState(compact ? (reachable?.size ? 'ready' : 'none') : 'new'); updateActions(); say(compact ? '' : 'Turn on Remote access on your device, then scan its QR code or paste the pairing link.'); return; }
     try {
       setState(compact ? 'ready' : 'paired');
       endpoint = { url: deviceUrl(device.address), hashes: pinnedHashes(device) };
