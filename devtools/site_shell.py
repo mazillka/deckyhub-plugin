@@ -42,6 +42,8 @@ nav.site-nav .site-links a{color:#b6c3d4;text-decoration:none;font-size:.95rem;p
 nav.site-nav .site-links a:hover,nav.site-nav .site-links a[aria-current=page]{color:#fff}
 nav.site-nav a:focus-visible{outline:2px solid #4b9cf0;outline-offset:3px}
 @media(max-width:640px){nav.site-nav .site-nav-inner{padding:0 16px;gap:16px}nav.site-nav .site-links{gap:16px}}
+/* A short screen (the Steam Deck's browser is about 914x520, a phone held sideways less) needs the room for reading: the menu scrolls away. */
+@media(max-height:600px){nav.site-nav{position:static}}
 .skip{position:absolute;left:-9999px;top:8px;z-index:20;background:#fff;color:#10151f;padding:8px 14px;border-radius:6px;font-weight:600;text-decoration:none}.skip:focus{left:8px}
 footer a{display:inline-block;padding:4px 0}"""
 

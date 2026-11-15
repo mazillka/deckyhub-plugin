@@ -83,7 +83,7 @@ EXTRA_STYLE = """
 .chips{display:flex;flex-wrap:wrap;gap:8px}.chips button{padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:.9rem;cursor:pointer}
 .chips button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
 .crumbs{color:var(--dim);font-size:.9rem;margin:28px 0 6px}.crumbs a{color:var(--dim)}
-.plugin h1{margin-top:0}.plugin h2{font-size:1.25rem;margin:32px 0 10px}
+.plugin h1{margin-top:0}.plugin h2{font-size:1.25rem;margin:32px 0 10px;scroll-margin-top:72px}
 .lead{font-size:1.15rem;color:var(--muted);margin:0 0 18px}
 .facts{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin:0;padding:0;list-style:none}
 .facts li{min-width:0;overflow-wrap:anywhere;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;color:var(--muted);font-size:.9rem}.facts li.wide{grid-column:1/-1}.facts strong{display:block;color:var(--text);font-size:1.05rem}
@@ -95,6 +95,24 @@ EXTRA_STYLE = """
 .list a{display:block;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;text-decoration:none;color:var(--text);height:100%}
 .list a:hover{border-color:var(--accent2)}.list small{display:block;color:var(--muted);margin-top:4px}
 .note{color:var(--dim);font-size:.9rem}
+.cta{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px}.cta .btn{margin:0;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+.chips-row{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px;padding:0;list-style:none}
+.chip{padding:5px 13px;border-radius:999px;border:1px solid currentColor;font-size:.92rem;font-weight:600}
+.steps{display:grid;gap:12px;margin:0 0 12px;padding:0;list-style:none;counter-reset:step}
+.steps li{counter-increment:step;display:flex;gap:12px;align-items:flex-start;color:var(--text)}
+.steps li::before{content:counter(step);flex:none;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700;font-size:.9rem}
+details.more{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:0 16px;margin:12px 0}
+details.more>summary{cursor:pointer;padding:14px 0;font-weight:600;min-height:44px}
+details.more[open]>summary{border-bottom:1px solid var(--line);margin-bottom:12px}
+.badges li{min-width:0;overflow-wrap:anywhere}.plugin code{overflow-wrap:anywhere}
+@media(max-width:640px){
+.facts{grid-template-columns:repeat(2,minmax(0,1fr))}
+.cta .btn{flex:1 1 100%}
+.plugin h1{font-size:1.8rem}.lead{font-size:1.05rem}
+.versions,.list{grid-template-columns:1fr}
+table.scans{display:block;overflow-x:auto}
+.chips button{min-height:40px}
+}
 table.scans{width:100%;border-collapse:collapse;font-size:.92rem;margin:0 0 18px}.scans caption{text-align:left;color:var(--muted);padding:6px 0}.scans th,.scans td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}.scans th{color:var(--dim);font-weight:600}
 """
 
@@ -558,6 +576,23 @@ def paired_devices_page(
     return page(shell, title, description, path, body, app, current="paired-devices", lang=lang, switch=switch)
 
 
+BADGE_LABEL = re.compile(r'<span class="badge ([a-z ]+)">([^<]+)</span>')
+
+
+def safety_chips(badges: list[str]) -> str:
+    """The labels of the safety list as coloured chips, the short answer before the explanations."""
+    chips = [
+        f'<li class="chip {match.group(1)}">{match.group(2)}</li>'
+        for item in badges
+        if (match := BADGE_LABEL.search(item))
+    ]
+    return (
+        f'<ul class="chips-row">{"".join(chips)}</ul>'
+        if chips
+        else '<p class="chips-row"><span class="chip clean">No known issues</span></p>'
+    )
+
+
 def plugin_page(
     shell: dict[str, str],
     app: dict,
@@ -610,21 +645,29 @@ def plugin_page(
     body = f"""{crumbs}
 <h1>{escape(name)}</h1>
 <p class="lead">{escape(description)}</p>
-{STORE_ONLY_NOTE if app.get("store") else ""}<p><a class="btn" href="/#install">Install with DeckyHub</a><a class="btn ghost" href="{escape(repo_url)}">Source on GitHub</a>{"" if app.get("store") else '<a class="btn ghost" href="#remote-install">Send to device (experimental)</a>'}</p>
+{STORE_ONLY_NOTE if app.get("store") else ""}<p class="cta"><a class="btn" href="/#install">Install with DeckyHub</a><a class="btn ghost" href="{escape(repo_url)}">Source on GitHub</a>{"" if app.get("store") else '<a class="btn ghost" href="#remote-install">Send to device (experimental)</a>'}</p>
 <ul class="facts">{"".join(facts)}<li class="wide"><strong><a href="{escape(repo_url)}">{escape(repo)}</a></strong>Repository</li></ul>
-<h2>Install {escape(name)}</h2>
-<p class="note">Before updating an installed plugin, check that its GitHub owner and repository match the source shown here. Plugin names alone may not identify the correct project.</p>
-<p>{escape(name)} is a <a href="https://decky.xyz/">Decky Loader</a> plugin. With <a href="/">DeckyHub</a> installed, open DeckyHub's <strong>Discover</strong> tab in Gaming Mode, search for <strong>{escape(name)}</strong> and press <strong>Install</strong>. DeckyHub hands the release to Decky Loader's own installer and checks its SHA-256 whenever GitHub publishes one. You can also download the ZIP from its <a href="{escape(repo_url)}/releases">releases</a> and install it by hand from Decky's developer settings.</p>
+<h2 id="safety">Safety at a glance</h2>
+{safety_chips(badges)}
+<p class="note">{NOT_REVIEWED}</p>
+<details class="more"><summary>What these labels mean</summary>
+{"<ul class='badges'>" + "".join(badges) + "</ul>" if badges else "<p>No labels: it doesn't run as root, and no audit warnings or virus scan findings are known for it.</p>"}
+<p class="note">Browsing this plugin on GitHub? The free <a href="https://github.com/mazillka/deckyhub-ext">Deckyhub browser extension</a> shows these labels and scans there.</p>
+</details>
+<h2>How to install</h2>
+<ol class="steps">
+<li><span>Get <a href="/#install">DeckyHub</a> on your Steam Deck if you don't have it yet.</span></li>
+<li><span>In Gaming Mode open DeckyHub's <strong>Discover</strong> tab and search for <strong>{escape(name)}</strong>.</span></li>
+<li><span>Press <strong>Install</strong>. DeckyHub hands the release to <a href="https://decky.xyz/">Decky Loader</a>'s own installer and checks its SHA-256 whenever GitHub publishes one.</span></li>
+</ol>
+<p class="note">Check that the owner and repository, <strong>{escape(repo)}</strong>, are the ones you expect: a plugin's name alone may not identify the right project. {"You can also download" if app.get("store") else "Prefer your phone or computer? Use <em>Send to device</em> below, or download"} the ZIP from its <a href="{escape(repo_url)}/releases">releases</a> and install it from Decky's developer settings.</p>
 {"" if app.get("store") else remote_install_picker(app["id"], badges)}
 {versions_section(releases or [])}
-<h2>Safety information</h2>
-<p class="note">{NOT_REVIEWED}</p>
-{"<ul class='badges'>" + "".join(badges) + "</ul>" if badges else "<p>No badges: it doesn't run as root, and no audit warnings or virus scan findings are known for it.</p>"}
-<p class="note">Browsing this plugin on GitHub? The free <a href="https://github.com/mazillka/deckyhub-ext">Deckyhub browser extension</a> shows these badges and scans there.</p>
-<h2>Security scans</h2>
+<details class="more"><summary>Security scan details</summary>
 <p>Every ZIP DeckyHub offers is scanned with ClamAV and with YARA rules (YARA Forge's core set), and the same scans are shown in the app. The registry also sends each ZIP to VirusTotal and MetaDefender, uploading it if they haven't seen it yet, and their results are matched by the file's SHA-256.</p>
 {security_scans(scans, reports or {}, vt_reports)}
 <p class="note">DeckyHub doesn't make, review or vouch for {escape(name)}; it installs at your own risk. The scans only catch known malware, and malware can be built to get past them, so a clean scan isn't proof of safety. Only the <a href="https://plugins.deckbrew.xyz/">Decky plugin store</a> reviews plugins by hand. Check its repository before installing.</p>
+</details>
 {f'<h2>More {escape(category)} plugins</h2><ul class="list">' + "".join(f'<li><a href="/plugins/{escape(other["id"])}.html">{escape(other["name"])}<small>{escape(other.get("description") or "")}</small></a></li>' for other in related) + "</ul>" if related else ""}"""
     data = {
         "@type": "SoftwareApplication",
@@ -875,7 +918,7 @@ def versions_section(releases: list) -> str:
         rows.append(f'<li id="v-{anchor}">{title}{badge}<small>{when}{" · " if zips else ""}{files}</small></li>')
     if not rows:
         return ""
-    return f'<h2>Versions</h2><p>The latest releases DeckyHub can install. Security scans below cover only the newest stable and pre-release ZIPs.</p><ul class="versions">{"".join(rows)}</ul>'
+    return f'<h2>Versions</h2><p>The latest releases DeckyHub can install. Security scan details below cover only the newest stable and pre-release ZIPs.</p><ul class="versions">{"".join(rows)}</ul>'
 
 
 def prerelease_only(releases: list) -> bool:

@@ -69,6 +69,36 @@ class PluginPageTests(unittest.TestCase):
         self.assertIn('data-store="1"', plugin_pages.card(APP, data))
         self.assertNotIn("data-store", plugin_pages.card(APP, {"stats": {}, "scans": {}}))
 
+    def test_the_page_leads_with_a_short_safety_summary_and_plain_install_steps_that_fit_a_phone(self):
+        page = self.page(
+            {"root": True, "ai": ["CLAUDE.md"]},
+            {
+                "stable": {
+                    "tag": "v1",
+                    "file": "x.zip",
+                    "sha256": SHA,
+                    "clamav": {"result": "clean"},
+                    "yara": {"result": "clean"},
+                }
+            },
+        )
+        self.assertIn('<h2 id="safety">Safety at a glance</h2>', page)
+        chips = page[page.index('class="chips-row"') : page.index("What these labels mean")]
+        for label in ("Runs as root", "AI", "No threats"):
+            self.assertIn(f">{label}</li>", chips)
+        self.assertIn('<ol class="steps">', page)
+        self.assertLess(page.index("Safety at a glance"), page.index("How to install"))
+        # The long explanations and the scan tables are folded away until asked for.
+        self.assertIn('<details class="more"><summary>What these labels mean</summary>', page)
+        self.assertIn('<details class="more"><summary>Security scan details</summary>', page)
+        # Phones: nothing can push the page wider than the screen, and the facts sit two to a row.
+        self.assertIn(".badges li{min-width:0;overflow-wrap:anywhere}", page)
+        self.assertIn(".facts{grid-template-columns:repeat(2,minmax(0,1fr))}", page)
+        self.assertNotIn("Safety information", page)
+        # A short screen (the Steam Deck's browser is about 914x520) keeps its room: the menu scrolls away.
+        self.assertIn("@media(max-height:600px){nav.site-nav{position:static}}", page)
+        self.assertIn("No known issues", plugin_pages.safety_chips([]))
+
     def test_downloads_are_github_plus_the_decky_store_in_the_page_the_card_and_the_ranking(self):
         page = self.page({"downloads": 1500, "store": {"downloads": 40000}})
         self.assertIn("<strong>41.5K</strong>Downloads in total", page)
@@ -156,7 +186,7 @@ class PluginPageTests(unittest.TestCase):
             scans=scans, reports={SHA: {"state": "complete", "flagged": 0, "total": 21, "dataId": "abc123"}}
         )
         for text in (
-            "Security scans",
+            "Security scan details",
             "No threats found",
             f'href="https://www.virustotal.com/gui/file/{SHA}"',
             "0 of 21 engines flagged this file",
