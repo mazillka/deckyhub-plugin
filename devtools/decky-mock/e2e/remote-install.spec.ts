@@ -64,7 +64,14 @@ test("Pairing opens in a window; the panel only has the button", async ({ page }
   const modal = app.locator(".steam-modal");
   await expect(modal.getByText("Scan to open Paired devices")).toBeVisible();
   await expect(modal.locator("img")).toBeVisible();
+  // Drawn at whole pixels per square and shown at its own size, so a camera sees even squares.
+  const qr = await modal.locator("img").evaluate((img) => [img.width, img.height, img.naturalWidth]);
+  expect(qr[0]).toBe(qr[2]); // shown at its own size, not scaled
+  expect(qr[0]).toBe(qr[1]);
+  expect(qr[0]).toBeGreaterThanOrEqual(250);
   await expect(modal.getByText(/^\d{6}$/)).toBeVisible();
+  // The bigger code still leaves the window's buttons on a 1280x800 screen.
+  await expect(modal.getByRole("button", { name: "Close" })).toBeInViewport();
   await expect(modal.getByText("Both devices must be on the same Wi-Fi.")).toBeVisible();
 
   await modal.getByRole("button", { name: "Close" }).click();

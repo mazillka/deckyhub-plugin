@@ -390,6 +390,22 @@
 }
 .rd-dialog::backdrop { background: rgba(0, 0, 0, .65); }
 body:has(.rd-dialog[open]) { overflow: hidden; }
+/* The camera's picture has the camera's own size: without a limit it is wider than the window and pushes it off the screen. */
+.rd-dialog { overflow-x: hidden; }
+.rd-dialog-body { min-width: 0; }
+#remote-scan-video {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  max-height: 50vh;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 12px;
+  background: #000;
+}
+#remote-scan-video[hidden] { display: none; }
 .rd-dialog-head {
   position: sticky;
   top: 0;

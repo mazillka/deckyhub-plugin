@@ -94,7 +94,9 @@ export function PairDeviceModal({ t, closeModal }: { t: TFunc; closeModal?: () =
     const code = qrcode(0, "M");
     code.addData(link);
     code.make();
-    return code.createDataURL(5, 12);
+    // 4 px a square and a 16 px margin, shown at exactly that size: scaled to 220 px the squares were 3 or 4 px wide
+    // alternately, which a camera reads badly.
+    return { src: code.createDataURL(4, 16), size: code.getModuleCount() * 4 + 32 };
   }, [link]);
 
   const decide = async (id: string, name: string, approve: boolean) => {
@@ -174,7 +176,7 @@ export function PairDeviceModal({ t, closeModal }: { t: TFunc; closeModal?: () =
           }}
         >
           {qr && !expired ? (
-            <img src={qr} alt="" style={{ width: 220, height: 220, imageRendering: "pixelated" }} />
+            <img src={qr.src} alt="" style={{ width: qr.size, height: qr.size, imageRendering: "pixelated" }} />
           ) : (
             <div style={{ color: colors.warning }}>{t("remote.expired")}</div>
           )}
