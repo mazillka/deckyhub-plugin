@@ -48,7 +48,12 @@ class DocsTests(unittest.TestCase):
         sitemap = (ROOT / "docs" / "sitemap.xml").read_text(encoding="utf-8")
         self.assertIn("<loc>https://deckyhub.com/uk/guide.html</loc>", sitemap)
         self.assertIn("<loc>https://deckyhub.com/uk/authors.html</loc>", sitemap)
-        for page in ("docs/contribute/index.html", "docs/uk/contribute/index.html", "docs/about.html", "docs/uk/about.html"):
+        for page in (
+            "docs/contribute/index.html",
+            "docs/uk/contribute/index.html",
+            "docs/about.html",
+            "docs/uk/about.html",
+        ):
             self.assertIn("authors.html", (ROOT / page).read_text(encoding="utf-8"), page)
 
     def test_the_markdown_copies_of_help_and_guide_match_the_pages(self):
