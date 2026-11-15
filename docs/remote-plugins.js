@@ -211,7 +211,7 @@ export function createPluginList(root, { loadPage, request }) {
         link.rel = 'noopener noreferrer';
         link.textContent = plugin.repo;
         repository.append(link);
-      } else repository.textContent = translate(pageId ? 'Repository unavailable' : 'Not in the DeckyHub list');
+      } else repository.textContent = translate(pageId ? 'Repository unavailable' : 'Not matched to the DeckyHub list');
       row.append(title, version, repository);
       const verified = plugin.identityUnverified === false &&
         typeof plugin.id === 'string' && /^[a-z0-9][a-z0-9-]{0,127}$/.test(plugin.id) &&

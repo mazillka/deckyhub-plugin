@@ -210,6 +210,7 @@ export const cs: Record<MessageKey, string> = {
   "appcard.noReleaseNotes": "Toto vydání nemá poznámky.",
   "install.disclaimer":
     "DeckyHub stahuje vydání pouze z repozitářů jejich autorů na GitHubu. Tyto pluginy nevytváří, nekontroluje ani za ně neručí a nenese odpovědnost za to, co udělají s vaším zařízením nebo daty. Instalujete na vlastní riziko.",
+  "install.noHash": "GitHub u tohoto souboru nezveřejnil SHA-256, takže DeckyHub nemůže ověřit, že dorazil beze změny.",
   "pending.title": "Nainstalovat vybrané pluginy?",
   "pending.description":
     "Tyto pluginy jste vybrali v instalátoru. Decky Loader vás před instalací požádá o další potvrzení.",

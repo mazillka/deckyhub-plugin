@@ -198,6 +198,7 @@ export const zh: Record<MessageKey, string> = {
   "appcard.noReleaseNotes": "此版本没有说明。",
   "install.disclaimer":
     "DeckyHub 仅从作者的 GitHub 仓库获取发布版本，不制作、不审核也不担保这些插件，对它们给你的设备或数据造成的任何影响概不负责。安装风险自负。",
+  "install.noHash": "GitHub 没有为此文件发布 SHA-256，因此 DeckyHub 无法确认它是否未被改动。",
   "pending.title": "安装你选择的插件？",
   "pending.description": "这些是你在安装程序中选择的插件。安装前，Decky Loader 会再请你确认一次。",
   "pending.install": "安装所选插件",

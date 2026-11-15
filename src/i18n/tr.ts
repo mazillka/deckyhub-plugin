@@ -209,6 +209,8 @@ export const tr: Record<MessageKey, string> = {
   "appcard.noReleaseNotes": "Bu sürümün notu yok.",
   "install.disclaimer":
     "DeckyHub sürümleri yalnızca yazarlarının GitHub depolarından alır. Bu eklentileri yapmaz, incelemez veya onlara kefil olmaz; cihazına veya verilerine yaptıklarından sorumlu değildir. Yükleme riski sana aittir.",
+  "install.noHash":
+    "GitHub bu dosya için SHA-256 yayımlamadığından DeckyHub dosyanın değişmeden ulaştığını doğrulayamaz.",
   "pending.title": "Seçtiğin eklentiler yüklensin mi?",
   "pending.description": "Bu eklentileri yükleyicide seçtin. Decky Loader yüklemeden önce bir kez daha onay isteyecek.",
   "pending.install": "Seçilenleri yükle",
