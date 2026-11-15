@@ -174,6 +174,33 @@ test('the Paired devices page lists one card per paired device and forgets one',
   assert.deepEqual(JSON.parse(saved), []);
 });
 
+test('a request left over from another page is asked about once, and a finished or forgotten one stops blocking the device', async (t) => {
+  for (const [response, cleared] of [
+    ['{"ok":true,"requestId":"req","status":"installed"}', true],
+    ['{"ok":false,"error":"Request rejected","code":"request_not_found"}', true],
+    ['{"ok":true,"requestId":"req","status":"approved"}', false],
+  ]) {
+    const device = { name: 'Deck', address: '192.168.1.20:8765', fingerprint: 'aa'.repeat(32), token: 'a'.repeat(43), lastUsed: Date.now(), pending: { id: 'req', key: 'key', pluginId: 'example', action: 'install' } };
+    let saved = JSON.stringify([device]);
+    const sent = [];
+    const { root } = fakePage(t, {
+      localStorage: { getItem: key => key.endsWith('pairedDevices') ? saved : null, setItem: (key, value) => { if (key.endsWith('pairedDevices')) saved = value; }, removeItem() {} },
+      WebTransport: class {
+        ready = Promise.resolve();
+        closed = new Promise(() => {});
+        createBidirectionalStream = transportReturning(response, sent).createBidirectionalStream;
+        close() {}
+      },
+    });
+    init(root);
+    await new Promise(resolve => setTimeout(resolve, 50));
+    const ops = sent.map(text => JSON.parse(text).op);
+    assert.equal(ops[0], 'status');
+    assert.equal(ops.filter(op => op === 'status').length, 1);
+    assert.equal(Boolean(JSON.parse(saved)[0].pending), !cleared, response);
+  }
+});
+
 test('the link for another browser can be shared only where the browser has a share sheet', async (t) => {
   const run = async (share) => {
     const { querySelector, root } = fakePage(t, { navigator: { userAgent: '', share } });

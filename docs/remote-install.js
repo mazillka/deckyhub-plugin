@@ -336,6 +336,22 @@ export function init(root, details) {
     root.dataset.hasDevices = String(devices.length > 0);
     renderCards(selected);
   };
+  // A request left over from another page (the person moved on while Decky was still installing): ask once how it ended,
+  // so a request that finished, or that the device forgot, does not keep this device's list blocked.
+  const settlePending = async device => {
+    const id = requestId;
+    try {
+      const next = await send({ op: 'status', token, requestId: id });
+      if (requestId !== id || !TERMINAL.has(next.status)) return;
+    } catch (error) {
+      if (error?.code !== 'request_not_found' || requestId !== id) return;
+    }
+    idempotencyKey = requestId = requestPluginId = requestName = requestNames = undefined;
+    saveRequest();
+    updateActions();
+    say(compact ? '' : `${device.name} selected.`);
+    void inventory?.load();
+  };
   const selectDevice = index => {
     disconnect();
     requestId = idempotencyKey = requestPluginId = requestName = requestNames = undefined;
@@ -362,6 +378,7 @@ export function init(root, details) {
       say(requestPluginId
         ? 'This device has a pending request. Retry its status before starting another change.'
         : compact ? '' : `${device.name} selected.`);
+      if (requestId && !busy) void settlePending(device);
     } catch (error) { showError(error); }
   };
   picker.addEventListener('change', () => selectDevice(picker.value));
