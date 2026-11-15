@@ -17,7 +17,9 @@ self.addEventListener('fetch', event => {
   if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) return;
   event.respondWith((async () => {
     try {
-      const response = await fetch(request);
+      // no-cache: ask the server whether the file changed instead of trusting the browser's HTTP cache, so a new release
+      // reaches the installed app at once (the page says it comes from the network; a cached script would make it stale).
+      const response = await fetch(request, { cache: 'no-cache' });
       if (response.ok) (await caches.open(CACHE)).put(request, response.clone());
       return response;
     } catch {

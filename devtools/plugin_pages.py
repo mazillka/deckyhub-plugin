@@ -536,7 +536,7 @@ def remote_install_picker(plugin_id: str, safety: list[str] | None = None) -> st
 {safety_block(safety)}<p class="remote-actions"><button type="button" id="remote-risk-send">I understand the risks, send it</button><button type="button" id="remote-risk-cancel">Cancel</button></p>
 </div>
 </dialog>
-<p class="rc-pair"><a id="remote-pair-new" class="btn" href="/remote-install/">Pair a device</a><button type="button" id="remote-refresh" hidden>Refresh</button><span>Pair once, then install from any plugin page.</span></p>
+<p class="rc-pair"><button type="button" id="remote-refresh" hidden>Refresh</button><a id="remote-pair-new" class="btn" href="/remote-install/">Pair a device</a><span>Pair once, then install from any plugin page.</span></p>
 <p class="rd-hint">Your browser talks straight to your device on your network. Nothing about your device or its plugins is collected or sent anywhere. <a href="/help.html#remote">How to use it</a></p>
 </div>
 <link rel="modulepreload" href="/remote-core.js"><link rel="modulepreload" href="/remote-i18n.js"><link rel="modulepreload" href="/remote-plugins.js"><link rel="modulepreload" href="/remote-updates.js"><link rel="modulepreload" href="/remote-scan.js"><link rel="modulepreload" href="/remote-share.js"><script type="module" src="/remote-install.js"></script>
