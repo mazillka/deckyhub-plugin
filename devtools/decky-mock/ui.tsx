@@ -78,6 +78,7 @@ export function Button({
   );
 }
 
+export const DialogButton = Button;
 export const DialogButtonPrimary = Button;
 
 export function ModalRoot({ children, bAllowFullSize }: { children?: ReactNode; bAllowFullSize?: boolean }) {
