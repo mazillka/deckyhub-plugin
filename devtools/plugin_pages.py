@@ -143,7 +143,6 @@ def compact(number: int) -> str:
     return str(number)
 
 
-
 def total_downloads(stats: dict) -> int | None:
     """GitHub's downloads plus the Decky store's (they count different installs); None when neither is known."""
     github, store = stats.get("downloads"), (stats.get("store") or {}).get("downloads")
