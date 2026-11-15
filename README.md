@@ -32,7 +32,7 @@ Find, install and update Decky Loader plugins with your controller — from Deck
 
 <img src="screenshots/hero.jpg" width="800" alt="DeckyHub: Decky plugins, straight from GitHub. Its Discover screen, with plugin categories and the most popular plugins.">
 
-<img src="promo/deckyhub.gif" width="800" alt="DeckyHub in action: its Quick Access tab with an update dot, Discover, a plugin's details, Updates with what each brings, and Settings tabs.">
+<img src="promo/deckyhub.gif" width="800" alt="DeckyHub in action: its Quick Access tab, Discover, a plugin's details, the Updates page, and Settings tabs.">
 
 <table>
 <tr>
