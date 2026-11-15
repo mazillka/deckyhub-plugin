@@ -412,7 +412,7 @@ for html_file in out.rglob("*.html"):
     # CSP cannot express private IP ranges. The pairing form validates private IPv4 and pins the certificate.
     policy = (
         CSP.replace("https://raw.githubusercontent.com;", "https://raw.githubusercontent.com https://*:8765;")
-        if '<section id="remote-install"' in text
+        if 'id="remote-install"' in text
         else CSP
     )
     # Browsers hash a script's text as parsed, with LF line ends, which is how Python holds it here.

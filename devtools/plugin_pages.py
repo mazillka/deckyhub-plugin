@@ -527,9 +527,10 @@ def remote_install_picker(plugin_id: str, safety: list[str] | None = None) -> st
     install, so it is read before anything is sent."""
     # data-state (remote-install.js): checking, none (no device to send to), ready, waiting (for approval on the
     # device), installing, done, failed; see remote-install.css.
-    return f"""<section id="remote-install" class="remote-install remote-compact" aria-labelledby="remote-send-title" data-plugin-id="{escape(plugin_id, quote=True)}" data-state="checking">
+    return f"""<dialog id="remote-install" class="remote-install remote-compact rd-dialog" aria-labelledby="remote-send-title" data-plugin-id="{escape(plugin_id, quote=True)}" data-state="checking">
 <link rel="stylesheet" href="/remote-install.css">
-<div class="rc-head"><h3 id="remote-send-title">Install on your device</h3><span class="rd-badge">Experimental · fully local</span></div>
+<div class="rd-dialog-head"><h3 id="remote-send-title">Install on your device</h3><span class="rd-badge">Experimental · fully local</span><button type="button" id="remote-close" class="rd-close" aria-label="Close">×</button></div>
+<div class="rd-dialog-body">
 <div class="remote-actions rc-send">
 <select id="remote-device-picker" aria-label="Paired device" disabled><option value="">Select a device</option></select>
 <button type="button" id="remote-request" disabled>Send to device</button>
@@ -544,8 +545,9 @@ def remote_install_picker(plugin_id: str, safety: list[str] | None = None) -> st
 </dialog>
 <p class="rc-pair"><a id="remote-pair-new" class="btn" href="/remote-install/">Pair a device</a><span>Pair once, then install from any plugin page.</span></p>
 <p class="rd-hint">Your browser talks straight to your device on your network. Nothing is collected or sent anywhere. <a href="/help.html#remote">How to use it</a></p>
+</div>
 <link rel="modulepreload" href="/remote-core.js"><link rel="modulepreload" href="/remote-i18n.js"><link rel="modulepreload" href="/remote-plugins.js"><link rel="modulepreload" href="/remote-updates.js"><link rel="modulepreload" href="/remote-scan.js"><link rel="modulepreload" href="/remote-share.js"><script type="module" src="/remote-install.js"></script>
-</section>"""
+</dialog>"""
 
 
 def paired_devices_page(
@@ -630,7 +632,7 @@ def plugin_page(
     body = f"""{crumbs}
 <h1>{escape(name)}</h1>
 <p class="lead">{escape(description)}</p>
-{STORE_ONLY_NOTE if app.get("store") else ""}<p class="cta"><a class="btn" href="/#install">Install with DeckyHub</a><a class="btn ghost" href="{escape(repo_url)}">Source on GitHub</a>{"" if app.get("store") else '<a class="btn ghost" href="#remote-install">Send to device (experimental)</a>'}</p>
+{STORE_ONLY_NOTE if app.get("store") else ""}<p class="cta"><a class="btn" href="/#install">Install with DeckyHub</a><a class="btn ghost" href="{escape(repo_url)}">Source on GitHub</a>{"" if app.get("store") else '<button type="button" class="btn ghost" id="remote-open" aria-haspopup="dialog">Send to device (experimental)</button>'}</p>
 <ul class="facts">{"".join(facts)}<li class="wide"><strong><a href="{escape(repo_url)}">{escape(repo)}</a></strong>Repository</li></ul>
 <h2 id="safety">Safety at a glance</h2>
 {safety_chips(badges)}
@@ -645,7 +647,7 @@ def plugin_page(
 <li><span>In Gaming Mode open DeckyHub's <strong>Discover</strong> tab and search for <strong>{escape(name)}</strong>.</span></li>
 <li><span>Press <strong>Install</strong>. DeckyHub hands the release to <a href="https://decky.xyz/">Decky Loader</a>'s own installer and checks its SHA-256 whenever GitHub publishes one.</span></li>
 </ol>
-<p class="note">Check that the owner and repository, <strong>{escape(repo)}</strong>, are the ones you expect: a plugin's name alone may not identify the right project. {"You can also download" if app.get("store") else "Prefer your phone or computer? Use <em>Send to device</em> below, or download"} the ZIP from its <a href="{escape(repo_url)}/releases">releases</a> and install it from Decky's developer settings.</p>
+<p class="note">Check that the owner and repository, <strong>{escape(repo)}</strong>, are the ones you expect: a plugin's name alone may not identify the right project. {"You can also download" if app.get("store") else "Prefer your phone or computer? Use <em>Send to device</em> above, or download"} the ZIP from its <a href="{escape(repo_url)}/releases">releases</a> and install it from Decky's developer settings.</p>
 {"" if app.get("store") else remote_install_picker(app["id"], badges)}
 <details class="more"><summary>Security scan details</summary>
 <p>Every ZIP DeckyHub offers is scanned with ClamAV and with YARA rules (YARA Forge's core set), and the same scans are shown in the app. The registry also sends each ZIP to VirusTotal and MetaDefender, uploading it if they haven't seen it yet, and their results are matched by the file's SHA-256.</p>

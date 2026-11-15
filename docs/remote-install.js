@@ -673,6 +673,14 @@ export function init(root, details) {
     } catch (error) { showError(error); }
   });
   updateActions();
+  // A plugin's page: Send to device opens this card as a window; the close button, Escape or a click outside close it.
+  if (compact && root.showModal) {
+    const open = () => { if (!root.open) root.showModal(); };
+    root.ownerDocument.getElementById('remote-open')?.addEventListener('click', open);
+    byId('close')?.addEventListener('click', () => root.close());
+    root.addEventListener('click', event => { if (event.target === root) root.close(); });
+    if (location.hash === '#remote-install') open();
+  }
   if (form && details) openAdd();
   if (form && details?.pairingToken) void pairDevice(details);
   addEventListener('pagehide', disconnect, { once: true });
