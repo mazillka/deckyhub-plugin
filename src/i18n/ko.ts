@@ -207,6 +207,8 @@ export const ko: Record<MessageKey, string> = {
   "appcard.noReleaseNotes": "이 릴리스에는 노트가 없습니다.",
   "install.disclaimer":
     "DeckyHub는 제작자의 GitHub 저장소에서 릴리스를 가져올 뿐입니다. 이 플러그인을 만들거나 검토하거나 보증하지 않으며, 플러그인이 기기나 데이터에 하는 일에 책임지지 않습니다. 설치는 본인 책임입니다.",
+  "install.noHash":
+    "GitHub가 이 파일의 SHA-256을 게시하지 않아 DeckyHub는 파일이 변경 없이 도착했는지 확인할 수 없습니다.",
   "pending.title": "선택한 플러그인을 설치할까요?",
   "pending.description": "설치 프로그램에서 고른 플러그인입니다. 설치 전에 Decky Loader가 한 번 더 확인합니다.",
   "pending.install": "선택 항목 설치",

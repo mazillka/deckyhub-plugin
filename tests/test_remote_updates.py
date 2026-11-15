@@ -45,10 +45,6 @@ class SummaryTests(unittest.TestCase):
             self.service.remote({"op": "summary", "token": secrets.token_urlsafe(32)})
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class ConnectionTests(unittest.TestCase):
     def test_the_last_few_connections_are_kept_newest_first_with_how_long_ago(self):
         now = [100.0]
@@ -63,3 +59,7 @@ class ConnectionTests(unittest.TestCase):
         self.assertEqual(shown[-1]["peer"], "192.168.1.2")
         service.note_connection("x" * 200, "refused")
         self.assertEqual(len(service.list_connections()[0]["peer"]), 64)
+
+
+if __name__ == "__main__":
+    unittest.main()

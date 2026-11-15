@@ -210,6 +210,8 @@ export const ja: Record<MessageKey, string> = {
   "appcard.noReleaseNotes": "このリリースにはノートがありません。",
   "install.disclaimer":
     "DeckyHub は作者の GitHub リポジトリからリリースを取得するだけです。これらのプラグインの作成・審査・保証は行わず、デバイスやデータに対するプラグインの動作について一切責任を負いません。自己責任でインストールしてください。",
+  "install.noHash":
+    "GitHub がこのファイルの SHA-256 を公開していないため、DeckyHub は変更されずに届いたかを確認できません。",
   "pending.title": "選択したプラグインをインストールしますか？",
   "pending.description": "インストーラーで選んだプラグインです。インストール前に、Decky Loader がもう一度確認します。",
   "pending.install": "選択をインストール",

@@ -120,10 +120,6 @@ class TrustedDeviceTests(Base):
         self.assertEqual(self.service.list_trusted_requests(), [])
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class AuditFixTests(Base):
     def setUp(self):
         self.now = 1000.0
@@ -197,3 +193,7 @@ class AuditFixTests(Base):
         with self.assertRaises(ValueError):
             self.service.owner(self.token)
         self.assertEqual(self.service.list_devices(), [])
+
+
+if __name__ == "__main__":
+    unittest.main()

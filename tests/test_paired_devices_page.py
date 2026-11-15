@@ -102,10 +102,6 @@ class UkrainianPageTests(unittest.TestCase):
         self.assertIn('href="https://deckyhub.com/uk/remote-install/"', page)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class PhoneWarningsTests(unittest.TestCase):
     def window_of(self, card):
         return card.split('<dialog id="remote-risk-dialog"', 1)[1].split("</dialog>", 1)[0]
@@ -129,3 +125,7 @@ class PhoneWarningsTests(unittest.TestCase):
     def test_a_plugin_with_nothing_to_warn_about_still_says_so_in_the_window(self):
         window = self.window_of(plugin_pages.remote_install_picker("some-plugin", []))
         self.assertIn("No badges", window)
+
+
+if __name__ == "__main__":
+    unittest.main()

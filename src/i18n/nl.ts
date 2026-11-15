@@ -215,6 +215,8 @@ export const nl: Record<MessageKey, string> = {
   "appcard.noReleaseNotes": "Deze release heeft geen notities.",
   "install.disclaimer":
     "DeckyHub haalt releases alleen op uit de GitHub-repository's van hun makers. Het maakt, controleert of garandeert deze plugins niet en is niet verantwoordelijk voor wat ze met je apparaat of gegevens doen. Installeren is op eigen risico.",
+  "install.noHash":
+    "GitHub heeft geen SHA-256 voor dit bestand gepubliceerd, dus DeckyHub kan niet controleren of het ongewijzigd is aangekomen.",
   "pending.title": "Gekozen plugins installeren?",
   "pending.description":
     "Je koos deze plugins in het installatieprogramma. Decky Loader vraagt nog een keer om bevestiging voordat het ze installeert.",
