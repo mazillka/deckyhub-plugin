@@ -1,5 +1,5 @@
 import { Focusable, Navigation, Tabs } from "@decky/ui";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { FaCog } from "react-icons/fa";
 import { getSettings, saveSettings } from "../api";
 import { PageHeader } from "../components/Card";
@@ -54,8 +54,14 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
   const [quota, setQuota] = useState<Awaited<ReturnType<typeof githubCoreQuota>>>(null);
   const refreshQuota = () => void githubCoreQuota().then(setQuota, () => setQuota(null));
 
+  // The newest settings the page knows of, and which save is the newest: toggles pressed one after another
+  // each merge into the previous one, and a slower earlier save must not put its older copy back.
+  const latest = useRef(settings);
+  const saves = useRef(0);
+
   useEffect(() => {
     void getSettings().then((loaded) => {
+      latest.current = loaded;
       setSettings(loaded);
       // Keep anything typed before this load resolved instead of clobbering it.
       setTokenDraft((draft) => draft || loaded.githubToken);
@@ -67,10 +73,15 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
   }, []);
 
   const update = (next: Partial<Settings>) => {
-    const merged = { ...settings, ...next };
+    const merged = { ...latest.current, ...next };
+    latest.current = merged;
     setSettings(merged);
+    const save = ++saves.current;
     void saveSettings(merged).then((saved) => {
-      setSettings(saved);
+      if (save === saves.current) {
+        latest.current = saved;
+        setSettings(saved);
+      }
       if ("githubToken" in next) {
         setTokenDraft(saved.githubToken);
         setGithubToken(saved.githubToken);
