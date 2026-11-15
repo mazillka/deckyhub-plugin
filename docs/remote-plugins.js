@@ -111,6 +111,11 @@ export function createPluginList(root, { loadPage, request }) {
   let installed = [];
   let pack; // { name, repos } from the picked pack file
   const actionButtons = [];
+  // Request update is offered only for a plugin the device says has an update (docs/remote-updates.js);
+  // until the device has said so, none is.
+  const updateRows = [];
+  let waiting = null; // lowercase names of the plugins with an update, or null when not known
+  const showUpdates = () => updateRows.forEach(({ button, plugin }) => { button.hidden = !waiting?.has(String(plugin.name).toLowerCase()); });
   const updateButtons = () => {
     refresh.disabled = !enabled || loading;
     actionButtons.forEach(button => { button.disabled = !enabled || loading; });
@@ -181,6 +186,7 @@ export function createPluginList(root, { loadPage, request }) {
   const render = plugins => {
     list.replaceChildren();
     actionButtons.length = 0;
+    updateRows.length = 0;
     const pending = [];
     installed = plugins;
     for (const plugin of plugins) {
@@ -223,6 +229,7 @@ export function createPluginList(root, { loadPage, request }) {
           button.addEventListener('click', () => request(plugin.id, action));
           actions.append(button);
           actionButtons.push(button);
+          if (action === 'update') updateRows.push({ button, plugin });
         }
         row.append(actions);
       } else if (plugin.pluginName && plugin.pluginName.toLowerCase() !== 'deckyhub') {
@@ -250,6 +257,7 @@ export function createPluginList(root, { loadPage, request }) {
       list.append(row);
       pending.push({ row, plugin });
     }
+    showUpdates();
     status.textContent = translate(plugins.length ? `${plugins.length} installed ${plugins.length === 1 ? 'plugin' : 'plugins'}` : 'No installed plugins found.');
     updateButtons();
     applyFilter();
@@ -303,6 +311,11 @@ export function createPluginList(root, { loadPage, request }) {
       updateButtons();
     },
     setEnabled(value) { enabled = value; updateButtons(); },
+    // The device's update summary (undefined when it could not be read).
+    setUpdates(summary) {
+      waiting = summary && summary.checkedAt !== null ? new Set(summary.updates.map(item => item.name.toLowerCase())) : null;
+      showUpdates();
+    },
     load,
   };
 }

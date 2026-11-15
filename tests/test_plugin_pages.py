@@ -298,6 +298,11 @@ class PluginPageTests(unittest.TestCase):
     def test_inline_markdown_escapes_html(self):
         self.assertEqual(plugin_pages.inline_markdown("a <b> & **c**"), "a &lt;b&gt; &amp; <strong>c</strong>")
 
+    def test_every_button_that_looks_like_a_link_button_shows_a_pointer(self):
+        # Send to device is a <button> (it opens a window), and a button has no pointer cursor of its own.
+        style = self.page().split("<style>")[1].split("</style>")[0]
+        self.assertRegex(style, r"\.btn\{[^}]*cursor:pointer")
+
     def test_a_pending_virustotal_scan_has_no_report_link_but_a_finished_one_does(self):
         scans = {
             "stable": {

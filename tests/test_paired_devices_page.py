@@ -53,6 +53,11 @@ class PairLinkTests(unittest.TestCase):
 
 
 class UkrainianPageTests(unittest.TestCase):
+    def test_the_installed_list_has_no_plugin_pack_switch(self):
+        panel = plugin_pages.remote_device_panel("en")
+        self.assertNotIn("plugin pack", panel.lower())
+        self.assertNotIn("remote-pack", panel)
+
     def test_the_order_of_the_translations_does_not_matter(self):
         english = plugin_pages.remote_device_panel()
         expected = remote_page_uk.translate(english)

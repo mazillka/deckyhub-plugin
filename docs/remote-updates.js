@@ -28,7 +28,7 @@ export const updateSignature = summary => summary.updates.map(item => `${item.na
 const read = key => { try { return localStorage.getItem(key); } catch { return null; } };
 const write = (key, value) => { try { localStorage.setItem(key, value); } catch { /* the choice just isn't kept */ } };
 
-export function createUpdates(root, { summary, device }) {
+export function createUpdates(root, { summary, device, onResult = () => {} }) {
   const doc = root.ownerDocument;
   const anchor = root.querySelector('.remote-inventory');
   if (!doc || typeof anchor?.before !== 'function' || !globalThis.navigator) return { check() {} };
@@ -91,10 +91,12 @@ export function createUpdates(root, { summary, device }) {
       const result = await summary();
       if (!validSummary(result)) throw new Error('Invalid summary from the device.');
       last = result;
+      onResult(result);
       paint();
       await announce(current, result);
     } catch {
       last = undefined; // an old device without update notices, or out of reach: say nothing
+      onResult(undefined);
       paint();
     } finally { checking = false; }
   };
