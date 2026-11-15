@@ -317,6 +317,9 @@ class PluginPageTests(unittest.TestCase):
         self.assertNotIn("Security scan details", page)
         self.assertNotIn("ClamAV", page)
         self.assertIn("no GitHub release of this plugin to scan", page)
+        # DeckyHub does not install it, so "Pre-release only" (about what DeckyHub offers) does not apply
+        old = [{"tag_name": "v0.1-beta", "prerelease": True, "draft": False, "assets": []}]
+        self.assertNotIn("Pre-release only", plugin_pages.plugin_page(shell, {**APP, "store": True}, {}, {}, {}, [APP], releases=old))
         # and a plugin that is on GitHub keeps the DeckyHub steps
         normal = self.page()
         self.assertIn("Install with DeckyHub</a>", normal)

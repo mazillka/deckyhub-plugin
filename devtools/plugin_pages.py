@@ -638,7 +638,7 @@ def plugin_page(
             key: value for key, value in stats.items() if key not in ("root", "warnings", "prereleaseWarnings", "ai")
         }
     badges = badges_of(stats, scans, warnings, reports, vt_reports)
-    if prerelease_only(releases or []):
+    if not app.get("store") and prerelease_only(releases or []):
         badges.insert(
             0,
             '<li><span class="badge warn">Pre-release only</span> It has no stable release, so DeckyHub offers its pre-releases, which may be unfinished or buggy.</li>',
