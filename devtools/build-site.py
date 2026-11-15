@@ -203,7 +203,8 @@ out = Path(sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("--")
 PREVIEW = sys.argv[sys.argv.index("--preview") + 1] if "--preview" in sys.argv else None
 
 shutil.copytree(ROOT / "docs", out, dirs_exist_ok=True)
-with urllib.request.urlopen(REGISTRY_URL) as response:
+# The develop preview lists the registry's develop branch, so a registry change shows there before it ships.
+with urllib.request.urlopen(REGISTRY_URL.replace("/main/", "/develop/") if PREVIEW else REGISTRY_URL) as response:
     apps = json.load(response)["apps"]
 data = plugin_pages.load_data()
 coverage = media_coverage.load(ROOT / "docs" / "media-coverage.json")

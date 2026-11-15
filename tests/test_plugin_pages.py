@@ -356,6 +356,12 @@ class PluginPageTests(unittest.TestCase):
         self.assertIn(marker, plugin_pages.remote_install_picker("x"))
         self.assertIn(marker, plugin_pages.remote_device_panel("en"))
 
+    def test_the_develop_preview_reads_the_registrys_develop_branch(self):
+        # Without it a registry change (Junk-Store's "store" flag) shows on /develop/ only after the registry ships.
+        source = (ROOT / "devtools" / "build-site.py").read_text(encoding="utf-8")
+        self.assertIn('REGISTRY_URL.replace("/main/", "/develop/") if PREVIEW', source)
+        self.assertIn("/refs/heads/main/registry/apps.json", source)
+
 
 class PluginInfoTests(unittest.TestCase):
     def test_a_record_per_repository_with_numbers_badges_and_scan(self):
