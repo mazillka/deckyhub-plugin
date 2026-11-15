@@ -89,10 +89,13 @@ class PluginStatusTests(unittest.TestCase):
             ({"name": "Unifideck", "version": "0.8.0"}, {}, None),  # no repository in package.json: unverified
             ({"name": "Twin"}, {}, None),  # two registry plugins share the name: no link guessed
             ({"name": "Other"}, {"repository": "https://github.com/steamdeckhomebrew/decky-plugin-template"}, None),
+            ({"name": "Unifideck"}, {}, "someone/else"),  # a real repository that is not the registry's: no link
         ]
         with patch.object(plugin, "_scan_installed_plugins", return_value=installed):
-            rows = {row["name"]: row for row in plugin._remote_installed_plugins()}
+            listed = plugin._remote_installed_plugins()
+            rows = {row["name"]: row for row in listed if row["repo"] is None}
         self.assertEqual((rows["Unifideck"]["pageId"], rows["Unifideck"]["id"]), ("uni", None))
+        self.assertEqual([row["pageId"] for row in listed if row["repo"] == "someone/else"], [None])
         self.assertIsNone(rows["Twin"]["pageId"])
         self.assertIsNone(rows["Other"]["repo"])
         # The template's repository is dropped where the repository is read from package.json.
