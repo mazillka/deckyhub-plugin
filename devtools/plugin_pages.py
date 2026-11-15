@@ -397,7 +397,7 @@ def remote_device_panel(lang: str = "en") -> str:
 <header class="rd-hero">
 <p class="rd-badge">Experimental · fully local</p>
 <h2 id="remote-title">Manage your devices from this browser</h2>
-<p>Install, update and remove Decky plugins without picking up your device. This page talks straight to your device on your network: nothing is collected or sent anywhere. <a href="/help.html#remote">How it works</a></p>
+<p>Install, update and remove Decky plugins without picking up your device. This page talks straight to your device on your network: nothing about your device or its plugins is collected or sent anywhere. <a href="/help.html#remote">How it works</a></p>
 </header>
 <div class="rd-layout">
 <aside class="rd-devices" aria-labelledby="rd-devices-title">
@@ -536,7 +536,7 @@ def remote_install_picker(plugin_id: str, safety: list[str] | None = None) -> st
 </div>
 </dialog>
 <p class="rc-pair"><a id="remote-pair-new" class="btn" href="/remote-install/">Pair a device</a><span>Pair once, then install from any plugin page.</span></p>
-<p class="rd-hint">Your browser talks straight to your device on your network. Nothing is collected or sent anywhere. <a href="/help.html#remote">How to use it</a></p>
+<p class="rd-hint">Your browser talks straight to your device on your network. Nothing about your device or its plugins is collected or sent anywhere. <a href="/help.html#remote">How to use it</a></p>
 </div>
 <link rel="modulepreload" href="/remote-core.js"><link rel="modulepreload" href="/remote-i18n.js"><link rel="modulepreload" href="/remote-plugins.js"><link rel="modulepreload" href="/remote-updates.js"><link rel="modulepreload" href="/remote-scan.js"><link rel="modulepreload" href="/remote-share.js"><script type="module" src="/remote-install.js"></script>
 </dialog>"""

@@ -404,14 +404,14 @@ for path in ["releases.html", "about.html", "uk/about.html"] + [
 # 'unsafe-inline': the site holds the tokens of paired devices, so text that slipped into a page unescaped
 # must not be able to run. Inline event handlers (onclick="...") don't run either; use addEventListener.
 CSP = (
-    "default-src 'self'; script-src 'self'SCRIPTS; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://img.shields.io; "
-    "connect-src 'self' https://raw.githubusercontent.com; object-src 'none'; base-uri 'self'; form-action 'self'"
+    "default-src 'self'; script-src 'self'SCRIPTS https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://img.shields.io; "
+    "connect-src 'self' https://raw.githubusercontent.com https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self'"
 )
 for html_file in out.rglob("*.html"):
     text = html_file.read_text(encoding="utf-8")
     # CSP cannot express private IP ranges. The pairing form validates private IPv4 and pins the certificate.
     policy = (
-        CSP.replace("https://raw.githubusercontent.com;", "https://raw.githubusercontent.com https://*:8765;")
+        CSP.replace("https://cloudflareinsights.com;", "https://cloudflareinsights.com https://*:8765;")
         if 'id="remote-install"' in text
         else CSP
     )

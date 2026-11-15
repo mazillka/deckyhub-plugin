@@ -298,7 +298,7 @@ Under **Plugin packs**, **Export my plugins as a pack** saves a small `.json` fi
 Install, update or uninstall plugins on your device from a computer or phone on the same network, without picking up the device.
 
 - **Experimental:** it is new and only in DeckyHub's pre-releases for now, so expect rough edges.
-- **Fully local:** your browser talks straight to your device over your own network. Nothing goes through a server, and nothing is collected or sent anywhere.
+- **Fully local:** your browser talks straight to your device over your own network. Nothing goes through a server, and nothing about your device or its plugins is collected or sent anywhere.
 - **You need:** DeckyHub on your device, a second device on the same network, and **Chrome, Edge or another Chromium browser** on it (Firefox and Safari can't make this kind of connection yet).
 
 #### Pair a browser
@@ -426,7 +426,7 @@ DeckyHub installs software on your Deck, so every change, every release and ever
 
 ## Privacy
 
-DeckyHub has no account, analytics or telemetry, and sends nothing to its author or to any server of its own.
+DeckyHub has no account, analytics or telemetry, and sends nothing to its author or to any server of its own. The **deckyhub.com website** does count visits (page views, country and browser type, without cookies) with Cloudflare Web Analytics; the plugin itself is completely clean: it counts and sends nothing.
 
 - **What it connects to:** only GitHub — `raw.githubusercontent.com` and `github.com` for the plugin list, release info, virus scan reports and downloads, and `api.github.com` for search and repositories that aren't in the list — plus the HTTPS address of any custom registry you add. GitHub sees these requests as it would any browser's (your IP address and which repositories are looked up), under [GitHub's privacy statement](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement). Links such as a plugin's repository or the audit page open only when you tap them.
 - **What stays on your device:** your settings, tracked repositories, custom registries and the cached plugin list and release info. The settings file is readable only by your user.
