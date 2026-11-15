@@ -1,7 +1,18 @@
 # Remote Install's libraries, bundled into the release ZIP by devtools/package-remote.py.
 # After changing a version, run devtools/hash-remote.py: it rewrites the hashes below.
-aioquic==1.3.0 \
-    --hash=sha256:396e5f53f6ddb27713d9b5bb11d8f0f842e42857b7e671c5ae203bf618528550
+aioquic==1.7.2 \
+    --hash=sha256:06c94407cd6129fa8e72ee76f760dfcc9828b7dc169c129abebcdf0c961eefeb \
+    --hash=sha256:4def7cb0a692dc12c995cc397a93f41b78cc30b7bf078769c3a3bb1ba9dcf362 \
+    --hash=sha256:4f85133486a7f39743acea265aa4a67696e0b4729864f747fc914a197210dfef \
+    --hash=sha256:5894ebbe4ec4b541c1b7099fbc1caedb1e3c8fff5fbd745b45354cbea627a33b \
+    --hash=sha256:7c889d617f561c8f5e85fc746cc9c8a8829609bd799b3ff427b62975232b5610 \
+    --hash=sha256:994bf341855bb1a0c45e86cf9122a474f46491601b19d5c41c05f22db4101a38 \
+    --hash=sha256:a5dc4051d9ac0d40f0c16054c372f3a0c9e987cfe1d6bfa52efcb32996029b6c \
+    --hash=sha256:b6fbed92be3e3d791f2067547db5edb5a8e4730483292bfd946aa8ddab2f8154 \
+    --hash=sha256:c6ed4fbcf2027986cf2ee8bc9fe5f1ce0b2374d8747f6af7c817d8f2925e2572 \
+    --hash=sha256:c92d455f2e1992e3981162ca3f4fd71f79aa99165260e74adc4e6bf0b61c335e \
+    --hash=sha256:d6bacbd0c948363bb8c4130e6c9e81a63515eb6d8a9bf9f51d1fb9bf6340c76a \
+    --hash=sha256:e45fd24a49fb973c06697e079fcb8cc3dca41437c151ca2d525ee53eb7a9340d
 attrs==26.1.0 \
     --hash=sha256:c647aa4a12dfbad9333ca4e71fe62ddc36f4e63b2d260a37a8b83d2f043ac309
 certifi==2026.10.23 \
