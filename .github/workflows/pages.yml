@@ -45,6 +45,16 @@ jobs:
         env:
           # The release notes page reads DeckyHub's releases from the GitHub API.
           GITHUB_TOKEN: ${{ github.token }}
+      # deckyhub.com/store: the registry's plugins in the official Decky store's format, a Custom store URL for
+      # Decky Loader. The script, the plugin list and the release index all come from the registry. It only adds a
+      # folder, so a failure here must not stop the site from deploying.
+      - name: Build the Decky store
+        continue-on-error: true
+        run: |
+          git clone -q --depth 1 https://github.com/mazillka/deckyhub-registry.git registry
+          curl -fsSL https://raw.githubusercontent.com/mazillka/deckyhub-registry/refs/heads/release-index/releases.json -o releases.json
+          curl -fsSL https://raw.githubusercontent.com/mazillka/deckyhub-registry/refs/heads/release-index/stats.json -o stats.json
+          python registry/scripts/build_decky_store.py releases.json _site/store stats.json
       # Not blocking: it lists page problems (titles, descriptions, links) in the log.
       - name: Audit the site
         continue-on-error: true
