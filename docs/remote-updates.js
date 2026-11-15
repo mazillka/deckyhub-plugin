@@ -43,7 +43,7 @@ export function createUpdates(root, { summary, device, onResult = () => {} }) {
   notifyButton.type = 'button';
   const installButton = doc.createElement('button');
   installButton.type = 'button';
-  installButton.textContent = translate('Install app');
+  installButton.textContent = translate('Add to home screen or desktop');
   installButton.hidden = true;
   actions.append(notifyButton, installButton);
   const hint = doc.createElement('p');
@@ -65,9 +65,13 @@ export function createUpdates(root, { summary, device, onResult = () => {} }) {
     notifyButton.hidden = typeof Notification === 'undefined' || !current;
     notifyButton.textContent = translate(notificationsOn() ? 'Turn off update notices' : 'Notify me about updates');
     installButton.hidden = !deferredInstall;
-    hint.textContent = !notifyButton.hidden && !notificationsOn()
-      ? translate('Notices appear while this page or app is open, or running in the background. Your device is only reached from your own network.')
-      : '';
+    // What each button does, in a line: "Install app" alone did not say what would be installed.
+    hint.textContent = [
+      deferredInstall ? translate('Add to home screen or desktop puts this page on your device as an app of its own, with its own icon and window. Nothing else is installed.') : '',
+      !notifyButton.hidden && !notificationsOn()
+        ? translate('Notices appear while this page or app is open, or running in the background. Your device is only reached from your own network.')
+        : '',
+    ].filter(Boolean).join(' ');
   };
   const announce = async (current, result) => {
     if (!notificationsOn() || !result.updates.length) return;
