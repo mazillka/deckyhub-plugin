@@ -94,9 +94,11 @@ export function PairDeviceModal({ t, closeModal }: { t: TFunc; closeModal?: () =
     const code = qrcode(0, "M");
     code.addData(link);
     code.make();
-    // 4 px a square and a 16 px margin, shown at exactly that size: scaled to 220 px the squares were 3 or 4 px wide
-    // alternately, which a camera reads badly.
-    return { src: code.createDataURL(4, 16), size: code.getModuleCount() * 4 + 32 };
+    // 4 px a square and a 16 px margin, shown at exactly that size (scaled to 220 px the squares were 3 or 4 px
+    // alternately). The paper is grey, not white: a glare or a webcam's exposure turns pure white into a blank patch
+    // that swallows the squares.
+    const svg = code.createSvgTag(4, 16).replace('fill="white"', 'fill="#b4b4b4"').replace("<path", '<path shape-rendering="crispEdges"');
+    return { src: `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`, size: code.getModuleCount() * 4 + 32 };
   }, [link]);
 
   const decide = async (id: string, name: string, approve: boolean) => {
