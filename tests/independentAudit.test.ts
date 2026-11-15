@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import { strict as assert } from "node:assert";
 import { independentAuditOf } from "../src/independentAudit.ts";
+import { installWarnings } from "../src/types.ts";
 
 const audit = {
   result: "complete",
@@ -71,4 +72,31 @@ test("preserves source tag and identified package evidence", () => {
   } as never);
   assert.equal(malformed?.dependencies, undefined);
   assert.equal(malformed?.source?.tag, "v1.0");
+});
+
+test("release-specific warnings follow the hydrated asset, not the channel preference", () => {
+  const app = {
+    channel: "prerelease",
+    latestPrerelease: false,
+    stats: { warnings: ["blocked"], prereleaseWarnings: ["not-in-source"] },
+  };
+  assert.deepEqual(installWarnings(app as never), ["blocked"]);
+  assert.deepEqual(installWarnings({ ...app, latestPrerelease: true } as never), ["not-in-source"]);
+  assert.deepEqual(installWarnings(app as never, false), ["blocked"]);
+  assert.deepEqual(installWarnings(app as never, true), ["not-in-source"]);
+});
+
+test("prerelease-only and unknown releases preserve the applicable warning coverage", () => {
+  const prereleaseOnly = {
+    channel: "prerelease",
+    prereleaseOnly: true,
+    latestPrerelease: true,
+    stats: { warnings: ["blocked"] },
+  };
+  assert.deepEqual(installWarnings(prereleaseOnly as never), ["blocked"]);
+  const unknown = {
+    channel: "prerelease",
+    stats: { warnings: ["blocked"], prereleaseWarnings: ["not-in-source"] },
+  };
+  assert.deepEqual(installWarnings(unknown as never), ["blocked", "not-in-source"]);
 });

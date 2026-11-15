@@ -108,10 +108,13 @@ export const uk: Record<MessageKey, string> = {
   "appcard.manage": "Керувати",
   "appcard.install": "Встановити",
   "appcard.installVersion": "Встановити v{version}",
-  "appcard.downloads": "{count} завантажень",
+  "appcard.downloads":
+    "Приблизна загальна активність: {count}; повторні завантаження враховано, це не унікальні встановлення.",
   "appcard.githubDownloads": "{count} завантажень з GitHub",
   "appcard.storeDownloads": "{count} завантажень зі сховища Decky",
   "appcard.downloadsBreakdown": "GitHub: {github} · сховище Decky: {store}",
+  "appcard.storeActivity":
+    "Активність магазину Decky (завантаження + оновлення): {count}; збіги за назвою, повтори враховано",
   "appcard.inStore": "У магазині Decky",
   "appcard.inStoreHint":
     "У магазині Decky є плагін із такою назвою ({count} завантажень там). Магазин не вказує репозиторій, тож переконайтеся, що це саме той.",
@@ -161,9 +164,9 @@ export const uk: Record<MessageKey, string> = {
   "appcard.warning.persistence": "Змінює запуск системи",
   "appcard.warning.persistence.hint":
     "Змінює профілі оболонки, попередньо завантажує бібліотеки, завантажує модулі ядра або додає правила пристроїв, які працюють і поза Decky.",
-  "appcard.warning.not-in-source": "Код не з репозиторію",
+  "appcard.warning.not-in-source": "Дуже високий ризик: код не відповідає вихідному коду",
   "appcard.warning.not-in-source.hint":
-    "У релізі є скрипти чи програми, яких немає у вихідному коді на GitHub, тож не можна прочитати, що вони роблять.",
+    "Реліз містить код, який аудит не зміг зіставити з репозиторієм. Це може приховувати шкідливі зміни; перегляньте реліз і вихідний код перед встановленням. Автоматично виявлена невідповідність не доводить наявність шкідливого програмного забезпечення.",
   "appcard.warning.obfuscated": "Прихований код",
   "appcard.warning.obfuscated.hint": "Містить закодований або запакований код, який важко прочитати.",
   "audit.scope": "Перевіряється обмежений набір шаблонів. Знахідки потребують перевірки; це не доводить безпечності.",

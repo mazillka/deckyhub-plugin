@@ -108,10 +108,12 @@ export const pt: Record<MessageKey, string> = {
   "appcard.manage": "Gerenciar",
   "appcard.install": "Instalar",
   "appcard.installVersion": "Instalar v{version}",
-  "appcard.downloads": "{count} downloads",
+  "appcard.downloads": "Atividade total aproximada: {count}; inclui downloads repetidos, não são instalações únicas.",
   "appcard.githubDownloads": "{count} downloads do GitHub",
   "appcard.storeDownloads": "{count} downloads da loja do Decky",
   "appcard.downloadsBreakdown": "GitHub: {github} · loja do Decky: {store}",
+  "appcard.storeActivity":
+    "Atividade da loja Decky (downloads + atualizações): {count}; correspondência por nome, inclui repetições",
   "appcard.inStore": "Na loja do Decky",
   "appcard.inStoreHint":
     "A loja do Decky tem um plugin com este nome ({count} downloads lá). A loja não indica o repositório, então confira se é este.",
@@ -161,9 +163,9 @@ export const pt: Record<MessageKey, string> = {
   "appcard.warning.persistence": "Altera a inicialização",
   "appcard.warning.persistence.hint":
     "Edita perfis do shell, pré-carrega bibliotecas, carrega módulos do kernel ou adiciona regras de dispositivo que continuam ativas fora do Decky.",
-  "appcard.warning.not-in-source": "Código fora do repositório",
+  "appcard.warning.not-in-source": "Risco muito alto: o código não corresponde ao código-fonte",
   "appcard.warning.not-in-source.hint":
-    "A versão tem scripts ou programas que não estão no código do GitHub, então não dá para ler o que fazem.",
+    "A versão contém código que a auditoria não conseguiu associar ao repositório. Isso pode ocultar alterações maliciosas; revise a versão e o código-fonte antes de instalar. Uma divergência detectada automaticamente não prova a existência de malware.",
   "appcard.warning.obfuscated": "Código oculto",
   "appcard.warning.obfuscated.hint": "Contém código codificado ou compactado difícil de ler.",
   "audit.scope":

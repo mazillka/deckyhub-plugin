@@ -109,10 +109,13 @@ export const de: Record<MessageKey, string> = {
   "appcard.manage": "Verwalten",
   "appcard.install": "Installieren",
   "appcard.installVersion": "v{version} installieren",
-  "appcard.downloads": "{count} Downloads",
+  "appcard.downloads":
+    "Ungefähre Gesamtaktivität: {count}; wiederholte Downloads sind enthalten, keine eindeutigen Installationen.",
   "appcard.githubDownloads": "{count} GitHub-Downloads",
   "appcard.storeDownloads": "{count} Downloads aus dem Decky-Store",
   "appcard.downloadsBreakdown": "GitHub: {github} · Decky-Store: {store}",
+  "appcard.storeActivity":
+    "Decky-Store-Aktivität (Downloads + Updates): {count}; Zuordnung nach Namen, Wiederholungen enthalten",
   "appcard.inStore": "Im Decky-Store",
   "appcard.inStoreHint":
     "Der Decky-Store führt ein Plugin mit diesem Namen ({count} Downloads dort). Der Store nennt kein Repository, prüfe also, ob es dieses ist.",
@@ -164,9 +167,9 @@ export const de: Record<MessageKey, string> = {
   "appcard.warning.persistence": "Ändert den Systemstart",
   "appcard.warning.persistence.hint":
     "Es ändert Shell-Profile, lädt Bibliotheken vor, lädt Kernelmodule oder fügt Geräteregeln hinzu, die auch außerhalb von Decky wirken.",
-  "appcard.warning.not-in-source": "Code nicht im Repo",
+  "appcard.warning.not-in-source": "Sehr hohes Risiko: Code stimmt nicht mit dem Quellcode überein",
   "appcard.warning.not-in-source.hint":
-    "Das Release enthält Skripte oder Programme, die nicht im GitHub-Quellcode stehen, du kannst also nicht nachlesen, was sie tun.",
+    "Die Version enthält Code, den das Audit nicht dem Repository zuordnen konnte. Dadurch können schädliche Änderungen verborgen werden; prüfe die Version und den Quellcode vor der Installation. Eine automatisiert festgestellte Abweichung beweist keine Malware.",
   "appcard.warning.obfuscated": "Versteckter Code",
   "appcard.warning.obfuscated.hint": "Es enthält kodierten oder gepackten Code, der schwer zu lesen ist.",
   "audit.scope":

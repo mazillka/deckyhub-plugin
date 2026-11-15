@@ -108,10 +108,13 @@ export const it: Record<MessageKey, string> = {
   "appcard.manage": "Gestisci",
   "appcard.install": "Installa",
   "appcard.installVersion": "Installa v{version}",
-  "appcard.downloads": "{count} download",
+  "appcard.downloads":
+    "Attività totale approssimativa: {count}; include download ripetuti, non sono installazioni uniche.",
   "appcard.githubDownloads": "{count} download da GitHub",
   "appcard.storeDownloads": "{count} download dallo store di Decky",
   "appcard.downloadsBreakdown": "GitHub: {github} · store di Decky: {store}",
+  "appcard.storeActivity":
+    "Attività del negozio Decky (download + aggiornamenti): {count}; corrispondenza per nome, ripetizioni incluse",
   "appcard.inStore": "Nello store Decky",
   "appcard.inStoreHint":
     "Lo store Decky elenca un plugin con questo nome ({count} download lì). Lo store non indica il repository, quindi controlla che sia questo.",
@@ -161,9 +164,9 @@ export const it: Record<MessageKey, string> = {
   "appcard.warning.persistence": "Modifica l'avvio del sistema",
   "appcard.warning.persistence.hint":
     "Modifica i profili della shell, precarica librerie, carica moduli del kernel o aggiunge regole per i dispositivi, che restano attivi anche fuori da Decky.",
-  "appcard.warning.not-in-source": "Codice assente dal repo",
+  "appcard.warning.not-in-source": "Rischio molto alto: il codice non corrisponde al codice sorgente",
   "appcard.warning.not-in-source.hint":
-    "La release contiene script o programmi che non sono nel sorgente su GitHub, quindi non puoi leggere cosa fanno.",
+    "La versione contiene codice che l’audit non è riuscito ad associare al repository. Questo può nascondere modifiche dannose; controlla la versione e il codice sorgente prima dell’installazione. Una discrepanza rilevata automaticamente non dimostra la presenza di malware.",
   "appcard.warning.obfuscated": "Codice nascosto",
   "appcard.warning.obfuscated.hint": "Contiene codice codificato o compresso difficile da leggere.",
   "audit.scope":

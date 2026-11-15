@@ -107,10 +107,12 @@ export const cs: Record<MessageKey, string> = {
   "appcard.manage": "Spravovat",
   "appcard.install": "Instalovat",
   "appcard.installVersion": "Instalovat v{version}",
-  "appcard.downloads": "Stažení: {count}",
+  "appcard.downloads": "Přibližná celková aktivita: {count}; zahrnuje opakovaná stažení, nejde o jedinečné instalace.",
   "appcard.githubDownloads": "{count} stažení z GitHubu",
   "appcard.storeDownloads": "{count} stažení z obchodu Decky",
   "appcard.downloadsBreakdown": "GitHub: {github} · obchod Decky: {store}",
+  "appcard.storeActivity":
+    "Aktivita obchodu Decky (stažení + aktualizace): {count}; shoda podle názvu, opakování zahrnuta",
   "appcard.inStore": "V obchodě Decky",
   "appcard.inStoreHint":
     "Obchod Decky nabízí plugin se stejným názvem ({count} stažení tam). Obchod neuvádí repozitář, ověřte tedy, že jde o tento.",
@@ -160,9 +162,9 @@ export const cs: Record<MessageKey, string> = {
   "appcard.warning.persistence": "Mění spouštění systému",
   "appcard.warning.persistence.hint":
     "Upravuje profily shellu, přednačítá knihovny, načítá moduly jádra nebo přidává pravidla zařízení, která fungují i mimo Decky.",
-  "appcard.warning.not-in-source": "Kód mimo repozitář",
+  "appcard.warning.not-in-source": "Velmi vysoké riziko: kód neodpovídá zdrojovému kódu",
   "appcard.warning.not-in-source.hint":
-    "Vydání obsahuje skripty nebo programy, které nejsou ve zdrojovém kódu na GitHubu, takže si nemůžete přečíst, co dělají.",
+    "Vydání obsahuje kód, který audit nedokázal přiřadit k repozitáři. Může to skrývat škodlivé změny; před instalací zkontrolujte vydání a zdrojový kód. Automaticky zjištěný nesoulad nedokazuje přítomnost malwaru.",
   "appcard.warning.obfuscated": "Skrytý kód",
   "appcard.warning.obfuscated.hint": "Obsahuje zakódovaný nebo zabalený kód, který je těžké číst.",
   "audit.scope": "Kontroluje omezenou sadu vzorů. Nálezy vyžadují posouzení; bezpečnost nelze zaručit.",

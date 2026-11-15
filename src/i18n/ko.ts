@@ -107,10 +107,11 @@ export const ko: Record<MessageKey, string> = {
   "appcard.manage": "관리",
   "appcard.install": "설치",
   "appcard.installVersion": "v{version} 설치",
-  "appcard.downloads": "다운로드 {count}회",
+  "appcard.downloads": "총 활동 추정치: {count}; 반복 다운로드가 포함되며 고유 설치 수가 아닙니다.",
   "appcard.githubDownloads": "GitHub 다운로드 {count}회",
   "appcard.storeDownloads": "Decky 스토어 다운로드 {count}회",
   "appcard.downloadsBreakdown": "GitHub: {github} · Decky 스토어: {store}",
+  "appcard.storeActivity": "Decky 스토어 활동(다운로드 + 업데이트): {count}; 이름으로 일치하며 반복 포함",
   "appcard.inStore": "Decky 스토어에 있음",
   "appcard.inStoreHint":
     "Decky 스토어에 같은 이름의 플러그인이 있습니다(그곳에서 {count}회 다운로드). 스토어는 저장소를 알려 주지 않으므로 이것이 맞는지 확인하세요.",
@@ -158,9 +159,9 @@ export const ko: Record<MessageKey, string> = {
   "appcard.warning.persistence": "시스템 시작 변경",
   "appcard.warning.persistence.hint":
     "셸 프로필 수정, 라이브러리 사전 로드, 커널 모듈 로드, 장치 규칙 추가를 하며 Decky 밖에서도 계속 작동합니다.",
-  "appcard.warning.not-in-source": "저장소에 없는 코드",
+  "appcard.warning.not-in-source": "매우 높은 위험: 코드가 소스와 일치하지 않음",
   "appcard.warning.not-in-source.hint":
-    "릴리스에 GitHub 소스에 없는 스크립트나 프로그램이 있어 무엇을 하는지 확인할 수 없습니다.",
+    "릴리스에 감사에서 저장소와 일치 여부를 확인하지 못한 코드가 포함되어 있습니다. 악의적인 변경이 숨겨져 있을 수 있으므로 설치 전에 릴리스와 소스를 검토하세요. 자동으로 감지된 불일치가 악성코드를 증명하는 것은 아닙니다.",
   "appcard.warning.obfuscated": "숨겨진 코드",
   "appcard.warning.obfuscated.hint": "읽기 어려운 인코딩되거나 압축된 코드가 있습니다.",
   "audit.scope": "제한된 패턴을 검사합니다. 발견 사항은 검토가 필요하며 안전을 증명하지 못합니다.",

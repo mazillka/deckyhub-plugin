@@ -53,7 +53,7 @@ class PluginPageTests(unittest.TestCase):
         page = self.page({"downloads": 1500, "store": {"downloads": 40000}})
         self.assertIn(">In Decky store</span>", page)
         self.assertIn("GitHub downloads", page)
-        self.assertIn("Decky store</a> downloads", page)
+        self.assertIn("Decky store downloads</a>", page)
         data = {"stats": {APP["repo"].casefold(): {"store": {"downloads": 1}}}, "scans": {}}
         self.assertIn('data-store="1"', plugin_pages.card(APP, data))
         self.assertNotIn("data-store", plugin_pages.card(APP, {"stats": {}, "scans": {}}))
@@ -93,10 +93,32 @@ class PluginPageTests(unittest.TestCase):
 
     def test_downloads_are_github_plus_the_decky_store_in_the_page_the_card_and_the_ranking(self):
         page = self.page({"downloads": 1500, "store": {"downloads": 40000}})
-        self.assertIn("<strong>41.5K</strong>Downloads in total", page)
+        self.assertIn("<strong>41.5K</strong>Approximate activity", page)
+        self.assertIn("repeat downloads included; not unique installs", page)
         self.assertIn("<strong>1.5K</strong>GitHub downloads", page)
         self.assertEqual(plugin_pages.total_downloads({"downloads": 1500, "store": {"downloads": 40000}}), 41500)
         self.assertEqual(plugin_pages.total_downloads({"store": {"downloads": 7}}), 7)
+        activity_page = self.page(
+            {"downloads": 1500, "store": {"downloads": 40000, "activity": {"downloads": 10, "updates": 2}}}
+        )
+        self.assertIn("1.5K</strong>GitHub downloads", activity_page)
+        self.assertIn("12</strong><a href=", activity_page)
+        self.assertIn("Decky store downloads + updates", activity_page)
+        self.assertIn("matched by name", activity_page)
+        self.assertEqual(
+            plugin_pages.total_downloads(
+                {"downloads": 1500, "store": {"downloads": 40000, "activity": {"downloads": 8, "updates": 2}}}
+            ),
+            1510,
+        )
+        self.assertEqual(plugin_pages.total_downloads({"store": {"activity": {"downloads": 0, "updates": 0}}}), 0)
+        self.assertEqual(
+            plugin_pages.total_downloads(
+                {"downloads": 4, "store": {"downloads": 7, "activity": {"downloads": -1, "updates": 3}}}
+            ),
+            11,
+        )
+        self.assertIsNone(plugin_pages.total_downloads({"downloads": True, "store": {"downloads": -1}}))
         self.assertIsNone(plugin_pages.total_downloads({}))
         # No total line when only one of the counts is known: it would repeat that number.
         self.assertNotIn("Downloads in total", self.page({"downloads": 1500}))
@@ -177,6 +199,61 @@ class PluginPageTests(unittest.TestCase):
             "https://metadefender.opswat.com/results/file/abc123/regular/overview",
         ):
             self.assertIn(text, page)
+
+    def test_hash_matched_source_findings_are_high_risk_and_unmatched_records_are_ignored(self):
+        source_audit = {
+            "source": {"result": "incomplete", "findings": [{"rule": "source_file_differs", "path": "main.py"}]}
+        }
+        matched = {
+            "stable": {
+                "tag": "v1.0.0",
+                "file": "x.zip",
+                "sha256": SHA,
+                "audit": source_audit,
+            }
+        }
+        page = self.page(scans=matched)
+        self.assertIn("Very high risk: code does not match source", page)
+        self.assertIn("This can hide malicious changes", page)
+        self.assertIn("An automated mismatch does not prove malware", page)
+        self.assertIn("Stable ZIP x.zip (v1.0.0)", page)
+        exact_channel = {
+            "stable": {"sha256": SHA, "tag": "v1.0.0", "file": "x.zip", "audit": {"source": source_audit["source"]}}
+        }
+        self.assertIn("Very high risk", plugin_pages.flags_of({}, exact_channel))
+        shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
+        issues = plugin_pages.issues_page(
+            shell,
+            [APP],
+            {"stats": {}, "scans": {APP["repo"].casefold(): exact_channel}, "warnings": plugin_pages.WARNINGS},
+        )
+        self.assertIn('id="not-in-source"', issues)
+        self.assertIn(f'href="/plugins/{APP["id"]}.html"', issues)
+
+        for bad_hash in ("", "not-a-hash"):
+            unmatched = {"stable": {"tag": "v1.0.0", "file": "x.zip", "sha256": bad_hash, "audit": source_audit}}
+            self.assertNotIn("Very high risk: code does not match source", self.page(scans=unmatched))
+        malformed = {"source": {"result": "incomplete", "findings": [{"rule": "mystery", "path": "main.py"}]}}
+        self.assertNotIn(
+            "Very high risk: code does not match source",
+            self.page(
+                scans={
+                    "stable": {
+                        "sha256": SHA,
+                        "tag": "v1.0.0",
+                        "file": "x.zip",
+                        "audit": {"source": malformed["source"]},
+                    }
+                }
+            ),
+        )
+        both = {
+            "stable": {"sha256": SHA, "tag": "v1.0.0", "file": "stable.zip", "audit": source_audit},
+            "prerelease": {"sha256": "d" * 64, "tag": "v2.0.0-rc1", "file": "rc.zip", "audit": source_audit},
+        }
+        two = self.page(scans=both)
+        self.assertIn("Stable ZIP stable.zip", two)
+        self.assertIn("Pre-release ZIP rc.zip", two)
 
     def test_scans_show_virustotal_results_and_pending_metadefender(self):
         scans = {
@@ -385,7 +462,7 @@ class PluginInfoTests(unittest.TestCase):
                     "root": True,
                     "ai": ["x"],
                     "warnings": ["obfuscated"],
-                    "store": {"downloads": 12},
+                    "store": {"downloads": 12, "activity": {"downloads": 8, "updates": 5}},
                 }
             },
             "scans": {
@@ -415,6 +492,7 @@ class PluginInfoTests(unittest.TestCase):
         )
         self.assertTrue(record["root"] and record["ai"])
         self.assertEqual(record["warnings"], ["obfuscated"])
+        self.assertEqual(record["storeActivity"], {"downloads": 8, "updates": 5})
         self.assertEqual(record["latest"], "v1.5.0")
         self.assertEqual(record["scan"]["kind"], "infected")
         self.assertEqual((record["scan"]["clamav"], record["scan"]["yara"]), ("clean", "infected"))

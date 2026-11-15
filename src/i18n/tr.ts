@@ -107,10 +107,12 @@ export const tr: Record<MessageKey, string> = {
   "appcard.manage": "Yönet",
   "appcard.install": "Yükle",
   "appcard.installVersion": "v{version} yükle",
-  "appcard.downloads": "{count} indirme",
+  "appcard.downloads": "Yaklaşık toplam etkinlik: {count}; yinelenen indirmeler dahildir, benzersiz kurulum değildir.",
   "appcard.githubDownloads": "{count} GitHub indirmesi",
   "appcard.storeDownloads": "Decky mağazasından {count} indirme",
   "appcard.downloadsBreakdown": "GitHub: {github} · Decky mağazası: {store}",
+  "appcard.storeActivity":
+    "Decky mağazası etkinliği (indirmeler + güncellemeler): {count}; ada göre eşleşir, tekrarlar dahildir",
   "appcard.inStore": "Decky mağazasında",
   "appcard.inStoreHint":
     "Decky mağazasında bu adda bir eklenti var (orada {count} indirme). Mağaza depo belirtmez, bu yüzden bunun doğru olduğundan emin olun.",
@@ -159,9 +161,9 @@ export const tr: Record<MessageKey, string> = {
   "appcard.warning.persistence": "Sistem başlangıcını değiştirir",
   "appcard.warning.persistence.hint":
     "Kabuk profillerini düzenler, kütüphaneleri önceden yükler, çekirdek modülleri yükler veya aygıt kuralları ekler; bunlar Decky dışında da çalışmaya devam eder.",
-  "appcard.warning.not-in-source": "Kod deposunda yok",
+  "appcard.warning.not-in-source": "Çok yüksek risk: kod kaynak koduyla eşleşmiyor",
   "appcard.warning.not-in-source.hint":
-    "Sürüm, GitHub kaynağında olmayan betikler veya programlar içeriyor, bu yüzden ne yaptıklarını okuyamazsın.",
+    "Sürüm, denetimin depodaki kaynakla eşleştiremediği kod içeriyor. Bu durum kötü amaçlı değişiklikleri gizleyebilir; yüklemeden önce sürümü ve kaynak kodunu inceleyin. Otomatik olarak saptanan bir eşleşmezlik kötü amaçlı yazılım olduğunu kanıtlamaz.",
   "appcard.warning.obfuscated": "Gizlenmiş kod",
   "appcard.warning.obfuscated.hint": "Okunması zor, kodlanmış veya paketlenmiş kod içerir.",
   "audit.scope": "Sınırlı sayıda örüntüyü denetler. Bulgular incelenmelidir; bu güvenliği kanıtlamaz.",
