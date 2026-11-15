@@ -10,7 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = "https://deckyhub.com/"
-PAGES = ("help", "guide")
+PAGES = ("help", "guide", "authors")
 
 
 def github_slug(text: str) -> str:
