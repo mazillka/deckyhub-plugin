@@ -40,6 +40,10 @@ class SiteSpeedTests(unittest.TestCase):
             self.assertEqual(source.count(f'<link rel="modulepreload" href="/{name}">'), scripts, name)
         self.assertEqual(len(imports), 6)
 
+    def test_the_installed_app_asks_the_server_before_using_a_cached_file(self):
+        worker = (ROOT / "docs" / "remote-install" / "sw.js").read_text(encoding="utf-8")
+        self.assertIn("fetch(request, { cache: 'no-cache' })", worker)
+
     def test_the_catalog_skips_painting_cards_that_are_off_screen(self):
         self.assertIn("content-visibility:auto", plugin_pages.EXTRA_STYLE)
 
