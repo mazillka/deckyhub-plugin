@@ -35,17 +35,17 @@ export function setupScan({ root, byId, form, pairDevice }) {
     scanSay('Starting the camera…');
     try {
       const jsQR = await qrReader();
-      scanVideo.srcObject = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+      scanVideo.srcObject = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false });
       scanVideo.hidden = false;
       scanStop.hidden = false;
       await scanVideo.play();
       scanning = true;
-      scanSay('Point the camera at the QR code on your device.');
+      scanSay('Point the camera at the QR code on your device, about 30 cm away, with its screen bright.');
       const canvas = root.ownerDocument.createElement('canvas'), context = canvas.getContext('2d', { willReadFrequently: true });
       const look = () => {
         if (!scanning) return;
         if (scanVideo.videoWidth) {
-          canvas.width = Math.min(scanVideo.videoWidth, 640);
+          canvas.width = Math.min(scanVideo.videoWidth, 1280);
           canvas.height = Math.round(scanVideo.videoHeight * canvas.width / scanVideo.videoWidth);
           context.drawImage(scanVideo, 0, 0, canvas.width, canvas.height);
           const image = context.getImageData(0, 0, canvas.width, canvas.height);
