@@ -140,14 +140,16 @@ try {
   console.log("saved remote-paired-devices");
 
   await page.goto(`${SITE}plugins/${pluginId}.html`);
+  // Send to device opens as a window over the page.
+  await page.click("#remote-open");
   await page.waitForSelector("#remote-request:not([hidden]):not([disabled])", { timeout: 60000 });
   await hideBanner();
-  await page.locator("#remote-install").scrollIntoViewIfNeeded();
-  await page.evaluate(() => scrollBy(0, -260));
   await sleep(800);
   await page.screenshot({ path: new URL("remote-send-to-device.png", out).pathname.replace(/^\/(\w:)/, "$1") });
   console.log("saved remote-send-to-device");
   await page.click("#remote-request");
+  // The risks are shown first and agreed to in a window of their own.
+  await page.click("#remote-risk-send");
   const request = await until("the install request", (now) => now.requests[0]);
   await resetFocus(shared, "/library/home");
   await shared.eval(`DFL.Navigation.OpenQuickAccessMenu(${TAB_ID}); true`);
