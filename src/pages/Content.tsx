@@ -41,6 +41,8 @@ import { RateLimitBanner } from "../components/RateLimitBanner";
 import { offerPendingInstalls } from "../components/PendingInstalls";
 import { Welcome } from "../components/Welcome";
 import { UiStyleSection } from "../components/UiStyleSection";
+import { RemoteInstallSection } from "../components/RemoteInstallSection";
+import { SupportSection } from "../components/SupportSection";
 import { ExpAppCard } from "../components/experimental/ExpAppCard";
 import { ExpHeader } from "../components/experimental/ExpHeader";
 import { ExpDiscoverHome } from "../components/experimental/ExpDiscoverHome";
@@ -89,7 +91,9 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const [thenBy, setThenBy] = useState<SortOrder>((restored?.thenBy as SortOrder) ?? "az");
   // Discover opens on its shelves; a category chip or See all browses the whole list, a page at a time.
   const [browsing, setBrowsing] = useState(restored?.browsing ?? false);
-  const [layout, setLayout] = useLayout();
+  const [chosenLayout, setLayout] = useLayout();
+  // The Experimental style has no grid: its cards are always rows.
+  const layout = experimental ? "list" : chosenLayout;
   const [updatingAll, setUpdatingAll] = useState(false);
   const quickAccessRef = useRef<HTMLDivElement>(null);
   const pageRef = useRef<HTMLDivElement>(null);
@@ -444,6 +448,8 @@ export function Content({ fullPage }: { fullPage?: View }) {
         <QuickAccessNav updateCount={updateCount} listedCount={listedCount} installedCount={installedCount} />
       )}
       <UiStyleSection />
+      <RemoteInstallSection />
+      <SupportSection />
     </div>
   );
 }

@@ -52,10 +52,10 @@ export function ExpDiscoverHome({
       {SHELVES.map(([name, order]) => (
         <section key={name} className={`deckyhub-shelf-${name}`}>
           <h3 className="dh-exp-shelf-title">{t(`discover.${name}`)}</h3>
-          <Focusable flow-children="right" className="dh-exp-strip">
+          <Focusable flow-children="down" style={{ display: "grid", gap: 8 }}>
             {shelf(order, SHELF_SIZE).map((app) => (
-              <Focusable key={app.id} flow-children="down" onFocus={keepInView} className="dh-exp-shelf-item">
-                {renderCard(app)}
+              <Focusable key={app.id} flow-children="down" onFocus={keepInView}>
+                {renderCard(app, "row")}
               </Focusable>
             ))}
             <div className="dh-exp-see-all" onFocus={keepInView}>

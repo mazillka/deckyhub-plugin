@@ -51,7 +51,10 @@ SYSTEMCTL = '#!/bin/bash\necho "$*" >> "$FIXTURES/systemctl.log"\n'
 
 
 def can_be_root() -> bool:
-    return os.geteuid() == 0 or subprocess.run(["sudo", "-n", "true"], capture_output=True).returncode == 0
+    # Windows has no geteuid (and no installer to test).
+    return hasattr(os, "geteuid") and (
+        os.geteuid() == 0 or subprocess.run(["sudo", "-n", "true"], capture_output=True).returncode == 0
+    )
 
 
 @unittest.skipUnless(
@@ -397,7 +400,7 @@ class TranslationTests(unittest.TestCase):
 
 class DesktopFileTests(unittest.TestCase):
     def test_the_launcher_runs_its_own_releases_installer(self):
-        text = DESKTOP.read_text()
+        text = DESKTOP.read_text(encoding="utf-8")
         self.assertTrue(text.startswith("#!/usr/bin/env xdg-open\n[Desktop Entry]\n"))
         self.assertIn("Terminal=false", text)
         self.assertIn("https://github.com/mazillka/deckyhub-plugin/releases/download/@TAG@/install-deckyhub.sh", text)

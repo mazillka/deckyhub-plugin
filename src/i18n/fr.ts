@@ -1,6 +1,43 @@
 import type { MessageKey } from "./en";
 
 export const fr: Record<MessageKey, string> = {
+  "remote.title": "Contrôle à distance (expérimental)",
+  "remote.description":
+    "Un téléphone ou un ordinateur associé peut gérer les plugins ici. Les changements demandent votre accord. Réseau local uniquement ; rien n’est envoyé ailleurs. Désactivé : rien n’écoute.",
+  "remote.address": "Adresse de l’appareil",
+  "remote.fingerprint": "Empreinte du certificat (SHA-256)",
+  "remote.copyPairingLink": "Copier le lien d’association",
+  "remote.pairMode": "Accès à distance",
+  "remote.scanPairingQr": "Scannez pour ouvrir les appareils associés",
+  "remote.pair": "Associer un navigateur",
+  "remote.pairDevice": "Associer un appareil",
+  "remote.newCode": "Nouveau code",
+  "remote.paired": "{name} est associé. Vous pouvez maintenant gérer cet appareil depuis celui-ci.",
+  "remote.pairingWants": "{name} souhaite s’associer",
+  "remote.sameWifi": "Les deux appareils doivent être sur le même Wi-Fi.",
+  "remote.noBrowsers": "Aucun navigateur associé pour le moment.",
+  "remote.notRunning": "L’accès à distance n’est pas actif. Activez-le et réessayez.",
+  "remote.waiting": "En attente du navigateur…",
+  "remote.lastAttempt": "Dernière tentative : {peer}, {what}, il y a {time}",
+  "remote.attempt.connected": "connecté",
+  "remote.attempt.session": "session ouverte",
+  "remote.attempt.refused": "session refusée",
+  "remote.attempt.closed": "connexion fermée",
+  "remote.expiresIn": "Expire dans {time}",
+  "remote.expired": "Code expiré. Appuyez sur Associer un navigateur pour en obtenir un nouveau.",
+  "remote.pairings": "Demandes d’association",
+  "remote.requests": "Demandes de modification des plugins",
+  "remote.from": "De {name}",
+  "remote.extraFilesHint":
+    "Decky Loader télécharge peut-être encore des fichiers supplémentaires pour {name}. Cela peut prendre quelques minutes ; ensuite, vous pouvez fermer sa fenêtre.",
+  "remote.enable": "Activer",
+  "remote.disable": "Désactiver",
+  "remote.enableTitle": "Activer {name} ?",
+  "remote.disableTitle": "Désactiver {name} ?",
+  "remote.plugins": "{count} plugins",
+  "remote.devices": "Navigateurs associés",
+  "remote.approve": "Approuver",
+  "remote.reject": "Refuser",
   "appcard.identityUnverified": "Impossible de vérifier le plugin installé ; installation et mises à jour désactivées.",
   "nav.updates": "Mises à jour",
   "nav.discover": "Découvrir",
@@ -55,6 +92,7 @@ export const fr: Record<MessageKey, string> = {
 
   "status.updateAvailable": "Mise à jour disponible",
   "status.upToDate": "À jour",
+  "status.pinned": "Épinglé",
 
   "appcard.downloadComplete": "Téléchargement terminé",
   "appcard.latest": "Dernière version ({name})",
@@ -62,6 +100,7 @@ export const fr: Record<MessageKey, string> = {
   "details.about": "À propos",
   "details.whatsNew": "Nouveautés de {version}",
   "appcard.repository": "Dépôt",
+  "appcard.reportProblem": "Signaler un problème",
   "appcard.deckyhubPage": "Page DeckyHub",
   "appcard.channel": "Canal : {channel}",
   "appcard.channelStable": "Stable",
@@ -70,6 +109,12 @@ export const fr: Record<MessageKey, string> = {
   "appcard.install": "Installer",
   "appcard.installVersion": "Installer v{version}",
   "appcard.downloads": "{count} téléchargements",
+  "appcard.githubDownloads": "{count} téléchargements GitHub",
+  "appcard.storeDownloads": "{count} téléchargements depuis la boutique Decky",
+  "appcard.downloadsBreakdown": "GitHub : {github} · boutique Decky : {store}",
+  "appcard.inStore": "Dans la boutique Decky",
+  "appcard.inStoreHint":
+    "La boutique Decky propose un plugin portant ce nom ({count} téléchargements là-bas). La boutique n'indique pas de dépôt : vérifiez que c'est bien celui-ci.",
   "appcard.stars": "{count} étoiles GitHub",
   "appcard.runsAsRoot": "S'exécute en root",
   "appcard.runsAsRootHint":
@@ -77,6 +122,8 @@ export const fr: Record<MessageKey, string> = {
   "appcard.knownIssues": "Problèmes connus de ce plugin",
   "appcard.skipVersion": "Ignorer {version}",
   "appcard.unskipVersion": "Ne plus ignorer {version}",
+  "appcard.pinVersion": "Épingler à {version}",
+  "appcard.unpinVersion": "Désépingler {version}",
   "appcard.fork": "Fork",
   "appcard.forkHint":
     "Un fork qui poursuit un plugin après l'arrêt de l'original. DeckyHub ne le liste que tant qu'il est le fork actif.",
@@ -96,6 +143,11 @@ export const fr: Record<MessageKey, string> = {
     "Les analyses antivirus n'ont pas pu vérifier toute la version que vous installeriez. Gérer indique pourquoi.",
   "appcard.badgesNotice": "Ce que signifient les badges des plugins",
   "appcard.noReleaseInYear": "Aucune version depuis un an",
+  "appcard.prereleaseOnly": "Préliminaires uniquement",
+  "appcard.prereleaseOnlyHint":
+    "Il n'a aucune version stable : DeckyHub propose donc ses versions préliminaires, qui peuvent être inachevées ou boguées.",
+  "appcard.noDescription": "Aucune description",
+  "appcard.noDescriptionHint": "Son auteur n'a pas dit ce qu'il fait. Consultez son dépôt avant de l'installer.",
   "appcard.installedFlagged": "Version installée signalée",
   "appcard.installedFlagged.hint":
     "Signalé dans la version que vous avez installée : {reasons}. C'est peut-être un faux positif : vérifiez le plugin et décidez si vous le gardez.",
@@ -114,6 +166,34 @@ export const fr: Record<MessageKey, string> = {
     "La version contient des scripts ou programmes absents de son code GitHub : impossible de lire ce qu'ils font.",
   "appcard.warning.obfuscated": "Code caché",
   "appcard.warning.obfuscated.hint": "Il contient du code encodé ou compressé difficile à lire.",
+  "audit.scope":
+    "Vérifie un nombre limité de motifs. Les résultats doivent être examinés ; cela ne prouve pas la sécurité.",
+  "audit.sourceScope": "Les différences peuvent être des fichiers générés et doivent être examinées.",
+  "audit.sourceTag": "Étiquette des sources",
+  "audit.packages": "Paquets identifiés",
+  "audit.sourceCoverage":
+    "Les sources peuvent être indisponibles ; les fichiers générés et inclus peuvent ne pas être comparés.",
+  "audit.dependencyCoverage":
+    "Les données OSV ou des paquets peuvent manquer ; toutes les dépendances ne sont pas identifiées ou vérifiées.",
+  "audit.morePackages": "Autres paquets : {count}",
+  "audit.source": "Comparaison des sources",
+  "audit.dependencies": "Vérification des dépendances",
+  "audit.cron": "Modification de tâche planifiée",
+  "audit.service": "Service activé au démarrage",
+  "audit.setuid": "Modification du droit setuid",
+  "audit.sudoers": "Modification du fichier sudoers",
+  "audit.sourceMissing": "Fichier absent des sources",
+  "audit.sourceDiffers": "Fichier différent des sources",
+  "audit.sensitive": "Accès aux fichiers sensibles",
+  "audit.binaries": "Binaires inclus",
+  "audit.title": "Audit indépendant du code",
+  "audit.complete": "Terminé",
+  "audit.incomplete": "Incomplet",
+  "audit.error": "Erreur",
+  "audit.rootYes": "Le manifeste demande root",
+  "audit.rootNo": "Le manifeste ne demande pas root ; des privilèges peuvent toutefois être utilisés",
+  "audit.rootUnknown": "Demande root inconnue",
+  "audit.more": "Autres résultats : {count}",
   "appcard.warning.no-tls-check": "Ignore les contrôles HTTPS",
   "appcard.warning.no-tls-check.hint":
     "Il désactive la vérification des certificats : ses téléchargements pourraient être altérés.",
@@ -134,6 +214,8 @@ export const fr: Record<MessageKey, string> = {
   "appcard.noReleaseNotes": "Cette version n'a pas de notes.",
   "install.disclaimer":
     "DeckyHub ne fait que récupérer les versions depuis les dépôts GitHub de leurs auteurs. Il ne crée, ne vérifie ni ne garantit ces plugins et n'est pas responsable de ce qu'ils font à votre appareil ou à vos données. Installation à vos risques et périls.",
+  "install.noHash":
+    "GitHub n'a publié aucun SHA-256 pour ce fichier : DeckyHub ne peut donc pas vérifier qu'il est arrivé intact.",
   "pending.title": "Installer les plugins choisis ?",
   "pending.description":
     "Vous avez choisi ces plugins dans l'installateur. Decky Loader demandera une dernière confirmation avant de les installer.",
@@ -234,6 +316,13 @@ export const fr: Record<MessageKey, string> = {
   "settings.githubTokenHowTo": "Créez-en un en laissant toutes les autorisations décochées sur :",
   "settings.githubTokenNote":
     "DeckyHub ne fait que lire les dépôts et versions publics. Le jeton est stocké localement dans ces paramètres et envoyé uniquement à api.github.com.",
+  "settings.githubSignIn": "Se connecter avec GitHub",
+  "settings.githubSignInNote":
+    "Pas de jeton à créer ni à copier : ouvrez la page sur n’importe quel appareil, saisissez le code et validez. DeckyHub reçoit un jeton qui lit seulement des données publiques et relève la limite de requêtes.",
+  "settings.githubSignInCode": "Sur n’importe quel appareil, ouvrez {url} et saisissez ce code :",
+  "settings.githubSignedIn": "Connecté à GitHub",
+  "settings.githubSignInExpired": "Le code a expiré. Réessayez.",
+  "settings.githubSignInDenied": "La connexion a été refusée.",
   "settings.githubToken": "Jeton GitHub",
   "settings.githubQuota": "Requêtes GitHub restantes : {remaining} sur {limit} (réinitialisation dans {minutes} min)",
   "rateLimit.title": "Limite de requêtes GitHub atteinte",
@@ -272,6 +361,27 @@ export const fr: Record<MessageKey, string> = {
   "settings.exportLogs": "Exporter les journaux",
   "settings.exportLogsNote":
     "Enregistre les journaux de DeckyHub dans un ZIP dans ~/Downloads — joignez-le à un rapport de bug. Votre jeton GitHub n'est jamais journalisé.",
+  "settings.backups": "Sauvegardes",
+  "settings.backupBefore": "Sauvegarder les réglages avant mise à jour et suppression",
+  "settings.backupBeforeNote":
+    "Avant de mettre à jour, réinstaller ou supprimer un plugin, DeckyHub enregistre ici une copie de ses réglages (les 5 dernières par plugin). Restaurez-en une si une mise à jour casse quelque chose.",
+  "settings.backupsEmpty": "Aucune sauvegarde pour l’instant.",
+  "settings.restore": "Restaurer",
+  "settings.restoreTitle": "Restaurer les réglages de {name} ?",
+  "settings.restoreDescription":
+    "Cela remplace ses réglages actuels par la sauvegarde du {date}. Les réglages actuels sont sauvegardés d’abord. Rechargez ou redémarrez ensuite le plugin pour qu’il les utilise.",
+  "settings.restored": "Réglages de {name} restaurés",
+  "settings.leftovers": "Fichiers de plugins restants",
+  "settings.leftoversNote":
+    "Dossiers que Decky garde pour des plugins qui ne sont plus installés. Choisissez ce qu’il faut supprimer ; les réglages d’un plugin sont d’abord sauvegardés.",
+  "settings.leftoversScan": "Chercher les restes",
+  "settings.leftoversNone": "Rien de resté.",
+  "settings.leftoverInfo": "{size} · modifié {when}",
+  "settings.leftoversRemove": "Supprimer la sélection ({count})",
+  "settings.leftoversConfirmTitle": "Supprimer {count} dossiers restants ?",
+  "settings.leftoversConfirm":
+    "Cela supprime leurs réglages, données et journaux de cet appareil. Les réglages sont d’abord sauvegardés et restaurables depuis Sauvegardes.",
+  "settings.leftoversRemoved": "{count} dossiers supprimés, {size} libérés",
 
   "repos.addManage": "Ajouter et gérer",
   "repos.searchGithub": "Rechercher sur GitHub",
@@ -314,6 +424,9 @@ export const fr: Record<MessageKey, string> = {
 
   "github.error": "L’API GitHub a renvoyé {status}",
   "release.noMatch": "Aucune version correspondante trouvée.",
+  "release.inStore": "Son auteur le distribue via la boutique Decky. Installez-le depuis là.",
+  "scan.notReviewed":
+    "DeckyHub n'est pas la boutique Decky et personne ne vérifie ces plugins. Une analyse propre signifie seulement qu'aucun malware connu n'a été trouvé.",
   "release.noChecksum": "Aucun ZIP de version DeckyHub avec somme de contrôle SHA-256 trouvé.",
   "error.loaderUnavailable": "Decky Loader est indisponible pour le moment.",
   "toast.updatesAvailable": "Mises à jour disponibles : {count}",
@@ -329,6 +442,14 @@ export const fr: Record<MessageKey, string> = {
   "repos.exportedTo": "Exporté vers {path}",
   "repos.imported": "Importés : {repos}",
   "repos.nothingToImport": "Aucun nouveau dépôt à importer.",
+  "repos.packs": "Packs de plugins",
+  "repos.packsNote":
+    "Un pack est un petit fichier qui liste des plugins. Partagez le vôtre ou importez-en un pour configurer un autre appareil : DeckyHub propose d’installer ce qui manque, et chaque installation demande toujours votre confirmation.",
+  "repos.packExport": "Exporter mes plugins en pack",
+  "repos.packImport": "Importer un pack",
+  "repos.packExported": "{count} plugins enregistrés dans {path}",
+  "repos.packEmpty": "Aucun plugin installé que DeckyHub sache identifier pour l’instant.",
+  "pending.nothing": "Tout ce qui est dans ce pack est déjà installé.",
   "notice.more": "Plus",
   "notice.less": "Moins",
   "filter.filters": "Filtres",
@@ -353,4 +474,14 @@ export const fr: Record<MessageKey, string> = {
   "settings.tabDownloads": "Téléchargements",
   "settings.tabTroubleshoot": "Journaux",
   "settings.tabAbout": "À propos",
+  "remote.trusted": "Trusted: run requests without asking",
+  "remote.trust": "Trust",
+  "remote.trustTitle": "Trust {name}?",
+  "remote.trustWarning":
+    "This browser will be able to install, update and remove plugins on this device without asking you first. Plugins can run with full access to your device. Only trust a browser you control.",
+  "support.button": "Soutenir le développement et la maintenance",
+  "support.title": "Soutenir DeckyHub",
+  "support.text":
+    "DeckyHub est gratuit et open source, et un don ne débloque rien et ne change jamais la liste des plugins. S’il vous est utile, vous pouvez soutenir son développement et sa maintenance sur Ko-fi. Scannez le code avec votre téléphone ou ouvrez la page ici. Détails : deckyhub.com/about.html#support",
+  "support.open": "Ouvrir",
 };

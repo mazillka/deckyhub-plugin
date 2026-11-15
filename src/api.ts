@@ -1,5 +1,5 @@
 import { callable } from "@decky/api";
-import type { Asset, App, Settings, Download, DeckyHubInfo, RepoPreference } from "./types";
+import type { Asset, App, Settings, Download, DeckyHubInfo, RepoPreference, RemoteInstallStatus } from "./types";
 
 export const getApps = callable<[], { apps: App[] }>("get_apps");
 export const getSettings = callable<[], Settings>("get_settings");
@@ -16,10 +16,26 @@ export const stageInstall = callable<[asset: Asset, repo: string, jobId: string]
 export const getDownload = callable<[jobId: string], Download>("get_download");
 export const cancelDownload = callable<[jobId: string], { ok: boolean }>("cancel_download");
 export const getDeckyHubInfo = callable<[], DeckyHubInfo>("get_deckyhub_info");
+
+// GitHub sign-in by device code (github_auth.py).
+export const startGithubSignIn = callable<
+  [],
+  { userCode: string; verificationUri: string; expiresIn: number; interval: number }
+>("start_github_sign_in");
+export const pollGithubSignIn = callable<
+  [],
+  { status: "none" | "pending" | "signed-in" | "expired" | "denied"; interval?: number; token?: string }
+>("poll_github_sign_in");
+export const cancelGithubSignIn = callable<[], { cancelled: boolean }>("cancel_github_sign_in");
 export const addCustomRepo = callable<[repo: string], { added: boolean; repo: string }>("add_custom_repo");
 export const removeCustomRepo = callable<[repo: string], { removed: boolean; repo: string }>("remove_custom_repo");
 export const exportCustomRepos = callable<[], { path: string }>("export_custom_repos");
 export const importCustomRepos = callable<[path: string], { added: string[] }>("import_custom_repos");
+// Plugin packs (packs.py): a shareable list of plugins; importing one only queues the install offer.
+export const exportPluginPack = callable<[], { path: string | null; count: number }>("export_plugin_pack");
+export const importPluginPack = callable<[path: string], { name: string | null; count: number; added: string[] }>(
+  "import_plugin_pack",
+);
 export const readTokenFile = callable<[path: string], { token: string | null }>("read_token_file");
 export const addCustomRegistry = callable<
   [url: string],
@@ -30,9 +46,74 @@ export const removeCustomRegistry = callable<[url: string], { removed: boolean; 
 );
 export const refreshRegistry = callable<[], { apps: number }>("refresh_registry");
 export const exportLogs = callable<[], { path: string }>("export_logs");
+// Backups of other plugins' settings (backups.py); `created` is in milliseconds.
+export type SettingsBackup = { plugin: string; file: string; created: number; size: number };
+export const backupPluginSettings = callable<[name: string], { file?: string; skipped?: boolean; error?: string }>(
+  "backup_plugin_settings",
+);
+export const listSettingsBackups = callable<[], { backups: SettingsBackup[] }>("list_settings_backups");
+export const restoreSettingsBackup = callable<[folder: string, file: string], { restored?: boolean; error?: string }>(
+  "restore_settings_backup",
+);
+// Folders Decky keeps for plugins that are no longer installed (leftovers.py); `modified` is in milliseconds.
+export type Leftover = { name: string; areas: string[]; size: number; modified: number };
+export const scanLeftovers = callable<[], { items: Leftover[] }>("scan_leftovers");
+export const removeLeftovers = callable<
+  [names: string[]],
+  { removed?: number; freed?: number; skipped?: string[]; error?: string }
+>("remove_leftovers");
+export const deleteSettingsBackup = callable<[folder: string, file: string], { deleted?: boolean; error?: string }>(
+  "delete_settings_backup",
+);
 export const logFrontend = callable<[message: string], void>("log_frontend");
 export const clearDownloads = callable<[], { removed: number }>("clear_downloads");
 export const listDownloads = callable<[], { items: { name: string; directory: boolean }[] }>("list_downloads");
 export const saveRepoSettings = callable<[repo: string, values: RepoPreference], RepoPreference>("save_repo_settings");
 
+export const getRemoteInstallStatus = callable<[], RemoteInstallStatus>("get_remote_install_status");
+export const setRemoteInstallEnabled = callable<[enabled: boolean], RemoteInstallStatus>("set_remote_install_enabled");
+export const beginRemotePairing = callable<[], { code: string; pairingToken: string; expiresInSeconds: number }>(
+  "begin_remote_pairing",
+);
+export const decideRemotePairing = callable<[pairId: string, approve: boolean], { status: string }>(
+  "decide_remote_pairing",
+);
+export const setRemoteDeviceTrusted = callable<[deviceId: string, trusted: boolean], { id: string; trusted: boolean }>(
+  "set_remote_device_trusted",
+);
+export const revokeRemoteDevice = callable<[deviceId: string], { revoked: boolean }>("revoke_remote_device");
+export const decideRemoteRequest = callable<[requestId: string, approve: boolean], { id: string; status: string }>(
+  "decide_remote_request",
+);
+export const claimRemoteRequest = callable<
+  [requestId: string],
+  {
+    id: string;
+    pluginId: string | null;
+    releaseTag?: string | null;
+    status: string;
+    action?: "install" | "update" | "uninstall" | "enable" | "disable";
+    repo?: string | null;
+    pluginName?: string | null;
+    installedVersion?: string | null;
+    pluginNames?: string[];
+  }
+>("claim_remote_request");
+export const finishRemoteRequest = callable<[requestId: string, success: boolean], { id: string; status: string }>(
+  "finish_remote_request",
+);
+
+// The plugins with an update waiting, which a paired browser can ask about (Remote Install, op "summary").
+export const setRemoteUpdates = callable<[updates: { name: string; version: string }[]], { count: number }>(
+  "set_remote_updates",
+);
+
+export const getRemoteInstalledVersion = callable<[pluginName: string], { version: string | null; disabled: boolean }>(
+  "get_remote_installed_version",
+);
+
 export const REGISTRY_UPDATED = "deckyhub-registry-updated";
+
+export const finishRemoteRequestUnknown = callable<[requestId: string], { id: string; status: string }>(
+  "finish_remote_request_unknown",
+);

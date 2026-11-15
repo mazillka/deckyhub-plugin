@@ -1,4 +1,4 @@
-import { stageInstall } from "./api";
+import { backupPluginSettings, getSettings, stageInstall } from "./api";
 import { showInstallDownloadModal } from "./components/DownloadProgress";
 import { stopHaptics } from "./haptics";
 import { type TFunc } from "./i18n/en";
@@ -80,6 +80,20 @@ function reloadIfStillOld() {
   }, 15_000);
 }
 
+// Saves the plugin's settings first (backups.py), unless turned off in Settings: Decky deletes a removed
+// plugin's settings, and a bad update can spoil them. Whatever goes wrong here never stops the change itself.
+async function backUpFirst(...names: string[]) {
+  try {
+    if ((await getSettings()).backupBeforeChange === false) return;
+    for (const name of names) {
+      const result = await backupPluginSettings(name);
+      if (result.error) log(`Couldn't back up ${name}'s settings: ${result.error}`);
+    }
+  } catch (error) {
+    log(`Backing up before the change failed: ${error}`);
+  }
+}
+
 // Hands a release ZIP to Decky Loader's own installer — the route the Decky
 // Store uses. The loader shows its native confirm/progress dialog and does the
 // SHA-256 check and install itself. DeckyHub's backend downloads the ZIP first
@@ -121,22 +135,31 @@ export async function installDeckyPlugin(
   pluginName: string,
   version: string,
   installType: 0 | 1 | 2 | 3,
+  // A trusted browser's request: confirm Decky Loader's own install prompt for this plugin
+  // too, since the device owner already chose to trust that browser.
+  confirmForUser = false,
 ) {
   const { handedOver, done } = handOff();
+  let stopConfirming = () => {};
   try {
     // Before any uninstall, so a failed download leaves the plugin as it was.
     const artifact = await localZip(asset, repo, handedOver);
+    if (installType !== PLUGIN_INSTALL_TYPE.INSTALL) await backUpFirst(pluginName);
     if (needsFreshInstall(pluginName, installType)) {
-      await uninstallDeckyPlugin(pluginName);
+      await uninstallDeckyPlugin(pluginName, false);
       log(`Decky Loader uninstalled ${pluginName} before a fresh install`);
       installType = PLUGIN_INSTALL_TYPE.INSTALL;
     }
     traceDeckyInstall(pluginName, version);
+    const loaderVersion = normalizeVersion(displayVersion(version));
+    // Only once the ZIP is staged, and only for this very file, so no other prompt for the
+    // same plugin (a manual install started meanwhile, say) is answered for the user.
+    if (confirmForUser) stopConfirming = confirmDeckyPrompt(pluginName, loaderVersion, asset.sha256 ?? "");
     const result = await callDeckyLoader(
       "utilities/install_plugin",
       artifact,
       pluginName,
-      normalizeVersion(displayVersion(version)),
+      loaderVersion,
       asset.sha256 ?? "",
       installType,
     );
@@ -144,6 +167,7 @@ export async function installDeckyPlugin(
     return result;
   } finally {
     done();
+    window.setTimeout(stopConfirming, 60_000);
   }
 }
 
@@ -161,6 +185,7 @@ export async function updateDeckyPlugins(
     const artifacts: string[] = [];
     for (const [index, { asset, repo }] of updates.entries())
       artifacts.push(await localZip(asset, repo, index === updates.length - 1 ? handedOver : undefined));
+    if (installType !== PLUGIN_INSTALL_TYPE.INSTALL) await backUpFirst(...updates.map(({ name }) => name));
     for (const { name, version } of updates) traceDeckyInstall(name, version);
     return await callDeckyLoader(
       "utilities/install_plugins",
@@ -265,9 +290,31 @@ function traceDeckyInstall(pluginName: string, version?: string) {
 
 // Decky Loader's uninstall deletes the plugin's folder and its settings right
 // away, with no dialog of its own — callers must confirm first.
-export function uninstallDeckyPlugin(pluginName: string) {
+// Decky Loader announces each install with `loader/add_plugin_install_prompt` (name, version,
+// request id, hash, install type) and installs once `utilities/confirm_plugin_install` gets that id.
+function confirmDeckyPrompt(pluginName: string, version: string, hash: string) {
+  const backend = getDeckyBackend();
+  if (!backend) return () => undefined;
+  const onPrompt = (name: string, promptVersion: string, requestId: string, promptHash: unknown) => {
+    if (name !== pluginName || promptVersion !== version || (promptHash || "") !== hash) return;
+    if (typeof requestId !== "string") return;
+    log(`Confirming Decky Loader's install prompt for ${name} (trusted browser)`);
+    // One prompt per request: a later manual install of the same plugin must still ask.
+    backend.removeEventListener("loader/add_plugin_install_prompt", onPrompt);
+    void callDeckyLoader("utilities/confirm_plugin_install", requestId).catch(() => undefined);
+  };
+  backend.addEventListener("loader/add_plugin_install_prompt", onPrompt);
+  return () => backend.removeEventListener("loader/add_plugin_install_prompt", onPrompt);
+}
+
+export async function uninstallDeckyPlugin(pluginName: string, backUp = true) {
+  if (backUp) await backUpFirst(pluginName);
   return callDeckyLoader("utilities/uninstall_plugin", pluginName);
 }
+
+// Decky Loader's own switch for a plugin: it stops or starts the plugin and remembers the choice (nothing is deleted).
+export const setDeckyPluginEnabled = (pluginName: string, enabled: boolean) =>
+  callDeckyLoader(enabled ? "utilities/enable_plugin" : "utilities/disable_plugin", pluginName);
 
 function callDeckyLoader(route: string, ...args: unknown[]) {
   const backend = getDeckyBackend();

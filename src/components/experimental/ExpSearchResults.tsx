@@ -5,16 +5,12 @@ import { openExternalWeb } from "../../external";
 import { useT } from "../../i18n";
 import type { SearchRepo } from "../../types";
 import { cardDescriptionStyle, visuallyHidden } from "../../utils";
-import { categoryHue } from "../AppBadges";
-import { FocusableGrid } from "../FocusableGrid";
 import { keepInView } from "../KeepInView";
 import type { SearchResults } from "../SearchResults";
 
-// Experimental: Search's results as tiles like Discover's cards (a cover in the owner's
-// color) or as rows, with the same actions: Install (Y / X / Menu on it) and Add.
+// Experimental: Search's results as rows, with the same actions: Install (Y / X / Menu on it) and Add.
 export function ExpSearchResults({
   results,
-  layout,
   isAdded,
   installing,
   canDownload,
@@ -25,10 +21,9 @@ export function ExpSearchResults({
 }: ComponentProps<typeof SearchResults>) {
   const t = useT();
   if (!results.length) return null;
-  const tile = (repo: SearchRepo, row: boolean) => {
+  const tile = (repo: SearchRepo) => {
     const [owner, name] = repo.full_name.split("/");
     const added = isAdded(repo.full_name);
-    const hue = categoryHue(owner);
     const buttons = (
       <Focusable flow-children="right" className="dh-exp-buttons">
         <div className="dh-exp-primary" style={{ flex: 1, minWidth: 0 }}>
@@ -74,7 +69,7 @@ export function ExpSearchResults({
         </small>
       </>
     );
-    return row ? (
+    return (
       <div
         className="dh-exp-row deckyhub-search-row deckyhub-focus-ring"
         style={{ gridTemplateColumns: "minmax(0, 1fr) 240px" }}
@@ -82,34 +77,15 @@ export function ExpSearchResults({
         <div style={{ display: "grid", gap: 4, minWidth: 0 }}>{info}</div>
         {buttons}
       </div>
-    ) : (
-      <div className="dh-exp-card deckyhub-focus-ring">
-        <div
-          className="dh-exp-cover"
-          style={{
-            height: 44,
-            background: `linear-gradient(135deg, hsl(${hue} 60% 38%), hsl(${(hue + 50) % 360} 55% 22%))`,
-          }}
-        />
-        <div className="dh-exp-body">
-          {info}
-          <div className="dh-exp-spacer" />
-          {buttons}
-        </div>
-      </div>
     );
   };
-  return layout === "list" ? (
+  return (
     <Focusable flow-children="down" style={{ display: "grid", gap: 8 }}>
       {results.map((repo) => (
         <Focusable key={repo.full_name} flow-children="right" onFocus={keepInView}>
-          {tile(repo, true)}
+          {tile(repo)}
         </Focusable>
       ))}
     </Focusable>
-  ) : (
-    <FocusableGrid items={results} columns={3} keyFor={(repo) => repo.full_name}>
-      {(repo) => tile(repo, false)}
-    </FocusableGrid>
   );
 }

@@ -7,8 +7,8 @@ import { chromium } from "../decky-mock/node_modules/playwright/index.mjs";
 
 const root = new URL("../../", import.meta.url);
 const shot = process.argv[2];
-const count = process.argv[3] ?? "500+";
-if (!shot) throw new Error("usage: node devtools/promo/render.mjs <discover-promo.png> [500+]");
+const count = process.argv[3] ?? "600+";
+if (!shot) throw new Error("usage: node devtools/promo/render.mjs <discover-promo.png> [600+]");
 const screen = `data:image/png;base64,${readFileSync(shot).toString("base64")}`;
 const logo = readFileSync(new URL("docs/favicon.svg", root), "utf8");
 

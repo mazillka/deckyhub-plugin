@@ -14,6 +14,7 @@ REPO = "https://github.com/mazillka/deckyhub-plugin"
 LINKS = [
     ("home", "Home", SITE),
     ("plugins", "Plugins", SITE + "plugins/"),
+    ("paired-devices", "Paired devices", SITE + "paired-devices/"),
     ("install", "Install", SITE + "#install"),
     ("releases", "Release notes", SITE + "releases.html"),
     ("help", "Help", SITE + "help.html"),
@@ -25,6 +26,7 @@ LINKS = [
 LINKS_UK = [
     ("home", "Головна", SITE + "uk/"),
     ("plugins", "Плагіни", SITE + "plugins/"),
+    ("paired-devices", "Сполучені пристрої", SITE + "uk/paired-devices/"),
     ("install", "Встановлення", SITE + "uk/#install"),
     ("releases", "Нотатки до релізів", SITE + "releases.html"),
     ("help", "Довідка", SITE + "uk/help.html"),
@@ -40,13 +42,15 @@ nav.site-nav .site-links a{color:#b6c3d4;text-decoration:none;font-size:.95rem;p
 nav.site-nav .site-links a:hover,nav.site-nav .site-links a[aria-current=page]{color:#fff}
 nav.site-nav a:focus-visible{outline:2px solid #4b9cf0;outline-offset:3px}
 @media(max-width:640px){nav.site-nav .site-nav-inner{padding:0 16px;gap:16px}nav.site-nav .site-links{gap:16px}}
+/* A short screen (the Steam Deck's browser is about 914x520, a phone held sideways less) needs the room for reading: the menu scrolls away. */
+@media(max-height:600px){nav.site-nav{position:static}}
 .skip{position:absolute;left:-9999px;top:8px;z-index:20;background:#fff;color:#10151f;padding:8px 14px;border-radius:6px;font-weight:600;text-decoration:none}.skip:focus{left:8px}
 footer a{display:inline-block;padding:4px 0}"""
 
 FOOTER = (
     '<footer><div class="wrap">\n'
     f'<div>DeckyHub is open source under GPL-3.0-or-later · <a href="{REPO}">Source</a> · <a href="{SITE}releases.html">Release notes</a> · '
-    f'<a href="{REPO}/issues">Report an issue</a> · <a href="{REPO}/releases.atom">Releases feed</a></div>\n'
+    f'<a href="{SITE}press">Press</a> · <a href="{REPO}/issues">Report an issue</a> · <a href="{REPO}/releases.atom">Releases feed</a> · <a href="{SITE}about.html#support">Support</a></div>\n'
     "<div><strong>Disclaimer:</strong> Not affiliated with Valve or the Decky Loader project. Plugin information comes from public GitHub "
     "repositories, and every plugin belongs to its own authors; DeckyHub doesn't review, own or endorse them. Plugins are installed at your own "
     "risk, so look at a plugin's repository before you install it.</div>\n"
@@ -57,7 +61,7 @@ FOOTER = (
 FOOTER_UK = (
     '<footer><div class="wrap">\n'
     f'<div>DeckyHub має відкритий код за ліцензією GPL-3.0-or-later · <a href="{REPO}">Код</a> · <a href="{SITE}releases.html">Нотатки до релізів</a> · '
-    f'<a href="{REPO}/issues">Повідомити про проблему</a> · <a href="{REPO}/releases.atom">Стрічка релізів</a></div>\n'
+    f'<a href="{SITE}press">Преса</a> · <a href="{REPO}/issues">Повідомити про проблему</a> · <a href="{REPO}/releases.atom">Стрічка релізів</a> · <a href="{SITE}uk/about.html#support">Підтримка</a></div>\n'
     "<div><strong>Відмова від відповідальності:</strong> Не пов'язаний із Valve чи проєктом Decky Loader. Інформація про плагіни надходить із публічних "
     "репозиторіїв GitHub, а кожен плагін належить його авторам; DeckyHub не перевіряє, не володіє й не схвалює їх. Плагіни встановлюються на ваш "
     "власний ризик, тож перегляньте репозиторій плагіна перед встановленням.</div>\n"
@@ -80,7 +84,7 @@ def nav(current: str | None = None, lang: str = "en", switch: tuple[str, str, st
 
 def apply(page: str, lang: str = "en", switch: tuple[str, str, str] | None = None) -> str:
     """The page with its shell placeholders filled in (in Ukrainian for lang="uk")."""
-    page = re.sub(r"<!-- site-nav(?::\s*(\w+))? -->", lambda match: nav(match.group(1), lang, switch), page)
+    page = re.sub(r"<!-- site-nav(?::\s*([\w-]+))? -->", lambda match: nav(match.group(1), lang, switch), page)
     return page.replace("<!-- site-footer -->", FOOTER_UK if lang == "uk" else FOOTER).replace(
         "/* site-nav-style */", NAV_STYLE
     )

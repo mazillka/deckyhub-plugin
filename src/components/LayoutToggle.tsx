@@ -2,27 +2,18 @@ import { DialogButtonPrimary as Button } from "@decky/ui";
 import { useState } from "react";
 import { FaList, FaTh } from "react-icons/fa";
 import { useT } from "../i18n";
+import { readLayout, saveLayout, type Layout } from "../layoutDefault";
 import { compactButtonStyle } from "../utils";
 
-export type Layout = "grid" | "list";
+export type { Layout };
 
 // Discover, Updates and Search share one grid/list choice, remembered on this device.
 // The list is the default: more plugins per screen, each on one line.
-const LAYOUT_KEY = "deckyhub-layout";
-
 export function useLayout() {
-  const [layout, setLayout] = useState<Layout>(() => {
-    try {
-      return localStorage.getItem(LAYOUT_KEY) === "grid" ? "grid" : "list";
-    } catch {
-      return "list";
-    }
-  });
+  const [layout, setLayout] = useState<Layout>(() => readLayout(localStorage));
   const change = (next: Layout) => {
     setLayout(next);
-    try {
-      localStorage.setItem(LAYOUT_KEY, next);
-    } catch {}
+    saveLayout(localStorage, next);
   };
   return [layout, change] as const;
 }

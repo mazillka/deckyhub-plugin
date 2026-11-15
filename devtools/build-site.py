@@ -18,6 +18,8 @@ engines are told to stay away (noindex, no canonical link, no sitemap) and a ban
 it isn't the live site.
 """
 
+import base64
+import hashlib
 import json
 import os
 import re
@@ -30,6 +32,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 import markdown
+import media_coverage
 import plugin_pages
 import site_shell
 from PIL import Image
@@ -172,9 +175,9 @@ def structured_data(page: str, latest: dict | None, uk: bool = False) -> str:
         "applicationSubCategory": "Decky Loader plugin",
         "operatingSystem": "SteamOS",
         "description": (
-            "Магазин плагінів Decky Loader: знаходьте, встановлюйте й оновлюйте 500+ плагінів Decky Loader в ігровому режимі, зокрема тих, яких немає в офіційному магазині Decky."
+            "Магазин плагінів Decky Loader: знаходьте, встановлюйте й оновлюйте 600+ плагінів Decky Loader в ігровому режимі, зокрема тих, яких немає в офіційному магазині Decky."
             if uk
-            else "A Decky Loader plugin store: find, install and update 500+ Decky Loader plugins from Gaming Mode, including plugins not on the official Decky store."
+            else "A Decky Loader plugin store: find, install and update 600+ Decky Loader plugins from Gaming Mode, including plugins not on the official Decky store."
         ),
         "downloadUrl": f"{REPO_URL}/releases/latest",
         "installUrl": f"{SITE}uk/#install" if uk else f"{SITE}#install",
@@ -200,9 +203,11 @@ out = Path(sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("--")
 PREVIEW = sys.argv[sys.argv.index("--preview") + 1] if "--preview" in sys.argv else None
 
 shutil.copytree(ROOT / "docs", out, dirs_exist_ok=True)
-with urllib.request.urlopen(REGISTRY_URL) as response:
+# The develop preview lists the registry's develop branch, so a registry change shows there before it ships.
+with urllib.request.urlopen(REGISTRY_URL.replace("/main/", "/develop/") if PREVIEW else REGISTRY_URL) as response:
     apps = json.load(response)["apps"]
 data = plugin_pages.load_data()
+coverage = media_coverage.load(ROOT / "docs" / "media-coverage.json")
 index = out / "index.html"
 page = index.read_text(encoding="utf-8")
 if "<!-- popular -->" not in page:
@@ -215,6 +220,8 @@ for placeholder in ("<!-- structured-data -->", "<!-- latest -->"):
 page = (
     page.replace("<!-- popular -->", plugin_pages.popular_cards(apps, data))
     .replace("<!-- plugin-count -->", str(len(apps)))
+    .replace("<!-- featured-in -->", media_coverage.featured_in(coverage, "press"))
+    .replace("</style>", media_coverage.CSS + "</style>", 1)
     .replace("<!-- structured-data -->", structured_data(page, latest))
 )
 if latest:
@@ -237,6 +244,9 @@ if latest:
 uk_page = uk_page.replace("<!-- popular -->", plugin_pages.popular_cards(apps, data, prefix="../plugins/")).replace(
     "<!-- plugin-count -->", str(len(apps))
 )
+uk_page = uk_page.replace("<!-- featured-in -->", media_coverage.featured_in(coverage, "../press", uk=True)).replace(
+    "</style>", media_coverage.CSS + "</style>", 1
+)
 uk_page = uk_page.replace("<!-- structured-data -->", structured_data(uk_page, latest, uk=True))
 readme_uk = (ROOT / "README.uk.md").read_text(encoding="utf-8")
 uk_page = re.sub(r"<!-- steps: (.+?) -->", lambda match: plugin_pages.readme_steps(readme_uk, match.group(1)), uk_page)
@@ -250,7 +260,7 @@ notes.write_text(
     site_shell.apply(notes_page.replace("<!-- releases -->", release_articles(releases))), encoding="utf-8"
 )
 
-# deckyhub.com/contribute/: how to add a plugin and the registry editor (moved here from registry.deckyhub.com), each with a Ukrainian twin.
+# deckyhub.com/contribute/: how to add a plugin and the registry editor (they used to be on a separate registry site), each with a Ukrainian twin.
 CONTRIBUTE = ["contribute/", "contribute/editor.html", "uk/contribute/", "uk/contribute/editor.html"]
 for name in ("index.html", "editor.html"):
     path = "" if name == "index.html" else name
@@ -276,6 +286,12 @@ for name in ("help.html", "about.html"):
         page_file = out / path
         text = page_file.read_text(encoding="utf-8")
         if name == "help.html":
+            # The Remote Install manual's steps come from the README, like the home page's install steps.
+            text = re.sub(
+                r"<!-- steps: (.+?) -->",
+                lambda match: plugin_pages.readme_steps(readme if lang == "en" else readme_uk, match.group(1)),
+                text,
+            )
             if "<!-- structured-data -->" not in text:
                 sys.exit(f"docs/{path} is missing the <!-- structured-data --> placeholder")
             text = text.replace(
@@ -305,11 +321,28 @@ if llms.exists():
 
 today = time.strftime("%Y-%m-%d", time.gmtime())
 newest = (releases[0].get("published_at") or "")[:10] if releases else today
+# deckyhub.com/press: independent coverage (docs/media-coverage.json), also at /press/ for links with the slash.
+press_shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
+press_shell = {**press_shell, "style": press_shell["style"] + media_coverage.CSS}
+press_page = plugin_pages.page(
+    press_shell,
+    "DeckyHub in the Media | Press & Reviews",
+    "Independent articles, reviews, tutorials and videos about DeckyHub, with links to the original publications.",
+    "press",
+    media_coverage.press_body(coverage),
+    [],
+    current="press",
+)
+(out / "press.html").write_text(press_page, encoding="utf-8")
+(out / "press").mkdir(exist_ok=True)
+(out / "press" / "index.html").write_text(press_page, encoding="utf-8")
+
 (out / "sitemap.xml").write_text(
     '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     f"<url><loc>{SITE}</loc><lastmod>{today}</lastmod></url>\n"
     f"<url><loc>{SITE}uk/</loc><lastmod>{today}</lastmod></url>\n"
     f"<url><loc>{SITE}releases.html</loc><lastmod>{newest}</lastmod></url>\n"
+    f"<url><loc>{SITE}press</loc><lastmod>{media_coverage.newest_date(coverage) or today}</lastmod></url>\n"
     + "".join(f"<url><loc>{SITE}{path}</loc><lastmod>{today}</lastmod></url>\n" for path in HELP_ABOUT + CONTRIBUTE)
     + "".join(f"<url><loc>{escape(url)}</loc><lastmod>{date}</lastmod></url>\n" for url, date in plugin_urls)
     + "</urlset>\n",
@@ -366,17 +399,36 @@ for path in ["releases.html", "about.html", "uk/about.html"] + [
     )
     page_file.write_text(text, encoding="utf-8")
 
-# GitHub Pages can't send security headers, so every page carries them as meta tags. Scripts and styles are inline;
-# the only outside requests are shields.io badges and the registry editor's fetch of apps.json.
+# GitHub Pages can't send security headers, so every page carries them as meta tags. Styles are inline;
+# Outside requests are shields.io badges, the registry editor, and pinned Remote Install connections.
+# Scripts: the site's own files, and each page's own inline scripts by their hash (SCRIPTS below). Not
+# 'unsafe-inline': the site holds the tokens of paired devices, so text that slipped into a page unescaped
+# must not be able to run. Inline event handlers (onclick="...") don't run either; use addEventListener.
 CSP = (
-    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://img.shields.io; "
-    "connect-src 'self' https://raw.githubusercontent.com; object-src 'none'; base-uri 'self'; form-action 'self'"
+    "default-src 'self'; script-src 'self'SCRIPTS https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://img.shields.io; "
+    "connect-src 'self' https://raw.githubusercontent.com https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self'"
 )
 for html_file in out.rglob("*.html"):
     text = html_file.read_text(encoding="utf-8")
+    # CSP cannot express private IP ranges. The pairing form validates private IPv4 and pins the certificate.
+    policy = (
+        CSP.replace("https://cloudflareinsights.com;", "https://cloudflareinsights.com https://*:8765;")
+        if 'id="remote-install"' in text
+        else CSP
+    )
+    # Browsers hash a script's text as parsed, with LF line ends, which is how Python holds it here.
+    # Every script element without a src, however its tag is written: one this misses is blocked, never allowed.
+    hashes = sorted(
+        {
+            "'sha256-" + base64.b64encode(hashlib.sha256(body.encode("utf-8")).digest()).decode() + "'"
+            for attributes, body in re.findall(r"(?is)<script\b([^>]*)>(.*?)</script[^>]*>", text)
+            if not re.search(r"(?i)\bsrc\s*=", attributes)
+        }
+    )
+    policy = policy.replace("SCRIPTS", "".join(" " + source for source in hashes))
     text = text.replace(
         "<head>",
-        f'<head>\n<meta http-equiv="Content-Security-Policy" content="{CSP}">\n<meta name="referrer" content="strict-origin-when-cross-origin">',
+        f'<head>\n<meta http-equiv="Content-Security-Policy" content="{policy}">\n<meta name="referrer" content="strict-origin-when-cross-origin">',
         1,
     )
     html_file.write_text(text, encoding="utf-8")
@@ -395,6 +447,9 @@ if PREVIEW:
     for html_file in out.rglob("*.html"):
         text = html_file.read_text(encoding="utf-8")
         # Root-relative links first: done after SITE they'd get the preview path twice (/develop/develop/).
+        # A link that already names the preview (the README's Remote Install steps do) is taken back to the
+        # site root first, or it would get the path twice too.
+        text = text.replace(SITE + base.lstrip("/"), SITE)
         text = text.replace('href="/', f'href="{base}').replace('src="/', f'src="{base}').replace(SITE, base)
         if f'"{base}{base.lstrip("/")}' in text:
             sys.exit(f"{html_file}: a link got the preview path twice")

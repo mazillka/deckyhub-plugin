@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>DeckyHub: Decky Loader plugin store</title>
-<meta name="description" content="DeckyHub is a free, open-source plugin store for Decky Loader: find, install and update 500+ Decky Loader plugins from Gaming Mode.">
+<meta name="description" content="DeckyHub is a free, open-source plugin store for Decky Loader: find, install and update 600+ Decky Loader plugins from Gaming Mode.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="canonical" href="https://deckyhub.com/">
 <link rel="alternate" hreflang="en" href="https://deckyhub.com/">
@@ -15,7 +15,7 @@
 <meta property="og:locale" content="en_US">
 <meta property="og:url" content="https://deckyhub.com/">
 <meta property="og:title" content="DeckyHub: Decky Loader plugin store">
-<meta property="og:description" content="Find, install and update 500+ Decky Loader plugins from Gaming Mode, including plugins not on the official Decky store.">
+<meta property="og:description" content="Find, install and update 600+ Decky Loader plugins from Gaming Mode, including plugins not on the official Decky store.">
 <meta property="og:image" content="https://deckyhub.com/img/og.jpg">
 <meta property="og:image:alt" content="DeckyHub's Discover screen, with plugin categories and popular plugins">
 <meta name="twitter:card" content="summary_large_image">
@@ -33,6 +33,7 @@ nav .brand{font-weight:700;color:var(--text);text-decoration:none;margin-right:a
 nav a{color:var(--muted);text-decoration:none;font-size:.95rem}nav a:hover{color:var(--text)}
 @media(max-width:640px){nav .links a:not(.keep){display:none}}
 .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:8px;background:var(--accent);color:#fff;text-decoration:none;font-weight:600;border:1px solid transparent}
+.btn.kofi{background:#ff5e5b;color:#15100f}.btn.kofi:hover{background:#ff7673}
 .btn:hover{background:var(--accent2)}.btn.ghost{background:transparent;border-color:var(--line);color:var(--text)}.btn.ghost:hover{border-color:var(--accent2)}
 header{padding:72px 0 40px;text-align:center;background:radial-gradient(ellipse at top,#1b3254 0%,var(--bg) 65%)}
 header h1{font-size:clamp(2.2rem,6vw,3.6rem);line-height:1.1;margin:0 0 16px;letter-spacing:-.02em}
@@ -48,6 +49,7 @@ h2{font-size:clamp(1.6rem,4vw,2.2rem);margin:0 0 10px;letter-spacing:-.01em}
 .card h3{margin:0 0 8px;font-size:1.1rem}.card p{margin:0;color:var(--muted)}
 .card .ico{font-size:1.6rem;margin-bottom:10px}
 figure{margin:0}figcaption{color:var(--muted);margin-top:10px;font-size:.92rem}
+.promo{display:grid;gap:32px;align-items:center;grid-template-columns:1fr;background:linear-gradient(135deg,#1b3254 0%,var(--panel) 70%);border:1px solid var(--accent);border-radius:16px;padding:28px}.promo .tag{display:inline-block;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--accent2);border:1px solid var(--accent2);border-radius:999px;padding:2px 10px;margin-bottom:12px}.promo h2{margin-bottom:12px}.promo p{color:var(--muted);margin:0 0 16px}.promo .cta{justify-content:flex-start}.promo .soon{font-size:.92rem;color:var(--dim);margin:16px 0 0}@media(min-width:860px){.promo{grid-template-columns:5fr 6fr;padding:40px}}
 .shot{border-radius:12px;overflow:hidden;border:1px solid var(--line);aspect-ratio:16/10;background:#0b0f16}
 ol.steps{counter-reset:s;list-style:none;padding:0;display:grid;gap:10px}
 ol.steps li{counter-increment:s;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 20px 16px 64px;position:relative;color:var(--text);line-height:1.6;font-size:1.02rem}
@@ -85,7 +87,7 @@ footer .wrap{display:grid;gap:10px}
 <p class="latest"><!-- latest --></p>
 <div class="badges" aria-label="Virus scans of the latest release"><a href="https://github.com/mazillka/deckyhub-registry#how-it-works"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmazillka%2Fdeckyhub-registry%2Fvirus-scans%2Fbadges%2Fmazillka%2Fdeckyhub-plugin%2Fclamav.json" alt="ClamAV scan of the latest release" width="170" height="20" loading="lazy"></a><a href="https://github.com/mazillka/deckyhub-registry#how-it-works"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmazillka%2Fdeckyhub-registry%2Fvirus-scans%2Fbadges%2Fmazillka%2Fdeckyhub-plugin%2Fyara.json" alt="YARA scan of the latest release" width="156" height="20" loading="lazy"></a><a href="https://github.com/mazillka/deckyhub-plugin/releases/latest"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmazillka%2Fdeckyhub-plugin%2Fbadges%2Fvirustotal.json" alt="VirusTotal scan of the latest release" width="202" height="20" loading="lazy"></a><a href="https://github.com/mazillka/deckyhub-plugin/releases/latest"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmazillka%2Fdeckyhub-plugin%2Fbadges%2Fmetadefender.json" alt="MetaDefender scan of the latest release" width="202" height="20" loading="lazy"></a></div>
 <div class="badges" aria-label="Downloads, plugins, license and tests"><a href="https://github.com/mazillka/deckyhub-plugin/releases"><img src="https://img.shields.io/github/downloads/mazillka/deckyhub-plugin/total?color=1d75cc" alt="Total downloads of DeckyHub" width="104" height="20" loading="lazy"></a><a href="https://deckyhub.com/plugins/"><img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmazillka%2Fdeckyhub-registry%2Frefs%2Fheads%2Fmain%2Fregistry%2Fapps.json&amp;query=%24.apps.length&amp;label=plugins%20in%20registry&amp;color=1d75cc" alt="Number of plugins in DeckyHub's registry" width="140" height="20" loading="lazy"></a><a href="https://github.com/mazillka/deckyhub-plugin/blob/main/LICENSE.md"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-1d75cc" alt="License: GPL-3.0-or-later" width="148" height="20" loading="lazy"></a><a href="https://github.com/mazillka/deckyhub-plugin/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/mazillka/deckyhub-plugin/ci.yml?branch=main&amp;label=tests" alt="Test status of DeckyHub" width="88" height="20" loading="lazy"></a></div>
-<div class="hero-shot"><picture><source media="(prefers-reduced-motion: reduce)" srcset="img/discover-640.webp 640w, img/discover.webp 1280w" sizes="(max-width:940px) 100vw, 900px"><img src="img/deckyhub.gif" width="800" height="500" style="width:100%" fetchpriority="high" alt="DeckyHub in action: its Quick Access tab, Discover, a plugin's details, Updates and Settings"></picture></div>
+<div class="hero-shot"><picture><source media="(prefers-reduced-motion: reduce)" srcset="img/discover-640.webp 640w, img/discover.webp 1280w" sizes="(max-width:940px) 100vw, 900px"><source type="image/webp" srcset="img/deckyhub.webp"><img src="img/deckyhub.gif" width="800" height="500" style="width:100%" fetchpriority="high" alt="DeckyHub in action: its Quick Access tab, Discover, a plugin's details, Updates and Settings"></picture></div>
 </div></header>
 
 <section id="features"><div class="wrap">
@@ -153,6 +155,17 @@ footer .wrap{display:grid;gap:10px}
 <p class="sub">Scans and warnings inform, they never block. The scans are signature-based: they only catch known malware, and malware can be built to get past them, so a clean scan isn't proof a plugin is safe. Only the <a href="https://plugins.deckbrew.xyz/">Decky plugin store</a> reviews plugins by hand; DeckyHub's checks are a step up from a bare GitHub download, not a replacement for that review. What each badge and warning means is on the <a href="/help.html#safety">help page</a>, and the details are in the <a href="https://github.com/mazillka/deckyhub-plugin#how-deckyhub-controls-quality">README</a>.</p>
 </div></section>
 
+<section id="extension"><div class="wrap"><div class="promo">
+<div><span class="tag">Browser extension</span>
+<h2>See the scan results on GitHub</h2>
+<p>Deckyhub is a free browser extension. It adds safety badges to a plugin's GitHub page and, under every release, the audit warnings and ClamAV, YARA, VirusTotal and MetaDefender results, with a link that opens that exact version here. It only reads public registry files and collects nothing.</p>
+<p>Works in Chrome, Edge, Opera, Brave, Vivaldi and Firefox.</p>
+<div class="cta"><a class="btn" href="https://github.com/mazillka/deckyhub-ext/releases">Get it from GitHub releases</a><a class="btn ghost" href="https://github.com/mazillka/deckyhub-ext#readme">Read the README</a><a class="btn ghost" href="/help.html#extension">More in the help</a></div>
+<p class="soon">Store listings are coming soon. Until then, install it from GitHub; the source is open (GPL-3.0-or-later).</p></div>
+<figure><div class="shot"><img src="img/extension.webp" srcset="img/extension-640.webp 640w, img/extension.webp 1280w" sizes="(max-width:860px) 100vw, 560px" width="1280" height="800" loading="lazy" alt="A GitHub release page with the Deckyhub block under it: ClamAV and YARA show no threats found, VirusTotal and MetaDefender show not scanned yet, with buttons to View on DeckyHub and Send to device."></div></figure>
+</div></div></section>
+
+<!-- featured-in -->
 <section id="faq"><div class="wrap">
 <h2>Good to know</h2>
 <details><summary>Does DeckyHub install things automatically?</summary><p>Never. Download ZIP just saves a file to <code>~/Downloads/deckyhub</code>. One-tap Install, Update and Uninstall go through Decky Loader's own installer, which asks you to confirm first.</p></details>
@@ -164,6 +177,12 @@ footer .wrap{display:grid;gap:10px}
 </div></section>
 
 </main>
+
+<section id="support"><div class="wrap">
+<h2>Support development</h2>
+<p>DeckyHub is free and open source. If it helps you, you can support its development and maintenance on Ko-fi. Thank you!</p>
+<div class="cta"><a class="btn kofi" href="https://ko-fi.com/mazillka" target="_blank" rel="noopener noreferrer">♥ Support Development &amp; Maintenance</a></div>
+</div></section>
 
 <!-- site-footer -->
 

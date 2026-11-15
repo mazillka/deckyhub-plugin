@@ -1,0 +1,459 @@
+.remote-install {
+  scroll-margin-top: 72px;
+  margin: 24px 0;
+  padding: clamp(14px, 4vw, 24px);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+}
+.remote-install h2, .remote-install h3 { margin-top: 0; }
+.remote-install form { border-top: 1px solid var(--line); padding-top: 16px; }
+.remote-install ol { padding-inline-start: 24px; }
+.remote-install li + li { margin-top: 6px; }
+.remote-install label, .remote-install summary { font-weight: 600; }
+.remote-install input, .remote-install select, .remote-install button {
+  max-width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  padding: 8px 12px;
+  font: inherit;
+}
+.remote-install input, .remote-install select { width: min(100%, 34rem); }
+.remote-install #remote-code { width: 11ch; letter-spacing: .15em; }
+.remote-install button:not(:disabled), .remote-install summary { cursor: pointer; }
+.remote-install button:disabled { opacity: .55; }
+.remote-install :focus-visible { outline: 2px solid var(--accent2); outline-offset: 2px; }
+.remote-install #remote-pair:not(:disabled), .remote-install #remote-request:not(:disabled) {
+  border-color: var(--accent2);
+  color: var(--accent2);
+  font-weight: 650;
+}
+.remote-install details { margin: 16px 0; }
+.remote-install .remote-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.remote-install #remote-status { padding: 10px 12px; border-inline-start: 3px solid var(--accent2); background: var(--bg); }
+.remote-plugins { list-style: none; padding: 0; }
+.remote-plugins li { display: grid; gap: 4px; padding: 12px 0; border-top: 1px solid var(--line); overflow-wrap: anywhere; }
+.remote-plugins li > span { font-size: .9em; color: var(--muted); }
+.remote-info { display: grid; gap: 4px; font-size: .9em; color: var(--muted); }
+.remote-info a { justify-self: start; }
+.remote-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.remote-badge { padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; font-size: .8rem; white-space: nowrap; }
+.remote-badge-ok { color: #6bcb6b; }
+.remote-badge-warn { color: #ffb35c; }
+.remote-badge-bad { color: #ff8a8a; }
+.remote-badge-info { color: #c49bff; }
+
+/* The Paired devices page. data-state (remote-install.js) says what is going on: new (adding a device),
+   connecting, approve (waiting for the device), unreachable, unsupported, error, declined, paired.
+   Phone first: one column, the devices as a swipeable row of cards; from 900px the devices sit in a left column. */
+.remote-device-dashboard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 22px;
+  margin-top: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.remote-device-dashboard > * { min-width: 0; }
+.rd-hero h2 { margin: 6px 0 8px; font-size: clamp(1.5rem, 5vw, 2.1rem); line-height: 1.15; }
+.rd-hero p { margin: 0 0 8px; color: var(--muted); max-width: 46rem; }
+.rd-hero .rd-app { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 12px; }
+.rd-hero .rd-app[hidden] { display: none; }
+.rd-hero .rd-app .rd-hint { margin: 0; }
+.rd-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: .85rem;
+  font-weight: 600;
+}
+.rd-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.rd-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; }
+.rd-layout > * { min-width: 0; }
+@media (min-width: 900px) {
+  .rd-layout { grid-template-columns: 300px minmax(0, 1fr); gap: 24px; }
+  .rd-devices { position: sticky; top: 72px; }
+}
+.rd-main { display: grid; gap: 16px; }
+.rd-main > * { margin: 0; min-width: 0; }
+
+/* Your devices */
+.rd-devices, .rd-pairing, .rd-device, .remote-inventory {
+  padding: clamp(14px, 3vw, 20px);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+}
+.rd-devices { display: grid; gap: 12px; }
+.rd-devices-head, .rd-inv-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 12px; }
+.rd-devices h3, .rd-inv-head h3 { margin: 0; font-size: 1.1rem; }
+.rd-devices-head .btn, .rd-inv-head .btn { margin: 0; }
+.rd-devices-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+[data-has-devices="false"] #remote-devices-refresh { display: none; }
+.rd-cards { display: flex; gap: 10px; margin: 0; padding: 0 0 4px; list-style: none; overflow-x: auto; scroll-snap-type: x mandatory; }
+.rd-cards:empty { display: none; }
+@media (min-width: 900px) { .rd-cards { flex-direction: column; overflow: visible; padding: 0; } }
+.rd-cards li + li { margin-top: 0; }
+.rd-card {
+  flex: 0 0 min(80%, 270px);
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg);
+  scroll-snap-align: start;
+}
+@media (min-width: 900px) { .rd-card { flex: none; } }
+.rd-card[data-selected="true"] { border-color: var(--accent2); box-shadow: inset 0 0 0 1px var(--accent2); }
+.remote-install .rd-card-main {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+.rd-card-main strong { font-size: 1.02rem; }
+.rd-card-main small, .rd-card-meta { color: var(--muted); font-size: .85rem; }
+.rd-card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.rd-pill { display: inline-block; padding: 1px 9px; border: 1px solid currentColor; border-radius: 99px; font-size: .78rem; font-weight: 650; white-space: nowrap; }
+.rd-pill[data-kind="online"] { color: #6bcb6b; }
+.rd-pill[data-kind="offline"] { color: var(--muted); }
+.rd-pill[data-kind="selected"] { color: var(--accent2); }
+.rd-card-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.remote-install .rd-card-actions button, .remote-install .rd-card-actions input { min-height: 36px; padding: 4px 12px; font-size: .9rem; }
+.remote-install .rd-card-actions input { flex: 1 1 8rem; width: auto; }
+.remote-install .rd-card-actions .rd-forget { color: #ff8a80; }
+.rd-share { display: grid; gap: 8px; }
+.rd-share .btn { margin: 0; justify-self: start; }
+[data-state]:not([data-state="paired"]) .rd-share { display: none; }
+.rd-empty { display: none; margin: 0; color: var(--muted); }
+[data-has-devices="false"] .rd-empty { display: block; }
+.rd-multi { margin: 0; color: var(--muted); font-size: .92rem; }
+.rd-multi summary { color: var(--text); }
+.rd-multi ul { margin: 8px 0 0; padding-inline-start: 18px; }
+.rd-multi li + li { margin-top: 8px; }
+
+/* Adding a device: three big steps, the current one lit */
+.rd-pairing { display: grid; gap: 14px; }
+[data-state="paired"] .rd-pairing { display: none; }
+.rd-pairing-head h3 { margin: 0 0 8px; font-size: 1.25rem; }
+.rd-wifi {
+  margin: 0;
+  padding: 10px 12px;
+  border-inline-start: 4px solid #e8b54a;
+  border-radius: 8px;
+  background: var(--bg);
+}
+.remote-install .rd-steps { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.rd-steps li {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg);
+  opacity: .72;
+}
+.rd-steps li + li { margin-top: 0; }
+.rd-steps strong { display: block; font-size: 1.05rem; }
+.rd-steps small { display: block; margin-top: 4px; color: var(--muted); font-size: .9rem; }
+.rd-where { display: block; margin-bottom: 2px; color: var(--muted); font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.rd-dot {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  font-weight: 700;
+}
+/* the step to do now, the ones finished, and the one that failed */
+[data-state="new"] .rd-steps li:nth-child(1),
+[data-state="connecting"] .rd-steps li:nth-child(2),
+[data-state="approve"] .rd-steps li:nth-child(3) { opacity: 1; border-color: var(--accent2); background: var(--panel); }
+[data-state="new"] .rd-steps li:nth-child(1)::after,
+[data-state="connecting"] .rd-steps li:nth-child(2)::after,
+[data-state="approve"] .rd-steps li:nth-child(3)::after {
+  content: var(--rd-now, "Do this now");
+  position: absolute;
+  top: -10px;
+  inset-inline-end: 12px;
+  padding: 1px 10px;
+  border-radius: 99px;
+  background: var(--accent2);
+  color: var(--bg);
+  font-size: .75rem;
+  font-weight: 700;
+}
+[data-state="new"] .rd-steps li:nth-child(1) .rd-dot,
+[data-state="connecting"] .rd-steps li:nth-child(2) .rd-dot,
+[data-state="approve"] .rd-steps li:nth-child(3) .rd-dot { border-color: var(--accent2); color: var(--accent2); }
+[data-state="connecting"] .rd-steps li:nth-child(1),
+[data-state="approve"] .rd-steps li:nth-child(-n+2),
+[data-state="declined"] .rd-steps li:nth-child(-n+2),
+[data-state="unreachable"] .rd-steps li:nth-child(1),
+[data-state="unsupported"] .rd-steps li:nth-child(1) { opacity: 1; }
+[data-state="connecting"] .rd-steps li:nth-child(1) .rd-dot,
+[data-state="approve"] .rd-steps li:nth-child(-n+2) .rd-dot,
+[data-state="declined"] .rd-steps li:nth-child(-n+2) .rd-dot,
+[data-state="unreachable"] .rd-steps li:nth-child(1) .rd-dot,
+[data-state="unsupported"] .rd-steps li:nth-child(1) .rd-dot { background: #2e9e5b; border-color: #2e9e5b; color: #fff; font-size: 0; }
+[data-state="connecting"] .rd-steps li:nth-child(1) .rd-dot::before,
+[data-state="approve"] .rd-steps li:nth-child(-n+2) .rd-dot::before,
+[data-state="declined"] .rd-steps li:nth-child(-n+2) .rd-dot::before,
+[data-state="unreachable"] .rd-steps li:nth-child(1) .rd-dot::before,
+[data-state="unsupported"] .rd-steps li:nth-child(1) .rd-dot::before { content: "✓"; font-size: 1rem; }
+[data-state="unreachable"] .rd-steps li:nth-child(2),
+[data-state="unsupported"] .rd-steps li:nth-child(2),
+[data-state="error"] .rd-steps li:nth-child(2),
+[data-state="declined"] .rd-steps li:nth-child(3) { opacity: 1; border-color: #e5645c; }
+[data-state="unreachable"] .rd-steps li:nth-child(2) .rd-dot,
+[data-state="unsupported"] .rd-steps li:nth-child(2) .rd-dot,
+[data-state="error"] .rd-steps li:nth-child(2) .rd-dot,
+[data-state="declined"] .rd-steps li:nth-child(3) .rd-dot { border-color: #e5645c; color: #e5645c; }
+
+.rd-status {
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-inline-start: 4px solid var(--accent2);
+  border-radius: 12px;
+  background: var(--panel);
+  font-weight: 600;
+}
+/* On the Paired devices page the status sits above a long list: it stays under the menu while you scroll, so a request
+   made from a row far down is answered where you are instead of the page jumping to the top. */
+.rd-main > .rd-status { position: sticky; top: 64px; z-index: 4; box-shadow: 0 6px 18px rgba(0, 0, 0, .35); }
+[data-state="approve"] .rd-status { border-inline-start-color: #e8b54a; }
+[data-state="unreachable"] .rd-status,
+[data-state="unsupported"] .rd-status,
+[data-state="declined"] .rd-status,
+[data-state="error"] .rd-status { border-inline-start-color: #e5645c; }
+[data-state="connecting"] .rd-status::after,
+[data-state="approve"] .rd-status::after {
+  content: "";
+  display: inline-block;
+  width: .8em;
+  height: .8em;
+  margin-inline-start: .6em;
+  border: 2px solid currentColor;
+  border-inline-end-color: transparent;
+  border-radius: 50%;
+  vertical-align: -.1em;
+  animation: rd-spin 1s linear infinite;
+}
+@keyframes rd-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .rd-status::after { animation: none !important; } }
+
+.rd-trouble { display: none; margin: 0; padding: 14px 16px 14px 36px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); color: var(--muted); }
+[data-state="unreachable"] .rd-trouble { display: block; }
+.rd-trouble li + li { margin-top: 6px; }
+.rd-diagnostics { margin: 0; color: var(--muted); }
+.rd-diagnostics pre { margin: 8px 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); font-size: .8rem; white-space: pre-wrap; overflow-wrap: anywhere; user-select: all; }
+.rd-diagnostics[hidden] { display: none; }
+
+.rd-hint { margin: 0 0 12px; color: var(--muted); }
+.rd-pairing form { display: grid; gap: 12px; margin: 0; padding: 14px 0 0; border-top: 1px solid var(--line); scroll-margin-top: 72px; }
+.rd-pairing form > * { margin: 0; }
+.rd-pairing form h3 { font-size: 1.05rem; }
+.rd-pairing label { display: block; margin-bottom: 6px; }
+.rd-pairing details input { margin-bottom: 4px; }
+.rd-link-row .remote-actions { flex-wrap: nowrap; }
+.rd-link-row input { flex: 1 1 auto; min-width: 0; }
+.remote-device-dashboard #remote-pair { width: 100%; min-height: 48px; }
+.remote-device-dashboard .remote-actions { align-items: center; }
+.remote-device-dashboard .remote-actions .btn { margin: 0; }
+.remote-device-dashboard #remote-cancel:disabled { display: none; }
+.remote-device-dashboard #remote-status { margin: 0; }
+
+/* The device you picked: its request buttons (hidden until there is something to press) */
+.rd-device { display: none; }
+[data-state="paired"] .rd-device { display: block; }
+.rd-device p.remote-actions { margin: 0; }
+.rd-device:not(:has(button:not([hidden]):not(:disabled))) { display: none; }
+
+/* Installed plugins of the picked device */
+.remote-inventory { display: none; }
+[data-state="paired"] .remote-inventory { display: block; }
+.remote-inventory > p, .remote-inventory > .rd-inv-head { margin: 0 0 12px; }
+.remote-device-dashboard .remote-plugins { margin: 0; }
+.remote-device-dashboard .remote-plugins li {
+  margin-top: 10px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg);
+}
+.remote-device-dashboard .remote-plugins .remote-actions { margin-top: 8px; }
+@media (pointer: coarse) {
+  .remote-install button, .remote-install .btn, .remote-install input, .remote-install select { min-height: 46px; }
+  .remote-install .rd-card-actions button, .remote-install .rd-card-actions input { min-height: 40px; }
+}
+/* A browser that can't pair (no WebTransport) only needs the link, to copy into one that can. */
+[data-state="unsupported"] #remote-pair-form > :not(.rd-link-row):not(h3) { display: none; }
+[data-state="unsupported"] #remote-pair { display: none; }
+
+/* The Send to device card on a plugin's page. data-state: checking, none, ready, waiting, installing, done, failed. */
+.remote-compact { display: grid; gap: 12px; }
+.remote-compact > * { margin: 0; min-width: 0; }
+.rc-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px 12px; }
+.rc-head h3 { margin: 0; }
+.rc-safety { display: grid; gap: 8px; margin: 10px 0; padding: 10px 12px; border-inline-start: 3px solid var(--warn, #e0a030); background: var(--bg); }
+.rc-safety h4 { margin: 0; font-size: 1rem; }
+.rc-safety .note { margin: 0; }
+.remote-compact .remote-actions { align-items: center; }
+.remote-compact select { width: min(100%, 24rem); flex: 1 1 12rem; }
+.remote-compact .remote-actions .btn { margin: 0; }
+.remote-compact [hidden] { display: none; }
+.rc-pair { display: none; align-items: center; flex-wrap: wrap; gap: 8px 14px; color: var(--muted); }
+.rc-pair .btn { margin: 0; }
+.rc-pair button[hidden] { display: none; }
+[data-state="none"] .rc-pair { display: flex; }
+/* On a plugin's page the card is a window the Send to device button opens: closed, it takes no room. */
+dialog.remote-compact:not([open]) { display: none; }
+dialog.remote-compact { margin: auto; gap: 0; }
+dialog.remote-compact > .rd-dialog-body { margin: 0; }
+dialog.remote-compact .rd-dialog-head .rd-badge { margin-inline: auto 8px; }
+[data-state="none"] .rc-send { display: none; }
+.remote-compact #remote-cancel:disabled { display: none; }
+[data-state="waiting"] #remote-device-picker, [data-state="installing"] #remote-device-picker { opacity: .6; }
+[data-state="waiting"] .rd-status, [data-state="installing"] .rd-status { border-inline-start-color: #e8b54a; }
+[data-state="waiting"] .rd-status::after, [data-state="installing"] .rd-status::after {
+  content: "";
+  display: inline-block;
+  width: .8em;
+  height: .8em;
+  margin-inline-start: .6em;
+  border: 2px solid currentColor;
+  border-inline-end-color: transparent;
+  border-radius: 50%;
+  vertical-align: -.1em;
+  animation: rd-spin 1s linear infinite;
+}
+[data-state="done"] .rd-status { border-inline-start-color: #2e9e5b; }
+[data-state="failed"] .rd-status { border-inline-start-color: #e5645c; }
+.remote-plugins li[hidden] { display: none; }
+.remote-plugins .remote-danger { color: #ff8a80; border-color: currentColor; }
+.remote-pack { margin: 0 0 12px; }
+.remote-pack summary { cursor: pointer; font-weight: 600; }
+.remote-pack p { margin: 8px 0 0; }
+#remote-plugins-filter { width: min(100%, 24rem); }
+
+/* Errors: unmistakable next to the quieter info boxes (role="alert", set by remote-install.js). */
+.rd-status[data-kind="error"], .remote-install #remote-status[data-kind="error"] {
+  padding: 14px 16px 14px 46px;
+  border: 2px solid #ff6b63;
+  border-radius: 12px;
+  background: #3d1618;
+  color: #ffe4e1;
+  font-weight: 700;
+  position: relative;
+  scroll-margin-top: 72px;
+}
+.rd-status[data-kind="error"]::before, .remote-install #remote-status[data-kind="error"]::before {
+  content: "!";
+  position: absolute;
+  inset-inline-start: 14px;
+  top: 13px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ff6b63;
+  color: #3d1618;
+  font-weight: 800;
+}
+.rd-status[data-kind="error"]::after { display: none; }
+
+/* Adding a device happens in a window, so the page itself stays about the devices you already have. */
+.rd-dialog {
+  box-sizing: border-box;
+  /* A page's own reset (margin: 0) would pin a modal <dialog> to the top left corner. */
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(40rem, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel);
+  color: var(--text);
+  overflow: auto;
+}
+.rd-dialog::backdrop { background: rgba(0, 0, 0, .65); }
+body:has(.rd-dialog[open]) { overflow: hidden; }
+/* The camera's picture has the camera's own size: without a limit it is wider than the window and pushes it off the screen. */
+.rd-dialog { overflow-x: hidden; }
+.rd-dialog-body { min-width: 0; }
+#remote-scan-video {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  max-height: 50vh;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 12px;
+  background: #000;
+}
+#remote-scan-video[hidden] { display: none; }
+.rd-dialog-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px clamp(14px, 4vw, 22px);
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+.rd-dialog-head h3 { margin: 0; font-size: 1.2rem; }
+.remote-install .rd-close { min-width: 40px; min-height: 40px; padding: 0; border-radius: 50%; font-size: 1.4rem; line-height: 1; }
+.rd-dialog-body { display: grid; gap: 14px; padding: clamp(14px, 4vw, 22px); }
+.rd-dialog .rd-pairing { padding: 0; border: 0; background: none; }
+.rd-dialog .rd-status { margin: 0; }
+.rd-dialog .rd-status[hidden] { display: none; }
+
+/* No device yet: one calm card with the button, instead of two columns and an empty one */
+[data-has-devices="false"] .rd-main { display: none; }
+[data-has-devices="false"] .rd-layout { grid-template-columns: minmax(0, 1fr); }
+[data-has-devices="false"] .rd-devices { position: static; justify-items: center; padding: clamp(24px, 6vw, 44px) 20px; text-align: center; }
+[data-has-devices="false"] .rd-devices-head { flex-direction: column; gap: 14px; }
+[data-has-devices="false"] .rd-multi { text-align: start; max-width: 36rem; }
+
+/* The buttons that look like links on the rest of the site */
+.remote-install button.btn { padding: 10px 18px; border-color: transparent; background: var(--accent); color: #fff; font-weight: 600; }
+.remote-install button.btn:hover { background: var(--accent2); }
+.rd-link-row .remote-actions button { white-space: nowrap; }
+main .wrap.plugin > h1:first-child { margin: 28px 0 8px; }
+.remote-install { --rd-now: "Do this now"; }
+.remote-install:lang(uk) { --rd-now: "Зробіть це зараз"; }

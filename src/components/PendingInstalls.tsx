@@ -48,13 +48,14 @@ export async function announcePendingInstalls(t: TFunc) {
   if (count) toaster.toast({ title: "DeckyHub", body: t("pending.toast") });
 }
 
-// The offer itself, once per session (when the Quick Access tab opens).
-export async function offerPendingInstalls(t: TFunc) {
-  if (offered) return;
+// The offer itself, once per session (when the Quick Access tab opens); `force` for an imported plugin pack.
+export async function offerPendingInstalls(t: TFunc, force = false) {
+  if (offered && !force) return;
   offered = true;
   const apps = await pendingApps();
   if (!apps.length) {
     await clearPendingInstalls().catch(() => undefined);
+    if (force) toaster.toast({ title: "DeckyHub", body: t("pending.nothing") });
     return;
   }
   showModal(

@@ -8,9 +8,7 @@ import { en } from "../src/i18n/en.ts";
 
 const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const index = read("src/i18n/index.tsx");
-const files = [...index.matchAll(/^import \{ (\w+) \} from "\.\/(\w+)";$/gm)]
-  .map((m) => m[2])
-  .filter((f) => f !== "en");
+const files = [...index.matchAll(/import\("\.\/(\w+)"\)/g)].map((m) => m[1]);
 const codes = [...index.matchAll(/\{ code: "([\w-]+)"/g)].map((m) => m[1]);
 const placeholders = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
 

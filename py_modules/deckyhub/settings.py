@@ -62,6 +62,10 @@ def coerce_settings(settings: dict) -> dict:
             for name in HIDEABLE_BUTTONS
             if isinstance(settings.get("hiddenButtons"), list) and name in settings["hiddenButtons"]
         ],
+        # Preserve the off state of installations that used the old two-switch setup.
+        # Save a plugin's settings before DeckyHub updates, reinstalls or removes it (backups.py).
+        "backupBeforeChange": settings.get("backupBeforeChange") is not False,
+        "remoteInstall": settings.get("remoteInstall") is True and settings.get("remoteInstallFeature", True) is True,
     }
 
 
@@ -73,6 +77,10 @@ def coerce_repo_settings(values) -> dict:
     skip = values.get("skipVersion")
     if isinstance(skip, str) and skip.strip() and len(skip) <= 200:
         item["skipVersion"] = skip.strip()
+    # The version the user pinned the plugin at (Manage -> Pin): no update is offered for it until it is unpinned.
+    pin = values.get("pinVersion")
+    if isinstance(pin, str) and pin.strip() and len(pin) <= 200:
+        item["pinVersion"] = pin.strip()
     return item
 
 
@@ -119,7 +127,12 @@ class SettingsMixin:
         except (AttributeError, OSError, json.JSONDecodeError) as error:
             if self.settings_path.exists():
                 decky.logger.error("Can't read %s, using defaults: %s", self.settings_path, error)
-            return {**coerce_settings({}), "customRepos": [], "customRegistries": [], "repoSettings": {}}
+            return {
+                **coerce_settings({}),
+                "customRepos": [],
+                "customRegistries": [],
+                "repoSettings": {},
+            }
 
     def _save_settings(self):
         # Write-then-rename, so a Deck losing power mid-save keeps the old file.
@@ -144,11 +157,17 @@ class SettingsMixin:
             "customRepos": getattr(self, "settings", {}).get("customRepos", []),
             "customRegistries": getattr(self, "settings", {}).get("customRegistries", []),
             "repoSettings": getattr(self, "settings", {}).get("repoSettings", {}),
+            # The dedicated remote-install RPC owns listener lifecycle. A stale
+            # general settings form must not silently change its enabled state.
+            "remoteInstall": getattr(self, "settings", {}).get("remoteInstall") is True,
         }
         self._save_settings()
         decky.logger.info("Saved settings: %s", {**self.settings, "githubToken": bool(self.settings["githubToken"])})
         if channel is not None and channel != self.settings["registryChannel"]:
             # The other registry branch: load it now, and open pages reload when it lands.
+            # The refresh still running (startup's, say) would finish last with the old channel's list.
+            if getattr(self, "registry_task", None):
+                self.registry_task.cancel()
             self.registry_task = asyncio.create_task(self._refresh_registry_in_background())
         return self.settings
 

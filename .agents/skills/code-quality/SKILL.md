@@ -29,7 +29,7 @@ Code here is read far more than it's written, often by someone reviewing a PR on
 - Every effect that adds a listener, interval or timeout returns a cleanup that removes it. Everything `definePlugin()` registers (routes, events, tabs, timers) is undone in `onDismount`.
 - A component shown with `showModal()` gets `t` as a prop; it can't call `useT()` (AGENTS.md).
 - Errors reach the user as a toast or inline message built with `t`/`tr`, never a bare `String(error)` of an internal object; log details with `log()` (`src/log.ts`).
-- No new runtime dependency for a few lines of code. The ZIP ships one bundled `dist/index.js`; every package grows it.
+- No new runtime dependency for a few lines of code. The ZIP ships `dist/index.js` plus the per-language chunks; every package grows `index.js`.
 
 ## Python backend
 
@@ -45,7 +45,7 @@ Compare with [decky-plugin-template](https://github.com/SteamDeckHomebrew/decky-
 
 - **`plugin.json`**: `name`, `author`, `flags`, `api_version: 2`, `publish` (`tags`, `description`, `image`). Don't rename `name`: Decky and the self-update find DeckyHub by it.
 - **`package.json`**: `version` is the plugin version (Decky reads it); `@decky/api` is a runtime dependency, `@decky/ui` and `@decky/rollup` are dev dependencies; the build is `@decky/rollup` with no custom bundling.
-- **Release ZIP**: one top-level folder named after the plugin, holding `dist/index.js`, `main.py`, `plugin.json`, `package.json`, `LICENSE.md` and `py_modules/` (plus `defaults/` if added). `release.yml` builds it; keep `decky plugin build`'s layout.
+- **Release ZIP**: one top-level folder named after the plugin, holding `dist/index.js` and the `dist/<lang>-<hash>.js` language chunks, `main.py`, `plugin.json`, `package.json`, `LICENSE.md` and `py_modules/` (plus `defaults/` if added). `release.yml` builds it; keep `decky plugin build`'s layout.
 - **Backend lifecycle**: `Plugin._main()` starts work, `_unload()` stops it (cancel background tasks, close what's open), `_uninstall()` removes what DeckyHub created outside Decky's own settings and runtime folders. RPC methods are `async`, snake_case, return JSON-safe values, and match `callable()` names in `src/api.ts`.
 - **Frontend**: talk to the backend only through `callable()`/`addEventListener()` from `@decky/api` (wrapped in `src/api.ts`); reach Decky Loader's global routes only through `getDeckyBackend()`. Use `@decky/ui` components so controller focus works, wrap custom layouts in `Focusable` with a valid `flow-children` (AGENTS.md), and add a stand-in to `devtools/decky-mock/ui.tsx` for any new `@decky/ui` import.
 - **Events**: backend → frontend with `decky.emit()`; frontend cross-component signals with window `CustomEvent`s (`REGISTRY_UPDATED`, `LOCALE_CHANGED`).

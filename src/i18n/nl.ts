@@ -1,6 +1,43 @@
 import type { MessageKey } from "./en";
 
 export const nl: Record<MessageKey, string> = {
+  "remote.title": "Afstandsbediening (experimenteel)",
+  "remote.description":
+    "Een gekoppelde telefoon of computer kan hier plug-ins beheren. Wijzigingen hebben jouw goedkeuring nodig. Alleen lokaal netwerk; er wordt niets verzonden. Uit: er luistert niets.",
+  "remote.address": "Apparaatadres",
+  "remote.fingerprint": "Certificaatvingerafdruk (SHA-256)",
+  "remote.copyPairingLink": "Koppelingslink kopiëren",
+  "remote.pairMode": "Toegang op afstand",
+  "remote.scanPairingQr": "Scan om gekoppelde apparaten te openen",
+  "remote.pair": "Browser koppelen",
+  "remote.pairDevice": "Apparaat koppelen",
+  "remote.newCode": "Nieuwe code",
+  "remote.paired": "{name} is gekoppeld. Je kunt dit apparaat nu daarvandaan beheren.",
+  "remote.pairingWants": "{name} wil koppelen",
+  "remote.sameWifi": "Beide apparaten moeten op hetzelfde wifi-netwerk zitten.",
+  "remote.noBrowsers": "Nog geen gekoppelde browsers.",
+  "remote.notRunning": "Toegang op afstand staat niet aan. Zet het aan en probeer het opnieuw.",
+  "remote.waiting": "Wachten op de browser…",
+  "remote.lastAttempt": "Laatste poging: {peer}, {what}, {time} geleden",
+  "remote.attempt.connected": "verbonden",
+  "remote.attempt.session": "sessie geopend",
+  "remote.attempt.refused": "sessie geweigerd",
+  "remote.attempt.closed": "verbinding gesloten",
+  "remote.expiresIn": "Verloopt over {time}",
+  "remote.expired": "Code verlopen. Druk op Browser koppelen voor een nieuwe.",
+  "remote.pairings": "Koppelverzoeken",
+  "remote.requests": "Verzoeken voor plug-ins",
+  "remote.from": "Van {name}",
+  "remote.extraFilesHint":
+    "Decky Loader downloadt mogelijk nog extra bestanden voor {name}. Dat kan enkele minuten duren; daarna kun je het venster sluiten.",
+  "remote.enable": "Inschakelen",
+  "remote.disable": "Uitschakelen",
+  "remote.enableTitle": "{name} inschakelen?",
+  "remote.disableTitle": "{name} uitschakelen?",
+  "remote.plugins": "{count} plug-ins",
+  "remote.devices": "Gekoppelde browsers",
+  "remote.approve": "Goedkeuren",
+  "remote.reject": "Afwijzen",
   "appcard.identityUnverified":
     "De geïnstalleerde plugin kon niet worden geverifieerd; installeren en bijwerken zijn uitgeschakeld.",
   "nav.updates": "Updates",
@@ -55,6 +92,7 @@ export const nl: Record<MessageKey, string> = {
 
   "status.updateAvailable": "Update beschikbaar",
   "status.upToDate": "Up-to-date",
+  "status.pinned": "Vastgezet",
 
   "appcard.downloadComplete": "Download voltooid",
   "appcard.latest": "Nieuwste ({name})",
@@ -62,6 +100,7 @@ export const nl: Record<MessageKey, string> = {
   "details.about": "Over",
   "details.whatsNew": "Nieuw in {version}",
   "appcard.repository": "Repository",
+  "appcard.reportProblem": "Probleem melden",
   "appcard.deckyhubPage": "DeckyHub-pagina",
   "appcard.channel": "Kanaal: {channel}",
   "appcard.channelStable": "Stabiel",
@@ -70,6 +109,12 @@ export const nl: Record<MessageKey, string> = {
   "appcard.install": "Installeren",
   "appcard.installVersion": "v{version} installeren",
   "appcard.downloads": "{count} downloads",
+  "appcard.githubDownloads": "{count} GitHub-downloads",
+  "appcard.storeDownloads": "{count} downloads uit de Decky-store",
+  "appcard.downloadsBreakdown": "GitHub: {github} · Decky-store: {store}",
+  "appcard.inStore": "In de Decky-store",
+  "appcard.inStoreHint":
+    "De Decky-store heeft een plugin met deze naam ({count} downloads daar). De store noemt geen repository, controleer dus of het deze is.",
   "appcard.stars": "{count} GitHub-sterren",
   "appcard.runsAsRoot": "Draait als root",
   "appcard.runsAsRootHint":
@@ -77,6 +122,8 @@ export const nl: Record<MessageKey, string> = {
   "appcard.knownIssues": "Bekende problemen met deze plugin",
   "appcard.skipVersion": "{version} overslaan",
   "appcard.unskipVersion": "{version} niet meer overslaan",
+  "appcard.pinVersion": "Vastzetten op {version}",
+  "appcard.unpinVersion": "{version} losmaken",
   "appcard.fork": "Fork",
   "appcard.forkHint":
     "Een fork die een plugin voortzet nadat het origineel is gestopt. DeckyHub toont hem alleen zolang hij de actieve is.",
@@ -96,6 +143,12 @@ export const nl: Record<MessageKey, string> = {
     "De virusscans konden de release die je zou installeren niet helemaal controleren. Beheren zegt waarom.",
   "appcard.badgesNotice": "Wat de labels bij plugins betekenen",
   "appcard.noReleaseInYear": "Al een jaar geen release",
+  "appcard.prereleaseOnly": "Alleen pre-releases",
+  "appcard.prereleaseOnlyHint":
+    "Er is geen stabiele release, dus DeckyHub biedt de pre-releases aan, die onaf of instabiel kunnen zijn.",
+  "appcard.noDescription": "Geen beschrijving",
+  "appcard.noDescriptionHint":
+    "De maker heeft niet beschreven wat het doet. Bekijk de repository voordat je installeert.",
   "appcard.installedFlagged": "Geïnstalleerde versie gemarkeerd",
   "appcard.installedFlagged.hint":
     "Gemarkeerd in de versie die je hebt geïnstalleerd: {reasons}. Het kan vals alarm zijn: controleer de plugin en beslis of je hem houdt.",
@@ -114,6 +167,34 @@ export const nl: Record<MessageKey, string> = {
     "De release bevat scripts of programma's die niet in de GitHub-broncode staan, dus je kunt niet nalezen wat ze doen.",
   "appcard.warning.obfuscated": "Verborgen code",
   "appcard.warning.obfuscated.hint": "Bevat gecodeerde of ingepakte code die moeilijk te lezen is.",
+  "audit.scope":
+    "Controleert een beperkt aantal patronen. Bevindingen moeten worden beoordeeld; dit bewijst geen veiligheid.",
+  "audit.sourceScope": "Verschillen kunnen gegenereerde bestanden zijn en moeten worden beoordeeld.",
+  "audit.sourceTag": "Brontag",
+  "audit.packages": "Gevonden pakketten",
+  "audit.sourceCoverage":
+    "De bron kan ontbreken; gegenereerde en meegeleverde bestanden worden mogelijk niet vergeleken.",
+  "audit.dependencyCoverage":
+    "OSV- of pakketgegevens kunnen ontbreken; niet alle afhankelijkheden worden herkend of gecontroleerd.",
+  "audit.morePackages": "Nog {count} pakketten",
+  "audit.source": "Broncodevergelijking",
+  "audit.dependencies": "Afhankelijkheidscontrole",
+  "audit.cron": "Wijziging geplande taak",
+  "audit.service": "Service ingeschakeld bij opstarten",
+  "audit.setuid": "Wijziging setuid-recht",
+  "audit.sudoers": "Wijziging sudoers-bestand",
+  "audit.sourceMissing": "Bestand ontbreekt in bron",
+  "audit.sourceDiffers": "Bestand wijkt af van bron",
+  "audit.sensitive": "Toegang tot gevoelige bestanden",
+  "audit.binaries": "Meegeleverde binaries",
+  "audit.title": "Onafhankelijke codecontrole",
+  "audit.complete": "Voltooid",
+  "audit.incomplete": "Onvolledig",
+  "audit.error": "Fout",
+  "audit.rootYes": "Manifest vraagt root aan",
+  "audit.rootNo": "Manifest vraagt geen root aan; rechten kunnen alsnog worden gebruikt",
+  "audit.rootUnknown": "Rootaanvraag onbekend",
+  "audit.more": "Meer bevindingen: {count}",
   "appcard.warning.no-tls-check": "Slaat HTTPS-controles over",
   "appcard.warning.no-tls-check.hint":
     "Schakelt certificaatcontroles uit, dus wat het downloadt kan gemanipuleerd zijn.",
@@ -134,6 +215,8 @@ export const nl: Record<MessageKey, string> = {
   "appcard.noReleaseNotes": "Deze release heeft geen notities.",
   "install.disclaimer":
     "DeckyHub haalt releases alleen op uit de GitHub-repository's van hun makers. Het maakt, controleert of garandeert deze plugins niet en is niet verantwoordelijk voor wat ze met je apparaat of gegevens doen. Installeren is op eigen risico.",
+  "install.noHash":
+    "GitHub heeft geen SHA-256 voor dit bestand gepubliceerd, dus DeckyHub kan niet controleren of het ongewijzigd is aangekomen.",
   "pending.title": "Gekozen plugins installeren?",
   "pending.description":
     "Je koos deze plugins in het installatieprogramma. Decky Loader vraagt nog een keer om bevestiging voordat het ze installeert.",
@@ -233,6 +316,13 @@ export const nl: Record<MessageKey, string> = {
   "settings.githubTokenHowTo": "Maak er een aan, met alle scopes uitgevinkt, op:",
   "settings.githubTokenNote":
     "DeckyHub leest alleen openbare repository's en releases. Het token wordt lokaal in deze instellingen bewaard en alleen naar api.github.com gestuurd.",
+  "settings.githubSignIn": "Inloggen met GitHub",
+  "settings.githubSignInNote":
+    "Geen token om te maken of te kopiëren: open de pagina op een willekeurig apparaat, voer de code in en keur goed. DeckyHub krijgt een token dat alleen openbare gegevens leest en de aanvraaglimiet verhoogt.",
+  "settings.githubSignInCode": "Open op een willekeurig apparaat {url} en voer deze code in:",
+  "settings.githubSignedIn": "Ingelogd bij GitHub",
+  "settings.githubSignInExpired": "De code is verlopen. Probeer het opnieuw.",
+  "settings.githubSignInDenied": "Inloggen is geweigerd.",
   "settings.githubToken": "GitHub-token",
   "settings.githubQuota": "GitHub-verzoeken over: {remaining} van {limit} (reset over {minutes} min)",
   "rateLimit.title": "GitHub-limiet bereikt",
@@ -270,6 +360,27 @@ export const nl: Record<MessageKey, string> = {
   "settings.exportLogs": "Logs exporteren",
   "settings.exportLogsNote":
     "Slaat de logs van DeckyHub op als ZIP in ~/Downloads — voeg die toe aan een bugmelding. Je GitHub-token wordt nooit gelogd.",
+  "settings.backups": "Back-ups",
+  "settings.backupBefore": "Instellingen back-uppen voor updates en verwijderen",
+  "settings.backupBeforeNote":
+    "Voordat DeckyHub een plugin bijwerkt, opnieuw installeert of verwijdert, bewaart het hier een kopie van de instellingen (de laatste 5 per plugin). Zet er een terug als een update iets kapotmaakt.",
+  "settings.backupsEmpty": "Nog geen back-ups.",
+  "settings.restore": "Herstellen",
+  "settings.restoreTitle": "Instellingen van {name} herstellen?",
+  "settings.restoreDescription":
+    "Dit vervangt de huidige instellingen door de back-up van {date}. De huidige worden eerst geback-upt. Laad de plugin daarna opnieuw of start hem opnieuw zodat hij ze gebruikt.",
+  "settings.restored": "Instellingen van {name} hersteld",
+  "settings.leftovers": "Overgebleven pluginbestanden",
+  "settings.leftoversNote":
+    "Mappen die Decky bewaart voor plugins die niet meer geïnstalleerd zijn. Kies wat je wilt verwijderen; de instellingen van een plugin worden eerst geback-upt.",
+  "settings.leftoversScan": "Zoeken naar restanten",
+  "settings.leftoversNone": "Niets over.",
+  "settings.leftoverInfo": "{size} · gewijzigd {when}",
+  "settings.leftoversRemove": "Geselecteerde verwijderen ({count})",
+  "settings.leftoversConfirmTitle": "{count} overgebleven mappen verwijderen?",
+  "settings.leftoversConfirm":
+    "Dit verwijdert hun instellingen, gegevens en logs van dit apparaat. Instellingen worden eerst geback-upt en kunnen worden hersteld via Back-ups.",
+  "settings.leftoversRemoved": "{count} mappen verwijderd, {size} vrijgemaakt",
 
   "repos.addManage": "Toevoegen en beheren",
   "repos.searchGithub": "Zoeken op GitHub",
@@ -312,6 +423,9 @@ export const nl: Record<MessageKey, string> = {
 
   "github.error": "GitHub API gaf {status} terug",
   "release.noMatch": "Geen passende release gevonden.",
+  "release.inStore": "De auteur verspreidt hem via de Decky-store. Installeer hem daar.",
+  "scan.notReviewed":
+    "DeckyHub is niet de Decky-store en niemand beoordeelt deze plugins. Een schone scan betekent alleen dat er geen bekende malware is gevonden.",
   "release.noChecksum": "Geen DeckyHub-release-ZIP met een SHA-256-checksum gevonden.",
   "error.loaderUnavailable": "Decky Loader is nu niet beschikbaar.",
   "toast.updatesAvailable": "Updates beschikbaar: {count}",
@@ -327,6 +441,14 @@ export const nl: Record<MessageKey, string> = {
   "repos.exportedTo": "Geëxporteerd naar {path}",
   "repos.imported": "Geïmporteerd: {repos}",
   "repos.nothingToImport": "Geen nieuwe repository's om te importeren.",
+  "repos.packs": "Pluginpakketten",
+  "repos.packsNote":
+    "Een pakket is een klein bestand met een lijst plugins. Deel het jouwe of importeer er een om een ander apparaat in te stellen: DeckyHub biedt aan te installeren wat ontbreekt, en elke installatie vraagt nog steeds om bevestiging.",
+  "repos.packExport": "Mijn plugins exporteren als pakket",
+  "repos.packImport": "Een pakket importeren",
+  "repos.packExported": "{count} plugins opgeslagen in {path}",
+  "repos.packEmpty": "Nog geen geïnstalleerde plugins die DeckyHub kan identificeren.",
+  "pending.nothing": "Alles in dat pakket is al geïnstalleerd.",
   "notice.more": "Meer",
   "notice.less": "Minder",
   "filter.filters": "Filters",
@@ -351,4 +473,14 @@ export const nl: Record<MessageKey, string> = {
   "settings.tabDownloads": "Downloads",
   "settings.tabTroubleshoot": "Logs",
   "settings.tabAbout": "Over",
+  "remote.trusted": "Trusted: run requests without asking",
+  "remote.trust": "Trust",
+  "remote.trustTitle": "Trust {name}?",
+  "remote.trustWarning":
+    "This browser will be able to install, update and remove plugins on this device without asking you first. Plugins can run with full access to your device. Only trust a browser you control.",
+  "support.button": "Ondersteun ontwikkeling & onderhoud",
+  "support.title": "Steun DeckyHub",
+  "support.text":
+    "DeckyHub is gratis en open source, en een donatie ontgrendelt niets en verandert nooit de pluginlijst. Als het je helpt, kun je de ontwikkeling en het onderhoud steunen op Ko-fi. Scan de code met je telefoon of open de pagina hier. Details: deckyhub.com/about.html#support",
+  "support.open": "Openen",
 };

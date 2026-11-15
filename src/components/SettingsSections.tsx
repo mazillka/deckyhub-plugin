@@ -9,7 +9,7 @@ import {
 } from "@decky/ui";
 import { openExternalWeb } from "../external";
 import { FileSelectionType, openFilePicker, toaster } from "@decky/api";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   FaExternalLinkAlt,
   FaFileExport,
@@ -25,6 +25,7 @@ import type { MessageKey } from "../i18n/en";
 import type { HideableButton, Settings } from "../types";
 import { compactButtonStyle, sectionDividerStyle, type githubCoreQuota } from "../utils";
 import { Card, IconNote } from "./Card";
+import { GitHubSignIn } from "./GitHubSignIn";
 import type { Layout } from "./LayoutToggle";
 import { colors } from "../styles";
 
@@ -79,6 +80,13 @@ export function GitHubAccessSection({
 }) {
   const t = useT();
   const [why, setWhy] = useState(false);
+  const [canSignIn, setCanSignIn] = useState(false);
+  useEffect(() => {
+    void getDeckyHubInfo().then(
+      (info) => setCanSignIn(Boolean(info.githubSignIn)),
+      () => undefined,
+    );
+  }, []);
   // Same green/yellow/red as the app cards' status colors.
   const quotaColor =
     !quota || quota.remaining > quota.limit / 2
@@ -156,6 +164,17 @@ export function GitHubAccessSection({
             )}
           </div>
         </PanelSectionRow>
+        {canSignIn && (
+          <>
+            <div aria-hidden style={sectionDividerStyle} />
+            <GitHubSignIn
+              onToken={(token) => {
+                onTokenDraft(token);
+                update({ githubToken: token });
+              }}
+            />
+          </>
+        )}
         <div aria-hidden style={sectionDividerStyle} />
         <PanelSectionRow>
           <TextField
@@ -252,27 +271,32 @@ export function DisplaySection({
   update,
   layout,
   onLayout,
+  listOnly,
 }: {
   settings: Settings;
   update: Update;
   layout: Layout;
   onLayout: (layout: Layout) => void;
+  // The Experimental style is always a list: no layout or items-per-row choice.
+  listOnly?: boolean;
 }) {
   const t = useT();
   return (
     <Card>
       <PanelSection title={t("settings.displaySettings")}>
-        <PanelSectionRow>
-          <DropdownItem
-            label={t("settings.layout")}
-            rgOptions={[
-              { label: t("discover.grid"), data: "grid" },
-              { label: t("discover.list"), data: "list" },
-            ]}
-            selectedOption={layout}
-            onChange={({ data }) => onLayout(data)}
-          />
-        </PanelSectionRow>
+        {!listOnly && (
+          <PanelSectionRow>
+            <DropdownItem
+              label={t("settings.layout")}
+              rgOptions={[
+                { label: t("discover.grid"), data: "grid" },
+                { label: t("discover.list"), data: "list" },
+              ]}
+              selectedOption={layout}
+              onChange={({ data }) => onLayout(data)}
+            />
+          </PanelSectionRow>
+        )}
         <PanelSectionRow>
           <DropdownItem
             label={t("settings.density")}
@@ -284,14 +308,16 @@ export function DisplaySection({
             onChange={({ data }) => update({ density: data })}
           />
         </PanelSectionRow>
-        <PanelSectionRow>
-          <DropdownItem
-            label={t("settings.itemsPerRow")}
-            rgOptions={[1, 2, 3, 4].map((count) => ({ label: String(count), data: count }))}
-            selectedOption={settings.columnsPerRow}
-            onChange={({ data }) => update({ columnsPerRow: data })}
-          />
-        </PanelSectionRow>
+        {!listOnly && (
+          <PanelSectionRow>
+            <DropdownItem
+              label={t("settings.itemsPerRow")}
+              rgOptions={[1, 2, 3, 4].map((count) => ({ label: String(count), data: count }))}
+              selectedOption={settings.columnsPerRow}
+              onChange={({ data }) => update({ columnsPerRow: data })}
+            />
+          </PanelSectionRow>
+        )}
         <PanelSectionRow>
           <ToggleField
             label={t("settings.haptics")}

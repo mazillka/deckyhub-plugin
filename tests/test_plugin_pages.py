@@ -1,5 +1,7 @@
 """deckyhub.com's plugin pages (devtools/plugin_pages.py), built from data passed in: no network."""
 
+import json
+import re
 import sys
 import unittest
 from pathlib import Path
@@ -22,6 +24,108 @@ class PluginPageTests(unittest.TestCase):
     def page(self, stats=None, scans=None, reports=None, vt=None):
         shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
         return plugin_pages.plugin_page(shell, APP, stats or {}, scans or {}, {}, [APP], reports, vt)
+
+    def test_pre_release_only_and_no_description_badges(self):
+        shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
+        bare = {**APP, "description": ""}
+        page = plugin_pages.plugin_page(shell, bare, {}, {}, {}, [bare], releases=[{"prerelease": True}])
+        self.assertIn(">Pre-release only</span>", page)
+        self.assertIn(">No description</span>", page)
+        listed = [{"prerelease": True}, {"prerelease": False}]
+        page = plugin_pages.plugin_page(shell, APP, {}, {}, {}, [APP], releases=listed)
+        self.assertNotIn("Pre-release only", page)
+        self.assertNotIn("No description", page)
+
+    def test_a_plugin_page_has_no_versions_list(self):
+        shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
+        releases = [
+            {
+                "tag_name": "v1",
+                "published_at": "2026-01-01T00:00:00Z",
+                "assets": [{"name": "p.zip", "browser_download_url": "https://github.com/a/b/p.zip"}],
+            }
+        ]
+        page = plugin_pages.plugin_page(shell, APP, {}, {}, {}, [APP], releases=releases)
+        self.assertNotIn("Versions", page)
+        self.assertNotIn("p.zip", page)
+
+    def test_decky_store_listing_shows_a_badge_counts_and_a_catalog_filter(self):
+        page = self.page({"downloads": 1500, "store": {"downloads": 40000}})
+        self.assertIn(">In Decky store</span>", page)
+        self.assertIn("GitHub downloads", page)
+        self.assertIn("Decky store</a> downloads", page)
+        data = {"stats": {APP["repo"].casefold(): {"store": {"downloads": 1}}}, "scans": {}}
+        self.assertIn('data-store="1"', plugin_pages.card(APP, data))
+        self.assertNotIn("data-store", plugin_pages.card(APP, {"stats": {}, "scans": {}}))
+
+    def test_the_page_leads_with_a_short_safety_summary_and_plain_install_steps_that_fit_a_phone(self):
+        page = self.page(
+            {"root": True, "ai": ["CLAUDE.md"]},
+            {
+                "stable": {
+                    "tag": "v1",
+                    "file": "x.zip",
+                    "sha256": SHA,
+                    "clamav": {"result": "clean"},
+                    "yara": {"result": "clean"},
+                }
+            },
+        )
+        self.assertIn('<h2 id="safety">Safety at a glance</h2>', page)
+        chips = page[page.index('class="chips-row"') : page.index("What these labels mean")]
+        for label in ("Runs as root", "AI", "No threats"):
+            self.assertIn(f">{label}</li>", chips)
+        self.assertIn('<ol class="steps">', page)
+        self.assertLess(page.index("Safety at a glance"), page.index("How to install"))
+        # Install with DeckyHub leads to the steps on the same page, not to the home page.
+        self.assertIn('<a class="btn" href="#how-to-install">Install with DeckyHub</a>', page)
+        self.assertIn('<h2 id="how-to-install">How to install</h2>', page)
+        # The long explanations and the scan tables are folded away until asked for.
+        self.assertIn('<details class="more"><summary>What these labels mean</summary>', page)
+        self.assertIn('<details class="more"><summary>Security scan details</summary>', page)
+        # Phones: nothing can push the page wider than the screen, and the facts sit two to a row.
+        self.assertIn(".badges li{min-width:0;overflow-wrap:anywhere}", page)
+        self.assertIn(".facts{grid-template-columns:repeat(2,minmax(0,1fr))}", page)
+        self.assertNotIn("Safety information", page)
+        # A short screen (the Steam Deck's browser is about 914x520) keeps its room: the menu scrolls away.
+        self.assertIn("@media(max-height:600px){nav.site-nav{position:static}}", page)
+        self.assertIn("No known issues", plugin_pages.safety_chips([]))
+
+    def test_downloads_are_github_plus_the_decky_store_in_the_page_the_card_and_the_ranking(self):
+        page = self.page({"downloads": 1500, "store": {"downloads": 40000}})
+        self.assertIn("<strong>41.5K</strong>Downloads in total", page)
+        self.assertIn("<strong>1.5K</strong>GitHub downloads", page)
+        self.assertEqual(plugin_pages.total_downloads({"downloads": 1500, "store": {"downloads": 40000}}), 41500)
+        self.assertEqual(plugin_pages.total_downloads({"store": {"downloads": 7}}), 7)
+        self.assertIsNone(plugin_pages.total_downloads({}))
+        # No total line when only one of the counts is known: it would repeat that number.
+        self.assertNotIn("Downloads in total", self.page({"downloads": 1500}))
+        data = {"stats": {APP["repo"].casefold(): {"downloads": 1500, "store": {"downloads": 40000}}}, "scans": {}}
+        self.assertIn("↓ 41.5K", plugin_pages.card(APP, data))
+        other = {**APP, "id": "other", "repo": "o/other"}
+        data["stats"]["o/other"] = {"downloads": 30000}
+        self.assertEqual([app["id"] for app in plugin_pages.by_downloads([other, APP], data)], [APP["id"], "other"])
+
+    def test_a_store_only_entry_says_so_and_offers_no_github_install_or_device_request(self):
+        page = self.page()
+        self.assertIn("nobody reviews these plugins", page)
+        self.assertIn("Send to device", page)
+        shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
+        store_only = {**APP, "store": True}
+        page = plugin_pages.plugin_page(shell, store_only, {}, {}, {}, [store_only])
+        self.assertIn("install it from the store", page)
+        self.assertNotIn("Send to device", page)
+        self.assertNotIn('id="remote-install"', page)
+
+    def test_remote_install_handoff_has_plugin_id_and_no_secrets_in_url(self):
+        page = self.page()
+        self.assertIn('id="remote-install"', page)
+        self.assertNotIn('id="remote-pair-form"', page)
+        self.assertNotIn('id="remote-plugins"', page)
+        self.assertIn(f'data-plugin-id="{APP["id"]}"', page)
+        self.assertIn('src="/remote-install.js"', page)
+        self.assertIn('href="/remote-install/">Pair a device</a>', page)
+        self.assertNotIn("token=", page)
 
     def test_a_long_repository_name_gets_a_full_width_tile_that_wraps(self):
         page = self.page()
@@ -50,7 +154,7 @@ class PluginPageTests(unittest.TestCase):
         self.assertLessEqual(len(title), 70)
         self.assertLessEqual(len(description), 160)
 
-    def test_scans_show_clean_results_and_a_virustotal_lookup_by_hash(self):
+    def test_scans_show_clean_results_and_no_virustotal_link_without_a_report(self):
         scans = {
             "stable": {
                 "tag": "v1.0.0",
@@ -63,10 +167,12 @@ class PluginPageTests(unittest.TestCase):
         page = self.page(
             scans=scans, reports={SHA: {"state": "complete", "flagged": 0, "total": 21, "dataId": "abc123"}}
         )
+        # VirusTotal has no report for this file: its row says so and links nowhere (its page would be empty).
+        self.assertIn("<tr><td>VirusTotal</td><td>No report yet</td>", page)
+        self.assertNotIn("virustotal.com/gui/file", page)
         for text in (
-            "Security scans",
+            "Security scan details",
             "No threats found",
-            f'href="https://www.virustotal.com/gui/file/{SHA}"',
             "0 of 21 engines flagged this file",
             "https://metadefender.opswat.com/results/file/abc123/regular/overview",
         ):
@@ -90,10 +196,7 @@ class PluginPageTests(unittest.TestCase):
             }
         }
         page = self.page(scans=scans, reports={SHA: {"state": "pending"}}, vt=vt)
-        for text in (
-            "3 of 60 engines flagged this file",
-            '<tr><td>MetaDefender</td><td><span class="stale">Scan pending</span></td>',
-        ):
+        for text in ("3 of 60 engines flagged this file", "<tr><td>MetaDefender</td><td>Scan pending</td>"):
             self.assertIn(text, page)
         self.assertIn("Threat found", page)  # the badge counts VirusTotal, not just ClamAV and YARA
         self.assertIn("✖ Threat found", plugin_pages.flags_of({}, scans, {}, vt))
@@ -139,16 +242,26 @@ class PluginPageTests(unittest.TestCase):
         self.assertIn("<small>Tagged v0.45, its ZIP says 0.4.5</small></a>", page)
         self.assertNotIn("Same One", page)  # Release-0.7.6 and 0.7.6 are the same version
 
-    def test_reported_identity_issue_appears_on_plugin_page_and_index(self):
+    def test_remote_install_preview_link_preserves_plugin(self):
+        page = self.page()
+        # The button opens the card as a window; the card is closed until then.
+        self.assertIn('id="remote-open"', page)
+        self.assertIn('<dialog id="remote-install"', page)
+        self.assertIn(f'data-plugin-id="{APP["id"]}"', page)
+
+    def test_remote_install_prefers_pairing_link_and_code_over_manual_connection_details(self):
         shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
-        title = "Installed plugin identity could not be verified: release ZIP is missing its repository."
-        url = "https://github.com/example/plugin/issues/1"
-        app = {**APP, "knownIssues": [{"title": title, "url": url}]}
-        detail = plugin_pages.plugin_page(shell, app, {}, {}, {}, [app])
-        index = plugin_pages.issues_page(shell, [app], {"stats": {}, "scans": {}})
-        self.assertIn(f'<a href="{url}">{title}</a>', detail)
-        self.assertIn('id="reported-issues"', index)
-        self.assertIn(f"<small>{title}</small>", index)
+        page = plugin_pages.paired_devices_page(shell)
+        form = page.split('<form id="remote-pair-form" aria-labelledby="remote-pair-title">', 1)[1].split("</form>", 1)[
+            0
+        ]
+        basic, advanced = form.split('<details id="remote-manual">', 1)
+        self.assertIn('id="remote-pairing-link"', basic)
+        self.assertIn('pattern="[0-9]{6}" required', basic)
+        self.assertIn('id="remote-address"', advanced)
+        self.assertIn('id="remote-fingerprint"', advanced)
+        self.assertNotIn("required", advanced)
+        self.assertIn('href="/remote-install.css"', page)
 
     def test_an_unscanned_plugin_says_so(self):
         self.assertIn("Not scanned yet", self.page())
@@ -186,6 +299,126 @@ class PluginPageTests(unittest.TestCase):
 
     def test_inline_markdown_escapes_html(self):
         self.assertEqual(plugin_pages.inline_markdown("a <b> & **c**"), "a &lt;b&gt; &amp; <strong>c</strong>")
+
+    def test_every_button_that_looks_like_a_link_button_shows_a_pointer(self):
+        # Send to device is a <button> (it opens a window), and a button has no pointer cursor of its own.
+        style = self.page().split("<style>")[1].split("</style>")[0]
+        self.assertRegex(style, r"\.btn\{[^}]*cursor:pointer")
+
+    def test_a_plugin_only_in_the_decky_store_is_installed_through_decky_not_deckyhub(self):
+        shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
+        page = plugin_pages.plugin_page(shell, {**APP, "store": True}, {}, {}, {}, [APP])
+        self.assertIn('<a class="btn" href="#how-to-install">Install from the Decky store</a>', page)
+        steps = page.split('<h2 id="how-to-install">')[1].split("</ol>")[0]
+        self.assertIn("Quick Access menu", steps)
+        self.assertIn("choose <strong>Store</strong>", steps)
+        self.assertNotIn("DeckyHub's <strong>Discover</strong>", steps)
+        # no scans of a leftover build: the page says why there are none
+        self.assertNotIn("Security scan details", page)
+        self.assertNotIn("ClamAV", page)
+        self.assertIn("no GitHub release of this plugin to scan", page)
+        # DeckyHub does not install it, so "Pre-release only" (about what DeckyHub offers) does not apply
+        old = [{"tag_name": "v0.1-beta", "prerelease": True, "draft": False, "assets": []}]
+        self.assertNotIn(
+            "Pre-release only", plugin_pages.plugin_page(shell, {**APP, "store": True}, {}, {}, {}, [APP], releases=old)
+        )
+        # and a plugin that is on GitHub keeps the DeckyHub steps
+        normal = self.page()
+        self.assertIn("Install with DeckyHub</a>", normal)
+        self.assertIn("DeckyHub's <strong>Discover</strong>", normal)
+
+    def test_a_pending_virustotal_scan_has_no_report_link_but_a_finished_one_does(self):
+        scans = {
+            "stable": {
+                "tag": "v1",
+                "file": "p.zip",
+                "sha256": SHA,
+                "clamav": {"result": "clean"},
+                "yara": {"result": "clean"},
+            }
+        }
+        pending = self.page(scans=scans, vt={SHA: {"state": "pending"}})
+        self.assertIn("<tr><td>VirusTotal</td><td>Scan pending</td>", pending)
+        self.assertNotIn(f"virustotal.com/gui/file/{SHA}", pending)
+        done = self.page(
+            scans=scans,
+            vt={
+                SHA: {
+                    "state": "complete",
+                    "stats": {"malicious": 0, "suspicious": 0, "harmless": 1, "undetected": 60},
+                    "scannedAt": 1793181436,
+                }
+            },
+        )
+        self.assertIn(f'href="https://www.virustotal.com/gui/file/{SHA}"', done)
+
+    def test_build_site_lets_every_remote_install_card_connect_to_a_device(self):
+        # build-site.py widens connect-src for pages that hold the card, by a piece of its HTML; a change to the tag
+        # once left the plugin pages without it and Chrome blocked the connection to the device.
+        marker = re.search(
+            r"if '([^']+)' in text", (ROOT / "devtools" / "build-site.py").read_text(encoding="utf-8")
+        ).group(1)
+        self.assertIn(marker, plugin_pages.remote_install_picker("x"))
+        self.assertIn(marker, plugin_pages.remote_device_panel("en"))
+
+    def test_the_develop_preview_reads_the_registrys_develop_branch(self):
+        # Without it a registry change (Junk-Store's "store" flag) shows on /develop/ only after the registry ships.
+        source = (ROOT / "devtools" / "build-site.py").read_text(encoding="utf-8")
+        self.assertIn('REGISTRY_URL.replace("/main/", "/develop/") if PREVIEW', source)
+        self.assertIn("/refs/heads/main/registry/apps.json", source)
+
+
+class PluginInfoTests(unittest.TestCase):
+    def test_a_record_per_repository_with_numbers_badges_and_scan(self):
+        data = {
+            "stats": {
+                "mwgih/deckymultiframegen": {
+                    "downloads": 4908,
+                    "stars": 27,
+                    "updated": "2026-11-12T10:51:51Z",
+                    "root": True,
+                    "ai": ["x"],
+                    "warnings": ["obfuscated"],
+                    "store": {"downloads": 12},
+                }
+            },
+            "scans": {
+                "mwgih/deckymultiframegen": {
+                    "stable": {
+                        "tag": "v1.5.0",
+                        "file": "a.zip",
+                        "sha256": SHA,
+                        "clamav": {"result": "clean"},
+                        "yara": {"result": "infected"},
+                    }
+                }
+            },
+            "reports": {SHA: {"state": "complete", "flagged": 0, "total": 21}},
+            "vt": {
+                SHA: {"state": "complete", "stats": {"malicious": 1, "suspicious": 0, "harmless": 60, "undetected": 6}}
+            },
+            "releases": {
+                "mwgih/deckymultiframegen": [{"tag_name": "v1.6.0-rc", "prerelease": True}, {"tag_name": "v1.5.0"}]
+            },
+            "warnings": {"obfuscated": ("Hidden code", "The audit found obfuscated code.")},
+        }
+        info = plugin_pages.plugin_info([APP], data)
+        record = info["plugins"]["mwgih/deckymultiframegen"]
+        self.assertEqual(
+            (record["id"], record["downloads"], record["stars"], record["storeDownloads"]), (APP["id"], 4908, 27, 12)
+        )
+        self.assertTrue(record["root"] and record["ai"])
+        self.assertEqual(record["warnings"], ["obfuscated"])
+        self.assertEqual(record["latest"], "v1.5.0")
+        self.assertEqual(record["scan"]["kind"], "infected")
+        self.assertEqual((record["scan"]["clamav"], record["scan"]["yara"]), ("clean", "infected"))
+        self.assertEqual((record["scan"]["virusTotal"], record["scan"]["metaDefender"]), ([1, 67], [0, 21]))
+        self.assertEqual(info["warnings"]["obfuscated"], ["Hidden code", "The audit found obfuscated code."])
+        json.dumps(info)  # the whole thing must be plain JSON
+
+    def test_a_plugin_with_no_data_still_gets_its_id_and_name(self):
+        info = plugin_pages.plugin_info([APP], {"stats": {}, "scans": {}, "reports": {}, "warnings": {}})
+        self.assertEqual(info["plugins"]["mwgih/deckymultiframegen"], {"id": APP["id"], "name": APP["name"]})
 
 
 if __name__ == "__main__":

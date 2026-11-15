@@ -13,6 +13,8 @@ from . import paths
 from .registry import MAX_REMOTE_REGISTRY_BYTES
 from .validation import REPOSITORY_NAME
 
+TEMPLATE_REPOSITORIES = {"steamdeckhomebrew/decky-plugin-template"}
+
 
 class AppsMixin:
     # Each plugin's (plugin.json, package.json or {}, repository), read once per scan.
@@ -22,14 +24,14 @@ class AppsMixin:
         for manifest_path in plugins_dir.glob("*/plugin.json"):
             try:
                 manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-            except (OSError, json.JSONDecodeError):
+            except (OSError, UnicodeDecodeError, json.JSONDecodeError):
                 continue
             # Another plugin's broken manifest must not take the whole list down with it.
             if not isinstance(manifest, dict) or not isinstance(manifest.get("name", ""), str):
                 continue
             try:
                 package = json.loads((manifest_path.parent / "package.json").read_text(encoding="utf-8"))
-            except (OSError, json.JSONDecodeError):
+            except (OSError, UnicodeDecodeError, json.JSONDecodeError):
                 package = {}
             if not isinstance(package, dict):
                 package = {}
@@ -65,11 +67,16 @@ class AppsMixin:
             re.IGNORECASE,
         )
         repo = (match.group(1) if match else value).removesuffix(".git")
-        return repo.casefold() if REPOSITORY_NAME.fullmatch(repo) else None
+        repo = repo.casefold() if REPOSITORY_NAME.fullmatch(repo) else None
+        # Plugins made from Decky's template often keep its repository in package.json: that says nothing about them.
+        return None if repo in TEMPLATE_REPOSITORIES else repo
 
     async def get_apps(self):
-        apps = [*self.apps, *self._custom_apps()]
         installed_plugins = await asyncio.to_thread(self._scan_installed_plugins)
+        return self._apps_with_installed_plugins(installed_plugins)
+
+    def _apps_with_installed_plugins(self, installed_plugins: list) -> dict:
+        apps = [*self.apps, *self._custom_apps()]
         name_counts = Counter(manifest.get("name", "").casefold() for manifest, _, _ in installed_plugins)
         installed = [None] * len(apps)
         # The installed plugin's own name, which Decky Loader's install_plugin
@@ -110,6 +117,63 @@ class AppsMixin:
                 for app, version, name, uncertain in zip(apps, installed, plugin_names, unverified)
             ]
         }
+
+    def _disabled_plugins(self) -> set[str]:
+        """The names Decky Loader has switched off (its own settings/loader.json), for the remote plugin list."""
+        try:
+            names = json.loads((Path(decky.DECKY_HOME) / "settings" / "loader.json").read_text(encoding="utf-8"))
+            return {n for n in names.get("disabled_plugins", []) if isinstance(n, str)}
+        except (OSError, ValueError, AttributeError):
+            return set()
+
+    def _remote_installed_plugins(self) -> list[dict]:
+        scanned = self._scan_installed_plugins()
+        apps = self._apps_with_installed_plugins(scanned)["apps"]
+        disabled = self._disabled_plugins()
+        rows = [
+            {
+                "id": app["id"],
+                "name": app["name"],
+                "repo": app["repo"],
+                "version": app["installedVersion"],
+                "pluginName": app["pluginName"],
+                "identityUnverified": app["identityUnverified"],
+                "disabled": app["pluginName"] in disabled,
+            }
+            for app in apps
+            if app["installedVersion"] is not None
+        ]
+        represented = {row["pluginName"] for row in rows if row["pluginName"]}
+        # A plugin the device can't verify can still be linked to its DeckyHub page (the link is all this is used for):
+        # by its exact name when it is one registry plugin's name, and, when package.json does name a repository
+        # (the template's counts as none), only if that repository is the registry plugin's too: name and repository.
+        by_name: dict[str, dict | None] = {}
+        for app in apps:
+            for name in app.get("detect", {}).get("names", []):
+                key = name.casefold()
+                by_name[key] = app if key not in by_name else None
+        for manifest, package, repo in scanned:
+            name = manifest.get("name", "")
+            if name not in represented:
+                rows.append(
+                    {
+                        "id": None,
+                        "pageId": self._page_id(by_name.get(name.casefold()), repo),
+                        "name": name,
+                        "repo": repo,
+                        "version": self._decky_plugin_version((manifest, package)),
+                        "pluginName": name,
+                        "identityUnverified": True,
+                        "disabled": name in disabled,
+                    }
+                )
+        return rows
+
+    @staticmethod
+    def _page_id(app: dict | None, repo: str | None) -> str | None:
+        if app and (repo is None or repo == app["repo"].casefold()):
+            return app["id"]
+        return None
 
     def _custom_apps(self) -> list[dict]:
         listed = {app["repo"].casefold() for app in self.apps}

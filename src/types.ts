@@ -13,6 +13,8 @@ export type App = {
   releaseTagInclude?: string;
   // From the registry: known problems with this plugin itself, each with a link to its report.
   knownIssues?: { title: string; url: string }[];
+  // From the registry: its author distributes it through the Decky store, so no GitHub download is offered.
+  store?: boolean;
   asset: { include: string[]; exclude: string[] };
   installedVersion?: string | null;
   detect?: { type: string; names?: string[] };
@@ -25,6 +27,8 @@ export type App = {
   releaseNotes?: string;
   assets: Asset[];
   updateAvailable?: boolean | null;
+  // Pinned by the user (hydrate): its updates are hidden.
+  pinned?: boolean;
   // From the registry's stats.json (fetchPluginStats); absent for repos it doesn't list.
   stats?: PluginStats;
   // The virus scan report for the ZIP the card installs (Discover only; null: not scanned yet).
@@ -33,6 +37,8 @@ export type App = {
   metaDefender?: { state: string; flagged?: number; total?: number } | null;
   error?: string | null;
   channel?: UpdateChannel;
+  // No stable release at all: the card follows its pre-releases whatever the saved channel (hydrate).
+  prereleaseOnly?: boolean;
   // The installed version's release, when it's among the recent ones (hydrate), and the
   // stats.json audit that covers it (see installedRelease).
   installedAssets?: Asset[];
@@ -52,6 +58,8 @@ export type PluginStats = {
   updated?: string | null;
   root?: boolean | null;
   fork?: string;
+  // The Decky store lists a plugin of this name (matched by name): its downloads there.
+  store?: { downloads: number };
   ai?: string[];
   warnings?: string[];
   prereleaseWarnings?: string[];
@@ -92,7 +100,42 @@ export type ScanVerdict = {
 // One plugin ZIP's line in the registry's scans.json (fetchVirusScans): ClamAV's verdict
 // at the top (all DeckyHub releases read it), YARA's under yara (absent until YARA has
 // scanned the ZIP, and in reports from before the registry ran YARA).
-export type VirusScan = ScanVerdict & { sha256?: string; yara?: ScanVerdict; unverifiedMatch?: boolean };
+export type IndependentAudit = {
+  result: "complete" | "incomplete" | "error";
+  root: boolean | null;
+  findings: {
+    rule:
+      | "no-tls-check"
+      | "runs-downloads"
+      | "sensitive_file_read"
+      | "persistence_crontab"
+      | "persistence_systemd_enable"
+      | "privilege_setuid"
+      | "privilege_sudoers";
+    path: string;
+    line: number;
+  }[];
+  source?: {
+    result: "complete" | "incomplete" | "error";
+    findings: { rule: "source_path_missing" | "source_file_differs"; path: string }[];
+    tag?: string;
+    reason?: string;
+  };
+  dependencies?: {
+    result: "complete" | "incomplete" | "error";
+    packages: { ecosystem: string; name: string; version: string; source: string }[];
+    findings: { ecosystem: string; name: string; version: string; id: string }[];
+    issues: string[];
+    binaries?: { path: string; size: number; format: string }[];
+  };
+  scannedAt: string;
+};
+export type VirusScan = ScanVerdict & {
+  sha256?: string;
+  yara?: ScanVerdict;
+  audit?: IndependentAudit;
+  unverifiedMatch?: boolean;
+};
 
 // Manage-window buttons that Display Settings can hide.
 export type HideableButton = "downloadZip" | "install" | "update" | "releasePage";
@@ -102,6 +145,8 @@ export type UiStyle = "default" | "experimental";
 
 export type Settings = {
   overwriteExisting: boolean;
+  // Save a plugin's settings before updating, reinstalling or removing it (backups.py).
+  backupBeforeChange: boolean;
   updateChannel: UpdateChannel;
   registryChannel: UpdateChannel;
   language: string;
@@ -112,6 +157,7 @@ export type Settings = {
   quickAccessTab: boolean;
   uiStyle: UiStyle;
   hiddenButtons: HideableButton[];
+  remoteInstall?: boolean;
   repoSettings?: Record<string, RepoPreference>;
   customRepos?: string[];
   customRegistries?: string[];
@@ -127,7 +173,8 @@ export type Download = {
   error?: string;
 };
 
-export type DeckyHubInfo = { version: string; downloadDir: string };
+// githubSignIn: this build can offer the GitHub device-code sign-in (it needs an OAuth app's Client ID).
+export type DeckyHubInfo = { version: string; downloadDir: string; githubSignIn?: boolean };
 
 export type DeckyHubRelease = {
   version?: string;
@@ -161,4 +208,38 @@ export type View = "updates" | "discover" | "installed";
 export type SearchRepo = { full_name: string; description?: string; stargazers_count?: number };
 
 // skipVersion: a release tag the user chose to skip; that release stops counting as an update.
-export type RepoPreference = { channel: "stable" | "prerelease"; skipVersion?: string };
+// pinVersion: the version the plugin is pinned at; while it is set no update is offered for it.
+export type RepoPreference = { channel: "stable" | "prerelease"; skipVersion?: string; pinVersion?: string };
+
+export type RemoteInstallRequest = {
+  id: string;
+  pluginId: string | null;
+  releaseTag?: string | null;
+  ownerName: string;
+  status: string;
+  action?: "install" | "update" | "uninstall" | "enable" | "disable";
+  repo?: string | null;
+  pluginName?: string | null;
+  installedVersion?: string | null;
+  // enable / disable: the Decky Loader names of the plugins to switch (a whole pack in one request).
+  pluginNames?: string[];
+};
+
+export type RemoteInstallStatus = {
+  enabled: boolean;
+  active: boolean;
+  address?: string | null;
+  deviceName?: string | null;
+  fingerprint?: string | null;
+  error?: string | null;
+  pairingCode?: string | null;
+  // Seconds the pairing code has left.
+  pairingExpiresIn?: number | null;
+  pairings: { id: string; name: string }[];
+  devices: { id: string; name: string; trusted?: boolean }[];
+  requests: RemoteInstallRequest[];
+  // Approved requests from trusted browsers; this device runs them without asking.
+  trustedRequests?: RemoteInstallRequest[];
+  // The last browsers that reached the device, newest first (seconds ago), to tell a blocked network from a refused one.
+  connections?: { peer: string; what: "connected" | "session" | "refused" | "closed"; ago: number }[];
+};

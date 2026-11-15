@@ -8,13 +8,16 @@ import {
   FaArrowUp,
   FaEye,
   FaEyeSlash,
+  FaLock,
+  FaUnlock,
   FaFileArchive,
   FaPlus,
   FaRedo,
   FaTimes,
   FaTrash,
 } from "react-icons/fa";
-import { saveRepoSettings } from "../api";
+import { getDeckyHubInfo, saveRepoSettings } from "../api";
+import { reportIssueUrl } from "../report";
 import type { TFunc } from "../i18n/en";
 import {
   installWarnings,
@@ -73,7 +76,7 @@ export function AppDetailsModal({
   closeModal?: () => void;
 }) {
   const [preference, setPreference] = useState<RepoPreference>(initialPreference);
-  const channel = preference.channel;
+  const channel = app.prereleaseOnly ? "prerelease" : preference.channel;
   const {
     items: releases,
     selectedTag,
@@ -109,6 +112,13 @@ export function AppDetailsModal({
   const toggleSkip = () => {
     const { skipVersion: _, ...rest } = preference;
     changePreference(skipped ? rest : { ...rest, skipVersion: latest! });
+  };
+
+  // Pin: keep the installed version; no update is offered until it is unpinned.
+  const pinned = Boolean(preference.pinVersion);
+  const togglePin = () => {
+    const { pinVersion: _, ...rest } = preference;
+    changePreference(pinned ? rest : { ...rest, pinVersion: app.installedVersion! });
   };
 
   const versionOptions = buildVersionOptions(releases, app.installedVersion, t);
@@ -184,7 +194,7 @@ export function AppDetailsModal({
               version: app.installedVersion ? displayVersion(app.installedVersion) : "—",
             })}
           </span>
-          <AppStats app={app} t={t} />
+          <AppStats app={app} t={t} detailed />
           {app.identityUnverified && <span style={{ color: colors.warning }}>{t("appcard.identityUnverified")}</span>}
           <AppBadges app={app} t={t} />
           {/* What Runs as root means, right where you decide to install. */}
@@ -267,9 +277,11 @@ export function AppDetailsModal({
             closeModal={closeModal}
             showZipActions={false}
           />
+          <small style={{ opacity: 0.7 }}>{t("scan.notReviewed")}</small>
         </>
       }
       channel={channel}
+      prereleaseOnly={app.prereleaseOnly}
       onChannelChange={changeChannel}
       versionOptions={versionOptions}
       selectedTag={selectedTag}
@@ -284,6 +296,18 @@ export function AppDetailsModal({
             url={selectedRelease?.url}
             repoUrl={`https://github.com/${app.repo}`}
             pageUrl={app.official ? `https://deckyhub.com/plugins/${encodeURIComponent(app.id)}.html` : undefined}
+            onReport={async () => {
+              const info = await getDeckyHubInfo().catch(() => null);
+              const issue = reportIssueUrl({
+                repo: app.repo,
+                name: app.name,
+                version: app.installedVersion ? displayVersion(app.installedVersion) : undefined,
+                deckyhubVersion: info?.version,
+              });
+              if (!issue) return;
+              closeModal?.();
+              openExternalWeb(issue);
+            }}
             hideReleasePage={hiddenButtons.includes("releasePage")}
             checking={loading}
             disabled={loading}
@@ -294,6 +318,14 @@ export function AppDetailsModal({
             <Button style={modalButtonStyle} onClick={toggleSkip}>
               {skipped ? <FaEye /> : <FaEyeSlash />}{" "}
               {t(skipped ? "appcard.unskipVersion" : "appcard.skipVersion", { version: displayVersion(latest!) })}
+            </Button>
+          )}
+          {app.installedVersion && (
+            <Button style={modalButtonStyle} onClick={togglePin}>
+              {pinned ? <FaUnlock /> : <FaLock />}{" "}
+              {t(pinned ? "appcard.unpinVersion" : "appcard.pinVersion", {
+                version: displayVersion(pinned ? preference.pinVersion! : app.installedVersion),
+              })}
             </Button>
           )}
           {canUninstall && (

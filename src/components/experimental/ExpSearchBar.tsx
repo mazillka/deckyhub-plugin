@@ -2,7 +2,6 @@ import { DialogButtonPrimary as Button, Focusable, TextField } from "@decky/ui";
 import { FaSearch, FaTimes } from "react-icons/fa";
 import { useT } from "../../i18n";
 import { keepInView } from "../KeepInView";
-import { LayoutToggle, type Layout } from "../LayoutToggle";
 
 // Experimental: Search's title and its field as one banner, the field large in the middle.
 export function ExpSearchBar({
@@ -11,8 +10,6 @@ export function ExpSearchBar({
   searching,
   onSearch,
   onClear,
-  layout,
-  onLayout,
   error,
 }: {
   query: string;
@@ -20,8 +17,6 @@ export function ExpSearchBar({
   searching: boolean;
   onSearch: () => void;
   onClear: () => void;
-  layout: Layout;
-  onLayout: (layout: Layout) => void;
   error?: string | null;
 }) {
   const t = useT();
@@ -52,9 +47,6 @@ export function ExpSearchBar({
           <Button aria-label={t("repos.clear")} onClick={onClear}>
             <FaTimes />
           </Button>
-        </div>
-        <div style={{ flex: "0 0 120px" }}>
-          <LayoutToggle layout={layout} onChange={onLayout} />
         </div>
       </Focusable>
       {error && <small style={{ color: "#ff6b6b" }}>{error}</small>}

@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
-import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 
 const deckyHubVersion = JSON.parse(readFileSync(new URL("../../../package.json", import.meta.url), "utf8")).version;
 const deckyHubTag = `v${deckyHubVersion}`;
@@ -300,19 +301,29 @@ test("Repository search and action share one row", async ({ page }) => {
   await expect(search).toBeVisible();
   await expect(action).toBeVisible();
   await expect(clear).toBeVisible();
-  const [searchBox, actionBox, clearBox] = await Promise.all([
-    search.boundingBox(),
-    action.boundingBox(),
-    clear.boundingBox(),
-  ]);
-  expect(searchBox).not.toBeNull();
-  expect(actionBox).not.toBeNull();
+  const measure = async () => {
+    const [searchBox, actionBox, clearBox] = await Promise.all([
+      search.boundingBox(),
+      action.boundingBox(),
+      clear.boundingBox(),
+    ]);
+    expect(searchBox).not.toBeNull();
+    expect(actionBox).not.toBeNull();
+    expect(clearBox).not.toBeNull();
+    return { searchBox: searchBox!, actionBox: actionBox!, clearBox: clearBox! };
+  };
   // One centre line for the field and both buttons (seen off by a few px on a Deck).
   const middle = (box: { y: number; height: number }) => box.y + box.height / 2;
-  expect(Math.abs(middle(searchBox!) - middle(actionBox!))).toBeLessThan(2);
-  expect(actionBox!.x).toBeGreaterThan(searchBox!.x);
-  expect(Math.abs(middle(actionBox!) - middle(clearBox!))).toBeLessThan(2);
-  expect(clearBox!.x).toBeGreaterThan(actionBox!.x);
+  // The page animates in, so the first reading can be a few px off: poll until the layout settles.
+  await expect
+    .poll(async () => {
+      const { searchBox, actionBox, clearBox } = await measure();
+      return Math.max(Math.abs(middle(searchBox) - middle(actionBox)), Math.abs(middle(actionBox) - middle(clearBox)));
+    })
+    .toBeLessThan(2);
+  const { searchBox, actionBox, clearBox } = await measure();
+  expect(actionBox.x).toBeGreaterThan(searchBox.x);
+  expect(clearBox.x).toBeGreaterThan(actionBox.x);
 });
 
 test("Repository search stays enabled but skips blank queries", async ({ page }) => {
@@ -371,6 +382,29 @@ test("Cleanup shows only when the downloads folder has files, and clearing requi
   await expect(app.getByText("Cleanup", { exact: true })).toHaveCount(0);
 });
 
+test("Switching the language loads that language's chunk, and English comes back", async ({ page }) => {
+  const app = mock(page);
+  const save = (language: string) =>
+    bridgeCall(page, "save_settings", {
+      overwriteExisting: true,
+      updateChannel: "stable",
+      language,
+      columnsPerRow: 3,
+      githubToken: "",
+    });
+  try {
+    await save("uk");
+    await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+    await expect(app.getByText("Мова", { exact: true }).first()).toBeVisible();
+    await save("en");
+    await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+    await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+    await expect(app.getByText("Language", { exact: true }).first()).toBeVisible();
+  } finally {
+    await save("auto");
+  }
+});
+
 test("Export Logs zips the backend log into Downloads", async ({ page }) => {
   // dev-server.py logs to .dev-data/logs/ and points Downloads at .dev-data/home/Downloads.
   const downloads = new URL("../.dev-data/home/Downloads/", import.meta.url);
@@ -387,6 +421,145 @@ test("Export Logs zips the backend log into Downloads", async ({ page }) => {
   // Backend actions land in the log the zip is built from.
   expect(readFileSync(new URL("../.dev-data/logs/deckyhub.log", import.meta.url), "utf8")).toContain("Listed");
   rmSync(downloads, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+});
+
+test("Sign in with GitHub shows a code and saves the token GitHub hands over", async ({ page }) => {
+  const app = mock(page);
+  try {
+    await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+    await settingsTab(page, "GitHub");
+    // Cancelling forgets the sign-in.
+    await app.getByRole("button", { name: "Sign in with GitHub", exact: true }).click();
+    await expect(app.getByText("MOCK-1234", { exact: true })).toBeVisible();
+    await expect(app.getByText(/^Expires in \d+:\d\d$/)).toBeVisible();
+    await app.getByRole("button", { name: "Cancel", exact: true }).click();
+    await expect(app.getByRole("button", { name: "Sign in with GitHub", exact: true })).toBeVisible();
+    expect((await bridgeCall(page, "poll_github_sign_in")).result).toEqual({ status: "none" });
+
+    // Approving on github.com (the mock approves the first poll) saves the token.
+    await app.getByRole("button", { name: "Sign in with GitHub", exact: true }).click();
+    await expect(app.getByText("MOCK-1234", { exact: true })).toBeVisible();
+    await expect
+      .poll(async () => (await bridgeCall(page, "get_settings")).result.githubToken, { timeout: 20_000 })
+      .toBe("gho_" + "m".repeat(36));
+    await expect(app.getByRole("button", { name: "Sign in with GitHub", exact: true })).toBeVisible();
+  } finally {
+    const current = (await bridgeCall(page, "get_settings")).result;
+    await bridgeCall(page, "save_settings", { ...current, githubToken: "" });
+  }
+});
+
+test("Plugin packs: importing one adds unknown repositories and installs nothing", async ({ page }) => {
+  const downloads = new URL("../.dev-data/home/Downloads/", import.meta.url);
+  mkdirSync(downloads, { recursive: true });
+  const file = new URL("e2e-pack.json", downloads);
+  writeFileSync(
+    file,
+    JSON.stringify({
+      schemaVersion: 1,
+      name: "E2E pack",
+      plugins: [{ repo: "eugeniosegala/MAKO" }, { repo: "e2e-owner/e2e-pack-plugin" }, { repo: "../../etc" }],
+    }),
+  );
+  const before = (await bridgeCall(page, "get_settings")).result.customRepos;
+  try {
+    const result = (await bridgeCall(page, "import_plugin_pack", fileURLToPath(file))).result;
+    expect(result).toEqual({ name: "E2E pack", count: 2, added: ["e2e-owner/e2e-pack-plugin"] });
+    expect((await bridgeCall(page, "get_settings")).result.customRepos).toContain("e2e-owner/e2e-pack-plugin");
+    // (The queue it fills is the Desktop Mode installer's; test_packs.py reads it. The running UI consumes it here.)
+    // Nothing is installed by an import.
+    expect(
+      (await bridgeCall(page, "get_apps")).result.apps.find(
+        (app: { repo: string }) => app.repo === "e2e-owner/e2e-pack-plugin",
+      ).installedVersion,
+    ).toBeNull();
+    // A file outside the home folder is refused.
+    expect((await bridgeCall(page, "import_plugin_pack", "/etc/hostname")).error).toBeTruthy();
+  } finally {
+    await bridgeCall(page, "clear_pending_installs");
+    await bridgeCall(page, "remove_custom_repo", "e2e-owner/e2e-pack-plugin");
+    expect((await bridgeCall(page, "get_settings")).result.customRepos).toEqual(before);
+    rmSync(file, { force: true });
+  }
+});
+
+test("Backups: a plugin's settings are saved before a change and can be restored from Settings", async ({ page }) => {
+  const data = new URL("../.dev-data/", import.meta.url);
+  const plugin = new URL("plugins/e2e-backup/", data);
+  const settings = new URL("settings/e2e-backup/", data);
+  mkdirSync(plugin, { recursive: true });
+  mkdirSync(settings, { recursive: true });
+  writeFileSync(new URL("plugin.json", plugin), JSON.stringify({ name: "E2E Backup Plugin", version: "1.0.0" }));
+  writeFileSync(new URL("config.json", settings), '{"volume": 7}');
+  const app = mock(page);
+  try {
+    // What DeckyHub calls before an update or removal.
+    expect((await bridgeCall(page, "backup_plugin_settings", "E2E Backup Plugin")).result.file).toMatch(
+      /^e2e-backup--\d{8}-\d{6}\.tar\.gz$/,
+    );
+    writeFileSync(new URL("config.json", settings), '{"volume": 1}');
+
+    await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+    await settingsTab(page, "Logs");
+    await expect(app.getByText("Backups", { exact: true })).toBeVisible();
+    await expect(app.getByText("Back up settings before updates and removal")).toBeVisible();
+    await app.getByRole("button", { name: "Restore", exact: true }).first().click();
+    await expect(app.getByText("Restore e2e-backup's settings?")).toBeVisible();
+    await app.locator(".steam-modal").getByRole("button", { name: "Restore", exact: true }).click();
+    await expect.poll(() => readFileSync(new URL("config.json", settings), "utf8")).toBe('{"volume": 7}');
+
+    // The settings it replaced were backed up first, and a backup can be removed.
+    const { backups } = (await bridgeCall(page, "list_settings_backups")).result;
+    expect(backups.filter((item: { plugin: string }) => item.plugin === "e2e-backup")).toHaveLength(2);
+    expect(
+      (await bridgeCall(page, "restore_settings_backup", "e2e-backup", "../../x.tar.gz")).result.error,
+    ).toBeTruthy();
+  } finally {
+    rmSync(new URL("settings/backups/", data), {
+      recursive: true,
+      force: true,
+      maxRetries: 10,
+      retryDelay: 100,
+    });
+    rmSync(plugin, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+    rmSync(settings, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  }
+});
+
+test("Leftovers: folders of plugins that are gone are found, picked and removed with their settings backed up", async ({
+  page,
+}) => {
+  const data = new URL("../.dev-data/", import.meta.url);
+  for (const area of ["settings", "data"]) {
+    mkdirSync(new URL(`${area}/ghost-plugin/`, data), { recursive: true });
+    writeFileSync(new URL(`${area}/ghost-plugin/file.txt`, data), "x".repeat(2048));
+  }
+  const app = mock(page);
+  try {
+    await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+    await settingsTab(page, "Logs");
+    await app.getByRole("button", { name: "Look for leftovers", exact: true }).click();
+    const ghost = app.getByRole("checkbox", { name: /ghost-plugin/ });
+    await expect(ghost).toBeVisible();
+    // Nothing is picked for the user.
+    await expect(app.getByRole("button", { name: /^Remove selected/ })).toHaveCount(0);
+    await ghost.click();
+    await app.getByRole("button", { name: "Remove selected (1)", exact: true }).click();
+    await expect(app.getByText("Remove 1 leftover folders?")).toBeVisible();
+    await app.locator(".steam-modal").getByRole("button", { name: "Remove selected (1)", exact: true }).click();
+    await expect.poll(() => existsSync(new URL("settings/ghost-plugin/", data))).toBe(false);
+    expect(existsSync(new URL("data/ghost-plugin/", data))).toBe(false);
+    // The settings were backed up first, so a mistaken pick can be undone.
+    const { backups } = (await bridgeCall(page, "list_settings_backups")).result;
+    expect(backups.some((item: { plugin: string }) => item.plugin === "ghost-plugin")).toBe(true);
+    // An installed plugin's folder, DeckyHub's own and a name that climbs out are refused.
+    const refused = (await bridgeCall(page, "remove_leftovers", ["DeckyHub", "../data", ".hidden"])).result;
+    expect(refused.removed).toBe(0);
+  } finally {
+    for (const area of ["settings", "data"])
+      rmSync(new URL(`${area}/ghost-plugin/`, data), { recursive: true, force: true });
+    rmSync(new URL("settings/backups/", data), { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  }
 });
 
 test("DeckyHub automatically notifies about an available update", async ({ page }) => {
@@ -1616,6 +1789,10 @@ test("A GitHub rate limit surfaces a friendly message instead of a raw status co
 });
 
 test("DeckyHub adds its own Quick Access tab after Decky's", async ({ page }) => {
+  // Off on a fresh install, so turn it on first.
+  const { result: saved } = await bridgeCall(page, "get_settings");
+  await bridgeCall(page, "save_settings", { ...saved, quickAccessTab: true });
+  await page.reload();
   const app = mock(page);
   const tabs = app.getByRole("navigation", { name: "Quick Access tabs" }).getByRole("button");
   await expect(tabs).toHaveCount(2);
@@ -1628,6 +1805,7 @@ test("DeckyHub adds its own Quick Access tab after Decky's", async ({ page }) =>
 test("Settings can hide DeckyHub's Quick Access tab, and it stays hidden after a reload", async ({ page }) => {
   const { result: before } = await bridgeCall(page, "get_settings");
   try {
+    await bridgeCall(page, "save_settings", { ...before, quickAccessTab: true });
     await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
     const app = mock(page);
     const toggle = app
@@ -2419,6 +2597,41 @@ test("Skip this version hides one release's update until the user stops skipping
   }
 });
 
+test("Pin freezes a plugin: no update is offered until it is unpinned", async ({ page }) => {
+  const pluginDir = new URL("../.dev-data/plugins/e2e-mako-pin/", import.meta.url);
+  mkdirSync(pluginDir, { recursive: true });
+  writeFileSync(
+    new URL("plugin.json", pluginDir),
+    JSON.stringify({ name: "MAKO - Frame Generation", version: "1.0.0", repository: "eugeniosegala/MAKO" }),
+  );
+  await mockMakoReleases(page, [makoRelease("plugin-v1.3.0", "b".repeat(64))]);
+
+  try {
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+    await expect(makoCard.getByRole("button", { name: "Update to v1.3.0", exact: true })).toBeVisible();
+    await makoCard.getByRole("button", { name: "Manage", exact: true }).click();
+    const modal = app.locator(".steam-modal");
+    await modal.getByRole("button", { name: "Pin at v1.0.0", exact: true }).click();
+    await expect(modal.getByRole("button", { name: "Unpin v1.0.0", exact: true })).toBeVisible();
+    await expect
+      .poll(async () => (await bridgeCall(page, "get_settings")).result.repoSettings["eugeniosegala/MAKO"])
+      .toEqual({ channel: "stable", pinVersion: "1.0.0" });
+    await modal.getByRole("button", { name: "Close", exact: true }).click();
+    await expect(makoCard.getByRole("button", { name: /^Update to v/ })).toHaveCount(0);
+    await expect(makoCard.getByText("Pinned", { exact: true })).toBeVisible();
+
+    await makoCard.getByRole("button", { name: "Manage", exact: true }).click();
+    await modal.getByRole("button", { name: "Unpin v1.0.0", exact: true }).click();
+    await modal.getByRole("button", { name: "Close", exact: true }).click();
+    await expect(makoCard.getByRole("button", { name: "Update to v1.3.0", exact: true })).toBeVisible();
+  } finally {
+    await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "stable" });
+    rmSync(pluginDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  }
+});
+
 test("A plugin's known issues from the registry are listed in its Manage window, each opening its report", async ({
   page,
 }) => {
@@ -2558,6 +2771,14 @@ test("Display Settings can hide the Manage window's buttons", async ({ page }) =
     for (const name of ["Download ZIP", "Install", "Release Page"])
       await app.getByText(`Hide “${name}”`, { exact: true }).click();
     await expect(app.getByLabel("Hide “Release Page”")).toBeChecked();
+    // The three clicks save one after another: open Manage only once all of them have reached the backend.
+    await expect
+      .poll(
+        async () =>
+          ((await bridgeCall(page, "get_settings")) as { result: { hiddenButtons: string[] } }).result.hiddenButtons
+            .length,
+      )
+      .toBe(3);
 
     modal = await openManage();
     await expect(modal.getByLabel("Version").locator("option").first()).toBeAttached();
@@ -2653,6 +2874,18 @@ test("Release Page closes the Manage window before opening the page", async ({ p
   // Steam's browser would otherwise open underneath the still-open modal.
   expect((await popupPromise).url()).toBe(release.html_url);
   await expect(app.locator(".steam-modal")).toHaveCount(0);
+});
+
+test("DeckyHub's pages and cards are true black, and Settings has no OLED switch", async ({ page }) => {
+  const app = mock(page);
+  const card = app.locator(".deckyhub-card").first();
+  await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+  await expect
+    .poll(() =>
+      card.evaluate((el) => getComputedStyle(el).backgroundColor + " " + getComputedStyle(el).backgroundImage),
+    )
+    .toBe("rgb(0, 0, 0) none");
+  await expect(app.getByRole("checkbox", { name: /OLED/ })).toHaveCount(0);
 });
 
 test("Compact interface shrinks DeckyHub's buttons and spacing, Default restores them", async ({ page }) => {
@@ -2953,6 +3186,24 @@ test("A card on the pre-release channel picks a stable release newer than its pr
   } finally {
     await bridgeCall(page, "save_repo_settings", "eugeniosegala/MAKO", { channel: "stable" });
   }
+});
+
+test("A plugin with only pre-releases offers them on the Stable channel, badged, without a Stable option", async ({
+  page,
+}) => {
+  const beta = makoRelease("plugin-v1.4.0-beta.1", "a".repeat(64), "01");
+  await page.route("https://api.github.com/repos/eugeniosegala/MAKO/releases?per_page=20", (route) =>
+    route.fulfill({ json: [{ ...beta, prerelease: true }] }),
+  );
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  const makoCard = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
+  await expect(makoCard.getByText("Latest: v1.4.0-beta.1", { exact: true })).toBeVisible();
+  await expect(makoCard.getByText("Pre-release only", { exact: true })).toBeVisible();
+  await makoCard.getByRole("button", { name: "Manage", exact: true }).click();
+  const channel = app.locator(".steam-modal").getByLabel("Update Channel");
+  await expect(channel).toHaveValue("prerelease");
+  await expect(channel.locator("option")).toHaveText(["Pre-releases"]);
 });
 
 test("A newer pre-release of an installed pre-release counts as an update", async ({ page }) => {

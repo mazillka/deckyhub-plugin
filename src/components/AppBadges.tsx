@@ -4,6 +4,7 @@ import { FaShieldAlt } from "react-icons/fa";
 import { AUDIT_WARNINGS, isAuditWarning, type App, type AuditWarning, type VirusScan } from "../types";
 import { installedRiskReasons } from "../notify";
 import { compactNumber, timeAgo } from "../utils";
+import { totalDownloads } from "../sorting";
 import { colors, tint } from "../styles";
 
 export const pillStyle = {
@@ -79,6 +80,16 @@ export const ForkBadge = ({ t, repo }: { t: TFunc; repo?: string }) => (
   </span>
 );
 
+// The Decky store lists a plugin with this name (the registry matches by name; the store names no repository).
+export const StoreBadge = ({ t, downloads }: { t: TFunc; downloads: number }) => (
+  <span
+    title={t("appcard.inStoreHint", { count: downloads.toLocaleString() })}
+    style={{ ...pillStyle, ...tint(colors.blue) }}
+  >
+    {t("appcard.inStore")}
+  </span>
+);
+
 // The AI badge: the plugin's repository has files that set it up for AI coding assistants
 // (the registry's stats.json lists them), so it's likely developed with AI help. Also shown
 // in Discover's legend, which says what it does and doesn't mean.
@@ -90,6 +101,19 @@ export const AiBadge = ({ t, files }: { t: TFunc; files?: string[] }) => (
     style={{ ...pillStyle, ...tint(AI_COLOR) }}
   >
     {t("appcard.ai")}
+  </span>
+);
+
+// Pre-release only: no stable release, so the card offers pre-releases (hydrate). No description:
+// its author hasn't said what it does. Both also shown in Discover's legend.
+export const PrereleaseOnlyBadge = ({ t }: { t: TFunc }) => (
+  <span title={t("appcard.prereleaseOnlyHint")} style={{ ...pillStyle, whiteSpace: "nowrap", ...tint(colors.caution) }}>
+    {t("appcard.prereleaseOnly")}
+  </span>
+);
+export const NoDescriptionBadge = ({ t }: { t: TFunc }) => (
+  <span title={t("appcard.noDescriptionHint")} style={{ ...pillStyle, whiteSpace: "nowrap", ...tint(colors.caution) }}>
+    {t("appcard.noDescription")}
   </span>
 );
 
@@ -149,7 +173,7 @@ const InstalledRiskBadge = ({ t, risk }: { t: TFunc; risk: NonNullable<App["inst
   ) : null;
 };
 
-// Installed version flagged / Runs as root / Fork / AI / audit warnings / virus scan / No release in a year, shared by the card and its Manage window.
+// Installed version flagged / Runs as root / Fork / AI / Pre-release only / No description / audit warnings / virus scan / No release in a year, shared by the card and its Manage window.
 export function AppBadges({ app, t }: { app: App; t: TFunc }) {
   const released = releasedAt(app);
   return (
@@ -160,7 +184,10 @@ export function AppBadges({ app, t }: { app: App; t: TFunc }) {
       )}
       {app.stats?.root && <RootBadge t={t} />}
       {app.stats?.fork && <ForkBadge t={t} repo={app.stats.fork} />}
+      {app.stats?.store && <StoreBadge t={t} downloads={app.stats.store.downloads} />}
       {app.stats?.ai?.length ? <AiBadge t={t} files={app.stats.ai} /> : null}
+      {app.prereleaseOnly && <PrereleaseOnlyBadge t={t} />}
+      {!app.description?.trim() && <NoDescriptionBadge t={t} />}
       <AuditWarnings app={app} t={t} />
       {app.scan &&
         (app.scan.unverifiedMatch ? (
@@ -179,16 +206,48 @@ export function AppBadges({ app, t }: { app: App; t: TFunc }) {
 
 // Updated / downloads / stars, shared by the card and its Manage window. A list row
 // leaves out Updated (noUpdated): beside the latest version it cut the counts short.
-export function AppStats({ app, t, noUpdated }: { app: App; t: TFunc; noUpdated?: boolean }) {
+// `detailed` (the details window, where a tooltip can't be read with a controller) says where the downloads
+// came from: GitHub and the Decky store.
+export function AppStats({
+  app,
+  t,
+  noUpdated,
+  detailed,
+}: {
+  app: App;
+  t: TFunc;
+  noUpdated?: boolean;
+  detailed?: boolean;
+}) {
   const released = releasedAt(app);
-  const { downloads, stars } = app.stats ?? {};
+  const { stars } = app.stats ?? {};
+  const downloads = totalDownloads(app.stats);
+  const github = app.stats?.downloads;
+  const store = app.stats?.store?.downloads;
   return (
     <>
       {!noUpdated && released > 0 && !isStale(released) && (
         <span title={new Date(released).toLocaleDateString()}>{t("appcard.updated", { when: timeAgo(released) })}</span>
       )}
       {downloads !== undefined && (
-        <span title={t("appcard.downloads", { count: downloads.toLocaleString() })}>↓ {compactNumber(downloads)}</span>
+        <span
+          title={[
+            github !== undefined && t("appcard.githubDownloads", { count: github.toLocaleString() }),
+            store !== undefined && t("appcard.storeDownloads", { count: store.toLocaleString() }),
+          ]
+            .filter(Boolean)
+            .join("\n")}
+        >
+          ↓ {compactNumber(downloads)}
+        </span>
+      )}
+      {detailed && store !== undefined && (
+        <span>
+          {t("appcard.downloadsBreakdown", {
+            github: compactNumber(github ?? 0),
+            store: compactNumber(store),
+          })}
+        </span>
       )}
       {stars != null && (
         <span title={t("appcard.stars", { count: stars.toLocaleString() })}>★ {compactNumber(stars)}</span>

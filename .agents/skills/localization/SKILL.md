@@ -63,4 +63,6 @@ To list strings still identical to English (expect a few legitimate ones such as
 node -e "const fs=require('fs');const p=f=>Object.fromEntries([...fs.readFileSync('src/i18n/'+f,'utf8').matchAll(/^  \"([^\"]+)\": (\".*\"),$/gm)].map(m=>[m[1],JSON.parse(m[2])]));const en=p('en.ts');for(const f of fs.readdirSync('src/i18n').filter(f=>f.endsWith('.ts')&&f!=='en.ts')){const l=p(f);const same=Object.keys(en).filter(k=>en[k]&&l[k]===en[k]);if(same.length)console.log(f,same.join(', '))}"
 ```
 
+The website's Paired devices page has a Ukrainian version too, and it is separate from `src/i18n/`: the page's markup is translated at build time from `devtools/remote_page_uk.py` (an English sentence changed in `plugin_pages.py` without its row there fails the build), and the sentences its scripts write are translated by `docs/remote-i18n.js` (`tests/remote-i18n.test.js` fails on one without a text). Change both when you change that page's wording, and use the words the app uses (*Віддалений доступ*, *Підтвердити*, *З’єднані браузери*).
+
 Then look at the Settings page in a long language (`de`, `nl`) and in `ja` on the Deck or the mock (`deck-test` skill) for text that overflows.

@@ -1,0 +1,41 @@
+[
+  {
+    "id": "steamdeckhq-deckyhub-offers-easy-plugins",
+    "publisher": "Steam Deck HQ",
+    "title": "DeckyHub Offers An Easy Way To Get Plugins That Aren't On The Official Store",
+    "url": "https://steamdeckhq.com/news/deckyhub-offers-an-easy-way-to-get-plugins-that-arent-on-the-official-store/",
+    "publishedAt": "2026-11-02",
+    "description": "Independent coverage of DeckyHub and getting Decky plugins that aren't on the official store.",
+    "logo": null,
+    "language": "en",
+    "type": "news",
+    "featured": true,
+    "visible": true
+  },
+  {
+    "id": "steamdeckhq-deckyhub-adds-virus-scans",
+    "publisher": "Steam Deck HQ",
+    "title": "DeckyHub Adds Virus Scans And More Transparency On Its Plugin Store",
+    "url": "https://steamdeckhq.com/news/deckyhub-adds-virus-scans-more-transparency/",
+    "publishedAt": "2026-11-05",
+    "description": "Covers DeckyHub 3.2.0, which added malware scanning for plugins and safety badges.",
+    "logo": null,
+    "language": "en",
+    "type": "news",
+    "featured": true,
+    "visible": true
+  },
+  {
+    "id": "deckready-physical-games-are-back",
+    "publisher": "Deck Ready",
+    "title": "Physical games are BACK!",
+    "url": "https://www.youtube.com/watch?v=GLo22b-5yo8&t=477s",
+    "publishedAt": "2026-11-05",
+    "description": "A Deck Ready video; DeckyHub comes up from 7:57.",
+    "logo": null,
+    "language": "en",
+    "type": "video",
+    "featured": false,
+    "visible": true
+  }
+]

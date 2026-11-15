@@ -1,6 +1,43 @@
 import type { MessageKey } from "./en";
 
 export const ru: Record<MessageKey, string> = {
+  "remote.title": "Удалённое управление (экспериментально)",
+  "remote.description":
+    "Подключённый телефон или компьютер может управлять плагинами здесь. Изменения требуют вашего подтверждения. Только локальная сеть; ничего никуда не отправляется. Когда выключено, ничего не слушает.",
+  "remote.address": "Адрес устройства",
+  "remote.fingerprint": "Отпечаток сертификата (SHA-256)",
+  "remote.copyPairingLink": "Копировать ссылку для сопряжения",
+  "remote.pairMode": "Удалённый доступ",
+  "remote.scanPairingQr": "Отсканируйте, чтобы открыть сопряжённые устройства",
+  "remote.pair": "Подключить браузер",
+  "remote.pairDevice": "Подключить устройство",
+  "remote.newCode": "Новый код",
+  "remote.paired": "{name} подключён. Теперь вы можете управлять этим устройством с него.",
+  "remote.pairingWants": "{name} хочет подключиться",
+  "remote.sameWifi": "Оба устройства должны быть в одной сети Wi-Fi.",
+  "remote.noBrowsers": "Подключённых браузеров пока нет.",
+  "remote.notRunning": "Удалённый доступ не запущен. Включите его и повторите.",
+  "remote.waiting": "Ждём браузер…",
+  "remote.lastAttempt": "Последняя попытка: {peer}, {what}, {time} назад",
+  "remote.attempt.connected": "подключился",
+  "remote.attempt.session": "сеанс открыт",
+  "remote.attempt.refused": "сеанс отклонён",
+  "remote.attempt.closed": "соединение закрыто",
+  "remote.expiresIn": "Истекает через {time}",
+  "remote.expired": "Код истёк. Нажмите «Подключить браузер», чтобы получить новый.",
+  "remote.pairings": "Запросы на подключение",
+  "remote.requests": "Запросы на изменение плагинов",
+  "remote.from": "От {name}",
+  "remote.extraFilesHint":
+    "Decky Loader может ещё докачивать дополнительные файлы для {name}. Это может занять несколько минут; после этого окно можно закрыть.",
+  "remote.enable": "Включить",
+  "remote.disable": "Отключить",
+  "remote.enableTitle": "Включить {name}?",
+  "remote.disableTitle": "Отключить {name}?",
+  "remote.plugins": "Плагинов: {count}",
+  "remote.devices": "Подключённые браузеры",
+  "remote.approve": "Подтвердить",
+  "remote.reject": "Отклонить",
   "appcard.identityUnverified": "Не удалось проверить установленный плагин; установка и обновления отключены.",
   "nav.updates": "Обновления",
   "nav.discover": "Обзор",
@@ -54,6 +91,7 @@ export const ru: Record<MessageKey, string> = {
 
   "status.updateAvailable": "Есть обновление",
   "status.upToDate": "Последняя версия",
+  "status.pinned": "Закреплён",
 
   "appcard.downloadComplete": "Загрузка завершена",
   "appcard.latest": "Последняя версия ({name})",
@@ -61,6 +99,7 @@ export const ru: Record<MessageKey, string> = {
   "details.about": "Описание",
   "details.whatsNew": "Что нового в {version}",
   "appcard.repository": "Репозиторий",
+  "appcard.reportProblem": "Сообщить о проблеме",
   "appcard.deckyhubPage": "Страница в DeckyHub",
   "appcard.channel": "Канал: {channel}",
   "appcard.channelStable": "Стабильный",
@@ -69,6 +108,12 @@ export const ru: Record<MessageKey, string> = {
   "appcard.install": "Установить",
   "appcard.installVersion": "Установить v{version}",
   "appcard.downloads": "{count} загрузок",
+  "appcard.githubDownloads": "{count} загрузок с GitHub",
+  "appcard.storeDownloads": "{count} загрузок из магазина Decky",
+  "appcard.downloadsBreakdown": "GitHub: {github} · магазин Decky: {store}",
+  "appcard.inStore": "В магазине Decky",
+  "appcard.inStoreHint":
+    "В магазине Decky есть плагин с таким названием ({count} загрузок там). Магазин не указывает репозиторий, поэтому убедитесь, что это тот самый.",
   "appcard.stars": "{count} звёзд на GitHub",
   "appcard.runsAsRoot": "Работает от root",
   "appcard.runsAsRootHint":
@@ -76,6 +121,8 @@ export const ru: Record<MessageKey, string> = {
   "appcard.knownIssues": "Известные проблемы этого плагина",
   "appcard.skipVersion": "Пропустить {version}",
   "appcard.unskipVersion": "Не пропускать {version}",
+  "appcard.pinVersion": "Закрепить на {version}",
+  "appcard.unpinVersion": "Открепить {version}",
   "appcard.fork": "Форк",
   "appcard.forkHint":
     "Форк, который продолжает плагин после того, как оригинал остановился. DeckyHub показывает его, только пока он активен.",
@@ -95,6 +142,11 @@ export const ru: Record<MessageKey, string> = {
     "Антивирусные проверки не смогли полностью проверить релиз, который будет установлен. Причина — в «Управлении».",
   "appcard.badgesNotice": "Что означают значки у плагинов",
   "appcard.noReleaseInYear": "Нет релизов больше года",
+  "appcard.prereleaseOnly": "Только пре-релизы",
+  "appcard.prereleaseOnlyHint":
+    "У него нет стабильного релиза, поэтому DeckyHub предлагает пре-релизы, которые могут быть незавершёнными или с ошибками.",
+  "appcard.noDescription": "Нет описания",
+  "appcard.noDescriptionHint": "Автор не написал, что он делает. Перед установкой загляните в его репозиторий.",
   "appcard.installedFlagged": "Установленная версия отмечена",
   "appcard.installedFlagged.hint":
     "Отмечено в установленной у вас версии: {reasons}. Это может быть ложное срабатывание: проверьте плагин и решите, оставить ли его.",
@@ -113,6 +165,32 @@ export const ru: Record<MessageKey, string> = {
     "В релизе есть скрипты или программы, которых нет в исходниках на GitHub, поэтому нельзя прочитать, что они делают.",
   "appcard.warning.obfuscated": "Скрытый код",
   "appcard.warning.obfuscated.hint": "Содержит закодированный или упакованный код, который трудно прочитать.",
+  "audit.scope": "Проверяется ограниченный набор шаблонов. Находки требуют проверки; безопасность это не доказывает.",
+  "audit.sourceScope": "Различия могут быть вызваны созданными файлами и требуют проверки.",
+  "audit.sourceTag": "Тег исходного кода",
+  "audit.packages": "Обнаруженные пакеты",
+  "audit.sourceCoverage": "Исходный код может быть недоступен; созданные и включённые файлы могут не сравниваться.",
+  "audit.dependencyCoverage":
+    "Данные OSV или пакетов могут быть недоступны; обнаруживаются и проверяются не все зависимости.",
+  "audit.morePackages": "Ещё пакетов: {count}",
+  "audit.source": "Сравнение исходного кода",
+  "audit.dependencies": "Проверка зависимостей",
+  "audit.cron": "Изменение запланированной задачи",
+  "audit.service": "Служба включена при запуске",
+  "audit.setuid": "Изменение разрешения setuid",
+  "audit.sudoers": "Изменение файла sudoers",
+  "audit.sourceMissing": "Файл отсутствует в исходниках",
+  "audit.sourceDiffers": "Файл отличается от исходного",
+  "audit.sensitive": "Доступ к конфиденциальным файлам",
+  "audit.binaries": "Включённые бинарные файлы",
+  "audit.title": "Независимая проверка кода",
+  "audit.complete": "Завершена",
+  "audit.incomplete": "Не завершена",
+  "audit.error": "Ошибка",
+  "audit.rootYes": "Манифест запрашивает root",
+  "audit.rootNo": "Манифест не запрашивает root; привилегии всё же могут использоваться",
+  "audit.rootUnknown": "Запрос root неизвестен",
+  "audit.more": "Другие находки: {count}",
   "appcard.warning.no-tls-check": "Отключает проверку HTTPS",
   "appcard.warning.no-tls-check.hint": "Отключает проверку сертификатов, поэтому загружаемое может быть подменено.",
   "appcard.warning.runs-downloads": "Запускает скачанные скрипты",
@@ -132,6 +210,8 @@ export const ru: Record<MessageKey, string> = {
   "appcard.noReleaseNotes": "У этого релиза нет описания.",
   "install.disclaimer":
     "DeckyHub лишь загружает релизы из GitHub-репозиториев их авторов. Он не создаёт, не проверяет и не гарантирует эти плагины и не несёт ответственности за то, что они сделают с вашим устройством или данными. Устанавливайте на свой риск.",
+  "install.noHash":
+    "GitHub не опубликовал SHA-256 для этого файла, поэтому DeckyHub не может проверить, что он получен без изменений.",
   "pending.title": "Установить выбранные плагины?",
   "pending.description":
     "Вы выбрали эти плагины в установщике. Перед установкой Decky Loader попросит подтвердить ещё раз.",
@@ -231,6 +311,13 @@ export const ru: Record<MessageKey, string> = {
   "settings.githubTokenHowTo": "Создайте его, не выбирая никаких прав доступа, на:",
   "settings.githubTokenNote":
     "DeckyHub только читает публичные репозитории и релизы. Токен хранится локально в этих настройках и отправляется только на api.github.com.",
+  "settings.githubSignIn": "Войти через GitHub",
+  "settings.githubSignInNote":
+    "Не нужно создавать или копировать токен: откройте страницу на любом устройстве, введите код и подтвердите. DeckyHub получит токен, который читает только публичные данные и повышает лимит запросов.",
+  "settings.githubSignInCode": "На любом устройстве откройте {url} и введите этот код:",
+  "settings.githubSignedIn": "Вход в GitHub выполнен",
+  "settings.githubSignInExpired": "Срок действия кода истёк. Попробуйте снова.",
+  "settings.githubSignInDenied": "Вход отклонён.",
   "settings.githubToken": "Токен GitHub",
   "settings.githubQuota": "Осталось запросов к GitHub: {remaining} из {limit} (сброс через {minutes} мин)",
   "rateLimit.title": "Достигнут лимит запросов GitHub",
@@ -266,6 +353,27 @@ export const ru: Record<MessageKey, string> = {
   "settings.exportLogs": "Экспортировать журналы",
   "settings.exportLogsNote":
     "Сохраняет журналы DeckyHub в ZIP в ~/Downloads — приложите его к отчёту об ошибке. Ваш токен GitHub никогда не попадает в журналы.",
+  "settings.backups": "Резервные копии",
+  "settings.backupBefore": "Копировать настройки перед обновлением и удалением",
+  "settings.backupBeforeNote":
+    "Перед обновлением, переустановкой или удалением плагина DeckyHub сохраняет здесь копию его настроек (последние 5 на плагин). Восстановите одну, если обновление что-то сломает.",
+  "settings.backupsEmpty": "Резервных копий пока нет.",
+  "settings.restore": "Восстановить",
+  "settings.restoreTitle": "Восстановить настройки {name}?",
+  "settings.restoreDescription":
+    "Текущие настройки будут заменены копией от {date}. Сначала они сохраняются в резервную копию. После этого перезагрузите или перезапустите плагин, чтобы он их использовал.",
+  "settings.restored": "Настройки {name} восстановлены",
+  "settings.leftovers": "Остатки файлов плагинов",
+  "settings.leftoversNote":
+    "Папки, которые Decky хранит для уже не установленных плагинов. Выберите, что удалить; настройки плагина сначала сохраняются.",
+  "settings.leftoversScan": "Найти остатки",
+  "settings.leftoversNone": "Ничего не осталось.",
+  "settings.leftoverInfo": "{size} · изменено {when}",
+  "settings.leftoversRemove": "Удалить выбранное ({count})",
+  "settings.leftoversConfirmTitle": "Удалить оставшиеся папки ({count})?",
+  "settings.leftoversConfirm":
+    "Это удалит их настройки, данные и журналы с этого устройства. Настройки сначала сохраняются и восстанавливаются из резервных копий.",
+  "settings.leftoversRemoved": "Удалено папок: {count}, освобождено {size}",
 
   "repos.addManage": "Добавить и управлять",
   "repos.searchGithub": "Поиск на GitHub",
@@ -308,6 +416,9 @@ export const ru: Record<MessageKey, string> = {
 
   "github.error": "GitHub API вернул {status}",
   "release.noMatch": "Подходящий релиз не найден.",
+  "release.inStore": "Автор распространяет его через магазин Decky. Установите его оттуда.",
+  "scan.notReviewed":
+    "DeckyHub не магазин Decky, и эти плагины никто не проверяет. Чистая проверка лишь означает, что известного вредоносного ПО не найдено.",
   "release.noChecksum": "Не найден ZIP-релиз DeckyHub с контрольной суммой SHA-256.",
   "error.loaderUnavailable": "Decky Loader сейчас недоступен.",
   "toast.updatesAvailable": "Доступны обновления: {count}",
@@ -323,6 +434,14 @@ export const ru: Record<MessageKey, string> = {
   "repos.exportedTo": "Экспортировано в {path}",
   "repos.imported": "Импортировано: {repos}",
   "repos.nothingToImport": "Нет новых репозиториев для импорта.",
+  "repos.packs": "Наборы плагинов",
+  "repos.packsNote":
+    "Набор — это небольшой файл со списком плагинов. Поделитесь своим или импортируйте чужой, чтобы настроить другое устройство: DeckyHub предложит установить недостающее, и каждая установка по-прежнему требует подтверждения.",
+  "repos.packExport": "Экспортировать мои плагины как набор",
+  "repos.packImport": "Импортировать набор",
+  "repos.packExported": "Сохранено плагинов: {count} в {path}",
+  "repos.packEmpty": "Пока нет установленных плагинов, которые DeckyHub может определить.",
+  "pending.nothing": "Всё из этого набора уже установлено.",
   "notice.more": "Подробнее",
   "notice.less": "Скрыть",
   "filter.filters": "Фильтры",
@@ -347,4 +466,14 @@ export const ru: Record<MessageKey, string> = {
   "settings.tabDownloads": "Загрузки",
   "settings.tabTroubleshoot": "Логи",
   "settings.tabAbout": "Инфо",
+  "remote.trusted": "Trusted: run requests without asking",
+  "remote.trust": "Trust",
+  "remote.trustTitle": "Trust {name}?",
+  "remote.trustWarning":
+    "This browser will be able to install, update and remove plugins on this device without asking you first. Plugins can run with full access to your device. Only trust a browser you control.",
+  "support.button": "Поддержать разработку и сопровождение",
+  "support.title": "Поддержать DeckyHub",
+  "support.text":
+    "DeckyHub бесплатный и с открытым кодом, а пожертвование ничего не открывает и никогда не меняет список плагинов. Если он вам помогает, вы можете поддержать его разработку и обслуживание на Ko-fi. Отсканируйте код телефоном или откройте страницу здесь. Подробнее: deckyhub.com/about.html#support",
+  "support.open": "Открыть",
 };

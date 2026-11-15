@@ -6,7 +6,17 @@ import { openExternalWeb } from "../external";
 import { useT } from "../i18n";
 import type { View } from "../types";
 import { compactButtonStyle, infoNoticeStyle } from "../utils";
-import { AiBadge, AUDIT_WARNINGS, ForkBadge, RootBadge, SCAN_BADGES, ScanBadge, WarningBadge } from "./AppBadges";
+import {
+  AiBadge,
+  AUDIT_WARNINGS,
+  ForkBadge,
+  NoDescriptionBadge,
+  PrereleaseOnlyBadge,
+  RootBadge,
+  SCAN_BADGES,
+  ScanBadge,
+  WarningBadge,
+} from "./AppBadges";
 import { PageHeader } from "./Card";
 import { KeepInView } from "./KeepInView";
 import { LayoutToggle, type Layout } from "./LayoutToggle";
@@ -116,6 +126,14 @@ export function HeaderNotices() {
             <div className="deckyhub-ai-legend" style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <AiBadge t={t} />
               <span>{t("appcard.aiHint")}</span>
+            </div>
+            <div className="deckyhub-prerelease-only-legend" style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <PrereleaseOnlyBadge t={t} />
+              <span>{t("appcard.prereleaseOnlyHint")}</span>
+            </div>
+            <div className="deckyhub-no-description-legend" style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <NoDescriptionBadge t={t} />
+              <span>{t("appcard.noDescriptionHint")}</span>
             </div>
             <div className="deckyhub-scan-legend" style={{ display: "grid", gap: 6 }}>
               {SCAN_BADGES.map((kind) => (

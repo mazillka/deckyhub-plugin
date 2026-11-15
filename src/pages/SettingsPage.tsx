@@ -1,5 +1,5 @@
 import { Focusable, Navigation, Tabs } from "@decky/ui";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { FaCog } from "react-icons/fa";
 import { getSettings, saveSettings } from "../api";
 import { PageHeader } from "../components/Card";
@@ -17,6 +17,8 @@ import { useUiStyle } from "../uiStyle";
 import { useLayout } from "../components/LayoutToggle";
 import { LOCALE_CHANGED, useT } from "../i18n";
 import type { Settings } from "../types";
+import { BackupsSection } from "../components/BackupsSection";
+import { LeftoversSection } from "../components/LeftoversSection";
 import { setQuickAccessTab } from "../components/QuickAccessTab";
 import { DEFAULT_COLUMNS_PER_ROW, githubCoreQuota, setGithubToken } from "../utils";
 
@@ -32,6 +34,7 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
   });
   const [settings, setSettings] = useState<Settings>({
     overwriteExisting: true,
+    backupBeforeChange: true,
     updateChannel: "stable",
     registryChannel: "stable",
     language: "auto",
@@ -51,8 +54,14 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
   const [quota, setQuota] = useState<Awaited<ReturnType<typeof githubCoreQuota>>>(null);
   const refreshQuota = () => void githubCoreQuota().then(setQuota, () => setQuota(null));
 
+  // The newest settings the page knows of, and which save is the newest: toggles pressed one after another
+  // each merge into the previous one, and a slower earlier save must not put its older copy back.
+  const latest = useRef(settings);
+  const saves = useRef(0);
+
   useEffect(() => {
     void getSettings().then((loaded) => {
+      latest.current = loaded;
       setSettings(loaded);
       // Keep anything typed before this load resolved instead of clobbering it.
       setTokenDraft((draft) => draft || loaded.githubToken);
@@ -64,10 +73,15 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
   }, []);
 
   const update = (next: Partial<Settings>) => {
-    const merged = { ...settings, ...next };
+    const merged = { ...latest.current, ...next };
+    latest.current = merged;
     setSettings(merged);
+    const save = ++saves.current;
     void saveSettings(merged).then((saved) => {
-      setSettings(saved);
+      if (save === saves.current) {
+        latest.current = saved;
+        setSettings(saved);
+      }
       if ("githubToken" in next) {
         setTokenDraft(saved.githubToken);
         setGithubToken(saved.githubToken);
@@ -102,7 +116,14 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
         title: t("settings.tabGeneral"),
         content: stack(
           <LanguageSection key="language" settings={settings} update={update} />,
-          <DisplaySection key="display" settings={settings} update={update} layout={layout} onLayout={setLayout} />,
+          <DisplaySection
+            key="display"
+            settings={settings}
+            update={update}
+            layout={layout}
+            onLayout={setLayout}
+            listOnly={experimental}
+          />,
         ),
       },
       {
@@ -123,7 +144,7 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
       {
         id: "downloads",
         title: t("settings.tabDownloads"),
-        content: stack(<DownloadsSection key="downloads" settings={settings} update={update} />),
+        content: <DownloadsSection settings={settings} update={update} />,
       },
       {
         id: "repositories",
@@ -133,7 +154,11 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
       {
         id: "troubleshoot",
         title: t("settings.tabTroubleshoot"),
-        content: stack(<TroubleshootingSection key="troubleshooting" />),
+        content: stack(
+          <BackupsSection key="backups" settings={settings} update={update} />,
+          <LeftoversSection key="leftovers" />,
+          <TroubleshootingSection key="troubleshooting" />,
+        ),
       },
       {
         id: "about",

@@ -8,7 +8,12 @@ export const TARGETS = { shared: "SharedJSContext", main: "Steam Big Picture Mod
 
 export async function connect(title) {
   const targets = await (await fetch(`http://${DECK}/json`, { signal: AbortSignal.timeout(15000) })).json();
-  const target = targets.find((candidate) => candidate.title === title);
+  // Steam numbers its windows (QuickAccess_uid2) and counts up each time its UI reloads, so match the name without the number too.
+  const target =
+    targets.find((candidate) => candidate.title === title) ??
+    (/_uid\d+$/.test(title)
+      ? targets.find((candidate) => candidate.title.startsWith(title.replace(/\d+$/, "")))
+      : undefined);
   if (!target) throw new Error(`No "${title}" page on ${DECK}; is the Deck in Gaming Mode with Decky Loader?`);
   const ws = new WebSocket(target.webSocketDebuggerUrl);
   await new Promise((resolve, reject) => {
@@ -95,3 +100,8 @@ export async function resetFocus(shared, path) {
     await sleep(1200);
   }
 }
+
+// A value as JavaScript source for the page's eval: JSON, with the characters JSON allows but a script must not
+// contain raw (< and the two Unicode line separators) written as escapes, so no text can end the code early.
+export const quote = (value) =>
+  JSON.stringify(value).replace(/[<\u2028\u2029]/g, (char) => `\\u${char.charCodeAt(0).toString(16).padStart(4, "0")}`);

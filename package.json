@@ -1,6 +1,6 @@
 {
   "name": "deckyhub",
-  "version": "3.3.1",
+  "version": "3.4.0",
   "description": "Discover, track, and safely download GitHub releases for Decky plugins from Gaming Mode.",
   "author": "Andrii Shevchuk-Yuhanets",
   "private": true,
@@ -9,12 +9,13 @@
     "build": "rollup -c",
     "typecheck": "tsc --noEmit",
     "test:backend": "python -m unittest discover -s tests",
-    "test:frontend": "node --test tests/version.test.ts tests/i18n.test.ts tests/rawCache.test.ts tests/notes.test.ts",
+    "test:frontend": "node --test tests/version.test.ts tests/i18n.test.ts tests/independentAudit.test.ts tests/rawCache.test.ts tests/notes.test.ts tests/remote-install.test.js tests/pluginList.test.js tests/remote-pack.test.js tests/remote-i18n.test.js tests/remote-updates.test.js tests/remoteTrusted.test.ts tests/layoutDefault.test.ts tests/tabsFix.test.ts tests/remoteOutcome.test.ts tests/totalDownloads.test.ts tests/report.test.ts tests/remote-names.test.js",
     "lint": "prettier --check \"src/**/*.{ts,tsx}\" \"tests/**/*.ts\" \"devtools/**/*.{ts,tsx,mjs}\" \"*.mjs\" && ruff format --check && ruff check",
     "format": "prettier --write \"src/**/*.{ts,tsx}\" \"tests/**/*.ts\" \"devtools/**/*.{ts,tsx,mjs}\" \"*.mjs\" && ruff format && ruff check --fix"
   },
   "dependencies": {
     "@decky/api": "^1.1.3",
+    "qrcode-generator": "2.0.4",
     "react-icons": "^5.7.0"
   },
   "devDependencies": {

@@ -2,16 +2,19 @@ import { FileSelectionType, openFilePicker, toaster } from "@decky/api";
 import { showModal } from "@decky/ui";
 import { WideConfirmModal } from "../components/WideModal";
 import { PageHeader } from "../components/Card";
-import { CustomRegistriesSection, CustomReposSection } from "../components/RepositoriesSections";
+import { offerPendingInstalls } from "../components/PendingInstalls";
+import { CustomRegistriesSection, CustomReposSection, PacksSection } from "../components/RepositoriesSections";
 import { RateLimitBanner } from "../components/RateLimitBanner";
 import { useEffect, useState } from "react";
 import { FaListUl } from "react-icons/fa";
 import {
   addCustomRegistry,
   exportCustomRepos,
+  exportPluginPack,
   getDeckyHubInfo,
   getSettings,
   importCustomRepos,
+  importPluginPack,
   REGISTRY_UPDATED,
   refreshRegistry,
   removeCustomRegistry,
@@ -151,6 +154,34 @@ export function ManageRepositoriesPage({ embedded }: { embedded?: boolean }) {
     toaster.toast({ title: "DeckyHub", body: t("repos.exportedTo", { path: result.path }) });
   };
 
+  const exportPack = async () => {
+    const result = await exportPluginPack();
+    toaster.toast({
+      title: "DeckyHub",
+      body: result.path ? t("repos.packExported", { count: result.count, path: result.path }) : t("repos.packEmpty"),
+    });
+  };
+
+  const importPack = async () => {
+    let file: { realpath: string };
+    try {
+      file = await openFilePicker(
+        FileSelectionType.FILE,
+        (await getDeckyHubInfo()).downloadDir,
+        true,
+        false,
+        undefined,
+        ["json"],
+      );
+    } catch {
+      return; // Picker closed without a file.
+    }
+    const result = await importPluginPack(file.realpath);
+    refreshRepos();
+    if (result.added.length) window.dispatchEvent(new Event(REGISTRY_UPDATED));
+    await offerPendingInstalls(t, true);
+  };
+
   const importList = async () => {
     let file: { realpath: string };
     try {
@@ -183,6 +214,10 @@ export function ManageRepositoriesPage({ embedded }: { embedded?: boolean }) {
         onExport={() => void exportList().catch(showError)}
         onImport={() => void importList().catch(showError)}
         onRemove={confirmRemove}
+      />
+      <PacksSection
+        onExport={() => void exportPack().catch(showError)}
+        onImport={() => void importPack().catch(showError)}
       />
       <CustomRegistriesSection
         registries={registries}

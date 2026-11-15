@@ -55,6 +55,56 @@ class PluginStatusTests(unittest.TestCase):
             with self.subTest(repository=repository):
                 self.assertIsNone(plugin._plugin_repository({}, {"repository": repository}))
 
+    def test_remote_inventory_keeps_unlisted_installed_plugins_visible(self):
+        plugin = Plugin()
+        plugin.settings = {"customRepos": []}
+        plugin.apps = [
+            {"id": "known", "name": "Known plugin", "repo": "owner/known", "detect": {"type": "decky-plugin"}}
+        ]
+        installed = [
+            ({"name": "Known plugin", "version": "1.2.3"}, {}, "owner/known"),
+            ({"name": "Unlisted plugin"}, {"version": "4.5.6"}, None),
+        ]
+        with patch.object(plugin, "_scan_installed_plugins", return_value=installed):
+            inventory = plugin._remote_installed_plugins()
+        self.assertEqual(
+            [(row["id"], row["name"], row["version"], row["identityUnverified"]) for row in inventory],
+            [("known", "Known plugin", "1.2.3", False), (None, "Unlisted plugin", "4.5.6", True)],
+        )
+
+    def test_an_unverifiable_plugin_gets_a_page_link_by_its_exact_name_and_a_template_repository_is_ignored(self):
+        plugin = Plugin()
+        plugin.settings = {"customRepos": []}
+        plugin.apps = [
+            {
+                "id": "uni",
+                "name": "Unifideck",
+                "repo": "o/uni",
+                "detect": {"type": "decky-plugin", "names": ["Unifideck"]},
+            },
+            {"id": "twin-a", "name": "Twin", "repo": "o/a", "detect": {"type": "decky-plugin", "names": ["Twin"]}},
+            {"id": "twin-b", "name": "Twin", "repo": "o/b", "detect": {"type": "decky-plugin", "names": ["twin"]}},
+        ]
+        installed = [
+            ({"name": "Unifideck", "version": "0.8.0"}, {}, None),  # no repository in package.json: unverified
+            ({"name": "Twin"}, {}, None),  # two registry plugins share the name: no link guessed
+            ({"name": "Other"}, {"repository": "https://github.com/steamdeckhomebrew/decky-plugin-template"}, None),
+            ({"name": "Unifideck"}, {}, "someone/else"),  # a real repository that is not the registry's: no link
+        ]
+        with patch.object(plugin, "_scan_installed_plugins", return_value=installed):
+            listed = plugin._remote_installed_plugins()
+            rows = {row["name"]: row for row in listed if row["repo"] is None}
+        self.assertEqual((rows["Unifideck"]["pageId"], rows["Unifideck"]["id"]), ("uni", None))
+        self.assertEqual([row["pageId"] for row in listed if row["repo"] == "someone/else"], [None])
+        self.assertIsNone(rows["Twin"]["pageId"])
+        self.assertIsNone(rows["Other"]["repo"])
+        # The template's repository is dropped where the repository is read from package.json.
+        self.assertIsNone(
+            plugin._plugin_repository(
+                {}, {"repository": {"url": "git+https://github.com/SteamDeckHomebrew/decky-plugin-template.git"}}
+            )
+        )
+
     def test_decky_plugin_detection_reads_manifest_and_package_version(self):
         with tempfile.TemporaryDirectory() as home:
             plugin_dir = Path(home) / "plugins" / "mako"
@@ -235,7 +285,12 @@ class PluginStatusTests(unittest.TestCase):
             plugin.settings_path.write_text(json.dumps({"haptics": False}), encoding="utf-8")
             self.assertIs(plugin._load_settings()["quickAccessTab"], True)
             self.assertIs(asyncio.run(plugin.save_settings({"quickAccessTab": False}))["quickAccessTab"], False)
-            self.assertIs(plugin._load_settings()["quickAccessTab"], False)
+
+    def test_quick_access_tab_is_on_on_a_fresh_install(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.settings_path = Path(home) / "settings.json"
+            self.assertIs(plugin._load_settings()["quickAccessTab"], True)
 
     def test_ui_style_defaults_for_old_settings_and_keeps_only_known_styles(self):
         with tempfile.TemporaryDirectory() as home:
@@ -366,6 +421,14 @@ class PluginStatusTests(unittest.TestCase):
                 plugin._download_with_urllib("job", {"url": "https://example.com/file.zip"}, Path(home) / "file.part")
 
             self.assertEqual(plugin.downloads["job"]["received"], 3)
+
+            # A server sending more than the release file's stated size is cut off.
+            plugin.downloads["job"]["received"] = 0
+            Response.reads = []
+            with patch.object(net.OPENER, "open", return_value=Response()), self.assertRaises(RuntimeError):
+                plugin._download_with_urllib(
+                    "job", {"url": "https://example.com/file.zip", "size": 2}, Path(home) / "file.part"
+                )
 
     def test_downloads_refuse_redirects_off_https(self):
         handler = net.HttpsOnlyRedirects()
@@ -549,6 +612,16 @@ class PluginStatusTests(unittest.TestCase):
         # Settings saved before Skip this version existed, or with a junk value, have none.
         for values in ({"channel": "stable"}, {"skipVersion": ""}, {"skipVersion": 45}, {"skipVersion": "v" * 201}):
             self.assertNotIn("skipVersion", coerce_repo_settings(values))
+
+    def test_repo_settings_keep_a_pinned_version_and_drop_a_bad_one(self):
+        from deckyhub.settings import coerce_repo_settings
+
+        self.assertEqual(
+            coerce_repo_settings({"channel": "stable", "pinVersion": " v1.2.0 "}),
+            {"channel": "stable", "pinVersion": "v1.2.0"},
+        )
+        for values in ({"channel": "stable"}, {"pinVersion": ""}, {"pinVersion": 12}, {"pinVersion": "v" * 201}):
+            self.assertNotIn("pinVersion", coerce_repo_settings(values))
 
     def test_save_repo_settings_rejects_invalid_repo(self):
         plugin = Plugin()

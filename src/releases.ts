@@ -444,15 +444,20 @@ export async function installedRisk(app: App, force = false): Promise<App["insta
 // Fills in a card's latest release for its channel and whether it's newer
 // than what's installed.
 export async function hydrate(app: App, force: boolean, preference?: RepoPreference): Promise<App> {
-  const channel: UpdateChannel = preference?.channel ?? "stable";
+  // Its author distributes it through the Decky store: no GitHub release is offered, so the card says where to get it.
+  if (app.store) return { ...app, assets: [], updateAvailable: null, error: tr("release.inStore") };
   const { items, error } = await listAppReleases(app, force);
+  // The saved channel stays as it is, so a first stable release brings the card back to it.
+  const prereleaseOnly = items.length > 0 && items.every((item) => item.prerelease);
+  const channel: UpdateChannel = prereleaseOnly ? "prerelease" : (preference?.channel ?? "stable");
   const release = items.find((item) => inChannel(item, channel));
-  if (!release) return { ...app, channel, error: error ?? tr("release.noMatch") };
+  if (!release) return { ...app, channel, prereleaseOnly, error: error ?? tr("release.noMatch") };
   const cmp = app.installedVersion ? compareVersions(releaseVersion(release), app.installedVersion) : null;
   const installed = app.identityUnverified ? undefined : installedRelease(items, app.installedVersion);
   return {
     ...app,
     channel,
+    prereleaseOnly,
     installedAssets: installed?.release.assets,
     installedAudit: installed?.audit,
     latestVersion: release.tag,
@@ -460,7 +465,11 @@ export async function hydrate(app: App, force: boolean, preference?: RepoPrefere
     releaseUrl: release.url,
     releaseNotes: release.notes,
     assets: release.assets,
-    // A skipped release counts as up to date until a newer one comes out.
-    updateAvailable: app.identityUnverified || cmp === null ? null : cmp > 0 && preference?.skipVersion !== release.tag,
+    pinned: Boolean(preference?.pinVersion),
+    // A skipped release counts as up to date until a newer one comes out; a pinned plugin never has an update.
+    updateAvailable:
+      app.identityUnverified || cmp === null
+        ? null
+        : cmp > 0 && preference?.skipVersion !== release.tag && !preference?.pinVersion,
   };
 }
