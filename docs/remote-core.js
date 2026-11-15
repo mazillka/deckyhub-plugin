@@ -30,7 +30,7 @@ export function defaultBrowserName(userAgent = '') {
   return system ? `${browser} · ${system}` : browser;
 }
 
-const toBase64Url = bytes => btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+export const toBase64Url = bytes => btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 export const BROWSER_IDS_KEY = 'deckyhub.remoteInstall.browserIds';
 
 // A random id this browser keeps for each device it pairs with, and sends only to that device: pairing again from the
