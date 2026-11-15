@@ -5,7 +5,7 @@
 // For a stable-looking version label deploy first with DECKYHUB_VERSION=3.2.0 (see deploy.mjs).
 // Opens pages with goTo (no clicks on anything that changes state); nothing is installed.
 import { mkdirSync, writeFileSync } from "node:fs";
-import { connect, resetFocus, sleep, TARGETS, waitFor } from "./cdp.mjs";
+import { connect, quote, resetFocus, sleep, TARGETS, waitFor } from "./cdp.mjs";
 
 const out = new URL(
   `file:///${(process.argv[2] ?? new URL("./screenshots/readme/", import.meta.url).pathname).replace(/^\//, "").replace(/\/?$/, "/")}`,
@@ -23,7 +23,7 @@ const shot = async (name) => {
 };
 const click = (label, root = "body") =>
   main.eval(
-    `(() => { const b = [...document.querySelectorAll("${root} button, ${root} .DialogButton")].find((x) => x.textContent.trim().startsWith(${JSON.stringify(label)})); b?.click(); return !!b; })()`,
+    `(() => { const b = [...document.querySelectorAll(${quote(`${root} button, ${root} .DialogButton`)})].find((x) => x.textContent.trim().startsWith(${quote(label)})); b?.click(); return !!b; })()`,
   );
 const closeWindows = () =>
   main.eval(
@@ -34,7 +34,7 @@ const closeWindows = () =>
 const callPlugin = (method, ...args) =>
   shared
     .eval(
-      `DeckyBackend.call("loader/call_plugin_method", "DeckyHub", ${JSON.stringify(method)}, ${args.map((arg) => JSON.stringify(arg)).join(", ")}).then((result) => JSON.stringify(result))`,
+      `DeckyBackend.call("loader/call_plugin_method", "DeckyHub", ${quote(method)}, ${args.map((arg) => JSON.stringify(arg)).join(", ")}).then((result) => JSON.stringify(result))`,
     )
     .then(JSON.parse);
 const original = await callPlugin("get_settings");
@@ -75,11 +75,11 @@ try {
 
   // Manage of a plugin with scans: Decky LSFG-VK, found through the search box (SCAN_SEARCH / SCAN_NAME pick another, for a plugin the registry scanned most recently).
   await main.eval(
-    `(() => { const i = document.querySelector(".deckyhub-motion input"); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set.call(i, ${JSON.stringify(SCAN_SEARCH)}); i.dispatchEvent(new Event("input", { bubbles: true })); return true; })()`,
+    `(() => { const i = document.querySelector(".deckyhub-motion input"); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set.call(i, ${quote(SCAN_SEARCH)}); i.dispatchEvent(new Event("input", { bubbles: true })); return true; })()`,
   );
   await sleep(2500);
   await main.eval(
-    `(() => { const h = [...document.querySelectorAll(".deckyhub-motion h3")].find((x) => new RegExp(${JSON.stringify(SCAN_NAME)}, "i").test(x.textContent)); let card = h; const isM = (b) => b.textContent.trim() === "Manage" || b.getAttribute("aria-label") === "Manage"; while (card && ![...card.querySelectorAll("button, .DialogButton")].some(isM)) card = card.parentElement; [...card.querySelectorAll("button, .DialogButton")].find(isM).click(); return true; })()`,
+    `(() => { const h = [...document.querySelectorAll(".deckyhub-motion h3")].find((x) => new RegExp(${quote(SCAN_NAME)}, "i").test(x.textContent)); let card = h; const isM = (b) => b.textContent.trim() === "Manage" || b.getAttribute("aria-label") === "Manage"; while (card && ![...card.querySelectorAll("button, .DialogButton")].some(isM)) card = card.parentElement; [...card.querySelectorAll("button, .DialogButton")].find(isM).click(); return true; })()`,
   );
   await waitFor(
     main,
@@ -130,7 +130,7 @@ try {
   await callPlugin("save_settings", original).catch(() => {});
   await main
     .eval(
-      `${layout === null ? 'localStorage.removeItem("deckyhub-layout")' : `localStorage.setItem("deckyhub-layout", ${JSON.stringify(layout)})`}; true`,
+      `${layout === null ? 'localStorage.removeItem("deckyhub-layout")' : `localStorage.setItem("deckyhub-layout", ${quote(layout)})`}; true`,
     )
     .catch(() => {});
   await resetFocus(shared, startPath || "/library/home").catch(() => {});

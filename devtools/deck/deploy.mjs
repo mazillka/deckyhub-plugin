@@ -13,7 +13,7 @@ import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { connect, DECK, goTo, resetFocus, sleep, TARGETS, waitFor } from "./cdp.mjs";
+import { connect, DECK, goTo, quote, resetFocus, sleep, TARGETS, waitFor } from "./cdp.mjs";
 
 const root = new URL("../../", import.meta.url).pathname.replace(/^\/(\w:)/, "$1");
 // Rollup through Node itself: pnpm's shell shim isn't on every PATH.
@@ -71,7 +71,7 @@ const running = await shared.eval(
 );
 try {
   await shared.eval(
-    `DFL.Navigation.CloseSideMenus?.(); DeckyBackend.call("utilities/install_plugin", ${JSON.stringify(url)}, "DeckyHub", ${JSON.stringify(version)}, "${sha256}", 2).then(() => true)`,
+    `DFL.Navigation.CloseSideMenus?.(); DeckyBackend.call("utilities/install_plugin", ${quote(url)}, "DeckyHub", ${quote(version)}, "${sha256}", 2).then(() => true)`,
   );
   // Decky asks "…update DeckyHub to version <version>?" on the main screen. Press
   // Update in that dialog only: other windows (a plugin's Manage) have Update buttons too.
@@ -81,7 +81,7 @@ try {
     // The dialog for this version that still waits for an answer (an earlier, broken
     // attempt can leave one behind, stuck mid-update).
     const button = [...document.querySelectorAll("[class*=ConfirmDialog]")]
-      .filter((el) => el.textContent.includes(${JSON.stringify(version)}) && /DeckyHub/.test(el.textContent))
+      .filter((el) => el.textContent.includes(${quote(version)}) && /DeckyHub/.test(el.textContent))
       .flatMap((el) => [...el.querySelectorAll("button, .DialogButton")])
       .find((el) => el.textContent.trim() === "Update");
     button?.click();
@@ -93,7 +93,7 @@ try {
   if (running === version) await sleep(15000);
   await waitFor(
     shared,
-    `DeckyPluginLoader.plugins?.some((plugin) => plugin.name === "DeckyHub" && plugin.version === ${JSON.stringify(version)})`,
+    `DeckyPluginLoader.plugins?.some((plugin) => plugin.name === "DeckyHub" && plugin.version === ${quote(version)})`,
     60000,
   );
   await resetFocus(shared, startPath);
