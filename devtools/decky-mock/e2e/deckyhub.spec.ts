@@ -1616,7 +1616,7 @@ test("Discover shows the registry's audit warnings next to Runs as root and expl
   await app.getByLabel("Sort").selectOption("downloads");
   const mako = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
   const unifideck = app.getByRole("heading", { name: "Unifideck" }).locator("..");
-  for (const text of ["Runs as root", "Reads private data", "Code not in its repo"])
+  for (const text of ["Runs as root", "Reads private data", "Very high risk: code does not match source"])
     await expect(mako.getByText(text, { exact: true })).toBeVisible();
   // A fork the registry lists says so, and what it's a fork of.
   await expect(mako.getByText("Fork", { exact: true })).toHaveAttribute("title", "Fork of original/mako");
@@ -1644,7 +1644,7 @@ test("Discover shows the registry's audit warnings next to Runs as root and expl
     ["Blocked by audit", "Not recommended for installation."],
     ["Reads private data", "Steam login data"],
     ["Changes system startup", "keep working outside Decky"],
-    ["Code not in its repo", "aren't in its GitHub source"],
+    ["Very high risk: code does not match source", "could not match to the repository"],
     ["Hidden code", "encoded or packed code"],
     ["Skips HTTPS checks", "certificate checks"],
     ["Runs downloaded scripts", "downloads a script"],
@@ -1655,7 +1655,7 @@ test("Discover shows the registry's audit warnings next to Runs as root and expl
   // The Manage window shows them too.
   await mako.getByRole("button", { name: "Manage", exact: true }).click();
   const meta = app.locator(".steam-modal .deckyhub-details-meta");
-  for (const text of ["Reads private data", "Code not in its repo"])
+  for (const text of ["Reads private data", "Very high risk: code does not match source"])
     await expect(meta.getByText(text, { exact: true })).toBeVisible();
 });
 

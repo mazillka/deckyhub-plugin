@@ -108,10 +108,13 @@ export const fr: Record<MessageKey, string> = {
   "appcard.manage": "Gérer",
   "appcard.install": "Installer",
   "appcard.installVersion": "Installer v{version}",
-  "appcard.downloads": "{count} téléchargements",
+  "appcard.downloads":
+    "Activité totale approximative : {count} ; inclut les téléchargements répétés, pas des installations uniques.",
   "appcard.githubDownloads": "{count} téléchargements GitHub",
   "appcard.storeDownloads": "{count} téléchargements depuis la boutique Decky",
   "appcard.downloadsBreakdown": "GitHub : {github} · boutique Decky : {store}",
+  "appcard.storeActivity":
+    "Activité de la boutique Decky (téléchargements + mises à jour) : {count} ; correspondance par nom, répétitions incluses",
   "appcard.inStore": "Dans la boutique Decky",
   "appcard.inStoreHint":
     "La boutique Decky propose un plugin portant ce nom ({count} téléchargements là-bas). La boutique n'indique pas de dépôt : vérifiez que c'est bien celui-ci.",
@@ -161,9 +164,9 @@ export const fr: Record<MessageKey, string> = {
   "appcard.warning.persistence": "Modifie le démarrage",
   "appcard.warning.persistence.hint":
     "Il modifie les profils shell, précharge des bibliothèques, charge des modules du noyau ou ajoute des règles de périphérique, actifs même hors de Decky.",
-  "appcard.warning.not-in-source": "Code absent du dépôt",
+  "appcard.warning.not-in-source": "Risque très élevé : le code ne correspond pas au code source",
   "appcard.warning.not-in-source.hint":
-    "La version contient des scripts ou programmes absents de son code GitHub : impossible de lire ce qu'ils font.",
+    "La version contient du code que l’audit n’a pas pu associer au dépôt. Cela peut dissimuler des modifications malveillantes ; examinez la version et le code source avant l’installation. Une différence détectée automatiquement ne prouve pas la présence de logiciel malveillant.",
   "appcard.warning.obfuscated": "Code caché",
   "appcard.warning.obfuscated.hint": "Il contient du code encodé ou compressé difficile à lire.",
   "audit.scope":

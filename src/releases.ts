@@ -451,7 +451,8 @@ export async function hydrate(app: App, force: boolean, preference?: RepoPrefere
   const prereleaseOnly = items.length > 0 && items.every((item) => item.prerelease);
   const channel: UpdateChannel = prereleaseOnly ? "prerelease" : (preference?.channel ?? "stable");
   const release = items.find((item) => inChannel(item, channel));
-  if (!release) return { ...app, channel, prereleaseOnly, error: error ?? tr("release.noMatch") };
+  if (!release)
+    return { ...app, channel, prereleaseOnly, latestPrerelease: undefined, error: error ?? tr("release.noMatch") };
   const cmp = app.installedVersion ? compareVersions(releaseVersion(release), app.installedVersion) : null;
   const installed = app.identityUnverified ? undefined : installedRelease(items, app.installedVersion);
   return {
@@ -461,6 +462,7 @@ export async function hydrate(app: App, force: boolean, preference?: RepoPrefere
     installedAssets: installed?.release.assets,
     installedAudit: installed?.audit,
     latestVersion: release.tag,
+    latestPrerelease: release.prerelease,
     publishedAt: release.publishedAt,
     releaseUrl: release.url,
     releaseNotes: release.notes,

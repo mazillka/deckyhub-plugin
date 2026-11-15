@@ -262,7 +262,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
     // Every audit warning any of the batch's releases carries, once each.
     const repos = new Set(batchUpdates.map((update) => update.repo));
     const batchApps = visibleApps.filter((app) => repos.has(app.repo));
-    const warnings = [...new Set(batchApps.flatMap(installWarnings))];
+    const warnings = [...new Set(batchApps.flatMap((app) => installWarnings(app)))];
     if (!(await confirmPluginInstall(t, `${label}?`, label, { warnings }))) return;
     setUpdatingAll(true);
     void updateDeckyPlugins(batchUpdates)

@@ -1,10 +1,11 @@
 import type { CSSProperties } from "react";
 import type { TFunc } from "../i18n/en";
 import { FaShieldAlt } from "react-icons/fa";
-import { AUDIT_WARNINGS, isAuditWarning, type App, type AuditWarning, type VirusScan } from "../types";
+import { AUDIT_WARNINGS, installWarnings, isAuditWarning, type App, type AuditWarning, type VirusScan } from "../types";
 import { installedRiskReasons } from "../notify";
 import { compactNumber, timeAgo } from "../utils";
-import { totalDownloads } from "../sorting";
+import { storeActivityOf, storeCountOf, totalDownloads, validCount } from "../sorting";
+import { independentAuditOf } from "../independentAudit";
 import { colors, tint } from "../styles";
 
 export const pillStyle = {
@@ -42,18 +43,48 @@ export const RootBadge = ({ t }: { t: TFunc }) => (
 export { AUDIT_WARNINGS };
 
 export const WarningBadge = ({ t, warning, prerelease }: { t: TFunc; warning: AuditWarning; prerelease?: boolean }) => {
-  const color = warning === "blocked" ? colors.dangerSoft : colors.caution;
+  const color = warning === "blocked" || warning === "not-in-source" ? colors.dangerSoft : colors.caution;
   const label = t(`appcard.warning.${warning}`);
   // nowrap: beside the legend's text a long label squeezed onto three lines (seen on a Deck).
   return (
-    <span title={t(`appcard.warning.${warning}.hint`)} style={{ ...pillStyle, whiteSpace: "nowrap", ...tint(color) }}>
+    <span
+      title={t(`appcard.warning.${warning}.hint`)}
+      style={{
+        ...pillStyle,
+        whiteSpace: warning === "not-in-source" ? "normal" : "nowrap",
+        overflowWrap: warning === "not-in-source" ? "anywhere" : undefined,
+        ...tint(color),
+      }}
+    >
       {prerelease ? `${t("appcard.channelPrerelease")}: ${label}` : label}
     </span>
   );
 };
 
-// The release this card installs: a pre-release's warnings only on the pre-release channel.
+// Show warnings for the card asset when hydration identifies it; otherwise preserve both known sets.
 function AuditWarnings({ app, t }: { app: App; t: TFunc }) {
+  if (app.latestPrerelease === true) {
+    return (
+      <>
+        {installWarnings(app)
+          .filter(isAuditWarning)
+          .map((key) => (
+            <WarningBadge key={key} t={t} warning={key} prerelease />
+          ))}
+      </>
+    );
+  }
+  if (app.latestPrerelease === false) {
+    return (
+      <>
+        {installWarnings(app)
+          .filter(isAuditWarning)
+          .map((key) => (
+            <WarningBadge key={key} t={t} warning={key} />
+          ))}
+      </>
+    );
+  }
   const stable = app.stats?.warnings ?? [];
   const prerelease =
     app.channel === "prerelease" ? (app.stats?.prereleaseWarnings ?? []).filter((key) => !stable.includes(key)) : [];
@@ -190,6 +221,9 @@ export function AppBadges({ app, t }: { app: App; t: TFunc }) {
       {!app.description?.trim() && <NoDescriptionBadge t={t} />}
       <AuditWarnings app={app} t={t} />
       {app.scan &&
+        (independentAuditOf(app.scan)?.source?.findings.length ?? 0) > 0 &&
+        !installWarnings(app).includes("not-in-source") && <WarningBadge t={t} warning="not-in-source" />}
+      {app.scan &&
         (app.scan.unverifiedMatch ? (
           <small style={{ color: SCAN_COLORS.partial }}>{t("scan.unverifiedMatch")}</small>
         ) : (
@@ -222,8 +256,10 @@ export function AppStats({
   const released = releasedAt(app);
   const { stars } = app.stats ?? {};
   const downloads = totalDownloads(app.stats);
-  const github = app.stats?.downloads;
-  const store = app.stats?.store?.downloads;
+  const githubCount = app.stats?.downloads;
+  const github = validCount(githubCount) ? githubCount : undefined;
+  const storeActivity = storeActivityOf(app.stats);
+  const store = storeCountOf(app.stats);
   return (
     <>
       {!noUpdated && released > 0 && !isStale(released) && (
@@ -232,8 +268,11 @@ export function AppStats({
       {downloads !== undefined && (
         <span
           title={[
+            downloads !== undefined && t("appcard.downloads", { count: compactNumber(downloads) }),
             github !== undefined && t("appcard.githubDownloads", { count: github.toLocaleString() }),
-            store !== undefined && t("appcard.storeDownloads", { count: store.toLocaleString() }),
+            storeActivity !== undefined
+              ? t("appcard.storeActivity", { count: storeActivity.toLocaleString() })
+              : store !== undefined && t("appcard.storeDownloads", { count: store.toLocaleString() }),
           ]
             .filter(Boolean)
             .join("\n")}
@@ -247,6 +286,18 @@ export function AppStats({
             github: compactNumber(github ?? 0),
             store: compactNumber(store),
           })}
+          {storeActivity !== undefined && (
+            <>
+              <br />
+              {t("appcard.storeActivity", { count: compactNumber(storeActivity) })}
+            </>
+          )}
+          {downloads !== undefined && (
+            <>
+              <br />
+              {t("appcard.downloads", { count: compactNumber(downloads) })}
+            </>
+          )}
         </span>
       )}
       {stars != null && (

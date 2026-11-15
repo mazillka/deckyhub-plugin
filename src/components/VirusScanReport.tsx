@@ -4,6 +4,7 @@ import { WideConfirmModal } from "./WideModal";
 import { useEffect, useState } from "react";
 import { FaCopy, FaExternalLinkAlt, FaShieldAlt } from "react-icons/fa";
 import { independentAuditOf } from "../independentAudit";
+import { WarningBadge } from "./AppBadges";
 import { openExternalWeb } from "../external";
 import type { TFunc } from "../i18n/en";
 import { metaDefenderReportOf, virusTotalReportOf } from "../releases";
@@ -480,6 +481,20 @@ export function VirusScanReport({
           </span>
         )}
       </h3>
+      {audit?.source && audit.source.findings.length > 0 && (
+        <div
+          style={{
+            display: "grid",
+            gap: 4,
+            padding: "8px 10px",
+            border: `1px solid ${colors.danger}`,
+            borderRadius: 8,
+          }}
+        >
+          <WarningBadge t={t} warning="not-in-source" />
+          <strong style={{ color: colors.danger }}>{t("appcard.warning.not-in-source.hint")}</strong>
+        </div>
+      )}
       {scan === undefined ? (
         <small style={{ color: MUTED }}>{t("scan.checking")}</small>
       ) : scan === "unavailable" ? (

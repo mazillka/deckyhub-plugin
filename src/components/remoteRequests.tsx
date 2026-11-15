@@ -52,6 +52,7 @@ export async function runRemoteRequest(request: RemoteInstallRequest, t: TFunc, 
       ...app,
       stats: stats[app.repo.toLowerCase()],
       channel: release.prerelease ? ("prerelease" as const) : ("stable" as const),
+      latestPrerelease: release.prerelease,
     };
     const note = [
       request.ownerName,

@@ -107,10 +107,12 @@ export const pl: Record<MessageKey, string> = {
   "appcard.manage": "Zarządzaj",
   "appcard.install": "Zainstaluj",
   "appcard.installVersion": "Zainstaluj v{version}",
-  "appcard.downloads": "Pobrania: {count}",
+  "appcard.downloads": "Przybliżona łączna aktywność: {count}; obejmuje powtórne pobrania, nie unikalne instalacje.",
   "appcard.githubDownloads": "{count} pobrań z GitHuba",
   "appcard.storeDownloads": "{count} pobrań ze sklepu Decky",
   "appcard.downloadsBreakdown": "GitHub: {github} · sklep Decky: {store}",
+  "appcard.storeActivity":
+    "Aktywność sklepu Decky (pobrania + aktualizacje): {count}; dopasowanie po nazwie, uwzględnia powtórzenia",
   "appcard.inStore": "W sklepie Decky",
   "appcard.inStoreHint":
     "Sklep Decky ma wtyczkę o tej nazwie ({count} pobrań tam). Sklep nie podaje repozytorium, więc sprawdź, czy to ta.",
@@ -161,9 +163,9 @@ export const pl: Record<MessageKey, string> = {
   "appcard.warning.persistence": "Zmienia uruchamianie systemu",
   "appcard.warning.persistence.hint":
     "Edytuje profile powłoki, wstępnie ładuje biblioteki, ładuje moduły jądra lub dodaje reguły urządzeń, które działają także poza Decky.",
-  "appcard.warning.not-in-source": "Kod spoza repozytorium",
+  "appcard.warning.not-in-source": "Bardzo wysokie ryzyko: kod nie odpowiada kodowi źródłowemu",
   "appcard.warning.not-in-source.hint":
-    "Wydanie zawiera skrypty lub programy, których nie ma w źródłach na GitHubie, więc nie możesz sprawdzić, co robią.",
+    "Wydanie zawiera kod, którego audyt nie mógł dopasować do repozytorium. Może to ukrywać złośliwe zmiany; przed instalacją sprawdź wydanie i kod źródłowy. Automatycznie wykryta niezgodność nie dowodzi obecności złośliwego oprogramowania.",
   "appcard.warning.obfuscated": "Ukryty kod",
   "appcard.warning.obfuscated.hint": "Zawiera zakodowany lub spakowany kod, który trudno odczytać.",
   "audit.scope": "Sprawdza ograniczony zestaw wzorców. Wyniki wymagają oceny; kontrola nie dowodzi bezpieczeństwa.",

@@ -151,7 +151,7 @@ export function AppDetailsModal({
         closeModal?.();
         Navigation.NavigateBack();
       },
-      installWarnings(app),
+      release.assets[0]?.url === app.assets[0]?.url ? installWarnings(app, release.prerelease) : [],
     );
 
   // Installed Decky plugins can be removed through Decky Loader — never

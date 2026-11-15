@@ -107,10 +107,12 @@ export const ru: Record<MessageKey, string> = {
   "appcard.manage": "Управление",
   "appcard.install": "Установить",
   "appcard.installVersion": "Установить v{version}",
-  "appcard.downloads": "{count} загрузок",
+  "appcard.downloads": "Примерная общая активность: {count}; повторные загрузки учтены, это не уникальные установки.",
   "appcard.githubDownloads": "{count} загрузок с GitHub",
   "appcard.storeDownloads": "{count} загрузок из магазина Decky",
   "appcard.downloadsBreakdown": "GitHub: {github} · магазин Decky: {store}",
+  "appcard.storeActivity":
+    "Активность магазина Decky (загрузки + обновления): {count}; совпадение по имени, повторы учтены",
   "appcard.inStore": "В магазине Decky",
   "appcard.inStoreHint":
     "В магазине Decky есть плагин с таким названием ({count} загрузок там). Магазин не указывает репозиторий, поэтому убедитесь, что это тот самый.",
@@ -160,9 +162,9 @@ export const ru: Record<MessageKey, string> = {
   "appcard.warning.persistence": "Меняет запуск системы",
   "appcard.warning.persistence.hint":
     "Изменяет профили оболочки, предзагружает библиотеки, загружает модули ядра или добавляет правила устройств, которые работают и вне Decky.",
-  "appcard.warning.not-in-source": "Код не из репозитория",
+  "appcard.warning.not-in-source": "Очень высокий риск: код не соответствует исходному коду",
   "appcard.warning.not-in-source.hint":
-    "В релизе есть скрипты или программы, которых нет в исходниках на GitHub, поэтому нельзя прочитать, что они делают.",
+    "Релиз содержит код, который аудит не смог сопоставить с репозиторием. Это может скрывать вредоносные изменения; проверьте релиз и исходный код перед установкой. Автоматически обнаруженное несоответствие не доказывает наличие вредоносного ПО.",
   "appcard.warning.obfuscated": "Скрытый код",
   "appcard.warning.obfuscated.hint": "Содержит закодированный или упакованный код, который трудно прочитать.",
   "audit.scope": "Проверяется ограниченный набор шаблонов. Находки требуют проверки; безопасность это не доказывает.",

@@ -6,10 +6,33 @@ export type SortOrder = (typeof SORT_ORDERS)[number];
 // The registry's date for the release a card shows, else the card's own release check.
 const releasedAt = (app: App) => Date.parse(app.stats?.updated || app.publishedAt || "") || 0;
 
-// All-time downloads of a plugin: GitHub's plus the Decky store's, which count different installs (the
-// store's are what Decky installs, GitHub's the ZIPs fetched from there). Undefined when neither is known.
-export const totalDownloads = (stats?: PluginStats) =>
-  stats?.downloads === undefined && !stats?.store ? undefined : (stats.downloads ?? 0) + (stats.store?.downloads ?? 0);
+export const validCount = (value: unknown): value is number =>
+  typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
+
+// Newer registry data counts store downloads and updates. Both counters must be present and valid.
+export const storeActivityOf = (stats?: PluginStats): number | undefined => {
+  const activity = stats?.store?.activity;
+  if (!activity || !validCount(activity.downloads) || !validCount(activity.updates)) return undefined;
+  const total = activity.downloads + activity.updates;
+  return validCount(total) ? total : undefined;
+};
+
+// Compatible with older registry caches that only contain store.downloads.
+export const storeCountOf = (stats?: PluginStats): number | undefined => {
+  const activity = storeActivityOf(stats);
+  if (activity !== undefined) return activity;
+  return validCount(stats?.store?.downloads) ? stats.store.downloads : undefined;
+};
+
+// Approximate activity across GitHub downloads and Decky store downloads/updates. These counters
+// include repeat downloads and are not unique installs. Undefined when no valid count is known.
+export const totalDownloads = (stats?: PluginStats) => {
+  const github = validCount(stats?.downloads) ? stats.downloads : undefined;
+  const store = storeCountOf(stats);
+  if (github === undefined && store === undefined) return undefined;
+  const total = (github ?? 0) + (store ?? 0);
+  return validCount(total) ? total : undefined;
+};
 
 // One Sort option's order over the list as loaded; 0 for a tie. The registry only ever
 // appends (custom repos come after it), so "Recently added" is that order reversed.

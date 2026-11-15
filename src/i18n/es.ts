@@ -108,10 +108,12 @@ export const es: Record<MessageKey, string> = {
   "appcard.manage": "Gestionar",
   "appcard.install": "Instalar",
   "appcard.installVersion": "Instalar v{version}",
-  "appcard.downloads": "{count} descargas",
+  "appcard.downloads": "Actividad total aproximada: {count}; incluye descargas repetidas, no son instalaciones únicas.",
   "appcard.githubDownloads": "{count} descargas de GitHub",
   "appcard.storeDownloads": "{count} descargas de la tienda de Decky",
   "appcard.downloadsBreakdown": "GitHub: {github} · tienda de Decky: {store}",
+  "appcard.storeActivity":
+    "Actividad de la tienda Decky (descargas + actualizaciones): {count}; coincidencia por nombre, incluye repeticiones",
   "appcard.inStore": "En la tienda de Decky",
   "appcard.inStoreHint":
     "La tienda de Decky tiene un plugin con este nombre ({count} descargas allí). La tienda no indica el repositorio, así que comprueba que sea este.",
@@ -161,9 +163,9 @@ export const es: Record<MessageKey, string> = {
   "appcard.warning.persistence": "Cambia el arranque del sistema",
   "appcard.warning.persistence.hint":
     "Modifica perfiles de shell, precarga bibliotecas, carga módulos del kernel o añade reglas de dispositivos que siguen activos fuera de Decky.",
-  "appcard.warning.not-in-source": "Código fuera de su repo",
+  "appcard.warning.not-in-source": "Riesgo muy alto: el código no coincide con el código fuente",
   "appcard.warning.not-in-source.hint":
-    "La versión trae scripts o programas que no están en su código de GitHub, así que no puedes leer lo que hacen.",
+    "La versión contiene código que la auditoría no pudo asociar con el repositorio. Esto puede ocultar cambios maliciosos; revisa la versión y el código fuente antes de instalar. Una discrepancia automatizada no demuestra que haya malware.",
   "appcard.warning.obfuscated": "Código oculto",
   "appcard.warning.obfuscated.hint": "Contiene código codificado o empaquetado difícil de leer.",
   "audit.scope":

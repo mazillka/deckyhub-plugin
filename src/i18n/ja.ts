@@ -107,10 +107,13 @@ export const ja: Record<MessageKey, string> = {
   "appcard.manage": "管理",
   "appcard.install": "インストール",
   "appcard.installVersion": "v{version} をインストール",
-  "appcard.downloads": "{count} ダウンロード",
+  "appcard.downloads":
+    "合計アクティビティの概算: {count}。繰り返しダウンロードを含み、固有のインストール数ではありません。",
   "appcard.githubDownloads": "GitHub ダウンロード {count} 回",
   "appcard.storeDownloads": "Decky ストアでのダウンロード {count} 件",
   "appcard.downloadsBreakdown": "GitHub: {github} · Decky ストア: {store}",
+  "appcard.storeActivity":
+    "Decky ストアのアクティビティ（ダウンロード + 更新）: {count}。名前で照合し、繰り返しを含みます",
   "appcard.inStore": "Decky ストアにあり",
   "appcard.inStoreHint":
     "Decky ストアに同名のプラグインがあります(ストアでのダウンロード {count} 回)。ストアはリポジトリを示さないため、これと同じものか確認してください。",
@@ -161,9 +164,9 @@ export const ja: Record<MessageKey, string> = {
   "appcard.warning.persistence": "システム起動を変更",
   "appcard.warning.persistence.hint":
     "シェルのプロファイル変更、ライブラリのプリロード、カーネルモジュールの読み込み、デバイスルールの追加を行い、Decky の外でも動作し続けます。",
-  "appcard.warning.not-in-source": "リポジトリにないコード",
+  "appcard.warning.not-in-source": "非常に高いリスク: コードがソースと一致しません",
   "appcard.warning.not-in-source.hint":
-    "リリースに GitHub のソースにないスクリプトやプログラムが含まれており、何をするか確認できません。",
+    "リリースには、監査でリポジトリと照合できなかったコードが含まれています。悪意ある変更が隠れている可能性があるため、インストール前にリリースとソースを確認してください。自動検出された不一致はマルウェアの証拠ではありません。",
   "appcard.warning.obfuscated": "隠されたコード",
   "appcard.warning.obfuscated.hint": "読みにくいエンコード済みまたは圧縮されたコードを含みます。",
   "audit.scope": "限られたパターンを検査します。検出結果の確認が必要で、安全性を証明するものではありません。",

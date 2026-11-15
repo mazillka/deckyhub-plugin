@@ -107,10 +107,11 @@ export const en = {
   "appcard.manage": "Manage",
   "appcard.install": "Install",
   "appcard.installVersion": "Install v{version}",
-  "appcard.downloads": "{count} downloads",
+  "appcard.downloads": "Combined approximate activity: {count}; includes repeat downloads, not unique installs.",
   "appcard.githubDownloads": "{count} GitHub downloads",
   "appcard.storeDownloads": "{count} Decky store downloads",
   "appcard.downloadsBreakdown": "GitHub {github} · Decky store {store}",
+  "appcard.storeActivity": "Decky store activity (downloads + updates): {count}; matched by name, repeats included",
   "appcard.inStore": "In Decky store",
   "appcard.inStoreHint":
     "The Decky store lists a plugin with this name ({count} downloads there). The store names no repository, so check that it is this one.",
@@ -159,9 +160,9 @@ export const en = {
   "appcard.warning.persistence": "Changes system startup",
   "appcard.warning.persistence.hint":
     "It edits shell profiles, preloads libraries, loads kernel modules or adds device rules, which keep working outside Decky.",
-  "appcard.warning.not-in-source": "Code not in its repo",
+  "appcard.warning.not-in-source": "Very high risk: code does not match source",
   "appcard.warning.not-in-source.hint":
-    "The release has scripts or programs that aren't in its GitHub source, so you can't read what they do.",
+    "The release contains code the audit could not match to the repository. This can hide malicious changes; review the release and source before installing. An automated mismatch does not prove malware.",
   "appcard.warning.obfuscated": "Hidden code",
   "appcard.warning.obfuscated.hint": "It contains encoded or packed code that's hard to read.",
   "audit.scope": "Checks a limited set of patterns. Findings need review; this cannot prove safety.",

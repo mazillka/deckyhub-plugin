@@ -108,10 +108,13 @@ export const nl: Record<MessageKey, string> = {
   "appcard.manage": "Beheren",
   "appcard.install": "Installeren",
   "appcard.installVersion": "v{version} installeren",
-  "appcard.downloads": "{count} downloads",
+  "appcard.downloads":
+    "Geschatte totale activiteit: {count}; herhaalde downloads inbegrepen, geen unieke installaties.",
   "appcard.githubDownloads": "{count} GitHub-downloads",
   "appcard.storeDownloads": "{count} downloads uit de Decky-store",
   "appcard.downloadsBreakdown": "GitHub: {github} · Decky-store: {store}",
+  "appcard.storeActivity":
+    "Decky-storeactiviteit (downloads + updates): {count}; gekoppeld op naam, herhalingen inbegrepen",
   "appcard.inStore": "In de Decky-store",
   "appcard.inStoreHint":
     "De Decky-store heeft een plugin met deze naam ({count} downloads daar). De store noemt geen repository, controleer dus of het deze is.",
@@ -162,9 +165,9 @@ export const nl: Record<MessageKey, string> = {
   "appcard.warning.persistence": "Wijzigt het opstarten van het systeem",
   "appcard.warning.persistence.hint":
     "Bewerkt shellprofielen, laadt bibliotheken vooraf, laadt kernelmodules of voegt apparaatregels toe, die ook buiten Decky blijven werken.",
-  "appcard.warning.not-in-source": "Code niet in de repo",
+  "appcard.warning.not-in-source": "Zeer hoog risico: code komt niet overeen met de broncode",
   "appcard.warning.not-in-source.hint":
-    "De release bevat scripts of programma's die niet in de GitHub-broncode staan, dus je kunt niet nalezen wat ze doen.",
+    "De release bevat code die de audit niet aan de repository kon koppelen. Dit kan schadelijke wijzigingen verbergen; controleer de release en broncode voordat je installeert. Een automatisch gevonden afwijking bewijst niet dat er malware is.",
   "appcard.warning.obfuscated": "Verborgen code",
   "appcard.warning.obfuscated.hint": "Bevat gecodeerde of ingepakte code die moeilijk te lezen is.",
   "audit.scope":
