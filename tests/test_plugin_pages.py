@@ -77,6 +77,9 @@ class PluginPageTests(unittest.TestCase):
             self.assertIn(f">{label}</li>", chips)
         self.assertIn('<ol class="steps">', page)
         self.assertLess(page.index("Safety at a glance"), page.index("How to install"))
+        # Install with DeckyHub leads to the steps on the same page, not to the home page.
+        self.assertIn('<a class="btn" href="#how-to-install">Install with DeckyHub</a>', page)
+        self.assertIn('<h2 id="how-to-install">How to install</h2>', page)
         # The long explanations and the scan tables are folded away until asked for.
         self.assertIn('<details class="more"><summary>What these labels mean</summary>', page)
         self.assertIn('<details class="more"><summary>Security scan details</summary>', page)

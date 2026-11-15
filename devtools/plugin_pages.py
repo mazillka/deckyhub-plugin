@@ -632,7 +632,7 @@ def plugin_page(
     body = f"""{crumbs}
 <h1>{escape(name)}</h1>
 <p class="lead">{escape(description)}</p>
-{STORE_ONLY_NOTE if app.get("store") else ""}<p class="cta"><a class="btn" href="/#install">Install with DeckyHub</a><a class="btn ghost" href="{escape(repo_url)}">Source on GitHub</a>{"" if app.get("store") else '<button type="button" class="btn ghost" id="remote-open" aria-haspopup="dialog">Send to device (experimental)</button>'}</p>
+{STORE_ONLY_NOTE if app.get("store") else ""}<p class="cta"><a class="btn" href="#how-to-install">Install with DeckyHub</a><a class="btn ghost" href="{escape(repo_url)}">Source on GitHub</a>{"" if app.get("store") else '<button type="button" class="btn ghost" id="remote-open" aria-haspopup="dialog">Send to device (experimental)</button>'}</p>
 <ul class="facts">{"".join(facts)}<li class="wide"><strong><a href="{escape(repo_url)}">{escape(repo)}</a></strong>Repository</li></ul>
 <h2 id="safety">Safety at a glance</h2>
 {safety_chips(badges)}
@@ -641,7 +641,7 @@ def plugin_page(
 {"<ul class='badges'>" + "".join(badges) + "</ul>" if badges else "<p>No labels: it doesn't run as root, and no audit warnings or virus scan findings are known for it.</p>"}
 <p class="note">Browsing this plugin on GitHub? The free <a href="https://github.com/mazillka/deckyhub-ext">Deckyhub browser extension</a> shows these labels and scans there.</p>
 </details>
-<h2>How to install</h2>
+<h2 id="how-to-install">How to install</h2>
 <ol class="steps">
 <li><span>Get <a href="/#install">DeckyHub</a> on your Steam Deck if you don't have it yet.</span></li>
 <li><span>In Gaming Mode open DeckyHub's <strong>Discover</strong> tab and search for <strong>{escape(name)}</strong>.</span></li>
