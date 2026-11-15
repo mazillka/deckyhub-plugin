@@ -188,7 +188,7 @@ export function createPluginList(root, { loadPage, request }) {
       const title = document.createElement('strong');
       const label = plugin.disabled ? translate(`${plugin.name} (disabled)`) : plugin.name;
       // A plugin DeckyHub lists has a page here; the page is English only, and a preview site keeps its prefix.
-      const pageId = typeof plugin.id === 'string' && /^[a-z0-9][a-z0-9-]{0,127}$/.test(plugin.id) ? plugin.id : null;
+      const pageId = [plugin.id, plugin.pageId].find(id => typeof id === 'string' && /^[a-z0-9][a-z0-9-]{0,127}$/.test(id)) ?? null;
       if (pageId) {
         const link = document.createElement('a');
         link.href = `${location.pathname.replace(/\/(?:uk\/)?paired-devices\/?(?:index\.html)?$/, '')}/plugins/${pageId}.html`;
