@@ -277,8 +277,17 @@ for name in ("index.html", "editor.html"):
         )
 
 # help.html (its questions also as FAQ structured data), about.html and guide.html (the user guide), each with a Ukrainian twin under uk/.
-HELP_ABOUT = ["help.html", "about.html", "guide.html", "uk/help.html", "uk/about.html", "uk/guide.html"]
-for name in ("help.html", "about.html", "guide.html"):
+HELP_ABOUT = [
+    "help.html",
+    "about.html",
+    "guide.html",
+    "authors.html",
+    "uk/help.html",
+    "uk/about.html",
+    "uk/guide.html",
+    "uk/authors.html",
+]
+for name in ("help.html", "about.html", "guide.html", "authors.html"):
     for lang, path, switch in (
         ("en", name, ("Українська", f"{SITE}uk/{name}", "uk")),
         ("uk", f"uk/{name}", ("English", f"{SITE}{name}", "en")),
