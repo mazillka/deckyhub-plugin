@@ -40,7 +40,7 @@ export function setupScan({ root, byId, form, pairDevice }) {
       scanStop.hidden = false;
       await scanVideo.play();
       scanning = true;
-      scanSay('Point the camera at the QR code on your device, about 30 cm away, with its screen bright.');
+      scanSay('Point the camera at the QR code on your device, about 30 cm away. If you see glare, turn down the brightness of its screen.');
       const canvas = root.ownerDocument.createElement('canvas'), context = canvas.getContext('2d', { willReadFrequently: true });
       const look = () => {
         if (!scanning) return;

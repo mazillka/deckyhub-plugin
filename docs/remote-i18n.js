@@ -12,7 +12,7 @@ const UK = new Map(Object.entries({
   'The device rejected the request.': 'Пристрій відхилив запит.',
   'Could not open the share sheet. Copy the link instead.': 'Не вдалося відкрити меню «Поділитися». Скопіюйте посилання.',
   'Starting the camera…': 'Вмикаємо камеру…',
-  'Point the camera at the QR code on your device, about 30 cm away, with its screen bright.': 'Наведіть камеру на QR-код на вашому пристрої приблизно за 30 см, з яскравим екраном.',
+  'Point the camera at the QR code on your device, about 30 cm away. If you see glare, turn down the brightness of its screen.': 'Наведіть камеру на QR-код на вашому пристрої приблизно за 30 см. Якщо бачите відблиски, зменште яскравість екрана пристрою.',
   'That QR code is not a DeckyHub pairing code.': 'Цей QR-код не є кодом сполучення DeckyHub.',
   'Allow camera access to scan the QR code.': 'Дозвольте доступ до камери, щоб зчитати QR-код.',
   'No camera was found. Paste the link instead.': 'Камеру не знайдено. Вставте посилання.',

@@ -305,6 +305,23 @@ class PluginPageTests(unittest.TestCase):
         style = self.page().split("<style>")[1].split("</style>")[0]
         self.assertRegex(style, r"\.btn\{[^}]*cursor:pointer")
 
+    def test_a_plugin_only_in_the_decky_store_is_installed_through_decky_not_deckyhub(self):
+        shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
+        page = plugin_pages.plugin_page(shell, {**APP, "store": True}, {}, {}, {}, [APP])
+        self.assertIn('<a class="btn" href="#how-to-install">Install from the Decky store</a>', page)
+        steps = page.split('<h2 id="how-to-install">')[1].split("</ol>")[0]
+        self.assertIn("Quick Access menu", steps)
+        self.assertIn("choose <strong>Store</strong>", steps)
+        self.assertNotIn("DeckyHub's <strong>Discover</strong>", steps)
+        # no scans of a leftover build: the page says why there are none
+        self.assertNotIn("Security scan details", page)
+        self.assertNotIn("ClamAV", page)
+        self.assertIn("no GitHub release of this plugin to scan", page)
+        # and a plugin that is on GitHub keeps the DeckyHub steps
+        normal = self.page()
+        self.assertIn("Install with DeckyHub</a>", normal)
+        self.assertIn("DeckyHub's <strong>Discover</strong>", normal)
+
     def test_a_pending_virustotal_scan_has_no_report_link_but_a_finished_one_does(self):
         scans = {
             "stable": {
