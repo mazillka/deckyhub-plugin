@@ -124,16 +124,11 @@ const UK = new Map(Object.entries({
   'couldn\'t be scanned': 'не вдалося перевірити',
   'All details on DeckyHub': 'Усі подробиці на DeckyHub',
   'the latest release': 'останнього випуску',
-  // update notices
   'Add to home screen or desktop': 'Додати на головний екран або робочий стіл',
   'Add to home screen or desktop puts this page on your device as an app of its own, with its own icon and window. Nothing else is installed.': 'Ця сторінка з’явиться на вашому пристрої як окремий застосунок зі своєю іконкою й вікном. Більше нічого не встановлюється.',
-  'Turn off update notices': 'Вимкнути сповіщення про оновлення',
-  'Notify me about updates': 'Сповіщати про оновлення',
-  'Notices appear while this page or app is open, or running in the background. Your device is only reached from your own network.': 'Сповіщення з’являються, поки ця сторінка чи застосунок відкриті або працюють у фоні. До вашого пристрою звертаються лише з вашої власної мережі.',
   'Invalid summary from the device.': 'Недійсний підсумок від пристрою.',
   'Details copied.': 'Дані скопійовано.',
   'Select the details, copy them, then paste them into your bug report.': 'Виділіть дані, скопіюйте їх і вставте в повідомлення про помилку.',
-  'Notices are blocked. Allow them for this site in your browser settings.': 'Сповіщення заблоковано. Дозвольте їх для цього сайту в налаштуваннях браузера.',
 }));
 
 const n = value => Number(value);

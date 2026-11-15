@@ -25,13 +25,3 @@ self.addEventListener('fetch', event => {
     }
   })());
 });
-
-// Tapping an update notice brings the app forward.
-self.addEventListener('notificationclick', event => {
-  event.notification.close();
-  event.waitUntil((async () => {
-    const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-    const open = windows.find(client => client.url.startsWith(self.registration.scope));
-    return open ? open.focus() : self.clients.openWindow(self.registration.scope);
-  })());
-});
