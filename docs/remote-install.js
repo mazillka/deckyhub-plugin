@@ -497,7 +497,7 @@ export function init(root, details) {
           setState('paired');
           say('Paired. You can now manage this device.');
           updateActions();
-          if (!pluginId) void inventory?.load();
+          if (!pluginId) { void inventory?.load(); void updates?.check(); }
           return;
         }
         if (approval.status === 'rejected' || approval.status === 'expired') throw new Error(`Pairing ${approval.status}.`);
@@ -547,7 +547,7 @@ export function init(root, details) {
         }
       }
       say('Address updated. Send to device or retry the pending request to reconnect.');
-      if (!pluginId) void inventory?.load();
+      if (!pluginId) { void inventory?.load(); void updates?.check(); }
     } catch (error) { showError(error); }
   });
   // A plugin DeckyHub cannot match to the registry has no id; it is identified by its name.
@@ -656,7 +656,7 @@ export function init(root, details) {
   });
   // Update notices and the installed app (docs/remote-updates.js): the Paired devices page only.
   if (!compact && !pluginId) {
-    updates = createUpdates(root, { summary: () => send({ op: 'summary', token }), device: () => (token ? activeDevice() : undefined) });
+    updates = createUpdates(root, { summary: () => send({ op: 'summary', token }), device: () => (token ? activeDevice() : undefined), onResult: result => inventory?.setUpdates(result) });
   }
   updateActions();
   if (!pluginId && token) { void inventory.load(); void updates?.check(); }

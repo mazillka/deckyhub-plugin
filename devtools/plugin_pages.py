@@ -87,7 +87,7 @@ EXTRA_STYLE = """
 .badges{display:grid;gap:8px;margin:0;padding:0;list-style:none}.badges li{color:var(--muted)}
 .badge{padding:1px 8px;border-radius:999px;border:1px solid currentColor;font-size:.8rem;white-space:nowrap;margin-right:6px}.badge.store{color:#7cc4ff}
 .root{color:#ffb35c}.stale{color:#ff8a8a}.warn{color:var(--warn)}.fork{color:var(--muted)}.clean{color:#6bcb6b}.ai{color:#c49bff}
-.btn{display:inline-block;padding:11px 18px;border-radius:8px;background:var(--accent);color:#fff;text-decoration:none;font-weight:600;margin:4px 8px 4px 0}.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
+.btn{display:inline-block;padding:11px 18px;border-radius:8px;background:var(--accent);color:#fff;text-decoration:none;font-weight:600;margin:4px 8px 4px 0;cursor:pointer;font-family:inherit;font-size:inherit}.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
 .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;padding:0;list-style:none}
 .list a{display:block;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;text-decoration:none;color:var(--text);height:100%}
 .list a:hover{border-color:var(--accent2)}.list small{display:block;color:var(--muted);margin-top:4px}
@@ -433,13 +433,6 @@ def remote_device_panel(lang: str = "en") -> str:
 <p class="remote-actions"><a class="btn" href="/plugins/">Browse plugins to install</a> <button type="button" id="remote-plugins-refresh" disabled>Refresh list</button></p>
 </div>
 <p id="remote-plugins-status" role="status" aria-live="polite">Pair a device to see its installed plugins.</p>
-<details class="remote-pack" id="remote-pack-box">
-<summary>Switch a plugin pack on or off</summary>
-<p class="rd-hint">Pick a DeckyHub plugin pack file. Its plugins that are installed on your device are switched together, with one approval on the device. Nothing is installed or removed.</p>
-<p><input id="remote-pack" type="file" accept=".json,application/json" aria-label="Plugin pack file" disabled></p>
-<p id="remote-pack-info" role="status" aria-live="polite"></p>
-<p class="remote-actions"><button type="button" id="remote-pack-enable" disabled>Enable pack</button> <button type="button" id="remote-pack-disable" disabled>Disable pack</button></p>
-</details>
 <p><input id="remote-plugins-filter" type="search" aria-label="Search installed plugins" placeholder="Search installed plugins" autocomplete="off" hidden></p>
 <ul id="remote-plugins" class="remote-plugins"></ul>
 </section>

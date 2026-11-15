@@ -124,14 +124,6 @@ PANEL = [
     (">Browse plugins to install<", ">Переглянути плагіни для встановлення<"),
     (">Refresh list<", ">Оновити список<"),
     ("Pair a device to see its installed plugins.", "Додайте пристрій, щоб побачити його встановлені плагіни."),
-    ("Switch a plugin pack on or off", "Увімкнути чи вимкнути пак плагінів"),
-    (
-        "Pick a DeckyHub plugin pack file. Its plugins that are installed on your device are switched together, with one approval on the device. Nothing is installed or removed.",
-        "Виберіть файл пака плагінів DeckyHub. Його плагіни, встановлені на вашому пристрої, перемикаються разом, з одним підтвердженням на пристрої. Нічого не встановлюється й не видаляється.",
-    ),
-    ('aria-label="Plugin pack file"', 'aria-label="Файл пака плагінів"'),
-    (">Enable pack<", ">Увімкнути пак<"),
-    (">Disable pack<", ">Вимкнути пак<"),
     (
         'aria-label="Search installed plugins" placeholder="Search installed plugins"',
         'aria-label="Пошук серед встановлених плагінів" placeholder="Пошук серед встановлених плагінів"',
