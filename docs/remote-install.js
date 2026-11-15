@@ -3,7 +3,7 @@ import { createUpdates } from './remote-updates.js';
 import { translate } from './remote-i18n.js';
 import { setupScan } from './remote-scan.js';
 import { setupShare } from './remote-share.js';
-import { BROWSER_IDS_KEY, PAIRED_DEVICES_KEY, PAIRING_DETAILS_KEY, REQUEST_STATES, SELECTED_DEVICE_KEY, TERMINAL, browserIdFor, connectionDiagnostics, defaultBrowserName, detailsFromPairingLink, deviceUrl, exchange, fingerprintBytes, pairingDetails, pinnedHashes, sleep, timeout } from './remote-core.js';
+import { BROWSER_IDS_KEY, PAIRED_DEVICES_KEY, PAIRING_DETAILS_KEY, REQUEST_STATES, SELECTED_DEVICE_KEY, TERMINAL, browserIdFor, connectionDiagnostics, defaultBrowserName, detailsFromPairingLink, deviceUrl, exchange, fingerprintBytes, pairingDetails, pinnedHashes, sleep, timeout, toBase64Url } from './remote-core.js';
 
 // The helpers are in remote-core.js; they stay importable from here.
 export { BROWSER_IDS_KEY, PAIRED_DEVICES_KEY, PAIRING_DETAILS_KEY, REQUEST_STATES, SELECTED_DEVICE_KEY, TERMINAL, browserIdFor, connectionDiagnostics, defaultBrowserName, detailsFromPairingLink, deviceUrl, exchange, fingerprintBytes, pairingDetails, pinnedHashes, sleep, timeout } from './remote-core.js';
