@@ -72,6 +72,39 @@ class PluginStatusTests(unittest.TestCase):
             [("known", "Known plugin", "1.2.3", False), (None, "Unlisted plugin", "4.5.6", True)],
         )
 
+    def test_an_unverifiable_plugin_gets_a_page_link_by_its_exact_name_and_a_template_repository_is_ignored(self):
+        plugin = Plugin()
+        plugin.settings = {"customRepos": []}
+        plugin.apps = [
+            {
+                "id": "uni",
+                "name": "Unifideck",
+                "repo": "o/uni",
+                "detect": {"type": "decky-plugin", "names": ["Unifideck"]},
+            },
+            {"id": "twin-a", "name": "Twin", "repo": "o/a", "detect": {"type": "decky-plugin", "names": ["Twin"]}},
+            {"id": "twin-b", "name": "Twin", "repo": "o/b", "detect": {"type": "decky-plugin", "names": ["twin"]}},
+        ]
+        installed = [
+            ({"name": "Unifideck", "version": "0.8.0"}, {}, None),  # no repository in package.json: unverified
+            ({"name": "Twin"}, {}, None),  # two registry plugins share the name: no link guessed
+            ({"name": "Other"}, {"repository": "https://github.com/steamdeckhomebrew/decky-plugin-template"}, None),
+            ({"name": "Unifideck"}, {}, "someone/else"),  # a real repository that is not the registry's: no link
+        ]
+        with patch.object(plugin, "_scan_installed_plugins", return_value=installed):
+            listed = plugin._remote_installed_plugins()
+            rows = {row["name"]: row for row in listed if row["repo"] is None}
+        self.assertEqual((rows["Unifideck"]["pageId"], rows["Unifideck"]["id"]), ("uni", None))
+        self.assertEqual([row["pageId"] for row in listed if row["repo"] == "someone/else"], [None])
+        self.assertIsNone(rows["Twin"]["pageId"])
+        self.assertIsNone(rows["Other"]["repo"])
+        # The template's repository is dropped where the repository is read from package.json.
+        self.assertIsNone(
+            plugin._plugin_repository(
+                {}, {"repository": {"url": "git+https://github.com/SteamDeckHomebrew/decky-plugin-template.git"}}
+            )
+        )
+
     def test_decky_plugin_detection_reads_manifest_and_package_version(self):
         with tempfile.TemporaryDirectory() as home:
             plugin_dir = Path(home) / "plugins" / "mako"

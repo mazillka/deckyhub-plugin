@@ -13,6 +13,8 @@ from . import paths
 from .registry import MAX_REMOTE_REGISTRY_BYTES
 from .validation import REPOSITORY_NAME
 
+TEMPLATE_REPOSITORIES = {"steamdeckhomebrew/decky-plugin-template"}
+
 
 class AppsMixin:
     # Each plugin's (plugin.json, package.json or {}, repository), read once per scan.
@@ -65,7 +67,9 @@ class AppsMixin:
             re.IGNORECASE,
         )
         repo = (match.group(1) if match else value).removesuffix(".git")
-        return repo.casefold() if REPOSITORY_NAME.fullmatch(repo) else None
+        repo = repo.casefold() if REPOSITORY_NAME.fullmatch(repo) else None
+        # Plugins made from Decky's template often keep its repository in package.json: that says nothing about them.
+        return None if repo in TEMPLATE_REPOSITORIES else repo
 
     async def get_apps(self):
         installed_plugins = await asyncio.to_thread(self._scan_installed_plugins)
@@ -140,12 +144,21 @@ class AppsMixin:
             if app["installedVersion"] is not None
         ]
         represented = {row["pluginName"] for row in rows if row["pluginName"]}
+        # A plugin the device can't verify can still be linked to its DeckyHub page (the link is all this is used for):
+        # by its exact name when it is one registry plugin's name, and, when package.json does name a repository
+        # (the template's counts as none), only if that repository is the registry plugin's too: name and repository.
+        by_name: dict[str, dict | None] = {}
+        for app in apps:
+            for name in app.get("detect", {}).get("names", []):
+                key = name.casefold()
+                by_name[key] = app if key not in by_name else None
         for manifest, package, repo in scanned:
             name = manifest.get("name", "")
             if name not in represented:
                 rows.append(
                     {
                         "id": None,
+                        "pageId": self._page_id(by_name.get(name.casefold()), repo),
                         "name": name,
                         "repo": repo,
                         "version": self._decky_plugin_version((manifest, package)),
@@ -155,6 +168,12 @@ class AppsMixin:
                     }
                 )
         return rows
+
+    @staticmethod
+    def _page_id(app: dict | None, repo: str | None) -> str | None:
+        if app and (repo is None or repo == app["repo"].casefold()):
+            return app["id"]
+        return None
 
     def _custom_apps(self) -> list[dict]:
         listed = {app["repo"].casefold() for app in self.apps}
