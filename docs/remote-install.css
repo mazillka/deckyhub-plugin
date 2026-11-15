@@ -379,6 +379,10 @@
 /* Adding a device happens in a window, so the page itself stays about the devices you already have. */
 .rd-dialog {
   box-sizing: border-box;
+  /* A page's own reset (margin: 0) would pin a modal <dialog> to the top left corner. */
+  position: fixed;
+  inset: 0;
+  margin: auto;
   width: min(40rem, calc(100vw - 24px));
   max-height: calc(100vh - 24px);
   padding: 0;
