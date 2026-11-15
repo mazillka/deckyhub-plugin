@@ -1,13 +1,13 @@
 {
   "name": "deckyhub",
-  "version": "3.4.0",
+  "version": "3.4.1",
   "description": "Discover, track, and safely download GitHub releases for Decky plugins from Gaming Mode.",
   "author": "Andrii Shevchuk-Yuhanets",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "rollup -c",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.docs.json",
     "test:backend": "python -m unittest discover -s tests",
     "test:frontend": "node --test tests/version.test.ts tests/i18n.test.ts tests/independentAudit.test.ts tests/rawCache.test.ts tests/notes.test.ts tests/remote-install.test.js tests/pluginList.test.js tests/remote-pack.test.js tests/remote-i18n.test.js tests/remote-updates.test.js tests/remoteTrusted.test.ts tests/layoutDefault.test.ts tests/tabsFix.test.ts tests/remoteOutcome.test.ts tests/totalDownloads.test.ts tests/report.test.ts tests/remote-names.test.js",
     "lint": "prettier --check \"src/**/*.{ts,tsx}\" \"tests/**/*.ts\" \"devtools/**/*.{ts,tsx,mjs}\" \"*.mjs\" && ruff format --check && ruff check",
@@ -23,8 +23,8 @@
     "@decky/ui": "^4.16.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "prettier": "^3.9.10",
-    "rollup": "^4.67.5",
+    "prettier": "^3.10.1",
+    "rollup": "^4.68.2",
     "typescript": "^7.0.2"
   }
 }

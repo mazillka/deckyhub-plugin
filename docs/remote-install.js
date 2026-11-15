@@ -111,8 +111,8 @@ export function init(root, details) {
     // Read before the first await: the failed pairing disconnects, which forgets the endpoint.
     const tried = endpoint, device = activeDevice();
     let permission;
-    try { permission = (await navigator.permissions.query({ name: 'local-network-access' })).state; } catch { /* not every browser has it */ }
-    const connection = navigator.connection;
+    try { permission = (await navigator.permissions.query({ name: /** @type {any} */ ('local-network-access') })).state; } catch { /* not every browser has it */ }
+    const connection = /** @type {any} */ (navigator).connection;
     diagnosticsText.textContent = connectionDiagnostics({
       when: new Date().toISOString(), page: location.origin + location.pathname, browser: navigator.userAgent,
       secure: Boolean(globalThis.isSecureContext), webTransport: typeof WebTransport !== 'undefined', online: navigator.onLine,
@@ -727,13 +727,13 @@ if (typeof document !== 'undefined') {
     else details = pairingDetails(sessionStorage.getItem(PAIRING_DETAILS_KEY) || '');
   } catch { /* Manual pairing is still available when browser storage is disabled. */ }
   if (fromLink) {
-    fromLink.link = location.href;
+    /** @type {any} */ (fromLink).link = location.href;
     history.replaceState(history.state, '', location.pathname + location.search);
   }
   const root = document.querySelector('#remote-install');
   if (root) init(root, details);
   else if (fromLink) {
-    const prompt = document.querySelector('#remote-device-ready');
+    const prompt = /** @type {HTMLElement | null} */ (document.querySelector('#remote-device-ready'));
     if (prompt) prompt.hidden = false;
   }
 }

@@ -9,7 +9,7 @@
 // nothing stays paired. The pairing window is a window of the main screen, so its two pictures are whole screens.
 import { mkdirSync, writeFileSync } from "node:fs";
 import { chromium } from "../decky-mock/node_modules/@playwright/test/index.mjs";
-import { connect, resetFocus, sleep, TARGETS, waitFor } from "./cdp.mjs";
+import { connect, quote, resetFocus, sleep, TARGETS, waitFor } from "./cdp.mjs";
 
 const SITE = process.env.SITE ?? "https://deckyhub.com/develop/";
 const out = new URL(
@@ -26,7 +26,7 @@ const startPath = await shared.eval("location.pathname.slice('/routes'.length)")
 const callPlugin = (method, ...args) =>
   shared
     .eval(
-      `DeckyBackend.call("loader/call_plugin_method", "DeckyHub", ${JSON.stringify(method)}, ${args.map((arg) => JSON.stringify(arg)).join(", ")}).then((result) => JSON.stringify(result ?? null))`,
+      `DeckyBackend.call("loader/call_plugin_method", "DeckyHub", ${quote(method)}, ${args.map((arg) => quote(arg)).join(", ")}).then((result) => JSON.stringify(result ?? null))`,
     )
     .then(JSON.parse);
 const status = () => callPlugin("get_remote_install_status");
@@ -44,7 +44,7 @@ const until = async (what, test, timeout = 60000) => {
 const panelShot = async (name, top) => {
   const panel = await connect(TARGETS.quickAccess);
   await panel.eval(
-    `(() => { const el = [...document.querySelectorAll("div, span")].filter((x) => x.children.length === 0 && x.textContent.trim().startsWith(${JSON.stringify(top)})).at(-1); el?.scrollIntoView({ block: "start" }); return !!el; })()`,
+    `(() => { const el = [...document.querySelectorAll("div, span")].filter((x) => x.children.length === 0 && x.textContent.trim().startsWith(${quote(top)})).at(-1); el?.scrollIntoView({ block: "start" }); return !!el; })()`,
   );
   await sleep(1500);
   writeFileSync(new URL(`${name}-background.png`, out), await main.screenshot());

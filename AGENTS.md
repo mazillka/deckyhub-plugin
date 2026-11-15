@@ -13,7 +13,7 @@ DeckyHub is a [Decky Loader](https://decky.xyz/) plugin for any device that runs
 ```bash
 corepack enable
 pnpm install
-pnpm run typecheck        # tsc --noEmit
+pnpm run typecheck        # tsc --noEmit for src/, then tsc -p tsconfig.docs.json: type-checks the site's docs/remote-*.js (checkJs, lenient: no implicit-any or null checks yet; add JSDoc types only where tsc cannot infer them)
 pnpm run build             # rollup -c -> dist/index.js + one dist/<lang>-<hash>.js chunk per non-English language
 pnpm run test:backend      # python -m unittest discover -s tests
 pnpm run test:frontend     # node --test tests/version.test.ts tests/i18n.test.ts tests/rawCache.test.ts tests/notes.test.ts
@@ -24,7 +24,7 @@ npm run test:e2e --prefix devtools/decky-mock
 
 Run a single backend test: `python -m unittest tests.test_plugin_status.PluginStatusTests.test_decky_plugin_detection_reads_manifest_and_package_version`. The backend uses only the Python standard library — no pip install needed to run or test it. `lint`/`format` need ruff, a dev-only tool: `pip install -r requirements-dev.txt` (in a virtual environment if your Python is system-managed). Prettier comes with `pnpm install`.
 
-`test:frontend` unit-tests the pure version logic in `src/version.ts`, the release-notes cleanup in `src/notes.ts` and the raw-file cache with Node's built-in runner (Node 24 strips the types), so keep those files free of imports of `@decky/*` and React, and checks every language file's `{placeholders}` and registration (`tests/i18n.test.ts`). The Playwright suite in `devtools/decky-mock/` covers the browser UI; `pnpm run typecheck` remains the static correctness gate for `src/`. Run `npx playwright install chromium` once before its first local run.
+`test:frontend` unit-tests the pure version logic in `src/version.ts`, the release-notes cleanup in `src/notes.ts` and the raw-file cache with Node's built-in runner (Node 24 strips the types), so keep those files free of imports of `@decky/*` and React, and checks every language file's `{placeholders}` and registration (`tests/i18n.test.ts`). The Playwright suite in `devtools/decky-mock/` covers the browser UI; `pnpm run typecheck` remains the static correctness gate for `src/` and the site's `docs/remote-*.js`. Run `npx playwright install chromium` once before its first local run.
 
 ## Development rules
 

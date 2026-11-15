@@ -20,6 +20,10 @@ export function updateLine(summary, name) {
   return `${name} has ${count} plugin ${count === 1 ? 'update' : 'updates'} waiting: ${shown}${count > 3 ? ` and ${count - 3} more` : ''}.`;
 }
 
+/**
+ * @param {any} root
+ * @param {{ summary: () => Promise<any>, device: () => any, onResult?: (result: any) => void }} options
+ */
 export function createUpdates(root, { summary, device, onResult = () => {} }) {
   const doc = root.ownerDocument;
   const anchor = root.querySelector('.remote-inventory');

@@ -31,6 +31,7 @@ main p,main li{color:var(--muted)}main strong{color:var(--text)}
 code{background:#0f1724;border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.88em;overflow-wrap:anywhere}
 footer{padding:36px 0;border-top:1px solid var(--line);color:var(--dim);font-size:.88rem;margin-top:36px}
 
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.95rem}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:var(--panel)}
 /* site-nav-style */
 </style>
 </head>
@@ -54,6 +55,103 @@ footer{padding:36px 0;border-top:1px solid var(--line);color:var(--dim);font-siz
 <h2>How it's built</h2>
 <p>Most of DeckyHub's code was written with the help of AI tools (Claude and Codex). Every release is still tested on real hardware before it ships, its code is checked by GitHub CodeQL on every change, and each release ZIP is virus-scanned before it's published. What changed in each version is in the <a href="/releases.html">release notes</a>.</p>
 
+<h2 id="how-deckyhub-controls-quality">How DeckyHub controls quality</h2>
+<p>DeckyHub installs software on your Deck, so every change, every release and every listed plugin goes through checks before it reaches you. All of it is open, in this repository and in <a href="https://github.com/mazillka/deckyhub-registry">mazillka/deckyhub-registry</a>.</p>
+<p><strong>Every change, before it's merged.</strong> <code>develop</code> and <code>main</code> are protected: nothing is pushed to them directly, and a pull request merges only when these pass (the browser tests are skipped when a change touches only Markdown or the website's <code>docs/</code> and <code>promo/</code> folders):</p>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>What it covers</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Backend tests (Python's built-in <code>unittest</code>)</td>
+<td>Downloads, SHA-256 checks, HTTPS-only redirects, the settings file, registry parsing, and the Desktop installer run as root against stand-ins</td>
+</tr>
+<tr>
+<td>Frontend unit tests</td>
+<td>Version comparison, release-notes cleanup, the cache, and every language's placeholders</td>
+</tr>
+<tr>
+<td>Browser tests (over a hundred Playwright tests in four parallel shards)</td>
+<td>DeckyHub's real UI in a Gaming Mode mock: browsing, installing, updating, virus scan reports, Skip this version, known issues, Settings and controller focus</td>
+</tr>
+<tr>
+<td>Type check</td>
+<td>The whole TypeScript frontend (<code>tsc</code>)</td>
+</tr>
+<tr>
+<td><a href="https://github.com/mazillka/deckyhub-plugin/actions/workflows/codeql.yml">CodeQL</a></td>
+<td>GitHub's security analysis of the Python and TypeScript code</td>
+</tr>
+<tr>
+<td>Dependency review and Dependabot</td>
+<td>Dependencies with known vulnerabilities are flagged, and security updates arrive as pull requests</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Every release.</strong> Pre-releases (<code>-rc</code>) come first, and a stable release is a reviewed pull request from <code>develop</code> into <code>main</code>. The release workflow refuses a tag that doesn't match <code>package.json</code>, runs every test again and builds the ZIP with a read-only token. The ZIP is scanned with ClamAV, VirusTotal and MetaDefender before it's published, and the Desktop installer right after; the verdicts go into the release notes and the badges at the top of this page. Before a stable release, it's tried on a real Steam Deck: <code>devtools/deck/</code> deploys the build over Steam's debugger, drives Gaming Mode with the D-pad and takes screenshots.</p>
+<p><strong>Every listed plugin.</strong> Each change to the plugin list is checked against GitHub: the release and its ZIP exist, and entries don't clash. A ZIP whose version doesn't match its release tag is flagged so its author can fix it. Each plugin's newest ZIPs are scanned with ClamAV and YARA a few times a day, and checked by VirusTotal and MetaDefender (each gets the ZIP uploaded if it hasn't seen it yet), and <a href="https://decky-extended-plugins.beallio.com/audit">Decky Extended Plugins' audit</a> warnings show on its card. Every plugin's results are on its page on <a href="https://deckyhub.com/plugins/">deckyhub.com</a>, and <a href="https://deckyhub.com/plugins/known-issues.html">Known issues</a> lists every plugin with a finding. Scans and warnings inform and never block. The scans are signature-based: they only catch malware someone has already found and written a rule for, and malware can be built to get past them, so a clean scan isn't proof of safety. Only the <a href="https://plugins.deckbrew.xyz/">Decky plugin store</a> reviews plugins by hand; DeckyHub's checks are a step up from downloading a ZIP straight from GitHub, not a replacement for that review.</p>
+<p><strong>Safe by design.</strong> Nothing installs without your tap: Install, Update and Uninstall go through Decky Loader's own installer. Downloads are HTTPS only, from the selected repository's GitHub releases, with SHA-256 checked whenever GitHub publishes one. The backend uses only Python's standard library, so no third-party packages run on your Deck.</p>
+<h2 id="performance">Performance</h2>
+<p>Measured on a real Steam Deck (Gaming Mode, DeckyHub 3.4.0-rc.24, 630 plugins listed), with <code>node devtools/deck/perf.mjs</code>: it opens each page for 15 seconds and counts the frames Steam drew slower than 50 ms, the browser's long tasks (over 50 ms) and the changes made to the page.</p>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>Slow frames</th>
+<th>Slowest frame</th>
+<th>Long tasks</th>
+<th>Page changes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Discover (all plugins)</td>
+<td>1</td>
+<td>183 ms</td>
+<td>1 (138 ms)</td>
+<td>20</td>
+</tr>
+<tr>
+<td>Installed</td>
+<td>1</td>
+<td>133 ms</td>
+<td>1 (98 ms)</td>
+<td>22</td>
+</tr>
+<tr>
+<td>Updates</td>
+<td>1</td>
+<td>84 ms</td>
+<td>1 (69 ms)</td>
+<td>23</td>
+</tr>
+<tr>
+<td>Search</td>
+<td>1</td>
+<td>83 ms</td>
+<td>1 (104 ms)</td>
+<td>22</td>
+</tr>
+<tr>
+<td>Settings</td>
+<td>2</td>
+<td>100 ms</td>
+<td>1 (111 ms)</td>
+<td>29</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Opening a page</strong> costs one slow frame, when it first draws. About 900 frames are drawn in the 15 seconds, and the rest are on time.</li>
+<li><strong>Idle:</strong> no long tasks in 10 seconds with DeckyHub loaded and no page open.</li>
+<li><strong>The backend</strong> answers 7.2 seconds after a plugin reload, which is mostly Decky Loader restarting it, then <code>get_settings</code> in about 35 ms and <code>get_apps</code> in about 47 ms.</li>
+<li><strong>Size:</strong> the release ZIP is 16 MB, most of it the packages Remote Install needs. The plugin's own script is 474 KB (120 KB compressed).</li>
+</ul>
+<p>Numbers vary with the Deck, its load and the network; run the script on yours to compare. These are one run each, not averages.</p>
 <h2>Privacy</h2>
 <p>DeckyHub has no account, analytics or telemetry, and sends nothing to its author. The <strong>deckyhub.com website</strong> does count visits (page views, country and browser type, without cookies) with Cloudflare Web Analytics; the plugin itself is completely clean: it counts and sends nothing. The plugin only connects to GitHub, plus any custom plugin list you add yourself. Your settings, your optional GitHub token and your logs stay on your device.</p>
 
@@ -66,6 +164,7 @@ footer{padding:36px 0;border-top:1px solid var(--line);color:var(--dim);font-siz
 <h2>Get involved</h2>
 <ul>
 <li><a href="/contribute/">Suggest a plugin</a> for the list.</li>
+<li>Writing a plugin? Read the <a href="/authors.html">guide for plugin authors</a>.</li>
 <li><a href="https://github.com/mazillka/deckyhub-plugin/issues">Report a bug or share an idea</a>. The <a href="/help.html">help page</a> may already have the answer.</li>
 <li><a href="https://github.com/mazillka/deckyhub-plugin/blob/main/CONTRIBUTING.md">Contribute code</a> or translations. DeckyHub comes in 17 languages, and corrections are welcome.</li>
 </ul>
