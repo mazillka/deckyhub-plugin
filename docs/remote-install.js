@@ -652,10 +652,7 @@ export function init(root, details) {
   });
   inventory = createPluginList(root, {
     loadPage: offset => send({ op: 'plugins', token, offset }),
-    request: (id, action, name) => {
-      status.scrollIntoView({ block: 'nearest' });
-      return runRequest(id, action, name);
-    },
+    request: (id, action, name) => runRequest(id, action, name),
   });
   // Update notices and the installed app (docs/remote-updates.js): the Paired devices page only.
   if (!compact && !pluginId) {

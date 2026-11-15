@@ -186,11 +186,26 @@ export function createPluginList(root, { loadPage, request }) {
     for (const plugin of plugins) {
       const row = document.createElement('li');
       const title = document.createElement('strong');
-      title.textContent = plugin.disabled ? translate(`${plugin.name} (disabled)`) : plugin.name;
+      const label = plugin.disabled ? translate(`${plugin.name} (disabled)`) : plugin.name;
+      // A plugin DeckyHub lists has a page here; the page is English only, and a preview site keeps its prefix.
+      const pageId = [plugin.id, plugin.pageId].find(id => typeof id === 'string' && /^[a-z0-9][a-z0-9-]{0,127}$/.test(id)) ?? null;
+      if (pageId) {
+        const link = document.createElement('a');
+        link.href = `${location.pathname.replace(/\/(?:uk\/)?paired-devices\/?(?:index\.html)?$/, '')}/plugins/${pageId}.html`;
+        link.textContent = label;
+        title.append(link);
+      } else title.textContent = label;
       const version = document.createElement('span');
       version.textContent = translate(`Installed version · ${plugin.version}`);
       const repository = document.createElement('span');
-      repository.textContent = plugin.repo || translate('Repository unavailable');
+      if (typeof plugin.repo === 'string' && /^[A-Za-z0-9_.-]{1,100}\/[A-Za-z0-9_.-]{1,100}$/.test(plugin.repo)) {
+        const link = document.createElement('a');
+        link.href = `https://github.com/${plugin.repo}`;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = plugin.repo;
+        repository.append(link);
+      } else repository.textContent = translate(pageId ? 'Repository unavailable' : 'Not in the DeckyHub list');
       row.append(title, version, repository);
       const verified = plugin.identityUnverified === false &&
         typeof plugin.id === 'string' && /^[a-z0-9][a-z0-9-]{0,127}$/.test(plugin.id) &&
