@@ -37,3 +37,25 @@ export function collectFindings(input: FindingsInput): { findings: Finding[]; sc
   if (input.stale) add("caution", "appcard.noReleaseInYear");
   return { findings, scanned: input.scan !== null };
 }
+
+// The colour of the virus scan box (the Manage window and the install confirmation), by the same rule as the scan
+// badge: infected if any scanner flagged the ZIP; clean only once all four (ClamAV, YARA, VirusTotal, MetaDefender)
+// have reported and none flagged it, so two clean reports out of four never paint it green; partial for anything
+// in between; none while nothing has a verdict.
+export type ScanAccent = "infected" | "clean" | "partial" | "none";
+export function scanAccent(input: {
+  // ClamAV's and YARA's results, undefined for a scanner with no verdict.
+  verdicts: (string | undefined)[];
+  // One entry per finished VirusTotal or MetaDefender report: whether it flagged the ZIP.
+  external: boolean[];
+  // A report for the ZIP exists, even one without a usable verdict.
+  hasReport: boolean;
+}): ScanAccent {
+  const results = [
+    ...input.verdicts.filter((result): result is string => result !== undefined),
+    ...input.external.map((flagged) => (flagged ? "infected" : "clean")),
+  ];
+  if (results.includes("infected")) return "infected";
+  if (results.length >= 4 && results.every((result) => result === "clean")) return "clean";
+  return results.length > 0 || input.hasReport ? "partial" : "none";
+}
