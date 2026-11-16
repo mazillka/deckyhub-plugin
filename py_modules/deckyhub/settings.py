@@ -34,6 +34,8 @@ SUPPORTED_LANGUAGES = {
     "zh-TW",
 }
 DEFAULT_COLUMNS_PER_ROW = 3
+# Bumped to reset everybody's UI Style to Default once more (see _load_settings).
+UI_STYLE_RESET = 1
 
 
 def coerce_settings(settings: dict) -> dict:
@@ -115,10 +117,16 @@ class SettingsMixin:
             # Files saved before writes were owner-only (see _save_settings) get fixed here.
             with contextlib.suppress(OSError):
                 os.chmod(self.settings_path, 0o600)
+            # Experimental and Experimental V2 are unfinished and may be broken. A file saved before this marker
+            # existed goes back to Default once (nobody can tell a choice from the old new-install default);
+            # every save writes the marker, so a style picked afterwards stays.
+            if settings.get("uiStyleReset") != UI_STYLE_RESET:
+                settings = {**settings, "uiStyle": "default"}
             repos = settings.get("customRepos")
             repo_settings = settings.get("repoSettings")
             return {
                 **coerce_settings(settings),
+                "uiStyleReset": UI_STYLE_RESET,
                 "customRepos": [repo for repo in repos if isinstance(repo, str) and REPOSITORY_NAME.fullmatch(repo)]
                 if isinstance(repos, list)
                 else [],
@@ -136,6 +144,7 @@ class SettingsMixin:
                 decky.logger.error("Can't read %s, using defaults: %s", self.settings_path, error)
             return {
                 **coerce_settings({}),
+                "uiStyleReset": UI_STYLE_RESET,
                 "customRepos": [],
                 "customRegistries": [],
                 "repoSettings": {},
@@ -161,6 +170,7 @@ class SettingsMixin:
         channel = getattr(self, "settings", {}).get("registryChannel")
         self.settings = {
             **coerce_settings(settings),
+            "uiStyleReset": UI_STYLE_RESET,
             "customRepos": getattr(self, "settings", {}).get("customRepos", []),
             "customRegistries": getattr(self, "settings", {}).get("customRegistries", []),
             "repoSettings": getattr(self, "settings", {}).get("repoSettings", {}),
