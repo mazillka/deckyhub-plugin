@@ -452,6 +452,9 @@ export async function installedRisk(app: App, force = false): Promise<App["insta
 export async function hydrate(app: App, force: boolean, preference?: RepoPreference): Promise<App> {
   // Store-only plugins may have old GitHub metadata in a reused cached app object.
   if (app.store) return clearStoreReleaseData(app);
+  // An unverified plugin the user chose to trust, under the one name Decky can address it by, updates as a verified one.
+  if (app.identityUnverified && app.uninstallName && preference?.trustedIdentity === app.uninstallName)
+    app = { ...app, identityUnverified: false, identityTrusted: true, pluginName: app.uninstallName };
   const { items, error } = await listAppReleases(app, force);
   // The saved channel stays as it is, so a first stable release brings the card back to it.
   const prereleaseOnly = items.length > 0 && items.every((item) => item.prerelease);

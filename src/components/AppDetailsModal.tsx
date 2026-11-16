@@ -8,6 +8,8 @@ import {
   FaArrowUp,
   FaEye,
   FaEyeSlash,
+  FaExclamationTriangle,
+  FaShieldAlt,
   FaLock,
   FaUnlock,
   FaFileArchive,
@@ -31,6 +33,7 @@ import {
 import {
   buildVersionOptions,
   installAction,
+  unverifiedInstallAction,
   installTypeLabel,
   listAppReleases,
   modalButtonStyle,
@@ -158,8 +161,60 @@ export function AppDetailsModal({
         // The registry's root flag describes the card's release; a pre-release says so for any release.
         root: release.assets[0]?.url === app.assets[0]?.url && app.stats?.root === true,
         prerelease: release.prerelease === true,
+        note: app.identityTrusted
+          ? t("install.replaces", {
+              name: app.pluginName ?? app.name,
+              version: displayVersion(app.installedVersion ?? "").replace(/^v/, ""),
+            })
+          : undefined,
       },
     );
+
+  // An unverified plugin DeckyHub can still address by one unambiguous name: the user may install over it
+  // anyway, or trust it so it updates like any other. Both say what will be replaced and by what.
+  const anyway = selectedRelease && unverifiedInstallAction(app, selectedRelease);
+  const unverifiedBody = (tag: string) =>
+    t("appcard.unverifiedConfirmBody", {
+      name: app.uninstallName ?? app.name,
+      version: displayVersion(app.installedVersion ?? "").replace(/^v/, ""),
+      repo: app.repo,
+      tag: displayVersion(tag),
+    });
+  const runInstallAnyway = (release: AppReleaseOption, action: NonNullable<typeof anyway>) =>
+    void startPluginInstall(
+      t,
+      app.name,
+      app.repo,
+      release.assets[0],
+      release.tag,
+      action,
+      t("appcard.installAnyway"),
+      () => {
+        closeModal?.();
+        Navigation.NavigateBack();
+      },
+      release.assets[0]?.url === app.assets[0]?.url ? installWarnings(app, release.prerelease) : [],
+      { prerelease: release.prerelease === true, note: unverifiedBody(release.tag) },
+    );
+  const trustable = Boolean(app.identityUnverified && app.uninstallName && app.uninstallName !== "DeckyHub");
+  const confirmTrust = () =>
+    showModal(
+      <WideConfirmModal
+        strTitle={t("appcard.trustConfirmTitle")}
+        strDescription={t("appcard.trustConfirmBody", { name: app.uninstallName ?? app.name })}
+        strOKButtonText={t("appcard.trustPlugin")}
+        bDestructiveWarning
+        onOK={() => {
+          changePreference({ ...preference, trustedIdentity: app.uninstallName! });
+          closeModal?.();
+        }}
+      />,
+    );
+  const stopTrusting = () => {
+    const { trustedIdentity: _, ...rest } = preference;
+    changePreference(rest);
+    closeModal?.();
+  };
 
   // Installed Decky plugins can be removed through Decky Loader — never
   // DeckyHub itself from here. The loader doesn't confirm, so we do.
@@ -209,6 +264,7 @@ export function AppDetailsModal({
           </span>
           <AppStats app={app} t={t} detailed />
           {app.identityUnverified && <span style={{ color: colors.warning }}>{t("appcard.identityUnverified")}</span>}
+          {app.identityTrusted && <span style={{ color: colors.muted }}>{t("appcard.identityTrusted")}</span>}
           <AppBadges app={app} t={t} />
           {/* What Runs as root means, right where you decide to install. */}
           {!app.store && app.stats?.root && (
@@ -357,6 +413,24 @@ export function AppDetailsModal({
               {t(pinned ? "appcard.unpinVersion" : "appcard.pinVersion", {
                 version: displayVersion(pinned ? preference.pinVersion! : app.installedVersion),
               })}
+            </Button>
+          )}
+          {anyway && selectedRelease && (
+            <Button
+              style={{ ...modalButtonStyle, color: colors.warning }}
+              onClick={() => runInstallAnyway(selectedRelease, anyway)}
+            >
+              <FaExclamationTriangle /> {t("appcard.installAnyway")}
+            </Button>
+          )}
+          {trustable && (
+            <Button style={modalButtonStyle} onClick={confirmTrust}>
+              <FaShieldAlt /> {t("appcard.trustPlugin")}
+            </Button>
+          )}
+          {app.identityTrusted && (
+            <Button style={modalButtonStyle} onClick={stopTrusting}>
+              <FaShieldAlt /> {t("appcard.untrustPlugin")}
             </Button>
           )}
           {canUninstall && (

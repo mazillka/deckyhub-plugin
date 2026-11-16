@@ -210,6 +210,16 @@ export const ko: Record<MessageKey, string> = {
   "appcard.uninstallDescription": "이 기기에서 플러그인과 설정이 삭제됩니다. 나중에 다시 설치할 수 있습니다.",
   "appcard.uninstallByName":
     "DeckyHub가 설치된 플러그인을 이 항목과 연결하지 못해, Decky Loader가 “{name}”로 알고 있는 플러그인을 제거합니다.",
+  "appcard.installAnyway": "그래도 설치",
+  "appcard.trustPlugin": "이 플러그인 신뢰",
+  "appcard.untrustPlugin": "신뢰 해제",
+  "appcard.identityTrusted": "이 플러그인을 신뢰하기로 했으므로 DeckyHub가 확인하지 못했어도 업데이트할 수 있습니다.",
+  "appcard.unverifiedConfirmBody":
+    "DeckyHub가 설치된 플러그인 “{name}”(v{version})을 이 항목과 연결하지 못했습니다. Decky Loader는 이름으로 플러그인을 교체하므로 해당 플러그인을 {repo} {tag}로 교체합니다. 이 릴리스가 설치한 곳과 다른 저장소에서 온 것이라면 다른 사람의 코드를 실행하게 됩니다.",
+  "appcard.trustConfirmTitle": "이 플러그인을 신뢰할까요?",
+  "appcard.trustConfirmBody":
+    "DeckyHub가 설치된 플러그인 “{name}”을 이 항목과 연결하지 못했습니다. 신뢰하면 업데이트가 더 이상 차단되지 않습니다. 업데이트마다 먼저 확인을 묻고 무엇을 교체하는지 알려 주며, 신뢰는 여기서 언제든 해제할 수 있습니다. 레지스트리의 릴리스가 설치한 곳과 다른 저장소에서 온 것이라면 다른 사람의 코드를 실행하게 됩니다.",
+  "install.replaces": "신뢰하기로 한 설치된 “{name}”(v{version})을 교체합니다.",
   "appcard.uninstalled": "{name}을(를) 제거했습니다.",
   "appcard.freshInstallDescription":
     "DeckyHub가 설치된 버전을 먼저 제거한 뒤 Decky가 선택한 버전을 새로 설치합니다. Decky Loader 버그 때문에 제자리 업데이트는 기기를 멈추게 할 수 있습니다. Decky의 설치 창에서 취소하면 {name}은(는) 다시 설치할 때까지 제거된 상태로 남습니다.",

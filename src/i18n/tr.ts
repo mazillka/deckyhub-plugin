@@ -214,6 +214,16 @@ export const tr: Record<MessageKey, string> = {
     "Bu, eklentiyi ve ayarlarını bu cihazdan kaldırır. Daha sonra yeniden yükleyebilirsin.",
   "appcard.uninstallByName":
     "DeckyHub yüklü eklentiyi bu girişle eşleştiremedi, bu yüzden Decky Loader “{name}” olarak bildiği eklentiyi kaldıracak.",
+  "appcard.installAnyway": "Yine de yükle",
+  "appcard.trustPlugin": "Bu eklentiye güven",
+  "appcard.untrustPlugin": "Güvenmeyi bırak",
+  "appcard.identityTrusted": "Bu eklentiye güvenmeyi seçtin, bu yüzden DeckyHub doğrulayamasa da güncellenebilir.",
+  "appcard.unverifiedConfirmBody":
+    "DeckyHub, yüklü “{name}” (v{version}) eklentisini bu girişle eşleştiremedi. Decky Loader eklentileri adına göre değiştirir, bu yüzden bu eklentiyi {repo} {tag} ile değiştirecek. Bu sürüm, yüklediğin depodan farklı bir depodansa başkasının kodunu çalıştırıyorsun.",
+  "appcard.trustConfirmTitle": "Bu eklentiye güvenilsin mi?",
+  "appcard.trustConfirmBody":
+    "DeckyHub, yüklü “{name}” eklentisini bu girişle eşleştiremedi. Güvenirsen güncellemeler artık engellenmez. Her biri yine önce sorar ve neyi değiştirdiğini söyler; güveni burada istediğin zaman geri alabilirsin. Kayıt defterindeki sürümler yüklediğin depodan farklı bir depodansa başkasının kodunu çalıştırırsın.",
+  "install.replaces": "Güvenmeyi seçtiğin yüklü “{name}” (v{version}) eklentisini değiştirir.",
   "appcard.uninstalled": "{name} kaldırıldı.",
   "appcard.freshInstallDescription":
     "DeckyHub önce yüklü sürümü kaldırır, ardından Decky seçilen sürümü sıfırdan yükler. Yerinde güncelleme, bir Decky Loader hatası yüzünden cihazı dondurabilir. Decky'nin yükleme penceresini iptal edersen {name}, yeniden yükleyene kadar kaldırılmış kalır.",

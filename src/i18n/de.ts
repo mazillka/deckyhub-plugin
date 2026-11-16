@@ -223,6 +223,17 @@ export const de: Record<MessageKey, string> = {
     "Das Plugin und seine Einstellungen werden von diesem Gerät entfernt. Du kannst es später erneut installieren.",
   "appcard.uninstallByName":
     "DeckyHub konnte das installierte Plugin nicht diesem Eintrag zuordnen, daher entfernt Decky Loader das Plugin, das es als „{name}“ kennt.",
+  "appcard.installAnyway": "Trotzdem installieren",
+  "appcard.trustPlugin": "Diesem Plugin vertrauen",
+  "appcard.untrustPlugin": "Nicht mehr vertrauen",
+  "appcard.identityTrusted":
+    "Du hast diesem Plugin vertraut, daher kann es aktualisiert werden, obwohl DeckyHub es nicht verifizieren konnte.",
+  "appcard.unverifiedConfirmBody":
+    "DeckyHub konnte das installierte Plugin „{name}“ (v{version}) nicht diesem Eintrag zuordnen. Decky Loader ersetzt Plugins nach Namen und ersetzt es daher durch {repo} {tag}. Stammt dieses Release aus einem anderen Repository als dem, aus dem du es installiert hast, führst du fremden Code aus.",
+  "appcard.trustConfirmTitle": "Diesem Plugin vertrauen?",
+  "appcard.trustConfirmBody":
+    "DeckyHub konnte das installierte Plugin „{name}“ nicht diesem Eintrag zuordnen. Wenn du ihm vertraust, werden Updates nicht mehr blockiert. Jedes fragt weiterhin vorher und nennt, was es ersetzt, und du kannst das Vertrauen hier jederzeit zurücknehmen. Stammen die Releases der Registry aus einem anderen Repository als dem, aus dem du installiert hast, würdest du fremden Code ausführen.",
+  "install.replaces": "Ersetzt das installierte „{name}“ (v{version}), dem du vertraust.",
   "appcard.uninstalled": "{name} wurde deinstalliert.",
   "appcard.freshInstallDescription":
     "DeckyHub entfernt zuerst die installierte Version, dann installiert Decky die ausgewählte neu. Ein Update an Ort und Stelle kann dein Gerät wegen eines Fehlers in Decky Loader einfrieren. Wenn du Deckys Installationsdialog abbrichst, bleibt {name} deinstalliert, bis du es erneut installierst.",

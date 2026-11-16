@@ -221,6 +221,17 @@ export const fr: Record<MessageKey, string> = {
     "Le plugin et ses paramètres seront supprimés de cet appareil. Vous pourrez le réinstaller plus tard.",
   "appcard.uninstallByName":
     "DeckyHub n'a pas pu associer le plugin installé à cette entrée ; Decky Loader supprimera donc le plugin qu'il connaît sous le nom « {name} ».",
+  "appcard.installAnyway": "Installer quand même",
+  "appcard.trustPlugin": "Faire confiance à ce plugin",
+  "appcard.untrustPlugin": "Ne plus faire confiance",
+  "appcard.identityTrusted":
+    "Tu as choisi de faire confiance à ce plugin : il peut donc être mis à jour bien que DeckyHub n'ait pas pu le vérifier.",
+  "appcard.unverifiedConfirmBody":
+    "DeckyHub n'a pas pu associer le plugin installé « {name} » (v{version}) à cette entrée. Decky Loader remplace les plugins par leur nom ; il va donc remplacer ce plugin par {repo} {tag}. Si cette version vient d'un autre dépôt que celui d'où tu l'as installé, tu exécutes le code de quelqu'un d'autre.",
+  "appcard.trustConfirmTitle": "Faire confiance à ce plugin ?",
+  "appcard.trustConfirmBody":
+    "DeckyHub n'a pas pu associer le plugin installé « {name} » à cette entrée. Si tu lui fais confiance, les mises à jour ne sont plus bloquées. Chacune demande toujours d'abord et indique ce qu'elle remplace, et tu peux retirer ta confiance ici à tout moment. Si les versions du registre viennent d'un autre dépôt que celui d'où tu l'as installé, tu exécuterais le code de quelqu'un d'autre.",
+  "install.replaces": "Remplace « {name} » (v{version}) installé, auquel tu as choisi de faire confiance.",
   "appcard.uninstalled": "{name} a été désinstallé.",
   "appcard.freshInstallDescription":
     "DeckyHub supprime d'abord la version installée, puis Decky installe la version choisie à neuf. Une mise à jour sur place peut figer l'appareil à cause d'un bug de Decky Loader. Si vous annulez la fenêtre d'installation de Decky, {name} restera désinstallé jusqu'à ce que vous le réinstalliez.",

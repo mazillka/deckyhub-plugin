@@ -218,6 +218,17 @@ export const pt: Record<MessageKey, string> = {
     "Isso remove o plugin e as configurações dele deste dispositivo. Você pode instalá-lo de novo depois.",
   "appcard.uninstallByName":
     "O DeckyHub não conseguiu associar o plugin instalado a esta entrada, então o Decky Loader removerá o plugin que ele conhece como “{name}”.",
+  "appcard.installAnyway": "Instalar mesmo assim",
+  "appcard.trustPlugin": "Confiar neste plugin",
+  "appcard.untrustPlugin": "Deixar de confiar",
+  "appcard.identityTrusted":
+    "Você escolheu confiar neste plugin, então ele pode ser atualizado embora o DeckyHub não tenha conseguido verificá-lo.",
+  "appcard.unverifiedConfirmBody":
+    "O DeckyHub não conseguiu associar o plugin instalado “{name}” (v{version}) a esta entrada. O Decky Loader substitui plugins pelo nome, então vai substituir esse plugin por {repo} {tag}. Se esta versão vem de um repositório diferente daquele de onde você instalou, você está executando o código de outra pessoa.",
+  "appcard.trustConfirmTitle": "Confiar neste plugin?",
+  "appcard.trustConfirmBody":
+    "O DeckyHub não conseguiu associar o plugin instalado “{name}” a esta entrada. Se você confiar nele, as atualizações deixam de ser bloqueadas. Cada uma ainda pergunta antes e diz o que substitui, e você pode deixar de confiar aqui quando quiser. Se as versões do registro vêm de um repositório diferente daquele de onde você instalou, você estaria executando o código de outra pessoa.",
+  "install.replaces": "Substitui o “{name}” (v{version}) instalado, em que você escolheu confiar.",
   "appcard.uninstalled": "{name} foi desinstalado.",
   "appcard.freshInstallDescription":
     "O DeckyHub remove primeiro a versão instalada e depois o Decky instala a selecionada do zero. Atualizar por cima pode travar o dispositivo por causa de um bug do Decky Loader. Se você cancelar a janela de instalação do Decky, {name} fica desinstalado até você instalá-lo de novo.",

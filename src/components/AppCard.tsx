@@ -132,7 +132,16 @@ export function useCardActions({
         quickLabel,
         leavePage,
         installWarnings(app),
-        { root: app.stats?.root === true, prerelease: app.latestPrerelease === true },
+        {
+          root: app.stats?.root === true,
+          prerelease: app.latestPrerelease === true,
+          note: app.identityTrusted
+            ? t("install.replaces", {
+                name: app.pluginName ?? app.name,
+                version: displayVersion(app.installedVersion ?? "").replace(/^v/, ""),
+              })
+            : undefined,
+        },
       ).finally(() => setInstalling(false));
     },
   };
@@ -343,6 +352,7 @@ export function AppCard(props: AppCardProps) {
           <span>{t("settings.installedVersion", { version: displayVersion(app.installedVersion) })}</span>
         )}
         {app.identityUnverified && <span style={{ color: colors.warning }}>{t("appcard.identityUnverified")}</span>}
+        {app.identityTrusted && <span style={{ color: colors.muted }}>{t("appcard.identityTrusted")}</span>}
         {/* No release and no error yet: its GitHub check is still running. */}
         <span>
           {t("settings.latestVersion", {

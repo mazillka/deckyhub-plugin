@@ -220,6 +220,17 @@ export const it: Record<MessageKey, string> = {
     "Rimuove il plugin e le sue impostazioni da questo dispositivo. Potrai installarlo di nuovo più tardi.",
   "appcard.uninstallByName":
     "DeckyHub non è riuscito ad abbinare il plugin installato a questa voce, quindi Decky Loader rimuoverà il plugin che conosce come «{name}».",
+  "appcard.installAnyway": "Installa comunque",
+  "appcard.trustPlugin": "Fidati di questo plugin",
+  "appcard.untrustPlugin": "Non fidarti più",
+  "appcard.identityTrusted":
+    "Hai scelto di fidarti di questo plugin, quindi può essere aggiornato anche se DeckyHub non è riuscito a verificarlo.",
+  "appcard.unverifiedConfirmBody":
+    "DeckyHub non è riuscito ad abbinare il plugin installato «{name}» (v{version}) a questa voce. Decky Loader sostituisce i plugin per nome, quindi sostituirà quel plugin con {repo} {tag}. Se questa versione proviene da un repository diverso da quello da cui l'hai installato, stai eseguendo il codice di qualcun altro.",
+  "appcard.trustConfirmTitle": "Fidarti di questo plugin?",
+  "appcard.trustConfirmBody":
+    "DeckyHub non è riuscito ad abbinare il plugin installato «{name}» a questa voce. Se ti fidi, gli aggiornamenti non vengono più bloccati. Ognuno chiede comunque prima e dice cosa sostituisce, e puoi smettere di fidarti qui in qualsiasi momento. Se le versioni del registro provengono da un repository diverso da quello da cui hai installato, eseguiresti il codice di qualcun altro.",
+  "install.replaces": "Sostituisce «{name}» (v{version}) installato, di cui hai scelto di fidarti.",
   "appcard.uninstalled": "{name} è stato disinstallato.",
   "appcard.freshInstallDescription":
     "DeckyHub rimuove prima la versione installata, poi Decky installa da zero quella selezionata. Aggiornare sul posto può bloccare il dispositivo a causa di un bug di Decky Loader. Se annulli la finestra di installazione di Decky, {name} resta disinstallato finché non lo installi di nuovo.",

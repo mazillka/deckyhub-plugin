@@ -22,6 +22,8 @@ export type App = {
   pluginName?: string | null;
   // Set when identityUnverified: the one name Decky Loader can remove it by (see apps.py).
   uninstallName?: string | null;
+  // The user chose to trust an unverified plugin (RepoPreference.trustedIdentity): hydrate treats it as verified.
+  identityTrusted?: boolean;
   identityUnverified?: boolean;
   latestVersion?: string | null;
   // Whether the hydrated card asset comes from a prerelease, independent of the user's filter preference.
@@ -224,7 +226,13 @@ export type SearchRepo = { full_name: string; description?: string; stargazers_c
 
 // skipVersion: a release tag the user chose to skip; that release stops counting as an update.
 // pinVersion: the version the plugin is pinned at; while it is set no update is offered for it.
-export type RepoPreference = { channel: "stable" | "prerelease"; skipVersion?: string; pinVersion?: string };
+export type RepoPreference = {
+  channel: "stable" | "prerelease";
+  skipVersion?: string;
+  pinVersion?: string;
+  // The Decky name of an unverified plugin the user chose to trust: it then updates like a verified one.
+  trustedIdentity?: string;
+};
 
 export type RemoteInstallRequest = {
   id: string;

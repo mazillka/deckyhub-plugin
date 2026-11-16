@@ -221,6 +221,17 @@ export const nl: Record<MessageKey, string> = {
     "Dit verwijdert de plugin en zijn instellingen van dit apparaat. Je kunt hem later opnieuw installeren.",
   "appcard.uninstallByName":
     "DeckyHub kon de geïnstalleerde plugin niet aan dit item koppelen, dus Decky Loader verwijdert de plugin die het kent als “{name}”.",
+  "appcard.installAnyway": "Toch installeren",
+  "appcard.trustPlugin": "Deze plugin vertrouwen",
+  "appcard.untrustPlugin": "Niet meer vertrouwen",
+  "appcard.identityTrusted":
+    "Je hebt ervoor gekozen deze plugin te vertrouwen, dus hij kan worden bijgewerkt hoewel DeckyHub hem niet kon verifiëren.",
+  "appcard.unverifiedConfirmBody":
+    "DeckyHub kon de geïnstalleerde plugin “{name}” (v{version}) niet aan dit item koppelen. Decky Loader vervangt plugins op naam, dus het vervangt die plugin door {repo} {tag}. Komt deze release uit een andere repository dan waaruit je hem installeerde, dan voer je andermans code uit.",
+  "appcard.trustConfirmTitle": "Deze plugin vertrouwen?",
+  "appcard.trustConfirmBody":
+    "DeckyHub kon de geïnstalleerde plugin “{name}” niet aan dit item koppelen. Als je hem vertrouwt, worden updates niet meer geblokkeerd. Elke update vraagt nog steeds eerst en zegt wat hij vervangt, en je kunt het vertrouwen hier altijd intrekken. Komen de releases van het register uit een andere repository dan waaruit je installeerde, dan zou je andermans code uitvoeren.",
+  "install.replaces": "Vervangt de geïnstalleerde “{name}” (v{version}), die je hebt vertrouwd.",
   "appcard.uninstalled": "{name} is verwijderd.",
   "appcard.freshInstallDescription":
     "DeckyHub verwijdert eerst de geïnstalleerde versie, daarna installeert Decky de gekozen versie opnieuw. Ter plekke bijwerken kan je apparaat laten vastlopen door een bug in Decky Loader. Als je het installatievenster van Decky annuleert, blijft {name} verwijderd tot je hem opnieuw installeert.",

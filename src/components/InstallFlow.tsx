@@ -87,7 +87,7 @@ export function startPluginInstall(
   label: string,
   onStarted?: () => void,
   warnings: string[] = [],
-  facts: { root?: boolean; prerelease?: boolean } = {},
+  facts: { root?: boolean; prerelease?: boolean; note?: string } = {},
 ): Promise<void> {
   if (!getDeckyBackend()) {
     toaster.toast({ title: "DeckyHub", body: t("settings.selfUpdateUnavailable") });
@@ -105,10 +105,14 @@ export function startPluginInstall(
     onStarted?.();
     return request;
   };
-  const note = needsFreshInstall(action.name, action.type)
-    ? t("appcard.freshInstallDescription", { name: appName })
-    : undefined;
-  return confirmPluginInstall(t, `${label}?`, label, { note, asset, warnings, ...facts }).then((accepted) =>
+  const note =
+    [
+      needsFreshInstall(action.name, action.type) ? t("appcard.freshInstallDescription", { name: appName }) : "",
+      facts.note ?? "",
+    ]
+      .filter(Boolean)
+      .join("\n\n") || undefined;
+  return confirmPluginInstall(t, `${label}?`, label, { ...facts, note, asset, warnings }).then((accepted) =>
     accepted ? start() : undefined,
   );
 }

@@ -646,6 +646,21 @@ class PluginStatusTests(unittest.TestCase):
         for values in ({"channel": "stable"}, {"pinVersion": ""}, {"pinVersion": 12}, {"pinVersion": "v" * 201}):
             self.assertNotIn("pinVersion", coerce_repo_settings(values))
 
+    def test_repo_settings_keep_a_trusted_identity_and_drop_a_bad_one(self):
+        from deckyhub.settings import coerce_repo_settings
+
+        self.assertEqual(
+            coerce_repo_settings({"channel": "stable", "trustedIdentity": " CSS Loader "}),
+            {"channel": "stable", "trustedIdentity": "CSS Loader"},
+        )
+        for values in (
+            {"channel": "stable"},
+            {"trustedIdentity": ""},
+            {"trustedIdentity": 7},
+            {"trustedIdentity": "x" * 201},
+        ):
+            self.assertNotIn("trustedIdentity", coerce_repo_settings(values))
+
     def test_save_repo_settings_rejects_invalid_repo(self):
         plugin = Plugin()
         plugin.settings = {"repoSettings": {}}

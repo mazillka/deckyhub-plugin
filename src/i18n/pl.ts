@@ -216,6 +216,17 @@ export const pl: Record<MessageKey, string> = {
     "Usuwa wtyczkę i jej ustawienia z tego urządzenia. Możesz ją później zainstalować ponownie.",
   "appcard.uninstallByName":
     "DeckyHub nie zdołał dopasować zainstalowanej wtyczki do tego wpisu, więc Decky Loader usunie wtyczkę, którą zna jako „{name}”.",
+  "appcard.installAnyway": "Zainstaluj mimo to",
+  "appcard.trustPlugin": "Ufaj tej wtyczce",
+  "appcard.untrustPlugin": "Przestań ufać",
+  "appcard.identityTrusted":
+    "Zdecydowałeś się zaufać tej wtyczce, więc można ją aktualizować, choć DeckyHub nie zdołał jej zweryfikować.",
+  "appcard.unverifiedConfirmBody":
+    "DeckyHub nie zdołał dopasować zainstalowanej wtyczki „{name}” (v{version}) do tego wpisu. Decky Loader zastępuje wtyczki według nazwy, więc zastąpi tę wtyczkę przez {repo} {tag}. Jeśli to wydanie pochodzi z innego repozytorium niż to, z którego instalowałeś, uruchamiasz cudzy kod.",
+  "appcard.trustConfirmTitle": "Zaufać tej wtyczce?",
+  "appcard.trustConfirmBody":
+    "DeckyHub nie zdołał dopasować zainstalowanej wtyczki „{name}” do tego wpisu. Jeśli jej ufasz, aktualizacje nie są już blokowane. Każda nadal pyta wcześniej i mówi, co zastępuje, a zaufanie możesz tu w każdej chwili cofnąć. Jeśli wydania z rejestru pochodzą z innego repozytorium niż to, z którego instalowałeś, uruchamiałbyś cudzy kod.",
+  "install.replaces": "Zastępuje zainstalowaną „{name}” (v{version}), której zaufałeś.",
   "appcard.uninstalled": "Odinstalowano {name}.",
   "appcard.freshInstallDescription":
     "DeckyHub najpierw usuwa zainstalowaną wersję, a potem Decky instaluje wybraną od nowa. Aktualizacja w miejscu może zawiesić urządzenie przez błąd w Decky Loader. Jeśli anulujesz okno instalacji Decky, {name} pozostanie odinstalowana, dopóki nie zainstalujesz jej ponownie.",

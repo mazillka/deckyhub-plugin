@@ -348,6 +348,19 @@ export function installAction(
   return null;
 }
 
+// Install or update an unverified plugin on the user's say-so: the one name Decky can address it by
+// (uninstallName), which the confirmation names. Only offered where that name is unambiguous.
+export function unverifiedInstallAction(
+  app: App,
+  release: { tag: string; pluginVersion?: string; assets: Asset[] },
+): { type: 0 | 1 | 2 | 3; name: string } | null {
+  if (!app.identityUnverified || !app.uninstallName || !app.installedVersion || !release.assets[0]) return null;
+  return {
+    type: resolveDeckyHubInstallType(releaseVersion(release), app.installedVersion),
+    name: app.uninstallName,
+  };
+}
+
 export function installTypeLabel(
   t: TFunc,
   type: number,

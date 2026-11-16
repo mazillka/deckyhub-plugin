@@ -215,6 +215,17 @@ export const cs: Record<MessageKey, string> = {
     "Tímto odeberete plugin a jeho nastavení z tohoto zařízení. Později ho můžete nainstalovat znovu.",
   "appcard.uninstallByName":
     "DeckyHub nedokázal přiřadit nainstalovaný plugin k tomuto záznamu, proto Decky Loader odstraní plugin, který zná jako „{name}“.",
+  "appcard.installAnyway": "Přesto nainstalovat",
+  "appcard.trustPlugin": "Důvěřovat tomuto pluginu",
+  "appcard.untrustPlugin": "Přestat důvěřovat",
+  "appcard.identityTrusted":
+    "Rozhodli jste se tomuto pluginu důvěřovat, takže ho lze aktualizovat, i když ho DeckyHub nedokázal ověřit.",
+  "appcard.unverifiedConfirmBody":
+    "DeckyHub nedokázal přiřadit nainstalovaný plugin „{name}“ (v{version}) k tomuto záznamu. Decky Loader nahrazuje pluginy podle názvu, takže tento plugin nahradí pluginem {repo} {tag}. Pokud toto vydání pochází z jiného repozitáře, než ze kterého jste instalovali, spouštíte cizí kód.",
+  "appcard.trustConfirmTitle": "Důvěřovat tomuto pluginu?",
+  "appcard.trustConfirmBody":
+    "DeckyHub nedokázal přiřadit nainstalovaný plugin „{name}“ k tomuto záznamu. Pokud mu důvěřujete, aktualizace se už neblokují. Každá se stále nejdřív zeptá a řekne, co nahrazuje, a důvěru můžete tady kdykoli zrušit. Pokud vydání z registru pocházejí z jiného repozitáře, než ze kterého jste instalovali, spouštěli byste cizí kód.",
+  "install.replaces": "Nahrazuje nainstalovaný „{name}“ (v{version}), kterému jste se rozhodli důvěřovat.",
   "appcard.uninstalled": "{name} byl odinstalován.",
   "appcard.freshInstallDescription":
     "DeckyHub nejprve odebere nainstalovanou verzi a pak Decky nainstaluje vybranou verzi načisto. Aktualizace na místě může kvůli chybě v Decky Loader zamrazit zařízení. Pokud zrušíte instalační okno Decky, {name} zůstane odinstalován, dokud ho znovu nenainstalujete.",
