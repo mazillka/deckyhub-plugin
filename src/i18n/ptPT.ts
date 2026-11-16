@@ -149,6 +149,10 @@ export const ptPT: Record<MessageKey, string> = {
   "appcard.scan.partial": "Verificação incompleta",
   "appcard.scan.partial.hint":
     "As verificações antivírus não conseguiram verificar toda a versão que instalaria. Gerir indica o motivo.",
+  "risk.title": "O que as verificações encontraram",
+  "risk.intro": "Factos da auditoria e das verificações antivírus. A decisão de instalar é sua.",
+  "risk.none":
+    "Sem avisos de auditoria nem resultados de verificação. Isso não significa que seja seguro: ninguém revê estes plugins.",
   "appcard.badgesNotice": "O que significam os selos dos plugins",
   "appcard.noReleaseInYear": "Sem versões há um ano",
   "appcard.prereleaseOnly": "Só pré-lançamentos",

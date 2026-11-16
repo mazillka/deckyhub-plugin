@@ -144,6 +144,10 @@ export const tr: Record<MessageKey, string> = {
     "Bir virüs taraması yükleyeceğin sürümü işaretledi. Yanlış alarm olabilir: Yönet'i aç, raporu oku ve kendin karar ver.",
   "appcard.scan.partial": "Tam taranmadı",
   "appcard.scan.partial.hint": "Virüs taramaları yükleyeceğin sürümü tamamen denetleyemedi. Nedeni Yönet'te.",
+  "risk.title": "Kontrollerin bulduğu",
+  "risk.intro": "Denetimden ve virüs taramalarından gerçekler. Yükleme kararı senin.",
+  "risk.none":
+    "Denetim uyarısı veya tarama bulgusu yok. Bu güvenli olduğu anlamına gelmez: bu eklentileri kimse incelemiyor.",
   "appcard.badgesNotice": "Eklentilerdeki rozetlerin anlamı",
   "appcard.noReleaseInYear": "Bir yıldır sürüm yok",
   "appcard.prereleaseOnly": "Yalnızca ön sürüm",

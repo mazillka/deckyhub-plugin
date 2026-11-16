@@ -41,7 +41,7 @@ import {
 } from "../utils";
 import { startPluginInstall } from "./InstallFlow";
 import { displayVersion } from "../version";
-import { AppBadges, AppMonogram, AppStats } from "./AppBadges";
+import { AppBadges, AppMonogram, AppStats, FindingsSummary } from "./AppBadges";
 import { showReleaseInfo } from "./ReleaseInfo";
 import { DetailsWindow } from "./DetailsWindow";
 import { VirusScanReport } from "./VirusScanReport";
@@ -284,6 +284,7 @@ export function AppDetailsModal({
       scan={
         !app.store && (
           <>
+            <FindingsSummary app={app} t={t} />
             {app.knownIssues?.length ? <KnownIssues t={t} issues={app.knownIssues} closeModal={closeModal} /> : null}
             <VirusScanReport
               key={JSON.stringify([selectedRelease?.assets[0]?.url, selectedRelease?.assets[0]?.sha256])}

@@ -1,6 +1,9 @@
+import { Focusable } from "@decky/ui";
 import type { CSSProperties } from "react";
 import type { TFunc } from "../i18n/en";
 import { FaShieldAlt } from "react-icons/fa";
+import { collectFindings } from "../findings";
+import { keepInView } from "./KeepInView";
 import { AUDIT_WARNINGS, installWarnings, isAuditWarning, type App, type AuditWarning, type VirusScan } from "../types";
 import { installedRiskReasons } from "../notify";
 import { compactNumber, timeAgo } from "../utils";
@@ -158,7 +161,7 @@ const SCAN_COLORS: Record<ScanBadgeKind, string> = {
   infected: colors.dangerSoft,
   partial: colors.caution,
 };
-const scanSummary = (scan: VirusScan, virusTotal?: App["virusTotal"], metaDefender?: App["metaDefender"]) => {
+export const scanSummary = (scan: VirusScan, virusTotal?: App["virusTotal"], metaDefender?: App["metaDefender"]) => {
   const results = [scan.result, scan.yara?.result].filter(
     (result): result is NonNullable<typeof result> => result != null,
   );
@@ -203,6 +206,66 @@ const InstalledRiskBadge = ({ t, risk }: { t: TFunc; risk: NonNullable<App["inst
     </span>
   ) : null;
 };
+
+// The audit warnings the card shows, for the release it would install (see AuditWarnings).
+const auditKeys = (app: App) =>
+  [
+    ...new Set(
+      app.latestPrerelease === undefined
+        ? [
+            ...(app.stats?.warnings ?? []),
+            ...(app.channel === "prerelease" ? (app.stats?.prereleaseWarnings ?? []) : []),
+          ]
+        : installWarnings(app),
+    ),
+  ].filter(isAuditWarning);
+
+const findingsOf = (app: App) =>
+  collectFindings({
+    warnings: auditKeys(app),
+    sourceMismatch: Boolean(app.scan && (independentAuditOf(app.scan)?.source?.findings.length ?? 0) > 0),
+    scan: app.scan && !app.scan.unverifiedMatch ? scanSummary(app.scan, app.virusTotal, app.metaDefender).kind : null,
+    root: app.stats?.root === true,
+    prereleaseOnly: app.prereleaseOnly === true,
+    stale: isStale(releasedAt(app)),
+  });
+
+// Everything the audit, the scans and the registry say about the release, each fact with its
+// explanation (src/findings.ts). No verdict and no score: the user decides. One focus target, so
+// the D-pad scrolls to it like the scan report below it.
+export function FindingsSummary({ app, t }: { app: App; t: TFunc }) {
+  const { findings, scanned } = findingsOf(app);
+  return (
+    <Focusable
+      onActivate={() => {}}
+      onFocus={keepInView}
+      className="deckyhub-findings"
+      style={{ display: "grid", gap: 8, padding: "12px 14px", borderRadius: 10, border: `1px solid ${colors.muted}55` }}
+    >
+      <strong>{t("risk.title")}</strong>
+      <small>{t("risk.intro")}</small>
+      {findings.length > 0 ? (
+        <ul style={{ margin: 0, paddingLeft: 18, display: "grid", gap: 6 }}>
+          {findings.map((finding) => (
+            <li key={finding.label} style={{ fontSize: "max(12px, 0.85em)" }}>
+              <strong style={{ color: finding.tone === "danger" ? colors.dangerSoft : colors.caution }}>
+                {t(finding.label as Parameters<TFunc>[0])}
+              </strong>
+              {finding.hint && <> — {t(finding.hint as Parameters<TFunc>[0])}</>}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        scanned && <small>{t("risk.none")}</small>
+      )}
+      {!scanned && (
+        <small style={{ color: colors.caution }}>
+          {t(app.scan?.unverifiedMatch ? "scan.unverifiedMatch" : "scan.notScanned")}
+        </small>
+      )}
+    </Focusable>
+  );
+}
 
 // Installed version flagged / Runs as root / Fork / AI / Pre-release only / No description / audit warnings / virus scan / No release in a year, shared by the card and its Manage window.
 export function AppBadges({ app, t }: { app: App; t: TFunc }) {

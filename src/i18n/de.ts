@@ -149,6 +149,10 @@ export const de: Record<MessageKey, string> = {
   "appcard.scan.partial": "Nicht vollständig gescannt",
   "appcard.scan.partial.hint":
     "Die Virenscans konnten das Release, das du installieren würdest, nicht vollständig prüfen. Verwalten nennt den Grund.",
+  "risk.title": "Was die Prüfungen gefunden haben",
+  "risk.intro": "Fakten aus dem Audit und den Virenscans. Die Entscheidung zur Installation liegt bei dir.",
+  "risk.none":
+    "Keine Audit-Warnungen oder Scan-Funde. Das heißt nicht, dass es sicher ist: Niemand prüft diese Plugins.",
   "appcard.badgesNotice": "Was die Abzeichen an Plugins bedeuten",
   "appcard.noReleaseInYear": "Seit einem Jahr kein Release",
   "appcard.prereleaseOnly": "Nur Vorabversionen",
