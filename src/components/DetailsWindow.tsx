@@ -411,7 +411,7 @@ export function DetailsRow({ title, hint, children }: { title: string; hint?: st
   const [open, setOpen] = useState(false);
   return (
     <div className="deckyhub-details-row" style={{ display: "grid", gap: 10 }}>
-      <div onFocus={keepInView}>
+      <div onFocus={keepInView} data-details-toggle="">
         <DialogButton
           aria-expanded={open}
           onClick={() => setOpen(!open)}

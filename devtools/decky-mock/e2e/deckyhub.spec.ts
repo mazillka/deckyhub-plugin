@@ -192,7 +192,7 @@ test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     const open = () => {
       if ((window as unknown as { __keepRowsShut?: boolean }).__keepRowsShut) return;
-      for (const row of document.querySelectorAll<HTMLElement>(".deckyhub-details-row > div > button"))
+      for (const row of document.querySelectorAll<HTMLElement>("[data-details-toggle] button"))
         if (!row.dataset.autoOpened) {
           row.dataset.autoOpened = "1";
           row.click();
