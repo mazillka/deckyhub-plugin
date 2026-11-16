@@ -62,7 +62,7 @@ export function ExpPageFrame({ initial, render }: { initial: string; render: (pa
     const onSelect = (event: Event) => {
       const request = (event as CustomEvent<SelectPageRequest>).detail;
       request.handled = true;
-      select(request.page);
+      select(request.page, true);
     };
     window.addEventListener(SELECT_PAGE, onSelect);
     return () => window.removeEventListener(SELECT_PAGE, onSelect);
