@@ -117,6 +117,10 @@ export const es: Record<MessageKey, string> = {
   "appcard.inStore": "En la tienda de Decky",
   "appcard.inStoreHint":
     "La tienda de Decky tiene un plugin con este nombre ({count} descargas allí). La tienda no indica el repositorio, así que comprueba que sea este.",
+  "appcard.storeInstallTitle": "Instalar desde la tienda de Decky",
+  "appcard.storeInstallStep1": "Abre el menú Quick Access de Decky Loader (icono del enchufe) y elige Tienda.",
+  "appcard.storeInstallStep2": "Busca {name}.",
+  "appcard.storeInstallStep3": "Pulsa Instalar.",
   "appcard.stars": "{count} estrellas en GitHub",
   "appcard.runsAsRoot": "Se ejecuta como root",
   "appcard.runsAsRootHint":
@@ -163,9 +167,9 @@ export const es: Record<MessageKey, string> = {
   "appcard.warning.persistence": "Cambia el arranque del sistema",
   "appcard.warning.persistence.hint":
     "Modifica perfiles de shell, precarga bibliotecas, carga módulos del kernel o añade reglas de dispositivos que siguen activos fuera de Decky.",
-  "appcard.warning.not-in-source": "Riesgo muy alto: el código no coincide con el código fuente",
+  "appcard.warning.not-in-source": "Riesgo muy alto: la descarga incluye código que no está en GitHub",
   "appcard.warning.not-in-source.hint":
-    "La versión contiene código que la auditoría no pudo asociar con el repositorio. Esto puede ocultar cambios maliciosos; revisa la versión y el código fuente antes de instalar. Una discrepancia automatizada no demuestra que haya malware.",
+    "La versión descargada contiene código que la auditoría no pudo relacionar con el código fuente publicado. Esto podría ocultar cambios maliciosos. Revisa la versión antes de instalarla; una diferencia no demuestra que haya malware.",
   "appcard.warning.obfuscated": "Código oculto",
   "appcard.warning.obfuscated.hint": "Contiene código codificado o empaquetado difícil de leer.",
   "audit.scope":
@@ -424,7 +428,7 @@ export const es: Record<MessageKey, string> = {
 
   "github.error": "La API de GitHub devolvió {status}",
   "release.noMatch": "No se encontró ninguna versión compatible.",
-  "release.inStore": "Su autor lo distribuye a través de la tienda de Decky. Instálalo desde allí.",
+  "release.inStore": "Instala este complemento desde la tienda de Decky Loader.",
   "scan.notReviewed":
     "DeckyHub no es la tienda de Decky y nadie revisa estos plugins. Un análisis limpio solo significa que no se encontró malware conocido.",
   "release.noChecksum": "No se encontró un ZIP de DeckyHub con suma de comprobación SHA-256.",

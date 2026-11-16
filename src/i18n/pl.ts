@@ -116,6 +116,10 @@ export const pl: Record<MessageKey, string> = {
   "appcard.inStore": "W sklepie Decky",
   "appcard.inStoreHint":
     "Sklep Decky ma wtyczkę o tej nazwie ({count} pobrań tam). Sklep nie podaje repozytorium, więc sprawdź, czy to ta.",
+  "appcard.storeInstallTitle": "Zainstaluj ze sklepu Decky",
+  "appcard.storeInstallStep1": "Otwórz menu Quick Access Decky Loader (ikona wtyczki) i wybierz Sklep.",
+  "appcard.storeInstallStep2": "Wyszukaj {name}.",
+  "appcard.storeInstallStep3": "Naciśnij Zainstaluj.",
   "appcard.stars": "Gwiazdki na GitHubie: {count}",
   "appcard.runsAsRoot": "Działa jako root",
   "appcard.runsAsRootHint":
@@ -163,9 +167,9 @@ export const pl: Record<MessageKey, string> = {
   "appcard.warning.persistence": "Zmienia uruchamianie systemu",
   "appcard.warning.persistence.hint":
     "Edytuje profile powłoki, wstępnie ładuje biblioteki, ładuje moduły jądra lub dodaje reguły urządzeń, które działają także poza Decky.",
-  "appcard.warning.not-in-source": "Bardzo wysokie ryzyko: kod nie odpowiada kodowi źródłowemu",
+  "appcard.warning.not-in-source": "Bardzo wysokie ryzyko: pobrany plik zawiera kod, którego nie ma na GitHubie",
   "appcard.warning.not-in-source.hint":
-    "Wydanie zawiera kod, którego audyt nie mógł dopasować do repozytorium. Może to ukrywać złośliwe zmiany; przed instalacją sprawdź wydanie i kod źródłowy. Automatycznie wykryta niezgodność nie dowodzi obecności złośliwego oprogramowania.",
+    "Pobrane wydanie zawiera kod, którego audyt nie mógł dopasować do opublikowanego kodu źródłowego. Może to ukrywać złośliwe zmiany. Przejrzyj wydanie przed instalacją; różnica nie dowodzi obecności złośliwego oprogramowania.",
   "appcard.warning.obfuscated": "Ukryty kod",
   "appcard.warning.obfuscated.hint": "Zawiera zakodowany lub spakowany kod, który trudno odczytać.",
   "audit.scope": "Sprawdza ograniczony zestaw wzorców. Wyniki wymagają oceny; kontrola nie dowodzi bezpieczeństwa.",
@@ -420,7 +424,7 @@ export const pl: Record<MessageKey, string> = {
 
   "github.error": "API GitHuba zwróciło {status}",
   "release.noMatch": "Nie znaleziono pasującego wydania.",
-  "release.inStore": "Autor rozpowszechnia ją przez sklep Decky. Zainstaluj ją stamtąd.",
+  "release.inStore": "Zainstaluj tę wtyczkę ze sklepu Decky Loader.",
   "scan.notReviewed":
     "DeckyHub nie jest sklepem Decky i nikt nie sprawdza tych wtyczek. Czysty skan oznacza tylko, że nie znaleziono znanego złośliwego oprogramowania.",
   "release.noChecksum": "Nie znaleziono pliku ZIP wydania DeckyHub z sumą kontrolną SHA-256.",

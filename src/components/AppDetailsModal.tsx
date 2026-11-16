@@ -1,6 +1,6 @@
 import { toaster } from "@decky/api";
 import { openExternalWeb } from "../external";
-import { DialogButtonPrimary as Button, Navigation, showModal } from "@decky/ui";
+import { DialogButtonPrimary as Button, Focusable, Navigation, showModal } from "@decky/ui";
 import { WideConfirmModal } from "./WideModal";
 import { useState } from "react";
 import {
@@ -36,6 +36,7 @@ import {
   modalButtonStyle,
   PLUGIN_INSTALL_TYPE,
   readableBytes,
+  surfaceStyle,
   uninstallDeckyPlugin,
 } from "../utils";
 import { startPluginInstall } from "./InstallFlow";
@@ -47,6 +48,7 @@ import { VirusScanReport } from "./VirusScanReport";
 import { KnownIssues } from "./KnownIssues";
 import { ReleaseActions, useReleasePicker } from "./VersionPickerPanel";
 import { colors } from "../styles";
+import { keepInView } from "./KeepInView";
 
 // The window's main action, taller than the rest.
 export const primaryButtonStyle = { ...modalButtonStyle, minHeight: 52, fontSize: "1.1em", fontWeight: 700 };
@@ -198,87 +200,102 @@ export function AppDetailsModal({
           {app.identityUnverified && <span style={{ color: colors.warning }}>{t("appcard.identityUnverified")}</span>}
           <AppBadges app={app} t={t} />
           {/* What Runs as root means, right where you decide to install. */}
-          {app.stats?.root && (
+          {!app.store && app.stats?.root && (
             <span style={{ flexBasis: "100%", color: colors.caution }}>{t("appcard.runsAsRootHint")}</span>
           )}
         </>
       }
       description={app.description}
-      release={selectedRelease}
+      release={app.store ? null : selectedRelease}
       primary={
-        selectedRelease && (
-          <>
-            {install &&
-              !hiddenButtons.includes(install.type === PLUGIN_INSTALL_TYPE.INSTALL ? "install" : "update") && (
+        app.store ? (
+          <Focusable
+            flow-children="down"
+            onFocus={keepInView}
+            style={{ ...surfaceStyle, display: "grid", gap: 8, padding: 14 }}
+          >
+            <strong>{t("appcard.storeInstallTitle")}</strong>
+            <span>{t("appcard.storeInstallStep1")}</span>
+            <span>{t("appcard.storeInstallStep2", { name: app.name })}</span>
+            <span>{t("appcard.storeInstallStep3")}</span>
+          </Focusable>
+        ) : (
+          selectedRelease && (
+            <>
+              {install &&
+                !hiddenButtons.includes(install.type === PLUGIN_INSTALL_TYPE.INSTALL ? "install" : "update") && (
+                  <Button
+                    style={primaryButtonStyle}
+                    onClick={() => runInstall(selectedRelease, install)}
+                    onSecondaryButton={() =>
+                      showReleaseInfo(
+                        t,
+                        `${app.name} ${displayVersion(selectedRelease.tag)}`,
+                        selectedRelease.publishedAt,
+                        selectedRelease.notes,
+                      )
+                    }
+                    onSecondaryActionDescription={t("appcard.releaseInfo")}
+                    // X downloads the selected release's ZIP instead of installing it.
+                    onOptionsButton={
+                      hiddenButtons.includes("downloadZip") || downloading || !selectedRelease.assets[0]
+                        ? undefined
+                        : () => download(selectedRelease.assets[0])
+                    }
+                    onOptionsActionDescription={t("settings.downloadUpdate")}
+                    // Menu opens the repository; close first, or Steam's browser opens underneath this modal.
+                    onMenuButton={() => {
+                      closeModal?.();
+                      openExternalWeb(`https://github.com/${app.repo}`);
+                    }}
+                    onMenuActionDescription={t("appcard.repository")}
+                  >
+                    {installIcons[install.type]} {installLabel}
+                  </Button>
+                )}
+              {hiddenButtons.includes("downloadZip") ? null : selectedRelease.assets[0] ? (
                 <Button
-                  style={primaryButtonStyle}
-                  onClick={() => runInstall(selectedRelease, install)}
-                  onSecondaryButton={() =>
-                    showReleaseInfo(
-                      t,
-                      `${app.name} ${displayVersion(selectedRelease.tag)}`,
-                      selectedRelease.publishedAt,
-                      selectedRelease.notes,
-                    )
-                  }
-                  onSecondaryActionDescription={t("appcard.releaseInfo")}
-                  // X downloads the selected release's ZIP instead of installing it.
-                  onOptionsButton={
-                    hiddenButtons.includes("downloadZip") || downloading || !selectedRelease.assets[0]
-                      ? undefined
-                      : () => download(selectedRelease.assets[0])
-                  }
-                  onOptionsActionDescription={t("settings.downloadUpdate")}
-                  // Menu opens the repository; close first, or Steam's browser opens underneath this modal.
-                  onMenuButton={() => {
-                    closeModal?.();
-                    openExternalWeb(`https://github.com/${app.repo}`);
-                  }}
-                  onMenuActionDescription={t("appcard.repository")}
-                >
-                  {installIcons[install.type]} {installLabel}
-                </Button>
-              )}
-            {hiddenButtons.includes("downloadZip") ? null : selectedRelease.assets[0] ? (
-              <Button
-                style={modalButtonStyle}
-                disabled={downloading}
-                onClick={() => download(selectedRelease.assets[0])}
-              >
-                <FaFileArchive /> {t("settings.downloadUpdate")}
-              </Button>
-            ) : (
-              <small style={{ color: colors.danger }}>{t("appcard.noMatchingAsset")}</small>
-            )}
-            {!hiddenButtons.includes("downloadZip") &&
-              selectedRelease.assets.slice(1).map((asset) => (
-                <Button
-                  key={asset.name}
                   style={modalButtonStyle}
                   disabled={downloading}
-                  onClick={() => download(asset)}
+                  onClick={() => download(selectedRelease.assets[0])}
                 >
-                  <FaFileArchive /> {`${asset.name} (${readableBytes(asset.size)})`}
+                  <FaFileArchive /> {t("settings.downloadUpdate")}
                 </Button>
-              ))}
-          </>
+              ) : (
+                <small style={{ color: colors.danger }}>{t("appcard.noMatchingAsset")}</small>
+              )}
+              {!hiddenButtons.includes("downloadZip") &&
+                selectedRelease.assets.slice(1).map((asset) => (
+                  <Button
+                    key={asset.name}
+                    style={modalButtonStyle}
+                    disabled={downloading}
+                    onClick={() => download(asset)}
+                  >
+                    <FaFileArchive /> {`${asset.name} (${readableBytes(asset.size)})`}
+                  </Button>
+                ))}
+            </>
+          )
         )
       }
       // Known issues sit above the scan report, not in the header: the header is one focus
       // target, so the D-pad can't reach a link inside it (seen on a Deck).
       scan={
-        <>
-          {app.knownIssues?.length ? <KnownIssues t={t} issues={app.knownIssues} closeModal={closeModal} /> : null}
-          <VirusScanReport
-            key={JSON.stringify([selectedRelease?.assets[0]?.url, selectedRelease?.assets[0]?.sha256])}
-            t={t}
-            asset={selectedRelease?.assets[0]}
-            version={selectedRelease?.tag}
-            closeModal={closeModal}
-            showZipActions={false}
-          />
-          <small style={{ opacity: 0.7 }}>{t("scan.notReviewed")}</small>
-        </>
+        !app.store && (
+          <>
+            {app.knownIssues?.length ? <KnownIssues t={t} issues={app.knownIssues} closeModal={closeModal} /> : null}
+            <VirusScanReport
+              key={JSON.stringify([selectedRelease?.assets[0]?.url, selectedRelease?.assets[0]?.sha256])}
+              t={t}
+              asset={selectedRelease?.assets[0]}
+              version={selectedRelease?.tag}
+              closeModal={closeModal}
+              showZipActions={false}
+            />
+            <small style={{ opacity: 0.7 }}>{t("scan.notReviewed")}</small>
+          </>
+        )
       }
       channel={channel}
       prereleaseOnly={app.prereleaseOnly}
@@ -289,6 +306,7 @@ export function AppDetailsModal({
       disabled={loading}
       error={fetchError}
       isEmpty={!loading && !fetchError && releases.length === 0}
+      hideVersionPicker={app.store}
       footer={
         <>
           <ReleaseActions
@@ -313,6 +331,7 @@ export function AppDetailsModal({
             disabled={loading}
             onCheck={() => void load(true)}
             closeModal={closeModal}
+            hideCheck={app.store}
           />
           {canSkip && (
             <Button style={modalButtonStyle} onClick={toggleSkip}>
@@ -320,7 +339,7 @@ export function AppDetailsModal({
               {t(skipped ? "appcard.unskipVersion" : "appcard.skipVersion", { version: displayVersion(latest!) })}
             </Button>
           )}
-          {app.installedVersion && (
+          {app.installedVersion && !app.store && (
             <Button style={modalButtonStyle} onClick={togglePin}>
               {pinned ? <FaUnlock /> : <FaLock />}{" "}
               {t(pinned ? "appcard.unpinVersion" : "appcard.pinVersion", {

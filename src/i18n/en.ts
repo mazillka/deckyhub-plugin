@@ -115,6 +115,10 @@ export const en = {
   "appcard.inStore": "In Decky store",
   "appcard.inStoreHint":
     "The Decky store lists a plugin with this name ({count} downloads there). The store names no repository, so check that it is this one.",
+  "appcard.storeInstallTitle": "Install from the Decky Store",
+  "appcard.storeInstallStep1": "Open Decky Loader's Quick Access menu (plug icon) and choose Store.",
+  "appcard.storeInstallStep2": "Search for {name}.",
+  "appcard.storeInstallStep3": "Press Install.",
   "appcard.stars": "{count} GitHub stars",
   "appcard.runsAsRoot": "Runs as root",
   "appcard.runsAsRootHint":
@@ -160,9 +164,9 @@ export const en = {
   "appcard.warning.persistence": "Changes system startup",
   "appcard.warning.persistence.hint":
     "It edits shell profiles, preloads libraries, loads kernel modules or adds device rules, which keep working outside Decky.",
-  "appcard.warning.not-in-source": "Very high risk: code does not match source",
+  "appcard.warning.not-in-source": "Very high risk: Download includes code that is not in GitHub",
   "appcard.warning.not-in-source.hint":
-    "The release contains code the audit could not match to the repository. This can hide malicious changes; review the release and source before installing. An automated mismatch does not prove malware.",
+    "The downloaded release contains code the audit could not match to the published source. This could hide malicious changes. Review the release before installing; a mismatch does not prove malware.",
   "appcard.warning.obfuscated": "Hidden code",
   "appcard.warning.obfuscated.hint": "It contains encoded or packed code that's hard to read.",
   "audit.scope": "Checks a limited set of patterns. Findings need review; this cannot prove safety.",
@@ -415,7 +419,7 @@ export const en = {
 
   "github.error": "GitHub API returned {status}",
   "release.noMatch": "No matching release found.",
-  "release.inStore": "Its author distributes it through the Decky store. Install it from there.",
+  "release.inStore": "Install this plugin from Decky Loader's Store.",
   "scan.notReviewed":
     "DeckyHub is not the Decky store and nobody reviews these plugins. A clean scan only means no known malware was found.",
   "release.noChecksum": "No DeckyHub release ZIP with a SHA-256 checksum was found.",

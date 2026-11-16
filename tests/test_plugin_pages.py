@@ -213,7 +213,7 @@ class PluginPageTests(unittest.TestCase):
             }
         }
         page = self.page(scans=matched)
-        self.assertIn("Very high risk: code does not match source", page)
+        self.assertIn("Very high risk: Download includes code that is not in GitHub", page)
         self.assertIn("This can hide malicious changes", page)
         self.assertIn("An automated mismatch does not prove malware", page)
         self.assertIn("Stable ZIP x.zip (v1.0.0)", page)
@@ -232,10 +232,10 @@ class PluginPageTests(unittest.TestCase):
 
         for bad_hash in ("", "not-a-hash"):
             unmatched = {"stable": {"tag": "v1.0.0", "file": "x.zip", "sha256": bad_hash, "audit": source_audit}}
-            self.assertNotIn("Very high risk: code does not match source", self.page(scans=unmatched))
+            self.assertNotIn("Very high risk: Download includes code that is not in GitHub", self.page(scans=unmatched))
         malformed = {"source": {"result": "incomplete", "findings": [{"rule": "mystery", "path": "main.py"}]}}
         self.assertNotIn(
-            "Very high risk: code does not match source",
+            "Very high risk: Download includes code that is not in GitHub",
             self.page(
                 scans={
                     "stable": {

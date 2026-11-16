@@ -48,6 +48,7 @@ export function DetailsWindow({
   error,
   isEmpty,
   footer,
+  hideVersionPicker = false,
 }: {
   t: TFunc;
   closeModal?: () => void;
@@ -75,6 +76,7 @@ export function DetailsWindow({
   isEmpty: boolean;
   // Links, Uninstall, Close: under the version box.
   footer: ReactNode;
+  hideVersionPicker?: boolean;
 }) {
   const popClass = usePopClass();
   const experimental = useUiStyle() === "experimental";
@@ -89,20 +91,22 @@ export function DetailsWindow({
           <ExpDetailsLayout
             {...{ t, icon, title, aside, meta, description, release, notesPreview, primary, scan, footer }}
             picker={
-              <VersionPicker
-                {...{
-                  t,
-                  channel,
-                  prereleaseOnly,
-                  onChannelChange,
-                  versionOptions,
-                  selectedTag,
-                  onVersionChange,
-                  disabled,
-                  error,
-                  isEmpty,
-                }}
-              />
+              !hideVersionPicker && (
+                <VersionPicker
+                  {...{
+                    t,
+                    channel,
+                    prereleaseOnly,
+                    onChannelChange,
+                    versionOptions,
+                    selectedTag,
+                    onVersionChange,
+                    disabled,
+                    error,
+                    isEmpty,
+                  }}
+                />
+              )
             }
           />
         </div>
@@ -174,20 +178,22 @@ export function DetailsWindow({
               layout left them out of reach on a Deck). Each text section is its own stop because Steam only
               scrolls to follow focus. */}
           <Focusable flow-children="down" style={{ display: "grid", gap: 10 }}>
-            <VersionPicker
-              {...{
-                t,
-                channel,
-                prereleaseOnly,
-                onChannelChange,
-                versionOptions,
-                selectedTag,
-                onVersionChange,
-                disabled,
-                error,
-                isEmpty,
-              }}
-            />
+            {!hideVersionPicker && (
+              <VersionPicker
+                {...{
+                  t,
+                  channel,
+                  prereleaseOnly,
+                  onChannelChange,
+                  versionOptions,
+                  selectedTag,
+                  onVersionChange,
+                  disabled,
+                  error,
+                  isEmpty,
+                }}
+              />
+            )}
             {primary}
           </Focusable>
 

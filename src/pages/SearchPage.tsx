@@ -46,6 +46,7 @@ export function SearchPage() {
   const clear = () => {
     setQuery("");
     setResults([]);
+    setStoreNames(new Map());
     setSearchError(null);
   };
   const [query, setQuery] = useState("");
@@ -53,6 +54,7 @@ export function SearchPage() {
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [existingRepos, setExistingRepos] = useState<Set<string>>(new Set());
+  const [storeNames, setStoreNames] = useState<Map<string, string>>(new Map());
   // The repo whose install is being prepared, so a second tap can't start another.
   const [installing, setInstalling] = useState<string | null>(null);
 
@@ -74,7 +76,9 @@ export function SearchPage() {
     try {
       setSearchError(null);
       // Read fresh each search, so a repo added or removed elsewhere shows right.
-      const existing = new Set((await getApps()).apps.map((app) => app.repo.toLowerCase()));
+      const listedApps = (await getApps()).apps;
+      const existing = new Set(listedApps.map((app) => app.repo.toLowerCase()));
+      setStoreNames(new Map(listedApps.filter((app) => app.store).map((app) => [app.repo.toLowerCase(), app.name])));
       setExistingRepos(existing);
       // "decky" in the name, description, topics or README narrows GitHub's results;
       // the plugin.json check below drops the lists and guides that still match.
@@ -230,6 +234,7 @@ export function SearchPage() {
           results={results}
           layout={layout}
           isAdded={(repo) => existingRepos.has(repo.toLowerCase())}
+          storeNames={storeNames}
           installing={installing !== null}
           canDownload={!hiddenButtons.includes("downloadZip")}
           onInstall={(repo) => void install(repo).catch(showError)}

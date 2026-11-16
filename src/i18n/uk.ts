@@ -118,6 +118,10 @@ export const uk: Record<MessageKey, string> = {
   "appcard.inStore": "У магазині Decky",
   "appcard.inStoreHint":
     "У магазині Decky є плагін із такою назвою ({count} завантажень там). Магазин не вказує репозиторій, тож переконайтеся, що це саме той.",
+  "appcard.storeInstallTitle": "Встановлення з магазину Decky",
+  "appcard.storeInstallStep1": "Відкрийте меню Quick Access у Decky Loader (значок штекера) і виберіть «Магазин».",
+  "appcard.storeInstallStep2": "Знайдіть {name}.",
+  "appcard.storeInstallStep3": "Натисніть «Встановити».",
   "appcard.stars": "{count} зірок на GitHub",
   "appcard.runsAsRoot": "Працює від root",
   "appcard.runsAsRootHint":
@@ -164,9 +168,9 @@ export const uk: Record<MessageKey, string> = {
   "appcard.warning.persistence": "Змінює запуск системи",
   "appcard.warning.persistence.hint":
     "Змінює профілі оболонки, попередньо завантажує бібліотеки, завантажує модулі ядра або додає правила пристроїв, які працюють і поза Decky.",
-  "appcard.warning.not-in-source": "Дуже високий ризик: код не відповідає вихідному коду",
+  "appcard.warning.not-in-source": "Дуже високий ризик: завантаження містить код, якого немає на GitHub",
   "appcard.warning.not-in-source.hint":
-    "Реліз містить код, який аудит не зміг зіставити з репозиторієм. Це може приховувати шкідливі зміни; перегляньте реліз і вихідний код перед встановленням. Автоматично виявлена невідповідність не доводить наявність шкідливого програмного забезпечення.",
+    "Завантажений випуск містить код, який аудит не зміг зіставити з опублікованим вихідним кодом. Це може приховувати шкідливі зміни. Перевірте випуск перед встановленням; невідповідність не доводить наявність шкідливого ПЗ.",
   "appcard.warning.obfuscated": "Прихований код",
   "appcard.warning.obfuscated.hint": "Містить закодований або запакований код, який важко прочитати.",
   "audit.scope": "Перевіряється обмежений набір шаблонів. Знахідки потребують перевірки; це не доводить безпечності.",
@@ -420,7 +424,7 @@ export const uk: Record<MessageKey, string> = {
 
   "github.error": "GitHub API повернув {status}",
   "release.noMatch": "Відповідний реліз не знайдено.",
-  "release.inStore": "Його автор поширює його через магазин Decky. Встановіть його звідти.",
+  "release.inStore": "Установіть цей плагін із магазину Decky Loader.",
   "scan.notReviewed":
     "DeckyHub не є магазином Decky, і ці плагіни ніхто не перевіряє. Чисте сканування лише означає, що відомого шкідливого ПЗ не знайдено.",
   "release.noChecksum": "Не знайдено ZIP-релізу DeckyHub з контрольною сумою SHA-256.",

@@ -37,7 +37,15 @@ export function ExpAppCard(props: AppCardProps) {
         </>
       )}
       {(!app.installedVersion || isUpdate) && (
-        <b>{app.latestVersion ? displayVersion(app.latestVersion) : app.error ? "—" : t("settings.checkingUpdate")}</b>
+        <b>
+          {app.store
+            ? "—"
+            : app.latestVersion
+              ? displayVersion(app.latestVersion)
+              : app.error
+                ? "—"
+                : t("settings.checkingUpdate")}
+        </b>
       )}
     </span>
   );
@@ -63,7 +71,9 @@ export function ExpAppCard(props: AppCardProps) {
   const text =
     !app.error && notes
       ? `${t("details.whatsNew", { version: `v${latest}` })}: ${notes}`
-      : app.error || app.description || " ";
+      : app.store
+        ? t("release.inStore")
+        : app.error || app.description || " ";
   const hue = categoryHue(app.category);
   if (row)
     return (

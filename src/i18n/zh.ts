@@ -112,6 +112,10 @@ export const zh: Record<MessageKey, string> = {
   "appcard.storeActivity": "Decky 商店活动（下载 + 更新）：{count}；按名称匹配，包含重复次数",
   "appcard.inStore": "已在 Decky 商店",
   "appcard.inStoreHint": "Decky 商店中有同名插件(在那里下载 {count} 次)。商店不会标明仓库,请确认是否就是这个。",
+  "appcard.storeInstallTitle": "从 Decky 商店安装",
+  "appcard.storeInstallStep1": "打开 Decky Loader 的 Quick Access 菜单（插头图标），然后选择“商店”。",
+  "appcard.storeInstallStep2": "搜索 {name}。",
+  "appcard.storeInstallStep3": "按“安装”。",
   "appcard.stars": "{count} 个 GitHub 星标",
   "appcard.runsAsRoot": "以 root 运行",
   "appcard.runsAsRootHint": "其后端以 root 运行，可完全访问系统。仅在信任作者时安装。",
@@ -152,9 +156,9 @@ export const zh: Record<MessageKey, string> = {
   "appcard.warning.persistence": "修改系统启动",
   "appcard.warning.persistence.hint":
     "它会修改 shell 配置、预加载库、加载内核模块或添加设备规则，在 Decky 之外也会持续生效。",
-  "appcard.warning.not-in-source": "极高风险：代码与源代码不匹配",
+  "appcard.warning.not-in-source": "极高风险：下载内容包含 GitHub 上没有的代码",
   "appcard.warning.not-in-source.hint":
-    "此版本包含审计无法与代码库匹配的代码。这可能隐藏恶意更改；安装前请检查此版本和源代码。自动检测到的不匹配并不能证明存在恶意软件。",
+    "下载的版本包含审计无法与已发布源代码对应的代码。这可能隐藏恶意更改。安装前请检查该版本；不匹配并不能证明存在恶意软件。",
   "appcard.warning.obfuscated": "隐藏代码",
   "appcard.warning.obfuscated.hint": "它包含难以阅读的编码或打包代码。",
   "audit.scope": "仅检查有限的模式。发现的问题需要人工审查；此检查不能证明安全。",
@@ -400,7 +404,7 @@ export const zh: Record<MessageKey, string> = {
 
   "github.error": "GitHub API 返回了 {status}",
   "release.noMatch": "未找到匹配的版本。",
-  "release.inStore": "作者通过 Decky 商店分发。请从那里安装。",
+  "release.inStore": "请从 Decky Loader 商店安装此插件。",
   "scan.notReviewed": "DeckyHub 不是 Decky 商店,也没有人审核这些插件。扫描无异常只表示未发现已知恶意软件。",
   "release.noChecksum": "未找到带 SHA-256 校验和的 DeckyHub 发布 ZIP。",
   "error.loaderUnavailable": "Decky Loader 当前不可用。",

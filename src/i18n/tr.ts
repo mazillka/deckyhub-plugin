@@ -116,6 +116,10 @@ export const tr: Record<MessageKey, string> = {
   "appcard.inStore": "Decky mağazasında",
   "appcard.inStoreHint":
     "Decky mağazasında bu adda bir eklenti var (orada {count} indirme). Mağaza depo belirtmez, bu yüzden bunun doğru olduğundan emin olun.",
+  "appcard.storeInstallTitle": "Decky Mağazası’ndan yükle",
+  "appcard.storeInstallStep1": "Decky Loader’ın Quick Access menüsünü (fiş simgesi) açıp Mağaza’yı seçin.",
+  "appcard.storeInstallStep2": "{name} için arama yapın.",
+  "appcard.storeInstallStep3": "Yükle’ye basın.",
   "appcard.stars": "{count} GitHub yıldızı",
   "appcard.runsAsRoot": "Root olarak çalışır",
   "appcard.runsAsRootHint": "Arka ucu root olarak, sisteme tam erişimle çalışır. Yalnızca yazara güveniyorsan yükle.",
@@ -161,9 +165,9 @@ export const tr: Record<MessageKey, string> = {
   "appcard.warning.persistence": "Sistem başlangıcını değiştirir",
   "appcard.warning.persistence.hint":
     "Kabuk profillerini düzenler, kütüphaneleri önceden yükler, çekirdek modülleri yükler veya aygıt kuralları ekler; bunlar Decky dışında da çalışmaya devam eder.",
-  "appcard.warning.not-in-source": "Çok yüksek risk: kod kaynak koduyla eşleşmiyor",
+  "appcard.warning.not-in-source": "Çok yüksek risk: İndirilen dosya GitHub’da olmayan kod içeriyor",
   "appcard.warning.not-in-source.hint":
-    "Sürüm, denetimin depodaki kaynakla eşleştiremediği kod içeriyor. Bu durum kötü amaçlı değişiklikleri gizleyebilir; yüklemeden önce sürümü ve kaynak kodunu inceleyin. Otomatik olarak saptanan bir eşleşmezlik kötü amaçlı yazılım olduğunu kanıtlamaz.",
+    "İndirilen sürüm, denetimin yayımlanmış kaynak koduyla eşleştiremediği kodlar içeriyor. Bu durum kötü amaçlı değişiklikleri gizleyebilir. Yüklemeden önce sürümü inceleyin; uyuşmazlık kötü amaçlı yazılımı kanıtlamaz.",
   "appcard.warning.obfuscated": "Gizlenmiş kod",
   "appcard.warning.obfuscated.hint": "Okunması zor, kodlanmış veya paketlenmiş kod içerir.",
   "audit.scope": "Sınırlı sayıda örüntüyü denetler. Bulgular incelenmelidir; bu güvenliği kanıtlamaz.",
@@ -417,7 +421,7 @@ export const tr: Record<MessageKey, string> = {
 
   "github.error": "GitHub API {status} döndürdü",
   "release.noMatch": "Uygun sürüm bulunamadı.",
-  "release.inStore": "Yazarı bunu Decky mağazası üzerinden dağıtıyor. Oradan kurun.",
+  "release.inStore": "Bu eklentiyi Decky Loader Mağazası’ndan yükleyin.",
   "scan.notReviewed":
     "DeckyHub, Decky mağazası değildir ve bu eklentileri kimse incelemez. Temiz bir tarama yalnızca bilinen bir zararlı yazılımın bulunmadığı anlamına gelir.",
   "release.noChecksum": "SHA-256 sağlama toplamı olan bir DeckyHub sürüm ZIP'i bulunamadı.",

@@ -116,6 +116,10 @@ export const cs: Record<MessageKey, string> = {
   "appcard.inStore": "V obchodě Decky",
   "appcard.inStoreHint":
     "Obchod Decky nabízí plugin se stejným názvem ({count} stažení tam). Obchod neuvádí repozitář, ověřte tedy, že jde o tento.",
+  "appcard.storeInstallTitle": "Instalace z obchodu Decky",
+  "appcard.storeInstallStep1": "Otevřete nabídku Quick Access v Decky Loaderu (ikona zástrčky) a vyberte Obchod.",
+  "appcard.storeInstallStep2": "Vyhledejte {name}.",
+  "appcard.storeInstallStep3": "Stiskněte Instalovat.",
   "appcard.stars": "Hvězdičky na GitHubu: {count}",
   "appcard.runsAsRoot": "Běží jako root",
   "appcard.runsAsRootHint":
@@ -162,9 +166,9 @@ export const cs: Record<MessageKey, string> = {
   "appcard.warning.persistence": "Mění spouštění systému",
   "appcard.warning.persistence.hint":
     "Upravuje profily shellu, přednačítá knihovny, načítá moduly jádra nebo přidává pravidla zařízení, která fungují i mimo Decky.",
-  "appcard.warning.not-in-source": "Velmi vysoké riziko: kód neodpovídá zdrojovému kódu",
+  "appcard.warning.not-in-source": "Velmi vysoké riziko: Stažený soubor obsahuje kód, který na GitHubu není",
   "appcard.warning.not-in-source.hint":
-    "Vydání obsahuje kód, který audit nedokázal přiřadit k repozitáři. Může to skrývat škodlivé změny; před instalací zkontrolujte vydání a zdrojový kód. Automaticky zjištěný nesoulad nedokazuje přítomnost malwaru.",
+    "Stažené vydání obsahuje kód, který audit nemohl přiřadit k publikovanému zdrojovému kódu. Může skrývat škodlivé změny. Před instalací vydání zkontrolujte; nesoulad nedokazuje malware.",
   "appcard.warning.obfuscated": "Skrytý kód",
   "appcard.warning.obfuscated.hint": "Obsahuje zakódovaný nebo zabalený kód, který je těžké číst.",
   "audit.scope": "Kontroluje omezenou sadu vzorů. Nálezy vyžadují posouzení; bezpečnost nelze zaručit.",
@@ -418,7 +422,7 @@ export const cs: Record<MessageKey, string> = {
 
   "github.error": "GitHub API vrátilo {status}",
   "release.noMatch": "Nenalezeno žádné odpovídající vydání.",
-  "release.inStore": "Jeho autor ho šíří přes obchod Decky. Nainstalujte ho odtud.",
+  "release.inStore": "Nainstalujte tento plugin z obchodu Decky Loaderu.",
   "scan.notReviewed":
     "DeckyHub není obchod Decky a tyto pluginy nikdo nekontroluje. Čistý sken jen znamená, že nebyl nalezen žádný známý malware.",
   "release.noChecksum": "Nenalezen žádný ZIP vydání DeckyHub s kontrolním součtem SHA-256.",

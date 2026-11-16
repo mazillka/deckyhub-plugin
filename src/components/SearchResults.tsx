@@ -19,6 +19,7 @@ export function SearchResults({
   results,
   layout,
   isAdded,
+  storeNames,
   installing,
   canDownload,
   onInstall,
@@ -29,6 +30,7 @@ export function SearchResults({
   results: SearchRepo[];
   layout: Layout;
   isAdded: (repo: string) => boolean;
+  storeNames: Map<string, string>;
   installing: boolean;
   canDownload: boolean;
   onInstall: (repo: string) => void;
@@ -41,6 +43,20 @@ export function SearchResults({
   // until the repository is in DeckyHub, which the title's badge then says.
   const actions = (repo: SearchRepo) => {
     const added = isAdded(repo.full_name);
+    const storeName = storeNames.get(repo.full_name.toLowerCase());
+    if (storeName)
+      return (
+        <Focusable
+          flow-children="down"
+          onFocus={keepInView}
+          style={{ ...surfaceStyle, display: "grid", gap: 4, padding: 10, color: colors.textSecondary }}
+        >
+          <strong>{t("appcard.storeInstallTitle")}</strong>
+          <span>{t("appcard.storeInstallStep1")}</span>
+          <span>{t("appcard.storeInstallStep2", { name: storeName })}</span>
+          <span>{t("appcard.storeInstallStep3")}</span>
+        </Focusable>
+      );
     return (
       <Focusable flow-children="right" style={{ display: "flex", gap: 8 }}>
         <div style={{ flex: 1, minWidth: 0 }}>

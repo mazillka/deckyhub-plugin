@@ -38,8 +38,8 @@ WARNINGS = {
         "It edits shell profiles, preloads libraries, loads kernel modules or adds device rules, which keep working outside Decky.",
     ),
     "not-in-source": (
-        "Very high risk: code does not match source",
-        "The release contains code the audit could not match to the repository. This can hide malicious changes; review the release and source before installing. An automated mismatch does not prove malware.",
+        "Very high risk: Download includes code that is not in GitHub",
+        "The downloaded release contains code the audit could not match to the published source. This could hide malicious changes. Review the release before installing; a mismatch does not prove malware.",
     ),
     "obfuscated": ("Hidden code", "It contains encoded or packed code that's hard to read."),
     "no-tls-check": (
@@ -327,7 +327,7 @@ def badges_of(
             label, hint = warnings.get(
                 "not-in-source",
                 (
-                    "Very high risk: code does not match source",
+                    "Very high risk: Download includes code that is not in GitHub",
                     "The release contains code the audit could not match to the repository. This can hide malicious changes; review the release and source before installing. An automated mismatch does not prove malware.",
                 ),
             )

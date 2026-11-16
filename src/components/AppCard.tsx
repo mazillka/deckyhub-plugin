@@ -85,7 +85,8 @@ export function useCardActions({
   const t = useT();
   // Quick install/update to the latest release of a Decky plugin;
   // Manage still offers other versions/channels.
-  const install = app.latestVersion ? installAction(app, { tag: app.latestVersion, assets: app.assets }) : null;
+  const install =
+    !app.store && app.latestVersion ? installAction(app, { tag: app.latestVersion, assets: app.assets }) : null;
   // Only offer Update when the card's own status says one is available.
   const isUpdate = install?.type === PLUGIN_INSTALL_TYPE.UPDATE && app.updateAvailable === true;
   const quickAction = Boolean(
@@ -264,11 +265,13 @@ export function AppCard(props: AppCardProps) {
           {/* A long version ("v2025.10.27-dddf365") gives way with "…"; the counts always show. */}
           <span style={{ ...ellipsis, color: colors.textSecondary }}>
             {t("settings.latestVersion", {
-              version: app.latestVersion
-                ? displayVersion(app.latestVersion)
-                : app.error
-                  ? "—"
-                  : t("settings.checkingUpdate"),
+              version: app.store
+                ? "—"
+                : app.latestVersion
+                  ? displayVersion(app.latestVersion)
+                  : app.error
+                    ? "—"
+                    : t("settings.checkingUpdate"),
             })}
           </span>
           <AppStats app={app} t={t} noUpdated />
@@ -303,7 +306,7 @@ export function AppCard(props: AppCardProps) {
             className="deckyhub-row-description"
             style={{ ...cardDescriptionStyle, gridColumn: "2 / 4", gridRow: 3, color: colors.muted }}
           >
-            {app.error || app.description}
+            {app.store ? t("release.inStore") : app.error || app.description}
           </small>
         )}
         <div style={{ gridColumn: 4, gridRow: "1 / 4" }}>{actions}</div>
@@ -342,18 +345,24 @@ export function AppCard(props: AppCardProps) {
         {/* No release and no error yet: its GitHub check is still running. */}
         <span>
           {t("settings.latestVersion", {
-            version: app.latestVersion
-              ? displayVersion(app.latestVersion)
-              : app.error
-                ? "—"
-                : t("settings.checkingUpdate"),
+            version: app.store
+              ? "—"
+              : app.latestVersion
+                ? displayVersion(app.latestVersion)
+                : app.error
+                  ? "—"
+                  : t("settings.checkingUpdate"),
           })}
         </span>
         <AppStats app={app} t={t} />
       </div>
-      {app.error && (
+      {app.store ? (
+        <small style={{ ...fullRow, gridRow: 6, color: colors.muted, overflowWrap: "anywhere" }}>
+          {t("release.inStore")}
+        </small>
+      ) : app.error ? (
         <small style={{ ...fullRow, gridRow: 6, color: colors.danger, overflowWrap: "anywhere" }}>{app.error}</small>
-      )}
+      ) : null}
       {/* What an update brings, so you can decide on the card; Y (Release Info) reads it all. */}
       {isUpdate && notes && (
         <small
