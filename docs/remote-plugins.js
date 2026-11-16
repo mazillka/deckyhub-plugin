@@ -1,19 +1,32 @@
-import { translate } from './remote-i18n.js';
+import { translate } from "./remote-i18n.js";
 
 // Installed versions come from the selected paired device. What DeckyHub knows about each plugin (downloads, audit
 // warnings, virus scans) comes from plugins/info.json, built with the site; a plugin it can't match shows no extra line.
-const compact = number => (number >= 1e6 ? `${(number / 1e6).toFixed(1)}M` : number >= 1e3 ? `${(number / 1e3).toFixed(1)}K` : String(number)).replace('.0', '');
-const SCAN_WORDS = { clean: 'no threats found', infected: 'threat found', incomplete: 'only partly scanned', error: "couldn't be scanned" };
+const compact = (number) =>
+  (number >= 1e6
+    ? `${(number / 1e6).toFixed(1)}M`
+    : number >= 1e3
+      ? `${(number / 1e3).toFixed(1)}K`
+      : String(number)
+  ).replace(".0", "");
+const SCAN_WORDS = {
+  clean: "no threats found",
+  infected: "threat found",
+  incomplete: "only partly scanned",
+  error: "couldn't be scanned",
+};
 let infoRequest;
 function loadInfo() {
-  infoRequest ||= fetch(new URL('plugins/info.json', import.meta.url))
-    .then(response => (response.ok ? response.json() : null))
-    .then(info => (info && typeof info === 'object' && info.plugins && typeof info.plugins === 'object' ? info : null))
+  infoRequest ||= fetch(new URL("plugins/info.json", import.meta.url))
+    .then((response) => (response.ok ? response.json() : null))
+    .then((info) =>
+      info && typeof info === "object" && info.plugins && typeof info.plugins === "object" ? info : null,
+    )
     .catch(() => null);
   return infoRequest;
 }
 function badge(document, text, kind, title) {
-  const item = document.createElement('span');
+  const item = document.createElement("span");
   item.className = `remote-badge remote-badge-${kind}`;
   item.textContent = translate(text);
   if (title) item.title = translate(title);
@@ -21,52 +34,87 @@ function badge(document, text, kind, title) {
 }
 export function describe(document, record, labels) {
   const parts = [];
-  const badges = document.createElement('span');
-  badges.className = 'remote-badges';
-  if (record.root) badges.append(badge(document, 'Runs as root', 'warn', 'Its backend runs as root, with full access to the device.'));
-  for (const [field, prefix] of [['warnings', ''], ['prereleaseWarnings', 'Pre-release: ']]) {
+  const badges = document.createElement("span");
+  badges.className = "remote-badges";
+  if (record.root)
+    badges.append(badge(document, "Runs as root", "warn", "Its backend runs as root, with full access to the device."));
+  for (const [field, prefix] of [
+    ["warnings", ""],
+    ["prereleaseWarnings", "Pre-release: "],
+  ]) {
     for (const code of record[field] || []) {
-      if (field === 'prereleaseWarnings' && (record.warnings || []).includes(code)) continue;
-      const [label, hint] = labels[code] || [code, 'The registry reported this audit finding.'];
-      badges.append(badge(document, prefix + label, code === 'blocked' ? 'bad' : 'warn', hint));
+      if (field === "prereleaseWarnings" && (record.warnings || []).includes(code)) continue;
+      const [label, hint] = labels[code] || [code, "The registry reported this audit finding."];
+      badges.append(badge(document, prefix + label, code === "blocked" ? "bad" : "warn", hint));
     }
   }
-  if (record.ai) badges.append(badge(document, 'AI', 'info', 'Likely developed with AI help. That says nothing about its quality or safety.'));
-  if (record.fork) badges.append(badge(document, 'Fork', 'info', `A fork of ${record.fork}`));
+  if (record.ai)
+    badges.append(
+      badge(document, "AI", "info", "Likely developed with AI help. That says nothing about its quality or safety."),
+    );
+  if (record.fork) badges.append(badge(document, "Fork", "info", `A fork of ${record.fork}`));
   const scan = record.scan;
   if (scan) {
-    const text = { clean: 'No threats', infected: 'Threat found', partial: 'Not fully scanned' }[scan.kind] || 'Scanned';
-    badges.append(badge(document, (scan.prerelease ? 'Pre-release: ' : '') + text, scan.kind === 'clean' ? 'ok' : scan.kind === 'infected' ? 'bad' : 'warn'));
+    const text =
+      { clean: "No threats", infected: "Threat found", partial: "Not fully scanned" }[scan.kind] || "Scanned";
+    badges.append(
+      badge(
+        document,
+        (scan.prerelease ? "Pre-release: " : "") + text,
+        scan.kind === "clean" ? "ok" : scan.kind === "infected" ? "bad" : "warn",
+      ),
+    );
   }
   if (badges.childElementCount) parts.push(badges);
   const facts = [];
-  if (Number.isFinite(record.downloads) && Number.isFinite(record.storeDownloads)) facts.push(`${compact(record.downloads + record.storeDownloads)} downloads in total`);
-  if (Number.isFinite(record.downloads)) facts.push(`${compact(record.downloads)} GitHub downloads`);
-  if (Number.isFinite(record.storeDownloads)) facts.push(`${compact(record.storeDownloads)} Decky store downloads`);
+  const validCount = (value) => Number.isSafeInteger(value) && value >= 0;
+  const activity = record.storeActivity;
+  const activityTotal =
+    activity &&
+    validCount(activity.downloads) &&
+    validCount(activity.updates) &&
+    validCount(activity.downloads + activity.updates)
+      ? activity.downloads + activity.updates
+      : undefined;
+  const storeCount = activityTotal ?? (validCount(record.storeDownloads) ? record.storeDownloads : undefined);
+  const githubCount = validCount(record.downloads) ? record.downloads : undefined;
+  const total =
+    githubCount === undefined && storeCount === undefined ? undefined : (githubCount ?? 0) + (storeCount ?? 0);
+  if (total !== undefined && validCount(total))
+    facts.push(`${compact(total)} approximate activity (repeat downloads included; not unique installs)`);
+  if (githubCount !== undefined) facts.push(`${compact(githubCount)} GitHub downloads`);
+  if (activityTotal !== undefined)
+    facts.push(`${compact(activityTotal)} Decky store activity (downloads + updates; matched by name)`);
+  else if (storeCount !== undefined) facts.push(`${compact(storeCount)} Decky store downloads`);
   if (Number.isFinite(record.stars)) facts.push(`${compact(record.stars)} stars`);
   if (record.latest) facts.push(`latest release ${record.latest}`);
-  if (typeof record.updated === 'string' && record.updated.length >= 10) facts.push(`updated ${record.updated.slice(0, 10)}`);
+  if (typeof record.updated === "string" && record.updated.length >= 10)
+    facts.push(`updated ${record.updated.slice(0, 10)}`);
   if (facts.length) {
-    const line = document.createElement('span');
-    line.textContent = facts.map(fact => translate(fact)).join(' · ');
+    const line = document.createElement("span");
+    line.textContent = facts.map((fact) => translate(fact)).join(" · ");
     parts.push(line);
   }
   if (scan) {
     const results = [];
     if (scan.clamav) results.push(`ClamAV: ${SCAN_WORDS[scan.clamav] || scan.clamav}`);
     if (scan.yara) results.push(`YARA: ${SCAN_WORDS[scan.yara] || scan.yara}`);
-    if (Array.isArray(scan.virusTotal)) results.push(`VirusTotal: ${scan.virusTotal[0]} of ${scan.virusTotal[1]} engines flagged it`);
-    if (Array.isArray(scan.metaDefender)) results.push(`MetaDefender: ${scan.metaDefender[0]} of ${scan.metaDefender[1]} engines flagged it`);
-    const line = document.createElement('span');
-    line.textContent = translate(`Virus scan of ${scan.tag || 'the latest release'}: ${results.map(result => translate(result)).join('; ')}. A clean scan isn't proof of safety.`);
+    if (Array.isArray(scan.virusTotal))
+      results.push(`VirusTotal: ${scan.virusTotal[0]} of ${scan.virusTotal[1]} engines flagged it`);
+    if (Array.isArray(scan.metaDefender))
+      results.push(`MetaDefender: ${scan.metaDefender[0]} of ${scan.metaDefender[1]} engines flagged it`);
+    const line = document.createElement("span");
+    line.textContent = translate(
+      `Virus scan of ${scan.tag || "the latest release"}: ${results.map((result) => translate(result)).join("; ")}. A clean scan isn't proof of safety.`,
+    );
     parts.push(line);
   }
-  if (typeof record.id === 'string' && /^[a-z0-9][a-z0-9-]*$/.test(record.id)) {
-    const link = document.createElement('a');
+  if (typeof record.id === "string" && /^[a-z0-9][a-z0-9-]*$/.test(record.id)) {
+    const link = document.createElement("a");
     link.href = new URL(`plugins/${record.id}.html`, import.meta.url).href;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    link.textContent = translate('All details on DeckyHub');
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = translate("All details on DeckyHub");
     parts.push(link);
   }
   return parts;
@@ -75,34 +123,49 @@ export function describe(document, record, labels) {
 // A DeckyHub pack file: { kind: 'deckyhub-pack', name, plugins: [{ repo }] }, or a repositories list { repos: [...] }.
 export function readPack(text) {
   const data = JSON.parse(text);
-  const items = Array.isArray(data?.plugins) ? data.plugins.map(item => item?.repo) : Array.isArray(data?.repos) ? data.repos : null;
-  if (!items) throw new Error('This is not a DeckyHub plugin pack.');
-  const repos = [...new Set(items.filter(repo => typeof repo === 'string' && /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repo)).map(repo => repo.toLowerCase()))].slice(0, 200);
-  if (!repos.length) throw new Error('This plugin pack has no plugins in it.');
-  return { name: typeof data.name === 'string' && data.name.trim() ? data.name.trim().slice(0, 60) : 'Pack', repos };
+  const items = Array.isArray(data?.plugins)
+    ? data.plugins.map((item) => item?.repo)
+    : Array.isArray(data?.repos)
+      ? data.repos
+      : null;
+  if (!items) throw new Error("This is not a DeckyHub plugin pack.");
+  const repos = [
+    ...new Set(
+      items
+        .filter((repo) => typeof repo === "string" && /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repo))
+        .map((repo) => repo.toLowerCase()),
+    ),
+  ].slice(0, 200);
+  if (!repos.length) throw new Error("This plugin pack has no plugins in it.");
+  return { name: typeof data.name === "string" && data.name.trim() ? data.name.trim().slice(0, 60) : "Pack", repos };
 }
 
 // The pack's plugins that are installed on the device (never DeckyHub), and which of them are off or on.
 export function packTargets(pack, installed) {
   const repos = new Set(pack?.repos || []);
-  const match = installed.filter(plugin => plugin.repo && repos.has(plugin.repo.toLowerCase()) &&
-    typeof plugin.pluginName === 'string' && plugin.pluginName.toLowerCase() !== 'deckyhub');
+  const match = installed.filter(
+    (plugin) =>
+      plugin.repo &&
+      repos.has(plugin.repo.toLowerCase()) &&
+      typeof plugin.pluginName === "string" &&
+      plugin.pluginName.toLowerCase() !== "deckyhub",
+  );
   return {
     found: match.length,
-    enable: match.filter(plugin => plugin.disabled).map(plugin => plugin.pluginName),
-    disable: match.filter(plugin => !plugin.disabled).map(plugin => plugin.pluginName),
+    enable: match.filter((plugin) => plugin.disabled).map((plugin) => plugin.pluginName),
+    disable: match.filter((plugin) => !plugin.disabled).map((plugin) => plugin.pluginName),
   };
 }
 
 export function createPluginList(root, { loadPage, request }) {
-  const list = root.querySelector('#remote-plugins');
-  const status = root.querySelector('#remote-plugins-status');
-  const refresh = root.querySelector('#remote-plugins-refresh');
-  const filter = root.querySelector('#remote-plugins-filter');
-  const packFile = root.querySelector('#remote-pack');
-  const packInfo = root.querySelector('#remote-pack-info');
-  const packEnable = root.querySelector('#remote-pack-enable');
-  const packDisable = root.querySelector('#remote-pack-disable');
+  const list = root.querySelector("#remote-plugins");
+  const status = root.querySelector("#remote-plugins-status");
+  const refresh = root.querySelector("#remote-plugins-refresh");
+  const filter = root.querySelector("#remote-plugins-filter");
+  const packFile = root.querySelector("#remote-pack");
+  const packInfo = root.querySelector("#remote-pack-info");
+  const packEnable = root.querySelector("#remote-pack-enable");
+  const packDisable = root.querySelector("#remote-pack-disable");
   const document = root.ownerDocument;
   if (!list || !status || !refresh || !document) return { reset() {}, setEnabled() {}, load() {} };
   let generation = 0;
@@ -115,150 +178,179 @@ export function createPluginList(root, { loadPage, request }) {
   // until the device has said so, none is.
   const updateRows = [];
   let waiting = null; // lowercase names of the plugins with an update, or null when not known
-  const showUpdates = () => updateRows.forEach(({ button, plugin }) => { button.hidden = !waiting?.has(String(plugin.name).toLowerCase()); });
+  const showUpdates = () =>
+    updateRows.forEach(({ button, plugin }) => {
+      button.hidden = !waiting?.has(String(plugin.name).toLowerCase());
+    });
   const updateButtons = () => {
     refresh.disabled = !enabled || loading;
-    actionButtons.forEach(button => { button.disabled = !enabled || loading; });
+    actionButtons.forEach((button) => {
+      button.disabled = !enabled || loading;
+    });
     if (packFile) packFile.disabled = !enabled || loading;
     const targets = packTargets(pack, installed);
     if (packEnable) packEnable.disabled = !enabled || loading || !targets.enable.length;
     if (packDisable) packDisable.disabled = !enabled || loading || !targets.disable.length;
     if (packInfo && pack) {
-      packInfo.textContent = translate(`${pack.name}: ${targets.found} of ${pack.repos.length} plugins are installed on this device (${targets.enable.length} off, ${targets.disable.length} on).`);
+      packInfo.textContent = translate(
+        `${pack.name}: ${targets.found} of ${pack.repos.length} plugins are installed on this device (${targets.enable.length} off, ${targets.disable.length} on).`,
+      );
     }
   };
-  packFile?.addEventListener('change', async () => {
+  packFile?.addEventListener("change", async () => {
     const file = packFile.files?.[0];
     if (!file) return;
     try {
-      if (file.size > 256 * 1024) throw new Error('This file is too large to be a plugin pack.');
+      if (file.size > 256 * 1024) throw new Error("This file is too large to be a plugin pack.");
       pack = readPack(await file.text());
       updateButtons();
     } catch (error) {
       pack = undefined;
-      if (packInfo) packInfo.textContent = translate(error instanceof SyntaxError ? 'This is not a DeckyHub plugin pack.' : error.message);
+      if (packInfo)
+        packInfo.textContent = translate(
+          error instanceof SyntaxError ? "This is not a DeckyHub plugin pack." : error.message,
+        );
       updateButtons();
     }
   });
-  for (const [button, action] of [[packEnable, 'enable'], [packDisable, 'disable']]) {
-    button?.addEventListener('click', () => {
+  for (const [button, action] of [
+    [packEnable, "enable"],
+    [packDisable, "disable"],
+  ]) {
+    button?.addEventListener("click", () => {
       const names = packTargets(pack, installed)[action];
       if (names.length) request(null, action, names.slice(0, 50));
     });
   }
   const applyFilter = () => {
-    const words = (filter?.value || '').toLowerCase().split(/\s+/).filter(Boolean);
+    const words = (filter?.value || "").toLowerCase().split(/\s+/).filter(Boolean);
     let shown = 0;
     for (const row of list.children) {
-      row.hidden = !words.every(word => row.textContent.toLowerCase().includes(word));
+      row.hidden = !words.every((word) => row.textContent.toLowerCase().includes(word));
       if (!row.hidden) shown++;
     }
     if (filter) {
       filter.hidden = list.children.length < 6;
-      status.textContent = translate(words.length ? `${shown} of ${list.children.length} plugins` : `${list.children.length} installed ${list.children.length === 1 ? 'plugin' : 'plugins'}`);
+      status.textContent = translate(
+        words.length
+          ? `${shown} of ${list.children.length} plugins`
+          : `${list.children.length} installed ${list.children.length === 1 ? "plugin" : "plugins"}`,
+      );
     }
   };
-  filter?.addEventListener('input', applyFilter);
+  filter?.addEventListener("input", applyFilter);
   const decorate = async (rows, current) => {
     const info = await loadInfo();
     if (!info || current !== generation) return;
     for (const { row, plugin } of rows) {
-      const record = typeof plugin.repo === 'string' ? info.plugins[plugin.repo.toLowerCase()] : null;
+      const record = typeof plugin.repo === "string" ? info.plugins[plugin.repo.toLowerCase()] : null;
       if (!record || !row.isConnected) continue;
-      const note = document.createElement('div');
-      note.className = 'remote-info';
+      const note = document.createElement("div");
+      note.className = "remote-info";
       note.append(...describe(document, record, info.warnings || {}));
-      row.insertBefore(note, row.querySelector('.remote-actions'));
+      row.insertBefore(note, row.querySelector(".remote-actions"));
     }
     applyFilter();
   };
-  const toggleButton = plugin => {
-    const action = plugin.disabled ? 'enable' : 'disable';
-    const button = document.createElement('button');
-    button.type = 'button';
-    const label = plugin.disabled ? 'Request enable' : 'Request disable';
+  const toggleButton = (plugin) => {
+    const action = plugin.disabled ? "enable" : "disable";
+    const button = document.createElement("button");
+    button.type = "button";
+    const label = plugin.disabled ? "Request enable" : "Request disable";
     button.textContent = translate(label);
-    button.setAttribute('aria-label', translate(`${label} for ${plugin.name}`));
-    button.addEventListener('click', () => request(null, action, [plugin.pluginName]));
+    button.setAttribute("aria-label", translate(`${label} for ${plugin.name}`));
+    button.addEventListener("click", () => request(null, action, [plugin.pluginName]));
     actionButtons.push(button);
     return button;
   };
-  const render = plugins => {
+  const render = (plugins) => {
     list.replaceChildren();
     actionButtons.length = 0;
     updateRows.length = 0;
     const pending = [];
     installed = plugins;
     for (const plugin of plugins) {
-      const row = document.createElement('li');
-      const title = document.createElement('strong');
+      const row = document.createElement("li");
+      const title = document.createElement("strong");
       const label = plugin.disabled ? translate(`${plugin.name} (disabled)`) : plugin.name;
       // A plugin DeckyHub lists has a page here; the page is English only, and a preview site keeps its prefix.
-      const pageId = [plugin.id, plugin.pageId].find(id => typeof id === 'string' && /^[a-z0-9][a-z0-9-]{0,127}$/.test(id)) ?? null;
+      const pageId =
+        [plugin.id, plugin.pageId].find((id) => typeof id === "string" && /^[a-z0-9][a-z0-9-]{0,127}$/.test(id)) ??
+        null;
       if (pageId) {
-        const link = document.createElement('a');
-        link.href = `${location.pathname.replace(/\/(?:uk\/)?paired-devices\/?(?:index\.html)?$/, '')}/plugins/${pageId}.html`;
+        const link = document.createElement("a");
+        link.href = `${location.pathname.replace(/\/(?:uk\/)?paired-devices\/?(?:index\.html)?$/, "")}/plugins/${pageId}.html`;
         link.textContent = label;
         title.append(link);
       } else title.textContent = label;
-      const version = document.createElement('span');
+      const version = document.createElement("span");
       version.textContent = translate(`Installed version · ${plugin.version}`);
-      const repository = document.createElement('span');
-      if (typeof plugin.repo === 'string' && /^[A-Za-z0-9_.-]{1,100}\/[A-Za-z0-9_.-]{1,100}$/.test(plugin.repo)) {
-        const link = document.createElement('a');
+      const repository = document.createElement("span");
+      if (typeof plugin.repo === "string" && /^[A-Za-z0-9_.-]{1,100}\/[A-Za-z0-9_.-]{1,100}$/.test(plugin.repo)) {
+        const link = document.createElement("a");
         link.href = `https://github.com/${plugin.repo}`;
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
         link.textContent = plugin.repo;
         repository.append(link);
-      } else repository.textContent = translate(pageId ? 'Repository unavailable' : 'Not matched to the DeckyHub list');
+      } else repository.textContent = translate(pageId ? "Repository unavailable" : "Not matched to the DeckyHub list");
       row.append(title, version, repository);
-      const verified = plugin.identityUnverified === false &&
-        typeof plugin.id === 'string' && /^[a-z0-9][a-z0-9-]{0,127}$/.test(plugin.id) &&
-        typeof plugin.pluginName === 'string' && plugin.pluginName.toLowerCase() !== 'deckyhub';
+      const verified =
+        plugin.identityUnverified === false &&
+        typeof plugin.id === "string" &&
+        /^[a-z0-9][a-z0-9-]{0,127}$/.test(plugin.id) &&
+        typeof plugin.pluginName === "string" &&
+        plugin.pluginName.toLowerCase() !== "deckyhub";
       if (verified) {
-        const actions = document.createElement('div');
-        actions.className = 'remote-actions';
+        const actions = document.createElement("div");
+        actions.className = "remote-actions";
         actions.append(toggleButton(plugin));
-        for (const [action, label] of [['update', 'Request update'], ['uninstall', 'Request uninstall']]) {
-          const button = document.createElement('button');
-          button.type = 'button';
+        for (const [action, label] of [
+          ["update", "Request update"],
+          ["uninstall", "Request uninstall"],
+        ]) {
+          const button = document.createElement("button");
+          button.type = "button";
           button.textContent = translate(label);
-          button.setAttribute('aria-label', translate(`${label} for ${plugin.name}`));
-          if (action === 'uninstall') button.className = 'remote-danger';
-          button.addEventListener('click', () => request(plugin.id, action));
+          button.setAttribute("aria-label", translate(`${label} for ${plugin.name}`));
+          if (action === "uninstall") button.className = "remote-danger";
+          button.addEventListener("click", () => request(plugin.id, action));
           actions.append(button);
           actionButtons.push(button);
-          if (action === 'update') updateRows.push({ button, plugin });
+          if (action === "update") updateRows.push({ button, plugin });
         }
         row.append(actions);
-      } else if (plugin.pluginName && plugin.pluginName.toLowerCase() !== 'deckyhub') {
+      } else if (plugin.pluginName && plugin.pluginName.toLowerCase() !== "deckyhub") {
         // DeckyHub cannot tell which repository this plugin came from, so it cannot install or
         // update it from here. Removing it only needs the name Decky Loader uses.
-        const actions = document.createElement('div');
-        actions.className = 'remote-actions';
+        const actions = document.createElement("div");
+        actions.className = "remote-actions";
         actions.append(toggleButton(plugin));
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'remote-danger';
-        button.textContent = translate('Request uninstall');
-        button.setAttribute('aria-label', translate(`Request uninstall for ${plugin.name}`));
-        button.addEventListener('click', () => request(null, 'uninstall', plugin.pluginName));
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "remote-danger";
+        button.textContent = translate("Request uninstall");
+        button.setAttribute("aria-label", translate(`Request uninstall for ${plugin.name}`));
+        button.addEventListener("click", () => request(null, "uninstall", plugin.pluginName));
         actions.append(button);
         actionButtons.push(button);
-        const note = document.createElement('span');
-        note.textContent = translate('Updates for this plugin come from its own page or your device.');
+        const note = document.createElement("span");
+        note.textContent = translate("Updates for this plugin come from its own page or your device.");
         row.append(actions, note);
       } else {
-        const note = document.createElement('span');
-        note.textContent = translate('Manage DeckyHub on your device.');
+        const note = document.createElement("span");
+        note.textContent = translate("Manage DeckyHub on your device.");
         row.append(note);
       }
       list.append(row);
       pending.push({ row, plugin });
     }
     showUpdates();
-    status.textContent = translate(plugins.length ? `${plugins.length} installed ${plugins.length === 1 ? 'plugin' : 'plugins'}` : 'No installed plugins found.');
+    status.textContent = translate(
+      plugins.length
+        ? `${plugins.length} installed ${plugins.length === 1 ? "plugin" : "plugins"}`
+        : "No installed plugins found.",
+    );
     updateButtons();
     applyFilter();
     decorate(pending, generation);
@@ -268,24 +360,32 @@ export function createPluginList(root, { loadPage, request }) {
     const current = ++generation;
     loading = true;
     updateButtons();
-    status.textContent = translate('Loading installed plugins…');
+    status.textContent = translate("Loading installed plugins…");
     const plugins = [];
     let offset = 0;
     try {
       do {
         const result = await loadPage(offset);
         if (current !== generation) return;
-        if (!Array.isArray(result.plugins) || result.plugins.length > 20 ||
-            result.plugins.some(plugin => !plugin || typeof plugin.name !== 'string' || typeof plugin.version !== 'string' ||
-              (plugin.pluginName !== null && typeof plugin.pluginName !== 'string') ||
-              (plugin.disabled !== undefined && typeof plugin.disabled !== 'boolean'))) {
-          throw new Error('Invalid plugin list from the device.');
+        if (
+          !Array.isArray(result.plugins) ||
+          result.plugins.length > 20 ||
+          result.plugins.some(
+            (plugin) =>
+              !plugin ||
+              typeof plugin.name !== "string" ||
+              typeof plugin.version !== "string" ||
+              (plugin.pluginName !== null && typeof plugin.pluginName !== "string") ||
+              (plugin.disabled !== undefined && typeof plugin.disabled !== "boolean"),
+          )
+        ) {
+          throw new Error("Invalid plugin list from the device.");
         }
         plugins.push(...result.plugins);
-        if (plugins.length > 1000) throw new Error('Too many plugins to display.');
+        if (plugins.length > 1000) throw new Error("Too many plugins to display.");
         if (result.nextOffset === null) break;
         if (!result.plugins.length || !Number.isInteger(result.nextOffset) || result.nextOffset <= offset)
-          throw new Error('Invalid plugin list page.');
+          throw new Error("Invalid plugin list page.");
         offset = result.nextOffset;
       } while (true);
       render(plugins);
@@ -294,12 +394,15 @@ export function createPluginList(root, { loadPage, request }) {
       list.replaceChildren();
       actionButtons.length = 0;
       installed = [];
-      status.textContent = translate(error instanceof Error ? error.message : 'Unable to load installed plugins.');
+      status.textContent = translate(error instanceof Error ? error.message : "Unable to load installed plugins.");
     } finally {
-      if (current === generation) { loading = false; updateButtons(); }
+      if (current === generation) {
+        loading = false;
+        updateButtons();
+      }
     }
   };
-  refresh.addEventListener('click', load);
+  refresh.addEventListener("click", load);
   return {
     reset() {
       generation++;
@@ -307,13 +410,17 @@ export function createPluginList(root, { loadPage, request }) {
       list.replaceChildren();
       actionButtons.length = 0;
       installed = [];
-      status.textContent = translate('Pair a device to see its installed plugins.');
+      status.textContent = translate("Pair a device to see its installed plugins.");
       updateButtons();
     },
-    setEnabled(value) { enabled = value; updateButtons(); },
+    setEnabled(value) {
+      enabled = value;
+      updateButtons();
+    },
     // The device's update summary (undefined when it could not be read).
     setUpdates(summary) {
-      waiting = summary && summary.checkedAt !== null ? new Set(summary.updates.map(item => item.name.toLowerCase())) : null;
+      waiting =
+        summary && summary.checkedAt !== null ? new Set(summary.updates.map((item) => item.name.toLowerCase())) : null;
       showUpdates();
     },
     load,

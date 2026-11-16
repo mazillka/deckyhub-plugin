@@ -107,13 +107,19 @@ export const tr: Record<MessageKey, string> = {
   "appcard.manage": "Yönet",
   "appcard.install": "Yükle",
   "appcard.installVersion": "v{version} yükle",
-  "appcard.downloads": "{count} indirme",
+  "appcard.downloads": "Yaklaşık toplam etkinlik: {count}; yinelenen indirmeler dahildir, benzersiz kurulum değildir.",
   "appcard.githubDownloads": "{count} GitHub indirmesi",
   "appcard.storeDownloads": "Decky mağazasından {count} indirme",
   "appcard.downloadsBreakdown": "GitHub: {github} · Decky mağazası: {store}",
+  "appcard.storeActivity":
+    "Decky mağazası etkinliği (indirmeler + güncellemeler): {count}; ada göre eşleşir, tekrarlar dahildir",
   "appcard.inStore": "Decky mağazasında",
   "appcard.inStoreHint":
     "Decky mağazasında bu adda bir eklenti var (orada {count} indirme). Mağaza depo belirtmez, bu yüzden bunun doğru olduğundan emin olun.",
+  "appcard.storeInstallTitle": "Decky Mağazası’ndan yükle",
+  "appcard.storeInstallStep1": "Decky Loader’ın Quick Access menüsünü (fiş simgesi) açıp Mağaza’yı seçin.",
+  "appcard.storeInstallStep2": "{name} için arama yapın.",
+  "appcard.storeInstallStep3": "Yükle’ye basın.",
   "appcard.stars": "{count} GitHub yıldızı",
   "appcard.runsAsRoot": "Root olarak çalışır",
   "appcard.runsAsRootHint": "Arka ucu root olarak, sisteme tam erişimle çalışır. Yalnızca yazara güveniyorsan yükle.",
@@ -138,6 +144,10 @@ export const tr: Record<MessageKey, string> = {
     "Bir virüs taraması yükleyeceğin sürümü işaretledi. Yanlış alarm olabilir: Yönet'i aç, raporu oku ve kendin karar ver.",
   "appcard.scan.partial": "Tam taranmadı",
   "appcard.scan.partial.hint": "Virüs taramaları yükleyeceğin sürümü tamamen denetleyemedi. Nedeni Yönet'te.",
+  "risk.title": "Kontrollerin bulduğu",
+  "risk.intro": "Denetimden ve virüs taramalarından gerçekler. Yükleme kararı senin.",
+  "risk.none":
+    "Denetim uyarısı veya tarama bulgusu yok. Bu güvenli olduğu anlamına gelmez: bu eklentileri kimse incelemiyor.",
   "appcard.badgesNotice": "Eklentilerdeki rozetlerin anlamı",
   "appcard.noReleaseInYear": "Bir yıldır sürüm yok",
   "appcard.prereleaseOnly": "Yalnızca ön sürüm",
@@ -159,9 +169,9 @@ export const tr: Record<MessageKey, string> = {
   "appcard.warning.persistence": "Sistem başlangıcını değiştirir",
   "appcard.warning.persistence.hint":
     "Kabuk profillerini düzenler, kütüphaneleri önceden yükler, çekirdek modülleri yükler veya aygıt kuralları ekler; bunlar Decky dışında da çalışmaya devam eder.",
-  "appcard.warning.not-in-source": "Kod deposunda yok",
+  "appcard.warning.not-in-source": "Çok yüksek risk: İndirilen dosya GitHub’da olmayan kod içeriyor",
   "appcard.warning.not-in-source.hint":
-    "Sürüm, GitHub kaynağında olmayan betikler veya programlar içeriyor, bu yüzden ne yaptıklarını okuyamazsın.",
+    "İndirilen sürüm, denetimin yayımlanmış kaynak koduyla eşleştiremediği kodlar içeriyor. Bu durum kötü amaçlı değişiklikleri gizleyebilir. Yüklemeden önce sürümü inceleyin; uyuşmazlık kötü amaçlı yazılımı kanıtlamaz.",
   "appcard.warning.obfuscated": "Gizlenmiş kod",
   "appcard.warning.obfuscated.hint": "Okunması zor, kodlanmış veya paketlenmiş kod içerir.",
   "audit.scope": "Sınırlı sayıda örüntüyü denetler. Bulgular incelenmelidir; bu güvenliği kanıtlamaz.",
@@ -202,6 +212,18 @@ export const tr: Record<MessageKey, string> = {
   "appcard.uninstallTitle": "{name} kaldırılsın mı?",
   "appcard.uninstallDescription":
     "Bu, eklentiyi ve ayarlarını bu cihazdan kaldırır. Daha sonra yeniden yükleyebilirsin.",
+  "appcard.uninstallByName":
+    "DeckyHub yüklü eklentiyi bu girişle eşleştiremedi, bu yüzden Decky Loader “{name}” olarak bildiği eklentiyi kaldıracak.",
+  "appcard.installAnyway": "Yine de yükle",
+  "appcard.trustPlugin": "Bu eklentiye güven",
+  "appcard.untrustPlugin": "Güvenmeyi bırak",
+  "appcard.identityTrusted": "Bu eklentiye güvenmeyi seçtin, bu yüzden DeckyHub doğrulayamasa da güncellenebilir.",
+  "appcard.unverifiedConfirmBody":
+    "DeckyHub, yüklü “{name}” (v{version}) eklentisini bu girişle eşleştiremedi. Decky Loader eklentileri adına göre değiştirir, bu yüzden bu eklentiyi {repo} {tag} ile değiştirecek. Bu sürüm, yüklediğin depodan farklı bir depodansa başkasının kodunu çalıştırıyorsun.",
+  "appcard.trustConfirmTitle": "Bu eklentiye güvenilsin mi?",
+  "appcard.trustConfirmBody":
+    "DeckyHub, yüklü “{name}” eklentisini bu girişle eşleştiremedi. Güvenirsen güncellemeler artık engellenmez. Her biri yine önce sorar ve neyi değiştirdiğini söyler; güveni burada istediğin zaman geri alabilirsin. Kayıt defterindeki sürümler yüklediğin depodan farklı bir depodansa başkasının kodunu çalıştırırsın.",
+  "install.replaces": "Güvenmeyi seçtiğin yüklü “{name}” (v{version}) eklentisini değiştirir.",
   "appcard.uninstalled": "{name} kaldırıldı.",
   "appcard.freshInstallDescription":
     "DeckyHub önce yüklü sürümü kaldırır, ardından Decky seçilen sürümü sıfırdan yükler. Yerinde güncelleme, bir Decky Loader hatası yüzünden cihazı dondurabilir. Decky'nin yükleme penceresini iptal edersen {name}, yeniden yükleyene kadar kaldırılmış kalır.",
@@ -347,6 +369,11 @@ export const tr: Record<MessageKey, string> = {
   "settings.uiStyleHint": "Deneysel, DeckyHub'ın hâlâ üzerinde çalışılan yeni görünümüdür.",
   "settings.uiStyleDefault": "Varsayılan",
   "settings.uiStyleExperimental": "Deneysel",
+  "search.noData": "Denetim veya tarama verisi yok: bu eklenti kayıt defterinde değil.",
+  "search.inRegistry": "Kayıt defterinde: denetim ve tarama sonuçları Discover kartında.",
+  "install.prerelease": "Bu bir ön sürüm; bitmemiş veya hatalı olabilir.",
+  "updates.newWarnings": "Bu güncellemede yeni: {warnings}",
+  "updates.droppedWarnings": "Bu güncellemede artık bildirilmiyor: {warnings}",
   "settings.hideButton": "“{button}” düğmesini gizle",
   "settings.troubleshooting": "Sorun giderme",
   "settings.exportLogs": "Günlükleri dışa aktar",
@@ -415,7 +442,7 @@ export const tr: Record<MessageKey, string> = {
 
   "github.error": "GitHub API {status} döndürdü",
   "release.noMatch": "Uygun sürüm bulunamadı.",
-  "release.inStore": "Yazarı bunu Decky mağazası üzerinden dağıtıyor. Oradan kurun.",
+  "release.inStore": "Bu eklentiyi Decky Loader Mağazası’ndan yükleyin.",
   "scan.notReviewed":
     "DeckyHub, Decky mağazası değildir ve bu eklentileri kimse incelemez. Temiz bir tarama yalnızca bilinen bir zararlı yazılımın bulunmadığı anlamına gelir.",
   "release.noChecksum": "SHA-256 sağlama toplamı olan bir DeckyHub sürüm ZIP'i bulunamadı.",

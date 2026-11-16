@@ -16,6 +16,7 @@ import { fetchNoCors } from "@decky/api";
 import { getSettings } from "./api";
 import { githubFetch, githubHeaders, githubResponseError, githubToken } from "./github";
 import { createRawCache } from "./rawCache";
+import { clearStoreReleaseData, lookupForApp } from "./storeOnly";
 
 // GitHub's unauthenticated core API allows 60 requests/hour per IP, easy to
 // burn through when Discover/Updates check every tracked app. Release lists
@@ -403,13 +404,18 @@ export async function latestDeckyHubRelease(channel: UpdateChannel): Promise<Dec
 // is skipped, so cards and the version picker fall back to the last installable one.
 export function listAppReleases(app: App, force = false): Promise<{ items: AppReleaseOption[]; error?: string }> {
   const tagInclude = app.releaseTagInclude?.toLowerCase();
-  return listOrError(
-    fetchReleases(app.repo, force).then((releases) =>
-      releases
-        .filter((release) => !tagInclude || release.tag.toLowerCase().includes(tagInclude))
-        .map((release) => ({ ...release, assets: matchingAssets(app, release.assets) }))
-        .filter((release) => release.assets.length > 0),
-    ),
+  return lookupForApp(
+    app,
+    () =>
+      listOrError(
+        fetchReleases(app.repo, force).then((releases) =>
+          releases
+            .filter((release) => !tagInclude || release.tag.toLowerCase().includes(tagInclude))
+            .map((release) => ({ ...release, assets: matchingAssets(app, release.assets) }))
+            .filter((release) => release.assets.length > 0),
+        ),
+      ),
+    { items: [] },
   );
 }
 
@@ -444,14 +450,18 @@ export async function installedRisk(app: App, force = false): Promise<App["insta
 // Fills in a card's latest release for its channel and whether it's newer
 // than what's installed.
 export async function hydrate(app: App, force: boolean, preference?: RepoPreference): Promise<App> {
-  // Its author distributes it through the Decky store: no GitHub release is offered, so the card says where to get it.
-  if (app.store) return { ...app, assets: [], updateAvailable: null, error: tr("release.inStore") };
+  // Store-only plugins may have old GitHub metadata in a reused cached app object.
+  if (app.store) return clearStoreReleaseData(app);
+  // An unverified plugin the user chose to trust, under the one name Decky can address it by, updates as a verified one.
+  if (app.identityUnverified && app.uninstallName && preference?.trustedIdentity === app.uninstallName)
+    app = { ...app, identityUnverified: false, identityTrusted: true, pluginName: app.uninstallName };
   const { items, error } = await listAppReleases(app, force);
   // The saved channel stays as it is, so a first stable release brings the card back to it.
   const prereleaseOnly = items.length > 0 && items.every((item) => item.prerelease);
   const channel: UpdateChannel = prereleaseOnly ? "prerelease" : (preference?.channel ?? "stable");
   const release = items.find((item) => inChannel(item, channel));
-  if (!release) return { ...app, channel, prereleaseOnly, error: error ?? tr("release.noMatch") };
+  if (!release)
+    return { ...app, channel, prereleaseOnly, latestPrerelease: undefined, error: error ?? tr("release.noMatch") };
   const cmp = app.installedVersion ? compareVersions(releaseVersion(release), app.installedVersion) : null;
   const installed = app.identityUnverified ? undefined : installedRelease(items, app.installedVersion);
   return {
@@ -461,6 +471,7 @@ export async function hydrate(app: App, force: boolean, preference?: RepoPrefere
     installedAssets: installed?.release.assets,
     installedAudit: installed?.audit,
     latestVersion: release.tag,
+    latestPrerelease: release.prerelease,
     publishedAt: release.publishedAt,
     releaseUrl: release.url,
     releaseNotes: release.notes,

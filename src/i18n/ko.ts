@@ -107,13 +107,18 @@ export const ko: Record<MessageKey, string> = {
   "appcard.manage": "관리",
   "appcard.install": "설치",
   "appcard.installVersion": "v{version} 설치",
-  "appcard.downloads": "다운로드 {count}회",
+  "appcard.downloads": "총 활동 추정치: {count}; 반복 다운로드가 포함되며 고유 설치 수가 아닙니다.",
   "appcard.githubDownloads": "GitHub 다운로드 {count}회",
   "appcard.storeDownloads": "Decky 스토어 다운로드 {count}회",
   "appcard.downloadsBreakdown": "GitHub: {github} · Decky 스토어: {store}",
+  "appcard.storeActivity": "Decky 스토어 활동(다운로드 + 업데이트): {count}; 이름으로 일치하며 반복 포함",
   "appcard.inStore": "Decky 스토어에 있음",
   "appcard.inStoreHint":
     "Decky 스토어에 같은 이름의 플러그인이 있습니다(그곳에서 {count}회 다운로드). 스토어는 저장소를 알려 주지 않으므로 이것이 맞는지 확인하세요.",
+  "appcard.storeInstallTitle": "Decky 스토어에서 설치",
+  "appcard.storeInstallStep1": "Decky Loader의 Quick Access 메뉴(플러그 아이콘)를 열고 스토어를 선택하세요.",
+  "appcard.storeInstallStep2": "{name}을(를) 검색하세요.",
+  "appcard.storeInstallStep3": "설치를 누르세요.",
   "appcard.stars": "GitHub 스타 {count}개",
   "appcard.runsAsRoot": "루트 권한으로 실행",
   "appcard.runsAsRootHint":
@@ -138,6 +143,9 @@ export const ko: Record<MessageKey, string> = {
     "바이러스 검사가 설치할 릴리스를 표시했습니다. 오탐일 수 있습니다. 관리에서 보고서를 읽고 직접 결정하세요.",
   "appcard.scan.partial": "일부만 검사됨",
   "appcard.scan.partial.hint": "바이러스 검사가 설치할 릴리스 전체를 확인하지 못했습니다. 이유는 관리에 있습니다.",
+  "risk.title": "검사에서 확인된 내용",
+  "risk.intro": "감사와 바이러스 검사에서 나온 사실입니다. 설치 여부는 직접 결정하세요.",
+  "risk.none": "감사 경고나 검사 결과가 없습니다. 안전하다는 뜻은 아닙니다. 이 플러그인들은 아무도 검토하지 않습니다.",
   "appcard.badgesNotice": "플러그인 배지의 의미",
   "appcard.noReleaseInYear": "1년 넘게 릴리스 없음",
   "appcard.prereleaseOnly": "시험판만 있음",
@@ -158,9 +166,9 @@ export const ko: Record<MessageKey, string> = {
   "appcard.warning.persistence": "시스템 시작 변경",
   "appcard.warning.persistence.hint":
     "셸 프로필 수정, 라이브러리 사전 로드, 커널 모듈 로드, 장치 규칙 추가를 하며 Decky 밖에서도 계속 작동합니다.",
-  "appcard.warning.not-in-source": "저장소에 없는 코드",
+  "appcard.warning.not-in-source": "매우 높은 위험: 다운로드에 GitHub에 없는 코드가 포함되어 있습니다",
   "appcard.warning.not-in-source.hint":
-    "릴리스에 GitHub 소스에 없는 스크립트나 프로그램이 있어 무엇을 하는지 확인할 수 없습니다.",
+    "다운로드한 릴리스에는 공개된 소스 코드와 대조할 수 없는 코드가 포함되어 있습니다. 악성 변경 사항이 숨겨져 있을 수 있습니다. 설치 전에 릴리스를 검토하세요. 불일치가 악성코드를 증명하지는 않습니다.",
   "appcard.warning.obfuscated": "숨겨진 코드",
   "appcard.warning.obfuscated.hint": "읽기 어려운 인코딩되거나 압축된 코드가 있습니다.",
   "audit.scope": "제한된 패턴을 검사합니다. 발견 사항은 검토가 필요하며 안전을 증명하지 못합니다.",
@@ -200,6 +208,18 @@ export const ko: Record<MessageKey, string> = {
   "appcard.uninstall": "제거",
   "appcard.uninstallTitle": "{name}을(를) 제거할까요?",
   "appcard.uninstallDescription": "이 기기에서 플러그인과 설정이 삭제됩니다. 나중에 다시 설치할 수 있습니다.",
+  "appcard.uninstallByName":
+    "DeckyHub가 설치된 플러그인을 이 항목과 연결하지 못해, Decky Loader가 “{name}”로 알고 있는 플러그인을 제거합니다.",
+  "appcard.installAnyway": "그래도 설치",
+  "appcard.trustPlugin": "이 플러그인 신뢰",
+  "appcard.untrustPlugin": "신뢰 해제",
+  "appcard.identityTrusted": "이 플러그인을 신뢰하기로 했으므로 DeckyHub가 확인하지 못했어도 업데이트할 수 있습니다.",
+  "appcard.unverifiedConfirmBody":
+    "DeckyHub가 설치된 플러그인 “{name}”(v{version})을 이 항목과 연결하지 못했습니다. Decky Loader는 이름으로 플러그인을 교체하므로 해당 플러그인을 {repo} {tag}로 교체합니다. 이 릴리스가 설치한 곳과 다른 저장소에서 온 것이라면 다른 사람의 코드를 실행하게 됩니다.",
+  "appcard.trustConfirmTitle": "이 플러그인을 신뢰할까요?",
+  "appcard.trustConfirmBody":
+    "DeckyHub가 설치된 플러그인 “{name}”을 이 항목과 연결하지 못했습니다. 신뢰하면 업데이트가 더 이상 차단되지 않습니다. 업데이트마다 먼저 확인을 묻고 무엇을 교체하는지 알려 주며, 신뢰는 여기서 언제든 해제할 수 있습니다. 레지스트리의 릴리스가 설치한 곳과 다른 저장소에서 온 것이라면 다른 사람의 코드를 실행하게 됩니다.",
+  "install.replaces": "신뢰하기로 한 설치된 “{name}”(v{version})을 교체합니다.",
   "appcard.uninstalled": "{name}을(를) 제거했습니다.",
   "appcard.freshInstallDescription":
     "DeckyHub가 설치된 버전을 먼저 제거한 뒤 Decky가 선택한 버전을 새로 설치합니다. Decky Loader 버그 때문에 제자리 업데이트는 기기를 멈추게 할 수 있습니다. Decky의 설치 창에서 취소하면 {name}은(는) 다시 설치할 때까지 제거된 상태로 남습니다.",
@@ -345,6 +365,11 @@ export const ko: Record<MessageKey, string> = {
   "settings.uiStyleHint": "실험적은 아직 작업 중인 DeckyHub의 새로운 디자인입니다.",
   "settings.uiStyleDefault": "기본",
   "settings.uiStyleExperimental": "실험적",
+  "search.noData": "감사·검사 데이터 없음: 이 플러그인은 레지스트리에 없습니다.",
+  "search.inRegistry": "레지스트리에 있음: 감사·검사 결과는 Discover 카드에 있습니다.",
+  "install.prerelease": "프리릴리스이므로 미완성이거나 버그가 있을 수 있습니다.",
+  "updates.newWarnings": "이번 업데이트에서 새로 생김: {warnings}",
+  "updates.droppedWarnings": "이번 업데이트에서는 더 이상 보고되지 않음: {warnings}",
   "settings.hideButton": "“{button}” 숨기기",
   "settings.troubleshooting": "문제 해결",
   "settings.exportLogs": "로그 내보내기",
@@ -413,7 +438,7 @@ export const ko: Record<MessageKey, string> = {
 
   "github.error": "GitHub API가 {status}을(를) 반환했습니다",
   "release.noMatch": "일치하는 릴리스가 없습니다.",
-  "release.inStore": "제작자가 Decky 스토어로 배포합니다. 거기서 설치하세요.",
+  "release.inStore": "이 플러그인은 Decky Loader 스토어에서 설치하세요.",
   "scan.notReviewed":
     "DeckyHub는 Decky 스토어가 아니며 이 플러그인들을 검토하는 사람은 없습니다. 검사 결과가 깨끗하다는 것은 알려진 악성코드가 없다는 뜻일 뿐입니다.",
   "release.noChecksum": "SHA-256 체크섬이 있는 DeckyHub 릴리스 ZIP을 찾지 못했습니다.",

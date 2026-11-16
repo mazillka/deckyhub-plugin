@@ -108,13 +108,19 @@ export const es: Record<MessageKey, string> = {
   "appcard.manage": "Gestionar",
   "appcard.install": "Instalar",
   "appcard.installVersion": "Instalar v{version}",
-  "appcard.downloads": "{count} descargas",
+  "appcard.downloads": "Actividad total aproximada: {count}; incluye descargas repetidas, no son instalaciones únicas.",
   "appcard.githubDownloads": "{count} descargas de GitHub",
   "appcard.storeDownloads": "{count} descargas de la tienda de Decky",
   "appcard.downloadsBreakdown": "GitHub: {github} · tienda de Decky: {store}",
+  "appcard.storeActivity":
+    "Actividad de la tienda Decky (descargas + actualizaciones): {count}; coincidencia por nombre, incluye repeticiones",
   "appcard.inStore": "En la tienda de Decky",
   "appcard.inStoreHint":
     "La tienda de Decky tiene un plugin con este nombre ({count} descargas allí). La tienda no indica el repositorio, así que comprueba que sea este.",
+  "appcard.storeInstallTitle": "Instalar desde la tienda de Decky",
+  "appcard.storeInstallStep1": "Abre el menú Quick Access de Decky Loader (icono del enchufe) y elige Tienda.",
+  "appcard.storeInstallStep2": "Busca {name}.",
+  "appcard.storeInstallStep3": "Pulsa Instalar.",
   "appcard.stars": "{count} estrellas en GitHub",
   "appcard.runsAsRoot": "Se ejecuta como root",
   "appcard.runsAsRootHint":
@@ -141,6 +147,10 @@ export const es: Record<MessageKey, string> = {
   "appcard.scan.partial": "Análisis incompleto",
   "appcard.scan.partial.hint":
     "Los análisis antivirus no pudieron revisar toda la versión que instalarías. Gestionar explica por qué.",
+  "risk.title": "Qué encontraron las comprobaciones",
+  "risk.intro": "Datos de la auditoría y de los análisis antivirus. La decisión de instalar es tuya.",
+  "risk.none":
+    "Sin avisos de auditoría ni hallazgos de análisis. Eso no significa que sea seguro: nadie revisa estos plugins.",
   "appcard.badgesNotice": "Qué significan las insignias de los plugins",
   "appcard.noReleaseInYear": "Sin versiones en un año",
   "appcard.prereleaseOnly": "Solo preliminares",
@@ -161,9 +171,9 @@ export const es: Record<MessageKey, string> = {
   "appcard.warning.persistence": "Cambia el arranque del sistema",
   "appcard.warning.persistence.hint":
     "Modifica perfiles de shell, precarga bibliotecas, carga módulos del kernel o añade reglas de dispositivos que siguen activos fuera de Decky.",
-  "appcard.warning.not-in-source": "Código fuera de su repo",
+  "appcard.warning.not-in-source": "Riesgo muy alto: la descarga incluye código que no está en GitHub",
   "appcard.warning.not-in-source.hint":
-    "La versión trae scripts o programas que no están en su código de GitHub, así que no puedes leer lo que hacen.",
+    "La versión descargada contiene código que la auditoría no pudo relacionar con el código fuente publicado. Esto podría ocultar cambios maliciosos. Revisa la versión antes de instalarla; una diferencia no demuestra que haya malware.",
   "appcard.warning.obfuscated": "Código oculto",
   "appcard.warning.obfuscated.hint": "Contiene código codificado o empaquetado difícil de leer.",
   "audit.scope":
@@ -207,6 +217,19 @@ export const es: Record<MessageKey, string> = {
   "appcard.uninstallTitle": "¿Desinstalar {name}?",
   "appcard.uninstallDescription":
     "Se eliminarán el plugin y su configuración de este dispositivo. Podrás instalarlo de nuevo más tarde.",
+  "appcard.uninstallByName":
+    "DeckyHub no pudo relacionar el plugin instalado con esta entrada, así que Decky Loader eliminará el plugin que conoce como «{name}».",
+  "appcard.installAnyway": "Instalar de todos modos",
+  "appcard.trustPlugin": "Confiar en este plugin",
+  "appcard.untrustPlugin": "Dejar de confiar",
+  "appcard.identityTrusted":
+    "Elegiste confiar en este plugin, así que puede actualizarse aunque DeckyHub no pudo verificarlo.",
+  "appcard.unverifiedConfirmBody":
+    "DeckyHub no pudo relacionar el plugin instalado «{name}» (v{version}) con esta entrada. Decky Loader sustituye los plugins por nombre, así que reemplazará ese plugin por {repo} {tag}. Si esta versión viene de un repositorio distinto del que usaste para instalarlo, estás ejecutando código de otra persona.",
+  "appcard.trustConfirmTitle": "¿Confiar en este plugin?",
+  "appcard.trustConfirmBody":
+    "DeckyHub no pudo relacionar el plugin instalado «{name}» con esta entrada. Si confías en él, las actualizaciones dejan de bloquearse. Cada una sigue preguntando antes y dice qué reemplaza, y puedes dejar de confiar aquí cuando quieras. Si las versiones del registro vienen de un repositorio distinto del que usaste para instalarlo, estarías ejecutando código de otra persona.",
+  "install.replaces": "Reemplaza «{name}» (v{version}), en el que elegiste confiar.",
   "appcard.uninstalled": "{name} se desinstaló.",
   "appcard.freshInstallDescription":
     "DeckyHub primero quita la versión instalada y después Decky instala la seleccionada desde cero. Actualizar encima puede congelar el dispositivo por un error de Decky Loader. Si cancelas el diálogo de instalación de Decky, {name} quedará desinstalado hasta que lo vuelvas a instalar.",
@@ -354,6 +377,11 @@ export const es: Record<MessageKey, string> = {
   "settings.uiStyleHint": "Experimental es un nuevo aspecto de DeckyHub que aún está en desarrollo.",
   "settings.uiStyleDefault": "Predeterminado",
   "settings.uiStyleExperimental": "Experimental",
+  "search.noData": "Sin datos de auditoría ni análisis: este plugin no está en el registro.",
+  "search.inRegistry": "En el registro: sus resultados de auditoría y análisis están en su tarjeta de Discover.",
+  "install.prerelease": "Es una versión preliminar, así que puede estar sin terminar o tener errores.",
+  "updates.newWarnings": "Nuevo en esta actualización: {warnings}",
+  "updates.droppedWarnings": "Ya no se informa en esta actualización: {warnings}",
   "settings.hideButton": "Ocultar «{button}»",
   "settings.troubleshooting": "Solución de problemas",
   "settings.exportLogs": "Exportar registros",
@@ -422,7 +450,7 @@ export const es: Record<MessageKey, string> = {
 
   "github.error": "La API de GitHub devolvió {status}",
   "release.noMatch": "No se encontró ninguna versión compatible.",
-  "release.inStore": "Su autor lo distribuye a través de la tienda de Decky. Instálalo desde allí.",
+  "release.inStore": "Instala este complemento desde la tienda de Decky Loader.",
   "scan.notReviewed":
     "DeckyHub no es la tienda de Decky y nadie revisa estos plugins. Un análisis limpio solo significa que no se encontró malware conocido.",
   "release.noChecksum": "No se encontró un ZIP de DeckyHub con suma de comprobación SHA-256.",

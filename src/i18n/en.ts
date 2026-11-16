@@ -107,13 +107,18 @@ export const en = {
   "appcard.manage": "Manage",
   "appcard.install": "Install",
   "appcard.installVersion": "Install v{version}",
-  "appcard.downloads": "{count} downloads",
+  "appcard.downloads": "Combined approximate activity: {count}; includes repeat downloads, not unique installs.",
   "appcard.githubDownloads": "{count} GitHub downloads",
   "appcard.storeDownloads": "{count} Decky store downloads",
   "appcard.downloadsBreakdown": "GitHub {github} · Decky store {store}",
+  "appcard.storeActivity": "Decky store activity (downloads + updates): {count}; matched by name, repeats included",
   "appcard.inStore": "In Decky store",
   "appcard.inStoreHint":
     "The Decky store lists a plugin with this name ({count} downloads there). The store names no repository, so check that it is this one.",
+  "appcard.storeInstallTitle": "Install from the Decky Store",
+  "appcard.storeInstallStep1": "Open Decky Loader's Quick Access menu (plug icon) and choose Store.",
+  "appcard.storeInstallStep2": "Search for {name}.",
+  "appcard.storeInstallStep3": "Press Install.",
   "appcard.stars": "{count} GitHub stars",
   "appcard.runsAsRoot": "Runs as root",
   "appcard.runsAsRootHint":
@@ -139,6 +144,9 @@ export const en = {
     "A virus scan flagged the release you'd install. It may be a false positive: open Manage for the scan report and decide for yourself.",
   "appcard.scan.partial": "Not fully scanned",
   "appcard.scan.partial.hint": "The virus scans couldn't fully check the release you'd install. Manage says why.",
+  "risk.title": "What the checks found",
+  "risk.intro": "Facts from the audit and the virus scans. The decision to install is yours.",
+  "risk.none": "No audit warnings or scan findings. That doesn't mean it's safe: nobody reviews these plugins.",
   "appcard.badgesNotice": "What the badges on plugins mean",
   "appcard.noReleaseInYear": "No release in a year",
   "appcard.prereleaseOnly": "Pre-release only",
@@ -159,9 +167,9 @@ export const en = {
   "appcard.warning.persistence": "Changes system startup",
   "appcard.warning.persistence.hint":
     "It edits shell profiles, preloads libraries, loads kernel modules or adds device rules, which keep working outside Decky.",
-  "appcard.warning.not-in-source": "Code not in its repo",
+  "appcard.warning.not-in-source": "Very high risk: Download includes code that is not in GitHub",
   "appcard.warning.not-in-source.hint":
-    "The release has scripts or programs that aren't in its GitHub source, so you can't read what they do.",
+    "The downloaded release contains code the audit could not match to the published source. This could hide malicious changes. Review the release before installing; a mismatch does not prove malware.",
   "appcard.warning.obfuscated": "Hidden code",
   "appcard.warning.obfuscated.hint": "It contains encoded or packed code that's hard to read.",
   "audit.scope": "Checks a limited set of patterns. Findings need review; this cannot prove safety.",
@@ -201,6 +209,19 @@ export const en = {
   "appcard.uninstallTitle": "Uninstall {name}?",
   "appcard.uninstallDescription":
     "This removes the plugin and its settings from this device. You can install it again later.",
+  "appcard.uninstallByName":
+    "DeckyHub couldn't match the installed plugin to this entry, so Decky Loader will remove the plugin it knows as “{name}”.",
+  "appcard.installAnyway": "Install anyway",
+  "appcard.trustPlugin": "Trust this plugin",
+  "appcard.untrustPlugin": "Stop trusting",
+  "appcard.identityTrusted":
+    "You chose to trust this plugin, so it can be updated although DeckyHub couldn't verify it.",
+  "appcard.unverifiedConfirmBody":
+    "DeckyHub couldn't match the installed plugin “{name}” (v{version}) to this entry. Decky Loader replaces plugins by name, so it will replace that plugin with {repo} {tag}. If this release comes from a different repository than the one you installed from, you are running someone else's code.",
+  "appcard.trustConfirmTitle": "Trust this plugin?",
+  "appcard.trustConfirmBody":
+    "DeckyHub couldn't match the installed plugin “{name}” to this entry. If you trust it, updates are no longer blocked. Each one still asks first and says what it replaces, and you can stop trusting it here at any time. If the registry's releases come from a different repository than the one you installed from, you would be running someone else's code.",
+  "install.replaces": "Replaces the installed “{name}” (v{version}), which you chose to trust.",
   "appcard.uninstalled": "{name} was uninstalled.",
   "appcard.freshInstallDescription":
     "DeckyHub removes the installed version first, then Decky installs the selected one fresh. Updating in place can freeze your device because of a Decky Loader bug. If you cancel Decky's install dialog, {name} stays uninstalled until you install it again.",
@@ -346,6 +367,11 @@ export const en = {
   "settings.uiStyleHint": "Experimental is a new look for DeckyHub that's still being worked on.",
   "settings.uiStyleDefault": "Default",
   "settings.uiStyleExperimental": "Experimental",
+  "search.noData": "No audit or scan data: this plugin isn't in the registry.",
+  "search.inRegistry": "In the registry: its audit and scan results are on its Discover card.",
+  "install.prerelease": "This is a pre-release, so it may be unfinished or buggy.",
+  "updates.newWarnings": "New in this update: {warnings}",
+  "updates.droppedWarnings": "No longer reported in this update: {warnings}",
   "settings.hideButton": "Hide “{button}”",
   "settings.troubleshooting": "Troubleshooting",
   "settings.exportLogs": "Export Logs",
@@ -414,7 +440,7 @@ export const en = {
 
   "github.error": "GitHub API returned {status}",
   "release.noMatch": "No matching release found.",
-  "release.inStore": "Its author distributes it through the Decky store. Install it from there.",
+  "release.inStore": "Install this plugin from Decky Loader's Store.",
   "scan.notReviewed":
     "DeckyHub is not the Decky store and nobody reviews these plugins. A clean scan only means no known malware was found.",
   "release.noChecksum": "No DeckyHub release ZIP with a SHA-256 checksum was found.",

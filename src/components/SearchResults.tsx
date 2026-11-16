@@ -15,10 +15,22 @@ const buttonStyle = { ...compactButtonStyle, marginBottom: 0 };
 // Search's results as a two-column grid or a list of rows: the plugin's name and
 // owner, then Install (Y: release notes, X: download the ZIP, Menu: the repository)
 // and, until it's in DeckyHub, Add.
+// Search lists what GitHub returns, with none of the registry's audit or scans: say so for each result.
+export function SearchDataNote({ inRegistry }: { inRegistry: boolean }) {
+  const t = useT();
+  return (
+    <small style={{ color: inRegistry ? colors.subtle : colors.caution }}>
+      {t(inRegistry ? "search.inRegistry" : "search.noData")}
+    </small>
+  );
+}
+
 export function SearchResults({
   results,
   layout,
   isAdded,
+  inRegistry,
+  storeNames,
   installing,
   canDownload,
   onInstall,
@@ -29,6 +41,8 @@ export function SearchResults({
   results: SearchRepo[];
   layout: Layout;
   isAdded: (repo: string) => boolean;
+  inRegistry: (repo: string) => boolean;
+  storeNames: Map<string, string>;
   installing: boolean;
   canDownload: boolean;
   onInstall: (repo: string) => void;
@@ -41,6 +55,20 @@ export function SearchResults({
   // until the repository is in DeckyHub, which the title's badge then says.
   const actions = (repo: SearchRepo) => {
     const added = isAdded(repo.full_name);
+    const storeName = storeNames.get(repo.full_name.toLowerCase());
+    if (storeName)
+      return (
+        <Focusable
+          flow-children="down"
+          onFocus={keepInView}
+          style={{ ...surfaceStyle, display: "grid", gap: 4, padding: 10, color: colors.textSecondary }}
+        >
+          <strong>{t("appcard.storeInstallTitle")}</strong>
+          <span>{t("appcard.storeInstallStep1")}</span>
+          <span>{t("appcard.storeInstallStep2", { name: storeName })}</span>
+          <span>{t("appcard.storeInstallStep3")}</span>
+        </Focusable>
+      );
     return (
       <Focusable flow-children="right" style={{ display: "flex", gap: 8 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -119,6 +147,9 @@ export function SearchResults({
           <small style={{ gridColumn: 1, gridRow: 3, color: colors.muted, ...ellipsis }}>
             {repo.description || t("repos.noDescription")}
           </small>
+          <div style={{ gridColumn: 1, gridRow: 4 }}>
+            <SearchDataNote inRegistry={inRegistry(repo.full_name)} />
+          </div>
           <small style={{ gridColumn: 2, gridRow: "1 / 4", color: colors.subtle }}>
             ★ {repo.stargazers_count ?? 0}
           </small>
@@ -139,6 +170,7 @@ export function SearchResults({
             <small style={{ color: colors.muted }}>
               {repo.description || t("repos.noDescription")} · ★ {repo.stargazers_count ?? 0}
             </small>
+            <SearchDataNote inRegistry={inRegistry(repo.full_name)} />
             {actions(repo)}
           </div>
         </div>

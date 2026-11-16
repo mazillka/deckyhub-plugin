@@ -107,13 +107,19 @@ export const cs: Record<MessageKey, string> = {
   "appcard.manage": "Spravovat",
   "appcard.install": "Instalovat",
   "appcard.installVersion": "Instalovat v{version}",
-  "appcard.downloads": "Stažení: {count}",
+  "appcard.downloads": "Přibližná celková aktivita: {count}; zahrnuje opakovaná stažení, nejde o jedinečné instalace.",
   "appcard.githubDownloads": "{count} stažení z GitHubu",
   "appcard.storeDownloads": "{count} stažení z obchodu Decky",
   "appcard.downloadsBreakdown": "GitHub: {github} · obchod Decky: {store}",
+  "appcard.storeActivity":
+    "Aktivita obchodu Decky (stažení + aktualizace): {count}; shoda podle názvu, opakování zahrnuta",
   "appcard.inStore": "V obchodě Decky",
   "appcard.inStoreHint":
     "Obchod Decky nabízí plugin se stejným názvem ({count} stažení tam). Obchod neuvádí repozitář, ověřte tedy, že jde o tento.",
+  "appcard.storeInstallTitle": "Instalace z obchodu Decky",
+  "appcard.storeInstallStep1": "Otevřete nabídku Quick Access v Decky Loaderu (ikona zástrčky) a vyberte Obchod.",
+  "appcard.storeInstallStep2": "Vyhledejte {name}.",
+  "appcard.storeInstallStep3": "Stiskněte Instalovat.",
   "appcard.stars": "Hvězdičky na GitHubu: {count}",
   "appcard.runsAsRoot": "Běží jako root",
   "appcard.runsAsRootHint":
@@ -140,6 +146,10 @@ export const cs: Record<MessageKey, string> = {
   "appcard.scan.partial": "Nezkontrolováno celé",
   "appcard.scan.partial.hint":
     "Antivirové kontroly nedokázaly úplně zkontrolovat vydání, které byste instalovali. Důvod je ve Spravovat.",
+  "risk.title": "Co kontroly zjistily",
+  "risk.intro": "Fakta z auditu a antivirových skenů. Rozhodnutí o instalaci je na vás.",
+  "risk.none":
+    "Žádná varování auditu ani nálezy skenů. Neznamená to, že je plugin bezpečný: nikdo tyto pluginy nekontroluje.",
   "appcard.badgesNotice": "Co znamenají štítky u pluginů",
   "appcard.noReleaseInYear": "Rok bez vydání",
   "appcard.prereleaseOnly": "Jen předběžná vydání",
@@ -160,9 +170,9 @@ export const cs: Record<MessageKey, string> = {
   "appcard.warning.persistence": "Mění spouštění systému",
   "appcard.warning.persistence.hint":
     "Upravuje profily shellu, přednačítá knihovny, načítá moduly jádra nebo přidává pravidla zařízení, která fungují i mimo Decky.",
-  "appcard.warning.not-in-source": "Kód mimo repozitář",
+  "appcard.warning.not-in-source": "Velmi vysoké riziko: Stažený soubor obsahuje kód, který na GitHubu není",
   "appcard.warning.not-in-source.hint":
-    "Vydání obsahuje skripty nebo programy, které nejsou ve zdrojovém kódu na GitHubu, takže si nemůžete přečíst, co dělají.",
+    "Stažené vydání obsahuje kód, který audit nemohl přiřadit k publikovanému zdrojovému kódu. Může skrývat škodlivé změny. Před instalací vydání zkontrolujte; nesoulad nedokazuje malware.",
   "appcard.warning.obfuscated": "Skrytý kód",
   "appcard.warning.obfuscated.hint": "Obsahuje zakódovaný nebo zabalený kód, který je těžké číst.",
   "audit.scope": "Kontroluje omezenou sadu vzorů. Nálezy vyžadují posouzení; bezpečnost nelze zaručit.",
@@ -203,6 +213,19 @@ export const cs: Record<MessageKey, string> = {
   "appcard.uninstallTitle": "Odinstalovat {name}?",
   "appcard.uninstallDescription":
     "Tímto odeberete plugin a jeho nastavení z tohoto zařízení. Později ho můžete nainstalovat znovu.",
+  "appcard.uninstallByName":
+    "DeckyHub nedokázal přiřadit nainstalovaný plugin k tomuto záznamu, proto Decky Loader odstraní plugin, který zná jako „{name}“.",
+  "appcard.installAnyway": "Přesto nainstalovat",
+  "appcard.trustPlugin": "Důvěřovat tomuto pluginu",
+  "appcard.untrustPlugin": "Přestat důvěřovat",
+  "appcard.identityTrusted":
+    "Rozhodli jste se tomuto pluginu důvěřovat, takže ho lze aktualizovat, i když ho DeckyHub nedokázal ověřit.",
+  "appcard.unverifiedConfirmBody":
+    "DeckyHub nedokázal přiřadit nainstalovaný plugin „{name}“ (v{version}) k tomuto záznamu. Decky Loader nahrazuje pluginy podle názvu, takže tento plugin nahradí pluginem {repo} {tag}. Pokud toto vydání pochází z jiného repozitáře, než ze kterého jste instalovali, spouštíte cizí kód.",
+  "appcard.trustConfirmTitle": "Důvěřovat tomuto pluginu?",
+  "appcard.trustConfirmBody":
+    "DeckyHub nedokázal přiřadit nainstalovaný plugin „{name}“ k tomuto záznamu. Pokud mu důvěřujete, aktualizace se už neblokují. Každá se stále nejdřív zeptá a řekne, co nahrazuje, a důvěru můžete tady kdykoli zrušit. Pokud vydání z registru pocházejí z jiného repozitáře, než ze kterého jste instalovali, spouštěli byste cizí kód.",
+  "install.replaces": "Nahrazuje nainstalovaný „{name}“ (v{version}), kterému jste se rozhodli důvěřovat.",
   "appcard.uninstalled": "{name} byl odinstalován.",
   "appcard.freshInstallDescription":
     "DeckyHub nejprve odebere nainstalovanou verzi a pak Decky nainstaluje vybranou verzi načisto. Aktualizace na místě může kvůli chybě v Decky Loader zamrazit zařízení. Pokud zrušíte instalační okno Decky, {name} zůstane odinstalován, dokud ho znovu nenainstalujete.",
@@ -348,6 +371,11 @@ export const cs: Record<MessageKey, string> = {
   "settings.uiStyleHint": "Experimentální je nový vzhled DeckyHub, na kterém se stále pracuje.",
   "settings.uiStyleDefault": "Výchozí",
   "settings.uiStyleExperimental": "Experimentální",
+  "search.noData": "Žádná data auditu ani skenů: tento plugin není v registru.",
+  "search.inRegistry": "V registru: výsledky auditu a skenů jsou na jeho kartě v Discover.",
+  "install.prerelease": "Je to předběžné vydání, takže může být nedokončené nebo chybné.",
+  "updates.newWarnings": "Nové v této aktualizaci: {warnings}",
+  "updates.droppedWarnings": "V této aktualizaci už nehlášeno: {warnings}",
   "settings.hideButton": "Skrýt „{button}“",
   "settings.troubleshooting": "Řešení potíží",
   "settings.exportLogs": "Exportovat protokoly",
@@ -416,7 +444,7 @@ export const cs: Record<MessageKey, string> = {
 
   "github.error": "GitHub API vrátilo {status}",
   "release.noMatch": "Nenalezeno žádné odpovídající vydání.",
-  "release.inStore": "Jeho autor ho šíří přes obchod Decky. Nainstalujte ho odtud.",
+  "release.inStore": "Nainstalujte tento plugin z obchodu Decky Loaderu.",
   "scan.notReviewed":
     "DeckyHub není obchod Decky a tyto pluginy nikdo nekontroluje. Čistý sken jen znamená, že nebyl nalezen žádný známý malware.",
   "release.noChecksum": "Nenalezen žádný ZIP vydání DeckyHub s kontrolním součtem SHA-256.",

@@ -83,6 +83,10 @@ class AppsMixin:
         # route needs to update it in place (see "Install update" on the cards).
         plugin_names = [None] * len(apps)
         unverified = [False] * len(apps)
+        # For an installed plugin that couldn't be matched to its entry: the name Decky Loader knows it by,
+        # when exactly one installed plugin is a candidate and no other carries that name, so removing it by
+        # name can only remove it. Updates stay off; removing is the one thing still safe to offer.
+        uninstall_names = [None] * len(apps)
         for index, app in enumerate(apps):
             if app.get("detect", {}).get("type") == "decky-plugin":
                 rule = {**app["detect"], "repo": app["repo"]}
@@ -97,6 +101,9 @@ class AppsMixin:
                 # Decky Loader targets plugins by manifest name, including names not listed in the registry.
                 verified = bool(name) and name_counts[name.casefold()] == 1 and len(candidates) == 1
                 unverified[index] = bool(candidates) and not verified
+                own = candidates[0][0].get("name", "") if len(candidates) == 1 else ""
+                if unverified[index] and own and name_counts[own.casefold()] == 1:
+                    uninstall_names[index] = own
                 installed[index] = self._decky_plugin_version(match or (candidates[0][:2] if candidates else None))
                 plugin_names[index] = name if verified else None
         decky.logger.info("Listed %d apps, %d installed", len(apps), sum(version is not None for version in installed))
@@ -107,6 +114,7 @@ class AppsMixin:
                     "installedVersion": version,
                     "pluginName": name,
                     "identityUnverified": uncertain,
+                    "uninstallName": uninstall_name,
                     "latestVersion": None,
                     "publishedAt": None,
                     "releaseUrl": None,
@@ -114,7 +122,9 @@ class AppsMixin:
                     "updateAvailable": None,
                     "error": None,
                 }
-                for app, version, name, uncertain in zip(apps, installed, plugin_names, unverified)
+                for app, version, name, uncertain, uninstall_name in zip(
+                    apps, installed, plugin_names, unverified, uninstall_names
+                )
             ]
         }
 

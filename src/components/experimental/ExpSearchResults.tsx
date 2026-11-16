@@ -6,12 +6,14 @@ import { useT } from "../../i18n";
 import type { SearchRepo } from "../../types";
 import { cardDescriptionStyle, visuallyHidden } from "../../utils";
 import { keepInView } from "../KeepInView";
-import type { SearchResults } from "../SearchResults";
+import { SearchDataNote, type SearchResults } from "../SearchResults";
 
 // Experimental: Search's results as rows, with the same actions: Install (Y / X / Menu on it) and Add.
 export function ExpSearchResults({
   results,
   isAdded,
+  inRegistry,
+  storeNames,
   installing,
   canDownload,
   onInstall,
@@ -24,7 +26,16 @@ export function ExpSearchResults({
   const tile = (repo: SearchRepo) => {
     const [owner, name] = repo.full_name.split("/");
     const added = isAdded(repo.full_name);
-    const buttons = (
+    const storeName = storeNames.get(repo.full_name.toLowerCase());
+    const storeOnly = Boolean(storeName);
+    const buttons = storeOnly ? (
+      <Focusable flow-children="down" className="dh-exp-buttons" onFocus={keepInView}>
+        <strong>{t("appcard.storeInstallTitle")}</strong>
+        <span>{t("appcard.storeInstallStep1")}</span>
+        <span>{t("appcard.storeInstallStep2", { name: storeName ?? name })}</span>
+        <span>{t("appcard.storeInstallStep3")}</span>
+      </Focusable>
+    ) : (
       <Focusable flow-children="right" className="dh-exp-buttons">
         <div className="dh-exp-primary" style={{ flex: 1, minWidth: 0 }}>
           <Button
@@ -67,6 +78,7 @@ export function ExpSearchResults({
         <small style={{ ...cardDescriptionStyle, color: "#c7d4e0", overflowWrap: "anywhere" }}>
           {repo.description || t("repos.noDescription")}
         </small>
+        <SearchDataNote inRegistry={inRegistry(repo.full_name)} />
       </>
     );
     return (

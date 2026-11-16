@@ -107,13 +107,19 @@ export const pl: Record<MessageKey, string> = {
   "appcard.manage": "Zarządzaj",
   "appcard.install": "Zainstaluj",
   "appcard.installVersion": "Zainstaluj v{version}",
-  "appcard.downloads": "Pobrania: {count}",
+  "appcard.downloads": "Przybliżona łączna aktywność: {count}; obejmuje powtórne pobrania, nie unikalne instalacje.",
   "appcard.githubDownloads": "{count} pobrań z GitHuba",
   "appcard.storeDownloads": "{count} pobrań ze sklepu Decky",
   "appcard.downloadsBreakdown": "GitHub: {github} · sklep Decky: {store}",
+  "appcard.storeActivity":
+    "Aktywność sklepu Decky (pobrania + aktualizacje): {count}; dopasowanie po nazwie, uwzględnia powtórzenia",
   "appcard.inStore": "W sklepie Decky",
   "appcard.inStoreHint":
     "Sklep Decky ma wtyczkę o tej nazwie ({count} pobrań tam). Sklep nie podaje repozytorium, więc sprawdź, czy to ta.",
+  "appcard.storeInstallTitle": "Zainstaluj ze sklepu Decky",
+  "appcard.storeInstallStep1": "Otwórz menu Quick Access Decky Loader (ikona wtyczki) i wybierz Sklep.",
+  "appcard.storeInstallStep2": "Wyszukaj {name}.",
+  "appcard.storeInstallStep3": "Naciśnij Zainstaluj.",
   "appcard.stars": "Gwiazdki na GitHubie: {count}",
   "appcard.runsAsRoot": "Działa jako root",
   "appcard.runsAsRootHint":
@@ -140,6 +146,10 @@ export const pl: Record<MessageKey, string> = {
   "appcard.scan.partial": "Skanowanie niepełne",
   "appcard.scan.partial.hint":
     "Skany antywirusowe nie zdołały w pełni sprawdzić wydania, które zainstalujesz. Powód jest w Zarządzaj.",
+  "risk.title": "Co znalazły kontrole",
+  "risk.intro": "Fakty z audytu i skanów antywirusowych. Decyzja o instalacji należy do ciebie.",
+  "risk.none":
+    "Brak ostrzeżeń audytu i wyników skanów. To nie znaczy, że jest bezpieczne: nikt nie sprawdza tych wtyczek.",
   "appcard.badgesNotice": "Co oznaczają plakietki przy wtyczkach",
   "appcard.noReleaseInYear": "Brak wydań od roku",
   "appcard.prereleaseOnly": "Tylko przedpremierowe",
@@ -161,9 +171,9 @@ export const pl: Record<MessageKey, string> = {
   "appcard.warning.persistence": "Zmienia uruchamianie systemu",
   "appcard.warning.persistence.hint":
     "Edytuje profile powłoki, wstępnie ładuje biblioteki, ładuje moduły jądra lub dodaje reguły urządzeń, które działają także poza Decky.",
-  "appcard.warning.not-in-source": "Kod spoza repozytorium",
+  "appcard.warning.not-in-source": "Bardzo wysokie ryzyko: pobrany plik zawiera kod, którego nie ma na GitHubie",
   "appcard.warning.not-in-source.hint":
-    "Wydanie zawiera skrypty lub programy, których nie ma w źródłach na GitHubie, więc nie możesz sprawdzić, co robią.",
+    "Pobrane wydanie zawiera kod, którego audyt nie mógł dopasować do opublikowanego kodu źródłowego. Może to ukrywać złośliwe zmiany. Przejrzyj wydanie przed instalacją; różnica nie dowodzi obecności złośliwego oprogramowania.",
   "appcard.warning.obfuscated": "Ukryty kod",
   "appcard.warning.obfuscated.hint": "Zawiera zakodowany lub spakowany kod, który trudno odczytać.",
   "audit.scope": "Sprawdza ograniczony zestaw wzorców. Wyniki wymagają oceny; kontrola nie dowodzi bezpieczeństwa.",
@@ -204,6 +214,19 @@ export const pl: Record<MessageKey, string> = {
   "appcard.uninstallTitle": "Odinstalować {name}?",
   "appcard.uninstallDescription":
     "Usuwa wtyczkę i jej ustawienia z tego urządzenia. Możesz ją później zainstalować ponownie.",
+  "appcard.uninstallByName":
+    "DeckyHub nie zdołał dopasować zainstalowanej wtyczki do tego wpisu, więc Decky Loader usunie wtyczkę, którą zna jako „{name}”.",
+  "appcard.installAnyway": "Zainstaluj mimo to",
+  "appcard.trustPlugin": "Ufaj tej wtyczce",
+  "appcard.untrustPlugin": "Przestań ufać",
+  "appcard.identityTrusted":
+    "Zdecydowałeś się zaufać tej wtyczce, więc można ją aktualizować, choć DeckyHub nie zdołał jej zweryfikować.",
+  "appcard.unverifiedConfirmBody":
+    "DeckyHub nie zdołał dopasować zainstalowanej wtyczki „{name}” (v{version}) do tego wpisu. Decky Loader zastępuje wtyczki według nazwy, więc zastąpi tę wtyczkę przez {repo} {tag}. Jeśli to wydanie pochodzi z innego repozytorium niż to, z którego instalowałeś, uruchamiasz cudzy kod.",
+  "appcard.trustConfirmTitle": "Zaufać tej wtyczce?",
+  "appcard.trustConfirmBody":
+    "DeckyHub nie zdołał dopasować zainstalowanej wtyczki „{name}” do tego wpisu. Jeśli jej ufasz, aktualizacje nie są już blokowane. Każda nadal pyta wcześniej i mówi, co zastępuje, a zaufanie możesz tu w każdej chwili cofnąć. Jeśli wydania z rejestru pochodzą z innego repozytorium niż to, z którego instalowałeś, uruchamiałbyś cudzy kod.",
+  "install.replaces": "Zastępuje zainstalowaną „{name}” (v{version}), której zaufałeś.",
   "appcard.uninstalled": "Odinstalowano {name}.",
   "appcard.freshInstallDescription":
     "DeckyHub najpierw usuwa zainstalowaną wersję, a potem Decky instaluje wybraną od nowa. Aktualizacja w miejscu może zawiesić urządzenie przez błąd w Decky Loader. Jeśli anulujesz okno instalacji Decky, {name} pozostanie odinstalowana, dopóki nie zainstalujesz jej ponownie.",
@@ -350,6 +373,11 @@ export const pl: Record<MessageKey, string> = {
   "settings.uiStyleHint": "Eksperymentalny to nowy wygląd DeckyHub, nad którym wciąż trwają prace.",
   "settings.uiStyleDefault": "Domyślny",
   "settings.uiStyleExperimental": "Eksperymentalny",
+  "search.noData": "Brak danych audytu i skanów: tej wtyczki nie ma w rejestrze.",
+  "search.inRegistry": "W rejestrze: wyniki audytu i skanów są na jej karcie w Discover.",
+  "install.prerelease": "To wersja przedpremierowa, więc może być niedokończona lub błędna.",
+  "updates.newWarnings": "Nowe w tej aktualizacji: {warnings}",
+  "updates.droppedWarnings": "Już niezgłaszane w tej aktualizacji: {warnings}",
   "settings.hideButton": "Ukryj „{button}”",
   "settings.troubleshooting": "Rozwiązywanie problemów",
   "settings.exportLogs": "Eksportuj logi",
@@ -418,7 +446,7 @@ export const pl: Record<MessageKey, string> = {
 
   "github.error": "API GitHuba zwróciło {status}",
   "release.noMatch": "Nie znaleziono pasującego wydania.",
-  "release.inStore": "Autor rozpowszechnia ją przez sklep Decky. Zainstaluj ją stamtąd.",
+  "release.inStore": "Zainstaluj tę wtyczkę ze sklepu Decky Loader.",
   "scan.notReviewed":
     "DeckyHub nie jest sklepem Decky i nikt nie sprawdza tych wtyczek. Czysty skan oznacza tylko, że nie znaleziono znanego złośliwego oprogramowania.",
   "release.noChecksum": "Nie znaleziono pliku ZIP wydania DeckyHub z sumą kontrolną SHA-256.",

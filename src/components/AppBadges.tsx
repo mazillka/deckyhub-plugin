@@ -1,10 +1,14 @@
+import { Focusable } from "@decky/ui";
 import type { CSSProperties } from "react";
 import type { TFunc } from "../i18n/en";
 import { FaShieldAlt } from "react-icons/fa";
-import { AUDIT_WARNINGS, isAuditWarning, type App, type AuditWarning, type VirusScan } from "../types";
+import { collectFindings } from "../findings";
+import { keepInView } from "./KeepInView";
+import { AUDIT_WARNINGS, installWarnings, isAuditWarning, type App, type AuditWarning, type VirusScan } from "../types";
 import { installedRiskReasons } from "../notify";
 import { compactNumber, timeAgo } from "../utils";
-import { totalDownloads } from "../sorting";
+import { storeActivityOf, storeCountOf, totalDownloads, validCount } from "../sorting";
+import { independentAuditOf } from "../independentAudit";
 import { colors, tint } from "../styles";
 
 export const pillStyle = {
@@ -42,18 +46,48 @@ export const RootBadge = ({ t }: { t: TFunc }) => (
 export { AUDIT_WARNINGS };
 
 export const WarningBadge = ({ t, warning, prerelease }: { t: TFunc; warning: AuditWarning; prerelease?: boolean }) => {
-  const color = warning === "blocked" ? colors.dangerSoft : colors.caution;
+  const color = warning === "blocked" || warning === "not-in-source" ? colors.dangerSoft : colors.caution;
   const label = t(`appcard.warning.${warning}`);
   // nowrap: beside the legend's text a long label squeezed onto three lines (seen on a Deck).
   return (
-    <span title={t(`appcard.warning.${warning}.hint`)} style={{ ...pillStyle, whiteSpace: "nowrap", ...tint(color) }}>
+    <span
+      title={t(`appcard.warning.${warning}.hint`)}
+      style={{
+        ...pillStyle,
+        whiteSpace: warning === "not-in-source" ? "normal" : "nowrap",
+        overflowWrap: warning === "not-in-source" ? "anywhere" : undefined,
+        ...tint(color),
+      }}
+    >
       {prerelease ? `${t("appcard.channelPrerelease")}: ${label}` : label}
     </span>
   );
 };
 
-// The release this card installs: a pre-release's warnings only on the pre-release channel.
+// Show warnings for the card asset when hydration identifies it; otherwise preserve both known sets.
 function AuditWarnings({ app, t }: { app: App; t: TFunc }) {
+  if (app.latestPrerelease === true) {
+    return (
+      <>
+        {installWarnings(app)
+          .filter(isAuditWarning)
+          .map((key) => (
+            <WarningBadge key={key} t={t} warning={key} prerelease />
+          ))}
+      </>
+    );
+  }
+  if (app.latestPrerelease === false) {
+    return (
+      <>
+        {installWarnings(app)
+          .filter(isAuditWarning)
+          .map((key) => (
+            <WarningBadge key={key} t={t} warning={key} />
+          ))}
+      </>
+    );
+  }
   const stable = app.stats?.warnings ?? [];
   const prerelease =
     app.channel === "prerelease" ? (app.stats?.prereleaseWarnings ?? []).filter((key) => !stable.includes(key)) : [];
@@ -127,7 +161,7 @@ const SCAN_COLORS: Record<ScanBadgeKind, string> = {
   infected: colors.dangerSoft,
   partial: colors.caution,
 };
-const scanSummary = (scan: VirusScan, virusTotal?: App["virusTotal"], metaDefender?: App["metaDefender"]) => {
+export const scanSummary = (scan: VirusScan, virusTotal?: App["virusTotal"], metaDefender?: App["metaDefender"]) => {
   const results = [scan.result, scan.yara?.result].filter(
     (result): result is NonNullable<typeof result> => result != null,
   );
@@ -160,6 +194,34 @@ export const ScanBadge = ({ t, kind, count }: { t: TFunc; kind: ScanBadgeKind; c
   );
 };
 
+// Discover looks the ZIP's scan up and leaves null when there is none: say so, since no badge would
+// read as nothing to report.
+const NotScannedBadge = ({ t }: { t: TFunc }) => (
+  <span title={t("scan.notScanned")} style={{ ...pillStyle, whiteSpace: "nowrap", ...tint(colors.muted) }}>
+    <FaShieldAlt /> {t("scan.pending")}
+  </span>
+);
+
+// What an update changes in the audit's warnings, against the installed version's.
+function UpdateWarningChanges({ app, t }: { app: App; t: TFunc }) {
+  if (!app.updateAvailable || !app.installedAssets?.[0]) return null;
+  const before = app.installedRisk?.warnings ?? [];
+  const after = auditKeys(app);
+  const label = (keys: string[]) => keys.map((key) => t(`appcard.warning.${key}` as Parameters<TFunc>[0])).join(", ");
+  const added = after.filter((key) => !before.includes(key));
+  const dropped = before.filter((key) => isAuditWarning(key) && !after.includes(key));
+  return (
+    <>
+      {added.length > 0 && (
+        <small style={{ color: colors.caution }}>{t("updates.newWarnings", { warnings: label(added) })}</small>
+      )}
+      {dropped.length > 0 && (
+        <small style={{ color: colors.muted }}>{t("updates.droppedWarnings", { warnings: label(dropped) })}</small>
+      )}
+    </>
+  );
+}
+
 // The other badges describe the release the card would install; this one, first, the installed version when that's another one.
 const InstalledRiskBadge = ({ t, risk }: { t: TFunc; risk: NonNullable<App["installedRisk"]> }) => {
   const reasons = installedRiskReasons(t, risk);
@@ -173,9 +235,78 @@ const InstalledRiskBadge = ({ t, risk }: { t: TFunc; risk: NonNullable<App["inst
   ) : null;
 };
 
+// The audit warnings the card shows, for the release it would install (see AuditWarnings).
+const auditKeys = (app: App) =>
+  [
+    ...new Set(
+      app.latestPrerelease === undefined
+        ? [
+            ...(app.stats?.warnings ?? []),
+            ...(app.channel === "prerelease" ? (app.stats?.prereleaseWarnings ?? []) : []),
+          ]
+        : installWarnings(app),
+    ),
+  ].filter(isAuditWarning);
+
+const findingsOf = (app: App) =>
+  collectFindings({
+    warnings: auditKeys(app),
+    sourceMismatch: Boolean(app.scan && (independentAuditOf(app.scan)?.source?.findings.length ?? 0) > 0),
+    scan: app.scan && !app.scan.unverifiedMatch ? scanSummary(app.scan, app.virusTotal, app.metaDefender).kind : null,
+    root: app.stats?.root === true,
+    prereleaseOnly: app.prereleaseOnly === true,
+    stale: isStale(releasedAt(app)),
+  });
+
+// Everything the audit, the scans and the registry say about the release, each fact with its
+// explanation (src/findings.ts). No verdict and no score: the user decides. One focus target, so
+// the D-pad scrolls to it like the scan report below it.
+export function FindingsSummary({ app, t }: { app: App; t: TFunc }) {
+  const { findings, scanned } = findingsOf(app);
+  return (
+    <Focusable
+      onActivate={() => {}}
+      onFocus={keepInView}
+      className="deckyhub-findings"
+      style={{ display: "grid", gap: 8, padding: "12px 14px", borderRadius: 10, border: `1px solid ${colors.muted}55` }}
+    >
+      <strong>{t("risk.title")}</strong>
+      <small>{t("risk.intro")}</small>
+      {findings.length > 0 ? (
+        <ul style={{ margin: 0, paddingLeft: 18, display: "grid", gap: 6 }}>
+          {findings.map((finding) => (
+            <li key={finding.label} style={{ fontSize: "max(12px, 0.85em)" }}>
+              <strong style={{ color: finding.tone === "danger" ? colors.dangerSoft : colors.caution }}>
+                {t(finding.label as Parameters<TFunc>[0])}
+              </strong>
+              {finding.hint && <> — {t(finding.hint as Parameters<TFunc>[0])}</>}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        scanned && <small>{t("risk.none")}</small>
+      )}
+      {!scanned && (
+        <small style={{ color: colors.caution }}>
+          {t(app.scan?.unverifiedMatch ? "scan.unverifiedMatch" : "scan.notScanned")}
+        </small>
+      )}
+    </Focusable>
+  );
+}
+
 // Installed version flagged / Runs as root / Fork / AI / Pre-release only / No description / audit warnings / virus scan / No release in a year, shared by the card and its Manage window.
 export function AppBadges({ app, t }: { app: App; t: TFunc }) {
   const released = releasedAt(app);
+  if (app.store)
+    return (
+      <>
+        {app.stats?.fork && <ForkBadge t={t} repo={app.stats.fork} />}
+        {app.stats?.store && <StoreBadge t={t} downloads={app.stats.store.downloads} />}
+        {app.stats?.ai?.length ? <AiBadge t={t} files={app.stats.ai} /> : null}
+        {!app.description?.trim() && <NoDescriptionBadge t={t} />}
+      </>
+    );
   return (
     <>
       {/* Installed the card's own release: its badges already describe it. */}
@@ -190,11 +321,16 @@ export function AppBadges({ app, t }: { app: App; t: TFunc }) {
       {!app.description?.trim() && <NoDescriptionBadge t={t} />}
       <AuditWarnings app={app} t={t} />
       {app.scan &&
+        (independentAuditOf(app.scan)?.source?.findings.length ?? 0) > 0 &&
+        !installWarnings(app).includes("not-in-source") && <WarningBadge t={t} warning="not-in-source" />}
+      {app.scan &&
         (app.scan.unverifiedMatch ? (
           <small style={{ color: SCAN_COLORS.partial }}>{t("scan.unverifiedMatch")}</small>
         ) : (
           <ScanBadge t={t} {...scanSummary(app.scan, app.virusTotal, app.metaDefender)} />
         ))}
+      {app.scan === null && <NotScannedBadge t={t} />}
+      <UpdateWarningChanges app={app} t={t} />
       {isStale(released) && (
         <span title={new Date(released).toLocaleDateString()} style={{ ...pillStyle, ...tint(colors.dangerSoft) }}>
           {t("appcard.noReleaseInYear")}
@@ -222,8 +358,10 @@ export function AppStats({
   const released = releasedAt(app);
   const { stars } = app.stats ?? {};
   const downloads = totalDownloads(app.stats);
-  const github = app.stats?.downloads;
-  const store = app.stats?.store?.downloads;
+  const githubCount = app.stats?.downloads;
+  const github = validCount(githubCount) ? githubCount : undefined;
+  const storeActivity = storeActivityOf(app.stats);
+  const store = storeCountOf(app.stats);
   return (
     <>
       {!noUpdated && released > 0 && !isStale(released) && (
@@ -232,8 +370,11 @@ export function AppStats({
       {downloads !== undefined && (
         <span
           title={[
+            downloads !== undefined && t("appcard.downloads", { count: compactNumber(downloads) }),
             github !== undefined && t("appcard.githubDownloads", { count: github.toLocaleString() }),
-            store !== undefined && t("appcard.storeDownloads", { count: store.toLocaleString() }),
+            storeActivity !== undefined
+              ? t("appcard.storeActivity", { count: storeActivity.toLocaleString() })
+              : store !== undefined && t("appcard.storeDownloads", { count: store.toLocaleString() }),
           ]
             .filter(Boolean)
             .join("\n")}
@@ -247,6 +388,18 @@ export function AppStats({
             github: compactNumber(github ?? 0),
             store: compactNumber(store),
           })}
+          {storeActivity !== undefined && (
+            <>
+              <br />
+              {t("appcard.storeActivity", { count: compactNumber(storeActivity) })}
+            </>
+          )}
+          {downloads !== undefined && (
+            <>
+              <br />
+              {t("appcard.downloads", { count: compactNumber(downloads) })}
+            </>
+          )}
         </span>
       )}
       {stars != null && (

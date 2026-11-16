@@ -37,6 +37,7 @@ export async function runRemoteRequest(request: RemoteInstallRequest, t: TFunc, 
     if (!app) throw new Error(t("appcard.noMatchingAsset"));
     if (request.action === "update" && (!app.installedVersion || app.repo !== request.repo))
       throw new Error(t("appcard.noMatchingAsset"));
+    if (app.store) throw new Error(t("release.inStore"));
     const { items, error } = await listAppReleases(app, true);
     const release = request.releaseTag
       ? items.find((item) => item.tag === request.releaseTag)
@@ -52,6 +53,7 @@ export async function runRemoteRequest(request: RemoteInstallRequest, t: TFunc, 
       ...app,
       stats: stats[app.repo.toLowerCase()],
       channel: release.prerelease ? ("prerelease" as const) : ("stable" as const),
+      latestPrerelease: release.prerelease,
     };
     const note = [
       request.ownerName,

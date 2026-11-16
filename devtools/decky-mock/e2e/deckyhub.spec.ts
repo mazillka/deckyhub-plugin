@@ -174,6 +174,15 @@ test.beforeAll(async ({ request }) => {
       { timeout: 60_000 },
     )
     .toBeGreaterThan(0);
+  // A fresh settings.json now starts in the Experimental style; these tests are written for Default.
+  const headers = { Origin: "http://127.0.0.1:5183" };
+  const current = (
+    await (await request.post(BRIDGE_URL, { data: { route: "get_settings", args: [] }, headers })).json()
+  ).result;
+  await request.post(BRIDGE_URL, {
+    data: { route: "save_settings", args: [{ ...current, uiStyle: "default" }] },
+    headers,
+  });
 });
 
 test.beforeEach(async ({ page }) => {
@@ -1582,6 +1591,106 @@ test("Discover cards show the ClamAV verdict for the release they install, and t
     await expect(legend.getByText(badge, { exact: true }).locator("..")).toContainText(meaning);
 });
 
+test("store-only plugins show Decky Store guidance and never expose old GitHub release actions", async ({ page }) => {
+  test.setTimeout(60000);
+  const storeApp = {
+    id: "junkstore",
+    name: "Junk-Store",
+    repo: "ebenbruyns/junkstore",
+    category: "Game Libraries",
+    detect: { type: "decky-plugin", names: ["Junk-Store"] },
+    asset: { include: [".zip"], exclude: ["source"] },
+    assets: [],
+    installedVersion: null,
+    store: true,
+  };
+  await page.route(BRIDGE_URL, (route) => {
+    const request = route.request();
+    if (request.method() === "POST" && request.postDataJSON()?.route === "get_apps")
+      return route.fulfill({
+        json: {
+          ok: true,
+          result: {
+            apps: [storeApp, { ...storeApp, id: "mako", name: "MAKO Decky", repo: "eugeniosegala/MAKO", store: false }],
+          },
+        },
+        headers: { "Access-Control-Allow-Origin": "*" },
+      });
+    return route.continue();
+  });
+  await page.route(PLUGIN_STATS_URL, (route) =>
+    route.fulfill({
+      json: {
+        generatedAt: new Date().toISOString(),
+        plugins: {
+          "ebenbruyns/junkstore": { root: true, warnings: ["not-in-source"] },
+          "eugeniosegala/mako": { root: true, warnings: ["not-in-source"] },
+        },
+      },
+    }),
+  );
+  await page.route(RELEASE_INDEX_URL, (route) => {
+    return route.fulfill({
+      json: {
+        generatedAt: new Date().toISOString(),
+        releases: {
+          [storeApp.repo.toLowerCase()]: [
+            {
+              tag_name: "v99.0.0",
+              html_url: `https://github.com/${storeApp.repo}/releases/tag/v99.0.0`,
+              prerelease: false,
+              published_at: new Date().toISOString(),
+              assets: [
+                {
+                  name: "legacy.zip",
+                  browser_download_url: `https://github.com/${storeApp.repo}/releases/download/v99.0.0/legacy.zip`,
+                  size: 1234,
+                  digest: `sha256:${"d".repeat(64)}`,
+                },
+              ],
+            },
+          ],
+        },
+      },
+    });
+  });
+  const app = mock(page);
+  await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643", { waitUntil: "domcontentloaded" });
+
+  const card = app.locator(".deckyhub-focus-ring").filter({ hasText: storeApp.name }).first();
+  await expect(card.getByText("Install this plugin from Decky Loader's Store.", { exact: true })).toBeVisible({
+    timeout: 20000,
+  });
+  for (const badge of ["Runs as root", "Very high risk: Download includes code that is not in GitHub", "Threat found"])
+    await expect(card.getByText(badge, { exact: true })).toHaveCount(0);
+  await card.getByRole("button", { name: "Manage", exact: true }).click();
+  const modal = app.locator(".steam-modal");
+  await expect(
+    modal.getByText("Open Decky Loader's Quick Access menu (plug icon) and choose Store.", { exact: true }),
+  ).toBeVisible();
+  await expect(modal.getByText(`Search for ${storeApp.name}.`, { exact: true })).toBeVisible();
+  await expect(modal.getByText("Press Install.", { exact: true })).toBeVisible();
+  await expect(modal.getByText("Version", { exact: true })).toHaveCount(0);
+  await expect(modal.getByText("Check for Updates", { exact: true })).toHaveCount(0);
+  await expect(modal.getByText("Download ZIP", { exact: true })).toHaveCount(0);
+  await expect(modal.getByRole("button", { name: /^Install/ })).toHaveCount(0);
+  await expect(modal.locator(".deckyhub-virus-scan")).toHaveCount(0);
+  await modal.getByRole("button", { name: "Close", exact: true }).click();
+  const normalCard = app.locator(".deckyhub-focus-ring").filter({ hasText: "MAKO Decky" }).first();
+  await expect(
+    normalCard.getByText("Very high risk: Download includes code that is not in GitHub", { exact: true }),
+  ).toBeVisible();
+  await page.route(/api\.github\.com\/search\/repositories/, (route) =>
+    route.fulfill({ json: { items: [{ full_name: storeApp.repo, description: "Junk Store", stargazers_count: 1 }] } }),
+  );
+  await page.goto("/?preview=/deckyhub/search&bridge=http://127.0.0.1:8643", { waitUntil: "domcontentloaded" });
+  await app.getByLabel("Search GitHub").fill("junk");
+  await app.getByRole("button", { name: "Search", exact: true }).click();
+  const searchResult = app.locator(".deckyhub-focus-ring").filter({ hasText: "junkstore" }).first();
+  await expect(searchResult.getByText("Search for Junk-Store.", { exact: true })).toBeVisible({ timeout: 20000 });
+  await expect(searchResult.getByRole("button", { name: "Install", exact: true })).toHaveCount(0);
+});
+
 test("Discover shows the registry's audit warnings next to Runs as root and explains each one", async ({ page }) => {
   await page.route(PLUGIN_STATS_URL, (route) =>
     route.fulfill({
@@ -1616,7 +1725,11 @@ test("Discover shows the registry's audit warnings next to Runs as root and expl
   await app.getByLabel("Sort").selectOption("downloads");
   const mako = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
   const unifideck = app.getByRole("heading", { name: "Unifideck" }).locator("..");
-  for (const text of ["Runs as root", "Reads private data", "Code not in its repo"])
+  for (const text of [
+    "Runs as root",
+    "Reads private data",
+    "Very high risk: Download includes code that is not in GitHub",
+  ])
     await expect(mako.getByText(text, { exact: true })).toBeVisible();
   // A fork the registry lists says so, and what it's a fork of.
   await expect(mako.getByText("Fork", { exact: true })).toHaveAttribute("title", "Fork of original/mako");
@@ -1644,7 +1757,7 @@ test("Discover shows the registry's audit warnings next to Runs as root and expl
     ["Blocked by audit", "Not recommended for installation."],
     ["Reads private data", "Steam login data"],
     ["Changes system startup", "keep working outside Decky"],
-    ["Code not in its repo", "aren't in its GitHub source"],
+    ["Very high risk: Download includes code that is not in GitHub", "could not match to the published source"],
     ["Hidden code", "encoded or packed code"],
     ["Skips HTTPS checks", "certificate checks"],
     ["Runs downloaded scripts", "downloads a script"],
@@ -1655,7 +1768,7 @@ test("Discover shows the registry's audit warnings next to Runs as root and expl
   // The Manage window shows them too.
   await mako.getByRole("button", { name: "Manage", exact: true }).click();
   const meta = app.locator(".steam-modal .deckyhub-details-meta");
-  for (const text of ["Reads private data", "Code not in its repo"])
+  for (const text of ["Reads private data", "Very high risk: Download includes code that is not in GitHub"])
     await expect(meta.getByText(text, { exact: true })).toBeVisible();
 });
 

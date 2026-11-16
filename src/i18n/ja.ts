@@ -107,13 +107,20 @@ export const ja: Record<MessageKey, string> = {
   "appcard.manage": "管理",
   "appcard.install": "インストール",
   "appcard.installVersion": "v{version} をインストール",
-  "appcard.downloads": "{count} ダウンロード",
+  "appcard.downloads":
+    "合計アクティビティの概算: {count}。繰り返しダウンロードを含み、固有のインストール数ではありません。",
   "appcard.githubDownloads": "GitHub ダウンロード {count} 回",
   "appcard.storeDownloads": "Decky ストアでのダウンロード {count} 件",
   "appcard.downloadsBreakdown": "GitHub: {github} · Decky ストア: {store}",
+  "appcard.storeActivity":
+    "Decky ストアのアクティビティ（ダウンロード + 更新）: {count}。名前で照合し、繰り返しを含みます",
   "appcard.inStore": "Decky ストアにあり",
   "appcard.inStoreHint":
     "Decky ストアに同名のプラグインがあります(ストアでのダウンロード {count} 回)。ストアはリポジトリを示さないため、これと同じものか確認してください。",
+  "appcard.storeInstallTitle": "Decky ストアからインストール",
+  "appcard.storeInstallStep1": "Decky Loader の Quick Access メニュー（プラグのアイコン）を開き、ストアを選択します。",
+  "appcard.storeInstallStep2": "{name} を検索します。",
+  "appcard.storeInstallStep3": "インストールを押します。",
   "appcard.stars": "GitHub スター {count}",
   "appcard.runsAsRoot": "root で実行",
   "appcard.runsAsRootHint":
@@ -140,6 +147,10 @@ export const ja: Record<MessageKey, string> = {
   "appcard.scan.partial": "一部のみスキャン",
   "appcard.scan.partial.hint":
     "インストールされるリリースをウイルススキャンですべて確認できませんでした。理由は「管理」にあります。",
+  "risk.title": "チェックで分かったこと",
+  "risk.intro": "監査とウイルススキャンの事実です。インストールするかどうかはあなたが決めます。",
+  "risk.none":
+    "監査の警告もスキャンの検出もありません。安全という意味ではありません。これらのプラグインは誰もレビューしていません。",
   "appcard.badgesNotice": "プラグインのバッジの意味",
   "appcard.noReleaseInYear": "1 年以上リリースなし",
   "appcard.prereleaseOnly": "プレリリースのみ",
@@ -161,9 +172,9 @@ export const ja: Record<MessageKey, string> = {
   "appcard.warning.persistence": "システム起動を変更",
   "appcard.warning.persistence.hint":
     "シェルのプロファイル変更、ライブラリのプリロード、カーネルモジュールの読み込み、デバイスルールの追加を行い、Decky の外でも動作し続けます。",
-  "appcard.warning.not-in-source": "リポジトリにないコード",
+  "appcard.warning.not-in-source": "非常に高いリスク: ダウンロードには GitHub にないコードが含まれます",
   "appcard.warning.not-in-source.hint":
-    "リリースに GitHub のソースにないスクリプトやプログラムが含まれており、何をするか確認できません。",
+    "ダウンロードしたリリースには、公開されたソースと照合できなかったコードが含まれています。悪意ある変更が隠れている可能性があります。インストール前にリリースを確認してください。不一致だけでマルウェアとは断定できません。",
   "appcard.warning.obfuscated": "隠されたコード",
   "appcard.warning.obfuscated.hint": "読みにくいエンコード済みまたは圧縮されたコードを含みます。",
   "audit.scope": "限られたパターンを検査します。検出結果の確認が必要で、安全性を証明するものではありません。",
@@ -203,6 +214,18 @@ export const ja: Record<MessageKey, string> = {
   "appcard.uninstall": "アンインストール",
   "appcard.uninstallTitle": "{name}をアンインストールしますか？",
   "appcard.uninstallDescription": "このプラグインと設定がこのデバイスから削除されます。後で再インストールできます。",
+  "appcard.uninstallByName":
+    "DeckyHub はインストール済みのプラグインをこの項目に対応付けられませんでした。そのため Decky Loader が「{name}」として認識しているプラグインを削除します。",
+  "appcard.installAnyway": "それでもインストール",
+  "appcard.trustPlugin": "このプラグインを信頼する",
+  "appcard.untrustPlugin": "信頼をやめる",
+  "appcard.identityTrusted": "このプラグインを信頼すると選んだため、DeckyHub が確認できなくても更新できます。",
+  "appcard.unverifiedConfirmBody":
+    "DeckyHub はインストール済みのプラグイン「{name}」(v{version}) をこの項目に対応付けられませんでした。Decky Loader は名前でプラグインを置き換えるため、そのプラグインを {repo} {tag} に置き換えます。このリリースがインストール元と別のリポジトリのものなら、他人のコードを実行することになります。",
+  "appcard.trustConfirmTitle": "このプラグインを信頼しますか？",
+  "appcard.trustConfirmBody":
+    "DeckyHub はインストール済みのプラグイン「{name}」をこの項目に対応付けられませんでした。信頼すると、更新はブロックされなくなります。更新のたびに事前に確認し、何を置き換えるかを表示します。信頼はここでいつでも取り消せます。レジストリのリリースがインストール元と別のリポジトリのものなら、他人のコードを実行することになります。",
+  "install.replaces": "信頼すると選んだインストール済みの「{name}」(v{version}) を置き換えます。",
   "appcard.uninstalled": "{name}をアンインストールしました。",
   "appcard.freshInstallDescription":
     "DeckyHub はまずインストール済みのバージョンを削除し、その後 Decky が選択したバージョンを新規インストールします。Decky Loader の不具合により、上書き更新では デバイスがフリーズすることがあります。Decky のインストール画面をキャンセルすると、{name} は再インストールするまで削除されたままになります。",
@@ -349,6 +372,11 @@ export const ja: Record<MessageKey, string> = {
   "settings.uiStyleHint": "「試験的」は開発中の DeckyHub の新しいデザインです。",
   "settings.uiStyleDefault": "デフォルト",
   "settings.uiStyleExperimental": "試験的",
+  "search.noData": "監査・スキャンのデータなし：このプラグインはレジストリにありません。",
+  "search.inRegistry": "レジストリにあります：監査とスキャンの結果は Discover のカードにあります。",
+  "install.prerelease": "プレリリースなので、未完成または不具合がある可能性があります。",
+  "updates.newWarnings": "このアップデートで新しく：{warnings}",
+  "updates.droppedWarnings": "このアップデートでは報告されなくなりました：{warnings}",
   "settings.hideButton": "「{button}」を非表示",
   "settings.troubleshooting": "トラブルシューティング",
   "settings.exportLogs": "ログをエクスポート",
@@ -417,7 +445,7 @@ export const ja: Record<MessageKey, string> = {
 
   "github.error": "GitHub API がエラー {status} を返しました",
   "release.noMatch": "該当するリリースが見つかりません。",
-  "release.inStore": "作者は Decky ストアで配布しています。そちらからインストールしてください。",
+  "release.inStore": "このプラグインは Decky Loader のストアからインストールしてください。",
   "scan.notReviewed":
     "DeckyHub は Decky ストアではなく、これらのプラグインは誰も審査していません。スキャン結果が問題なしでも、既知のマルウェアが見つからなかったという意味にすぎません。",
   "release.noChecksum": "SHA-256 チェックサム付きの DeckyHub リリース ZIP が見つかりません。",

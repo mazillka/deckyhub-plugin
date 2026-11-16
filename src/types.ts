@@ -20,8 +20,14 @@ export type App = {
   detect?: { type: string; names?: string[] };
   // Installed Decky plugin's own manifest name (decky-plugin detection only).
   pluginName?: string | null;
+  // Set when identityUnverified: the one name Decky Loader can remove it by (see apps.py).
+  uninstallName?: string | null;
+  // The user chose to trust an unverified plugin (RepoPreference.trustedIdentity): hydrate treats it as verified.
+  identityTrusted?: boolean;
   identityUnverified?: boolean;
   latestVersion?: string | null;
+  // Whether the hydrated card asset comes from a prerelease, independent of the user's filter preference.
+  latestPrerelease?: boolean;
   publishedAt?: string | null;
   releaseUrl?: string | null;
   releaseNotes?: string;
@@ -52,14 +58,17 @@ export type App = {
 // what Decky Extended Plugins' audit warns about in it (and in a newer pre-release, if any),
 // for a fork, the owner/name of the repo it was forked from, and the AI coding assistant
 // files (CLAUDE.md, AGENTS.md, .cursorrules...) in its repository, if any.
+type StoreStats = { downloads: number; activity?: { downloads: number; updates: number } };
+
 export type PluginStats = {
   downloads?: number;
   stars?: number | null;
   updated?: string | null;
   root?: boolean | null;
   fork?: string;
-  // The Decky store lists a plugin of this name (matched by name): its downloads there.
-  store?: { downloads: number };
+  // The Decky store lists a plugin of this name (matched by name): its legacy download count,
+  // plus optional activity counters from listings with both valid endpoint lists.
+  store?: StoreStats;
   ai?: string[];
   warnings?: string[];
   prereleaseWarnings?: string[];
@@ -79,11 +88,19 @@ export const AUDIT_WARNINGS = [
 ] as const;
 export type AuditWarning = (typeof AUDIT_WARNINGS)[number];
 export const isAuditWarning = (key: string): key is AuditWarning => (AUDIT_WARNINGS as readonly string[]).includes(key);
-// Audit warnings for the release an install would use: a pre-release's only on the pre-release channel.
-export const installWarnings = (app: App): string[] => [
-  ...(app.stats?.warnings ?? []),
-  ...(app.channel === "prerelease" ? (app.stats?.prereleaseWarnings ?? []) : []),
-];
+// Select warnings for the actual release when hydration or a release picker identifies it.
+export const installWarnings = (app: App, prerelease = app.latestPrerelease): string[] => {
+  if (prerelease === false) return [...(app.stats?.warnings ?? [])];
+  if (prerelease === true) {
+    // Without a stable release, `warnings` describes the prerelease-only card release.
+    return app.prereleaseOnly ? [...(app.stats?.warnings ?? [])] : [...(app.stats?.prereleaseWarnings ?? [])];
+  }
+  // Older or unhydrated app data has no release identity. Preserve the previous warning coverage.
+  return [
+    ...(app.stats?.warnings ?? []),
+    ...(app.channel === "prerelease" ? (app.stats?.prereleaseWarnings ?? []) : []),
+  ];
+};
 
 // One scanner's verdict on a plugin ZIP. found lists what it matched (infected), or for
 // ClamAV the size limit it hit (incomplete); reason says why a scan failed (error) or,
@@ -209,7 +226,13 @@ export type SearchRepo = { full_name: string; description?: string; stargazers_c
 
 // skipVersion: a release tag the user chose to skip; that release stops counting as an update.
 // pinVersion: the version the plugin is pinned at; while it is set no update is offered for it.
-export type RepoPreference = { channel: "stable" | "prerelease"; skipVersion?: string; pinVersion?: string };
+export type RepoPreference = {
+  channel: "stable" | "prerelease";
+  skipVersion?: string;
+  pinVersion?: string;
+  // The Decky name of an unverified plugin the user chose to trust: it then updates like a verified one.
+  trustedIdentity?: string;
+};
 
 export type RemoteInstallRequest = {
   id: string;

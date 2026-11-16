@@ -38,8 +38,8 @@ WARNINGS = {
         "It edits shell profiles, preloads libraries, loads kernel modules or adds device rules, which keep working outside Decky.",
     ),
     "not-in-source": (
-        "Code not in its repo",
-        "The release ZIP has scripts or programs that aren't in its GitHub source, so you can't read what they do.",
+        "Very high risk: Download includes code that is not in GitHub",
+        "The downloaded release contains code the audit could not match to the published source. This could hide malicious changes. Review the release before installing; a mismatch does not prove malware.",
     ),
     "obfuscated": ("Hidden code", "It contains encoded or packed code that's hard to read."),
     "no-tls-check": (
@@ -140,10 +140,52 @@ def compact(number: int) -> str:
     return str(number)
 
 
+MAX_SAFE_COUNT = 2**53 - 1
+
+
+def valid_count(value: object) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= MAX_SAFE_COUNT
+
+
+def store_activity(stats: dict) -> int | None:
+    """New counters require both valid lists; fall back to the legacy store download count."""
+    store = stats.get("store") or {}
+    activity = store.get("activity") or {}
+    downloads, updates = activity.get("downloads"), activity.get("updates")
+    if valid_count(downloads) and valid_count(updates) and valid_count(downloads + updates):
+        return downloads + updates
+    legacy = store.get("downloads")
+    return legacy if valid_count(legacy) else None
+
+
 def total_downloads(stats: dict) -> int | None:
-    """GitHub's downloads plus the Decky store's (they count different installs); None when neither is known."""
-    github, store = stats.get("downloads"), (stats.get("store") or {}).get("downloads")
-    return None if github is None and store is None else (github or 0) + (store or 0)
+    """Approximate GitHub + store downloads/updates; repeat activity is not a unique-install count."""
+    github = stats.get("downloads")
+    github = github if valid_count(github) else None
+    store = store_activity(stats)
+    if github is None and store is None:
+        return None
+    total = (github or 0) + (store or 0)
+    return total if valid_count(total) else None
+
+
+def source_mismatch(channel: dict) -> bool:
+    """Whether this channel's exact release scan record has valid independent source findings."""
+    sha = channel.get("sha256") or ""
+    if not re.fullmatch(r"[0-9a-fA-F]{64}", sha) or not channel.get("tag") or not channel.get("file"):
+        return False
+    audit = channel.get("audit") or {}
+    source = audit.get("source") if isinstance(audit, dict) else None
+    if not isinstance(source, dict) or source.get("result") not in ("complete", "incomplete", "error"):
+        return False
+    findings = source.get("findings")
+    return isinstance(findings, list) and any(
+        isinstance(finding, dict)
+        and finding.get("rule") in ("source_path_missing", "source_file_differs")
+        and isinstance(finding.get("path"), str)
+        and 0 < len(finding["path"]) <= 1024
+        for finding in findings
+    )
 
 
 def nice_date(iso: str | None) -> str:
@@ -248,9 +290,12 @@ def badges_of(
         items.append(
             f'<li><span class="badge fork">Fork</span> A fork of <a href="https://github.com/{escape(stats["fork"])}">{escape(stats["fork"].split("/")[1])}</a> by <a href="https://github.com/{escape(stats["fork"].split("/")[0])}">{escape(stats["fork"].split("/")[0])}</a>: its code started as a copy of that project.</li>'
         )
-    if stats.get("store"):
+    if stats.get("store") and store_activity(stats) is not None:
+        activity = (stats.get("store") or {}).get("activity") or {}
+        has_activity = valid_count(activity.get("downloads")) and valid_count(activity.get("updates"))
+        metric = "downloads + updates" if has_activity else "downloads"
         items.append(
-            f'<li><span class="badge store">In Decky store</span> The <a href="https://plugins.deckbrew.xyz/plugins">Decky store</a> lists a plugin with this name ({compact(stats["store"]["downloads"])} downloads there). The store names no repository, so check that it is this one. The store is where Decky installs it from; DeckyHub installs from GitHub. The download count comes from the Decky store.</li>'
+            f'<li><span class="badge store">In Decky store</span> The <a href="https://plugins.deckbrew.xyz/plugins">Decky store</a> lists a plugin with this name ({compact(store_activity(stats))} {metric}). The store matches by name, so check that it is this repository. These counts include repeat activity and are not unique installs. The store is where Decky installs it from; DeckyHub installs from GitHub.</li>'
         )
     if stats.get("ai"):
         items.append(
@@ -267,10 +312,30 @@ def badges_of(
         if key in warnings:
             label, hint = warnings[key]
             items.append(
-                f'<li><span class="badge {"stale" if key == "blocked" else "warn"}">{escape(prefix + label)}</span> {escape(hint)} (from <a href="https://decky-extended-plugins.beallio.com/audit">Decky Extended Plugins\' audit</a>)</li>'
+                f'<li><span class="badge {"stale" if key in ("blocked", "not-in-source") else "warn"}">{escape(prefix + label)}</span> {escape(hint)} (from <a href="https://decky-extended-plugins.beallio.com/audit">Decky Extended Plugins\' audit</a>)</li>'
             )
-    for channel, prefix in ((scans.get("stable"), ""), (scans.get("prerelease"), "Pre-release: ")):
-        if not channel or not channel.get("clamav"):
+    for channel, channel_name, prefix in (
+        (scans.get("stable"), "Stable", ""),
+        (scans.get("prerelease"), "Pre-release", "Pre-release: "),
+    ):
+        if not channel:
+            continue
+        mismatch = source_mismatch(channel)
+        channel_warning_key = "warnings" if channel_name == "Stable" else "prereleaseWarnings"
+        already_warned = "not-in-source" in (stats.get(channel_warning_key) or [])
+        if mismatch and not already_warned:
+            label, hint = warnings.get(
+                "not-in-source",
+                (
+                    "Very high risk: Download includes code that is not in GitHub",
+                    "The release contains code the audit could not match to the repository. This can hide malicious changes; review the release and source before installing. An automated mismatch does not prove malware.",
+                ),
+            )
+            release_identity = f"{channel_name} ZIP {channel['file']} ({channel['tag']})"
+            items.append(
+                f'<li><span class="badge stale">{escape(prefix + label)}</span> {escape(hint)} Applies to {escape(release_identity)}.</li>'
+            )
+        if not channel.get("clamav"):
             continue
         kind = scan_kind(channel, reports, vt_reports)
         if prefix and (scans.get("stable") or {}).get("clamav") and kind == "clean":
@@ -618,13 +683,21 @@ def plugin_page(
     name, repo, category, description = app["name"], app["repo"], app["category"], app.get("description") or ""
     repo_url = f"https://github.com/{repo}"
     facts = [f"<li><strong>{escape(category)}</strong>Category</li>"]
-    if stats.get("downloads") is not None and stats.get("store"):
-        facts.append(f"<li><strong>{compact(total_downloads(stats))}</strong>Downloads in total</li>")
-    if stats.get("downloads") is not None:
-        facts.append(f"<li><strong>{compact(stats['downloads'])}</strong>GitHub downloads</li>")
-    if stats.get("store"):
+    total = total_downloads(stats)
+    store_count = store_activity(stats)
+    github_count = stats.get("downloads")
+    github_count = github_count if valid_count(github_count) else None
+    if total is not None:
         facts.append(
-            f'<li><strong>{compact(stats["store"]["downloads"])}</strong><a href="https://plugins.deckbrew.xyz/plugins">Decky store</a> downloads</li>'
+            f"<li><strong>{compact(total)}</strong>Approximate activity (repeat downloads included; not unique installs)</li>"
+        )
+    if github_count is not None:
+        facts.append(f"<li><strong>{compact(github_count)}</strong>GitHub downloads</li>")
+    if store_count is not None:
+        activity = (stats.get("store") or {}).get("activity")
+        label = "Decky store downloads + updates" if activity else "Decky store downloads"
+        facts.append(
+            f'<li><strong>{compact(store_count)}</strong><a href="https://plugins.deckbrew.xyz/plugins">{label}</a> (matched by name)</li>'
         )
     if stats.get("stars") is not None:
         facts.append(f"<li><strong>{compact(stats['stars'])}</strong>GitHub stars</li>")
@@ -642,6 +715,18 @@ def plugin_page(
         badges.insert(
             0,
             '<li><span class="badge warn">Pre-release only</span> It has no stable release, so DeckyHub offers its pre-releases, which may be unfinished or buggy.</li>',
+        )
+    # A plugin with no scan record must not read as all clear: say that nothing is known.
+    if not app.get("store") and not (scans.get("stable") or scans.get("prerelease")):
+        badges.insert(
+            0,
+            '<li><span class="badge warn">Not scanned yet</span> DeckyHub has no virus scan result for the releases of this plugin, so these labels can&#8217;t tell you anything about them, either way.</li>',
+        )
+    # A pre-release scanned beside the stable one: say what a pre-release is.
+    if not app.get("store") and scans.get("prerelease") and not prerelease_only(releases or []):
+        badges.insert(
+            0,
+            '<li><span class="badge warn">Pre-release</span> A pre-release of this plugin is scanned too. It may be unfinished or buggy, and DeckyHub installs it only if you choose its Pre-release channel.</li>',
         )
     if not description.strip():
         badges.insert(
@@ -796,7 +881,15 @@ def flags_of(stats: dict, scans: dict, reports: dict | None = None, vt_reports: 
         flags.append('<span class="flag-store">In Decky store</span>')
     if stats.get("root"):
         flags.append('<span class="flag-warn">⚠ Root</span>')
-    if stats.get("warnings"):
+    channels = (scans.get("stable"), scans.get("prerelease"))
+    source_mismatch_found = any(channel and source_mismatch(channel) for channel in channels)
+    if (
+        source_mismatch_found
+        or "not-in-source" in (stats.get("warnings") or [])
+        or "not-in-source" in (stats.get("prereleaseWarnings") or [])
+    ):
+        flags.append('<span class="flag-bad">⚠ Very high risk</span>')
+    elif stats.get("warnings") or stats.get("prereleaseWarnings"):
         flags.append('<span class="flag-warn">⚠ Warning</span>')
     channel = scans.get("stable") or {}
     if channel.get("clamav"):
@@ -817,7 +910,7 @@ def card(app: dict, data: dict, prefix: str = "/plugins/") -> str:
     meta = " · ".join(
         part
         for part in (
-            f'<span title="{"GitHub and Decky store downloads" if stats.get("store") else "GitHub downloads"}">↓ {compact(total_downloads(stats))}</span>'
+            f'<span title="{"Approximate activity: GitHub downloads plus Decky store downloads and updates; includes repeat activity, not unique installs. Store entries are matched by name."}">↓ {compact(total_downloads(stats))}</span>'
             if total_downloads(stats) is not None
             else "",
             f"★ {compact(stats['stars'])}" if stats.get("stars") is not None else "",
@@ -827,8 +920,9 @@ def card(app: dict, data: dict, prefix: str = "/plugins/") -> str:
     description = app.get("description") or ""
     text = escape(f"{app['name']} {description} {app['category']} {app['repo']}".lower())
     in_store = ' data-store="1"' if stats.get("store") else ""
+    updated = f' data-updated="{escape(stats["updated"][:10])}"' if stats.get("updated") else ""
     return (
-        f'<a class="app" href="{prefix}{escape(app["id"])}.html" data-text="{text}" data-cat="{slug(app["category"])}"{in_store}>'
+        f'<a class="app" href="{prefix}{escape(app["id"])}.html" data-text="{text}" data-cat="{slug(app["category"])}"{in_store}{updated}>'
         f"<small>{escape(app['category'])}</small><strong>{escape(app['name'])}</strong><p>{escape(description)}</p>"
         f'<span class="meta">{meta}</span><span class="flags">{flags_of(stats, scans, data.get("reports"), data.get("vt"))}</span></a>'
     )
@@ -843,10 +937,11 @@ def popular_cards(apps: list[dict], data: dict, count: int = 12, prefix: str = "
     return "\n".join(card(app, data, prefix) for app in by_downloads(apps, data)[:count])
 
 
-FILTER_JS = """(function(){var q=document.getElementById("q"),cards=[].slice.call(document.querySelectorAll("#list .app")),chips=[].slice.call(document.querySelectorAll(".chips button[data-cat]")),store=document.getElementById("store-only"),count=document.getElementById("count"),cat="",inStore=false;
-function run(){var t=q.value.trim().toLowerCase(),n=0;cards.forEach(function(c){var ok=(!cat||c.dataset.cat===cat)&&(!inStore||c.dataset.store)&&(!t||c.dataset.text.indexOf(t)>-1);c.hidden=!ok;if(ok)n++});count.textContent=n+" of "+cards.length+" plugins";chips.forEach(function(b){b.setAttribute("aria-pressed",String((b.dataset.cat||"")===cat))})}
+FILTER_JS = """(function(){var q=document.getElementById("q"),cards=[].slice.call(document.querySelectorAll("#list .app")),chips=[].slice.call(document.querySelectorAll(".chips button[data-cat]")),ages=[].slice.call(document.querySelectorAll(".chips button[data-age]")),store=document.getElementById("store-only"),count=document.getElementById("count"),cat="",age=0,inStore=false;
+function run(){var t=q.value.trim().toLowerCase(),n=0,since=age?new Date(Date.now()-age*864e5).toISOString().slice(0,10):"";cards.forEach(function(c){var ok=(!cat||c.dataset.cat===cat)&&(!inStore||c.dataset.store)&&(!since||(c.dataset.updated||"")>=since)&&(!t||c.dataset.text.indexOf(t)>-1);c.hidden=!ok;if(ok)n++});count.textContent=n+" of "+cards.length+" plugins";chips.forEach(function(b){b.setAttribute("aria-pressed",String((b.dataset.cat||"")===cat))});ages.forEach(function(b){b.setAttribute("aria-pressed",String(+b.dataset.age===age))})}
 function fromHash(){var m=/^#cat=([a-z0-9-]+)/.exec(location.hash);cat=m?m[1]:"";run()}
 chips.forEach(function(b){b.addEventListener("click",function(){cat=b.dataset.cat||"";history.replaceState(null,"",cat?"#cat="+cat:location.pathname);run()})});
+ages.forEach(function(b){b.addEventListener("click",function(){age=+b.dataset.age;run()})});
 if(store)store.addEventListener("click",function(){inStore=!inStore;store.setAttribute("aria-pressed",String(inStore));run()});
 q.addEventListener("input",run);window.addEventListener("hashchange",fromHash);fromHash()})();"""
 
@@ -862,6 +957,10 @@ def catalog_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
         f'<button type="button" data-cat="{slug(name)}" aria-pressed="false">{escape(name)} {count}</button>'
         for name, count in sorted(categories.items(), key=lambda item: (-item[1], item[0]))
     )
+    ages = "".join(
+        f'<button type="button" data-age="{days}" aria-pressed="{"true" if not days else "false"}">{label}</button>'
+        for days, label in ((0, "Any release date"), (90, "Released in 90 days"), (365, "Released this year"))
+    )
     in_store = sum(1 for app in apps if (data["stats"].get(app["repo"].casefold()) or {}).get("store"))
     if in_store:
         chips += f'<button type="button" id="store-only" aria-pressed="false">In Decky store {in_store}</button>'
@@ -872,7 +971,7 @@ def catalog_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
 <link rel="modulepreload" href="/remote-core.js"><link rel="modulepreload" href="/remote-i18n.js"><link rel="modulepreload" href="/remote-plugins.js"><link rel="modulepreload" href="/remote-updates.js"><link rel="modulepreload" href="/remote-scan.js"><link rel="modulepreload" href="/remote-share.js"><script type="module" src="/remote-install.js"></script>
 <p class="lead">{len(apps)} Decky Loader plugins, most downloaded first. Install any of them from Gaming Mode with <a href="/">DeckyHub</a>, which also checks them for updates.</p>
 <p class="note">Every plugin belongs to its authors. DeckyHub doesn't make, review or vouch for them, and a plugin's page shows its notes (AI help, root, audit warnings) and security scans; <a href="/plugins/known-issues.html">Known issues</a> lists every plugin with a warning. Missing one? <a href="/contribute/">Add a plugin</a>.</p>
-<div class="filters"><input id="q" type="search" placeholder="Search plugins" aria-label="Search plugins" autocomplete="off"><div class="chips" role="group" aria-label="Categories">{chips}</div></div>
+<div class="filters"><input id="q" type="search" placeholder="Search plugins" aria-label="Search plugins" autocomplete="off"><div class="chips" role="group" aria-label="Categories">{chips}</div><div class="chips" role="group" aria-label="Latest release">{ages}</div></div>
 <p class="note" id="count" aria-live="polite">{len(apps)} plugins</p>
 <div class="catalog" id="list">
 {chr(10).join(card(app, data) for app in ordered)}
@@ -963,7 +1062,12 @@ def issues_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
             )
             listed.add(app["id"])
 
-        for channel, note in ((scans.get("stable"), ""), (scans.get("prerelease"), "Pre-release only")):
+        for channel, note, warning_key in (
+            (scans.get("stable"), "", "warnings"),
+            (scans.get("prerelease"), "Pre-release only", "prereleaseWarnings"),
+        ):
+            if source_mismatch(channel or {}) and "not-in-source" not in (stats.get(warning_key) or []):
+                add("not-in-source", note)
             if (
                 channel
                 and channel.get("clamav")
@@ -1039,8 +1143,12 @@ def plugin_info(apps: list[dict], data: dict) -> dict:
         for field in ("downloads", "stars", "updated", "root", "fork"):
             if stat.get(field) not in (None, False, ""):
                 record[field] = stat[field]
-        if (stat.get("store") or {}).get("downloads") is not None:
-            record["storeDownloads"] = stat["store"]["downloads"]
+        store = stat.get("store") or {}
+        if valid_count(store.get("downloads")):
+            record["storeDownloads"] = store["downloads"]
+        activity = store.get("activity") or {}
+        if valid_count(activity.get("downloads")) and valid_count(activity.get("updates")):
+            record["storeActivity"] = {"downloads": activity["downloads"], "updates": activity["updates"]}
         if stat.get("ai"):
             record["ai"] = True
         for field in ("warnings", "prereleaseWarnings"):

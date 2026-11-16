@@ -108,13 +108,20 @@ export const uk: Record<MessageKey, string> = {
   "appcard.manage": "Керувати",
   "appcard.install": "Встановити",
   "appcard.installVersion": "Встановити v{version}",
-  "appcard.downloads": "{count} завантажень",
+  "appcard.downloads":
+    "Приблизна загальна активність: {count}; повторні завантаження враховано, це не унікальні встановлення.",
   "appcard.githubDownloads": "{count} завантажень з GitHub",
   "appcard.storeDownloads": "{count} завантажень зі сховища Decky",
   "appcard.downloadsBreakdown": "GitHub: {github} · сховище Decky: {store}",
+  "appcard.storeActivity":
+    "Активність магазину Decky (завантаження + оновлення): {count}; збіги за назвою, повтори враховано",
   "appcard.inStore": "У магазині Decky",
   "appcard.inStoreHint":
     "У магазині Decky є плагін із такою назвою ({count} завантажень там). Магазин не вказує репозиторій, тож переконайтеся, що це саме той.",
+  "appcard.storeInstallTitle": "Встановлення з магазину Decky",
+  "appcard.storeInstallStep1": "Відкрийте меню Quick Access у Decky Loader (значок штекера) і виберіть «Магазин».",
+  "appcard.storeInstallStep2": "Знайдіть {name}.",
+  "appcard.storeInstallStep3": "Натисніть «Встановити».",
   "appcard.stars": "{count} зірок на GitHub",
   "appcard.runsAsRoot": "Працює від root",
   "appcard.runsAsRootHint":
@@ -141,6 +148,10 @@ export const uk: Record<MessageKey, string> = {
   "appcard.scan.partial": "Перевірено не повністю",
   "appcard.scan.partial.hint":
     "Антивірусні перевірки не змогли повністю перевірити реліз, який буде встановлено. Причина — у «Керувати».",
+  "risk.title": "Що знайшли перевірки",
+  "risk.intro": "Факти з аудиту та антивірусних перевірок. Рішення про встановлення — ваше.",
+  "risk.none":
+    "Немає попереджень аудиту чи знахідок перевірки. Це не означає, що плагін безпечний: ніхто їх не перевіряє.",
   "appcard.badgesNotice": "Що означають значки біля плагінів",
   "appcard.noReleaseInYear": "Немає релізів понад рік",
   "appcard.prereleaseOnly": "Лише пре-релізи",
@@ -161,9 +172,9 @@ export const uk: Record<MessageKey, string> = {
   "appcard.warning.persistence": "Змінює запуск системи",
   "appcard.warning.persistence.hint":
     "Змінює профілі оболонки, попередньо завантажує бібліотеки, завантажує модулі ядра або додає правила пристроїв, які працюють і поза Decky.",
-  "appcard.warning.not-in-source": "Код не з репозиторію",
+  "appcard.warning.not-in-source": "Дуже високий ризик: завантаження містить код, якого немає на GitHub",
   "appcard.warning.not-in-source.hint":
-    "У релізі є скрипти чи програми, яких немає у вихідному коді на GitHub, тож не можна прочитати, що вони роблять.",
+    "Завантажений випуск містить код, який аудит не зміг зіставити з опублікованим вихідним кодом. Це може приховувати шкідливі зміни. Перевірте випуск перед встановленням; невідповідність не доводить наявність шкідливого ПЗ.",
   "appcard.warning.obfuscated": "Прихований код",
   "appcard.warning.obfuscated.hint": "Містить закодований або запакований код, який важко прочитати.",
   "audit.scope": "Перевіряється обмежений набір шаблонів. Знахідки потребують перевірки; це не доводить безпечності.",
@@ -204,6 +215,19 @@ export const uk: Record<MessageKey, string> = {
   "appcard.uninstallTitle": "Видалити {name}?",
   "appcard.uninstallDescription":
     "Плагін і його налаштування буде видалено з цього пристрою. Пізніше його можна встановити знову.",
+  "appcard.uninstallByName":
+    "DeckyHub не зміг зіставити встановлений плагін із цим записом, тому Decky Loader видалить плагін, відомий йому як «{name}».",
+  "appcard.installAnyway": "Все одно встановити",
+  "appcard.trustPlugin": "Довіряти цьому плагіну",
+  "appcard.untrustPlugin": "Більше не довіряти",
+  "appcard.identityTrusted":
+    "Ви вирішили довіряти цьому плагіну, тому його можна оновлювати, хоча DeckyHub не зміг його підтвердити.",
+  "appcard.unverifiedConfirmBody":
+    "DeckyHub не зміг зіставити встановлений плагін «{name}» (v{version}) із цим записом. Decky Loader замінює плагіни за назвою, тож він замінить цей плагін на {repo} {tag}. Якщо цей реліз походить з іншого репозиторію, ніж той, з якого ви встановлювали, ви запускаєте чужий код.",
+  "appcard.trustConfirmTitle": "Довіряти цьому плагіну?",
+  "appcard.trustConfirmBody":
+    "DeckyHub не зміг зіставити встановлений плагін «{name}» із цим записом. Якщо ви йому довіряєте, оновлення більше не блокуються. Кожне все одно спитає спершу й скаже, що замінює, а довіру можна скасувати тут будь-коли. Якщо релізи з реєстру походять з іншого репозиторію, ніж той, з якого ви встановлювали, ви запускатимете чужий код.",
+  "install.replaces": "Замінює встановлений «{name}» (v{version}), якому ви вирішили довіряти.",
   "appcard.uninstalled": "{name} видалено.",
   "appcard.freshInstallDescription":
     "DeckyHub спершу видалить встановлену версію, а потім Decky встановить вибрану начисто. Оновлення поверх може заморозити пристрій через помилку в Decky Loader. Якщо скасувати вікно встановлення Decky, {name} залишиться видаленим, доки ви не встановите його знову.",
@@ -349,6 +373,11 @@ export const uk: Record<MessageKey, string> = {
   "settings.uiStyleHint": "Експериментальний — новий вигляд DeckyHub, над яким ще триває робота.",
   "settings.uiStyleDefault": "Типовий",
   "settings.uiStyleExperimental": "Експериментальний",
+  "search.noData": "Немає даних аудиту чи сканів: цього плагіна немає в реєстрі.",
+  "search.inRegistry": "У реєстрі: результати аудиту й сканів — на його картці в Discover.",
+  "install.prerelease": "Це пре-реліз, тож він може бути незавершеним або з помилками.",
+  "updates.newWarnings": "Нове в цьому оновленні: {warnings}",
+  "updates.droppedWarnings": "Більше не повідомляється в цьому оновленні: {warnings}",
   "settings.hideButton": "Приховати «{button}»",
   "settings.troubleshooting": "Усунення несправностей",
   "settings.exportLogs": "Експортувати журнали",
@@ -417,7 +446,7 @@ export const uk: Record<MessageKey, string> = {
 
   "github.error": "GitHub API повернув {status}",
   "release.noMatch": "Відповідний реліз не знайдено.",
-  "release.inStore": "Його автор поширює його через магазин Decky. Встановіть його звідти.",
+  "release.inStore": "Установіть цей плагін із магазину Decky Loader.",
   "scan.notReviewed":
     "DeckyHub не є магазином Decky, і ці плагіни ніхто не перевіряє. Чисте сканування лише означає, що відомого шкідливого ПЗ не знайдено.",
   "release.noChecksum": "Не знайдено ZIP-релізу DeckyHub з контрольною сумою SHA-256.",

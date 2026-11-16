@@ -108,13 +108,20 @@ export const nl: Record<MessageKey, string> = {
   "appcard.manage": "Beheren",
   "appcard.install": "Installeren",
   "appcard.installVersion": "v{version} installeren",
-  "appcard.downloads": "{count} downloads",
+  "appcard.downloads":
+    "Geschatte totale activiteit: {count}; herhaalde downloads inbegrepen, geen unieke installaties.",
   "appcard.githubDownloads": "{count} GitHub-downloads",
   "appcard.storeDownloads": "{count} downloads uit de Decky-store",
   "appcard.downloadsBreakdown": "GitHub: {github} · Decky-store: {store}",
+  "appcard.storeActivity":
+    "Decky-storeactiviteit (downloads + updates): {count}; gekoppeld op naam, herhalingen inbegrepen",
   "appcard.inStore": "In de Decky-store",
   "appcard.inStoreHint":
     "De Decky-store heeft een plugin met deze naam ({count} downloads daar). De store noemt geen repository, controleer dus of het deze is.",
+  "appcard.storeInstallTitle": "Installeren vanuit de Decky Store",
+  "appcard.storeInstallStep1": "Open het Quick Access-menu van Decky Loader (stekkerpictogram) en kies Store.",
+  "appcard.storeInstallStep2": "Zoek naar {name}.",
+  "appcard.storeInstallStep3": "Druk op Installeren.",
   "appcard.stars": "{count} GitHub-sterren",
   "appcard.runsAsRoot": "Draait als root",
   "appcard.runsAsRootHint":
@@ -141,6 +148,10 @@ export const nl: Record<MessageKey, string> = {
   "appcard.scan.partial": "Niet volledig gescand",
   "appcard.scan.partial.hint":
     "De virusscans konden de release die je zou installeren niet helemaal controleren. Beheren zegt waarom.",
+  "risk.title": "Wat de controles vonden",
+  "risk.intro": "Feiten uit de audit en de virusscans. De beslissing om te installeren is aan jou.",
+  "risk.none":
+    "Geen auditwaarschuwingen of scanbevindingen. Dat betekent niet dat het veilig is: niemand controleert deze plugins.",
   "appcard.badgesNotice": "Wat de labels bij plugins betekenen",
   "appcard.noReleaseInYear": "Al een jaar geen release",
   "appcard.prereleaseOnly": "Alleen pre-releases",
@@ -162,9 +173,9 @@ export const nl: Record<MessageKey, string> = {
   "appcard.warning.persistence": "Wijzigt het opstarten van het systeem",
   "appcard.warning.persistence.hint":
     "Bewerkt shellprofielen, laadt bibliotheken vooraf, laadt kernelmodules of voegt apparaatregels toe, die ook buiten Decky blijven werken.",
-  "appcard.warning.not-in-source": "Code niet in de repo",
+  "appcard.warning.not-in-source": "Zeer hoog risico: de download bevat code die niet op GitHub staat",
   "appcard.warning.not-in-source.hint":
-    "De release bevat scripts of programma's die niet in de GitHub-broncode staan, dus je kunt niet nalezen wat ze doen.",
+    "De gedownloade release bevat code die de audit niet kon koppelen aan de gepubliceerde broncode. Dit kan schadelijke wijzigingen verbergen. Bekijk de release voordat je installeert; een verschil bewijst geen malware.",
   "appcard.warning.obfuscated": "Verborgen code",
   "appcard.warning.obfuscated.hint": "Bevat gecodeerde of ingepakte code die moeilijk te lezen is.",
   "audit.scope":
@@ -208,6 +219,19 @@ export const nl: Record<MessageKey, string> = {
   "appcard.uninstallTitle": "{name} verwijderen?",
   "appcard.uninstallDescription":
     "Dit verwijdert de plugin en zijn instellingen van dit apparaat. Je kunt hem later opnieuw installeren.",
+  "appcard.uninstallByName":
+    "DeckyHub kon de geïnstalleerde plugin niet aan dit item koppelen, dus Decky Loader verwijdert de plugin die het kent als “{name}”.",
+  "appcard.installAnyway": "Toch installeren",
+  "appcard.trustPlugin": "Deze plugin vertrouwen",
+  "appcard.untrustPlugin": "Niet meer vertrouwen",
+  "appcard.identityTrusted":
+    "Je hebt ervoor gekozen deze plugin te vertrouwen, dus hij kan worden bijgewerkt hoewel DeckyHub hem niet kon verifiëren.",
+  "appcard.unverifiedConfirmBody":
+    "DeckyHub kon de geïnstalleerde plugin “{name}” (v{version}) niet aan dit item koppelen. Decky Loader vervangt plugins op naam, dus het vervangt die plugin door {repo} {tag}. Komt deze release uit een andere repository dan waaruit je hem installeerde, dan voer je andermans code uit.",
+  "appcard.trustConfirmTitle": "Deze plugin vertrouwen?",
+  "appcard.trustConfirmBody":
+    "DeckyHub kon de geïnstalleerde plugin “{name}” niet aan dit item koppelen. Als je hem vertrouwt, worden updates niet meer geblokkeerd. Elke update vraagt nog steeds eerst en zegt wat hij vervangt, en je kunt het vertrouwen hier altijd intrekken. Komen de releases van het register uit een andere repository dan waaruit je installeerde, dan zou je andermans code uitvoeren.",
+  "install.replaces": "Vervangt de geïnstalleerde “{name}” (v{version}), die je hebt vertrouwd.",
   "appcard.uninstalled": "{name} is verwijderd.",
   "appcard.freshInstallDescription":
     "DeckyHub verwijdert eerst de geïnstalleerde versie, daarna installeert Decky de gekozen versie opnieuw. Ter plekke bijwerken kan je apparaat laten vastlopen door een bug in Decky Loader. Als je het installatievenster van Decky annuleert, blijft {name} verwijderd tot je hem opnieuw installeert.",
@@ -355,6 +379,11 @@ export const nl: Record<MessageKey, string> = {
   "settings.uiStyleHint": "Experimenteel is een nieuw uiterlijk voor DeckyHub waaraan nog wordt gewerkt.",
   "settings.uiStyleDefault": "Standaard",
   "settings.uiStyleExperimental": "Experimenteel",
+  "search.noData": "Geen audit- of scangegevens: deze plugin staat niet in het register.",
+  "search.inRegistry": "In het register: de audit- en scanresultaten staan op de Discover-kaart.",
+  "install.prerelease": "Dit is een pre-release en kan onaf of foutief zijn.",
+  "updates.newWarnings": "Nieuw in deze update: {warnings}",
+  "updates.droppedWarnings": "Niet meer gemeld in deze update: {warnings}",
   "settings.hideButton": "“{button}” verbergen",
   "settings.troubleshooting": "Probleemoplossing",
   "settings.exportLogs": "Logs exporteren",
@@ -423,7 +452,7 @@ export const nl: Record<MessageKey, string> = {
 
   "github.error": "GitHub API gaf {status} terug",
   "release.noMatch": "Geen passende release gevonden.",
-  "release.inStore": "De auteur verspreidt hem via de Decky-store. Installeer hem daar.",
+  "release.inStore": "Installeer deze plugin vanuit de Store van Decky Loader.",
   "scan.notReviewed":
     "DeckyHub is niet de Decky-store en niemand beoordeelt deze plugins. Een schone scan betekent alleen dat er geen bekende malware is gevonden.",
   "release.noChecksum": "Geen DeckyHub-release-ZIP met een SHA-256-checksum gevonden.",

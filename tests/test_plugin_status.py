@@ -34,6 +34,25 @@ class PluginStatusTests(unittest.TestCase):
         self.assertIsNone(app["pluginName"])
         self.assertEqual(app["installedVersion"], "1.2.3")
 
+    def test_an_unverified_plugin_can_be_removed_by_its_own_name_only_when_that_name_is_unique(self):
+        plugin = Plugin()
+        plugin.settings = {"customRepos": []}
+        plugin.apps = [{"repo": "owner/project", "detect": {"type": "decky-plugin", "names": ["Plugin"]}}]
+        # Carries the registry's name but names another repository: not verified, so no updates.
+        unique = [({"name": "Plugin", "version": "1.2.3"}, {}, "someone/else")]
+        with patch.object(plugin, "_scan_installed_plugins", return_value=unique):
+            app = asyncio.run(plugin.get_apps())["apps"][0]
+        self.assertTrue(app["identityUnverified"])
+        self.assertIsNone(app["pluginName"])
+        # Decky can still remove it by that name, which no other installed plugin has.
+        self.assertEqual(app["uninstallName"], "Plugin")
+        duplicate = [*unique, ({"name": "plugin", "version": "9.0.0"}, {}, "other/project")]
+        with patch.object(plugin, "_scan_installed_plugins", return_value=duplicate):
+            app = asyncio.run(plugin.get_apps())["apps"][0]
+        # Two plugins share the name: removing by name could remove the wrong one.
+        self.assertTrue(app["identityUnverified"])
+        self.assertIsNone(app["uninstallName"])
+
     def test_repository_match_rejects_name_only_wrong_owner_and_duplicates(self):
         plugin = Plugin()
         rule = {"repo": "owner/project", "names": ["Plugin"]}
@@ -292,13 +311,17 @@ class PluginStatusTests(unittest.TestCase):
             plugin.settings_path = Path(home) / "settings.json"
             self.assertIs(plugin._load_settings()["quickAccessTab"], True)
 
-    def test_ui_style_defaults_for_old_settings_and_keeps_only_known_styles(self):
+    def test_ui_style_is_informative_for_new_installs_and_classic_for_old_settings(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = Plugin()
             plugin.settings_path = Path(home) / "settings.json"
+            # No settings file yet: a new install.
+            self.assertEqual(plugin._load_settings()["uiStyle"], "experimental")
+            # A file from before the choice existed keeps the look its owner has.
             plugin.settings_path.write_text(json.dumps({"haptics": False}), encoding="utf-8")
             self.assertEqual(plugin._load_settings()["uiStyle"], "default")
             self.assertEqual(asyncio.run(plugin.save_settings({"uiStyle": "experimental"}))["uiStyle"], "experimental")
+            self.assertEqual(asyncio.run(plugin.save_settings({"uiStyle": "default"}))["uiStyle"], "default")
             self.assertEqual(asyncio.run(plugin.save_settings({"uiStyle": "neon"}))["uiStyle"], "default")
 
     def test_hidden_buttons_keep_only_known_names(self):
@@ -622,6 +645,21 @@ class PluginStatusTests(unittest.TestCase):
         )
         for values in ({"channel": "stable"}, {"pinVersion": ""}, {"pinVersion": 12}, {"pinVersion": "v" * 201}):
             self.assertNotIn("pinVersion", coerce_repo_settings(values))
+
+    def test_repo_settings_keep_a_trusted_identity_and_drop_a_bad_one(self):
+        from deckyhub.settings import coerce_repo_settings
+
+        self.assertEqual(
+            coerce_repo_settings({"channel": "stable", "trustedIdentity": " CSS Loader "}),
+            {"channel": "stable", "trustedIdentity": "CSS Loader"},
+        )
+        for values in (
+            {"channel": "stable"},
+            {"trustedIdentity": ""},
+            {"trustedIdentity": 7},
+            {"trustedIdentity": "x" * 201},
+        ):
+            self.assertNotIn("trustedIdentity", coerce_repo_settings(values))
 
     def test_save_repo_settings_rejects_invalid_repo(self):
         plugin = Plugin()
