@@ -708,7 +708,7 @@ def plugin_page(
     if app.get("store"):
         scans, reports, vt_reports = {}, {}, {}
         stats = {
-            key: value for key, value in stats.items() if key not in ("root", "warnings", "prereleaseWarnings", "ai")
+            key: value for key, value in stats.items() if key not in ("root", "fork", "warnings", "prereleaseWarnings", "ai")
         }
     badges = badges_of(stats, scans, warnings, reports, vt_reports)
     if not app.get("store") and prerelease_only(releases or []):
@@ -872,9 +872,13 @@ def load_data() -> dict:
     }
 
 
-def flags_of(stats: dict, scans: dict, reports: dict | None = None, vt_reports: dict | None = None) -> str:
-    """Small markers on a card: AI help, root, audit warnings, and the virus scan's verdict."""
+def flags_of(
+    stats: dict, scans: dict, reports: dict | None = None, vt_reports: dict | None = None, store_only: bool = False
+) -> str:
+    """Small markers on a card: AI help, root, audit warnings, and the virus scan's verdict. A store-only plugin gets just In Decky store."""
     flags = []
+    if store_only:
+        return '<span class="flag-store">In Decky store</span>' if stats.get("store") else ""
     if stats.get("ai"):
         flags.append('<span class="flag-ai">✦ AI</span>')
     if stats.get("store"):
@@ -924,7 +928,7 @@ def card(app: dict, data: dict, prefix: str = "/plugins/") -> str:
     return (
         f'<a class="app" href="{prefix}{escape(app["id"])}.html" data-text="{text}" data-cat="{slug(app["category"])}"{in_store}{updated}>'
         f"<small>{escape(app['category'])}</small><strong>{escape(app['name'])}</strong><p>{escape(description)}</p>"
-        f'<span class="meta">{meta}</span><span class="flags">{flags_of(stats, scans, data.get("reports"), data.get("vt"))}</span></a>'
+        f'<span class="meta">{meta}</span><span class="flags">{flags_of(stats, scans, data.get("reports"), data.get("vt"), bool(app.get("store")))}</span></a>'
     )
 
 
