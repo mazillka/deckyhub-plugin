@@ -387,6 +387,32 @@ class PluginPageTests(unittest.TestCase):
             self.assertIn(text, page)
         self.assertNotIn("Clean One", page)
 
+    def test_known_issues_does_not_list_a_scan_that_is_only_waiting_for_two_of_the_scanners(self):
+        shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
+        waiting = {**APP, "id": "waiting-one", "name": "Waiting One", "repo": "a/waiting"}
+        broken = {**APP, "id": "broken-one", "name": "Broken One", "repo": "a/broken"}
+        data = {
+            "stats": {},
+            "warnings": plugin_pages.WARNINGS,
+            "scans": {
+                # ClamAV and YARA are clean; VirusTotal and MetaDefender haven't reported yet: not a problem.
+                "a/waiting": {"stable": {"sha256": SHA, "clamav": {"result": "clean"}, "yara": {"result": "clean"}}},
+                # A scanner that could not finish is.
+                "a/broken": {
+                    "stable": {"sha256": "d" * 64, "clamav": {"result": "error"}, "yara": {"result": "clean"}}
+                },
+            },
+            "reports": {},
+            "vt": {},
+        }
+        page = plugin_pages.issues_page(shell, [waiting, broken], data)
+        self.assertNotIn("Waiting One", page)
+        self.assertIn("Broken One", page)
+        self.assertIn('id="partial"', page)
+        # The badge still calls the waiting one Not fully scanned.
+        self.assertEqual(plugin_pages.scan_kind(data["scans"]["a/waiting"]["stable"]), "partial")
+        self.assertEqual(plugin_pages.scan_state(data["scans"]["a/waiting"]["stable"]), "clean")
+
     def test_known_issues_lists_a_tag_that_disagrees_with_its_zip(self):
         shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
         other = {**APP, "id": "same-one", "name": "Same One", "repo": "a/same"}
