@@ -381,7 +381,8 @@ export const fr: Record<MessageKey, string> = {
   "settings.quickAccessTab": "Onglet DeckyHub dans l'Accès rapide",
   "settings.quickAccessTabHint": "Désactivé, ouvrez DeckyHub depuis la liste des plugins de Decky.",
   "settings.uiStyle": "Style d'interface",
-  "settings.uiStyleHint": "Expérimental est une nouvelle apparence de DeckyHub encore en cours de développement.",
+  "settings.uiStyleHint":
+    "Expérimental et Expérimental V2 sont encore en cours de développement. Ils peuvent être défaillants et ne sont pas faits pour un usage quotidien. Choisissez Par défaut en cas de problème.",
   "settings.uiStyleDefault": "Par défaut",
   "settings.uiStyleExperimental": "Expérimental",
   "search.noData": "Aucune donnée d'audit ou d'analyse : ce plugin n'est pas dans le registre.",

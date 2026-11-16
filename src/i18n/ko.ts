@@ -365,7 +365,8 @@ export const ko: Record<MessageKey, string> = {
   "settings.quickAccessTab": "빠른 액세스의 DeckyHub 탭",
   "settings.quickAccessTabHint": "끄면 Decky 플러그인 목록에서 DeckyHub를 엽니다.",
   "settings.uiStyle": "UI 스타일",
-  "settings.uiStyleHint": "실험적은 아직 작업 중인 DeckyHub의 새로운 디자인입니다.",
+  "settings.uiStyleHint":
+    "실험적과 실험적 V2는 아직 개발 중입니다. 오작동할 수 있으며 일상적인 사용에는 적합하지 않습니다. 문제가 생기면 기본을 선택하세요.",
   "settings.uiStyleDefault": "기본",
   "settings.uiStyleExperimental": "실험적",
   "search.noData": "감사·검사 데이터 없음: 이 플러그인은 레지스트리에 없습니다.",

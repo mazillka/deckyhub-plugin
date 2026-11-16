@@ -379,7 +379,8 @@ export const it: Record<MessageKey, string> = {
   "settings.quickAccessTab": "Scheda DeckyHub nell'Accesso rapido",
   "settings.quickAccessTabHint": "Se disattivata, apri DeckyHub dall'elenco dei plugin di Decky.",
   "settings.uiStyle": "Stile interfaccia",
-  "settings.uiStyleHint": "Sperimentale è un nuovo aspetto di DeckyHub ancora in lavorazione.",
+  "settings.uiStyleHint":
+    "Sperimentale e Sperimentale V2 sono ancora in sviluppo. Potrebbero non funzionare bene e non sono pensati per l'uso quotidiano. Scegli Predefinito se qualcosa va storto.",
   "settings.uiStyleDefault": "Predefinito",
   "settings.uiStyleExperimental": "Sperimentale",
   "search.noData": "Nessun dato di audit o scansione: questo plugin non è nel registro.",
