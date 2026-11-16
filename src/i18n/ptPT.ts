@@ -119,6 +119,10 @@ export const ptPT: Record<MessageKey, string> = {
   "appcard.inStore": "Na loja do Decky",
   "appcard.inStoreHint":
     "A loja do Decky tem um plugin com este nome ({count} transferências lá). A loja não indica o repositório, por isso confirme que é este.",
+  "appcard.storeInstallTitle": "Instalar a partir da loja Decky",
+  "appcard.storeInstallStep1": "Abra o menu Quick Access do Decky Loader (ícone da ficha) e escolha Loja.",
+  "appcard.storeInstallStep2": "Pesquise {name}.",
+  "appcard.storeInstallStep3": "Prima Instalar.",
   "appcard.stars": "{count} estrelas no GitHub",
   "appcard.runsAsRoot": "Corre como root",
   "appcard.runsAsRootHint":
@@ -170,9 +174,9 @@ export const ptPT: Record<MessageKey, string> = {
   "appcard.warning.persistence": "Altera a inicialização",
   "appcard.warning.persistence.hint":
     "Edita perfis da shell, pré-carrega bibliotecas, carrega módulos do kernel ou adiciona regras de dispositivo que continuam ativas fora do Decky.",
-  "appcard.warning.not-in-source": "Risco muito elevado: o código não corresponde ao código-fonte",
+  "appcard.warning.not-in-source": "Risco muito elevado: a transferência inclui código que não está no GitHub",
   "appcard.warning.not-in-source.hint":
-    "A versão contém código que a auditoria não conseguiu associar ao repositório. Isto pode ocultar alterações maliciosas; reveja a versão e o código-fonte antes de instalar. Uma divergência detetada automaticamente não prova a existência de malware.",
+    "A versão transferida contém código que a auditoria não conseguiu associar ao código-fonte publicado. Isto pode ocultar alterações maliciosas. Reveja a versão antes de instalar; uma diferença não prova a existência de malware.",
   "appcard.warning.obfuscated": "Código oculto",
   "appcard.warning.obfuscated.hint": "Contém código codificado ou compactado difícil de ler.",
   "audit.scope":
@@ -432,7 +436,7 @@ export const ptPT: Record<MessageKey, string> = {
 
   "github.error": "A API do GitHub retornou {status}",
   "release.noMatch": "Nenhuma versão compatível encontrada.",
-  "release.inStore": "O autor distribui-o pela loja do Decky. Instale-o a partir de lá.",
+  "release.inStore": "Instale este plugin a partir da loja do Decky Loader.",
   "scan.notReviewed":
     "O DeckyHub não é a loja do Decky e ninguém revê estes plugins. Uma verificação limpa só significa que não foi encontrado malware conhecido.",
   "release.noChecksum": "Não foi encontrado nenhum ZIP de versão do DeckyHub com checksum SHA-256.",

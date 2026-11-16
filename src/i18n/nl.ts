@@ -118,6 +118,10 @@ export const nl: Record<MessageKey, string> = {
   "appcard.inStore": "In de Decky-store",
   "appcard.inStoreHint":
     "De Decky-store heeft een plugin met deze naam ({count} downloads daar). De store noemt geen repository, controleer dus of het deze is.",
+  "appcard.storeInstallTitle": "Installeren vanuit de Decky Store",
+  "appcard.storeInstallStep1": "Open het Quick Access-menu van Decky Loader (stekkerpictogram) en kies Store.",
+  "appcard.storeInstallStep2": "Zoek naar {name}.",
+  "appcard.storeInstallStep3": "Druk op Installeren.",
   "appcard.stars": "{count} GitHub-sterren",
   "appcard.runsAsRoot": "Draait als root",
   "appcard.runsAsRootHint":
@@ -169,9 +173,9 @@ export const nl: Record<MessageKey, string> = {
   "appcard.warning.persistence": "Wijzigt het opstarten van het systeem",
   "appcard.warning.persistence.hint":
     "Bewerkt shellprofielen, laadt bibliotheken vooraf, laadt kernelmodules of voegt apparaatregels toe, die ook buiten Decky blijven werken.",
-  "appcard.warning.not-in-source": "Zeer hoog risico: code komt niet overeen met de broncode",
+  "appcard.warning.not-in-source": "Zeer hoog risico: de download bevat code die niet op GitHub staat",
   "appcard.warning.not-in-source.hint":
-    "De release bevat code die de audit niet aan de repository kon koppelen. Dit kan schadelijke wijzigingen verbergen; controleer de release en broncode voordat je installeert. Een automatisch gevonden afwijking bewijst niet dat er malware is.",
+    "De gedownloade release bevat code die de audit niet kon koppelen aan de gepubliceerde broncode. Dit kan schadelijke wijzigingen verbergen. Bekijk de release voordat je installeert; een verschil bewijst geen malware.",
   "appcard.warning.obfuscated": "Verborgen code",
   "appcard.warning.obfuscated.hint": "Bevat gecodeerde of ingepakte code die moeilijk te lezen is.",
   "audit.scope":
@@ -430,7 +434,7 @@ export const nl: Record<MessageKey, string> = {
 
   "github.error": "GitHub API gaf {status} terug",
   "release.noMatch": "Geen passende release gevonden.",
-  "release.inStore": "De auteur verspreidt hem via de Decky-store. Installeer hem daar.",
+  "release.inStore": "Installeer deze plugin vanuit de Store van Decky Loader.",
   "scan.notReviewed":
     "DeckyHub is niet de Decky-store en niemand beoordeelt deze plugins. Een schone scan betekent alleen dat er geen bekende malware is gevonden.",
   "release.noChecksum": "Geen DeckyHub-release-ZIP met een SHA-256-checksum gevonden.",

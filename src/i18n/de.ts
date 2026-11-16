@@ -119,6 +119,10 @@ export const de: Record<MessageKey, string> = {
   "appcard.inStore": "Im Decky-Store",
   "appcard.inStoreHint":
     "Der Decky-Store führt ein Plugin mit diesem Namen ({count} Downloads dort). Der Store nennt kein Repository, prüfe also, ob es dieses ist.",
+  "appcard.storeInstallTitle": "Aus dem Decky Store installieren",
+  "appcard.storeInstallStep1": "Öffne das Quick-Access-Menü von Decky Loader (Steckersymbol) und wähle Store.",
+  "appcard.storeInstallStep2": "Suche nach {name}.",
+  "appcard.storeInstallStep3": "Wähle Installieren.",
   "appcard.stars": "{count} GitHub-Sterne",
   "appcard.runsAsRoot": "Läuft als root",
   "appcard.runsAsRootHint":
@@ -171,9 +175,9 @@ export const de: Record<MessageKey, string> = {
   "appcard.warning.persistence": "Ändert den Systemstart",
   "appcard.warning.persistence.hint":
     "Es ändert Shell-Profile, lädt Bibliotheken vor, lädt Kernelmodule oder fügt Geräteregeln hinzu, die auch außerhalb von Decky wirken.",
-  "appcard.warning.not-in-source": "Sehr hohes Risiko: Code stimmt nicht mit dem Quellcode überein",
+  "appcard.warning.not-in-source": "Sehr hohes Risiko: Der Download enthält Code, der nicht auf GitHub ist",
   "appcard.warning.not-in-source.hint":
-    "Die Version enthält Code, den das Audit nicht dem Repository zuordnen konnte. Dadurch können schädliche Änderungen verborgen werden; prüfe die Version und den Quellcode vor der Installation. Eine automatisiert festgestellte Abweichung beweist keine Malware.",
+    "Das heruntergeladene Release enthält Code, den das Audit dem veröffentlichten Quellcode nicht zuordnen konnte. Dadurch könnten schädliche Änderungen verborgen werden. Prüfe das Release vor der Installation; eine Abweichung beweist keine Schadsoftware.",
   "appcard.warning.obfuscated": "Versteckter Code",
   "appcard.warning.obfuscated.hint": "Es enthält kodierten oder gepackten Code, der schwer zu lesen ist.",
   "audit.scope":
@@ -434,7 +438,7 @@ export const de: Record<MessageKey, string> = {
 
   "github.error": "GitHub-API hat {status} zurückgegeben",
   "release.noMatch": "Keine passende Version gefunden.",
-  "release.inStore": "Der Autor verteilt es über den Decky-Store. Installiere es von dort.",
+  "release.inStore": "Installiere dieses Plugin über den Store von Decky Loader.",
   "scan.notReviewed":
     "DeckyHub ist nicht der Decky-Store, und niemand prüft diese Plugins. Ein sauberer Scan bedeutet nur, dass keine bekannte Malware gefunden wurde.",
   "release.noChecksum": "Kein DeckyHub-Release-ZIP mit SHA-256-Prüfsumme gefunden.",

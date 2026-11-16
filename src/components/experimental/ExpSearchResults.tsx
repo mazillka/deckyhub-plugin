@@ -12,6 +12,7 @@ import type { SearchResults } from "../SearchResults";
 export function ExpSearchResults({
   results,
   isAdded,
+  storeNames,
   installing,
   canDownload,
   onInstall,
@@ -24,7 +25,16 @@ export function ExpSearchResults({
   const tile = (repo: SearchRepo) => {
     const [owner, name] = repo.full_name.split("/");
     const added = isAdded(repo.full_name);
-    const buttons = (
+    const storeName = storeNames.get(repo.full_name.toLowerCase());
+    const storeOnly = Boolean(storeName);
+    const buttons = storeOnly ? (
+      <Focusable flow-children="down" className="dh-exp-buttons" onFocus={keepInView}>
+        <strong>{t("appcard.storeInstallTitle")}</strong>
+        <span>{t("appcard.storeInstallStep1")}</span>
+        <span>{t("appcard.storeInstallStep2", { name: storeName ?? name })}</span>
+        <span>{t("appcard.storeInstallStep3")}</span>
+      </Focusable>
+    ) : (
       <Focusable flow-children="right" className="dh-exp-buttons">
         <div className="dh-exp-primary" style={{ flex: 1, minWidth: 0 }}>
           <Button

@@ -118,6 +118,11 @@ export const fr: Record<MessageKey, string> = {
   "appcard.inStore": "Dans la boutique Decky",
   "appcard.inStoreHint":
     "La boutique Decky propose un plugin portant ce nom ({count} téléchargements là-bas). La boutique n'indique pas de dépôt : vérifiez que c'est bien celui-ci.",
+  "appcard.storeInstallTitle": "Installer depuis la boutique Decky",
+  "appcard.storeInstallStep1":
+    "Ouvrez le menu Quick Access de Decky Loader (icône de prise), puis choisissez Boutique.",
+  "appcard.storeInstallStep2": "Recherchez {name}.",
+  "appcard.storeInstallStep3": "Appuyez sur Installer.",
   "appcard.stars": "{count} étoiles GitHub",
   "appcard.runsAsRoot": "S'exécute en root",
   "appcard.runsAsRootHint":
@@ -168,9 +173,9 @@ export const fr: Record<MessageKey, string> = {
   "appcard.warning.persistence": "Modifie le démarrage",
   "appcard.warning.persistence.hint":
     "Il modifie les profils shell, précharge des bibliothèques, charge des modules du noyau ou ajoute des règles de périphérique, actifs même hors de Decky.",
-  "appcard.warning.not-in-source": "Risque très élevé : le code ne correspond pas au code source",
+  "appcard.warning.not-in-source": "Risque très élevé : le téléchargement contient du code absent de GitHub",
   "appcard.warning.not-in-source.hint":
-    "La version contient du code que l’audit n’a pas pu associer au dépôt. Cela peut dissimuler des modifications malveillantes ; examinez la version et le code source avant l’installation. Une différence détectée automatiquement ne prouve pas la présence de logiciel malveillant.",
+    "La version téléchargée contient du code que l’audit n’a pas pu associer au code source publié. Cela pourrait cacher des modifications malveillantes. Examinez la version avant de l’installer ; une différence ne prouve pas la présence de malware.",
   "appcard.warning.obfuscated": "Code caché",
   "appcard.warning.obfuscated.hint": "Il contient du code encodé ou compressé difficile à lire.",
   "audit.scope":
@@ -431,7 +436,7 @@ export const fr: Record<MessageKey, string> = {
 
   "github.error": "L’API GitHub a renvoyé {status}",
   "release.noMatch": "Aucune version correspondante trouvée.",
-  "release.inStore": "Son auteur le distribue via la boutique Decky. Installez-le depuis là.",
+  "release.inStore": "Installez ce plugin depuis la boutique de Decky Loader.",
   "scan.notReviewed":
     "DeckyHub n'est pas la boutique Decky et personne ne vérifie ces plugins. Une analyse propre signifie seulement qu'aucun malware connu n'a été trouvé.",
   "release.noChecksum": "Aucun ZIP de version DeckyHub avec somme de contrôle SHA-256 trouvé.",

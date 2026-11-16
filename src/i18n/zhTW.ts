@@ -113,6 +113,10 @@ export const zhTW: Record<MessageKey, string> = {
   "appcard.storeActivity": "Decky 商店活動（下載 + 更新）：{count}；依名稱比對，包含重複次數",
   "appcard.inStore": "已在 Decky 商店",
   "appcard.inStoreHint": "Decky 商店中有同名外掛(在那裡下載 {count} 次)。商店不會標明儲存庫,請確認是否就是這個。",
+  "appcard.storeInstallTitle": "從 Decky 商店安裝",
+  "appcard.storeInstallStep1": "開啟 Decky Loader 的 Quick Access 選單（插頭圖示），然後選擇「商店」。",
+  "appcard.storeInstallStep2": "搜尋 {name}。",
+  "appcard.storeInstallStep3": "按下「安裝」。",
   "appcard.stars": "{count} 個 GitHub 星號",
   "appcard.runsAsRoot": "以 root 執行",
   "appcard.runsAsRootHint": "其後端以 root 執行，可完整存取系統。僅在信任作者時安裝。",
@@ -156,9 +160,9 @@ export const zhTW: Record<MessageKey, string> = {
   "appcard.warning.persistence": "修改系統啟動",
   "appcard.warning.persistence.hint":
     "它會修改 shell 設定、預先載入函式庫、載入核心模組或新增裝置規則，在 Decky 之外也會持續生效。",
-  "appcard.warning.not-in-source": "極高風險：程式碼與原始碼不符",
+  "appcard.warning.not-in-source": "極高風險：下載內容包含 GitHub 上沒有的程式碼",
   "appcard.warning.not-in-source.hint":
-    "此版本包含稽核無法與程式碼儲存庫比對的程式碼。這可能隱藏惡意變更；安裝前請檢查此版本和原始碼。自動偵測到的不符並不能證明存在惡意軟體。",
+    "下載的版本包含稽核無法與已發布原始碼對應的程式碼。這可能隱藏惡意變更。安裝前請檢查該版本；不相符並不能證明存在惡意軟體。",
   "appcard.warning.obfuscated": "隱藏程式碼",
   "appcard.warning.obfuscated.hint": "它包含難以閱讀的編碼或封裝程式碼。",
   "audit.scope": "僅檢查有限的模式。發現項目需要審查；此檢查無法證明安全。",
@@ -404,7 +408,7 @@ export const zhTW: Record<MessageKey, string> = {
 
   "github.error": "GitHub API 傳回了 {status}",
   "release.noMatch": "找不到相符的版本。",
-  "release.inStore": "作者透過 Decky 商店發佈。請從那裡安裝。",
+  "release.inStore": "請從 Decky Loader 商店安裝此外掛。",
   "scan.notReviewed": "DeckyHub 不是 Decky 商店,也沒有人審核這些外掛。掃描無異常只表示未發現已知惡意軟體。",
   "release.noChecksum": "找不到附有 SHA-256 總和檢查碼的 DeckyHub 發行版本 ZIP。",
   "error.loaderUnavailable": "Decky Loader 目前無法使用。",

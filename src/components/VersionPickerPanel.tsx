@@ -66,6 +66,7 @@ export function ReleaseActions({
   disabled,
   onCheck,
   closeModal,
+  hideCheck = false,
 }: {
   t: TFunc;
   url?: string;
@@ -78,6 +79,7 @@ export function ReleaseActions({
   disabled: boolean;
   onCheck: () => void;
   closeModal?: () => void;
+  hideCheck?: boolean;
 }) {
   // Close first: Steam's browser otherwise opens underneath this modal.
   const open = (target: string) => {
@@ -107,9 +109,11 @@ export function ReleaseActions({
           <FaExclamationTriangle /> {t("appcard.reportProblem")}
         </Button>
       )}
-      <Button style={actionButtonStyle} disabled={disabled} onClick={onCheck}>
-        <FaSync /> {checking ? t("settings.checkingUpdate") : t("settings.checkUpdate")}
-      </Button>
+      {!hideCheck && (
+        <Button style={actionButtonStyle} disabled={disabled} onClick={onCheck}>
+          <FaSync /> {checking ? t("settings.checkingUpdate") : t("settings.checkUpdate")}
+        </Button>
+      )}
     </Focusable>
   );
 }

@@ -117,6 +117,10 @@ export const ja: Record<MessageKey, string> = {
   "appcard.inStore": "Decky ストアにあり",
   "appcard.inStoreHint":
     "Decky ストアに同名のプラグインがあります(ストアでのダウンロード {count} 回)。ストアはリポジトリを示さないため、これと同じものか確認してください。",
+  "appcard.storeInstallTitle": "Decky ストアからインストール",
+  "appcard.storeInstallStep1": "Decky Loader の Quick Access メニュー（プラグのアイコン）を開き、ストアを選択します。",
+  "appcard.storeInstallStep2": "{name} を検索します。",
+  "appcard.storeInstallStep3": "インストールを押します。",
   "appcard.stars": "GitHub スター {count}",
   "appcard.runsAsRoot": "root で実行",
   "appcard.runsAsRootHint":
@@ -168,9 +172,9 @@ export const ja: Record<MessageKey, string> = {
   "appcard.warning.persistence": "システム起動を変更",
   "appcard.warning.persistence.hint":
     "シェルのプロファイル変更、ライブラリのプリロード、カーネルモジュールの読み込み、デバイスルールの追加を行い、Decky の外でも動作し続けます。",
-  "appcard.warning.not-in-source": "非常に高いリスク: コードがソースと一致しません",
+  "appcard.warning.not-in-source": "非常に高いリスク: ダウンロードには GitHub にないコードが含まれます",
   "appcard.warning.not-in-source.hint":
-    "リリースには、監査でリポジトリと照合できなかったコードが含まれています。悪意ある変更が隠れている可能性があるため、インストール前にリリースとソースを確認してください。自動検出された不一致はマルウェアの証拠ではありません。",
+    "ダウンロードしたリリースには、公開されたソースと照合できなかったコードが含まれています。悪意ある変更が隠れている可能性があります。インストール前にリリースを確認してください。不一致だけでマルウェアとは断定できません。",
   "appcard.warning.obfuscated": "隠されたコード",
   "appcard.warning.obfuscated.hint": "読みにくいエンコード済みまたは圧縮されたコードを含みます。",
   "audit.scope": "限られたパターンを検査します。検出結果の確認が必要で、安全性を証明するものではありません。",
@@ -424,7 +428,7 @@ export const ja: Record<MessageKey, string> = {
 
   "github.error": "GitHub API がエラー {status} を返しました",
   "release.noMatch": "該当するリリースが見つかりません。",
-  "release.inStore": "作者は Decky ストアで配布しています。そちらからインストールしてください。",
+  "release.inStore": "このプラグインは Decky Loader のストアからインストールしてください。",
   "scan.notReviewed":
     "DeckyHub は Decky ストアではなく、これらのプラグインは誰も審査していません。スキャン結果が問題なしでも、既知のマルウェアが見つからなかったという意味にすぎません。",
   "release.noChecksum": "SHA-256 チェックサム付きの DeckyHub リリース ZIP が見つかりません。",

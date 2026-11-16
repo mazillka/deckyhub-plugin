@@ -118,6 +118,10 @@ export const it: Record<MessageKey, string> = {
   "appcard.inStore": "Nello store Decky",
   "appcard.inStoreHint":
     "Lo store Decky elenca un plugin con questo nome ({count} download lì). Lo store non indica il repository, quindi controlla che sia questo.",
+  "appcard.storeInstallTitle": "Installa dallo store Decky",
+  "appcard.storeInstallStep1": "Apri il menu Quick Access di Decky Loader (icona della spina) e scegli Store.",
+  "appcard.storeInstallStep2": "Cerca {name}.",
+  "appcard.storeInstallStep3": "Premi Installa.",
   "appcard.stars": "{count} stelle su GitHub",
   "appcard.runsAsRoot": "Eseguito come root",
   "appcard.runsAsRootHint":
@@ -168,9 +172,9 @@ export const it: Record<MessageKey, string> = {
   "appcard.warning.persistence": "Modifica l'avvio del sistema",
   "appcard.warning.persistence.hint":
     "Modifica i profili della shell, precarica librerie, carica moduli del kernel o aggiunge regole per i dispositivi, che restano attivi anche fuori da Decky.",
-  "appcard.warning.not-in-source": "Rischio molto alto: il codice non corrisponde al codice sorgente",
+  "appcard.warning.not-in-source": "Rischio molto alto: il download include codice che non è su GitHub",
   "appcard.warning.not-in-source.hint":
-    "La versione contiene codice che l’audit non è riuscito ad associare al repository. Questo può nascondere modifiche dannose; controlla la versione e il codice sorgente prima dell’installazione. Una discrepanza rilevata automaticamente non dimostra la presenza di malware.",
+    "La versione scaricata contiene codice che l’audit non ha potuto associare al codice sorgente pubblicato. Potrebbe nascondere modifiche dannose. Controlla la versione prima di installarla; una differenza non dimostra la presenza di malware.",
   "appcard.warning.obfuscated": "Codice nascosto",
   "appcard.warning.obfuscated.hint": "Contiene codice codificato o compresso difficile da leggere.",
   "audit.scope":
@@ -430,7 +434,7 @@ export const it: Record<MessageKey, string> = {
 
   "github.error": "L'API di GitHub ha restituito {status}",
   "release.noMatch": "Nessuna release corrispondente trovata.",
-  "release.inStore": "Il suo autore lo distribuisce tramite lo store Decky. Installalo da lì.",
+  "release.inStore": "Installa questo plugin dallo Store di Decky Loader.",
   "scan.notReviewed":
     "DeckyHub non è lo store Decky e nessuno controlla questi plugin. Una scansione pulita significa solo che non è stato trovato malware noto.",
   "release.noChecksum": "Non è stato trovato alcuno ZIP di release di DeckyHub con checksum SHA-256.",
