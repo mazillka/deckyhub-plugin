@@ -8,7 +8,7 @@ let current: UiStyle = "default";
 const listeners = new Set<() => void>();
 
 export function setUiStyle(style: unknown) {
-  const next: UiStyle = style === "experimental" ? "experimental" : "default";
+  const next: UiStyle = style === "experimental" || style === "v2" ? style : "default";
   if (next === current) return;
   current = next;
   listeners.forEach((listener) => listener());

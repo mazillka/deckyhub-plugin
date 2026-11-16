@@ -4070,6 +4070,38 @@ test("The Updates page offers Discover when everything is up to date", async ({ 
   await expect(app.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
 });
 
+test("Default V2 lists plugins beside the focused one's facts, under one tab bar", async ({ page, request }) => {
+  const headers = { Origin: "http://127.0.0.1:5183" };
+  const settings = async () =>
+    (await (await request.post(BRIDGE_URL, { data: { route: "get_settings", args: [] }, headers })).json()).result;
+  const setStyle = async (uiStyle: string) =>
+    request.post(BRIDGE_URL, { data: { route: "save_settings", args: [{ ...(await settings()), uiStyle }] }, headers });
+  await setStyle("v2");
+  try {
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    // The tab bar, the search field and the list with its detail pane.
+    for (const tab of ["Discover", "Updates", "Installed", "Search"])
+      await expect(app.getByRole("button", { name: tab }).first()).toBeVisible({ timeout: 60_000 });
+    await app.getByLabel("Search", { exact: true }).fill("MAKO");
+    const row = app.locator(".deckyhub-v2-row").filter({ hasText: "MAKO Decky" });
+    await expect(row).toHaveCount(1, { timeout: 30_000 });
+    // The focused plugin's facts and actions sit beside the list: its scan, and Manage.
+    const facts = app.locator(".deckyhub-v2-facts");
+    await expect(facts).toBeVisible();
+    await expect(app.getByRole("button", { name: "Manage", exact: true })).toBeVisible();
+    // Nothing installed has an update, so Updates says so and points back to Discover.
+    await app.getByRole("button", { name: "Updates", exact: true }).click();
+    await expect(app.getByRole("heading", { name: "Everything installed is up to date." })).toBeVisible({
+      timeout: 30_000,
+    });
+    await app.getByRole("button", { name: "Discover", exact: true }).last().click();
+    await expect(app.locator(".deckyhub-v2-row").first()).toBeVisible({ timeout: 30_000 });
+  } finally {
+    await setStyle("default");
+  }
+});
+
 test("In the Experimental style the Updates tab's Discover button switches to the Discover tab", async ({
   page,
   request,

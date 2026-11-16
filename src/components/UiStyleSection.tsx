@@ -22,6 +22,8 @@ export function UiStyleSection() {
             rgOptions={[
               { label: t("settings.uiStyleDefault"), data: "default" },
               { label: t("settings.uiStyleExperimental"), data: "experimental" },
+              // A name, not a sentence: the same in every language.
+              { label: "Default V2", data: "v2" },
             ]}
             selectedOption={style}
             onChange={({ data }) =>

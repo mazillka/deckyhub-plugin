@@ -49,6 +49,7 @@ import { ExpDiscoverHome } from "../components/experimental/ExpDiscoverHome";
 import { ExpDiscoverFilters } from "../components/experimental/ExpDiscoverFilters";
 import { ExpQuickAccess } from "../components/experimental/ExpQuickAccess";
 import { useUiStyle } from "../uiStyle";
+import { V2Library } from "../components/v2/V2Library";
 
 import { colors, tint } from "../styles";
 export function Content({ fullPage }: { fullPage?: View }) {
@@ -71,7 +72,8 @@ export function Content({ fullPage }: { fullPage?: View }) {
   } = useApps(view);
   const [downloading, setDownloading] = useState(false);
   // Quick Access' UI Style: Experimental swaps in its own header, cards and panel.
-  const experimental = useUiStyle() === "experimental";
+  const uiStyle = useUiStyle();
+  const experimental = uiStyle === "experimental";
   const Header = experimental ? ExpHeader : ContentHeader;
   const Card_ = experimental ? ExpAppCard : AppCard;
   const Filters = experimental ? ExpDiscoverFilters : DiscoverFilters;
@@ -288,6 +290,39 @@ export function Content({ fullPage }: { fullPage?: View }) {
     </FocusableGrid>
   );
 
+  // Default V2 (full pages only): the two-pane list and detail instead of cards.
+  const v2Page =
+    uiStyle === "v2" && fullPage ? (
+      <V2Library
+        view={view}
+        apps={visibleApps}
+        allApps={apps}
+        loading={loading}
+        loadError={loadError}
+        checked={checked}
+        updateAllCount={batchUpdates.length}
+        updatingAll={updatingAll}
+        onUpdateAll={() => void updateAll()}
+        query={query}
+        onQuery={setQuery}
+        category={activeCategory}
+        onCategory={setCategoryFilter}
+        categories={categories}
+        cardProps={(app) => ({
+          app,
+          preference: repoPreferences[app.repo] ?? { channel: "stable" },
+          downloadDisabled: downloading,
+          hiddenButtons,
+          onDownload: (asset) => startDownload(asset, app.repo),
+          onPreferenceChange: changeAppPreference,
+          onUninstalled: () => void load(),
+        })}
+        updateCount={updateCount}
+        installedCount={installedCount}
+        emptyTitle={info.empty}
+      />
+    ) : null;
+
   const page = (
     <>
       {view === "discover" && <Welcome />}
@@ -432,7 +467,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
   return fullPage ? (
     <div ref={pageRef}>
       <RateLimitBanner />
-      {page}
+      {v2Page ?? page}
     </div>
   ) : (
     <div ref={quickAccessRef} className="deckyhub-qam">
