@@ -140,6 +140,17 @@ export const en = {
     "A virus scan flagged the release you'd install. It may be a false positive: open Manage for the scan report and decide for yourself.",
   "appcard.scan.partial": "Not fully scanned",
   "appcard.scan.partial.hint": "The virus scans couldn't fully check the release you'd install. Manage says why.",
+  "risk.title": "Risk check",
+  "risk.high": "High risk",
+  "risk.caution": "Check first",
+  "risk.low": "No findings",
+  "risk.unknown": "Not fully checked",
+  "risk.high.hint":
+    "The audit or a virus scan found something serious. Install it only if you trust its author and have read the findings.",
+  "risk.caution.hint": "There are warnings worth reading before you install. They aren't proof of harm.",
+  "risk.low.hint": "No audit warnings or scan findings. That isn't proof it's safe: nobody reviews these plugins.",
+  "risk.unknown.hint":
+    "This release has no virus scan yet, so little is known about it. Install it only if you trust its author.",
   "appcard.badgesNotice": "What the badges on plugins mean",
   "appcard.noReleaseInYear": "No release in a year",
   "appcard.prereleaseOnly": "Pre-release only",

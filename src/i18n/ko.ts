@@ -139,6 +139,18 @@ export const ko: Record<MessageKey, string> = {
     "바이러스 검사가 설치할 릴리스를 표시했습니다. 오탐일 수 있습니다. 관리에서 보고서를 읽고 직접 결정하세요.",
   "appcard.scan.partial": "일부만 검사됨",
   "appcard.scan.partial.hint": "바이러스 검사가 설치할 릴리스 전체를 확인하지 못했습니다. 이유는 관리에 있습니다.",
+  "risk.title": "위험 확인",
+  "risk.high": "높은 위험",
+  "risk.caution": "먼저 확인",
+  "risk.low": "발견 없음",
+  "risk.unknown": "완전히 확인되지 않음",
+  "risk.high.hint":
+    "감사 또는 바이러스 검사에서 심각한 문제가 발견되었습니다. 제작자를 신뢰하고 결과를 읽은 경우에만 설치하세요.",
+  "risk.caution.hint": "설치 전에 읽어볼 만한 경고가 있습니다. 해로움의 증거는 아닙니다.",
+  "risk.low.hint":
+    "감사 경고나 검사 결과가 없습니다. 안전하다는 증거는 아닙니다. 이 플러그인들은 아무도 검토하지 않습니다.",
+  "risk.unknown.hint":
+    "이 릴리스는 아직 바이러스 검사가 없어 알려진 정보가 적습니다. 제작자를 신뢰하는 경우에만 설치하세요.",
   "appcard.badgesNotice": "플러그인 배지의 의미",
   "appcard.noReleaseInYear": "1년 넘게 릴리스 없음",
   "appcard.prereleaseOnly": "시험판만 있음",

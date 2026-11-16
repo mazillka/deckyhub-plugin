@@ -1,6 +1,9 @@
+import { Focusable } from "@decky/ui";
 import type { CSSProperties } from "react";
 import type { TFunc } from "../i18n/en";
 import { FaShieldAlt } from "react-icons/fa";
+import { assessRisk, type RiskLevel } from "../risk";
+import { keepInView } from "./KeepInView";
 import { AUDIT_WARNINGS, installWarnings, isAuditWarning, type App, type AuditWarning, type VirusScan } from "../types";
 import { installedRiskReasons } from "../notify";
 import { compactNumber, timeAgo } from "../utils";
@@ -158,7 +161,7 @@ const SCAN_COLORS: Record<ScanBadgeKind, string> = {
   infected: colors.dangerSoft,
   partial: colors.caution,
 };
-const scanSummary = (scan: VirusScan, virusTotal?: App["virusTotal"], metaDefender?: App["metaDefender"]) => {
+export const scanSummary = (scan: VirusScan, virusTotal?: App["virusTotal"], metaDefender?: App["metaDefender"]) => {
   const results = [scan.result, scan.yara?.result].filter(
     (result): result is NonNullable<typeof result> => result != null,
   );
@@ -204,11 +207,91 @@ const InstalledRiskBadge = ({ t, risk }: { t: TFunc; risk: NonNullable<App["inst
   ) : null;
 };
 
+// The audit warnings the card shows, for the release it would install (see AuditWarnings).
+const auditKeys = (app: App) =>
+  [
+    ...new Set(
+      app.latestPrerelease === undefined
+        ? [
+            ...(app.stats?.warnings ?? []),
+            ...(app.channel === "prerelease" ? (app.stats?.prereleaseWarnings ?? []) : []),
+          ]
+        : installWarnings(app),
+    ),
+  ].filter(isAuditWarning);
+
+const riskOf = (app: App) =>
+  assessRisk({
+    warnings: auditKeys(app),
+    sourceMismatch: Boolean(app.scan && (independentAuditOf(app.scan)?.source?.findings.length ?? 0) > 0),
+    scan: app.scan && !app.scan.unverifiedMatch ? scanSummary(app.scan, app.virusTotal, app.metaDefender).kind : null,
+    root: app.stats?.root === true,
+    prereleaseOnly: app.prereleaseOnly === true,
+    stale: isStale(releasedAt(app)),
+  });
+
+const RISK_COLORS: Record<RiskLevel, string> = {
+  high: colors.dangerSoft,
+  caution: colors.caution,
+  low: colors.success,
+  unknown: colors.muted,
+};
+
+// One verdict from the audit, the virus scans and the plugin's facts (src/risk.ts). It never
+// says "safe": the lowest level is "no findings".
+export const RiskPill = ({ app, t }: { app: App; t: TFunc }) => {
+  const { level } = riskOf(app);
+  return (
+    <span
+      className={`deckyhub-risk-pill deckyhub-risk-${level}`}
+      title={t(`risk.${level}.hint`)}
+      style={{ ...pillStyle, whiteSpace: "nowrap", ...tint(RISK_COLORS[level]) }}
+    >
+      <FaShieldAlt /> {t(`risk.${level}`)}
+    </span>
+  );
+};
+
+// The details window's version of it: the verdict, what it means, and every finding behind it
+// with its explanation, so the decision to install is made on the facts. One focus target, so the
+// D-pad scrolls to it like the scan report below it.
+export function RiskSummary({ app, t }: { app: App; t: TFunc }) {
+  const { level, reasons } = riskOf(app);
+  const color = RISK_COLORS[level];
+  return (
+    <Focusable
+      onActivate={() => {}}
+      onFocus={keepInView}
+      className="deckyhub-risk-summary"
+      style={{ display: "grid", gap: 8, padding: "12px 14px", borderRadius: 10, border: `1px solid ${color}66` }}
+    >
+      <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "4px 10px" }}>
+        <strong>{t("risk.title")}</strong>
+        <RiskPill app={app} t={t} />
+      </div>
+      <small>{t(`risk.${level}.hint`)}</small>
+      {reasons.length > 0 && (
+        <ul style={{ margin: 0, paddingLeft: 18, display: "grid", gap: 6 }}>
+          {reasons.map((reason) => (
+            <li key={reason.label} style={{ fontSize: "max(12px, 0.85em)" }}>
+              <strong style={{ color: reason.severity === "high" ? colors.dangerSoft : colors.caution }}>
+                {t(reason.label as Parameters<TFunc>[0])}
+              </strong>
+              {reason.hint && <> — {t(reason.hint as Parameters<TFunc>[0])}</>}
+            </li>
+          ))}
+        </ul>
+      )}
+    </Focusable>
+  );
+}
+
 // Installed version flagged / Runs as root / Fork / AI / Pre-release only / No description / audit warnings / virus scan / No release in a year, shared by the card and its Manage window.
 export function AppBadges({ app, t }: { app: App; t: TFunc }) {
   const released = releasedAt(app);
   return (
     <>
+      <RiskPill app={app} t={t} />
       {/* Installed the card's own release: its badges already describe it. */}
       {app.installedRisk && app.installedAssets?.[0]?.url !== app.assets[0]?.url && (
         <InstalledRiskBadge t={t} risk={app.installedRisk} />
