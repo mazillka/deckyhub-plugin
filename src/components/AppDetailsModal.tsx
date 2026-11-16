@@ -40,7 +40,7 @@ import {
 } from "../utils";
 import { startPluginInstall } from "./InstallFlow";
 import { displayVersion } from "../version";
-import { AppBadges, AppMonogram, AppStats, RiskSummary } from "./AppBadges";
+import { AppBadges, AppMonogram, AppStats, FindingsSummary } from "./AppBadges";
 import { showReleaseInfo } from "./ReleaseInfo";
 import { DetailsWindow } from "./DetailsWindow";
 import { VirusScanReport } from "./VirusScanReport";
@@ -268,7 +268,7 @@ export function AppDetailsModal({
       // target, so the D-pad can't reach a link inside it (seen on a Deck).
       scan={
         <>
-          <RiskSummary app={app} t={t} />
+          <FindingsSummary app={app} t={t} />
           {app.knownIssues?.length ? <KnownIssues t={t} issues={app.knownIssues} closeModal={closeModal} /> : null}
           <VirusScanReport
             key={JSON.stringify([selectedRelease?.assets[0]?.url, selectedRelease?.assets[0]?.sha256])}

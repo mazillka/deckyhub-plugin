@@ -144,18 +144,10 @@ export const fr: Record<MessageKey, string> = {
   "appcard.scan.partial": "Analyse incomplète",
   "appcard.scan.partial.hint":
     "Les analyses antivirus n'ont pas pu vérifier toute la version que vous installeriez. Gérer indique pourquoi.",
-  "risk.title": "Contrôle des risques",
-  "risk.high": "Risque élevé",
-  "risk.caution": "À vérifier d'abord",
-  "risk.low": "Aucun résultat",
-  "risk.unknown": "Pas entièrement vérifié",
-  "risk.high.hint":
-    "L'audit ou une analyse antivirus a trouvé quelque chose de grave. Ne l'installe que si tu fais confiance à son auteur et as lu les résultats.",
-  "risk.caution.hint": "Des avertissements méritent d'être lus avant l'installation. Ils ne prouvent pas un danger.",
-  "risk.low.hint":
-    "Aucun avertissement d'audit ni résultat d'analyse. Ce n'est pas une preuve de sécurité : personne ne vérifie ces plugins.",
-  "risk.unknown.hint":
-    "Cette version n'a pas encore d'analyse antivirus, on en sait donc peu. Ne l'installe que si tu fais confiance à son auteur.",
+  "risk.title": "Ce que les contrôles ont trouvé",
+  "risk.intro": "Des faits issus de l'audit et des analyses antivirus. La décision d'installer t'appartient.",
+  "risk.none":
+    "Aucun avertissement d'audit ni résultat d'analyse. Cela ne veut pas dire que c'est sûr : personne ne vérifie ces plugins.",
   "appcard.badgesNotice": "Ce que signifient les badges des plugins",
   "appcard.noReleaseInYear": "Aucune version depuis un an",
   "appcard.prereleaseOnly": "Préliminaires uniquement",

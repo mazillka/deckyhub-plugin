@@ -143,18 +143,10 @@ export const pt: Record<MessageKey, string> = {
   "appcard.scan.partial": "Verificação incompleta",
   "appcard.scan.partial.hint":
     "As verificações antivírus não conseguiram checar toda a versão que você instalaria. Gerenciar diz o motivo.",
-  "risk.title": "Verificação de risco",
-  "risk.high": "Risco alto",
-  "risk.caution": "Verifique primeiro",
-  "risk.low": "Nada encontrado",
-  "risk.unknown": "Não verificado por completo",
-  "risk.high.hint":
-    "A auditoria ou uma verificação antivírus encontrou algo grave. Instale só se confiar no autor e tiver lido os achados.",
-  "risk.caution.hint": "Há avisos que vale a pena ler antes de instalar. Eles não provam dano.",
-  "risk.low.hint":
-    "Sem avisos de auditoria nem achados de verificação. Isso não prova que é seguro: ninguém revisa estes plugins.",
-  "risk.unknown.hint":
-    "Esta versão ainda não tem verificação antivírus, então pouco se sabe sobre ela. Instale só se confiar no autor.",
+  "risk.title": "O que as verificações encontraram",
+  "risk.intro": "Fatos da auditoria e das verificações antivírus. A decisão de instalar é sua.",
+  "risk.none":
+    "Sem avisos de auditoria nem achados de verificação. Isso não significa que seja seguro: ninguém revisa estes plugins.",
   "appcard.badgesNotice": "O que significam os selos dos plugins",
   "appcard.noReleaseInYear": "Sem release há um ano",
   "appcard.prereleaseOnly": "Só pré-lançamentos",

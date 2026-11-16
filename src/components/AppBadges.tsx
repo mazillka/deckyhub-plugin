@@ -2,7 +2,7 @@ import { Focusable } from "@decky/ui";
 import type { CSSProperties } from "react";
 import type { TFunc } from "../i18n/en";
 import { FaShieldAlt } from "react-icons/fa";
-import { assessRisk, type RiskLevel } from "../risk";
+import { collectFindings } from "../findings";
 import { keepInView } from "./KeepInView";
 import { AUDIT_WARNINGS, installWarnings, isAuditWarning, type App, type AuditWarning, type VirusScan } from "../types";
 import { installedRiskReasons } from "../notify";
@@ -220,8 +220,8 @@ const auditKeys = (app: App) =>
     ),
   ].filter(isAuditWarning);
 
-const riskOf = (app: App) =>
-  assessRisk({
+const findingsOf = (app: App) =>
+  collectFindings({
     warnings: auditKeys(app),
     sourceMismatch: Boolean(app.scan && (independentAuditOf(app.scan)?.source?.findings.length ?? 0) > 0),
     scan: app.scan && !app.scan.unverifiedMatch ? scanSummary(app.scan, app.virusTotal, app.metaDefender).kind : null,
@@ -230,57 +230,38 @@ const riskOf = (app: App) =>
     stale: isStale(releasedAt(app)),
   });
 
-const RISK_COLORS: Record<RiskLevel, string> = {
-  high: colors.dangerSoft,
-  caution: colors.caution,
-  low: colors.success,
-  unknown: colors.muted,
-};
-
-// One verdict from the audit, the virus scans and the plugin's facts (src/risk.ts). It never
-// says "safe": the lowest level is "no findings".
-export const RiskPill = ({ app, t }: { app: App; t: TFunc }) => {
-  const { level } = riskOf(app);
-  return (
-    <span
-      className={`deckyhub-risk-pill deckyhub-risk-${level}`}
-      title={t(`risk.${level}.hint`)}
-      style={{ ...pillStyle, whiteSpace: "nowrap", ...tint(RISK_COLORS[level]) }}
-    >
-      <FaShieldAlt /> {t(`risk.${level}`)}
-    </span>
-  );
-};
-
-// The details window's version of it: the verdict, what it means, and every finding behind it
-// with its explanation, so the decision to install is made on the facts. One focus target, so the
-// D-pad scrolls to it like the scan report below it.
-export function RiskSummary({ app, t }: { app: App; t: TFunc }) {
-  const { level, reasons } = riskOf(app);
-  const color = RISK_COLORS[level];
+// Everything the audit, the scans and the registry say about the release, each fact with its
+// explanation (src/findings.ts). No verdict and no score: the user decides. One focus target, so
+// the D-pad scrolls to it like the scan report below it.
+export function FindingsSummary({ app, t }: { app: App; t: TFunc }) {
+  const { findings, scanned } = findingsOf(app);
   return (
     <Focusable
       onActivate={() => {}}
       onFocus={keepInView}
-      className="deckyhub-risk-summary"
-      style={{ display: "grid", gap: 8, padding: "12px 14px", borderRadius: 10, border: `1px solid ${color}66` }}
+      className="deckyhub-findings"
+      style={{ display: "grid", gap: 8, padding: "12px 14px", borderRadius: 10, border: `1px solid ${colors.muted}55` }}
     >
-      <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "4px 10px" }}>
-        <strong>{t("risk.title")}</strong>
-        <RiskPill app={app} t={t} />
-      </div>
-      <small>{t(`risk.${level}.hint`)}</small>
-      {reasons.length > 0 && (
+      <strong>{t("risk.title")}</strong>
+      <small>{t("risk.intro")}</small>
+      {findings.length > 0 ? (
         <ul style={{ margin: 0, paddingLeft: 18, display: "grid", gap: 6 }}>
-          {reasons.map((reason) => (
-            <li key={reason.label} style={{ fontSize: "max(12px, 0.85em)" }}>
-              <strong style={{ color: reason.severity === "high" ? colors.dangerSoft : colors.caution }}>
-                {t(reason.label as Parameters<TFunc>[0])}
+          {findings.map((finding) => (
+            <li key={finding.label} style={{ fontSize: "max(12px, 0.85em)" }}>
+              <strong style={{ color: finding.tone === "danger" ? colors.dangerSoft : colors.caution }}>
+                {t(finding.label as Parameters<TFunc>[0])}
               </strong>
-              {reason.hint && <> — {t(reason.hint as Parameters<TFunc>[0])}</>}
+              {finding.hint && <> — {t(finding.hint as Parameters<TFunc>[0])}</>}
             </li>
           ))}
         </ul>
+      ) : (
+        scanned && <small>{t("risk.none")}</small>
+      )}
+      {!scanned && (
+        <small style={{ color: colors.caution }}>
+          {t(app.scan?.unverifiedMatch ? "scan.unverifiedMatch" : "scan.notScanned")}
+        </small>
       )}
     </Focusable>
   );
@@ -291,7 +272,6 @@ export function AppBadges({ app, t }: { app: App; t: TFunc }) {
   const released = releasedAt(app);
   return (
     <>
-      <RiskPill app={app} t={t} />
       {/* Installed the card's own release: its badges already describe it. */}
       {app.installedRisk && app.installedAssets?.[0]?.url !== app.assets[0]?.url && (
         <InstalledRiskBadge t={t} risk={app.installedRisk} />

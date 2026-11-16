@@ -144,18 +144,10 @@ export const nl: Record<MessageKey, string> = {
   "appcard.scan.partial": "Niet volledig gescand",
   "appcard.scan.partial.hint":
     "De virusscans konden de release die je zou installeren niet helemaal controleren. Beheren zegt waarom.",
-  "risk.title": "Risicocontrole",
-  "risk.high": "Hoog risico",
-  "risk.caution": "Eerst controleren",
-  "risk.low": "Niets gevonden",
-  "risk.unknown": "Niet volledig gecontroleerd",
-  "risk.high.hint":
-    "De audit of een virusscan vond iets ernstigs. Installeer het alleen als je de maker vertrouwt en de bevindingen hebt gelezen.",
-  "risk.caution.hint": "Er zijn waarschuwingen die het lezen waard zijn voor je installeert. Ze bewijzen geen schade.",
-  "risk.low.hint":
-    "Geen auditwaarschuwingen of scanbevindingen. Dat bewijst niet dat het veilig is: niemand controleert deze plugins.",
-  "risk.unknown.hint":
-    "Voor deze release is nog geen virusscan, dus er is weinig over bekend. Installeer het alleen als je de maker vertrouwt.",
+  "risk.title": "Wat de controles vonden",
+  "risk.intro": "Feiten uit de audit en de virusscans. De beslissing om te installeren is aan jou.",
+  "risk.none":
+    "Geen auditwaarschuwingen of scanbevindingen. Dat betekent niet dat het veilig is: niemand controleert deze plugins.",
   "appcard.badgesNotice": "Wat de labels bij plugins betekenen",
   "appcard.noReleaseInYear": "Al een jaar geen release",
   "appcard.prereleaseOnly": "Alleen pre-releases",
