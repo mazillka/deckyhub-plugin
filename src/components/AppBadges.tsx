@@ -298,15 +298,8 @@ export function FindingsSummary({ app, t }: { app: App; t: TFunc }) {
 // Installed version flagged / Runs as root / Fork / AI / Pre-release only / No description / audit warnings / virus scan / No release in a year, shared by the card and its Manage window.
 export function AppBadges({ app, t }: { app: App; t: TFunc }) {
   const released = releasedAt(app);
-  if (app.store)
-    return (
-      <>
-        {app.stats?.fork && <ForkBadge t={t} repo={app.stats.fork} />}
-        {app.stats?.store && <StoreBadge t={t} downloads={app.stats.store.downloads} />}
-        {app.stats?.ai?.length ? <AiBadge t={t} files={app.stats.ai} /> : null}
-        {!app.description?.trim() && <NoDescriptionBadge t={t} />}
-      </>
-    );
+  // Installed from the Decky store, not GitHub: the other badges describe a GitHub release it doesn't offer.
+  if (app.store) return <>{app.stats?.store && <StoreBadge t={t} downloads={app.stats.store.downloads} />}</>;
   return (
     <>
       {/* Installed the card's own release: its badges already describe it. */}

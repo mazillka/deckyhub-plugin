@@ -321,6 +321,11 @@ class PluginPageTests(unittest.TestCase):
         self.assertIn("Threat found", page)  # the badge counts VirusTotal, not just ClamAV and YARA
         self.assertIn("✖ Threat found", plugin_pages.flags_of({}, scans, {}, vt))
 
+    def test_a_store_only_card_shows_only_the_store_flag(self):
+        stats = {"store": {"downloads": 1}, "ai": ["AGENTS.md"], "root": True, "warnings": ["blocked"]}
+        flags = plugin_pages.flags_of(stats, {}, store_only=True)
+        self.assertEqual(flags, '<span class="flag-store">In Decky store</span>')
+
     def test_known_issues_lists_flagged_and_warned_plugins_only(self):
         shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
         clean = {**APP, "id": "clean-one", "name": "Clean One", "repo": "a/clean"}
