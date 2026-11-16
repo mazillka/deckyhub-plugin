@@ -348,21 +348,25 @@ export function AppDetailsModal({
       }
       // Known issues sit above the scan report, not in the header: the header is one focus
       // target, so the D-pad can't reach a link inside it (seen on a Deck).
+      collapsible
       scan={
         !app.store && (
           <>
             <FindingsSummary app={app} t={t} />
             {app.knownIssues?.length ? <KnownIssues t={t} issues={app.knownIssues} closeModal={closeModal} /> : null}
-            <VirusScanReport
-              key={JSON.stringify([selectedRelease?.assets[0]?.url, selectedRelease?.assets[0]?.sha256])}
-              t={t}
-              asset={selectedRelease?.assets[0]}
-              version={selectedRelease?.tag}
-              closeModal={closeModal}
-              showZipActions={false}
-            />
-            <small style={{ opacity: 0.7 }}>{t("scan.notReviewed")}</small>
           </>
+        )
+      }
+      report={
+        !app.store && (
+          <VirusScanReport
+            key={JSON.stringify([selectedRelease?.assets[0]?.url, selectedRelease?.assets[0]?.sha256])}
+            t={t}
+            asset={selectedRelease?.assets[0]}
+            version={selectedRelease?.tag}
+            closeModal={closeModal}
+            showZipActions={false}
+          />
         )
       }
       channel={channel}
