@@ -62,7 +62,12 @@ class PluginPageTests(unittest.TestCase):
         data = {"stats": {APP["repo"].casefold(): {"updated": "2026-11-12T10:51:51Z"}}, "scans": {}}
         self.assertIn('data-updated="2026-11-12"', plugin_pages.card(APP, data))
         self.assertNotIn("data-updated", plugin_pages.card(APP, {"stats": {}, "scans": {}}))
-        self.assertIn('data-age="90"', plugin_pages.catalog_page(plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8")), [APP], data))
+        self.assertIn(
+            'data-age="90"',
+            plugin_pages.catalog_page(
+                plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8")), [APP], data
+            ),
+        )
 
     def test_the_page_leads_with_a_short_safety_summary_and_plain_install_steps_that_fit_a_phone(self):
         page = self.page(
