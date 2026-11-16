@@ -216,6 +216,16 @@ export const ja: Record<MessageKey, string> = {
   "appcard.uninstallDescription": "このプラグインと設定がこのデバイスから削除されます。後で再インストールできます。",
   "appcard.uninstallByName":
     "DeckyHub はインストール済みのプラグインをこの項目に対応付けられませんでした。そのため Decky Loader が「{name}」として認識しているプラグインを削除します。",
+  "appcard.installAnyway": "それでもインストール",
+  "appcard.trustPlugin": "このプラグインを信頼する",
+  "appcard.untrustPlugin": "信頼をやめる",
+  "appcard.identityTrusted": "このプラグインを信頼すると選んだため、DeckyHub が確認できなくても更新できます。",
+  "appcard.unverifiedConfirmBody":
+    "DeckyHub はインストール済みのプラグイン「{name}」(v{version}) をこの項目に対応付けられませんでした。Decky Loader は名前でプラグインを置き換えるため、そのプラグインを {repo} {tag} に置き換えます。このリリースがインストール元と別のリポジトリのものなら、他人のコードを実行することになります。",
+  "appcard.trustConfirmTitle": "このプラグインを信頼しますか？",
+  "appcard.trustConfirmBody":
+    "DeckyHub はインストール済みのプラグイン「{name}」をこの項目に対応付けられませんでした。信頼すると、更新はブロックされなくなります。更新のたびに事前に確認し、何を置き換えるかを表示します。信頼はここでいつでも取り消せます。レジストリのリリースがインストール元と別のリポジトリのものなら、他人のコードを実行することになります。",
+  "install.replaces": "信頼すると選んだインストール済みの「{name}」(v{version}) を置き換えます。",
   "appcard.uninstalled": "{name}をアンインストールしました。",
   "appcard.freshInstallDescription":
     "DeckyHub はまずインストール済みのバージョンを削除し、その後 Decky が選択したバージョンを新規インストールします。Decky Loader の不具合により、上書き更新では デバイスがフリーズすることがあります。Decky のインストール画面をキャンセルすると、{name} は再インストールするまで削除されたままになります。",

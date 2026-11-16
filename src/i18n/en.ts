@@ -211,6 +211,17 @@ export const en = {
     "This removes the plugin and its settings from this device. You can install it again later.",
   "appcard.uninstallByName":
     "DeckyHub couldn't match the installed plugin to this entry, so Decky Loader will remove the plugin it knows as “{name}”.",
+  "appcard.installAnyway": "Install anyway",
+  "appcard.trustPlugin": "Trust this plugin",
+  "appcard.untrustPlugin": "Stop trusting",
+  "appcard.identityTrusted":
+    "You chose to trust this plugin, so it can be updated although DeckyHub couldn't verify it.",
+  "appcard.unverifiedConfirmBody":
+    "DeckyHub couldn't match the installed plugin “{name}” (v{version}) to this entry. Decky Loader replaces plugins by name, so it will replace that plugin with {repo} {tag}. If this release comes from a different repository than the one you installed from, you are running someone else's code.",
+  "appcard.trustConfirmTitle": "Trust this plugin?",
+  "appcard.trustConfirmBody":
+    "DeckyHub couldn't match the installed plugin “{name}” to this entry. If you trust it, updates are no longer blocked. Each one still asks first and says what it replaces, and you can stop trusting it here at any time. If the registry's releases come from a different repository than the one you installed from, you would be running someone else's code.",
+  "install.replaces": "Replaces the installed “{name}” (v{version}), which you chose to trust.",
   "appcard.uninstalled": "{name} was uninstalled.",
   "appcard.freshInstallDescription":
     "DeckyHub removes the installed version first, then Decky installs the selected one fresh. Updating in place can freeze your device because of a Decky Loader bug. If you cancel Decky's install dialog, {name} stays uninstalled until you install it again.",

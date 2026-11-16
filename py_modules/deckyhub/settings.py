@@ -83,6 +83,11 @@ def coerce_repo_settings(values) -> dict:
     pin = values.get("pinVersion")
     if isinstance(pin, str) and pin.strip() and len(pin) <= 200:
         item["pinVersion"] = pin.strip()
+    # The Decky Loader name of an installed plugin DeckyHub couldn't verify and the user chose to trust (Manage ->
+    # Trust this plugin). It only applies while that is still the one unambiguous name (App.uninstallName).
+    trusted = values.get("trustedIdentity")
+    if isinstance(trusted, str) and trusted.strip() and len(trusted) <= 200:
+        item["trustedIdentity"] = trusted.strip()
     return item
 
 

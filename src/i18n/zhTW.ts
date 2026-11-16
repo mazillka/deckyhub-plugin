@@ -203,6 +203,16 @@ export const zhTW: Record<MessageKey, string> = {
   "appcard.uninstallDescription": "將從此裝置移除該插件及其設定。之後可以重新安裝。",
   "appcard.uninstallByName":
     "DeckyHub 無法將已安裝的外掛與此項目比對，因此 Decky Loader 將移除它所知的外掛「{name}」。",
+  "appcard.installAnyway": "仍然安裝",
+  "appcard.trustPlugin": "信任此外掛",
+  "appcard.untrustPlugin": "停止信任",
+  "appcard.identityTrusted": "你選擇了信任此外掛，因此即使 DeckyHub 無法驗證，它也可以更新。",
+  "appcard.unverifiedConfirmBody":
+    "DeckyHub 無法將已安裝的外掛「{name}」(v{version}) 與此項目比對。Decky Loader 依名稱取代外掛，因此會用 {repo} {tag} 取代該外掛。如果此版本來自與你安裝時不同的儲存庫，你執行的就是別人的程式碼。",
+  "appcard.trustConfirmTitle": "信任此外掛？",
+  "appcard.trustConfirmBody":
+    "DeckyHub 無法將已安裝的外掛「{name}」與此項目比對。如果你信任它，更新將不再被封鎖。每次更新仍會先詢問並說明取代了什麼，你可以隨時在此停止信任。如果登錄表中的版本來自與你安裝時不同的儲存庫，你執行的就是別人的程式碼。",
+  "install.replaces": "取代你選擇信任的已安裝外掛「{name}」(v{version})。",
   "appcard.uninstalled": "已解除安裝 {name}。",
   "appcard.freshInstallDescription":
     "DeckyHub 會先移除已安裝的版本，再由 Decky 全新安裝所選版本。由於 Decky Loader 的一個錯誤，直接覆蓋更新可能導致裝置當機。如果取消 Decky 的安裝對話框，{name} 將維持未安裝狀態，直到你重新安裝。",

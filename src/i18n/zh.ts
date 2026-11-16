@@ -201,6 +201,16 @@ export const zh: Record<MessageKey, string> = {
   "appcard.uninstallTitle": "卸载 {name}？",
   "appcard.uninstallDescription": "将从此设备移除该插件及其设置。之后可以重新安装。",
   "appcard.uninstallByName": "DeckyHub 无法将已安装的插件与此条目匹配，因此 Decky Loader 将移除它所知的插件“{name}”。",
+  "appcard.installAnyway": "仍然安装",
+  "appcard.trustPlugin": "信任此插件",
+  "appcard.untrustPlugin": "停止信任",
+  "appcard.identityTrusted": "你选择了信任此插件，因此即使 DeckyHub 无法验证，它也可以更新。",
+  "appcard.unverifiedConfirmBody":
+    "DeckyHub 无法将已安装的插件“{name}”(v{version}) 与此条目匹配。Decky Loader 按名称替换插件，因此会用 {repo} {tag} 替换该插件。如果此版本来自与你安装时不同的仓库，你运行的就是别人的代码。",
+  "appcard.trustConfirmTitle": "信任此插件？",
+  "appcard.trustConfirmBody":
+    "DeckyHub 无法将已安装的插件“{name}”与此条目匹配。如果你信任它，更新将不再被阻止。每次更新仍会先询问并说明替换了什么，你可以随时在此停止信任。如果注册表中的版本来自与你安装时不同的仓库，你运行的就是别人的代码。",
+  "install.replaces": "替换你选择信任的已安装插件“{name}”(v{version})。",
   "appcard.uninstalled": "已卸载 {name}。",
   "appcard.freshInstallDescription":
     "DeckyHub 会先移除已安装的版本，然后由 Decky 全新安装所选版本。由于 Decky Loader 的一个错误，直接覆盖更新可能导致设备卡死。如果取消 Decky 的安装对话框，{name} 将保持未安装状态，直到你重新安装。",
