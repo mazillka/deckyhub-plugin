@@ -231,15 +231,32 @@ def external_results(channel: dict, reports: dict | None, vt_reports: dict | Non
 SCANNERS = 4  # ClamAV, YARA, VirusTotal and MetaDefender
 
 
-def scan_kind(channel: dict, reports: dict | None = None, vt_reports: dict | None = None) -> str:
-    """infected if any scanner flagged it; clean only once all four have reported and found nothing. Two clean
-    reports out of four say less than "Nothing flagged" sounds like, so a release still waiting on VirusTotal or
-    MetaDefender is partial."""
+def scan_results(channel: dict, reports: dict | None = None, vt_reports: dict | None = None) -> list[str]:
+    """What each scanner that has reported said about the ZIP: clean, infected, incomplete or error."""
     results = [scan["result"] for scan in (channel.get("clamav"), channel.get("yara")) if scan]
-    results += ["infected" if flagged else "clean" for _, flagged, _ in external_results(channel, reports, vt_reports)]
+    return results + [
+        "infected" if flagged else "clean" for _, flagged, _ in external_results(channel, reports, vt_reports)
+    ]
+
+
+def scan_state(channel: dict, reports: dict | None = None, vt_reports: dict | None = None) -> str:
+    """What the scanners that reported said: infected if any flagged it, partial if one couldn't finish, else clean,
+    however many have reported. The Known issues page lists these problems; a scan still waiting on VirusTotal or
+    MetaDefender is not one."""
+    results = scan_results(channel, reports, vt_reports)
     if "infected" in results:
         return "infected"
-    return "clean" if len(results) >= SCANNERS and all(result == "clean" for result in results) else "partial"
+    return "partial" if any(result != "clean" for result in results) else "clean"
+
+
+def scan_kind(channel: dict, reports: dict | None = None, vt_reports: dict | None = None) -> str:
+    """The badge: infected if any scanner flagged it; clean only once all four have reported and found nothing. Two
+    clean reports out of four say less than "Nothing flagged" sounds like, so a release still waiting on VirusTotal
+    or MetaDefender is partial."""
+    state = scan_state(channel, reports, vt_reports)
+    if state != "clean":
+        return state
+    return "clean" if len(scan_results(channel, reports, vt_reports)) >= SCANNERS else "partial"
 
 
 def fit(text: str, limit: int) -> str:
@@ -1089,7 +1106,7 @@ def issues_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
             if (
                 channel
                 and channel.get("clamav")
-                and (kind := scan_kind(channel, data.get("reports"), data.get("vt"))) != "clean"
+                and (kind := scan_state(channel, data.get("reports"), data.get("vt"))) != "clean"
             ):
                 add(kind, note)
         stable = stats.get("warnings") or []
