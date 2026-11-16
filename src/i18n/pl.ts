@@ -140,7 +140,7 @@ export const pl: Record<MessageKey, string> = {
   "appcard.rust": "Rust",
   "appcard.rustHint":
     "Jego repozytorium zawiera kod w Rust, więc część wtyczki jest napisana w Rust. To nic nie mówi o jakości ani bezpieczeństwie.",
-  "appcard.scan.clean": "Brak zagrożeń",
+  "appcard.scan.clean": "Nic nie oznaczono",
   "appcard.scan.clean.hint":
     "Skany antywirusowe nie znalazły znanych zagrożeń w wydaniu, które zainstalujesz. Wykrywają tylko znane złośliwe oprogramowanie i można je obejść, więc to nie dowód bezpieczeństwa. Raport ze skanu jest w Zarządzaj.",
   "appcard.scan.infected": "Znaleziono zagrożenie",

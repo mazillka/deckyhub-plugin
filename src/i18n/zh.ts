@@ -133,7 +133,7 @@ export const zh: Record<MessageKey, string> = {
   "appcard.aiFiles": "很可能在 AI 帮助下开发（{files}）",
   "appcard.rust": "Rust",
   "appcard.rustHint": "其仓库包含 Rust 代码，因此插件的一部分由 Rust 编写。这并不说明其质量或安全性。",
-  "appcard.scan.clean": "无威胁",
+  "appcard.scan.clean": "无标记",
   "appcard.scan.clean.hint":
     "病毒扫描在你要安装的版本中没有发现已知威胁。扫描只能发现已知的恶意软件，而且可以被绕过，所以这并不能证明它安全。扫描报告在“管理”中。",
   "appcard.scan.infected": "发现威胁",

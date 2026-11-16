@@ -143,7 +143,7 @@ export const fr: Record<MessageKey, string> = {
   "appcard.rust": "Rust",
   "appcard.rustHint":
     "Son dépôt contient du code Rust : une partie du plugin est écrite en Rust. Cela n'indique rien sur sa qualité ni sa sécurité.",
-  "appcard.scan.clean": "Aucune menace",
+  "appcard.scan.clean": "Rien de signalé",
   "appcard.scan.clean.hint":
     "Les analyses antivirus n’ont trouvé aucune menace connue dans la version que vous installeriez. Elles ne détectent que les logiciels malveillants connus et peuvent être contournées : ce n’est donc pas une preuve de sécurité. Gérer contient le rapport d’analyse.",
   "appcard.scan.infected": "Menace trouvée",

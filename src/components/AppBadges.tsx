@@ -183,8 +183,8 @@ export const scanSummary = (scan: VirusScan, virusTotal?: App["virusTotal"], met
     results.push(metaDefender.flagged ? "infected" : "clean");
   }
   const passed = results.filter((result) => result === "clean").length;
-  // No threats only once all four scanners have reported and none flagged it: ClamAV and YARA alone say less than
-  // "No threats" sounds like, so a release still waiting on VirusTotal or MetaDefender is Not fully scanned.
+  // Nothing flagged only once all four scanners have reported and none flagged it: ClamAV and YARA alone say less than
+  // "Nothing flagged" sounds like, so a release still waiting on VirusTotal or MetaDefender is Not fully scanned.
   const kind: ScanBadgeKind = results.includes("infected")
     ? "infected"
     : results.length >= SCANNERS && passed === results.length

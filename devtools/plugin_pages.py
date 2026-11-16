@@ -51,7 +51,7 @@ WARNINGS = {
 }
 
 SCAN_LABELS = {
-    "clean": ("No threats", "clean"),
+    "clean": ("Nothing flagged", "clean"),
     "infected": ("Threat found", "stale"),
     "partial": ("Not fully scanned", "warn"),
 }
@@ -233,7 +233,7 @@ SCANNERS = 4  # ClamAV, YARA, VirusTotal and MetaDefender
 
 def scan_kind(channel: dict, reports: dict | None = None, vt_reports: dict | None = None) -> str:
     """infected if any scanner flagged it; clean only once all four have reported and found nothing. Two clean
-    reports out of four say less than "No threats" sounds like, so a release still waiting on VirusTotal or
+    reports out of four say less than "Nothing flagged" sounds like, so a release still waiting on VirusTotal or
     MetaDefender is partial."""
     results = [scan["result"] for scan in (channel.get("clamav"), channel.get("yara")) if scan]
     results += ["infected" if flagged else "clean" for _, flagged, _ in external_results(channel, reports, vt_reports)]

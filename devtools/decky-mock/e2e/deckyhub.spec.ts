@@ -1680,7 +1680,7 @@ test("Discover cards show the ClamAV verdict for the release they install, and t
   await app.locator(".deckyhub-badge-notice").getByRole("button", { name: "More", exact: true }).click();
   const legend = app.locator(".deckyhub-scan-legend");
   for (const [badge, meaning] of [
-    ["No threats", "isn't proof of safety"],
+    ["Nothing flagged", "isn't proof of safety"],
     ["Threat found", "decide for yourself"],
     ["Not fully scanned", "Manage says why"],
   ])

@@ -141,7 +141,7 @@ export const ja: Record<MessageKey, string> = {
   "appcard.rust": "Rust",
   "appcard.rustHint":
     "リポジトリに Rust のコードがあり、プラグインの一部は Rust で書かれています。品質や安全性については何も示しません。",
-  "appcard.scan.clean": "脅威なし",
+  "appcard.scan.clean": "検出なし",
   "appcard.scan.clean.hint":
     "インストールするリリースからウイルススキャンで既知の脅威は見つかりませんでした。スキャンは既知のマルウェアしか検出できず、回避されることもあるため、安全の証明にはなりません。スキャンレポートは「管理」で確認できます。",
   "appcard.scan.infected": "脅威を検出",
