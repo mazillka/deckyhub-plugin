@@ -201,6 +201,8 @@ export const zhTW: Record<MessageKey, string> = {
   "appcard.uninstall": "解除安裝",
   "appcard.uninstallTitle": "解除安裝 {name}？",
   "appcard.uninstallDescription": "將從此裝置移除該插件及其設定。之後可以重新安裝。",
+  "appcard.uninstallByName":
+    "DeckyHub 無法將已安裝的外掛與此項目比對，因此 Decky Loader 將移除它所知的外掛「{name}」。",
   "appcard.uninstalled": "已解除安裝 {name}。",
   "appcard.freshInstallDescription":
     "DeckyHub 會先移除已安裝的版本，再由 Decky 全新安裝所選版本。由於 Decky Loader 的一個錯誤，直接覆蓋更新可能導致裝置當機。如果取消 Decky 的安裝對話框，{name} 將維持未安裝狀態，直到你重新安裝。",

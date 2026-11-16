@@ -158,17 +158,23 @@ export function AppDetailsModal({
 
   // Installed Decky plugins can be removed through Decky Loader — never
   // DeckyHub itself from here. The loader doesn't confirm, so we do.
-  const canUninstall = Boolean(app.pluginName && app.pluginName !== "DeckyHub");
+  // An unverified one is removed by the name Decky knows it by, when that name is unique (uninstallName).
+  const uninstallName = app.pluginName ?? app.uninstallName;
+  const canUninstall = Boolean(uninstallName && uninstallName !== "DeckyHub");
   const confirmUninstall = () =>
     showModal(
       <WideConfirmModal
         strTitle={t("appcard.uninstallTitle", { name: app.name })}
-        strDescription={t("appcard.uninstallDescription")}
+        strDescription={
+          app.identityUnverified
+            ? `${t("appcard.uninstallByName", { name: uninstallName! })} ${t("appcard.uninstallDescription")}`
+            : t("appcard.uninstallDescription")
+        }
         strOKButtonText={t("appcard.uninstall")}
         bDestructiveWarning
         onOK={() => {
           closeModal?.();
-          void uninstallDeckyPlugin(app.pluginName!).then(
+          void uninstallDeckyPlugin(uninstallName!).then(
             () => {
               toaster.toast({ title: "DeckyHub", body: t("appcard.uninstalled", { name: app.name }) });
               onUninstalled();

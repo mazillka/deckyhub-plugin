@@ -214,6 +214,8 @@ export const pl: Record<MessageKey, string> = {
   "appcard.uninstallTitle": "Odinstalować {name}?",
   "appcard.uninstallDescription":
     "Usuwa wtyczkę i jej ustawienia z tego urządzenia. Możesz ją później zainstalować ponownie.",
+  "appcard.uninstallByName":
+    "DeckyHub nie zdołał dopasować zainstalowanej wtyczki do tego wpisu, więc Decky Loader usunie wtyczkę, którą zna jako „{name}”.",
   "appcard.uninstalled": "Odinstalowano {name}.",
   "appcard.freshInstallDescription":
     "DeckyHub najpierw usuwa zainstalowaną wersję, a potem Decky instaluje wybraną od nowa. Aktualizacja w miejscu może zawiesić urządzenie przez błąd w Decky Loader. Jeśli anulujesz okno instalacji Decky, {name} pozostanie odinstalowana, dopóki nie zainstalujesz jej ponownie.",

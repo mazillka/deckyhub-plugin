@@ -209,6 +209,8 @@ export const en = {
   "appcard.uninstallTitle": "Uninstall {name}?",
   "appcard.uninstallDescription":
     "This removes the plugin and its settings from this device. You can install it again later.",
+  "appcard.uninstallByName":
+    "DeckyHub couldn't match the installed plugin to this entry, so Decky Loader will remove the plugin it knows as “{name}”.",
   "appcard.uninstalled": "{name} was uninstalled.",
   "appcard.freshInstallDescription":
     "DeckyHub removes the installed version first, then Decky installs the selected one fresh. Updating in place can freeze your device because of a Decky Loader bug. If you cancel Decky's install dialog, {name} stays uninstalled until you install it again.",

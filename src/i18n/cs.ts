@@ -213,6 +213,8 @@ export const cs: Record<MessageKey, string> = {
   "appcard.uninstallTitle": "Odinstalovat {name}?",
   "appcard.uninstallDescription":
     "Tímto odeberete plugin a jeho nastavení z tohoto zařízení. Později ho můžete nainstalovat znovu.",
+  "appcard.uninstallByName":
+    "DeckyHub nedokázal přiřadit nainstalovaný plugin k tomuto záznamu, proto Decky Loader odstraní plugin, který zná jako „{name}“.",
   "appcard.uninstalled": "{name} byl odinstalován.",
   "appcard.freshInstallDescription":
     "DeckyHub nejprve odebere nainstalovanou verzi a pak Decky nainstaluje vybranou verzi načisto. Aktualizace na místě může kvůli chybě v Decky Loader zamrazit zařízení. Pokud zrušíte instalační okno Decky, {name} zůstane odinstalován, dokud ho znovu nenainstalujete.",

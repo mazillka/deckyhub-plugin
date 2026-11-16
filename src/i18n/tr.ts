@@ -212,6 +212,8 @@ export const tr: Record<MessageKey, string> = {
   "appcard.uninstallTitle": "{name} kaldırılsın mı?",
   "appcard.uninstallDescription":
     "Bu, eklentiyi ve ayarlarını bu cihazdan kaldırır. Daha sonra yeniden yükleyebilirsin.",
+  "appcard.uninstallByName":
+    "DeckyHub yüklü eklentiyi bu girişle eşleştiremedi, bu yüzden Decky Loader “{name}” olarak bildiği eklentiyi kaldıracak.",
   "appcard.uninstalled": "{name} kaldırıldı.",
   "appcard.freshInstallDescription":
     "DeckyHub önce yüklü sürümü kaldırır, ardından Decky seçilen sürümü sıfırdan yükler. Yerinde güncelleme, bir Decky Loader hatası yüzünden cihazı dondurabilir. Decky'nin yükleme penceresini iptal edersen {name}, yeniden yükleyene kadar kaldırılmış kalır.",

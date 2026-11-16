@@ -215,6 +215,8 @@ export const uk: Record<MessageKey, string> = {
   "appcard.uninstallTitle": "Видалити {name}?",
   "appcard.uninstallDescription":
     "Плагін і його налаштування буде видалено з цього пристрою. Пізніше його можна встановити знову.",
+  "appcard.uninstallByName":
+    "DeckyHub не зміг зіставити встановлений плагін із цим записом, тому Decky Loader видалить плагін, відомий йому як «{name}».",
   "appcard.uninstalled": "{name} видалено.",
   "appcard.freshInstallDescription":
     "DeckyHub спершу видалить встановлену версію, а потім Decky встановить вибрану начисто. Оновлення поверх може заморозити пристрій через помилку в Decky Loader. Якщо скасувати вікно встановлення Decky, {name} залишиться видаленим, доки ви не встановите його знову.",

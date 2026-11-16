@@ -34,6 +34,25 @@ class PluginStatusTests(unittest.TestCase):
         self.assertIsNone(app["pluginName"])
         self.assertEqual(app["installedVersion"], "1.2.3")
 
+    def test_an_unverified_plugin_can_be_removed_by_its_own_name_only_when_that_name_is_unique(self):
+        plugin = Plugin()
+        plugin.settings = {"customRepos": []}
+        plugin.apps = [{"repo": "owner/project", "detect": {"type": "decky-plugin", "names": ["Plugin"]}}]
+        # Carries the registry's name but names another repository: not verified, so no updates.
+        unique = [({"name": "Plugin", "version": "1.2.3"}, {}, "someone/else")]
+        with patch.object(plugin, "_scan_installed_plugins", return_value=unique):
+            app = asyncio.run(plugin.get_apps())["apps"][0]
+        self.assertTrue(app["identityUnverified"])
+        self.assertIsNone(app["pluginName"])
+        # Decky can still remove it by that name, which no other installed plugin has.
+        self.assertEqual(app["uninstallName"], "Plugin")
+        duplicate = [*unique, ({"name": "plugin", "version": "9.0.0"}, {}, "other/project")]
+        with patch.object(plugin, "_scan_installed_plugins", return_value=duplicate):
+            app = asyncio.run(plugin.get_apps())["apps"][0]
+        # Two plugins share the name: removing by name could remove the wrong one.
+        self.assertTrue(app["identityUnverified"])
+        self.assertIsNone(app["uninstallName"])
+
     def test_repository_match_rejects_name_only_wrong_owner_and_duplicates(self):
         plugin = Plugin()
         rule = {"repo": "owner/project", "names": ["Plugin"]}

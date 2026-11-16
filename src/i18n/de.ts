@@ -221,6 +221,8 @@ export const de: Record<MessageKey, string> = {
   "appcard.uninstallTitle": "{name} deinstallieren?",
   "appcard.uninstallDescription":
     "Das Plugin und seine Einstellungen werden von diesem Gerät entfernt. Du kannst es später erneut installieren.",
+  "appcard.uninstallByName":
+    "DeckyHub konnte das installierte Plugin nicht diesem Eintrag zuordnen, daher entfernt Decky Loader das Plugin, das es als „{name}“ kennt.",
   "appcard.uninstalled": "{name} wurde deinstalliert.",
   "appcard.freshInstallDescription":
     "DeckyHub entfernt zuerst die installierte Version, dann installiert Decky die ausgewählte neu. Ein Update an Ort und Stelle kann dein Gerät wegen eines Fehlers in Decky Loader einfrieren. Wenn du Deckys Installationsdialog abbrichst, bleibt {name} deinstalliert, bis du es erneut installierst.",
