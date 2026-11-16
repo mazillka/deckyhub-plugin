@@ -139,6 +139,9 @@ export const nl: Record<MessageKey, string> = {
   "appcard.aiHint":
     "De repository bevat instructies voor AI-programmeerassistenten, of de README zegt dat de plugin met AI is gemaakt, dus de plugin is waarschijnlijk met hulp van AI ontwikkeld. Dat zegt niets over kwaliteit of veiligheid, en geen badge betekent niet dat er geen AI is gebruikt.",
   "appcard.aiFiles": "Waarschijnlijk met hulp van AI ontwikkeld ({files})",
+  "appcard.rust": "Rust",
+  "appcard.rustHint":
+    "De repository bevat Rust-code, dus een deel van de plugin is in Rust geschreven. Dat zegt niets over de kwaliteit of veiligheid.",
   "appcard.scan.clean": "Geen bedreigingen",
   "appcard.scan.clean.hint":
     "De virusscans vonden geen bekende bedreigingen in de release die je zou installeren. Ze vinden alleen bekende malware en zijn te omzeilen, dus dit is geen bewijs van veiligheid. Beheren heeft het scanrapport.",

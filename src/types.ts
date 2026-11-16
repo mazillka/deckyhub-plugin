@@ -70,6 +70,8 @@ export type PluginStats = {
   // plus optional activity counters from listings with both valid endpoint lists.
   store?: StoreStats;
   ai?: string[];
+  // The repository ships Rust code (a Cargo.toml or rust-toolchain file in it).
+  rust?: boolean;
   warnings?: string[];
   prereleaseWarnings?: string[];
 };

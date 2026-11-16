@@ -140,6 +140,9 @@ export const ptPT: Record<MessageKey, string> = {
   "appcard.aiHint":
     "O repositório tem instruções para assistentes de programação com IA, ou o README diz que foi feito com IA, por isso provavelmente foi desenvolvido com ajuda de IA. Isso não diz nada sobre a qualidade ou a segurança, e não ter o distintivo não significa que não se usou IA.",
   "appcard.aiFiles": "Provavelmente desenvolvido com ajuda de IA ({files})",
+  "appcard.rust": "Rust",
+  "appcard.rustHint":
+    "O repositório tem código Rust, por isso parte do plugin está escrita em Rust. Isso não diz nada sobre a sua qualidade ou segurança.",
   "appcard.scan.clean": "Sem ameaças",
   "appcard.scan.clean.hint":
     "As verificações antivírus não encontraram ameaças conhecidas na versão que instalaria. Só detetam malware conhecido e podem ser contornadas, por isso isto não prova que é seguro. O relatório está em Gerir.",

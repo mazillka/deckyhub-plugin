@@ -321,6 +321,15 @@ class PluginPageTests(unittest.TestCase):
         self.assertIn("Threat found", page)  # the badge counts VirusTotal, not just ClamAV and YARA
         self.assertIn("✖ Threat found", plugin_pages.flags_of({}, scans, {}, vt))
 
+    def test_rust_gets_a_badge_a_flag_and_nothing_on_a_store_only_page(self):
+        stats = {"rust": True}
+        self.assertIn('<span class="badge rust">Rust</span>', "".join(plugin_pages.badges_of(stats, {}, {})))
+        self.assertIn('<span class="flag-rust">Rust</span>', plugin_pages.flags_of(stats, {}))
+        self.assertEqual(
+            plugin_pages.flags_of({"rust": True, "store": {"downloads": 1}}, {}, store_only=True),
+            '<span class="flag-store">In Decky store</span>',
+        )
+
     def test_a_store_only_card_shows_only_the_store_flag(self):
         stats = {"store": {"downloads": 1}, "ai": ["AGENTS.md"], "root": True, "warnings": ["blocked"]}
         flags = plugin_pages.flags_of(stats, {}, store_only=True)

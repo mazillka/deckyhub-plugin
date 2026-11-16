@@ -140,6 +140,9 @@ export const fr: Record<MessageKey, string> = {
   "appcard.aiHint":
     "Son dépôt contient des instructions pour des assistants de programmation IA, ou son README dit qu’il est fait avec l’IA : il est donc probablement développé avec l’aide de l’IA. Cela ne dit rien de sa qualité ni de sa sécurité, et l’absence de badge ne veut pas dire qu’aucune IA n’a été utilisée.",
   "appcard.aiFiles": "Probablement développé avec l'aide de l'IA ({files})",
+  "appcard.rust": "Rust",
+  "appcard.rustHint":
+    "Son dépôt contient du code Rust : une partie du plugin est écrite en Rust. Cela n'indique rien sur sa qualité ni sa sécurité.",
   "appcard.scan.clean": "Aucune menace",
   "appcard.scan.clean.hint":
     "Les analyses antivirus n’ont trouvé aucune menace connue dans la version que vous installeriez. Elles ne détectent que les logiciels malveillants connus et peuvent être contournées : ce n’est donc pas une preuve de sécurité. Gérer contient le rapport d’analyse.",

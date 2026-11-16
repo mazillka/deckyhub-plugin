@@ -136,6 +136,9 @@ export const tr: Record<MessageKey, string> = {
   "appcard.aiHint":
     "Deposunda yapay zekâ kodlama asistanları için talimatlar var ya da README'si yapay zekâyla yapıldığını söylüyor, bu yüzden muhtemelen yapay zekâ yardımıyla geliştirildi. Bu, kalitesi veya güvenliği hakkında bir şey söylemez; rozetin olmaması da yapay zekâ kullanılmadığı anlamına gelmez.",
   "appcard.aiFiles": "Muhtemelen yapay zekâ yardımıyla geliştirildi ({files})",
+  "appcard.rust": "Rust",
+  "appcard.rustHint":
+    "Deposunda Rust kodu var, yani eklentinin bir kısmı Rust ile yazılmış. Bu, kalitesi veya güvenliği hakkında hiçbir şey söylemez.",
   "appcard.scan.clean": "Tehdit yok",
   "appcard.scan.clean.hint":
     "Virüs taramaları, yükleyeceğin sürümde bilinen bir tehdit bulmadı. Taramalar yalnızca bilinen kötü amaçlı yazılımları yakalar ve atlatılabilir, bu yüzden bu güvenliğin kanıtı değildir. Tarama raporu Yönet'te.",
