@@ -407,7 +407,7 @@ function ReleaseNotes({
 
 // A row that opens and closes its content (the scan report, the version menus, the release notes) with A.
 // Closed, it shows its title and a short hint, so the window stays one screen and nothing is hidden for good.
-function DetailsRow({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
+export function DetailsRow({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="deckyhub-details-row" style={{ display: "grid", gap: 10 }}>

@@ -1182,6 +1182,13 @@ test("The Manage window leads with the checks and the actions, and keeps the rep
   }
   await expect(details.locator(".deckyhub-details-notes")).toHaveCount(0);
   await expect(details.locator(".deckyhub-version-pickers")).toHaveCount(0);
+  // The routine and rare actions are behind a More row; the links, Uninstall and Close stay out.
+  await expect(details.getByRole("button", { name: "Check for Updates" })).toHaveCount(0);
+  await expect(details.getByRole("button", { name: "Close", exact: true })).toBeVisible();
+  const moreRow = details.locator(".deckyhub-details-row").filter({ hasText: /^More/ });
+  await moreRow.getByRole("button").first().click();
+  await expect(details.getByRole("button", { name: "Check for Updates" })).toBeVisible();
+  await expect(details.getByRole("button", { name: "Report a problem" })).toBeVisible();
   // A opens a row and A again closes it.
   const notesRow = details.locator(".deckyhub-details-row").filter({ hasText: /^What's new in/ });
   await notesRow.getByRole("button").click();

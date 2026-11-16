@@ -16,6 +16,7 @@ import {
   FaPlus,
   FaRedo,
   FaTimes,
+  FaSync,
   FaTrash,
 } from "react-icons/fa";
 import { getDeckyHubInfo, saveRepoSettings } from "../api";
@@ -46,7 +47,7 @@ import { startPluginInstall } from "./InstallFlow";
 import { displayVersion } from "../version";
 import { AppBadges, AppMonogram, AppStats, FindingsSummary } from "./AppBadges";
 import { showReleaseInfo } from "./ReleaseInfo";
-import { DetailsWindow } from "./DetailsWindow";
+import { DetailsRow, DetailsWindow } from "./DetailsWindow";
 import { VirusScanReport } from "./VirusScanReport";
 import { KnownIssues } from "./KnownIssues";
 import { ReleaseActions, useReleasePicker } from "./VersionPickerPanel";
@@ -381,70 +382,97 @@ export function AppDetailsModal({
       hideVersionPicker={app.store}
       footer={
         <>
+          {/* The links, in one row. */}
           <ReleaseActions
             t={t}
             url={selectedRelease?.url}
             repoUrl={`https://github.com/${app.repo}`}
             pageUrl={app.official ? `https://deckyhub.com/plugins/${encodeURIComponent(app.id)}.html` : undefined}
-            onReport={async () => {
-              const info = await getDeckyHubInfo().catch(() => null);
-              const issue = reportIssueUrl({
-                repo: app.repo,
-                name: app.name,
-                version: app.installedVersion ? displayVersion(app.installedVersion) : undefined,
-                deckyhubVersion: info?.version,
-              });
-              if (!issue) return;
-              closeModal?.();
-              openExternalWeb(issue);
-            }}
             hideReleasePage={hiddenButtons.includes("releasePage")}
             checking={loading}
             disabled={loading}
             onCheck={() => void load(true)}
             closeModal={closeModal}
-            hideCheck={app.store}
+            hideCheck
           />
-          {canSkip && (
-            <Button style={modalButtonStyle} onClick={toggleSkip}>
-              {skipped ? <FaEye /> : <FaEyeSlash />}{" "}
-              {t(skipped ? "appcard.unskipVersion" : "appcard.skipVersion", { version: displayVersion(latest!) })}
-            </Button>
+          {/* The routine and the rare actions behind one row, so the window doesn't end in a long stack. */}
+          <DetailsRow title={t("notice.more")}>
+            <Focusable flow-children="down" style={{ display: "grid", gap: 8 }}>
+              {!app.store && (
+                <Button style={modalButtonStyle} disabled={loading} onClick={() => void load(true)}>
+                  <FaSync /> {loading ? t("settings.checkingUpdate") : t("settings.checkUpdate")}
+                </Button>
+              )}
+              {canSkip && (
+                <Button style={modalButtonStyle} onClick={toggleSkip}>
+                  {skipped ? <FaEye /> : <FaEyeSlash />}{" "}
+                  {t(skipped ? "appcard.unskipVersion" : "appcard.skipVersion", { version: displayVersion(latest!) })}
+                </Button>
+              )}
+              {app.installedVersion && !app.store && (
+                <Button style={modalButtonStyle} onClick={togglePin}>
+                  {pinned ? <FaUnlock /> : <FaLock />}{" "}
+                  {t(pinned ? "appcard.unpinVersion" : "appcard.pinVersion", {
+                    version: displayVersion(pinned ? preference.pinVersion! : app.installedVersion),
+                  })}
+                </Button>
+              )}
+              <Button
+                style={modalButtonStyle}
+                onClick={async () => {
+                  const info = await getDeckyHubInfo().catch(() => null);
+                  const issue = reportIssueUrl({
+                    repo: app.repo,
+                    name: app.name,
+                    version: app.installedVersion ? displayVersion(app.installedVersion) : undefined,
+                    deckyhubVersion: info?.version,
+                  });
+                  if (!issue) return;
+                  closeModal?.();
+                  openExternalWeb(issue);
+                }}
+              >
+                <FaExclamationTriangle /> {t("appcard.reportProblem")}
+              </Button>
+            </Focusable>
+          </DetailsRow>
+          {/* Only for a plugin DeckyHub can't match to its repository. */}
+          {(anyway || trustable || app.identityTrusted) && (
+            <Focusable flow-children="right" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {anyway && selectedRelease && (
+                <Button
+                  style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto", color: colors.warning }}
+                  onClick={() => runInstallAnyway(selectedRelease, anyway)}
+                >
+                  <FaExclamationTriangle /> {t("appcard.installAnyway")}
+                </Button>
+              )}
+              {trustable && (
+                <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={confirmTrust}>
+                  <FaShieldAlt /> {t("appcard.trustPlugin")}
+                </Button>
+              )}
+              {app.identityTrusted && (
+                <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={stopTrusting}>
+                  <FaShieldAlt /> {t("appcard.untrustPlugin")}
+                </Button>
+              )}
+            </Focusable>
           )}
-          {app.installedVersion && !app.store && (
-            <Button style={modalButtonStyle} onClick={togglePin}>
-              {pinned ? <FaUnlock /> : <FaLock />}{" "}
-              {t(pinned ? "appcard.unpinVersion" : "appcard.pinVersion", {
-                version: displayVersion(pinned ? preference.pinVersion! : app.installedVersion),
-              })}
+          {/* Remove apart from the rest, and Close beside it. */}
+          <Focusable flow-children="right" style={{ display: "flex", gap: 8 }}>
+            {canUninstall && (
+              <Button
+                style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto", color: colors.danger }}
+                onClick={confirmUninstall}
+              >
+                <FaTrash /> {t("appcard.uninstall")}
+              </Button>
+            )}
+            <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={closeModal}>
+              <FaTimes /> {t("settings.close")}
             </Button>
-          )}
-          {anyway && selectedRelease && (
-            <Button
-              style={{ ...modalButtonStyle, color: colors.warning }}
-              onClick={() => runInstallAnyway(selectedRelease, anyway)}
-            >
-              <FaExclamationTriangle /> {t("appcard.installAnyway")}
-            </Button>
-          )}
-          {trustable && (
-            <Button style={modalButtonStyle} onClick={confirmTrust}>
-              <FaShieldAlt /> {t("appcard.trustPlugin")}
-            </Button>
-          )}
-          {app.identityTrusted && (
-            <Button style={modalButtonStyle} onClick={stopTrusting}>
-              <FaShieldAlt /> {t("appcard.untrustPlugin")}
-            </Button>
-          )}
-          {canUninstall && (
-            <Button style={{ ...modalButtonStyle, color: colors.danger }} onClick={confirmUninstall}>
-              <FaTrash /> {t("appcard.uninstall")}
-            </Button>
-          )}
-          <Button style={modalButtonStyle} onClick={closeModal}>
-            <FaTimes /> {t("settings.close")}
-          </Button>
+          </Focusable>
         </>
       }
     />
