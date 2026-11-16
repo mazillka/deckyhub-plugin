@@ -4028,6 +4028,30 @@ test("The Updates page offers Discover when everything is up to date", async ({ 
   await expect(app.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
 });
 
+test("In the Experimental style the Updates tab's Discover button switches to the Discover tab", async ({
+  page,
+  request,
+}) => {
+  const headers = { Origin: "http://127.0.0.1:5183" };
+  const settings = async () =>
+    (await (await request.post(BRIDGE_URL, { data: { route: "get_settings", args: [] }, headers })).json()).result;
+  const setStyle = async (uiStyle: string) =>
+    request.post(BRIDGE_URL, { data: { route: "save_settings", args: [{ ...(await settings()), uiStyle }] }, headers });
+  await setStyle("experimental");
+  try {
+    await page.goto("/?preview=/deckyhub/updates&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    // The route stays on Updates, so the button can't navigate: it has to switch the tab it sits in.
+    await app.getByRole("button", { name: "Discover", exact: true }).last().click();
+    await expect(app.locator(".dh-exp-nav .is-active")).toContainText("Discover");
+    await app.getByRole("button", { name: "Updates", exact: true }).click();
+    await app.getByRole("button", { name: "Discover", exact: true }).last().click();
+    await expect(app.locator(".dh-exp-nav .is-active")).toContainText("Discover");
+  } finally {
+    await setStyle("default");
+  }
+});
+
 test("A card says Installing… while Decky installs, then a notice says it's done", async ({ page }) => {
   await recordInstalls(page);
   await mockMakoReleases(page, [makoRelease("plugin-v1.2.3", "a".repeat(64))]);

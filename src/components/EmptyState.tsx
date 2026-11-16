@@ -3,6 +3,13 @@ import { FaCompass, FaTimes } from "react-icons/fa";
 import { useT } from "../i18n";
 import { compactButtonStyle, surfaceStyle } from "../utils";
 import { keepInView } from "./KeepInView";
+import { SELECT_PAGE, type SelectPageRequest } from "./experimental/ExpNavBar";
+
+const openDiscover = () => {
+  const request: SelectPageRequest = { page: "discover" };
+  window.dispatchEvent(new CustomEvent(SELECT_PAGE, { detail: request }));
+  if (!request.handled) Navigation.Navigate("/deckyhub/discover");
+};
 
 // What an empty Updates or Discover list says, with the way out: Discover from
 // Updates, or Clear when Discover's filters hid everything.
@@ -27,7 +34,7 @@ export function EmptyState({
       <PanelSection title={title}>
         {toDiscover && (
           <PanelSectionRow>
-            <Button style={compactButtonStyle} onClick={() => Navigation.Navigate("/deckyhub/discover")}>
+            <Button style={compactButtonStyle} onClick={openDiscover}>
               <FaCompass /> {t("nav.discover")}
             </Button>
           </PanelSectionRow>
