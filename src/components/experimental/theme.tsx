@@ -119,12 +119,12 @@ const EXP_CSS = `
   .dh-exp-search > svg { color: var(--exp-accent); flex-shrink: 0; }
   .dh-exp-search > :not(svg) { flex: 1; min-width: 0; }
   .dh-exp-search input { background: transparent !important; border: 0 !important; }
-  .dh-exp-search-big { min-height: 56px; font-size: 1.1em; }
+  .dh-exp-search-big { min-height: 52px; font-size: 1.1em; }
   /* Field and buttons one height, so the row lines up. */
   .dh-exp-search-hero .dh-exp-filter-row { align-items: stretch; width: 100%; box-sizing: border-box; }
-  .dh-exp-search-hero .dh-exp-filter-row button { height: 100%; min-height: 56px; }
+  .dh-exp-search-hero .dh-exp-filter-row button { height: 100%; min-height: 52px; }
   .dh-exp-search-hero .dh-exp-search-big { border: 0; box-shadow: inset 0 0 0 1px var(--exp-line); }
-  .dh-exp-search-hero .dh-exp-search-big input { min-height: 56px; box-sizing: border-box; }
+  .dh-exp-search-hero .dh-exp-search-big input { min-height: 52px; box-sizing: border-box; }
   .dh-exp-field { flex: 0 0 210px; min-width: 0; display: grid; gap: 4px; font-size: max(12px, 0.8em); color: var(--exp-muted); }
   .dh-exp-segmented { flex: 1; display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--exp-line); }
   .dh-exp-segmented > div { flex: 1; min-width: 0; }
