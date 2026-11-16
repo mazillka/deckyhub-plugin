@@ -219,6 +219,8 @@ export const nl: Record<MessageKey, string> = {
   "appcard.uninstallTitle": "{name} verwijderen?",
   "appcard.uninstallDescription":
     "Dit verwijdert de plugin en zijn instellingen van dit apparaat. Je kunt hem later opnieuw installeren.",
+  "appcard.uninstallByName":
+    "DeckyHub kon de geïnstalleerde plugin niet aan dit item koppelen, dus Decky Loader verwijdert de plugin die het kent als “{name}”.",
   "appcard.uninstalled": "{name} is verwijderd.",
   "appcard.freshInstallDescription":
     "DeckyHub verwijdert eerst de geïnstalleerde versie, daarna installeert Decky de gekozen versie opnieuw. Ter plekke bijwerken kan je apparaat laten vastlopen door een bug in Decky Loader. Als je het installatievenster van Decky annuleert, blijft {name} verwijderd tot je hem opnieuw installeert.",

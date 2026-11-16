@@ -214,6 +214,8 @@ export const ja: Record<MessageKey, string> = {
   "appcard.uninstall": "アンインストール",
   "appcard.uninstallTitle": "{name}をアンインストールしますか？",
   "appcard.uninstallDescription": "このプラグインと設定がこのデバイスから削除されます。後で再インストールできます。",
+  "appcard.uninstallByName":
+    "DeckyHub はインストール済みのプラグインをこの項目に対応付けられませんでした。そのため Decky Loader が「{name}」として認識しているプラグインを削除します。",
   "appcard.uninstalled": "{name}をアンインストールしました。",
   "appcard.freshInstallDescription":
     "DeckyHub はまずインストール済みのバージョンを削除し、その後 Decky が選択したバージョンを新規インストールします。Decky Loader の不具合により、上書き更新では デバイスがフリーズすることがあります。Decky のインストール画面をキャンセルすると、{name} は再インストールするまで削除されたままになります。",

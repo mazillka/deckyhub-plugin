@@ -20,6 +20,8 @@ export type App = {
   detect?: { type: string; names?: string[] };
   // Installed Decky plugin's own manifest name (decky-plugin detection only).
   pluginName?: string | null;
+  // Set when identityUnverified: the one name Decky Loader can remove it by (see apps.py).
+  uninstallName?: string | null;
   identityUnverified?: boolean;
   latestVersion?: string | null;
   // Whether the hydrated card asset comes from a prerelease, independent of the user's filter preference.

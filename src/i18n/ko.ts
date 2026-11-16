@@ -208,6 +208,8 @@ export const ko: Record<MessageKey, string> = {
   "appcard.uninstall": "제거",
   "appcard.uninstallTitle": "{name}을(를) 제거할까요?",
   "appcard.uninstallDescription": "이 기기에서 플러그인과 설정이 삭제됩니다. 나중에 다시 설치할 수 있습니다.",
+  "appcard.uninstallByName":
+    "DeckyHub가 설치된 플러그인을 이 항목과 연결하지 못해, Decky Loader가 “{name}”로 알고 있는 플러그인을 제거합니다.",
   "appcard.uninstalled": "{name}을(를) 제거했습니다.",
   "appcard.freshInstallDescription":
     "DeckyHub가 설치된 버전을 먼저 제거한 뒤 Decky가 선택한 버전을 새로 설치합니다. Decky Loader 버그 때문에 제자리 업데이트는 기기를 멈추게 할 수 있습니다. Decky의 설치 창에서 취소하면 {name}은(는) 다시 설치할 때까지 제거된 상태로 남습니다.",
