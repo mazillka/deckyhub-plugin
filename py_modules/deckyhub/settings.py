@@ -54,12 +54,10 @@ def coerce_settings(settings: dict) -> dict:
         # DeckyHub's own icon in Steam's Quick Access tab strip (QuickAccessTab.tsx).
         # Off leaves DeckyHub in Decky's plugin list.
         "quickAccessTab": bool(settings.get("quickAccessTab", True)),
-        # Quick Access' UI Style: the classic look ("default"), or the Informative redesign ("experimental",
-        # src/components/experimental/). A new install, with no settings yet, gets Informative; a file saved
-        # before the choice existed, or any other value, stays Classic, so nobody's look changes under them.
-        "uiStyle": settings.get("uiStyle")
-        if settings.get("uiStyle") in ("experimental", "v2")
-        else ("experimental" if not settings else "default"),
+        # Quick Access' UI Style: the classic look ("default"), or one of the unfinished redesigns ("experimental",
+        # src/components/experimental/, and "v2", src/components/v2/), which may be broken and are only for people
+        # who pick them. Everybody starts on Default, new installs included; any other value falls back to it.
+        "uiStyle": settings.get("uiStyle") if settings.get("uiStyle") in ("experimental", "v2") else "default",
         # Manage-window buttons the user chose to hide (Display Settings).
         "hiddenButtons": [
             name

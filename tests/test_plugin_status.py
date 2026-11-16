@@ -311,12 +311,12 @@ class PluginStatusTests(unittest.TestCase):
             plugin.settings_path = Path(home) / "settings.json"
             self.assertIs(plugin._load_settings()["quickAccessTab"], True)
 
-    def test_ui_style_is_informative_for_new_installs_and_classic_for_old_settings(self):
+    def test_ui_style_is_default_for_everybody_until_they_pick_another(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = Plugin()
             plugin.settings_path = Path(home) / "settings.json"
-            # No settings file yet: a new install.
-            self.assertEqual(plugin._load_settings()["uiStyle"], "experimental")
+            # No settings file yet: a new install starts on Default.
+            self.assertEqual(plugin._load_settings()["uiStyle"], "default")
             # A file from before the choice existed keeps the look its owner has.
             plugin.settings_path.write_text(json.dumps({"haptics": False}), encoding="utf-8")
             self.assertEqual(plugin._load_settings()["uiStyle"], "default")
