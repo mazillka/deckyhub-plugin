@@ -186,6 +186,20 @@ test.beforeAll(async ({ request }) => {
 });
 
 test.beforeEach(async ({ page }) => {
+  // The Manage window folds the scan report, the version menus and the release notes into rows. Most tests are
+  // about what is inside them, so each row is opened as it appears, as a user would; the test that checks the
+  // rows themselves sets window.__keepRowsShut first.
+  await page.addInitScript(() => {
+    const open = () => {
+      if ((window as unknown as { __keepRowsShut?: boolean }).__keepRowsShut) return;
+      for (const row of document.querySelectorAll<HTMLElement>(".deckyhub-details-row > div > button"))
+        if (!row.dataset.autoOpened) {
+          row.dataset.autoOpened = "1";
+          row.click();
+        }
+    };
+    new MutationObserver(open).observe(document, { childList: true, subtree: true });
+  });
   // The one-time welcome card is its own test; elsewhere it's already been seen.
   await page.addInitScript(() => {
     try {
@@ -1141,6 +1155,38 @@ test("MetaDefender reports are used only for the selected ZIP hash", async ({ pa
   await card.getByRole("button", { name: "Manage", exact: true }).click();
   await expect(app.locator(".steam-modal").getByText(/MetaDefender: \d+ of/)).toHaveCount(0);
   await expect(app.locator(".steam-modal").getByText("MetaDefender: Not scanned yet").first()).toBeVisible();
+});
+
+test("The Manage window leads with the checks and the actions, and keeps the report, versions and notes in rows", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    (window as unknown as { __keepRowsShut: boolean }).__keepRowsShut = true;
+  });
+  const app = mock(page);
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
+  await app
+    .getByRole("heading", { name: "MAKO Decky" })
+    .locator("..")
+    .getByRole("button", { name: "Manage", exact: true })
+    .click();
+  const details = app.locator(".steam-modal .deckyhub-details");
+  // What the checks found and the main action are on the first screen; the rest is folded.
+  await expect(details.getByText("What the checks found")).toBeVisible();
+  await expect(details.getByRole("button", { name: /^Install v/ })).toBeVisible({ timeout: 30_000 });
+  for (const title of ["Scan report", "Version", /^What's new in/]) {
+    const row = details.locator(".deckyhub-details-row").filter({ hasText: title });
+    await expect(row).toHaveCount(1);
+  }
+  await expect(details.locator(".deckyhub-details-notes")).toHaveCount(0);
+  await expect(details.locator(".deckyhub-version-pickers")).toHaveCount(0);
+  // A opens a row and A again closes it.
+  const notesRow = details.locator(".deckyhub-details-row").filter({ hasText: /^What's new in/ });
+  await notesRow.getByRole("button").click();
+  await expect(details.locator(".deckyhub-details-notes")).toBeVisible();
+  await notesRow.getByRole("button").click();
+  await expect(details.locator(".deckyhub-details-notes")).toHaveCount(0);
 });
 
 test("The Manage window shows the plugin's description, details and a Repository button", async ({ page }) => {
