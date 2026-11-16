@@ -257,7 +257,7 @@ const auditKeys = (app: App) =>
     ),
   ].filter(isAuditWarning);
 
-const findingsOf = (app: App) =>
+export const findingsOf = (app: App) =>
   collectFindings({
     warnings: auditKeys(app),
     sourceMismatch: Boolean(app.scan && (independentAuditOf(app.scan)?.source?.findings.length ?? 0) > 0),

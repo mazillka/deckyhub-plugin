@@ -322,6 +322,7 @@ class PluginStatusTests(unittest.TestCase):
             self.assertEqual(plugin._load_settings()["uiStyle"], "default")
             self.assertEqual(asyncio.run(plugin.save_settings({"uiStyle": "experimental"}))["uiStyle"], "experimental")
             self.assertEqual(asyncio.run(plugin.save_settings({"uiStyle": "default"}))["uiStyle"], "default")
+            self.assertEqual(asyncio.run(plugin.save_settings({"uiStyle": "v2"}))["uiStyle"], "v2")
             self.assertEqual(asyncio.run(plugin.save_settings({"uiStyle": "neon"}))["uiStyle"], "default")
 
     def test_hidden_buttons_keep_only_known_names(self):

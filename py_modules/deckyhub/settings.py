@@ -57,7 +57,9 @@ def coerce_settings(settings: dict) -> dict:
         # Quick Access' UI Style: the classic look ("default"), or the Informative redesign ("experimental",
         # src/components/experimental/). A new install, with no settings yet, gets Informative; a file saved
         # before the choice existed, or any other value, stays Classic, so nobody's look changes under them.
-        "uiStyle": "experimental" if settings.get("uiStyle") == "experimental" or not settings else "default",
+        "uiStyle": settings.get("uiStyle")
+        if settings.get("uiStyle") in ("experimental", "v2")
+        else ("experimental" if not settings else "default"),
         # Manage-window buttons the user chose to hide (Display Settings).
         "hiddenButtons": [
             name
