@@ -13,6 +13,7 @@ import { displayVersion } from "../version";
 import { copyText, modalButtonStyle, timeAgo, virusScanOf } from "../utils";
 import { sectionTitleStyle } from "./DetailsWindow";
 import { keepInView } from "./KeepInView";
+import { scanAccent } from "../findings";
 import { colors } from "../styles";
 
 const COLORS: Record<ScanVerdict["result"], string> = {
@@ -441,14 +442,15 @@ export function VirusScanReport({
   const link = asset.url.startsWith("https://") ? asset.url : undefined;
   // The box's accent: the worst thing any scanner said, grey while nothing has a verdict.
   const verdicts = report && !report.unverifiedMatch ? scannersOf(report).map(({ verdict }) => verdict?.result) : [];
-  const flagged = verdicts.includes("infected") || !!virusTotal?.flagged || !!metaDefender?.flagged;
-  const accent = flagged
-    ? COLORS.infected
-    : verdicts.length > 0 && verdicts.every((result) => result === "clean")
-      ? COLORS.clean
-      : verdicts.length > 0 || report?.unverifiedMatch
-        ? COLORS.incomplete
-        : MUTED;
+  const external = [virusTotal, metaDefender].flatMap((found) =>
+    found?.state === "complete" ? [found.flagged > 0] : [],
+  );
+  const accent = {
+    infected: COLORS.infected,
+    clean: COLORS.clean,
+    partial: COLORS.incomplete,
+    none: MUTED,
+  }[scanAccent({ verdicts, external, hasReport: report !== null })];
   // The toast says what to do with the link, or gives it to type in when copying failed.
   const copyLink = async (page: Document, then?: string) => {
     if (!link) return;

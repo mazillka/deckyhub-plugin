@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
-import { collectFindings, type FindingsInput } from "../src/findings.ts";
+import { collectFindings, scanAccent, type FindingsInput } from "../src/findings.ts";
 
 const none: FindingsInput = {
   warnings: [],
@@ -57,4 +57,19 @@ test("a warning with no scan is listed and the ZIP is still reported as not scan
     ["appcard.warning.vulnerable"],
   );
   assert.equal(result.scanned, false);
+});
+
+test("the scan box is green only once all four scanners reported and none flagged the ZIP", () => {
+  const two = { verdicts: ["clean", "clean"], external: [], hasReport: true };
+  // ClamAV and YARA alone are two clean reports out of four: not green.
+  assert.equal(scanAccent(two), "partial");
+  assert.equal(scanAccent({ ...two, external: [false] }), "partial");
+  assert.equal(scanAccent({ ...two, external: [false, false] }), "clean");
+  // Any scanner flagging it wins, whatever else is missing.
+  assert.equal(scanAccent({ ...two, external: [true] }), "infected");
+  assert.equal(scanAccent({ verdicts: ["clean", "infected"], external: [], hasReport: true }), "infected");
+  // A scan that couldn't finish is partial; a ZIP with nothing at all is neutral.
+  assert.equal(scanAccent({ verdicts: ["incomplete", "clean"], external: [false, false], hasReport: true }), "partial");
+  assert.equal(scanAccent({ verdicts: [], external: [], hasReport: true }), "partial");
+  assert.equal(scanAccent({ verdicts: [], external: [], hasReport: false }), "none");
 });
