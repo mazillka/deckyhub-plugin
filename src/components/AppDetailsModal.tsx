@@ -246,6 +246,30 @@ export function AppDetailsModal({
       />,
     );
 
+  // Only for a plugin DeckyHub can't match to its repository: above Download ZIP, since they are the way to install it.
+  const unverifiedActions = (anyway || trustable || app.identityTrusted) && (
+    <Focusable flow-children="right" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+      {anyway && selectedRelease && (
+        <Button
+          style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto", color: colors.warning }}
+          onClick={() => runInstallAnyway(selectedRelease, anyway)}
+        >
+          <FaExclamationTriangle /> {t("appcard.installAnyway")}
+        </Button>
+      )}
+      {trustable && (
+        <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={confirmTrust}>
+          <FaShieldAlt /> {t("appcard.trustPlugin")}
+        </Button>
+      )}
+      {app.identityTrusted && (
+        <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={stopTrusting}>
+          <FaShieldAlt /> {t("appcard.untrustPlugin")}
+        </Button>
+      )}
+    </Focusable>
+  );
+
   return (
     <DetailsWindow
       t={t}
@@ -287,64 +311,65 @@ export function AppDetailsModal({
             <span>{t("appcard.storeInstallStep2", { name: app.name })}</span>
             <span>{t("appcard.storeInstallStep3")}</span>
           </Focusable>
-        ) : (
-          selectedRelease && (
-            <>
-              {install &&
-                !hiddenButtons.includes(install.type === PLUGIN_INSTALL_TYPE.INSTALL ? "install" : "update") && (
-                  <Button
-                    style={primaryButtonStyle}
-                    onClick={() => runInstall(selectedRelease, install)}
-                    onSecondaryButton={() =>
-                      showReleaseInfo(
-                        t,
-                        `${app.name} ${displayVersion(selectedRelease.tag)}`,
-                        selectedRelease.publishedAt,
-                        selectedRelease.notes,
-                      )
-                    }
-                    onSecondaryActionDescription={t("appcard.releaseInfo")}
-                    // X downloads the selected release's ZIP instead of installing it.
-                    onOptionsButton={
-                      hiddenButtons.includes("downloadZip") || downloading || !selectedRelease.assets[0]
-                        ? undefined
-                        : () => download(selectedRelease.assets[0])
-                    }
-                    onOptionsActionDescription={t("settings.downloadUpdate")}
-                    // Menu opens the repository; close first, or Steam's browser opens underneath this modal.
-                    onMenuButton={() => {
-                      closeModal?.();
-                      openExternalWeb(`https://github.com/${app.repo}`);
-                    }}
-                    onMenuActionDescription={t("appcard.repository")}
-                  >
-                    {installIcons[install.type]} {installLabel}
-                  </Button>
-                )}
-              {hiddenButtons.includes("downloadZip") ? null : selectedRelease.assets[0] ? (
+        ) : selectedRelease ? (
+          <>
+            {install &&
+              !hiddenButtons.includes(install.type === PLUGIN_INSTALL_TYPE.INSTALL ? "install" : "update") && (
                 <Button
+                  style={primaryButtonStyle}
+                  onClick={() => runInstall(selectedRelease, install)}
+                  onSecondaryButton={() =>
+                    showReleaseInfo(
+                      t,
+                      `${app.name} ${displayVersion(selectedRelease.tag)}`,
+                      selectedRelease.publishedAt,
+                      selectedRelease.notes,
+                    )
+                  }
+                  onSecondaryActionDescription={t("appcard.releaseInfo")}
+                  // X downloads the selected release's ZIP instead of installing it.
+                  onOptionsButton={
+                    hiddenButtons.includes("downloadZip") || downloading || !selectedRelease.assets[0]
+                      ? undefined
+                      : () => download(selectedRelease.assets[0])
+                  }
+                  onOptionsActionDescription={t("settings.downloadUpdate")}
+                  // Menu opens the repository; close first, or Steam's browser opens underneath this modal.
+                  onMenuButton={() => {
+                    closeModal?.();
+                    openExternalWeb(`https://github.com/${app.repo}`);
+                  }}
+                  onMenuActionDescription={t("appcard.repository")}
+                >
+                  {installIcons[install.type]} {installLabel}
+                </Button>
+              )}
+            {unverifiedActions}
+            {hiddenButtons.includes("downloadZip") ? null : selectedRelease.assets[0] ? (
+              <Button
+                style={modalButtonStyle}
+                disabled={downloading}
+                onClick={() => download(selectedRelease.assets[0])}
+              >
+                <FaFileArchive /> {t("settings.downloadUpdate")}
+              </Button>
+            ) : (
+              <small style={{ color: colors.danger }}>{t("appcard.noMatchingAsset")}</small>
+            )}
+            {!hiddenButtons.includes("downloadZip") &&
+              selectedRelease.assets.slice(1).map((asset) => (
+                <Button
+                  key={asset.name}
                   style={modalButtonStyle}
                   disabled={downloading}
-                  onClick={() => download(selectedRelease.assets[0])}
+                  onClick={() => download(asset)}
                 >
-                  <FaFileArchive /> {t("settings.downloadUpdate")}
+                  <FaFileArchive /> {`${asset.name} (${readableBytes(asset.size)})`}
                 </Button>
-              ) : (
-                <small style={{ color: colors.danger }}>{t("appcard.noMatchingAsset")}</small>
-              )}
-              {!hiddenButtons.includes("downloadZip") &&
-                selectedRelease.assets.slice(1).map((asset) => (
-                  <Button
-                    key={asset.name}
-                    style={modalButtonStyle}
-                    disabled={downloading}
-                    onClick={() => download(asset)}
-                  >
-                    <FaFileArchive /> {`${asset.name} (${readableBytes(asset.size)})`}
-                  </Button>
-                ))}
-            </>
-          )
+              ))}
+          </>
+        ) : (
+          unverifiedActions
         )
       }
       // Known issues sit above the scan report, not in the header: the header is one focus
@@ -436,29 +461,6 @@ export function AppDetailsModal({
               </Button>
             </Focusable>
           </DetailsRow>
-          {/* Only for a plugin DeckyHub can't match to its repository. */}
-          {(anyway || trustable || app.identityTrusted) && (
-            <Focusable flow-children="right" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-              {anyway && selectedRelease && (
-                <Button
-                  style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto", color: colors.warning }}
-                  onClick={() => runInstallAnyway(selectedRelease, anyway)}
-                >
-                  <FaExclamationTriangle /> {t("appcard.installAnyway")}
-                </Button>
-              )}
-              {trustable && (
-                <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={confirmTrust}>
-                  <FaShieldAlt /> {t("appcard.trustPlugin")}
-                </Button>
-              )}
-              {app.identityTrusted && (
-                <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={stopTrusting}>
-                  <FaShieldAlt /> {t("appcard.untrustPlugin")}
-                </Button>
-              )}
-            </Focusable>
-          )}
           {/* Remove apart from the rest, and Close beside it. */}
           <Focusable flow-children="right" style={{ display: "flex", gap: 8 }}>
             {canUninstall && (
