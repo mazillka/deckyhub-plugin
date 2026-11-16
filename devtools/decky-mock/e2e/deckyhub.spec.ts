@@ -1160,10 +1160,11 @@ test("MetaDefender reports are used only for the selected ZIP hash", async ({ pa
 test("The Manage window leads with the checks and the actions, and keeps the report, versions and notes in rows", async ({
   page,
 }) => {
-  await page.addInitScript(() => {
+  const app = mock(page);
+  // The page is already loaded, so set the flag in the app's own frame (see beforeEach).
+  await app.locator("body").evaluate(() => {
     (window as unknown as { __keepRowsShut: boolean }).__keepRowsShut = true;
   });
-  const app = mock(page);
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
   await browseAll(page, "MAKO");
   await app
