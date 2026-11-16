@@ -132,6 +132,7 @@ export function useCardActions({
         quickLabel,
         leavePage,
         installWarnings(app),
+        { root: app.stats?.root === true, prerelease: app.latestPrerelease === true },
       ).finally(() => setInstalling(false));
     },
   };

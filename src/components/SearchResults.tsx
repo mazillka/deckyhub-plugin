@@ -15,10 +15,21 @@ const buttonStyle = { ...compactButtonStyle, marginBottom: 0 };
 // Search's results as a two-column grid or a list of rows: the plugin's name and
 // owner, then Install (Y: release notes, X: download the ZIP, Menu: the repository)
 // and, until it's in DeckyHub, Add.
+// Search lists what GitHub returns, with none of the registry's audit or scans: say so for each result.
+export function SearchDataNote({ inRegistry }: { inRegistry: boolean }) {
+  const t = useT();
+  return (
+    <small style={{ color: inRegistry ? colors.subtle : colors.caution }}>
+      {t(inRegistry ? "search.inRegistry" : "search.noData")}
+    </small>
+  );
+}
+
 export function SearchResults({
   results,
   layout,
   isAdded,
+  inRegistry,
   storeNames,
   installing,
   canDownload,
@@ -30,6 +41,7 @@ export function SearchResults({
   results: SearchRepo[];
   layout: Layout;
   isAdded: (repo: string) => boolean;
+  inRegistry: (repo: string) => boolean;
   storeNames: Map<string, string>;
   installing: boolean;
   canDownload: boolean;
@@ -135,6 +147,9 @@ export function SearchResults({
           <small style={{ gridColumn: 1, gridRow: 3, color: colors.muted, ...ellipsis }}>
             {repo.description || t("repos.noDescription")}
           </small>
+          <div style={{ gridColumn: 1, gridRow: 4 }}>
+            <SearchDataNote inRegistry={inRegistry(repo.full_name)} />
+          </div>
           <small style={{ gridColumn: 2, gridRow: "1 / 4", color: colors.subtle }}>
             ★ {repo.stargazers_count ?? 0}
           </small>
@@ -155,6 +170,7 @@ export function SearchResults({
             <small style={{ color: colors.muted }}>
               {repo.description || t("repos.noDescription")} · ★ {repo.stargazers_count ?? 0}
             </small>
+            <SearchDataNote inRegistry={inRegistry(repo.full_name)} />
             {actions(repo)}
           </div>
         </div>

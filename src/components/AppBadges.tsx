@@ -194,6 +194,34 @@ export const ScanBadge = ({ t, kind, count }: { t: TFunc; kind: ScanBadgeKind; c
   );
 };
 
+// Discover looks the ZIP's scan up and leaves null when there is none: say so, since no badge would
+// read as nothing to report.
+const NotScannedBadge = ({ t }: { t: TFunc }) => (
+  <span title={t("scan.notScanned")} style={{ ...pillStyle, whiteSpace: "nowrap", ...tint(colors.muted) }}>
+    <FaShieldAlt /> {t("scan.pending")}
+  </span>
+);
+
+// What an update changes in the audit's warnings, against the installed version's.
+function UpdateWarningChanges({ app, t }: { app: App; t: TFunc }) {
+  if (!app.updateAvailable || !app.installedAssets?.[0]) return null;
+  const before = app.installedRisk?.warnings ?? [];
+  const after = auditKeys(app);
+  const label = (keys: string[]) => keys.map((key) => t(`appcard.warning.${key}` as Parameters<TFunc>[0])).join(", ");
+  const added = after.filter((key) => !before.includes(key));
+  const dropped = before.filter((key) => isAuditWarning(key) && !after.includes(key));
+  return (
+    <>
+      {added.length > 0 && (
+        <small style={{ color: colors.caution }}>{t("updates.newWarnings", { warnings: label(added) })}</small>
+      )}
+      {dropped.length > 0 && (
+        <small style={{ color: colors.muted }}>{t("updates.droppedWarnings", { warnings: label(dropped) })}</small>
+      )}
+    </>
+  );
+}
+
 // The other badges describe the release the card would install; this one, first, the installed version when that's another one.
 const InstalledRiskBadge = ({ t, risk }: { t: TFunc; risk: NonNullable<App["installedRisk"]> }) => {
   const reasons = installedRiskReasons(t, risk);
@@ -301,6 +329,8 @@ export function AppBadges({ app, t }: { app: App; t: TFunc }) {
         ) : (
           <ScanBadge t={t} {...scanSummary(app.scan, app.virusTotal, app.metaDefender)} />
         ))}
+      {app.scan === null && <NotScannedBadge t={t} />}
+      <UpdateWarningChanges app={app} t={t} />
       {isStale(released) && (
         <span title={new Date(released).toLocaleDateString()} style={{ ...pillStyle, ...tint(colors.dangerSoft) }}>
           {t("appcard.noReleaseInYear")}
