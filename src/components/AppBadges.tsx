@@ -163,6 +163,8 @@ export const NoDescriptionBadge = ({ t }: { t: TFunc }) => (
 // The virus scans' verdict on the release the card installs (the registry's scans.json):
 // the worse of ClamAV's and YARA's, also shown in Discover's legend. Nothing until the ZIP
 // has a report; Manage has the full report.
+// ClamAV, YARA, VirusTotal and MetaDefender.
+const SCANNERS = 4;
 type ScanBadgeKind = "clean" | "infected" | "partial";
 export const SCAN_BADGES: ScanBadgeKind[] = ["clean", "infected", "partial"];
 const SCAN_COLORS: Record<ScanBadgeKind, string> = {
@@ -181,12 +183,14 @@ export const scanSummary = (scan: VirusScan, virusTotal?: App["virusTotal"], met
     results.push(metaDefender.flagged ? "infected" : "clean");
   }
   const passed = results.filter((result) => result === "clean").length;
+  // No threats only once all four scanners have reported and none flagged it: ClamAV and YARA alone say less than
+  // "No threats" sounds like, so a release still waiting on VirusTotal or MetaDefender is Not fully scanned.
   const kind: ScanBadgeKind = results.includes("infected")
     ? "infected"
-    : scan.yara && passed === results.length
+    : results.length >= SCANNERS && passed === results.length
       ? "clean"
       : "partial";
-  return { kind, count: `${passed}/${results.length}` };
+  return { kind, count: `${passed}/${SCANNERS}` };
 };
 
 export const ScanBadge = ({ t, kind, count }: { t: TFunc; kind: ScanBadgeKind; count?: string }) => {

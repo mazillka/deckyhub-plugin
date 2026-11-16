@@ -228,12 +228,18 @@ def external_results(channel: dict, reports: dict | None, vt_reports: dict | Non
     ]
 
 
+SCANNERS = 4  # ClamAV, YARA, VirusTotal and MetaDefender
+
+
 def scan_kind(channel: dict, reports: dict | None = None, vt_reports: dict | None = None) -> str:
+    """infected if any scanner flagged it; clean only once all four have reported and found nothing. Two clean
+    reports out of four say less than "No threats" sounds like, so a release still waiting on VirusTotal or
+    MetaDefender is partial."""
     results = [scan["result"] for scan in (channel.get("clamav"), channel.get("yara")) if scan]
     results += ["infected" if flagged else "clean" for _, flagged, _ in external_results(channel, reports, vt_reports)]
-    return (
-        "infected" if "infected" in results else "partial" if any(result != "clean" for result in results) else "clean"
-    )
+    if "infected" in results:
+        return "infected"
+    return "clean" if len(results) >= SCANNERS and all(result == "clean" for result in results) else "partial"
 
 
 def fit(text: str, limit: int) -> str:

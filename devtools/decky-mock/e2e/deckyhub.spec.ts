@@ -1124,7 +1124,7 @@ test("Installed shows Discover's stats and security badges", async ({ page }) =>
     await page.goto("/?preview=/deckyhub/installed&bridge=http://127.0.0.1:8643");
     const app = mock(page);
     const card = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
-    for (const text of ["↓ 74K", "★ 680", "Runs as root", "Threat found · 1/3"])
+    for (const text of ["↓ 74K", "★ 680", "Runs as root", "Threat found · 1/4"])
       await expect(card.getByText(text, { exact: true })).toBeVisible();
     await card.getByRole("button", { name: "Manage", exact: true }).click();
     await expect(app.locator(".steam-modal .deckyhub-scan-yara")).toContainText(
@@ -1151,7 +1151,7 @@ test("MetaDefender reports are used only for the selected ZIP hash", async ({ pa
   await browseAll(page, "MAKO");
   const app = mock(page);
   const card = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
-  await expect(card.getByText("No threats · 2/2", { exact: true })).toBeVisible();
+  await expect(card.getByText("Not fully scanned · 2/4", { exact: true })).toBeVisible();
   await card.getByRole("button", { name: "Manage", exact: true }).click();
   await expect(app.locator(".steam-modal").getByText(/MetaDefender: \d+ of/)).toHaveCount(0);
   await expect(app.locator(".steam-modal").getByText("MetaDefender: Not scanned yet").first()).toBeVisible();
@@ -1340,7 +1340,7 @@ test("YARA's verdict counts too, and a report from before YARA says it hasn't sc
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
   await browseAll(page, "MAKO");
   const mako = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
-  await expect(mako.getByText("Threat found · 1/2", { exact: true })).toBeVisible();
+  await expect(mako.getByText("Threat found · 1/4", { exact: true })).toBeVisible();
   await mako.getByRole("button", { name: "Manage", exact: true }).click();
   const scan = app.locator(".steam-modal .deckyhub-virus-scan");
   await expect(scan.locator(".deckyhub-scan-yara")).toContainText("YARA: Threat found: ELASTIC_Linux_Trojan_Test");
@@ -1351,7 +1351,7 @@ test("YARA's verdict counts too, and a report from before YARA says it hasn't sc
   await page.reload();
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
   await browseAll(page, "MAKO");
-  await expect(mako.getByText("Not fully scanned · 1/1", { exact: true })).toBeVisible();
+  await expect(mako.getByText("Not fully scanned · 1/4", { exact: true })).toBeVisible();
   await mako.getByRole("button", { name: "Manage", exact: true }).click();
   await expect(scan.locator(".deckyhub-scan-clamav")).toContainText("ClamAV: No threats found");
   await expect(scan.locator(".deckyhub-scan-yara")).toContainText("YARA: Not scanned yet");
@@ -1670,7 +1670,7 @@ test("Discover cards show the ClamAV verdict for the release they install, and t
   await app.getByRole("button", { name: "Grid", exact: true }).click();
   await app.getByLabel("Search").fill("MAKO");
   const mako = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
-  await expect(mako.getByText("Threat found · 0/1", { exact: true })).toBeVisible();
+  await expect(mako.getByText("Threat found · 0/4", { exact: true })).toBeVisible();
   await app.getByLabel("Search").fill("Unifideck");
   // No report yet: no badge, rather than a guess.
   await expect(
