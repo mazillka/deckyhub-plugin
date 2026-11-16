@@ -357,10 +357,9 @@ export const pl: Record<MessageKey, string> = {
   "settings.quickAccessTab": "Karta DeckyHub w Szybkim dostępie",
   "settings.quickAccessTabHint": "Gdy wyłączona, otwieraj DeckyHub z listy wtyczek Decky.",
   "settings.uiStyle": "Styl interfejsu",
-  "settings.uiStyleHint":
-    "Informacyjny pokazuje każde ostrzeżenie audytu, wynik skanu antywirusowego i fakt o wtyczce, abyś sam decydował.",
-  "settings.uiStyleDefault": "Klasyczny",
-  "settings.uiStyleExperimental": "Informacyjny",
+  "settings.uiStyleHint": "Eksperymentalny to nowy wygląd DeckyHub, nad którym wciąż trwają prace.",
+  "settings.uiStyleDefault": "Domyślny",
+  "settings.uiStyleExperimental": "Eksperymentalny",
   "settings.hideButton": "Ukryj „{button}”",
   "settings.troubleshooting": "Rozwiązywanie problemów",
   "settings.exportLogs": "Eksportuj logi",

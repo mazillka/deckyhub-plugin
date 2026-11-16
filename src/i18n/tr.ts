@@ -354,10 +354,9 @@ export const tr: Record<MessageKey, string> = {
   "settings.quickAccessTab": "Hızlı Erişim'de DeckyHub sekmesi",
   "settings.quickAccessTabHint": "Kapalıyken DeckyHub'ı Decky'nin eklenti listesinden aç.",
   "settings.uiStyle": "Arayüz stili",
-  "settings.uiStyleHint":
-    "Bilgilendirici, bir eklentiyle ilgili tüm denetim uyarılarını, virüs taraması sonuçlarını ve gerçekleri gösterir; kararı sen verirsin.",
-  "settings.uiStyleDefault": "Klasik",
-  "settings.uiStyleExperimental": "Bilgilendirici",
+  "settings.uiStyleHint": "Deneysel, DeckyHub'ın hâlâ üzerinde çalışılan yeni görünümüdür.",
+  "settings.uiStyleDefault": "Varsayılan",
+  "settings.uiStyleExperimental": "Deneysel",
   "settings.hideButton": "“{button}” düğmesini gizle",
   "settings.troubleshooting": "Sorun giderme",
   "settings.exportLogs": "Günlükleri dışa aktar",

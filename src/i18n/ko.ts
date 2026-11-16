@@ -350,10 +350,9 @@ export const ko: Record<MessageKey, string> = {
   "settings.quickAccessTab": "빠른 액세스의 DeckyHub 탭",
   "settings.quickAccessTabHint": "끄면 Decky 플러그인 목록에서 DeckyHub를 엽니다.",
   "settings.uiStyle": "UI 스타일",
-  "settings.uiStyleHint":
-    "정보 중심은 플러그인의 모든 감사 경고, 바이러스 검사 결과와 사실을 보여 주므로 직접 판단할 수 있습니다.",
-  "settings.uiStyleDefault": "클래식",
-  "settings.uiStyleExperimental": "정보 중심",
+  "settings.uiStyleHint": "실험적은 아직 작업 중인 DeckyHub의 새로운 디자인입니다.",
+  "settings.uiStyleDefault": "기본",
+  "settings.uiStyleExperimental": "실험적",
   "settings.hideButton": "“{button}” 숨기기",
   "settings.troubleshooting": "문제 해결",
   "settings.exportLogs": "로그 내보내기",

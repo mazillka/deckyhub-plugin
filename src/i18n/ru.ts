@@ -355,10 +355,9 @@ export const ru: Record<MessageKey, string> = {
   "settings.quickAccessTab": "Вкладка DeckyHub в быстром доступе",
   "settings.quickAccessTabHint": "Если выключено, открывайте DeckyHub из списка плагинов Decky.",
   "settings.uiStyle": "Стиль интерфейса",
-  "settings.uiStyleHint":
-    "Информативный показывает все предупреждения аудита, результаты антивирусных проверок и факты о плагине, чтобы вы решали сами.",
-  "settings.uiStyleDefault": "Классический",
-  "settings.uiStyleExperimental": "Информативный",
+  "settings.uiStyleHint": "Экспериментальный — новый вид DeckyHub, над которым ещё идёт работа.",
+  "settings.uiStyleDefault": "Обычный",
+  "settings.uiStyleExperimental": "Экспериментальный",
   "settings.hideButton": "Скрыть «{button}»",
   "settings.troubleshooting": "Устранение неполадок",
   "settings.exportLogs": "Экспортировать журналы",

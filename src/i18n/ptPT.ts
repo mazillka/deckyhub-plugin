@@ -364,10 +364,9 @@ export const ptPT: Record<MessageKey, string> = {
   "settings.quickAccessTab": "Separador do DeckyHub no Acesso rápido",
   "settings.quickAccessTabHint": "Quando desativado, abra o DeckyHub a partir da lista de plugins do Decky.",
   "settings.uiStyle": "Estilo da interface",
-  "settings.uiStyleHint":
-    "O Informativo mostra todos os avisos de auditoria, resultados de verificação antivírus e factos de um plugin, para decidir por si.",
-  "settings.uiStyleDefault": "Clássico",
-  "settings.uiStyleExperimental": "Informativo",
+  "settings.uiStyleHint": "Experimental é um novo aspeto do DeckyHub que ainda está em desenvolvimento.",
+  "settings.uiStyleDefault": "Predefinido",
+  "settings.uiStyleExperimental": "Experimental",
   "settings.hideButton": "Ocultar “{button}”",
   "settings.troubleshooting": "Resolução de problemas",
   "settings.exportLogs": "Exportar registos",
