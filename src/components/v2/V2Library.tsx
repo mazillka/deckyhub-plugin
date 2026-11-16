@@ -278,7 +278,7 @@ export function V2Library({
           </div>
         )}
         <div style={{ flex: "0 0 56px" }}>
-          <Button aria-label={t("content.refresh")} onClick={onRefresh} style={{ padding: 0 }}>
+          <Button aria-label={t("content.refresh")} onClick={onRefresh} style={{ padding: 0, minHeight: 52 }}>
             <FaSync />
           </Button>
         </div>
