@@ -30,6 +30,7 @@ import {
   githubResponseError,
   hydrate,
   installAction,
+  unverifiedInstallAction,
   manifestName,
   installTypeLabel,
   log,
@@ -166,15 +167,41 @@ export function SearchPage() {
     setInstalling(repo);
     try {
       const app = await latestRelease(repo);
-      const action = installAction(app, { tag: app.latestVersion, assets: app.assets });
-      // An installed plugin DeckyHub can't tie to this repository gets no install button anywhere, so say why.
-      if (!action) throw new Error(t(app.identityUnverified ? "appcard.identityUnverified" : "release.noMatch"));
-      const label = installTypeLabel(t, action.type, displayVersion(app.latestVersion).replace(/^v/, ""));
+      const release = { tag: app.latestVersion, assets: app.assets };
+      const action = installAction(app, release);
+      // An installed plugin DeckyHub can't tie to this repository: as in its Manage window, the user may install
+      // over it anyway once the confirmation says what gets replaced.
+      const anyway = action ? null : unverifiedInstallAction(app, release);
+      if (!action && !anyway)
+        throw new Error(t(app.identityUnverified ? "appcard.identityUnverified" : "release.noMatch"));
+      const chosen = (action ?? anyway)!;
+      const label = anyway
+        ? t("appcard.installAnyway")
+        : installTypeLabel(t, chosen.type, displayVersion(app.latestVersion).replace(/^v/, ""));
+      const note = anyway
+        ? t("appcard.unverifiedConfirmBody", {
+            name: app.uninstallName ?? app.name,
+            version: displayVersion(app.installedVersion ?? "").replace(/^v/, ""),
+            repo: app.repo,
+            tag: displayVersion(app.latestVersion),
+          })
+        : undefined;
       // Decky's own dialog takes over, so leave the page like a card's Install does.
-      await startPluginInstall(t, app.name, app.repo, app.assets[0], app.latestVersion, action, label, () => {
-        void track(repo).catch(showError);
-        Navigation.NavigateBack();
-      });
+      await startPluginInstall(
+        t,
+        app.name,
+        app.repo,
+        app.assets[0],
+        app.latestVersion,
+        chosen,
+        label,
+        () => {
+          void track(repo).catch(showError);
+          Navigation.NavigateBack();
+        },
+        [],
+        { note },
+      );
     } finally {
       setInstalling(null);
     }
