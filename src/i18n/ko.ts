@@ -138,7 +138,7 @@ export const ko: Record<MessageKey, string> = {
   "appcard.rust": "Rust",
   "appcard.rustHint":
     "저장소에 Rust 코드가 있어 플러그인의 일부가 Rust로 작성되었습니다. 품질이나 안전성과는 무관합니다.",
-  "appcard.scan.clean": "위협 없음",
+  "appcard.scan.clean": "탐지된 항목 없음",
   "appcard.scan.clean.hint":
     "설치할 릴리스에서 바이러스 검사로 알려진 위협을 찾지 못했습니다. 검사는 알려진 악성 코드만 잡아내고 우회될 수 있으므로 안전을 증명하지 않습니다. 검사 보고서는 관리에서 볼 수 있습니다.",
   "appcard.scan.infected": "위협 발견",

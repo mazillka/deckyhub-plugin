@@ -39,7 +39,7 @@ test("messages with a name or a number are translated too", () => {
     "25 активність магазину Decky (завантаження + оновлення; відповідність за назвою)",
   );
   assert.equal(translate("12 installed plugins", "uk"), "Встановлено 12 плагінів");
-  assert.equal(translate("Pre-release: No threats", "uk"), "Попередній випуск: Загроз немає");
+  assert.equal(translate("Pre-release: Nothing flagged", "uk"), "Попередній випуск: Нічого не позначено");
   assert.equal(
     translate("Steam Deck has 2 plugin updates waiting: A 1, B 2.", "uk"),
     "Steam Deck: на оновлення чекає 2 плагіни: A 1, B 2.",

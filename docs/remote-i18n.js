@@ -147,7 +147,7 @@ const UK = new Map(
     "The registry reported this audit finding.": "Реєстр повідомив про цю знахідку аудиту.",
     "Likely developed with AI help. That says nothing about its quality or safety.":
       "Імовірно, розроблений за допомогою ШІ. Це нічого не говорить про його якість чи безпеку.",
-    "No threats": "Загроз немає",
+    "Nothing flagged": "Нічого не позначено",
     "Threat found": "Знайдено загрозу",
     "Not fully scanned": "Перевірено не повністю",
     Scanned: "Перевірено",

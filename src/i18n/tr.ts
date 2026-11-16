@@ -139,7 +139,7 @@ export const tr: Record<MessageKey, string> = {
   "appcard.rust": "Rust",
   "appcard.rustHint":
     "Deposunda Rust kodu var, yani eklentinin bir kısmı Rust ile yazılmış. Bu, kalitesi veya güvenliği hakkında hiçbir şey söylemez.",
-  "appcard.scan.clean": "Tehdit yok",
+  "appcard.scan.clean": "Hiçbir şey işaretlenmedi",
   "appcard.scan.clean.hint":
     "Virüs taramaları, yükleyeceğin sürümde bilinen bir tehdit bulmadı. Taramalar yalnızca bilinen kötü amaçlı yazılımları yakalar ve atlatılabilir, bu yüzden bu güvenliğin kanıtı değildir. Tarama raporu Yönet'te.",
   "appcard.scan.infected": "Tehdit bulundu",

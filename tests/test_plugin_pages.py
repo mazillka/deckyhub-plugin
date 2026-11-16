@@ -113,10 +113,15 @@ class PluginPageTests(unittest.TestCase):
                     "yara": {"result": "clean"},
                 }
             },
+            # VirusTotal and MetaDefender have reported too: all four scanners.
+            reports={SHA: {"state": "complete", "flagged": 0, "total": 21}},
+            vt={
+                SHA: {"state": "complete", "stats": {"malicious": 0, "suspicious": 0, "harmless": 60, "undetected": 6}}
+            },
         )
         self.assertIn('<h2 id="safety">Safety at a glance</h2>', page)
         chips = page[page.index('class="chips-row"') : page.index("What these labels mean")]
-        for label in ("Runs as root", "AI", "No threats"):
+        for label in ("Runs as root", "AI", "Nothing flagged"):
             self.assertIn(f">{label}</li>", chips)
         self.assertIn('<ol class="steps">', page)
         self.assertLess(page.index("Safety at a glance"), page.index("How to install"))
@@ -334,6 +339,27 @@ class PluginPageTests(unittest.TestCase):
         stats = {"store": {"downloads": 1}, "ai": ["AGENTS.md"], "root": True, "warnings": ["blocked"]}
         flags = plugin_pages.flags_of(stats, {}, store_only=True)
         self.assertEqual(flags, '<span class="flag-store">In Decky store</span>')
+
+    def test_two_clean_scans_out_of_four_are_not_fully_scanned_and_a_flag_is_still_a_threat(self):
+        clean = {"clamav": {"result": "clean"}, "yara": {"result": "clean"}}
+        # ClamAV and YARA only: VirusTotal and MetaDefender haven't reported, so it isn't "Nothing flagged".
+        self.assertEqual(plugin_pages.scan_kind({**clean, "sha256": SHA}), "partial")
+        both = {
+            "reports": {SHA: {"state": "complete", "flagged": 0, "total": 21}},
+            "vt_reports": {
+                "state": "complete",
+                "stats": {"malicious": 0, "suspicious": 0, "harmless": 60, "undetected": 6},
+            },
+        }
+        self.assertEqual(
+            plugin_pages.scan_kind({**clean, "sha256": SHA}, both["reports"], {SHA: both["vt_reports"]}), "clean"
+        )
+        # Any engine flagging it is a threat, whatever else is missing.
+        flagged = {
+            SHA: {"state": "complete", "stats": {"malicious": 3, "suspicious": 0, "harmless": 57, "undetected": 6}}
+        }
+        self.assertEqual(plugin_pages.scan_kind({**clean, "sha256": SHA}, None, flagged), "infected")
+        self.assertIn("Not fully scanned", plugin_pages.flags_of({}, {"stable": {**clean, "sha256": SHA}}))
 
     def test_known_issues_lists_flagged_and_warned_plugins_only(self):
         shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))

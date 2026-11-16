@@ -134,7 +134,7 @@ export const zhTW: Record<MessageKey, string> = {
   "appcard.aiFiles": "很可能在 AI 協助下開發（{files}）",
   "appcard.rust": "Rust",
   "appcard.rustHint": "其儲存庫含有 Rust 程式碼，因此外掛的一部分以 Rust 撰寫。這不代表其品質或安全性。",
-  "appcard.scan.clean": "無威脅",
+  "appcard.scan.clean": "無標記",
   "appcard.scan.clean.hint":
     "病毒掃描在你要安裝的版本中沒有找到已知威脅。掃描只能找出已知的惡意軟體，而且可以被繞過，所以這並不能證明它安全。掃描報告在「管理」中。",
   "appcard.scan.infected": "發現威脅",

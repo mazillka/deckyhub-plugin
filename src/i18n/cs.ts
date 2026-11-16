@@ -140,7 +140,7 @@ export const cs: Record<MessageKey, string> = {
   "appcard.rust": "Rust",
   "appcard.rustHint":
     "Jeho repozitář obsahuje kód v Rustu, část pluginu je tedy napsaná v Rustu. To nic neříká o kvalitě ani bezpečnosti.",
-  "appcard.scan.clean": "Bez hrozeb",
+  "appcard.scan.clean": "Nic neoznačeno",
   "appcard.scan.clean.hint":
     "Antivirové kontroly nenašly ve verzi, kterou byste nainstalovali, žádné známé hrozby. Odhalí jen známý malware a dají se obejít, takže to není důkaz bezpečnosti. Zpráva z kontroly je ve Spravovat.",
   "appcard.scan.infected": "Nalezena hrozba",

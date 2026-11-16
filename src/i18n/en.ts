@@ -139,7 +139,7 @@ export const en = {
   "appcard.rust": "Rust",
   "appcard.rustHint":
     "Its repository has Rust code, so part of the plugin is written in Rust. That says nothing about its quality or safety.",
-  "appcard.scan.clean": "No threats",
+  "appcard.scan.clean": "Nothing flagged",
   "appcard.scan.clean.hint":
     "The virus scans found no known threats in the release you'd install. They only catch known malware and can be evaded, so this isn't proof of safety. Manage has the scan report.",
   "appcard.scan.infected": "Threat found",

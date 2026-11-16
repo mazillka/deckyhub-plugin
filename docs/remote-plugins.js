@@ -65,7 +65,7 @@ export function describe(document, record, labels) {
   const scan = record.scan;
   if (scan) {
     const text =
-      { clean: "No threats", infected: "Threat found", partial: "Not fully scanned" }[scan.kind] || "Scanned";
+      { clean: "Nothing flagged", infected: "Threat found", partial: "Not fully scanned" }[scan.kind] || "Scanned";
     badges.append(
       badge(
         document,
