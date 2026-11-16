@@ -36,6 +36,38 @@ class PluginPageTests(unittest.TestCase):
         self.assertNotIn("Pre-release only", page)
         self.assertNotIn("No description", page)
 
+    def test_a_plugin_with_no_scan_says_it_is_not_scanned_never_no_known_issues(self):
+        page = self.page({"downloads": 5})
+        self.assertIn("Not scanned yet", page)
+        self.assertNotIn("No known issues", page)
+        scanned = self.page(
+            {},
+            {
+                "stable": {
+                    "tag": "v1",
+                    "file": "x.zip",
+                    "sha256": SHA,
+                    "clamav": {"result": "clean"},
+                    "yara": {"result": "clean"},
+                }
+            },
+        )
+        self.assertNotIn('<span class="badge warn">Not scanned yet</span>', scanned)
+
+    def test_a_pre_release_scanned_beside_the_stable_one_is_explained(self):
+        record = {
+            "tag": "v1",
+            "file": "x.zip",
+            "sha256": SHA,
+            "clamav": {"result": "clean"},
+            "yara": {"result": "clean"},
+        }
+        page = self.page({}, {"stable": record, "prerelease": {**record, "tag": "v2-rc", "file": "y.zip"}})
+        self.assertIn(
+            "may be unfinished or buggy, and DeckyHub installs it only if you choose its Pre-release channel", page
+        )
+        self.assertNotIn("DeckyHub installs it only if you choose", self.page({}, {"stable": record}))
+
     def test_a_plugin_page_has_no_versions_list(self):
         shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
         releases = [
