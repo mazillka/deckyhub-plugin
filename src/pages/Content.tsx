@@ -88,7 +88,9 @@ export function Content({ fullPage }: { fullPage?: View }) {
   const [installedFilter, setInstalledFilter] = useState(restored?.installedFilter ?? "All");
   // "" means every category.
   const [categoryFilter, setCategoryFilter] = useState(restored?.categoryFilter ?? "");
-  const [sortOrder, setSortOrder] = useState<SortOrder>((restored?.sortOrder as SortOrder) ?? "az");
+  const [sortOrder, setSortOrder] = useState<SortOrder>(
+    (restored?.sortOrder as SortOrder) ?? (uiStyle === "v2" ? "downloads" : "az"),
+  );
   // Breaks Sort's ties (many plugins share 0 stars or downloads); A to Z breaks any left.
   const [thenBy, setThenBy] = useState<SortOrder>((restored?.thenBy as SortOrder) ?? "az");
   // Discover opens on its shelves; a category chip or See all browses the whole list, a page at a time.
@@ -305,6 +307,9 @@ export function Content({ fullPage }: { fullPage?: View }) {
         onUpdateAll={() => void updateAll()}
         query={query}
         onQuery={setQuery}
+        sortOrder={sortOrder}
+        onSortOrder={setSortOrder}
+        onRefresh={() => void load(true)}
         category={activeCategory}
         onCategory={setCategoryFilter}
         categories={categories}

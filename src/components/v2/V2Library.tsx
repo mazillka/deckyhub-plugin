@@ -1,10 +1,11 @@
-import { DialogButtonPrimary as Button, Focusable, Spinner, TextField } from "@decky/ui";
+import { DialogButtonPrimary as Button, Dropdown, Focusable, Spinner, TextField } from "@decky/ui";
 import { useEffect, useState } from "react";
-import { FaArrowUp, FaCog, FaExclamationTriangle, FaPlus } from "react-icons/fa";
+import { FaArrowUp, FaCog, FaExclamationTriangle, FaPlus, FaSync } from "react-icons/fa";
 import type { TFunc } from "../../i18n/en";
 import { useT } from "../../i18n";
 import type { App, View } from "../../types";
 import { colors } from "../../styles";
+import { SORT_ORDERS, type SortOrder } from "../../sorting";
 import { compactNumber, ellipsis, surfaceStyle } from "../../utils";
 import { displayVersion } from "../../version";
 import { AiBadge, AppMonogram, findingsOf, ForkBadge, RustBadge, scanSummary, StoreBadge } from "../AppBadges";
@@ -73,7 +74,8 @@ function Row({ app, selected, onSelect, t }: { app: App; selected: boolean; onSe
         alignItems: "center",
         gap: 10,
         padding: "8px 10px",
-        border: `1px solid ${selected ? colors.blue : "transparent"}`,
+        // The plugin the pane shows: a tint only, so it never reads as the focus ring (that is the control's own).
+        background: selected ? "rgba(255, 255, 255, 0.07)" : undefined,
       }}
     >
       <AppMonogram app={app} style={{ width: 34, height: 34, borderRadius: 8, fontSize: 13 }} />
@@ -116,6 +118,22 @@ function Detail({ props, t }: { props: AppCardProps; t: TFunc }) {
           </div>
         </div>
       </Focusable>
+      {/* The actions first: on a Deck the pane is cut off below the facts. */}
+      <Focusable flow-children="right" style={{ display: "flex", gap: 8 }}>
+        {install && quickAction && (
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <Button aria-label={quickLabel} {...quickButtonProps}>
+              {isUpdate ? <FaArrowUp /> : <FaPlus />}{" "}
+              <span style={ellipsis}>{deckyInstalling ? t("status.installing") : quickLabel}</span>
+            </Button>
+          </div>
+        )}
+        <div style={{ flex: install && quickAction ? "0 0 140px" : 1 }}>
+          <Button onClick={openManage}>
+            <FaCog /> {t("appcard.manage")}
+          </Button>
+        </div>
+      </Focusable>
       <Focusable onActivate={() => {}} onFocus={keepInView} style={{ overflowWrap: "anywhere" }}>
         {app.description || t("repos.noDescription")}
       </Focusable>
@@ -154,21 +172,6 @@ function Detail({ props, t }: { props: AppCardProps; t: TFunc }) {
           {app.stats?.store && <StoreBadge t={t} downloads={app.stats.store.downloads} />}
         </span>
       </Focusable>
-      <Focusable flow-children="right" style={{ display: "flex", gap: 8 }}>
-        {install && quickAction && (
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <Button aria-label={quickLabel} {...quickButtonProps}>
-              {isUpdate ? <FaArrowUp /> : <FaPlus />}{" "}
-              <span style={ellipsis}>{deckyInstalling ? t("status.installing") : quickLabel}</span>
-            </Button>
-          </div>
-        )}
-        <div style={{ flex: install && quickAction ? "0 0 140px" : 1 }}>
-          <Button onClick={openManage}>
-            <FaCog /> {t("appcard.manage")}
-          </Button>
-        </div>
-      </Focusable>
     </Focusable>
   );
 }
@@ -187,6 +190,9 @@ export function V2Library({
   onUpdateAll,
   query,
   onQuery,
+  sortOrder,
+  onSortOrder,
+  onRefresh,
   category,
   onCategory,
   categories,
@@ -206,6 +212,9 @@ export function V2Library({
   onUpdateAll: () => void;
   query: string;
   onQuery: (query: string) => void;
+  sortOrder: SortOrder;
+  onSortOrder: (order: SortOrder) => void;
+  onRefresh: () => void;
   category: string;
   onCategory: (category: string) => void;
   categories: string[];
@@ -229,6 +238,7 @@ export function V2Library({
   useEffect(() => setLimit(PAGE), [needle, category, view]);
   return (
     <div className="deckyhub-v2-page" style={{ display: "grid", gap: 10, gridTemplateColumns: "minmax(0, 1fr)" }}>
+      {/* One row: search, Discover's category and sort menus, Refresh. */}
       <Focusable flow-children="right" style={{ display: "flex", gap: 8, alignItems: "center" }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <TextField
@@ -239,6 +249,27 @@ export function V2Library({
             onChange={(event) => onQuery(event.currentTarget.value)}
           />
         </div>
+        {view === "discover" && categories.length > 0 && (
+          <div style={{ flex: "0 0 190px", minWidth: 0 }}>
+            <Dropdown
+              rgOptions={[
+                { label: t("discover.allPlugins"), data: "" },
+                ...categories.map((name) => ({ label: name, data: name })),
+              ]}
+              selectedOption={category}
+              onChange={({ data }) => onCategory(String(data))}
+            />
+          </div>
+        )}
+        {view === "discover" && (
+          <div style={{ flex: "0 0 200px", minWidth: 0 }}>
+            <Dropdown
+              rgOptions={SORT_ORDERS.map((order) => ({ label: t(`sort.${order}`), data: order }))}
+              selectedOption={sortOrder}
+              onChange={({ data }) => onSortOrder(data as SortOrder)}
+            />
+          </div>
+        )}
         {view === "updates" && updateAllCount > 1 && (
           <div style={{ flex: "0 0 auto" }}>
             <Button disabled={updatingAll} onClick={onUpdateAll}>
@@ -246,38 +277,20 @@ export function V2Library({
             </Button>
           </div>
         )}
+        <div style={{ flex: "0 0 56px" }}>
+          <Button aria-label={t("content.refresh")} onClick={onRefresh} style={{ padding: 0 }}>
+            <FaSync />
+          </Button>
+        </div>
       </Focusable>
-      {view === "discover" && categories.length > 0 && (
-        <Focusable
-          flow-children="right"
-          onFocus={keepInView}
-          className="deckyhub-category-chips"
-          style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4, minWidth: 0 }}
-        >
-          {["", ...categories].map((name) => (
-            <Button
-              key={name || "all"}
-              onClick={() => onCategory(name)}
-              style={{
-                width: "auto",
-                minWidth: 0,
-                flexShrink: 0,
-                padding: "4px 14px",
-                borderRadius: 999,
-                background: category === name ? colors.blue : undefined,
-                color: category === name ? "#fff" : undefined,
-              }}
-            >
-              {name || t("discover.allPlugins")}
-            </Button>
-          ))}
-        </Focusable>
-      )}
-      {/* The disclaimer and the badge notice side by side, one line each, so the list starts higher up. */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8 }}>
-        <HeaderNotices />
-      </div>
-      <Legend t={t} />
+      {/* The disclaimer and the badge notice side by side, one line each. One group for the D-pad (Down leaves it),
+          with the legend of the dots inside the badge notice. */}
+      <Focusable
+        flow-children="right"
+        style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8 }}
+      >
+        <HeaderNotices extra={<Legend t={t} />} />
+      </Focusable>
       {loading ? (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, minHeight: "30vh" }}>
           <Spinner style={{ width: "1.1em" }} /> {t("content.loading")}

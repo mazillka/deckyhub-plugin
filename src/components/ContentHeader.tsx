@@ -101,7 +101,8 @@ export function ContentHeader({
 }
 
 // The install disclaimer and the badge notice under a page's title, in both UI styles.
-export function HeaderNotices() {
+// extra: more for the badge notice to open with (Experimental V2 adds the legend of its dots).
+export function HeaderNotices({ extra }: { extra?: ReactNode }) {
   const t = useT();
   // Experimental: the two side by side, so the plugins start higher up.
   const experimental = useUiStyle() === "experimental";
@@ -162,6 +163,7 @@ export function HeaderNotices() {
                 </div>
               ))}
             </div>
+            {extra}
           </>
         }
       />
