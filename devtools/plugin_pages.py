@@ -720,7 +720,7 @@ def plugin_page(
     if not app.get("store") and not (scans.get("stable") or scans.get("prerelease")):
         badges.insert(
             0,
-            '<li><span class="badge warn">Not scanned yet</span> DeckyHub has no virus scan for the releases of this plugin yet, so nothing is known about them. New releases are usually scanned within a few hours.</li>',
+            '<li><span class="badge warn">Not scanned yet</span> DeckyHub has no virus scan result for the releases of this plugin, so these labels can&#8217;t tell you anything about them, either way.</li>',
         )
     # A pre-release scanned beside the stable one: say what a pre-release is.
     if not app.get("store") and scans.get("prerelease") and not prerelease_only(releases or []):
