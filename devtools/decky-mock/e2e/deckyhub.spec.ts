@@ -4070,7 +4070,7 @@ test("The Updates page offers Discover when everything is up to date", async ({ 
   await expect(app.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
 });
 
-test("Default V2 lists plugins beside the focused one's facts, under one tab bar", async ({ page, request }) => {
+test("Experimental V2 lists plugins beside the focused one's facts, under one tab bar", async ({ page, request }) => {
   const headers = { Origin: "http://127.0.0.1:5183" };
   const settings = async () =>
     (await (await request.post(BRIDGE_URL, { data: { route: "get_settings", args: [] }, headers })).json()).result;

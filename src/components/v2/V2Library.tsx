@@ -173,7 +173,7 @@ function Detail({ props, t }: { props: AppCardProps; t: TFunc }) {
   );
 }
 
-// Default V2's page for Updates, Discover and Installed: a search field (and Discover's categories),
+// Experimental V2's page for Updates, Discover and Installed: a search field (and Discover's categories),
 // the notices and legend, then the list on the left and the focused plugin's facts and actions on the right.
 export function V2Library({
   view,

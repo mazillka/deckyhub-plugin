@@ -15,7 +15,7 @@ const LABELS: Record<(typeof V2_TABS)[number], MessageKey> = {
   search: "nav.search",
 };
 
-// Default V2: the pages under one tab bar, switched in place (no route change, so B still leaves
+// Experimental V2: the pages under one tab bar, switched in place (no route change, so B still leaves
 // DeckyHub in one press). L1 / R1 move one tab, wrapping.
 export function V2Frame({ initial, render }: { initial: string; render: (page: string) => ReactNode }) {
   const t = useT();

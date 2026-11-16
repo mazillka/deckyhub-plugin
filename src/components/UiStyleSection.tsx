@@ -23,7 +23,7 @@ export function UiStyleSection() {
               { label: t("settings.uiStyleDefault"), data: "default" },
               { label: t("settings.uiStyleExperimental"), data: "experimental" },
               // A name, not a sentence: the same in every language.
-              { label: "Default V2", data: "v2" },
+              { label: "Experimental V2", data: "v2" },
             ]}
             selectedOption={style}
             onChange={({ data }) =>

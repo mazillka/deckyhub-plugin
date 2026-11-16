@@ -290,7 +290,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
     </FocusableGrid>
   );
 
-  // Default V2 (full pages only): the two-pane list and detail instead of cards.
+  // Experimental V2 (full pages only): the two-pane list and detail instead of cards.
   const v2Page =
     uiStyle === "v2" && fullPage ? (
       <V2Library
