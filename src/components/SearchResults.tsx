@@ -29,6 +29,7 @@ export function SearchResults({
   results,
   layout,
   isAdded,
+  isInstalled,
   inRegistry,
   storeNames,
   installing,
@@ -41,6 +42,7 @@ export function SearchResults({
   results: SearchRepo[];
   layout: Layout;
   isAdded: (repo: string) => boolean;
+  isInstalled: (repo: string) => boolean;
   inRegistry: (repo: string) => boolean;
   storeNames: Map<string, string>;
   installing: boolean;
@@ -111,6 +113,9 @@ export function SearchResults({
         </h3>
         <small style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, color: colors.subtle }}>
           <span style={ellipsis}>{t("search.byOwner", { owner })}</span>
+          {isInstalled(repo.full_name) && (
+            <span style={{ ...pillStyle, flexShrink: 0, ...tint(colors.blue) }}>{t("filter.installed")}</span>
+          )}
           {isAdded(repo.full_name) && (
             <span style={{ ...pillStyle, flexShrink: 0, ...tint(colors.success) }}>
               <FaCheck size="0.8em" /> {t("search.inDeckyHub")}

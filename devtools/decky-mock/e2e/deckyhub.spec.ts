@@ -335,6 +335,48 @@ test("Repository search and action share one row", async ({ page }) => {
   expect(clearBox.x).toBeGreaterThan(actionBox.x);
 });
 
+for (const uiStyle of ["default", "experimental"]) {
+  test(`Search marks the results that are already installed (${uiStyle})`, async ({ page, request }) => {
+    const headers = { Origin: "http://127.0.0.1:5183" };
+    const settings = async () =>
+      (await (await request.post(BRIDGE_URL, { data: { route: "get_settings", args: [] }, headers })).json()).result;
+    const setStyle = async (style: string) =>
+      request.post(BRIDGE_URL, {
+        data: { route: "save_settings", args: [{ ...(await settings()), uiStyle: style }] },
+        headers,
+      });
+    const removePlugin = seedPlugin("e2e-installed-mark", "MAKO - Frame Generation", "1.0.0");
+    await setStyle(uiStyle);
+    try {
+      // Two plugins the registry lists (so no plugin.json lookups): one installed, one not.
+      await page.route("https://api.github.com/search/repositories**", (route) =>
+        route.fulfill({
+          json: {
+            items: [
+              { full_name: "eugeniosegala/MAKO", description: "installed", stargazers_count: 5 },
+              { full_name: "mubaraknumann/unifideck", description: "not installed", stargazers_count: 4 },
+            ],
+          },
+        }),
+      );
+      await page.goto("/?preview=/deckyhub/search&bridge=http://127.0.0.1:8643");
+      const app = mock(page);
+      // The style is applied after the settings load, and switching it rebuilds the page: let it settle first.
+      if (uiStyle === "experimental") await expect(app.locator(".dh-exp-nav")).toBeVisible({ timeout: 30_000 });
+      // Enter searches in both styles (the Experimental style also has a Search tab).
+      await app.getByLabel("Search GitHub").fill("decky");
+      await app.getByLabel("Search GitHub").press("Enter");
+      const row = (name: string) => app.getByRole("heading", { name }).locator("xpath=ancestor::*[.//button][1]");
+      await expect(app.getByRole("heading", { name: "eugeniosegala/MAKO" })).toBeVisible({ timeout: 30_000 });
+      await expect(row("eugeniosegala/MAKO").getByText("Installed", { exact: true })).toBeVisible();
+      await expect(row("mubaraknumann/unifideck").getByText("Installed", { exact: true })).toHaveCount(0);
+    } finally {
+      await setStyle("default");
+      removePlugin();
+    }
+  });
+}
+
 test("Repository search stays enabled but skips blank queries", async ({ page }) => {
   let requests = 0;
   await page.route("https://api.github.com/search/repositories**", (route) => {

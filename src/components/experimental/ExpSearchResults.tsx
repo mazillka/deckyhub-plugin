@@ -12,6 +12,7 @@ import { SearchDataNote, type SearchResults } from "../SearchResults";
 export function ExpSearchResults({
   results,
   isAdded,
+  isInstalled,
   inRegistry,
   storeNames,
   installing,
@@ -69,6 +70,7 @@ export function ExpSearchResults({
           <span>
             <FaStar size="0.8em" /> {repo.stargazers_count ?? 0}
           </span>
+          {isInstalled(repo.full_name) && <span style={{ color: "#6bb6ff" }}>{t("filter.installed")}</span>}
           {added && (
             <span style={{ color: "#6bcb6b" }}>
               <FaCheck size="0.8em" /> {t("search.inDeckyHub")}
