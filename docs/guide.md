@@ -53,6 +53,7 @@ Cards can carry these badges. **More** on the "What the badges on plugins mean" 
 | No release in a year | No new release for over a year, so it may be abandoned. |
 | Fork | A fork that carries a plugin on after its original stopped. DeckyHub lists it only while it's the active one. |
 | AI | Its repository has instructions for AI coding assistants (CLAUDE.md, AGENTS.md, .cursorrules, .github/copilot-instructions.md and similar), or its README says it's made with AI ("vibe-coded", "100% AI", "built with Claude Code" and similar), so it's likely developed with AI help. It says nothing about quality or safety, and no badge doesn't mean no AI was used. |
+| Rust | Its repository has Rust code (a Cargo.toml or rust-toolchain file), so part of the plugin is written in Rust. It says nothing about quality or safety. |
 | In Decky store | The Decky store lists a plugin with this name. The store names no repository, so the match is by name: check that it is the same project. Hover the badge for the store's download count, a different number from the GitHub downloads shown on the card. The count comes from the Decky plugin store. A plugin whose author asked to be distributed only through the store is still listed, but DeckyHub offers no GitHub download for it. |
 | Pre-release only | It has no stable release, so DeckyHub offers its pre-releases, which may be unfinished, and its Manage window hides the Stable channel. |
 | No description | Its author hasn't said what it does. Check its repository before installing. |

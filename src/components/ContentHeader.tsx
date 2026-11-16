@@ -8,6 +8,7 @@ import type { View } from "../types";
 import { compactButtonStyle, infoNoticeStyle } from "../utils";
 import {
   AiBadge,
+  RustBadge,
   AUDIT_WARNINGS,
   ForkBadge,
   NoDescriptionBadge,
@@ -126,6 +127,10 @@ export function HeaderNotices() {
             <div className="deckyhub-ai-legend" style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <AiBadge t={t} />
               <span>{t("appcard.aiHint")}</span>
+            </div>
+            <div className="deckyhub-rust-legend" style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <RustBadge t={t} />
+              <span>{t("appcard.rustHint")}</span>
             </div>
             <div className="deckyhub-prerelease-only-legend" style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <PrereleaseOnlyBadge t={t} />

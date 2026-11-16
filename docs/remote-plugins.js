@@ -52,6 +52,15 @@ export function describe(document, record, labels) {
     badges.append(
       badge(document, "AI", "info", "Likely developed with AI help. That says nothing about its quality or safety."),
     );
+  if (record.rust)
+    badges.append(
+      badge(
+        document,
+        "Rust",
+        "info",
+        "Part of the plugin is written in Rust. That says nothing about its quality or safety.",
+      ),
+    );
   if (record.fork) badges.append(badge(document, "Fork", "info", `A fork of ${record.fork}`));
   const scan = record.scan;
   if (scan) {

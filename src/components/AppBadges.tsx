@@ -138,6 +138,15 @@ export const AiBadge = ({ t, files }: { t: TFunc; files?: string[] }) => (
   </span>
 );
 
+// The Rust badge: the plugin's repository has Rust code (the registry's stats.json says so).
+// It says what the plugin is written in, nothing about its quality or safety.
+const RUST_COLOR = "#ffb08a";
+export const RustBadge = ({ t }: { t: TFunc }) => (
+  <span title={t("appcard.rustHint")} style={{ ...pillStyle, ...tint(RUST_COLOR) }}>
+    {t("appcard.rust")}
+  </span>
+);
+
 // Pre-release only: no stable release, so the card offers pre-releases (hydrate). No description:
 // its author hasn't said what it does. Both also shown in Discover's legend.
 export const PrereleaseOnlyBadge = ({ t }: { t: TFunc }) => (
@@ -310,6 +319,7 @@ export function AppBadges({ app, t }: { app: App; t: TFunc }) {
       {app.stats?.fork && <ForkBadge t={t} repo={app.stats.fork} />}
       {app.stats?.store && <StoreBadge t={t} downloads={app.stats.store.downloads} />}
       {app.stats?.ai?.length ? <AiBadge t={t} files={app.stats.ai} /> : null}
+      {app.stats?.rust && <RustBadge t={t} />}
       {app.prereleaseOnly && <PrereleaseOnlyBadge t={t} />}
       {!app.description?.trim() && <NoDescriptionBadge t={t} />}
       <AuditWarnings app={app} t={t} />

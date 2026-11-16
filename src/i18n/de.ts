@@ -140,6 +140,9 @@ export const de: Record<MessageKey, string> = {
   "appcard.aiHint":
     "Sein Repository enthält Anweisungen für KI-Programmierassistenten, oder seine README sagt, dass es mit KI erstellt wurde, also wurde es wahrscheinlich mit KI-Hilfe entwickelt. Das sagt nichts über Qualität oder Sicherheit aus, und ohne Abzeichen heißt nicht, dass keine KI verwendet wurde.",
   "appcard.aiFiles": "Wahrscheinlich mit KI-Hilfe entwickelt ({files})",
+  "appcard.rust": "Rust",
+  "appcard.rustHint":
+    "Das Repository enthält Rust-Code, ein Teil des Plugins ist also in Rust geschrieben. Das sagt nichts über Qualität oder Sicherheit aus.",
   "appcard.scan.clean": "Keine Bedrohungen",
   "appcard.scan.clean.hint":
     "Die Virenscans haben in der Version, die du installieren würdest, keine bekannten Bedrohungen gefunden. Sie erkennen nur bekannte Schadsoftware und lassen sich umgehen, das ist also kein Beweis für Sicherheit. Unter Verwalten findest du den Scanbericht.",

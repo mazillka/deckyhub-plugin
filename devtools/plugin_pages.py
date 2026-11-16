@@ -1,7 +1,7 @@
 """Per-plugin pages for deckyhub.com (plugins/<id>.html), written by build-site.py.
 
 Each page has what the catalog knows about a plugin: description, category, downloads,
-stars, latest release, badges (runs as root, fork, AI, audit warnings) and its security scans
+stars, latest release, badges (runs as root, fork, AI, Rust, audit warnings) and its security scans
 (ClamAV and YARA from the registry's scans, VirusTotal by SHA-256, MetaDefender's report),
 and how to install it. The data is the registry's apps.json, stats.json, virus-scans
 plugins.json and metadefender-reports reports.json; whatever can't be fetched is left out.
@@ -73,7 +73,7 @@ EXTRA_STYLE = """
 .app{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;text-decoration:none;color:var(--text);display:flex;flex-direction:column;gap:2px;content-visibility:auto;contain-intrinsic-size:auto 150px}
 .app:hover{border-color:var(--accent2)}.app small{color:var(--accent2);font-size:.75rem;text-transform:uppercase;letter-spacing:.05em}
 .app p{margin:4px 0 0;color:var(--muted);font-size:.9rem;flex:1}.app .meta{color:var(--dim);font-size:.82rem;margin-top:8px}
-.app .flags{display:flex;flex-wrap:wrap;gap:4px 8px;font-size:.78rem;margin-top:4px}.flag-ai{color:#b79cff}.flag-warn{color:var(--warn)}.flag-bad{color:#ff8a8a}.flag-ok{color:#6bcb6b}.flag-store{color:#7cc4ff}
+.app .flags{display:flex;flex-wrap:wrap;gap:4px 8px;font-size:.78rem;margin-top:4px}.flag-ai{color:#b79cff}.flag-rust{color:#ffb08a}.flag-warn{color:var(--warn)}.flag-bad{color:#ff8a8a}.flag-ok{color:#6bcb6b}.flag-store{color:#7cc4ff}
 .app[hidden]{display:none}
 .catalog{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
 .filters{display:grid;gap:12px;margin:18px 0 8px}.filters input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:1rem}
@@ -86,7 +86,7 @@ EXTRA_STYLE = """
 .facts li{min-width:0;overflow-wrap:anywhere;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;color:var(--muted);font-size:.9rem}.facts li.wide{grid-column:1/-1}.facts strong{display:block;color:var(--text);font-size:1.05rem}
 .badges{display:grid;gap:8px;margin:0;padding:0;list-style:none}.badges li{color:var(--muted)}
 .badge{padding:1px 8px;border-radius:999px;border:1px solid currentColor;font-size:.8rem;white-space:nowrap;margin-right:6px}.badge.store{color:#7cc4ff}
-.root{color:#ffb35c}.stale{color:#ff8a8a}.warn{color:var(--warn)}.fork{color:var(--muted)}.clean{color:#6bcb6b}.ai{color:#c49bff}
+.root{color:#ffb35c}.stale{color:#ff8a8a}.warn{color:var(--warn)}.fork{color:var(--muted)}.clean{color:#6bcb6b}.ai{color:#c49bff}.rust{color:#ffb08a}
 .btn{display:inline-block;padding:11px 18px;border-radius:8px;background:var(--accent);color:#fff;text-decoration:none;font-weight:600;margin:4px 8px 4px 0;cursor:pointer;font-family:inherit;font-size:inherit}.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
 .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;padding:0;list-style:none}
 .list a{display:block;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;text-decoration:none;color:var(--text);height:100%}
@@ -296,6 +296,10 @@ def badges_of(
         metric = "downloads + updates" if has_activity else "downloads"
         items.append(
             f'<li><span class="badge store">In Decky store</span> The <a href="https://plugins.deckbrew.xyz/plugins">Decky store</a> lists a plugin with this name ({compact(store_activity(stats))} {metric}). The store matches by name, so check that it is this repository. These counts include repeat activity and are not unique installs. The store is where Decky installs it from; DeckyHub installs from GitHub.</li>'
+        )
+    if stats.get("rust"):
+        items.append(
+            '<li><span class="badge rust">Rust</span> Its repository has Rust code, so part of the plugin is written in Rust. That says nothing about its quality or safety.</li>'
         )
     if stats.get("ai"):
         items.append(
@@ -710,7 +714,7 @@ def plugin_page(
         stats = {
             key: value
             for key, value in stats.items()
-            if key not in ("root", "fork", "warnings", "prereleaseWarnings", "ai")
+            if key not in ("root", "fork", "warnings", "prereleaseWarnings", "ai", "rust")
         }
     badges = badges_of(stats, scans, warnings, reports, vt_reports)
     if not app.get("store") and prerelease_only(releases or []):
@@ -883,6 +887,8 @@ def flags_of(
         return '<span class="flag-store">In Decky store</span>' if stats.get("store") else ""
     if stats.get("ai"):
         flags.append('<span class="flag-ai">✦ AI</span>')
+    if stats.get("rust"):
+        flags.append('<span class="flag-rust">Rust</span>')
     if stats.get("store"):
         flags.append('<span class="flag-store">In Decky store</span>')
     if stats.get("root"):
@@ -1157,6 +1163,8 @@ def plugin_info(apps: list[dict], data: dict) -> dict:
             record["storeActivity"] = {"downloads": activity["downloads"], "updates": activity["updates"]}
         if stat.get("ai"):
             record["ai"] = True
+        if stat.get("rust"):
+            record["rust"] = True
         for field in ("warnings", "prereleaseWarnings"):
             if stat.get(field):
                 record[field] = list(stat[field])

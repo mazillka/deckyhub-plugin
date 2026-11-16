@@ -137,6 +137,9 @@ export const pl: Record<MessageKey, string> = {
   "appcard.aiHint":
     "Jego repozytorium zawiera instrukcje dla asystentów programowania AI albo jego README mówi, że powstał z AI, więc prawdopodobnie tworzono go z pomocą AI. Nie mówi to nic o jakości ani bezpieczeństwie, a brak odznaki nie oznacza, że AI nie użyto.",
   "appcard.aiFiles": "Prawdopodobnie tworzony z pomocą AI ({files})",
+  "appcard.rust": "Rust",
+  "appcard.rustHint":
+    "Jego repozytorium zawiera kod w Rust, więc część wtyczki jest napisana w Rust. To nic nie mówi o jakości ani bezpieczeństwie.",
   "appcard.scan.clean": "Brak zagrożeń",
   "appcard.scan.clean.hint":
     "Skany antywirusowe nie znalazły znanych zagrożeń w wydaniu, które zainstalujesz. Wykrywają tylko znane złośliwe oprogramowanie i można je obejść, więc to nie dowód bezpieczeństwa. Raport ze skanu jest w Zarządzaj.",

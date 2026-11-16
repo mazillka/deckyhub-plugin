@@ -137,6 +137,9 @@ export const cs: Record<MessageKey, string> = {
   "appcard.aiHint":
     "Jeho repozitář obsahuje pokyny pro AI asistenty programování, nebo jeho README říká, že je vytvořen s AI, takže byl pravděpodobně vyvinut s pomocí AI. Neříká to nic o kvalitě ani bezpečnosti a chybějící odznak neznamená, že se AI nepoužila.",
   "appcard.aiFiles": "Pravděpodobně vyvinuto s pomocí AI ({files})",
+  "appcard.rust": "Rust",
+  "appcard.rustHint":
+    "Jeho repozitář obsahuje kód v Rustu, část pluginu je tedy napsaná v Rustu. To nic neříká o kvalitě ani bezpečnosti.",
   "appcard.scan.clean": "Bez hrozeb",
   "appcard.scan.clean.hint":
     "Antivirové kontroly nenašly ve verzi, kterou byste nainstalovali, žádné známé hrozby. Odhalí jen známý malware a dají se obejít, takže to není důkaz bezpečnosti. Zpráva z kontroly je ve Spravovat.",
