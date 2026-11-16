@@ -361,9 +361,10 @@ export const es: Record<MessageKey, string> = {
   "settings.quickAccessTab": "Pestaña de DeckyHub en Acceso rápido",
   "settings.quickAccessTabHint": "Si está desactivada, abre DeckyHub desde la lista de plugins de Decky.",
   "settings.uiStyle": "Estilo de interfaz",
-  "settings.uiStyleHint": "Experimental es un nuevo aspecto de DeckyHub que aún está en desarrollo.",
-  "settings.uiStyleDefault": "Predeterminado",
-  "settings.uiStyleExperimental": "Experimental",
+  "settings.uiStyleHint":
+    "Informativo muestra todos los avisos de auditoría, resultados de análisis antivirus y datos de un plugin, para que decidas tú.",
+  "settings.uiStyleDefault": "Clásico",
+  "settings.uiStyleExperimental": "Informativo",
   "settings.hideButton": "Ocultar «{button}»",
   "settings.troubleshooting": "Solución de problemas",
   "settings.exportLogs": "Exportar registros",

@@ -355,9 +355,10 @@ export const cs: Record<MessageKey, string> = {
   "settings.quickAccessTab": "Karta DeckyHub v Rychlém přístupu",
   "settings.quickAccessTabHint": "Když je vypnuto, otevírejte DeckyHub ze seznamu pluginů Decky.",
   "settings.uiStyle": "Styl rozhraní",
-  "settings.uiStyleHint": "Experimentální je nový vzhled DeckyHub, na kterém se stále pracuje.",
-  "settings.uiStyleDefault": "Výchozí",
-  "settings.uiStyleExperimental": "Experimentální",
+  "settings.uiStyleHint":
+    "Informativní ukazuje všechna varování auditu, výsledky antivirových skenů a fakta o pluginu, abyste se rozhodli sami.",
+  "settings.uiStyleDefault": "Klasický",
+  "settings.uiStyleExperimental": "Informativní",
   "settings.hideButton": "Skrýt „{button}“",
   "settings.troubleshooting": "Řešení potíží",
   "settings.exportLogs": "Exportovat protokoly",

@@ -357,9 +357,10 @@ export const ja: Record<MessageKey, string> = {
   "settings.quickAccessTab": "クイックアクセスの DeckyHub タブ",
   "settings.quickAccessTabHint": "オフの場合は、Decky のプラグイン一覧から DeckyHub を開きます。",
   "settings.uiStyle": "UI スタイル",
-  "settings.uiStyleHint": "「試験的」は開発中の DeckyHub の新しいデザインです。",
-  "settings.uiStyleDefault": "デフォルト",
-  "settings.uiStyleExperimental": "試験的",
+  "settings.uiStyleHint":
+    "「情報重視」は、プラグインの監査警告、ウイルススキャン結果、事実をすべて表示するので、ご自身で判断できます。",
+  "settings.uiStyleDefault": "クラシック",
+  "settings.uiStyleExperimental": "情報重視",
   "settings.hideButton": "「{button}」を非表示",
   "settings.troubleshooting": "トラブルシューティング",
   "settings.exportLogs": "ログをエクスポート",
