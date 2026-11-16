@@ -174,7 +174,7 @@ test.beforeAll(async ({ request }) => {
       { timeout: 60_000 },
     )
     .toBeGreaterThan(0);
-  // A fresh settings.json now starts in the Experimental style; these tests are written for Default.
+  // Some tests save another style; make sure the run starts on Default (a fresh settings.json does too).
   const headers = { Origin: "http://127.0.0.1:5183" };
   const current = (
     await (await request.post(BRIDGE_URL, { data: { route: "get_settings", args: [] }, headers })).json()
@@ -186,6 +186,20 @@ test.beforeAll(async ({ request }) => {
 });
 
 test.beforeEach(async ({ page }) => {
+  // The Manage window folds the scan report, the version menus and the release notes into rows. Most tests are
+  // about what is inside them, so each row is opened as it appears, as a user would; the test that checks the
+  // rows themselves sets window.__keepRowsShut first.
+  await page.addInitScript(() => {
+    const open = () => {
+      if ((window as unknown as { __keepRowsShut?: boolean }).__keepRowsShut) return;
+      for (const row of document.querySelectorAll<HTMLElement>("[data-details-toggle] button"))
+        if (!row.dataset.autoOpened) {
+          row.dataset.autoOpened = "1";
+          row.click();
+        }
+    };
+    new MutationObserver(open).observe(document, { childList: true, subtree: true });
+  });
   // The one-time welcome card is its own test; elsewhere it's already been seen.
   await page.addInitScript(() => {
     try {
@@ -334,6 +348,48 @@ test("Repository search and action share one row", async ({ page }) => {
   expect(actionBox.x).toBeGreaterThan(searchBox.x);
   expect(clearBox.x).toBeGreaterThan(actionBox.x);
 });
+
+for (const uiStyle of ["default", "experimental"]) {
+  test(`Search marks the results that are already installed (${uiStyle})`, async ({ page, request }) => {
+    const headers = { Origin: "http://127.0.0.1:5183" };
+    const settings = async () =>
+      (await (await request.post(BRIDGE_URL, { data: { route: "get_settings", args: [] }, headers })).json()).result;
+    const setStyle = async (style: string) =>
+      request.post(BRIDGE_URL, {
+        data: { route: "save_settings", args: [{ ...(await settings()), uiStyle: style }] },
+        headers,
+      });
+    const removePlugin = seedPlugin("e2e-installed-mark", "MAKO - Frame Generation", "1.0.0");
+    await setStyle(uiStyle);
+    try {
+      // Two plugins the registry lists (so no plugin.json lookups): one installed, one not.
+      await page.route("https://api.github.com/search/repositories**", (route) =>
+        route.fulfill({
+          json: {
+            items: [
+              { full_name: "eugeniosegala/MAKO", description: "installed", stargazers_count: 5 },
+              { full_name: "mubaraknumann/unifideck", description: "not installed", stargazers_count: 4 },
+            ],
+          },
+        }),
+      );
+      await page.goto("/?preview=/deckyhub/search&bridge=http://127.0.0.1:8643");
+      const app = mock(page);
+      // The style is applied after the settings load, and switching it rebuilds the page: let it settle first.
+      if (uiStyle === "experimental") await expect(app.locator(".dh-exp-nav")).toBeVisible({ timeout: 30_000 });
+      // Enter searches in both styles (the Experimental style also has a Search tab).
+      await app.getByLabel("Search GitHub").fill("decky");
+      await app.getByLabel("Search GitHub").press("Enter");
+      const row = (name: string) => app.getByRole("heading", { name }).locator("xpath=ancestor::*[.//button][1]");
+      await expect(app.getByRole("heading", { name: "eugeniosegala/MAKO" })).toBeVisible({ timeout: 30_000 });
+      await expect(row("eugeniosegala/MAKO").getByText("Installed", { exact: true })).toBeVisible();
+      await expect(row("mubaraknumann/unifideck").getByText("Installed", { exact: true })).toHaveCount(0);
+    } finally {
+      await setStyle("default");
+      removePlugin();
+    }
+  });
+}
 
 test("Repository search stays enabled but skips blank queries", async ({ page }) => {
   let requests = 0;
@@ -1068,7 +1124,7 @@ test("Installed shows Discover's stats and security badges", async ({ page }) =>
     await page.goto("/?preview=/deckyhub/installed&bridge=http://127.0.0.1:8643");
     const app = mock(page);
     const card = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
-    for (const text of ["↓ 74K", "★ 680", "Runs as root", "Threat found · 1/3"])
+    for (const text of ["↓ 74K", "★ 680", "Runs as root", "Threat found · 1/4"])
       await expect(card.getByText(text, { exact: true })).toBeVisible();
     await card.getByRole("button", { name: "Manage", exact: true }).click();
     await expect(app.locator(".steam-modal .deckyhub-scan-yara")).toContainText(
@@ -1095,10 +1151,50 @@ test("MetaDefender reports are used only for the selected ZIP hash", async ({ pa
   await browseAll(page, "MAKO");
   const app = mock(page);
   const card = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
-  await expect(card.getByText("No threats · 2/2", { exact: true })).toBeVisible();
+  await expect(card.getByText("Not fully scanned · 2/4", { exact: true })).toBeVisible();
   await card.getByRole("button", { name: "Manage", exact: true }).click();
   await expect(app.locator(".steam-modal").getByText(/MetaDefender: \d+ of/)).toHaveCount(0);
   await expect(app.locator(".steam-modal").getByText("MetaDefender: Not scanned yet").first()).toBeVisible();
+});
+
+test("The Manage window leads with the checks and the actions, and keeps the report, versions and notes in rows", async ({
+  page,
+}) => {
+  const app = mock(page);
+  // The page is already loaded, so set the flag in the app's own frame (see beforeEach).
+  await app.locator("body").evaluate(() => {
+    (window as unknown as { __keepRowsShut: boolean }).__keepRowsShut = true;
+  });
+  await app.getByRole("button", { name: "/deckyhub/discover" }).click();
+  await browseAll(page, "MAKO");
+  await app
+    .getByRole("heading", { name: "MAKO Decky" })
+    .locator("..")
+    .getByRole("button", { name: "Manage", exact: true })
+    .click();
+  const details = app.locator(".steam-modal .deckyhub-details");
+  // What the checks found and the main action are on the first screen; the rest is folded.
+  await expect(details.getByText("What the checks found")).toBeVisible();
+  await expect(details.getByRole("button", { name: /^Install v/ })).toBeVisible({ timeout: 30_000 });
+  for (const title of ["Scan report", "Version", /^What's new in/]) {
+    const row = details.locator(".deckyhub-details-row").filter({ hasText: title });
+    await expect(row).toHaveCount(1);
+  }
+  await expect(details.locator(".deckyhub-details-notes")).toHaveCount(0);
+  await expect(details.locator(".deckyhub-version-pickers")).toHaveCount(0);
+  // The routine and rare actions are behind a More row; the links, Uninstall and Close stay out.
+  await expect(details.getByRole("button", { name: "Check for Updates" })).toHaveCount(0);
+  await expect(details.getByRole("button", { name: "Close", exact: true })).toBeVisible();
+  const moreRow = details.locator(".deckyhub-details-row").filter({ hasText: /^More/ });
+  await moreRow.getByRole("button").first().click();
+  await expect(details.getByRole("button", { name: "Check for Updates" })).toBeVisible();
+  await expect(details.getByRole("button", { name: "Report a problem" })).toBeVisible();
+  // A opens a row and A again closes it.
+  const notesRow = details.locator(".deckyhub-details-row").filter({ hasText: /^What's new in/ });
+  await notesRow.getByRole("button").click();
+  await expect(details.locator(".deckyhub-details-notes")).toBeVisible();
+  await notesRow.getByRole("button").click();
+  await expect(details.locator(".deckyhub-details-notes")).toHaveCount(0);
 });
 
 test("The Manage window shows the plugin's description, details and a Repository button", async ({ page }) => {
@@ -1244,7 +1340,7 @@ test("YARA's verdict counts too, and a report from before YARA says it hasn't sc
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
   await browseAll(page, "MAKO");
   const mako = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
-  await expect(mako.getByText("Threat found · 1/2", { exact: true })).toBeVisible();
+  await expect(mako.getByText("Threat found · 1/4", { exact: true })).toBeVisible();
   await mako.getByRole("button", { name: "Manage", exact: true }).click();
   const scan = app.locator(".steam-modal .deckyhub-virus-scan");
   await expect(scan.locator(".deckyhub-scan-yara")).toContainText("YARA: Threat found: ELASTIC_Linux_Trojan_Test");
@@ -1255,7 +1351,7 @@ test("YARA's verdict counts too, and a report from before YARA says it hasn't sc
   await page.reload();
   await app.getByRole("button", { name: "/deckyhub/discover" }).click();
   await browseAll(page, "MAKO");
-  await expect(mako.getByText("Not fully scanned · 1/1", { exact: true })).toBeVisible();
+  await expect(mako.getByText("Not fully scanned · 1/4", { exact: true })).toBeVisible();
   await mako.getByRole("button", { name: "Manage", exact: true }).click();
   await expect(scan.locator(".deckyhub-scan-clamav")).toContainText("ClamAV: No threats found");
   await expect(scan.locator(".deckyhub-scan-yara")).toContainText("YARA: Not scanned yet");
@@ -1574,7 +1670,7 @@ test("Discover cards show the ClamAV verdict for the release they install, and t
   await app.getByRole("button", { name: "Grid", exact: true }).click();
   await app.getByLabel("Search").fill("MAKO");
   const mako = app.getByRole("heading", { name: "MAKO Decky" }).locator("..");
-  await expect(mako.getByText("Threat found · 0/1", { exact: true })).toBeVisible();
+  await expect(mako.getByText("Threat found · 0/4", { exact: true })).toBeVisible();
   await app.getByLabel("Search").fill("Unifideck");
   // No report yet: no badge, rather than a guess.
   await expect(
@@ -1584,7 +1680,7 @@ test("Discover cards show the ClamAV verdict for the release they install, and t
   await app.locator(".deckyhub-badge-notice").getByRole("button", { name: "More", exact: true }).click();
   const legend = app.locator(".deckyhub-scan-legend");
   for (const [badge, meaning] of [
-    ["No threats", "isn't proof of safety"],
+    ["Nothing flagged", "isn't proof of safety"],
     ["Threat found", "decide for yourself"],
     ["Not fully scanned", "Manage says why"],
   ])
@@ -4026,6 +4122,62 @@ test("The Updates page offers Discover when everything is up to date", async ({ 
   await expect(app.getByRole("heading", { name: "Everything installed is up to date." })).toBeVisible();
   await app.getByRole("button", { name: "Discover", exact: true }).click();
   await expect(app.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
+});
+
+test("Experimental V2 lists plugins beside the focused one's facts, under one tab bar", async ({ page, request }) => {
+  const headers = { Origin: "http://127.0.0.1:5183" };
+  const settings = async () =>
+    (await (await request.post(BRIDGE_URL, { data: { route: "get_settings", args: [] }, headers })).json()).result;
+  const setStyle = async (uiStyle: string) =>
+    request.post(BRIDGE_URL, { data: { route: "save_settings", args: [{ ...(await settings()), uiStyle }] }, headers });
+  await setStyle("v2");
+  try {
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    // The tab bar, the search field and the list with its detail pane.
+    for (const tab of ["Discover", "Updates", "Installed", "Search"])
+      await expect(app.getByRole("button", { name: tab }).first()).toBeVisible({ timeout: 60_000 });
+    await app.getByLabel("Search", { exact: true }).fill("MAKO");
+    const row = app.locator(".deckyhub-v2-row").filter({ hasText: "MAKO Decky" });
+    await expect(row).toHaveCount(1, { timeout: 30_000 });
+    // The focused plugin's facts and actions sit beside the list: its scan, and Manage.
+    const facts = app.locator(".deckyhub-v2-facts");
+    await expect(facts).toBeVisible();
+    await expect(app.getByRole("button", { name: "Manage", exact: true })).toBeVisible();
+    // Nothing installed has an update, so Updates says so and points back to Discover.
+    await app.getByRole("button", { name: "Updates", exact: true }).click();
+    await expect(app.getByRole("heading", { name: "Everything installed is up to date." })).toBeVisible({
+      timeout: 30_000,
+    });
+    await app.getByRole("button", { name: "Discover", exact: true }).last().click();
+    await expect(app.locator(".deckyhub-v2-row").first()).toBeVisible({ timeout: 30_000 });
+  } finally {
+    await setStyle("default");
+  }
+});
+
+test("In the Experimental style the Updates tab's Discover button switches to the Discover tab", async ({
+  page,
+  request,
+}) => {
+  const headers = { Origin: "http://127.0.0.1:5183" };
+  const settings = async () =>
+    (await (await request.post(BRIDGE_URL, { data: { route: "get_settings", args: [] }, headers })).json()).result;
+  const setStyle = async (uiStyle: string) =>
+    request.post(BRIDGE_URL, { data: { route: "save_settings", args: [{ ...(await settings()), uiStyle }] }, headers });
+  await setStyle("experimental");
+  try {
+    await page.goto("/?preview=/deckyhub/updates&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    // The route stays on Updates, so the button can't navigate: it has to switch the tab it sits in.
+    await app.getByRole("button", { name: "Discover", exact: true }).last().click();
+    await expect(app.locator(".dh-exp-nav .is-active")).toContainText("Discover");
+    await app.getByRole("button", { name: "Updates", exact: true }).click();
+    await app.getByRole("button", { name: "Discover", exact: true }).last().click();
+    await expect(app.locator(".dh-exp-nav .is-active")).toContainText("Discover");
+  } finally {
+    await setStyle("default");
+  }
 });
 
 test("A card says Installing… while Decky installs, then a notice says it's done", async ({ page }) => {

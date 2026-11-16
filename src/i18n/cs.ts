@@ -137,7 +137,10 @@ export const cs: Record<MessageKey, string> = {
   "appcard.aiHint":
     "Jeho repozitář obsahuje pokyny pro AI asistenty programování, nebo jeho README říká, že je vytvořen s AI, takže byl pravděpodobně vyvinut s pomocí AI. Neříká to nic o kvalitě ani bezpečnosti a chybějící odznak neznamená, že se AI nepoužila.",
   "appcard.aiFiles": "Pravděpodobně vyvinuto s pomocí AI ({files})",
-  "appcard.scan.clean": "Bez hrozeb",
+  "appcard.rust": "Rust",
+  "appcard.rustHint":
+    "Jeho repozitář obsahuje kód v Rustu, část pluginu je tedy napsaná v Rustu. To nic neříká o kvalitě ani bezpečnosti.",
+  "appcard.scan.clean": "Nic neoznačeno",
   "appcard.scan.clean.hint":
     "Antivirové kontroly nenašly ve verzi, kterou byste nainstalovali, žádné známé hrozby. Odhalí jen známý malware a dají se obejít, takže to není důkaz bezpečnosti. Zpráva z kontroly je ve Spravovat.",
   "appcard.scan.infected": "Nalezena hrozba",
@@ -368,7 +371,8 @@ export const cs: Record<MessageKey, string> = {
   "settings.quickAccessTab": "Karta DeckyHub v Rychlém přístupu",
   "settings.quickAccessTabHint": "Když je vypnuto, otevírejte DeckyHub ze seznamu pluginů Decky.",
   "settings.uiStyle": "Styl rozhraní",
-  "settings.uiStyleHint": "Experimentální je nový vzhled DeckyHub, na kterém se stále pracuje.",
+  "settings.uiStyleHint":
+    "Experimentální a Experimentální V2 jsou stále ve vývoji. Mohou být rozbité a nejsou určené pro každodenní použití. Pokud něco nefunguje, zvolte Výchozí.",
   "settings.uiStyleDefault": "Výchozí",
   "settings.uiStyleExperimental": "Experimentální",
   "search.noData": "Žádná data auditu ani skenů: tento plugin není v registru.",

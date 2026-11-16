@@ -311,18 +311,38 @@ class PluginStatusTests(unittest.TestCase):
             plugin.settings_path = Path(home) / "settings.json"
             self.assertIs(plugin._load_settings()["quickAccessTab"], True)
 
-    def test_ui_style_is_informative_for_new_installs_and_classic_for_old_settings(self):
+    def test_ui_style_is_default_for_everybody_until_they_pick_another(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = Plugin()
             plugin.settings_path = Path(home) / "settings.json"
-            # No settings file yet: a new install.
-            self.assertEqual(plugin._load_settings()["uiStyle"], "experimental")
+            # No settings file yet: a new install starts on Default.
+            self.assertEqual(plugin._load_settings()["uiStyle"], "default")
             # A file from before the choice existed keeps the look its owner has.
             plugin.settings_path.write_text(json.dumps({"haptics": False}), encoding="utf-8")
             self.assertEqual(plugin._load_settings()["uiStyle"], "default")
             self.assertEqual(asyncio.run(plugin.save_settings({"uiStyle": "experimental"}))["uiStyle"], "experimental")
             self.assertEqual(asyncio.run(plugin.save_settings({"uiStyle": "default"}))["uiStyle"], "default")
+            self.assertEqual(asyncio.run(plugin.save_settings({"uiStyle": "v2"}))["uiStyle"], "v2")
             self.assertEqual(asyncio.run(plugin.save_settings({"uiStyle": "neon"}))["uiStyle"], "default")
+
+    def test_everybody_on_an_unfinished_ui_style_goes_back_to_default_once(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.settings_path = Path(home) / "settings.json"
+            for saved in ("experimental", "v2"):
+                # A file from before the reset: whatever it chose, it starts on Default again.
+                plugin.settings_path.write_text(json.dumps({"uiStyle": saved}), encoding="utf-8")
+                loaded = plugin._load_settings()
+                self.assertEqual(loaded["uiStyle"], "default")
+                self.assertEqual(loaded["uiStyleReset"], 1)
+            # Choosing again is a save, which writes the marker, so the choice now sticks across loads.
+            plugin.settings = plugin._load_settings()
+            self.assertEqual(asyncio.run(plugin.save_settings({"uiStyle": "experimental"}))["uiStyle"], "experimental")
+            self.assertEqual(json.loads(plugin.settings_path.read_text(encoding="utf-8"))["uiStyleReset"], 1)
+            self.assertEqual(plugin._load_settings()["uiStyle"], "experimental")
+            # A save without the marker (an old form) can't undo it either.
+            self.assertEqual(asyncio.run(plugin.save_settings({"uiStyle": "v2"}))["uiStyleReset"], 1)
+            self.assertEqual(plugin._load_settings()["uiStyle"], "v2")
 
     def test_hidden_buttons_keep_only_known_names(self):
         with tempfile.TemporaryDirectory() as home:

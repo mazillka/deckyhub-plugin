@@ -70,6 +70,8 @@ export type PluginStats = {
   // plus optional activity counters from listings with both valid endpoint lists.
   store?: StoreStats;
   ai?: string[];
+  // The repository ships Rust code (a Cargo.toml or rust-toolchain file in it).
+  rust?: boolean;
   warnings?: string[];
   prereleaseWarnings?: string[];
 };
@@ -158,7 +160,8 @@ export type VirusScan = ScanVerdict & {
 export type HideableButton = "downloadZip" | "install" | "update" | "releasePage";
 
 // Quick Access' UI Style: the classic look, or the Experimental redesign.
-export type UiStyle = "default" | "experimental";
+// "v2": Experimental V2, the two-pane list and detail layout (src/components/v2/).
+export type UiStyle = "default" | "experimental" | "v2";
 
 export type Settings = {
   overwriteExisting: boolean;

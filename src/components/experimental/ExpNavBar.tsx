@@ -15,6 +15,11 @@ const TABS = [
 // Settings' sections listen for L2 / R2 through this event, wherever focus is on the page.
 export const SECTION_STEP = "deckyhub-section-step";
 
+// Asks the page frame to open a tab. The frame marks the request handled; without one (the
+// classic style) the caller navigates to the route instead.
+export const SELECT_PAGE = "deckyhub-select-page";
+export type SelectPageRequest = { page: string; handled?: boolean };
+
 // Experimental: every page's tabs across the top, L1 at the left end and R1 at the right,
 // the buttons that move to the tab on that side.
 function ExpNavBar({ active, onSelect }: { active: string; onSelect: (page: string) => void }) {
@@ -51,6 +56,17 @@ export function ExpPageFrame({ initial, render }: { initial: string; render: (pa
     focusTab.current = byBumper;
     setActive(page);
   };
+  // A button inside a tab (Updates' Discover) can't navigate: the route never changes, so going to the
+  // route already shown does nothing.
+  useEffect(() => {
+    const onSelect = (event: Event) => {
+      const request = (event as CustomEvent<SelectPageRequest>).detail;
+      request.handled = true;
+      select(request.page, true);
+    };
+    window.addEventListener(SELECT_PAGE, onSelect);
+    return () => window.removeEventListener(SELECT_PAGE, onSelect);
+  });
   const step = (by: number) =>
     select(TABS[(TABS.findIndex(([page]) => page === active) + by + TABS.length) % TABS.length][0], true);
   useEffect(() => {

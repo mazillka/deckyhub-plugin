@@ -132,7 +132,9 @@ export const zhTW: Record<MessageKey, string> = {
   "appcard.aiHint":
     "它的儲存庫包含給 AI 程式設計助理的說明，或它的 README 說它是用 AI 做的，因此很可能是在 AI 協助下開發的。這不代表它的品質或安全性，沒有這個標記也不代表沒用過 AI。",
   "appcard.aiFiles": "很可能在 AI 協助下開發（{files}）",
-  "appcard.scan.clean": "無威脅",
+  "appcard.rust": "Rust",
+  "appcard.rustHint": "其儲存庫含有 Rust 程式碼，因此外掛的一部分以 Rust 撰寫。這不代表其品質或安全性。",
+  "appcard.scan.clean": "無標記",
   "appcard.scan.clean.hint":
     "病毒掃描在你要安裝的版本中沒有找到已知威脅。掃描只能找出已知的惡意軟體，而且可以被繞過，所以這並不能證明它安全。掃描報告在「管理」中。",
   "appcard.scan.infected": "發現威脅",
@@ -351,7 +353,7 @@ export const zhTW: Record<MessageKey, string> = {
   "settings.quickAccessTab": "快速存取中的 DeckyHub 分頁",
   "settings.quickAccessTabHint": "關閉後，可從 Decky 的外掛清單開啟 DeckyHub。",
   "settings.uiStyle": "介面風格",
-  "settings.uiStyleHint": "「實驗性」是 DeckyHub 仍在開發中的新外觀。",
+  "settings.uiStyleHint": "實驗性與實驗性 V2 仍在開發中。它們可能有故障，不適合日常使用。如遇問題，請選擇預設。",
   "settings.uiStyleDefault": "預設",
   "settings.uiStyleExperimental": "實驗性",
   "search.noData": "沒有稽核或掃描資料：此外掛不在登錄表中。",

@@ -140,7 +140,10 @@ export const fr: Record<MessageKey, string> = {
   "appcard.aiHint":
     "Son dépôt contient des instructions pour des assistants de programmation IA, ou son README dit qu’il est fait avec l’IA : il est donc probablement développé avec l’aide de l’IA. Cela ne dit rien de sa qualité ni de sa sécurité, et l’absence de badge ne veut pas dire qu’aucune IA n’a été utilisée.",
   "appcard.aiFiles": "Probablement développé avec l'aide de l'IA ({files})",
-  "appcard.scan.clean": "Aucune menace",
+  "appcard.rust": "Rust",
+  "appcard.rustHint":
+    "Son dépôt contient du code Rust : une partie du plugin est écrite en Rust. Cela n'indique rien sur sa qualité ni sa sécurité.",
+  "appcard.scan.clean": "Rien de signalé",
   "appcard.scan.clean.hint":
     "Les analyses antivirus n’ont trouvé aucune menace connue dans la version que vous installeriez. Elles ne détectent que les logiciels malveillants connus et peuvent être contournées : ce n’est donc pas une preuve de sécurité. Gérer contient le rapport d’analyse.",
   "appcard.scan.infected": "Menace trouvée",
@@ -378,7 +381,8 @@ export const fr: Record<MessageKey, string> = {
   "settings.quickAccessTab": "Onglet DeckyHub dans l'Accès rapide",
   "settings.quickAccessTabHint": "Désactivé, ouvrez DeckyHub depuis la liste des plugins de Decky.",
   "settings.uiStyle": "Style d'interface",
-  "settings.uiStyleHint": "Expérimental est une nouvelle apparence de DeckyHub encore en cours de développement.",
+  "settings.uiStyleHint":
+    "Expérimental et Expérimental V2 sont encore en cours de développement. Ils peuvent être défaillants et ne sont pas faits pour un usage quotidien. Choisissez Par défaut en cas de problème.",
   "settings.uiStyleDefault": "Par défaut",
   "settings.uiStyleExperimental": "Expérimental",
   "search.noData": "Aucune donnée d'audit ou d'analyse : ce plugin n'est pas dans le registre.",

@@ -140,7 +140,10 @@ export const de: Record<MessageKey, string> = {
   "appcard.aiHint":
     "Sein Repository enthält Anweisungen für KI-Programmierassistenten, oder seine README sagt, dass es mit KI erstellt wurde, also wurde es wahrscheinlich mit KI-Hilfe entwickelt. Das sagt nichts über Qualität oder Sicherheit aus, und ohne Abzeichen heißt nicht, dass keine KI verwendet wurde.",
   "appcard.aiFiles": "Wahrscheinlich mit KI-Hilfe entwickelt ({files})",
-  "appcard.scan.clean": "Keine Bedrohungen",
+  "appcard.rust": "Rust",
+  "appcard.rustHint":
+    "Das Repository enthält Rust-Code, ein Teil des Plugins ist also in Rust geschrieben. Das sagt nichts über Qualität oder Sicherheit aus.",
+  "appcard.scan.clean": "Nichts markiert",
   "appcard.scan.clean.hint":
     "Die Virenscans haben in der Version, die du installieren würdest, keine bekannten Bedrohungen gefunden. Sie erkennen nur bekannte Schadsoftware und lassen sich umgehen, das ist also kein Beweis für Sicherheit. Unter Verwalten findest du den Scanbericht.",
   "appcard.scan.infected": "Bedrohung gefunden",
@@ -380,7 +383,8 @@ export const de: Record<MessageKey, string> = {
   "settings.quickAccessTab": "DeckyHub-Tab im Schnellzugriff",
   "settings.quickAccessTabHint": "Wenn aus, öffne DeckyHub über die Plugin-Liste von Decky.",
   "settings.uiStyle": "UI-Stil",
-  "settings.uiStyleHint": "Experimentell ist ein neues Aussehen für DeckyHub, an dem noch gearbeitet wird.",
+  "settings.uiStyleHint":
+    "Experimentell und Experimentell V2 sind noch in Arbeit. Sie können Fehler haben und sind nicht für den täglichen Gebrauch gedacht. Wähle Standard, wenn etwas schiefgeht.",
   "settings.uiStyleDefault": "Standard",
   "settings.uiStyleExperimental": "Experimentell",
   "search.noData": "Keine Audit- oder Scan-Daten: Dieses Plugin ist nicht in der Registry.",

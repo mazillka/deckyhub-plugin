@@ -138,7 +138,10 @@ export const ja: Record<MessageKey, string> = {
   "appcard.aiHint":
     "リポジトリに AI コーディングアシスタント向けの指示があるか、README に AI で作られたと書かれているため、AI の助けを借りて開発された可能性が高いです。品質や安全性については何も示しません。また、バッジがなくても AI が使われていないとは限りません。",
   "appcard.aiFiles": "AI の助けを借りて開発された可能性が高い ({files})",
-  "appcard.scan.clean": "脅威なし",
+  "appcard.rust": "Rust",
+  "appcard.rustHint":
+    "リポジトリに Rust のコードがあり、プラグインの一部は Rust で書かれています。品質や安全性については何も示しません。",
+  "appcard.scan.clean": "検出なし",
   "appcard.scan.clean.hint":
     "インストールするリリースからウイルススキャンで既知の脅威は見つかりませんでした。スキャンは既知のマルウェアしか検出できず、回避されることもあるため、安全の証明にはなりません。スキャンレポートは「管理」で確認できます。",
   "appcard.scan.infected": "脅威を検出",
@@ -369,7 +372,8 @@ export const ja: Record<MessageKey, string> = {
   "settings.quickAccessTab": "クイックアクセスの DeckyHub タブ",
   "settings.quickAccessTabHint": "オフの場合は、Decky のプラグイン一覧から DeckyHub を開きます。",
   "settings.uiStyle": "UI スタイル",
-  "settings.uiStyleHint": "「試験的」は開発中の DeckyHub の新しいデザインです。",
+  "settings.uiStyleHint":
+    "試験的と試験的 V2 は開発中です。正しく動作しないことがあり、日常的な使用には向いていません。問題が起きたらデフォルトを選んでください。",
   "settings.uiStyleDefault": "デフォルト",
   "settings.uiStyleExperimental": "試験的",
   "search.noData": "監査・スキャンのデータなし：このプラグインはレジストリにありません。",

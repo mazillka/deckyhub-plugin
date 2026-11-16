@@ -136,7 +136,10 @@ export const tr: Record<MessageKey, string> = {
   "appcard.aiHint":
     "Deposunda yapay zekâ kodlama asistanları için talimatlar var ya da README'si yapay zekâyla yapıldığını söylüyor, bu yüzden muhtemelen yapay zekâ yardımıyla geliştirildi. Bu, kalitesi veya güvenliği hakkında bir şey söylemez; rozetin olmaması da yapay zekâ kullanılmadığı anlamına gelmez.",
   "appcard.aiFiles": "Muhtemelen yapay zekâ yardımıyla geliştirildi ({files})",
-  "appcard.scan.clean": "Tehdit yok",
+  "appcard.rust": "Rust",
+  "appcard.rustHint":
+    "Deposunda Rust kodu var, yani eklentinin bir kısmı Rust ile yazılmış. Bu, kalitesi veya güvenliği hakkında hiçbir şey söylemez.",
+  "appcard.scan.clean": "Hiçbir şey işaretlenmedi",
   "appcard.scan.clean.hint":
     "Virüs taramaları, yükleyeceğin sürümde bilinen bir tehdit bulmadı. Taramalar yalnızca bilinen kötü amaçlı yazılımları yakalar ve atlatılabilir, bu yüzden bu güvenliğin kanıtı değildir. Tarama raporu Yönet'te.",
   "appcard.scan.infected": "Tehdit bulundu",
@@ -366,7 +369,8 @@ export const tr: Record<MessageKey, string> = {
   "settings.quickAccessTab": "Hızlı Erişim'de DeckyHub sekmesi",
   "settings.quickAccessTabHint": "Kapalıyken DeckyHub'ı Decky'nin eklenti listesinden aç.",
   "settings.uiStyle": "Arayüz stili",
-  "settings.uiStyleHint": "Deneysel, DeckyHub'ın hâlâ üzerinde çalışılan yeni görünümüdür.",
+  "settings.uiStyleHint":
+    "Deneysel ve Deneysel V2 hâlâ geliştirme aşamasında. Bozuk olabilirler ve günlük kullanım için tasarlanmadılar. Bir şey ters giderse Varsayılan'ı seçin.",
   "settings.uiStyleDefault": "Varsayılan",
   "settings.uiStyleExperimental": "Deneysel",
   "search.noData": "Denetim veya tarama verisi yok: bu eklenti kayıt defterinde değil.",

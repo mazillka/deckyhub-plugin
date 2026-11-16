@@ -140,7 +140,10 @@ export const ptPT: Record<MessageKey, string> = {
   "appcard.aiHint":
     "O repositório tem instruções para assistentes de programação com IA, ou o README diz que foi feito com IA, por isso provavelmente foi desenvolvido com ajuda de IA. Isso não diz nada sobre a qualidade ou a segurança, e não ter o distintivo não significa que não se usou IA.",
   "appcard.aiFiles": "Provavelmente desenvolvido com ajuda de IA ({files})",
-  "appcard.scan.clean": "Sem ameaças",
+  "appcard.rust": "Rust",
+  "appcard.rustHint":
+    "O repositório tem código Rust, por isso parte do plugin está escrita em Rust. Isso não diz nada sobre a sua qualidade ou segurança.",
+  "appcard.scan.clean": "Nada sinalizado",
   "appcard.scan.clean.hint":
     "As verificações antivírus não encontraram ameaças conhecidas na versão que instalaria. Só detetam malware conhecido e podem ser contornadas, por isso isto não prova que é seguro. O relatório está em Gerir.",
   "appcard.scan.infected": "Ameaça encontrada",
@@ -377,7 +380,8 @@ export const ptPT: Record<MessageKey, string> = {
   "settings.quickAccessTab": "Separador do DeckyHub no Acesso rápido",
   "settings.quickAccessTabHint": "Quando desativado, abra o DeckyHub a partir da lista de plugins do Decky.",
   "settings.uiStyle": "Estilo da interface",
-  "settings.uiStyleHint": "Experimental é um novo aspeto do DeckyHub que ainda está em desenvolvimento.",
+  "settings.uiStyleHint":
+    "Experimental e Experimental V2 ainda estão em desenvolvimento. Podem ter falhas e não se destinam a uso diário. Escolha Predefinido se algo correr mal.",
   "settings.uiStyleDefault": "Predefinido",
   "settings.uiStyleExperimental": "Experimental",
   "search.noData": "Sem dados de auditoria ou verificação: este plugin não está no registo.",

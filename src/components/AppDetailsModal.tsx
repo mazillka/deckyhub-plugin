@@ -16,6 +16,7 @@ import {
   FaPlus,
   FaRedo,
   FaTimes,
+  FaSync,
   FaTrash,
 } from "react-icons/fa";
 import { getDeckyHubInfo, saveRepoSettings } from "../api";
@@ -46,7 +47,7 @@ import { startPluginInstall } from "./InstallFlow";
 import { displayVersion } from "../version";
 import { AppBadges, AppMonogram, AppStats, FindingsSummary } from "./AppBadges";
 import { showReleaseInfo } from "./ReleaseInfo";
-import { DetailsWindow } from "./DetailsWindow";
+import { DetailsRow, DetailsWindow } from "./DetailsWindow";
 import { VirusScanReport } from "./VirusScanReport";
 import { KnownIssues } from "./KnownIssues";
 import { ReleaseActions, useReleasePicker } from "./VersionPickerPanel";
@@ -245,6 +246,30 @@ export function AppDetailsModal({
       />,
     );
 
+  // Only for a plugin DeckyHub can't match to its repository: above Download ZIP, since they are the way to install it.
+  const unverifiedActions = (anyway || trustable || app.identityTrusted) && (
+    <Focusable flow-children="right" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+      {anyway && selectedRelease && (
+        <Button
+          style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto", color: colors.warning }}
+          onClick={() => runInstallAnyway(selectedRelease, anyway)}
+        >
+          <FaExclamationTriangle /> {t("appcard.installAnyway")}
+        </Button>
+      )}
+      {trustable && (
+        <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={confirmTrust}>
+          <FaShieldAlt /> {t("appcard.trustPlugin")}
+        </Button>
+      )}
+      {app.identityTrusted && (
+        <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={stopTrusting}>
+          <FaShieldAlt /> {t("appcard.untrustPlugin")}
+        </Button>
+      )}
+    </Focusable>
+  );
+
   return (
     <DetailsWindow
       t={t}
@@ -286,83 +311,88 @@ export function AppDetailsModal({
             <span>{t("appcard.storeInstallStep2", { name: app.name })}</span>
             <span>{t("appcard.storeInstallStep3")}</span>
           </Focusable>
-        ) : (
-          selectedRelease && (
-            <>
-              {install &&
-                !hiddenButtons.includes(install.type === PLUGIN_INSTALL_TYPE.INSTALL ? "install" : "update") && (
-                  <Button
-                    style={primaryButtonStyle}
-                    onClick={() => runInstall(selectedRelease, install)}
-                    onSecondaryButton={() =>
-                      showReleaseInfo(
-                        t,
-                        `${app.name} ${displayVersion(selectedRelease.tag)}`,
-                        selectedRelease.publishedAt,
-                        selectedRelease.notes,
-                      )
-                    }
-                    onSecondaryActionDescription={t("appcard.releaseInfo")}
-                    // X downloads the selected release's ZIP instead of installing it.
-                    onOptionsButton={
-                      hiddenButtons.includes("downloadZip") || downloading || !selectedRelease.assets[0]
-                        ? undefined
-                        : () => download(selectedRelease.assets[0])
-                    }
-                    onOptionsActionDescription={t("settings.downloadUpdate")}
-                    // Menu opens the repository; close first, or Steam's browser opens underneath this modal.
-                    onMenuButton={() => {
-                      closeModal?.();
-                      openExternalWeb(`https://github.com/${app.repo}`);
-                    }}
-                    onMenuActionDescription={t("appcard.repository")}
-                  >
-                    {installIcons[install.type]} {installLabel}
-                  </Button>
-                )}
-              {hiddenButtons.includes("downloadZip") ? null : selectedRelease.assets[0] ? (
+        ) : selectedRelease ? (
+          <>
+            {install &&
+              !hiddenButtons.includes(install.type === PLUGIN_INSTALL_TYPE.INSTALL ? "install" : "update") && (
                 <Button
+                  style={primaryButtonStyle}
+                  onClick={() => runInstall(selectedRelease, install)}
+                  onSecondaryButton={() =>
+                    showReleaseInfo(
+                      t,
+                      `${app.name} ${displayVersion(selectedRelease.tag)}`,
+                      selectedRelease.publishedAt,
+                      selectedRelease.notes,
+                    )
+                  }
+                  onSecondaryActionDescription={t("appcard.releaseInfo")}
+                  // X downloads the selected release's ZIP instead of installing it.
+                  onOptionsButton={
+                    hiddenButtons.includes("downloadZip") || downloading || !selectedRelease.assets[0]
+                      ? undefined
+                      : () => download(selectedRelease.assets[0])
+                  }
+                  onOptionsActionDescription={t("settings.downloadUpdate")}
+                  // Menu opens the repository; close first, or Steam's browser opens underneath this modal.
+                  onMenuButton={() => {
+                    closeModal?.();
+                    openExternalWeb(`https://github.com/${app.repo}`);
+                  }}
+                  onMenuActionDescription={t("appcard.repository")}
+                >
+                  {installIcons[install.type]} {installLabel}
+                </Button>
+              )}
+            {unverifiedActions}
+            {hiddenButtons.includes("downloadZip") ? null : selectedRelease.assets[0] ? (
+              <Button
+                style={modalButtonStyle}
+                disabled={downloading}
+                onClick={() => download(selectedRelease.assets[0])}
+              >
+                <FaFileArchive /> {t("settings.downloadUpdate")}
+              </Button>
+            ) : (
+              <small style={{ color: colors.danger }}>{t("appcard.noMatchingAsset")}</small>
+            )}
+            {!hiddenButtons.includes("downloadZip") &&
+              selectedRelease.assets.slice(1).map((asset) => (
+                <Button
+                  key={asset.name}
                   style={modalButtonStyle}
                   disabled={downloading}
-                  onClick={() => download(selectedRelease.assets[0])}
+                  onClick={() => download(asset)}
                 >
-                  <FaFileArchive /> {t("settings.downloadUpdate")}
+                  <FaFileArchive /> {`${asset.name} (${readableBytes(asset.size)})`}
                 </Button>
-              ) : (
-                <small style={{ color: colors.danger }}>{t("appcard.noMatchingAsset")}</small>
-              )}
-              {!hiddenButtons.includes("downloadZip") &&
-                selectedRelease.assets.slice(1).map((asset) => (
-                  <Button
-                    key={asset.name}
-                    style={modalButtonStyle}
-                    disabled={downloading}
-                    onClick={() => download(asset)}
-                  >
-                    <FaFileArchive /> {`${asset.name} (${readableBytes(asset.size)})`}
-                  </Button>
-                ))}
-            </>
-          )
+              ))}
+          </>
+        ) : (
+          unverifiedActions
         )
       }
       // Known issues sit above the scan report, not in the header: the header is one focus
       // target, so the D-pad can't reach a link inside it (seen on a Deck).
+      collapsible
       scan={
         !app.store && (
           <>
             <FindingsSummary app={app} t={t} />
             {app.knownIssues?.length ? <KnownIssues t={t} issues={app.knownIssues} closeModal={closeModal} /> : null}
-            <VirusScanReport
-              key={JSON.stringify([selectedRelease?.assets[0]?.url, selectedRelease?.assets[0]?.sha256])}
-              t={t}
-              asset={selectedRelease?.assets[0]}
-              version={selectedRelease?.tag}
-              closeModal={closeModal}
-              showZipActions={false}
-            />
-            <small style={{ opacity: 0.7 }}>{t("scan.notReviewed")}</small>
           </>
+        )
+      }
+      report={
+        !app.store && (
+          <VirusScanReport
+            key={JSON.stringify([selectedRelease?.assets[0]?.url, selectedRelease?.assets[0]?.sha256])}
+            t={t}
+            asset={selectedRelease?.assets[0]}
+            version={selectedRelease?.tag}
+            closeModal={closeModal}
+            showZipActions={false}
+          />
         )
       }
       channel={channel}
@@ -377,70 +407,74 @@ export function AppDetailsModal({
       hideVersionPicker={app.store}
       footer={
         <>
+          {/* The links, in one row. */}
           <ReleaseActions
             t={t}
             url={selectedRelease?.url}
             repoUrl={`https://github.com/${app.repo}`}
             pageUrl={app.official ? `https://deckyhub.com/plugins/${encodeURIComponent(app.id)}.html` : undefined}
-            onReport={async () => {
-              const info = await getDeckyHubInfo().catch(() => null);
-              const issue = reportIssueUrl({
-                repo: app.repo,
-                name: app.name,
-                version: app.installedVersion ? displayVersion(app.installedVersion) : undefined,
-                deckyhubVersion: info?.version,
-              });
-              if (!issue) return;
-              closeModal?.();
-              openExternalWeb(issue);
-            }}
             hideReleasePage={hiddenButtons.includes("releasePage")}
             checking={loading}
             disabled={loading}
             onCheck={() => void load(true)}
             closeModal={closeModal}
-            hideCheck={app.store}
+            hideCheck
           />
-          {canSkip && (
-            <Button style={modalButtonStyle} onClick={toggleSkip}>
-              {skipped ? <FaEye /> : <FaEyeSlash />}{" "}
-              {t(skipped ? "appcard.unskipVersion" : "appcard.skipVersion", { version: displayVersion(latest!) })}
+          {/* The routine and the rare actions behind one row, so the window doesn't end in a long stack. */}
+          <DetailsRow title={t("notice.more")}>
+            <Focusable flow-children="down" style={{ display: "grid", gap: 8 }}>
+              {!app.store && (
+                <Button style={modalButtonStyle} disabled={loading} onClick={() => void load(true)}>
+                  <FaSync /> {loading ? t("settings.checkingUpdate") : t("settings.checkUpdate")}
+                </Button>
+              )}
+              {canSkip && (
+                <Button style={modalButtonStyle} onClick={toggleSkip}>
+                  {skipped ? <FaEye /> : <FaEyeSlash />}{" "}
+                  {t(skipped ? "appcard.unskipVersion" : "appcard.skipVersion", { version: displayVersion(latest!) })}
+                </Button>
+              )}
+              {app.installedVersion && !app.store && (
+                <Button style={modalButtonStyle} onClick={togglePin}>
+                  {pinned ? <FaUnlock /> : <FaLock />}{" "}
+                  {t(pinned ? "appcard.unpinVersion" : "appcard.pinVersion", {
+                    version: displayVersion(pinned ? preference.pinVersion! : app.installedVersion),
+                  })}
+                </Button>
+              )}
+              <Button
+                style={modalButtonStyle}
+                onClick={async () => {
+                  const info = await getDeckyHubInfo().catch(() => null);
+                  const issue = reportIssueUrl({
+                    repo: app.repo,
+                    name: app.name,
+                    version: app.installedVersion ? displayVersion(app.installedVersion) : undefined,
+                    deckyhubVersion: info?.version,
+                  });
+                  if (!issue) return;
+                  closeModal?.();
+                  openExternalWeb(issue);
+                }}
+              >
+                <FaExclamationTriangle /> {t("appcard.reportProblem")}
+              </Button>
+            </Focusable>
+          </DetailsRow>
+          {/* Remove apart from the rest, and Close beside it. */}
+          <Focusable flow-children="right" style={{ display: "flex", gap: 8 }}>
+            {canUninstall && (
+              <Button
+                style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto", color: colors.danger }}
+                onClick={confirmUninstall}
+              >
+                <FaTrash /> {t("appcard.uninstall")}
+              </Button>
+            )}
+            <Button style={{ ...modalButtonStyle, width: "auto", flex: "1 1 auto" }} onClick={closeModal}>
+              <FaTimes /> {t("settings.close")}
             </Button>
-          )}
-          {app.installedVersion && !app.store && (
-            <Button style={modalButtonStyle} onClick={togglePin}>
-              {pinned ? <FaUnlock /> : <FaLock />}{" "}
-              {t(pinned ? "appcard.unpinVersion" : "appcard.pinVersion", {
-                version: displayVersion(pinned ? preference.pinVersion! : app.installedVersion),
-              })}
-            </Button>
-          )}
-          {anyway && selectedRelease && (
-            <Button
-              style={{ ...modalButtonStyle, color: colors.warning }}
-              onClick={() => runInstallAnyway(selectedRelease, anyway)}
-            >
-              <FaExclamationTriangle /> {t("appcard.installAnyway")}
-            </Button>
-          )}
-          {trustable && (
-            <Button style={modalButtonStyle} onClick={confirmTrust}>
-              <FaShieldAlt /> {t("appcard.trustPlugin")}
-            </Button>
-          )}
-          {app.identityTrusted && (
-            <Button style={modalButtonStyle} onClick={stopTrusting}>
-              <FaShieldAlt /> {t("appcard.untrustPlugin")}
-            </Button>
-          )}
-          {canUninstall && (
-            <Button style={{ ...modalButtonStyle, color: colors.danger }} onClick={confirmUninstall}>
-              <FaTrash /> {t("appcard.uninstall")}
-            </Button>
-          )}
-          <Button style={modalButtonStyle} onClick={closeModal}>
-            <FaTimes /> {t("settings.close")}
-          </Button>
+          </Focusable>
         </>
       }
     />

@@ -135,7 +135,10 @@ export const ko: Record<MessageKey, string> = {
   "appcard.aiHint":
     "저장소에 AI 코딩 도우미용 지침이 있거나 README에 AI로 만들었다고 적혀 있어 AI의 도움으로 개발되었을 가능성이 높습니다. 품질이나 안전성에 대해서는 아무것도 알려 주지 않으며, 배지가 없다고 AI를 쓰지 않았다는 뜻은 아닙니다.",
   "appcard.aiFiles": "AI의 도움으로 개발되었을 가능성이 높음 ({files})",
-  "appcard.scan.clean": "위협 없음",
+  "appcard.rust": "Rust",
+  "appcard.rustHint":
+    "저장소에 Rust 코드가 있어 플러그인의 일부가 Rust로 작성되었습니다. 품질이나 안전성과는 무관합니다.",
+  "appcard.scan.clean": "탐지된 항목 없음",
   "appcard.scan.clean.hint":
     "설치할 릴리스에서 바이러스 검사로 알려진 위협을 찾지 못했습니다. 검사는 알려진 악성 코드만 잡아내고 우회될 수 있으므로 안전을 증명하지 않습니다. 검사 보고서는 관리에서 볼 수 있습니다.",
   "appcard.scan.infected": "위협 발견",
@@ -362,7 +365,8 @@ export const ko: Record<MessageKey, string> = {
   "settings.quickAccessTab": "빠른 액세스의 DeckyHub 탭",
   "settings.quickAccessTabHint": "끄면 Decky 플러그인 목록에서 DeckyHub를 엽니다.",
   "settings.uiStyle": "UI 스타일",
-  "settings.uiStyleHint": "실험적은 아직 작업 중인 DeckyHub의 새로운 디자인입니다.",
+  "settings.uiStyleHint":
+    "실험적과 실험적 V2는 아직 개발 중입니다. 오작동할 수 있으며 일상적인 사용에는 적합하지 않습니다. 문제가 생기면 기본을 선택하세요.",
   "settings.uiStyleDefault": "기본",
   "settings.uiStyleExperimental": "실험적",
   "search.noData": "감사·검사 데이터 없음: 이 플러그인은 레지스트리에 없습니다.",

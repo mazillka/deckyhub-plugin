@@ -34,6 +34,8 @@ SUPPORTED_LANGUAGES = {
     "zh-TW",
 }
 DEFAULT_COLUMNS_PER_ROW = 3
+# Bumped to reset everybody's UI Style to Default once more (see _load_settings).
+UI_STYLE_RESET = 1
 
 
 def coerce_settings(settings: dict) -> dict:
@@ -54,10 +56,10 @@ def coerce_settings(settings: dict) -> dict:
         # DeckyHub's own icon in Steam's Quick Access tab strip (QuickAccessTab.tsx).
         # Off leaves DeckyHub in Decky's plugin list.
         "quickAccessTab": bool(settings.get("quickAccessTab", True)),
-        # Quick Access' UI Style: the classic look ("default"), or the Informative redesign ("experimental",
-        # src/components/experimental/). A new install, with no settings yet, gets Informative; a file saved
-        # before the choice existed, or any other value, stays Classic, so nobody's look changes under them.
-        "uiStyle": "experimental" if settings.get("uiStyle") == "experimental" or not settings else "default",
+        # Quick Access' UI Style: the classic look ("default"), or one of the unfinished redesigns ("experimental",
+        # src/components/experimental/, and "v2", src/components/v2/), which may be broken and are only for people
+        # who pick them. Everybody starts on Default, new installs included; any other value falls back to it.
+        "uiStyle": settings.get("uiStyle") if settings.get("uiStyle") in ("experimental", "v2") else "default",
         # Manage-window buttons the user chose to hide (Display Settings).
         "hiddenButtons": [
             name
@@ -115,10 +117,16 @@ class SettingsMixin:
             # Files saved before writes were owner-only (see _save_settings) get fixed here.
             with contextlib.suppress(OSError):
                 os.chmod(self.settings_path, 0o600)
+            # Experimental and Experimental V2 are unfinished and may be broken. A file saved before this marker
+            # existed goes back to Default once (nobody can tell a choice from the old new-install default);
+            # every save writes the marker, so a style picked afterwards stays.
+            if settings.get("uiStyleReset") != UI_STYLE_RESET:
+                settings = {**settings, "uiStyle": "default"}
             repos = settings.get("customRepos")
             repo_settings = settings.get("repoSettings")
             return {
                 **coerce_settings(settings),
+                "uiStyleReset": UI_STYLE_RESET,
                 "customRepos": [repo for repo in repos if isinstance(repo, str) and REPOSITORY_NAME.fullmatch(repo)]
                 if isinstance(repos, list)
                 else [],
@@ -136,6 +144,7 @@ class SettingsMixin:
                 decky.logger.error("Can't read %s, using defaults: %s", self.settings_path, error)
             return {
                 **coerce_settings({}),
+                "uiStyleReset": UI_STYLE_RESET,
                 "customRepos": [],
                 "customRegistries": [],
                 "repoSettings": {},
@@ -161,6 +170,7 @@ class SettingsMixin:
         channel = getattr(self, "settings", {}).get("registryChannel")
         self.settings = {
             **coerce_settings(settings),
+            "uiStyleReset": UI_STYLE_RESET,
             "customRepos": getattr(self, "settings", {}).get("customRepos", []),
             "customRegistries": getattr(self, "settings", {}).get("customRegistries", []),
             "repoSettings": getattr(self, "settings", {}).get("repoSettings", {}),

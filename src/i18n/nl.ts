@@ -139,7 +139,10 @@ export const nl: Record<MessageKey, string> = {
   "appcard.aiHint":
     "De repository bevat instructies voor AI-programmeerassistenten, of de README zegt dat de plugin met AI is gemaakt, dus de plugin is waarschijnlijk met hulp van AI ontwikkeld. Dat zegt niets over kwaliteit of veiligheid, en geen badge betekent niet dat er geen AI is gebruikt.",
   "appcard.aiFiles": "Waarschijnlijk met hulp van AI ontwikkeld ({files})",
-  "appcard.scan.clean": "Geen bedreigingen",
+  "appcard.rust": "Rust",
+  "appcard.rustHint":
+    "De repository bevat Rust-code, dus een deel van de plugin is in Rust geschreven. Dat zegt niets over de kwaliteit of veiligheid.",
+  "appcard.scan.clean": "Niets gemarkeerd",
   "appcard.scan.clean.hint":
     "De virusscans vonden geen bekende bedreigingen in de release die je zou installeren. Ze vinden alleen bekende malware en zijn te omzeilen, dus dit is geen bewijs van veiligheid. Beheren heeft het scanrapport.",
   "appcard.scan.infected": "Bedreiging gevonden",
@@ -376,7 +379,8 @@ export const nl: Record<MessageKey, string> = {
   "settings.quickAccessTab": "DeckyHub-tabblad in Snelle toegang",
   "settings.quickAccessTabHint": "Als dit uit staat, open je DeckyHub vanuit de pluginlijst van Decky.",
   "settings.uiStyle": "UI-stijl",
-  "settings.uiStyleHint": "Experimenteel is een nieuw uiterlijk voor DeckyHub waaraan nog wordt gewerkt.",
+  "settings.uiStyleHint":
+    "Experimenteel en Experimenteel V2 zijn nog in ontwikkeling. Ze kunnen kapot zijn en zijn niet bedoeld voor dagelijks gebruik. Kies Standaard als er iets misgaat.",
   "settings.uiStyleDefault": "Standaard",
   "settings.uiStyleExperimental": "Experimenteel",
   "search.noData": "Geen audit- of scangegevens: deze plugin staat niet in het register.",

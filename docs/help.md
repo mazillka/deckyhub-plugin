@@ -99,7 +99,7 @@ To tell the network from the browser, open `https://the-device-address:8765/` in
 
 ### What do the badges on plugins mean?
 
-Runs as root: its backend has full access to the system. No release in a year: it may be abandoned. Fork: its code started as a copy of another plugin, which its page links to. AI: its repository is set up for AI coding assistants or its README says it's made with AI, which says nothing about quality or safety. Pre-release only: it has no stable release, so DeckyHub offers its pre-releases and hides the Stable channel. No description: its author hasn't said what it does. Each plugin's page lists its badges.
+Runs as root: its backend has full access to the system. No release in a year: it may be abandoned. Fork: its code started as a copy of another plugin, which its page links to. AI: its repository is set up for AI coding assistants or its README says it's made with AI, which says nothing about quality or safety. Rust: its repository has Rust code, so part of the plugin is written in Rust, which also says nothing about quality or safety. Pre-release only: it has no stable release, so DeckyHub offers its pre-releases and hides the Stable channel. No description: its author hasn't said what it does. Each plugin's page lists its badges.
 
 ### Where do the audit warnings come from?
 
@@ -121,7 +121,7 @@ A person reviews every addition to the plugin list, but not for safety. Every pl
 
 ### What is the Deckyhub browser extension?
 
-A free extension for Chrome, Edge, Opera, Brave, Vivaldi and Firefox that shows DeckyHub's safety information while you browse GitHub. On a plugin's repository page it shows badges (runs as root, audit warnings, fork, in the Decky store, made with AI, latest scan) and a link to its DeckyHub page. On the Releases page and on each release it adds a block with the audit warnings, the ClamAV, YARA, VirusTotal and MetaDefender results and links that open that exact version on deckyhub.com, including Send to device (experimental). You can collapse the panels, or have them collapsed by default in the toolbar popup.
+A free extension for Chrome, Edge, Opera, Brave, Vivaldi and Firefox that shows DeckyHub's safety information while you browse GitHub. On a plugin's repository page it shows badges (runs as root, audit warnings, fork, in the Decky store, made with AI, Rust, latest scan) and a link to its DeckyHub page. On the Releases page and on each release it adds a block with the audit warnings, the ClamAV, YARA, VirusTotal and MetaDefender results and links that open that exact version on deckyhub.com, including Send to device (experimental). You can collapse the panels, or have them collapsed by default in the toolbar popup.
 
 ### How do I install the extension?
 

@@ -136,7 +136,10 @@ export const en = {
   "appcard.aiHint":
     "Its repository has instructions for AI coding assistants, or its README says it's made with AI, so it's likely developed with AI help. That says nothing about its quality or safety, and no badge doesn't mean no AI was used.",
   "appcard.aiFiles": "Likely developed with AI help ({files})",
-  "appcard.scan.clean": "No threats",
+  "appcard.rust": "Rust",
+  "appcard.rustHint":
+    "Its repository has Rust code, so part of the plugin is written in Rust. That says nothing about its quality or safety.",
+  "appcard.scan.clean": "Nothing flagged",
   "appcard.scan.clean.hint":
     "The virus scans found no known threats in the release you'd install. They only catch known malware and can be evaded, so this isn't proof of safety. Manage has the scan report.",
   "appcard.scan.infected": "Threat found",
@@ -364,7 +367,8 @@ export const en = {
   "settings.quickAccessTab": "DeckyHub tab in Quick Access",
   "settings.quickAccessTabHint": "When off, open DeckyHub from Decky's plugin list.",
   "settings.uiStyle": "UI Style",
-  "settings.uiStyleHint": "Experimental is a new look for DeckyHub that's still being worked on.",
+  "settings.uiStyleHint":
+    "Experimental and Experimental V2 are still being built. They may be broken and aren't meant for daily use. Choose Default if something goes wrong.",
   "settings.uiStyleDefault": "Default",
   "settings.uiStyleExperimental": "Experimental",
   "search.noData": "No audit or scan data: this plugin isn't in the registry.",

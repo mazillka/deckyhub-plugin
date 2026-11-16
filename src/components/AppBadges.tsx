@@ -138,6 +138,15 @@ export const AiBadge = ({ t, files }: { t: TFunc; files?: string[] }) => (
   </span>
 );
 
+// The Rust badge: the plugin's repository has Rust code (the registry's stats.json says so).
+// It says what the plugin is written in, nothing about its quality or safety.
+const RUST_COLOR = "#ffb08a";
+export const RustBadge = ({ t }: { t: TFunc }) => (
+  <span title={t("appcard.rustHint")} style={{ ...pillStyle, ...tint(RUST_COLOR) }}>
+    {t("appcard.rust")}
+  </span>
+);
+
 // Pre-release only: no stable release, so the card offers pre-releases (hydrate). No description:
 // its author hasn't said what it does. Both also shown in Discover's legend.
 export const PrereleaseOnlyBadge = ({ t }: { t: TFunc }) => (
@@ -154,6 +163,8 @@ export const NoDescriptionBadge = ({ t }: { t: TFunc }) => (
 // The virus scans' verdict on the release the card installs (the registry's scans.json):
 // the worse of ClamAV's and YARA's, also shown in Discover's legend. Nothing until the ZIP
 // has a report; Manage has the full report.
+// ClamAV, YARA, VirusTotal and MetaDefender.
+const SCANNERS = 4;
 type ScanBadgeKind = "clean" | "infected" | "partial";
 export const SCAN_BADGES: ScanBadgeKind[] = ["clean", "infected", "partial"];
 const SCAN_COLORS: Record<ScanBadgeKind, string> = {
@@ -172,12 +183,14 @@ export const scanSummary = (scan: VirusScan, virusTotal?: App["virusTotal"], met
     results.push(metaDefender.flagged ? "infected" : "clean");
   }
   const passed = results.filter((result) => result === "clean").length;
+  // Nothing flagged only once all four scanners have reported and none flagged it: ClamAV and YARA alone say less than
+  // "Nothing flagged" sounds like, so a release still waiting on VirusTotal or MetaDefender is Not fully scanned.
   const kind: ScanBadgeKind = results.includes("infected")
     ? "infected"
-    : scan.yara && passed === results.length
+    : results.length >= SCANNERS && passed === results.length
       ? "clean"
       : "partial";
-  return { kind, count: `${passed}/${results.length}` };
+  return { kind, count: `${passed}/${SCANNERS}` };
 };
 
 export const ScanBadge = ({ t, kind, count }: { t: TFunc; kind: ScanBadgeKind; count?: string }) => {
@@ -248,7 +261,7 @@ const auditKeys = (app: App) =>
     ),
   ].filter(isAuditWarning);
 
-const findingsOf = (app: App) =>
+export const findingsOf = (app: App) =>
   collectFindings({
     warnings: auditKeys(app),
     sourceMismatch: Boolean(app.scan && (independentAuditOf(app.scan)?.source?.findings.length ?? 0) > 0),
@@ -298,15 +311,8 @@ export function FindingsSummary({ app, t }: { app: App; t: TFunc }) {
 // Installed version flagged / Runs as root / Fork / AI / Pre-release only / No description / audit warnings / virus scan / No release in a year, shared by the card and its Manage window.
 export function AppBadges({ app, t }: { app: App; t: TFunc }) {
   const released = releasedAt(app);
-  if (app.store)
-    return (
-      <>
-        {app.stats?.fork && <ForkBadge t={t} repo={app.stats.fork} />}
-        {app.stats?.store && <StoreBadge t={t} downloads={app.stats.store.downloads} />}
-        {app.stats?.ai?.length ? <AiBadge t={t} files={app.stats.ai} /> : null}
-        {!app.description?.trim() && <NoDescriptionBadge t={t} />}
-      </>
-    );
+  // Installed from the Decky store, not GitHub: the other badges describe a GitHub release it doesn't offer.
+  if (app.store) return <>{app.stats?.store && <StoreBadge t={t} downloads={app.stats.store.downloads} />}</>;
   return (
     <>
       {/* Installed the card's own release: its badges already describe it. */}
@@ -317,6 +323,7 @@ export function AppBadges({ app, t }: { app: App; t: TFunc }) {
       {app.stats?.fork && <ForkBadge t={t} repo={app.stats.fork} />}
       {app.stats?.store && <StoreBadge t={t} downloads={app.stats.store.downloads} />}
       {app.stats?.ai?.length ? <AiBadge t={t} files={app.stats.ai} /> : null}
+      {app.stats?.rust && <RustBadge t={t} />}
       {app.prereleaseOnly && <PrereleaseOnlyBadge t={t} />}
       {!app.description?.trim() && <NoDescriptionBadge t={t} />}
       <AuditWarnings app={app} t={t} />

@@ -38,7 +38,7 @@ test("shows badges, numbers and the virus scan of a matched plugin", () => {
   const out = texts(describe(document, record, { obfuscated: ["Hidden code", "obfuscated"] })).join(" | ");
   assert.match(out, /Runs as root/);
   assert.match(out, /Hidden code/);
-  assert.match(out, /No threats/);
+  assert.match(out, /Nothing flagged/);
   assert.match(out, /194\.4K GitHub downloads · 303 stars · latest release v1\.2\.0 · updated 2026-09-03/);
   assert.match(out, /VirusTotal: 0 of 67 engines flagged it/);
   assert.match(out, /isn't proof of safety/);

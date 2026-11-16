@@ -30,6 +30,7 @@ import {
   githubResponseError,
   hydrate,
   installAction,
+  unverifiedInstallAction,
   manifestName,
   installTypeLabel,
   log,
@@ -56,6 +57,8 @@ export function SearchPage() {
   const [existingRepos, setExistingRepos] = useState<Set<string>>(new Set());
   // The official registry's plugins: the ones that have audit and scan data.
   const [registryRepos, setRegistryRepos] = useState<Set<string>>(new Set());
+  // Plugins Decky has installed, so a result says so before Install is pressed.
+  const [installedRepos, setInstalledRepos] = useState<Set<string>>(new Set());
   const [storeNames, setStoreNames] = useState<Map<string, string>>(new Map());
   // The repo whose install is being prepared, so a second tap can't start another.
   const [installing, setInstalling] = useState<string | null>(null);
@@ -82,6 +85,7 @@ export function SearchPage() {
       const existing = new Set(listedApps.map((app) => app.repo.toLowerCase()));
       setStoreNames(new Map(listedApps.filter((app) => app.store).map((app) => [app.repo.toLowerCase(), app.name])));
       setExistingRepos(existing);
+      setInstalledRepos(new Set(listedApps.filter((app) => app.installedVersion).map((app) => app.repo.toLowerCase())));
       setRegistryRepos(new Set(listedApps.filter((app) => app.official).map((app) => app.repo.toLowerCase())));
       // "decky" in the name, description, topics or README narrows GitHub's results;
       // the plugin.json check below drops the lists and guides that still match.
@@ -163,14 +167,41 @@ export function SearchPage() {
     setInstalling(repo);
     try {
       const app = await latestRelease(repo);
-      const action = installAction(app, { tag: app.latestVersion, assets: app.assets });
-      if (!action) throw new Error(t("release.noMatch"));
-      const label = installTypeLabel(t, action.type, displayVersion(app.latestVersion).replace(/^v/, ""));
+      const release = { tag: app.latestVersion, assets: app.assets };
+      const action = installAction(app, release);
+      // An installed plugin DeckyHub can't tie to this repository: as in its Manage window, the user may install
+      // over it anyway once the confirmation says what gets replaced.
+      const anyway = action ? null : unverifiedInstallAction(app, release);
+      if (!action && !anyway)
+        throw new Error(t(app.identityUnverified ? "appcard.identityUnverified" : "release.noMatch"));
+      const chosen = (action ?? anyway)!;
+      const label = anyway
+        ? t("appcard.installAnyway")
+        : installTypeLabel(t, chosen.type, displayVersion(app.latestVersion).replace(/^v/, ""));
+      const note = anyway
+        ? t("appcard.unverifiedConfirmBody", {
+            name: app.uninstallName ?? app.name,
+            version: displayVersion(app.installedVersion ?? "").replace(/^v/, ""),
+            repo: app.repo,
+            tag: displayVersion(app.latestVersion),
+          })
+        : undefined;
       // Decky's own dialog takes over, so leave the page like a card's Install does.
-      await startPluginInstall(t, app.name, app.repo, app.assets[0], app.latestVersion, action, label, () => {
-        void track(repo).catch(showError);
-        Navigation.NavigateBack();
-      });
+      await startPluginInstall(
+        t,
+        app.name,
+        app.repo,
+        app.assets[0],
+        app.latestVersion,
+        chosen,
+        label,
+        () => {
+          void track(repo).catch(showError);
+          Navigation.NavigateBack();
+        },
+        [],
+        { note },
+      );
     } finally {
       setInstalling(null);
     }
@@ -237,6 +268,7 @@ export function SearchPage() {
           results={results}
           layout={layout}
           isAdded={(repo) => existingRepos.has(repo.toLowerCase())}
+          isInstalled={(repo) => installedRepos.has(repo.toLowerCase())}
           inRegistry={(repo) => registryRepos.has(repo.toLowerCase())}
           storeNames={storeNames}
           installing={installing !== null}
