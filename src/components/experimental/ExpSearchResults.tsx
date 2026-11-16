@@ -6,12 +6,13 @@ import { useT } from "../../i18n";
 import type { SearchRepo } from "../../types";
 import { cardDescriptionStyle, visuallyHidden } from "../../utils";
 import { keepInView } from "../KeepInView";
-import type { SearchResults } from "../SearchResults";
+import { SearchDataNote, type SearchResults } from "../SearchResults";
 
 // Experimental: Search's results as rows, with the same actions: Install (Y / X / Menu on it) and Add.
 export function ExpSearchResults({
   results,
   isAdded,
+  inRegistry,
   storeNames,
   installing,
   canDownload,
@@ -77,6 +78,7 @@ export function ExpSearchResults({
         <small style={{ ...cardDescriptionStyle, color: "#c7d4e0", overflowWrap: "anywhere" }}>
           {repo.description || t("repos.noDescription")}
         </small>
+        <SearchDataNote inRegistry={inRegistry(repo.full_name)} />
       </>
     );
     return (

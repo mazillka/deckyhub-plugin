@@ -54,6 +54,8 @@ export function SearchPage() {
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [existingRepos, setExistingRepos] = useState<Set<string>>(new Set());
+  // The official registry's plugins: the ones that have audit and scan data.
+  const [registryRepos, setRegistryRepos] = useState<Set<string>>(new Set());
   const [storeNames, setStoreNames] = useState<Map<string, string>>(new Map());
   // The repo whose install is being prepared, so a second tap can't start another.
   const [installing, setInstalling] = useState<string | null>(null);
@@ -80,6 +82,7 @@ export function SearchPage() {
       const existing = new Set(listedApps.map((app) => app.repo.toLowerCase()));
       setStoreNames(new Map(listedApps.filter((app) => app.store).map((app) => [app.repo.toLowerCase(), app.name])));
       setExistingRepos(existing);
+      setRegistryRepos(new Set(listedApps.filter((app) => app.official).map((app) => app.repo.toLowerCase())));
       // "decky" in the name, description, topics or README narrows GitHub's results;
       // the plugin.json check below drops the lists and guides that still match.
       const response = await githubFetch(
@@ -234,6 +237,7 @@ export function SearchPage() {
           results={results}
           layout={layout}
           isAdded={(repo) => existingRepos.has(repo.toLowerCase())}
+          inRegistry={(repo) => registryRepos.has(repo.toLowerCase())}
           storeNames={storeNames}
           installing={installing !== null}
           canDownload={!hiddenButtons.includes("downloadZip")}

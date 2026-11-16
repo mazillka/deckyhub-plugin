@@ -7,7 +7,7 @@ import { isAuditWarning, type Asset } from "../types";
 import { keepInView } from "./KeepInView";
 import { getDeckyBackend, installDeckyPlugin, manifestName, needsFreshInstall } from "../utils";
 import { VirusScanReport } from "./VirusScanReport";
-import { WarningBadge } from "./AppBadges";
+import { RootBadge, WarningBadge } from "./AppBadges";
 import { colors } from "../styles";
 
 // Every install, update or reinstall of a third-party plugin first says
@@ -16,7 +16,13 @@ export function confirmPluginInstall(
   t: TFunc,
   title: string,
   okLabel: string,
-  { note, asset, warnings = [] }: { note?: string; asset?: Asset; warnings?: string[] } = {},
+  {
+    note,
+    asset,
+    warnings = [],
+    root = false,
+    prerelease = false,
+  }: { note?: string; asset?: Asset; warnings?: string[]; root?: boolean; prerelease?: boolean } = {},
 ): Promise<boolean> {
   // Each block is focusable so the D-pad scrolls through all of it, like VirusScanReport.
   const block = (content: ReactNode, key?: string) => (
@@ -37,6 +43,20 @@ export function confirmPluginInstall(
           warning,
         ),
       )}
+      {root &&
+        block(
+          <p>
+            <RootBadge t={t} /> {t("appcard.runsAsRootHint")}
+          </p>,
+          "root",
+        )}
+      {prerelease &&
+        block(
+          <p>
+            <strong>{t("appcard.channelPrerelease")}</strong> {t("install.prerelease")}
+          </p>,
+          "prerelease",
+        )}
       {asset && <VirusScanReport t={t} asset={asset} showExternalActions={false} />}
     </Focusable>
   );
@@ -67,6 +87,7 @@ export function startPluginInstall(
   label: string,
   onStarted?: () => void,
   warnings: string[] = [],
+  facts: { root?: boolean; prerelease?: boolean } = {},
 ): Promise<void> {
   if (!getDeckyBackend()) {
     toaster.toast({ title: "DeckyHub", body: t("settings.selfUpdateUnavailable") });
@@ -87,7 +108,7 @@ export function startPluginInstall(
   const note = needsFreshInstall(action.name, action.type)
     ? t("appcard.freshInstallDescription", { name: appName })
     : undefined;
-  return confirmPluginInstall(t, `${label}?`, label, { note, asset, warnings }).then((accepted) =>
+  return confirmPluginInstall(t, `${label}?`, label, { note, asset, warnings, ...facts }).then((accepted) =>
     accepted ? start() : undefined,
   );
 }

@@ -154,6 +154,11 @@ export function AppDetailsModal({
         Navigation.NavigateBack();
       },
       release.assets[0]?.url === app.assets[0]?.url ? installWarnings(app, release.prerelease) : [],
+      {
+        // The registry's root flag describes the card's release; a pre-release says so for any release.
+        root: release.assets[0]?.url === app.assets[0]?.url && app.stats?.root === true,
+        prerelease: release.prerelease === true,
+      },
     );
 
   // Installed Decky plugins can be removed through Decky Loader — never
