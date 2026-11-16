@@ -716,6 +716,18 @@ def plugin_page(
             0,
             '<li><span class="badge warn">Pre-release only</span> It has no stable release, so DeckyHub offers its pre-releases, which may be unfinished or buggy.</li>',
         )
+    # A plugin with no scan record must not read as all clear: say that nothing is known.
+    if not app.get("store") and not (scans.get("stable") or scans.get("prerelease")):
+        badges.insert(
+            0,
+            '<li><span class="badge warn">Not scanned yet</span> DeckyHub has no virus scan for the releases of this plugin yet, so nothing is known about them. New releases are usually scanned within a few hours.</li>',
+        )
+    # A pre-release scanned beside the stable one: say what a pre-release is.
+    if not app.get("store") and scans.get("prerelease") and not prerelease_only(releases or []):
+        badges.insert(
+            0,
+            '<li><span class="badge warn">Pre-release</span> A pre-release of this plugin is scanned too. It may be unfinished or buggy, and DeckyHub installs it only if you choose its Pre-release channel.</li>',
+        )
     if not description.strip():
         badges.insert(
             0,
