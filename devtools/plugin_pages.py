@@ -908,8 +908,9 @@ def card(app: dict, data: dict, prefix: str = "/plugins/") -> str:
     description = app.get("description") or ""
     text = escape(f"{app['name']} {description} {app['category']} {app['repo']}".lower())
     in_store = ' data-store="1"' if stats.get("store") else ""
+    updated = f' data-updated="{escape(stats["updated"][:10])}"' if stats.get("updated") else ""
     return (
-        f'<a class="app" href="{prefix}{escape(app["id"])}.html" data-text="{text}" data-cat="{slug(app["category"])}"{in_store}>'
+        f'<a class="app" href="{prefix}{escape(app["id"])}.html" data-text="{text}" data-cat="{slug(app["category"])}"{in_store}{updated}>'
         f"<small>{escape(app['category'])}</small><strong>{escape(app['name'])}</strong><p>{escape(description)}</p>"
         f'<span class="meta">{meta}</span><span class="flags">{flags_of(stats, scans, data.get("reports"), data.get("vt"))}</span></a>'
     )
@@ -924,10 +925,11 @@ def popular_cards(apps: list[dict], data: dict, count: int = 12, prefix: str = "
     return "\n".join(card(app, data, prefix) for app in by_downloads(apps, data)[:count])
 
 
-FILTER_JS = """(function(){var q=document.getElementById("q"),cards=[].slice.call(document.querySelectorAll("#list .app")),chips=[].slice.call(document.querySelectorAll(".chips button[data-cat]")),store=document.getElementById("store-only"),count=document.getElementById("count"),cat="",inStore=false;
-function run(){var t=q.value.trim().toLowerCase(),n=0;cards.forEach(function(c){var ok=(!cat||c.dataset.cat===cat)&&(!inStore||c.dataset.store)&&(!t||c.dataset.text.indexOf(t)>-1);c.hidden=!ok;if(ok)n++});count.textContent=n+" of "+cards.length+" plugins";chips.forEach(function(b){b.setAttribute("aria-pressed",String((b.dataset.cat||"")===cat))})}
+FILTER_JS = """(function(){var q=document.getElementById("q"),cards=[].slice.call(document.querySelectorAll("#list .app")),chips=[].slice.call(document.querySelectorAll(".chips button[data-cat]")),ages=[].slice.call(document.querySelectorAll(".chips button[data-age]")),store=document.getElementById("store-only"),count=document.getElementById("count"),cat="",age=0,inStore=false;
+function run(){var t=q.value.trim().toLowerCase(),n=0,since=age?new Date(Date.now()-age*864e5).toISOString().slice(0,10):"";cards.forEach(function(c){var ok=(!cat||c.dataset.cat===cat)&&(!inStore||c.dataset.store)&&(!since||(c.dataset.updated||"")>=since)&&(!t||c.dataset.text.indexOf(t)>-1);c.hidden=!ok;if(ok)n++});count.textContent=n+" of "+cards.length+" plugins";chips.forEach(function(b){b.setAttribute("aria-pressed",String((b.dataset.cat||"")===cat))});ages.forEach(function(b){b.setAttribute("aria-pressed",String(+b.dataset.age===age))})}
 function fromHash(){var m=/^#cat=([a-z0-9-]+)/.exec(location.hash);cat=m?m[1]:"";run()}
 chips.forEach(function(b){b.addEventListener("click",function(){cat=b.dataset.cat||"";history.replaceState(null,"",cat?"#cat="+cat:location.pathname);run()})});
+ages.forEach(function(b){b.addEventListener("click",function(){age=+b.dataset.age;run()})});
 if(store)store.addEventListener("click",function(){inStore=!inStore;store.setAttribute("aria-pressed",String(inStore));run()});
 q.addEventListener("input",run);window.addEventListener("hashchange",fromHash);fromHash()})();"""
 
@@ -943,6 +945,10 @@ def catalog_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
         f'<button type="button" data-cat="{slug(name)}" aria-pressed="false">{escape(name)} {count}</button>'
         for name, count in sorted(categories.items(), key=lambda item: (-item[1], item[0]))
     )
+    ages = "".join(
+        f'<button type="button" data-age="{days}" aria-pressed="{"true" if not days else "false"}">{label}</button>'
+        for days, label in ((0, "Any release date"), (90, "Released in 90 days"), (365, "Released this year"))
+    )
     in_store = sum(1 for app in apps if (data["stats"].get(app["repo"].casefold()) or {}).get("store"))
     if in_store:
         chips += f'<button type="button" id="store-only" aria-pressed="false">In Decky store {in_store}</button>'
@@ -953,7 +959,7 @@ def catalog_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
 <link rel="modulepreload" href="/remote-core.js"><link rel="modulepreload" href="/remote-i18n.js"><link rel="modulepreload" href="/remote-plugins.js"><link rel="modulepreload" href="/remote-updates.js"><link rel="modulepreload" href="/remote-scan.js"><link rel="modulepreload" href="/remote-share.js"><script type="module" src="/remote-install.js"></script>
 <p class="lead">{len(apps)} Decky Loader plugins, most downloaded first. Install any of them from Gaming Mode with <a href="/">DeckyHub</a>, which also checks them for updates.</p>
 <p class="note">Every plugin belongs to its authors. DeckyHub doesn't make, review or vouch for them, and a plugin's page shows its notes (AI help, root, audit warnings) and security scans; <a href="/plugins/known-issues.html">Known issues</a> lists every plugin with a warning. Missing one? <a href="/contribute/">Add a plugin</a>.</p>
-<div class="filters"><input id="q" type="search" placeholder="Search plugins" aria-label="Search plugins" autocomplete="off"><div class="chips" role="group" aria-label="Categories">{chips}</div></div>
+<div class="filters"><input id="q" type="search" placeholder="Search plugins" aria-label="Search plugins" autocomplete="off"><div class="chips" role="group" aria-label="Categories">{chips}</div><div class="chips" role="group" aria-label="Latest release">{ages}</div></div>
 <p class="note" id="count" aria-live="polite">{len(apps)} plugins</p>
 <div class="catalog" id="list">
 {chr(10).join(card(app, data) for app in ordered)}
