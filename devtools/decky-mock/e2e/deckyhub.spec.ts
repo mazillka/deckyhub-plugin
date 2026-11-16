@@ -174,7 +174,7 @@ test.beforeAll(async ({ request }) => {
       { timeout: 60_000 },
     )
     .toBeGreaterThan(0);
-  // A fresh settings.json now starts in the Experimental style; these tests are written for Default.
+  // Some tests save another style; make sure the run starts on Default (a fresh settings.json does too).
   const headers = { Origin: "http://127.0.0.1:5183" };
   const current = (
     await (await request.post(BRIDGE_URL, { data: { route: "get_settings", args: [] }, headers })).json()
