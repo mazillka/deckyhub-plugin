@@ -142,6 +142,10 @@ export const cs: Record<MessageKey, string> = {
   "appcard.scan.partial": "Nezkontrolováno celé",
   "appcard.scan.partial.hint":
     "Antivirové kontroly nedokázaly úplně zkontrolovat vydání, které byste instalovali. Důvod je ve Spravovat.",
+  "risk.title": "Co kontroly zjistily",
+  "risk.intro": "Fakta z auditu a antivirových skenů. Rozhodnutí o instalaci je na vás.",
+  "risk.none":
+    "Žádná varování auditu ani nálezy skenů. Neznamená to, že je plugin bezpečný: nikdo tyto pluginy nekontroluje.",
   "appcard.badgesNotice": "Co znamenají štítky u pluginů",
   "appcard.noReleaseInYear": "Rok bez vydání",
   "appcard.prereleaseOnly": "Jen předběžná vydání",

@@ -144,6 +144,10 @@ export const fr: Record<MessageKey, string> = {
   "appcard.scan.partial": "Analyse incomplète",
   "appcard.scan.partial.hint":
     "Les analyses antivirus n'ont pas pu vérifier toute la version que vous installeriez. Gérer indique pourquoi.",
+  "risk.title": "Ce que les contrôles ont trouvé",
+  "risk.intro": "Des faits issus de l'audit et des analyses antivirus. La décision d'installer t'appartient.",
+  "risk.none":
+    "Aucun avertissement d'audit ni résultat d'analyse. Cela ne veut pas dire que c'est sûr : personne ne vérifie ces plugins.",
   "appcard.badgesNotice": "Ce que signifient les badges des plugins",
   "appcard.noReleaseInYear": "Aucune version depuis un an",
   "appcard.prereleaseOnly": "Préliminaires uniquement",

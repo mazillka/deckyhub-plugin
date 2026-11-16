@@ -142,6 +142,10 @@ export const pl: Record<MessageKey, string> = {
   "appcard.scan.partial": "Skanowanie niepełne",
   "appcard.scan.partial.hint":
     "Skany antywirusowe nie zdołały w pełni sprawdzić wydania, które zainstalujesz. Powód jest w Zarządzaj.",
+  "risk.title": "Co znalazły kontrole",
+  "risk.intro": "Fakty z audytu i skanów antywirusowych. Decyzja o instalacji należy do ciebie.",
+  "risk.none":
+    "Brak ostrzeżeń audytu i wyników skanów. To nie znaczy, że jest bezpieczne: nikt nie sprawdza tych wtyczek.",
   "appcard.badgesNotice": "Co oznaczają plakietki przy wtyczkach",
   "appcard.noReleaseInYear": "Brak wydań od roku",
   "appcard.prereleaseOnly": "Tylko przedpremierowe",

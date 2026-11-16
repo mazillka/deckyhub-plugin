@@ -143,6 +143,10 @@ export const ja: Record<MessageKey, string> = {
   "appcard.scan.partial": "一部のみスキャン",
   "appcard.scan.partial.hint":
     "インストールされるリリースをウイルススキャンですべて確認できませんでした。理由は「管理」にあります。",
+  "risk.title": "チェックで分かったこと",
+  "risk.intro": "監査とウイルススキャンの事実です。インストールするかどうかはあなたが決めます。",
+  "risk.none":
+    "監査の警告もスキャンの検出もありません。安全という意味ではありません。これらのプラグインは誰もレビューしていません。",
   "appcard.badgesNotice": "プラグインのバッジの意味",
   "appcard.noReleaseInYear": "1 年以上リリースなし",
   "appcard.prereleaseOnly": "プレリリースのみ",

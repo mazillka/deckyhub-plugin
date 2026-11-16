@@ -6,9 +6,9 @@ const EXP_CSS = `
   .deckyhub-exp {
     --exp-accent: #4fd1ff;
     --exp-accent-2: #a78bfa;
-    --exp-surface: rgba(18, 24, 38, 0.72);
+    --exp-surface: #000;
     --exp-surface-2: rgba(255, 255, 255, 0.05);
-    --exp-line: rgba(255, 255, 255, 0.08);
+    --exp-line: rgba(255, 255, 255, 0.14);
     --exp-text: #eef4fb;
     --exp-muted: #93a4b8;
     --exp-radius: 16px;
@@ -35,7 +35,7 @@ const EXP_CSS = `
 
   /* A page's header. */
   .dh-exp-hero { position: relative; display: flex; align-items: center; gap: 16px; padding: 18px 20px; margin-bottom: 14px; border-radius: 20px; overflow: hidden; border: 1px solid var(--exp-line);
-    background: radial-gradient(120% 140% at 0% 0%, rgba(79, 209, 255, 0.22), transparent 55%), radial-gradient(120% 140% at 100% 100%, rgba(167, 139, 250, 0.22), transparent 55%), var(--exp-surface); }
+    background: radial-gradient(120% 140% at 0% 0%, rgba(79, 209, 255, 0.12), transparent 55%), radial-gradient(120% 140% at 100% 100%, rgba(167, 139, 250, 0.12), transparent 55%), var(--exp-surface); }
   .dh-exp-hero h2 { margin: 0; font-size: 1.9em; font-weight: 800; line-height: 1.1; letter-spacing: -0.01em; }
   .dh-exp-hero p { margin: 4px 0 0; color: var(--exp-muted); font-size: max(12px, 0.9em); }
   .dh-exp-actions { display: flex; gap: 8px; flex: 0 0 auto; }
@@ -50,7 +50,7 @@ const EXP_CSS = `
   .dh-exp-meta { color: var(--exp-muted); font-size: max(12px, 0.78em); display: flex; flex-wrap: wrap; gap: 2px 12px; }
   .dh-exp-version { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; background: var(--exp-surface-2); border: 1px solid var(--exp-line); font-size: max(12px, 0.8em); color: #d7e3ee; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
   .dh-exp-version b { color: var(--exp-accent); }
-  .dh-exp-status { padding: 2px 10px; border-radius: 999px; font-size: max(12px, 0.74em); font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; background: rgba(8, 12, 20, 0.7); border: 1px solid; backdrop-filter: blur(6px); }
+  .dh-exp-status { padding: 2px 10px; border-radius: 999px; font-size: max(12px, 0.74em); font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; background: rgba(0, 0, 0, 0.7); border: 1px solid; backdrop-filter: blur(6px); }
   .dh-exp-spacer { flex: 1; }
   .dh-exp-buttons { display: flex; gap: 8px; }
   .dh-exp-buttons button { min-width: 0 !important; min-height: 40px; padding: 4px 10px !important; display: flex !important; align-items: center; justify-content: center; gap: 8px; width: 100%; }
@@ -59,7 +59,7 @@ const EXP_CSS = `
 
   /* The Quick Access panel. */
   .dh-exp-qam-hero { padding: 16px; margin-bottom: 12px; border-radius: 18px; border: 1px solid var(--exp-line);
-    background: radial-gradient(140% 120% at 0% 0%, rgba(79, 209, 255, 0.28), transparent 60%), radial-gradient(140% 120% at 100% 100%, rgba(167, 139, 250, 0.28), transparent 60%), var(--exp-surface); }
+    background: radial-gradient(140% 120% at 0% 0%, rgba(79, 209, 255, 0.14), transparent 60%), radial-gradient(140% 120% at 100% 100%, rgba(167, 139, 250, 0.14), transparent 60%), var(--exp-surface); }
   .dh-exp-qam-hero .dh-exp-big { font-size: 2.4em; font-weight: 800; line-height: 1; }
   .dh-exp-qam-hero ul { margin: 10px 0 12px; padding: 0; list-style: none; display: grid; gap: 6px; }
   .dh-exp-qam-hero li { display: flex; justify-content: space-between; gap: 8px; font-size: max(12px, 0.85em); color: #d7e3ee; }
@@ -81,7 +81,7 @@ const EXP_CSS = `
   .dh-exp-strip::-webkit-scrollbar { display: none; }
   .dh-exp-category { flex: 0 0 auto; }
   .dh-exp-category button { display: flex !important; flex-direction: column; align-items: flex-start !important; justify-content: flex-end; gap: 2px; min-width: 170px !important; min-height: 84px; padding: 10px 14px !important; border-radius: 16px !important; color: #fff !important; text-align: left; white-space: nowrap;
-    background: linear-gradient(135deg, hsl(var(--hue) 60% 38%), hsl(calc(var(--hue) + 50) 55% 20%)) !important; }
+    background: linear-gradient(135deg, hsl(var(--hue) 60% 30%), hsl(calc(var(--hue) + 50) 55% 12%)) !important; }
   .dh-exp-category button small { color: rgba(255, 255, 255, 0.75); }
   .dh-exp-shelf-title { margin: 8px 0 10px; color: #fff; font-size: 1.3em; font-weight: 800; }
   .dh-exp-shelf-item { flex: 0 0 300px; min-width: 0; }
@@ -103,7 +103,7 @@ const EXP_CSS = `
   /* Manage and update windows: banner, then actions left and reading right. */
   .dh-exp-details { display: grid; gap: 18px; }
   .dh-exp-details-hero { display: flex; align-items: center; gap: 18px; padding: 18px; border-radius: 20px; border: 1px solid var(--exp-line);
-    background: radial-gradient(120% 160% at 0% 0%, rgba(79, 209, 255, 0.2), transparent 55%), radial-gradient(120% 160% at 100% 100%, rgba(167, 139, 250, 0.2), transparent 55%), var(--exp-surface); }
+    background: radial-gradient(120% 160% at 0% 0%, rgba(79, 209, 255, 0.12), transparent 55%), radial-gradient(120% 160% at 100% 100%, rgba(167, 139, 250, 0.12), transparent 55%), var(--exp-surface); }
   .dh-exp-details-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
   .dh-exp-details-side { display: grid; gap: 12px; padding: 14px; border-radius: 18px; background: var(--exp-surface); border: 1px solid var(--exp-line); }
   .dh-exp-details-side .deckyhub-version-pickers { grid-template-columns: minmax(0, 1fr) !important; }
@@ -117,9 +117,14 @@ const EXP_CSS = `
   .dh-exp-filter-row { display: flex; align-items: flex-end; gap: 12px; }
   .dh-exp-search { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 0 6px 0 14px; border-radius: 999px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--exp-line); }
   .dh-exp-search > svg { color: var(--exp-accent); flex-shrink: 0; }
-  .dh-exp-search > div { flex: 1; min-width: 0; }
+  .dh-exp-search > :not(svg) { flex: 1; min-width: 0; }
   .dh-exp-search input { background: transparent !important; border: 0 !important; }
   .dh-exp-search-big { min-height: 52px; font-size: 1.1em; }
+  /* Field and buttons one height, so the row lines up. */
+  .dh-exp-search-hero .dh-exp-filter-row { align-items: stretch; width: 100%; box-sizing: border-box; }
+  .dh-exp-search-hero .dh-exp-filter-row button { height: 100%; min-height: 52px; }
+  .dh-exp-search-hero .dh-exp-search-big { border: 0; box-shadow: inset 0 0 0 1px var(--exp-line); }
+  .dh-exp-search-hero .dh-exp-search-big input { min-height: 52px; box-sizing: border-box; }
   .dh-exp-field { flex: 0 0 210px; min-width: 0; display: grid; gap: 4px; font-size: max(12px, 0.8em); color: var(--exp-muted); }
   .dh-exp-segmented { flex: 1; display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--exp-line); }
   .dh-exp-segmented > div { flex: 1; min-width: 0; }

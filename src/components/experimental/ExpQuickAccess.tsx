@@ -63,9 +63,18 @@ export function ExpQuickAccess({
               {updates.slice(0, 3).map((app) => (
                 <li key={app.id}>
                   <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{app.name}</span>
-                  <span>{app.latestVersion ? displayVersion(app.latestVersion) : ""}</span>
+                  <span>
+                    {/* What changes: the version it is on now, then the one waiting. */}
+                    {app.installedVersion ? `${displayVersion(app.installedVersion)} → ` : ""}
+                    {app.latestVersion ? displayVersion(app.latestVersion) : ""}
+                  </span>
                 </li>
               ))}
+              {updates.length > 3 && (
+                <li>
+                  <span>+{updates.length - 3}</span>
+                </li>
+              )}
             </ul>
             <div className="dh-exp-wide">
               <Button onClick={() => go("updates")}>
