@@ -371,7 +371,8 @@ export const ru: Record<MessageKey, string> = {
   "settings.quickAccessTab": "Вкладка DeckyHub в быстром доступе",
   "settings.quickAccessTabHint": "Если выключено, открывайте DeckyHub из списка плагинов Decky.",
   "settings.uiStyle": "Стиль интерфейса",
-  "settings.uiStyleHint": "Экспериментальный — новый вид DeckyHub, над которым ещё идёт работа.",
+  "settings.uiStyleHint":
+    "Экспериментальный и Экспериментальный V2 ещё разрабатываются. Они могут работать со сбоями и не предназначены для ежедневного использования. Если что-то пошло не так, выберите Обычный.",
   "settings.uiStyleDefault": "Обычный",
   "settings.uiStyleExperimental": "Экспериментальный",
   "search.noData": "Нет данных аудита и сканов: этого плагина нет в реестре.",

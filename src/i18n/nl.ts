@@ -379,7 +379,8 @@ export const nl: Record<MessageKey, string> = {
   "settings.quickAccessTab": "DeckyHub-tabblad in Snelle toegang",
   "settings.quickAccessTabHint": "Als dit uit staat, open je DeckyHub vanuit de pluginlijst van Decky.",
   "settings.uiStyle": "UI-stijl",
-  "settings.uiStyleHint": "Experimenteel is een nieuw uiterlijk voor DeckyHub waaraan nog wordt gewerkt.",
+  "settings.uiStyleHint":
+    "Experimenteel en Experimenteel V2 zijn nog in ontwikkeling. Ze kunnen kapot zijn en zijn niet bedoeld voor dagelijks gebruik. Kies Standaard als er iets misgaat.",
   "settings.uiStyleDefault": "Standaard",
   "settings.uiStyleExperimental": "Experimenteel",
   "search.noData": "Geen audit- of scangegevens: deze plugin staat niet in het register.",

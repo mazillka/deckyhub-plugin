@@ -373,7 +373,8 @@ export const pl: Record<MessageKey, string> = {
   "settings.quickAccessTab": "Karta DeckyHub w Szybkim dostępie",
   "settings.quickAccessTabHint": "Gdy wyłączona, otwieraj DeckyHub z listy wtyczek Decky.",
   "settings.uiStyle": "Styl interfejsu",
-  "settings.uiStyleHint": "Eksperymentalny to nowy wygląd DeckyHub, nad którym wciąż trwają prace.",
+  "settings.uiStyleHint":
+    "Eksperymentalny i Eksperymentalny V2 są wciąż w trakcie tworzenia. Mogą nie działać poprawnie i nie są przeznaczone do codziennego użytku. Wybierz Domyślny, jeśli coś pójdzie nie tak.",
   "settings.uiStyleDefault": "Domyślny",
   "settings.uiStyleExperimental": "Eksperymentalny",
   "search.noData": "Brak danych audytu i skanów: tej wtyczki nie ma w rejestrze.",

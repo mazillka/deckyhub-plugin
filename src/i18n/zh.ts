@@ -351,7 +351,7 @@ export const zh: Record<MessageKey, string> = {
   "settings.quickAccessTab": "快速访问中的 DeckyHub 标签页",
   "settings.quickAccessTabHint": "关闭后，可从 Decky 的插件列表打开 DeckyHub。",
   "settings.uiStyle": "界面风格",
-  "settings.uiStyleHint": "“实验性”是 DeckyHub 仍在开发中的新外观。",
+  "settings.uiStyleHint": "实验性和实验性 V2 仍在开发中。它们可能出现故障，不适合日常使用。如有问题，请选择默认。",
   "settings.uiStyleDefault": "默认",
   "settings.uiStyleExperimental": "实验性",
   "search.noData": "没有审计或扫描数据：此插件不在注册表中。",

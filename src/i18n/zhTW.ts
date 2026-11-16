@@ -353,7 +353,7 @@ export const zhTW: Record<MessageKey, string> = {
   "settings.quickAccessTab": "快速存取中的 DeckyHub 分頁",
   "settings.quickAccessTabHint": "關閉後，可從 Decky 的外掛清單開啟 DeckyHub。",
   "settings.uiStyle": "介面風格",
-  "settings.uiStyleHint": "「實驗性」是 DeckyHub 仍在開發中的新外觀。",
+  "settings.uiStyleHint": "實驗性與實驗性 V2 仍在開發中。它們可能有故障，不適合日常使用。如遇問題，請選擇預設。",
   "settings.uiStyleDefault": "預設",
   "settings.uiStyleExperimental": "實驗性",
   "search.noData": "沒有稽核或掃描資料：此外掛不在登錄表中。",

@@ -372,7 +372,8 @@ export const ja: Record<MessageKey, string> = {
   "settings.quickAccessTab": "クイックアクセスの DeckyHub タブ",
   "settings.quickAccessTabHint": "オフの場合は、Decky のプラグイン一覧から DeckyHub を開きます。",
   "settings.uiStyle": "UI スタイル",
-  "settings.uiStyleHint": "「試験的」は開発中の DeckyHub の新しいデザインです。",
+  "settings.uiStyleHint":
+    "試験的と試験的 V2 は開発中です。正しく動作しないことがあり、日常的な使用には向いていません。問題が起きたらデフォルトを選んでください。",
   "settings.uiStyleDefault": "デフォルト",
   "settings.uiStyleExperimental": "試験的",
   "search.noData": "監査・スキャンのデータなし：このプラグインはレジストリにありません。",

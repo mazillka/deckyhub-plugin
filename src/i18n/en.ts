@@ -367,7 +367,8 @@ export const en = {
   "settings.quickAccessTab": "DeckyHub tab in Quick Access",
   "settings.quickAccessTabHint": "When off, open DeckyHub from Decky's plugin list.",
   "settings.uiStyle": "UI Style",
-  "settings.uiStyleHint": "Experimental is a new look for DeckyHub that's still being worked on.",
+  "settings.uiStyleHint":
+    "Experimental and Experimental V2 are still being built. They may be broken and aren't meant for daily use. Choose Default if something goes wrong.",
   "settings.uiStyleDefault": "Default",
   "settings.uiStyleExperimental": "Experimental",
   "search.noData": "No audit or scan data: this plugin isn't in the registry.",

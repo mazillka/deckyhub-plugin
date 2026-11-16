@@ -369,7 +369,8 @@ export const tr: Record<MessageKey, string> = {
   "settings.quickAccessTab": "Hızlı Erişim'de DeckyHub sekmesi",
   "settings.quickAccessTabHint": "Kapalıyken DeckyHub'ı Decky'nin eklenti listesinden aç.",
   "settings.uiStyle": "Arayüz stili",
-  "settings.uiStyleHint": "Deneysel, DeckyHub'ın hâlâ üzerinde çalışılan yeni görünümüdür.",
+  "settings.uiStyleHint":
+    "Deneysel ve Deneysel V2 hâlâ geliştirme aşamasında. Bozuk olabilirler ve günlük kullanım için tasarlanmadılar. Bir şey ters giderse Varsayılan'ı seçin.",
   "settings.uiStyleDefault": "Varsayılan",
   "settings.uiStyleExperimental": "Deneysel",
   "search.noData": "Denetim veya tarama verisi yok: bu eklenti kayıt defterinde değil.",

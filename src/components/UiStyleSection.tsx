@@ -26,16 +26,18 @@ export function UiStyleSection() {
               { label: "Experimental V2", data: "v2" },
             ]}
             selectedOption={style}
-            onChange={({ data }) =>
+            onChange={({ data }) => {
               void changeUiStyle(data as UiStyle).catch((error: unknown) =>
                 toaster.toast({ title: "DeckyHub", body: String(error) }),
-              )
-            }
+              );
+              // Said again when the choice is made, so nobody lands on a work in progress without being told.
+              if (data !== "default") toaster.toast({ title: "DeckyHub", body: t("settings.uiStyleHint") });
+            }}
           />
         </PanelSectionRow>
         {/* Its own line rather than the dropdown's description, which Quick Access draws under 12px. */}
         <PanelSectionRow>
-          <div style={{ color: colors.subtle, fontSize: "max(12px, 0.85em)" }}>{t("settings.uiStyleHint")}</div>
+          <div style={{ color: colors.caution, fontSize: "max(12px, 0.85em)" }}>{t("settings.uiStyleHint")}</div>
         </PanelSectionRow>
       </PanelSection>
     </Card>
