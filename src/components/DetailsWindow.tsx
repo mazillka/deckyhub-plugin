@@ -1,7 +1,7 @@
 import { usePopClass, useUiStyle } from "../uiStyle";
 import { ExpDetailsLayout } from "./experimental/ExpDetailsLayout";
 import { DialogButton, DropdownItem, Focusable } from "@decky/ui";
-import { useState } from "react";
+import { createContext, useCallback, useState } from "react";
 import { FaChevronDown, FaChevronRight } from "react-icons/fa";
 import { WideModalRoot } from "./WideModal";
 import type { ReactNode } from "react";
@@ -194,7 +194,11 @@ export function DetailsWindow({
                 {primary}
               </Focusable>
               <Focusable flow-children="down" style={{ display: "grid", gap: 8 }}>
-                {report && <DetailsRow title={t("scan.viewReport")}>{report}</DetailsRow>}
+                {report && (
+                  <DetailsRow title={t("scan.viewReport")} keepMounted>
+                    {report}
+                  </DetailsRow>
+                )}
                 {!hideVersionPicker && (
                   <DetailsRow
                     title={t("settings.version")}
@@ -407,8 +411,22 @@ function ReleaseNotes({
 
 // A row that opens and closes its content (the scan report, the version menus, the release notes) with A.
 // Closed, it shows its title and a short hint, so the window stays one screen and nothing is hidden for good.
-export function DetailsRow({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
+// keepMounted: the content loads while the row is closed (the scan report), and may call the
+// context's expand() to open the row itself when it has something to show (flags, a pending scan).
+export const ExpandRowContext = createContext<(() => void) | null>(null);
+export function DetailsRow({
+  title,
+  hint,
+  keepMounted = false,
+  children,
+}: {
+  title: string;
+  hint?: string;
+  keepMounted?: boolean;
+  children: ReactNode;
+}) {
   const [open, setOpen] = useState(false);
+  const expand = useCallback(() => setOpen(true), []);
   return (
     <div className="deckyhub-details-row" style={{ display: "grid", gap: 10 }}>
       <div onFocus={keepInView} data-details-toggle="">
@@ -422,7 +440,11 @@ export function DetailsRow({ title, hint, children }: { title: string; hint?: st
           {open ? <FaChevronDown /> : <FaChevronRight />}
         </DialogButton>
       </div>
-      {open && children}
+      {(open || keepMounted) && (
+        <ExpandRowContext.Provider value={expand}>
+          <div style={open ? undefined : { display: "none" }}>{children}</div>
+        </ExpandRowContext.Provider>
+      )}
     </div>
   );
 }
