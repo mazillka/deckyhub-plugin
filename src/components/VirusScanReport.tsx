@@ -1,7 +1,7 @@
 import { toaster } from "@decky/api";
 import { DialogButtonPrimary as Button, Focusable, showModal } from "@decky/ui";
 import { WideConfirmModal } from "./WideModal";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { FaCopy, FaExternalLinkAlt, FaShieldAlt } from "react-icons/fa";
 import { independentAuditOf } from "../independentAudit";
 import { WarningBadge } from "./AppBadges";
@@ -11,7 +11,7 @@ import { metaDefenderReportOf, virusTotalReportOf } from "../releases";
 import type { Asset, ScanVerdict, VirusScan } from "../types";
 import { displayVersion } from "../version";
 import { copyText, modalButtonStyle, timeAgo, virusScanOf } from "../utils";
-import { sectionTitleStyle } from "./DetailsWindow";
+import { ExpandRowContext, sectionTitleStyle } from "./DetailsWindow";
 import { keepInView } from "./KeepInView";
 import { scanAccent } from "../findings";
 import { colors } from "../styles";
@@ -433,9 +433,25 @@ export function VirusScanReport({
       current = false;
     };
   }, [asset?.url, asset?.sha256]);
-  if (!asset) return null;
   const report = typeof scan === "object" ? scan : null;
   const audit = independentAuditOf(report);
+  // Flags or a scan still pending: open the Manage window's collapsed row so it isn't missed.
+  // Waits for the scan to load; a clean, finished scan stays closed.
+  const expand = useContext(ExpandRowContext);
+  const needsAttention =
+    scan !== undefined &&
+    (scan === null ||
+      (report !== null &&
+        (report.unverifiedMatch ||
+          scannersOf(report).some(({ verdict }) => !verdict || verdict.result !== "clean") ||
+          (audit?.source?.findings.length ?? 0) > 0)) ||
+      [virusTotal, metaDefender].some(
+        (found) => found?.state === "pending" || (found?.state === "complete" && found.flagged > 0),
+      ));
+  useEffect(() => {
+    if (needsAttention) expand?.();
+  }, [needsAttention]);
+  if (!asset) return null;
   const sha256 = [asset.sha256, report?.unverifiedMatch ? undefined : report?.sha256].find(
     (hash) => hash && /^[0-9a-f]{64}$/i.test(hash),
   );
