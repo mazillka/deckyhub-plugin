@@ -1,8 +1,8 @@
 import { toaster } from "@decky/api";
-import { DialogButtonPrimary as Button, DropdownItem } from "@decky/ui";
+import { DialogButtonPrimary as Button, DropdownItem, Focusable } from "@decky/ui";
 import { useState } from "react";
 import { DeckyHubIcon } from "./DeckyHubIcon";
-import { FaDownload, FaFileArchive, FaTimes } from "react-icons/fa";
+import { FaDownload, FaFileArchive, FaSync, FaTimes } from "react-icons/fa";
 import { downloadAsset, getSettings, saveSettings } from "../api";
 import type { TFunc } from "../i18n/en";
 import type { Asset, DeckyHubInfo, DeckyHubReleaseOption, UpdateChannel, HideableButton } from "../types";
@@ -22,7 +22,7 @@ import { showReleaseInfo } from "./ReleaseInfo";
 import { iconTileStyle } from "./Card";
 import { showDownloadModal } from "./DownloadProgress";
 import { primaryButtonStyle } from "./AppDetailsModal";
-import { DetailsWindow } from "./DetailsWindow";
+import { DetailsRow, DetailsWindow } from "./DetailsWindow";
 import { VirusScanReport } from "./VirusScanReport";
 import { ReleaseActions, useReleasePicker } from "./VersionPickerPanel";
 
@@ -190,7 +190,9 @@ export function DeckyHubUpdateModal({
           </>
         )
       }
-      scan={
+      // The update first; the scan report, versions and notes are rows you open (as in a plugin's Manage window).
+      collapsible
+      report={
         <VirusScanReport
           t={t}
           asset={selectedRelease?.asset}
@@ -210,22 +212,7 @@ export function DeckyHubUpdateModal({
       isEmpty={!loadingVersions && !fetchError && versions.length === 0}
       footer={
         <>
-          <div
-            style={{ display: "grid", gap: 4, padding: "8px 12px", background: "rgba(0, 0, 0, 0.2)", borderRadius: 10 }}
-          >
-            <DropdownItem
-              layout="below"
-              bottomSeparator="none"
-              label={t("settings.registryChannel")}
-              description={t("settings.registryChannelHint")}
-              rgOptions={[
-                { label: t("appcard.channelStable"), data: "stable" },
-                { label: t("appcard.channelPrerelease"), data: "prerelease" },
-              ]}
-              selectedOption={registryChannel}
-              onChange={({ data }) => changeRegistryChannel(data as UpdateChannel)}
-            />
-          </div>
+          {/* The link in one row; Check for Updates and the registry's channel behind More. */}
           <ReleaseActions
             t={t}
             url={selectedRelease?.url}
@@ -234,7 +221,37 @@ export function DeckyHubUpdateModal({
             disabled={busy}
             onCheck={() => void refresh()}
             closeModal={closeModal}
+            hideCheck
           />
+          <DetailsRow title={t("notice.more")}>
+            <Focusable flow-children="down" style={{ display: "grid", gap: 8 }}>
+              <Button style={modalButtonStyle} disabled={busy} onClick={() => void refresh()}>
+                <FaSync /> {checking ? t("settings.checkingUpdate") : t("settings.checkUpdate")}
+              </Button>
+              <div
+                style={{
+                  display: "grid",
+                  gap: 4,
+                  padding: "8px 12px",
+                  background: "rgba(0, 0, 0, 0.2)",
+                  borderRadius: 10,
+                }}
+              >
+                <DropdownItem
+                  layout="below"
+                  bottomSeparator="none"
+                  label={t("settings.registryChannel")}
+                  description={t("settings.registryChannelHint")}
+                  rgOptions={[
+                    { label: t("appcard.channelStable"), data: "stable" },
+                    { label: t("appcard.channelPrerelease"), data: "prerelease" },
+                  ]}
+                  selectedOption={registryChannel}
+                  onChange={({ data }) => changeRegistryChannel(data as UpdateChannel)}
+                />
+              </div>
+            </Focusable>
+          </DetailsRow>
           <Button style={modalButtonStyle} onClick={closeModal}>
             <FaTimes /> {t("settings.close")}
           </Button>
