@@ -18,6 +18,10 @@ import { setV2Counts } from "./v2Counts";
 // Rows shown before More.
 const PAGE = 30;
 
+// The scan's own state is the dot (and a line in the pane): listing "Not fully scanned" as a finding too would put a
+// triangle on every plugin still waiting for VirusTotal or MetaDefender.
+const notTheScanState = (finding: { label: string }) => finding.label !== "appcard.scan.partial";
+
 type Scan = "clean" | "partial" | "infected" | "none";
 
 // The scan badge's verdict, as the dot beside a plugin: the same four states and words as its
@@ -62,7 +66,7 @@ function Legend({ t }: { t: TFunc }) {
 }
 
 function Row({ app, selected, onSelect, t }: { app: App; selected: boolean; onSelect: () => void; t: TFunc }) {
-  const { findings } = findingsOf(app);
+  const findings = findingsOf(app).findings.filter(notTheScanState);
   return (
     <Focusable
       className="deckyhub-v2-row deckyhub-focus-ring"
@@ -95,7 +99,7 @@ function Detail({ props, t }: { props: AppCardProps; t: TFunc }) {
   const { app } = props;
   const { install, isUpdate, quickAction, quickLabel, deckyInstalling, quickButtonProps, openManage } =
     useCardActions(props);
-  const { findings } = findingsOf(app);
+  const findings = findingsOf(app).findings.filter(notTheScanState);
   const scan = scanOf(app);
   const version = app.installedVersion ?? app.latestVersion;
   return (
