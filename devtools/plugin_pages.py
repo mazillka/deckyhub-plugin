@@ -991,13 +991,22 @@ def flags_of(
     return "".join(flags)
 
 
-def card(app: dict, data: dict, prefix: str = "/plugins/") -> str:
+# What the numbers on a card mean. The long tooltip is repeated on every card of the home page's short list; the
+# catalog and the category pages say it once above their cards instead of 600 times.
+CARD_TIP = "Approximate activity: GitHub downloads plus Decky store downloads and updates; includes repeat activity, not unique installs. Store entries are matched by name."
+CARD_LEGEND = (
+    '<p class="note">↓ approximate activity: GitHub downloads plus Decky store downloads and updates, repeat downloads '
+    "included, not unique installs (store entries are matched by name). ★ GitHub stars.</p>"
+)
+
+
+def card(app: dict, data: dict, prefix: str = "/plugins/", tip: bool = False) -> str:
     key = app["repo"].casefold()
     stats, scans = data["stats"].get(key) or {}, data["scans"].get(key) or {}
     meta = " · ".join(
         part
         for part in (
-            f'<span title="{"Approximate activity: GitHub downloads plus Decky store downloads and updates; includes repeat activity, not unique installs. Store entries are matched by name."}">↓ {compact(total_downloads(stats))}</span>'
+            f'<span title="{CARD_TIP if tip else "Approximate activity"}">↓ {compact(total_downloads(stats))}</span>'
             if total_downloads(stats) is not None
             else "",
             f"★ {compact(stats['stars'])}" if stats.get("stars") is not None else "",
@@ -1005,11 +1014,11 @@ def card(app: dict, data: dict, prefix: str = "/plugins/") -> str:
         if part
     )
     description = app.get("description") or ""
-    text = escape(f"{app['name']} {description} {app['category']} {app['repo']}".lower())
+    repo = escape(app["repo"].lower())
     in_store = ' data-store="1"' if stats.get("store") else ""
     updated = f' data-updated="{escape(stats["updated"][:10])}"' if stats.get("updated") else ""
     return (
-        f'<a class="app" href="{prefix}{escape(app["id"])}.html" data-text="{text}" data-cat="{slug(app["category"])}"{in_store}{updated}>'
+        f'<a class="app" href="{prefix}{escape(app["id"])}.html" data-repo="{repo}" data-cat="{slug(app["category"])}"{in_store}{updated}>'
         f"<small>{escape(app['category'])}</small><strong>{escape(app['name'])}</strong><p>{escape(description)}</p>"
         f'<span class="meta">{meta}</span><span class="flags">{flags_of(stats, scans, data.get("reports"), data.get("vt"), bool(app.get("store")))}</span></a>'
     )
@@ -1021,11 +1030,12 @@ def by_downloads(apps: list[dict], data: dict) -> list[dict]:
 
 def popular_cards(apps: list[dict], data: dict, count: int = 12, prefix: str = "plugins/") -> str:
     """The home page's short list: the most downloaded plugins, linking to their pages."""
-    return "\n".join(card(app, data, prefix) for app in by_downloads(apps, data)[:count])
+    return "\n".join(card(app, data, prefix, tip=True) for app in by_downloads(apps, data)[:count])
 
 
 FILTER_JS = """(function(){var q=document.getElementById("q"),cards=[].slice.call(document.querySelectorAll("#list .app")),chips=[].slice.call(document.querySelectorAll(".chips button[data-cat]")),ages=[].slice.call(document.querySelectorAll(".chips button[data-age]")),store=document.getElementById("store-only"),count=document.getElementById("count"),cat="",age=0,inStore=false;
-function run(){var t=q.value.trim().toLowerCase(),n=0,since=age?new Date(Date.now()-age*864e5).toISOString().slice(0,10):"";cards.forEach(function(c){var ok=(!cat||c.dataset.cat===cat)&&(!inStore||c.dataset.store)&&(!since||(c.dataset.updated||"")>=since)&&(!t||c.dataset.text.indexOf(t)>-1);c.hidden=!ok;if(ok)n++});count.textContent=n+" of "+cards.length+" plugins";chips.forEach(function(b){b.setAttribute("aria-pressed",String((b.dataset.cat||"")===cat))});ages.forEach(function(b){b.setAttribute("aria-pressed",String(+b.dataset.age===age))})}
+cards.forEach(function(c){c._t=[c.querySelector("strong"),c.querySelector("p"),c.querySelector("small")].map(function(e){return e?e.textContent:""}).join(" ").toLowerCase()+" "+(c.dataset.repo||"")});
+function run(){var t=q.value.trim().toLowerCase(),n=0,since=age?new Date(Date.now()-age*864e5).toISOString().slice(0,10):"";cards.forEach(function(c){var ok=(!cat||c.dataset.cat===cat)&&(!inStore||c.dataset.store)&&(!since||(c.dataset.updated||"")>=since)&&(!t||c._t.indexOf(t)>-1);c.hidden=!ok;if(ok)n++});count.textContent=n+" of "+cards.length+" plugins";chips.forEach(function(b){b.setAttribute("aria-pressed",String((b.dataset.cat||"")===cat))});ages.forEach(function(b){b.setAttribute("aria-pressed",String(+b.dataset.age===age))})}
 function fromHash(){var m=/^#cat=([a-z0-9-]+)/.exec(location.hash);cat=m?m[1]:"";run()}
 chips.forEach(function(b){b.addEventListener("click",function(){cat=b.dataset.cat||"";history.replaceState(null,"",cat?"#cat="+cat:location.pathname);run()})});
 ages.forEach(function(b){b.addEventListener("click",function(){age=+b.dataset.age;run()})});
@@ -1080,6 +1090,7 @@ def category_page(
 <h1>{escape(category)} Decky plugins</h1>
 <p class="lead">{escape(" ".join(facts))} Install any of them from Gaming Mode with <a href="/">DeckyHub</a>.</p>
 <p class="note">{NOT_REVIEWED}</p>
+{CARD_LEGEND}
 <div class="catalog">
 {chr(10).join(card(app, data) for app in ordered[:CATEGORY_SHOWN])}
 </div>
@@ -1135,6 +1146,7 @@ def catalog_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
 <p class="note">Every plugin belongs to its authors. DeckyHub doesn't make, review or vouch for them, and a plugin's page shows its notes (AI help, root, audit warnings) and security scans; <a href="/plugins/known-issues.html">Known issues</a> lists every plugin with a warning. Missing one? <a href="/contribute/">Add a plugin</a>.</p>
 <p class="note">Browse by category: {category_links(categories)}</p>
 <div class="filters"><input id="q" type="search" placeholder="Search plugins" aria-label="Search plugins" autocomplete="off"><div class="chips" role="group" aria-label="Categories">{chips}</div><div class="chips" role="group" aria-label="Latest release">{ages}</div></div>
+{CARD_LEGEND}
 <p class="note" id="count" aria-live="polite">{len(apps)} plugins</p>
 <div class="catalog" id="list">
 {chr(10).join(card(app, data) for app in ordered)}

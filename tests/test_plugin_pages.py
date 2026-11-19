@@ -99,6 +99,21 @@ class PluginPageTests(unittest.TestCase):
         self.assertIn('"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}', html.replace(" ", ""))
         self.assertIn('"position":3,"name":"FrameGeneration"', html.replace(" ", ""))
 
+    def test_catalog_cards_stay_small_and_the_legend_is_said_once(self):
+        data = {"stats": {"mwgih/deckymultiframegen": {"downloads": 900}}, "scans": {}}
+        card = plugin_pages.card(APP, data)
+        self.assertIn('data-repo="mwgih/deckymultiframegen"', card)
+        self.assertNotIn("data-text", card)
+        self.assertNotIn(plugin_pages.CARD_TIP, card)
+        self.assertIn(plugin_pages.CARD_TIP, plugin_pages.card(APP, data, tip=True))
+        self.assertIn(plugin_pages.CARD_TIP, plugin_pages.popular_cards([APP], data))
+        shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
+        catalog = plugin_pages.catalog_page(shell, [APP], data)
+        self.assertEqual(catalog.count("approximate activity: GitHub downloads"), 1)
+        # The search text is built in the browser from what the card shows and its repository.
+        self.assertIn("c._t=", catalog)
+        self.assertNotIn("dataset.text", catalog)
+
     def test_pre_release_only_and_no_description_badges(self):
         shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
         bare = {**APP, "description": ""}
