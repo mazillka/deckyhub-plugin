@@ -12,6 +12,7 @@ import {
   TroubleshootingSection,
 } from "../components/SettingsSections";
 import { ManageRepositoriesPage } from "./ManageRepositoriesPage";
+import { V2Settings } from "../components/v2/V2Settings";
 import { ExpSettings } from "../components/experimental/ExpSettings";
 import { useUiStyle } from "../uiStyle";
 import { useLayout } from "../components/LayoutToggle";
@@ -25,7 +26,8 @@ import { DEFAULT_COLUMNS_PER_ROW, githubCoreQuota, setGithubToken } from "../uti
 export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
   const t = useT();
   // Experimental swaps Steam's tab bar for a side menu (ExpSettings).
-  const experimental = useUiStyle() === "experimental";
+  const style = useUiStyle();
+  const experimental = style === "experimental";
   const [layout, setLayout] = useLayout();
   const [tab, setTab] = useState<SettingsTab>(() => {
     const opening = initialTab ?? nextTab;
@@ -122,7 +124,7 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
             update={update}
             layout={layout}
             onLayout={setLayout}
-            listOnly={experimental}
+            listOnly={experimental || style === "v2"}
           />,
         ),
       },
@@ -170,6 +172,8 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
     ] as const
   ).map((tab) => ({ ...tab, content: <div className={`deckyhub-settings-${tab.id}`}>{tab.content}</div> }));
 
+  // Experimental V2: a section list and a pane under V2's own tab bar (its frame), so no header or Steam tabs.
+  if (style === "v2") return <V2Settings tabs={tabs} active={tab} onSelect={setTab} />;
   if (experimental) return <ExpSettings tabs={tabs} active={tab} onSelect={setTab} />;
 
   return (

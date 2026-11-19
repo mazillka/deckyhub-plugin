@@ -1,18 +1,21 @@
 import { DialogButton, Focusable, GamepadButton } from "@decky/ui";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { FaExclamationTriangle } from "react-icons/fa";
 import { useT } from "../../i18n";
 import type { MessageKey } from "../../i18n/en";
 import { colors } from "../../styles";
 import { keepInView } from "../KeepInView";
 import { SELECT_PAGE, type SelectPageRequest } from "../experimental/ExpNavBar";
+import { showV2Info } from "./V2Info";
 import { useV2Counts } from "./v2Counts";
 
-export const V2_TABS = ["discover", "updates", "installed", "search"] as const;
+export const V2_TABS = ["discover", "updates", "installed", "search", "settings"] as const;
 const LABELS: Record<(typeof V2_TABS)[number], MessageKey> = {
   discover: "nav.discover",
   updates: "nav.updates",
   installed: "filter.installed",
   search: "nav.search",
+  settings: "nav.settings",
 };
 
 // Experimental V2: the pages under one tab bar, switched in place (no route change, so B still leaves
@@ -69,9 +72,11 @@ export function V2Frame({ initial, render }: { initial: string; render: (page: s
               style={{
                 width: "auto",
                 minWidth: 0,
-                padding: "6px 16px",
+                height: 36,
+                padding: "0 16px",
                 borderRadius: 999,
-                background: page === active ? colors.blue : undefined,
+                // White on Steam's bright blue is 2.8:1: this blue holds 4.5:1.
+                background: page === active ? "#0a6cb0" : undefined,
                 color: page === active ? "#fff" : undefined,
               }}
             >
@@ -80,6 +85,22 @@ export function V2Frame({ initial, render }: { initial: string; render: (page: s
             </DialogButton>
           ))}
           <span aria-hidden style={{ flex: 1 }} />
+          {/* The disclaimer and what the badges mean, in a window (it took a whole row of every page). */}
+          <DialogButton
+            aria-label={t("appcard.badgesNotice")}
+            onClick={() => showV2Info(t)}
+            style={{
+              width: 36,
+              minWidth: 0,
+              height: 36,
+              padding: 0,
+              borderRadius: "50%",
+              color: colors.warning,
+              boxShadow: `inset 0 0 0 2px ${colors.warning}`,
+            }}
+          >
+            <FaExclamationTriangle />
+          </DialogButton>
           <small style={{ color: colors.subtle }}>L1 / R1</small>
         </Focusable>
         <div key={active}>{render(active)}</div>

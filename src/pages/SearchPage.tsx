@@ -18,7 +18,7 @@ import { startPluginInstall } from "../components/InstallFlow";
 import { showReleaseInfo } from "../components/ReleaseInfo";
 import { showDownloadModal } from "../components/DownloadProgress";
 import { useEffect, useState } from "react";
-import { FaSearch, FaTimes } from "react-icons/fa";
+import { FaSearch } from "react-icons/fa";
 import { addCustomRepo, downloadAsset, getApps, getSettings, REGISTRY_UPDATED } from "../api";
 import { useT } from "../i18n";
 import { Notice } from "../components/Notice";
@@ -42,14 +42,11 @@ const rowButtonStyle = { ...compactButtonStyle, marginBottom: 0 };
 export function SearchPage() {
   const t = useT();
   // Experimental: its own search banner and result tiles.
-  const experimental = useUiStyle() === "experimental";
+  const style = useUiStyle();
+  const experimental = style === "experimental";
+  // Both Experimental styles list results; only the Default style offers the grid.
+  const listOnly = style !== "default";
   const Results = experimental ? ExpSearchResults : SearchResults;
-  const clear = () => {
-    setQuery("");
-    setResults([]);
-    setStoreNames(new Map());
-    setSearchError(null);
-  };
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchRepo[]>([]);
   const [searching, setSearching] = useState(false);
@@ -67,7 +64,7 @@ export function SearchPage() {
   // Shared with Discover and Updates; both show every result.
   const [chosenLayout, setLayout] = useLayout();
   // The Experimental style has no grid: its results are always rows.
-  const layout = experimental ? "list" : chosenLayout;
+  const layout = listOnly ? "list" : chosenLayout;
   // Slides new results, pages and layouts in.
   const resultsRef = useSwapAnimation([results, layout]);
 
@@ -216,7 +213,6 @@ export function SearchPage() {
           onQuery={setQuery}
           searching={searching}
           onSearch={() => void search()}
-          onClear={clear}
           error={searchError}
         />
       )}
@@ -249,14 +245,11 @@ export function SearchPage() {
                     <FaSearch /> {searching ? t("repos.searching") : t("filter.search")}
                   </Button>
                 </div>
-                <div style={{ flex: "0 0 120px" }}>
-                  <Button style={rowButtonStyle} onClick={clear}>
-                    <FaTimes /> {t("repos.clear")}
-                  </Button>
-                </div>
-                <div style={{ flex: "0 0 120px" }}>
-                  <LayoutToggle layout={layout} onChange={setLayout} />
-                </div>
+                {!listOnly && (
+                  <div style={{ flex: "0 0 120px" }}>
+                    <LayoutToggle layout={layout} onChange={setLayout} />
+                  </div>
+                )}
               </Focusable>
             </PanelSectionRow>
             {searchError && <PanelSectionRow>{searchError}</PanelSectionRow>}

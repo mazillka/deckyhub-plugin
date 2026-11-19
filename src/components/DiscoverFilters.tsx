@@ -89,7 +89,6 @@ export function DiscoverFilters({
               <TextField
                 {...({ "aria-label": t("filter.search") } as any)}
                 value={query}
-                bShowClearAction
                 onChange={(event) => onQuery(event.currentTarget.value)}
               />
             </div>

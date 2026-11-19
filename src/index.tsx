@@ -60,9 +60,11 @@ function PageFrame({ path }: { path: string }) {
   const page = path.split("/").pop() ?? "";
   const initial = page === "repositories" ? "settings" : page;
   const style = useUiStyle();
-  // Experimental V2: Discover, Updates, Installed and Search share one tab bar; Settings and the rest stay plain pages.
-  if (style === "v2" && (V2_TABS as readonly string[]).includes(page))
-    return <V2Frame initial={page} render={(tab) => (tab === page ? ROUTES[path]() : ROUTES[`/deckyhub/${tab}`]())} />;
+  // Experimental V2: the library pages and Settings share one tab bar, switched in place.
+  if (style === "v2" && (V2_TABS as readonly string[]).includes(initial))
+    return (
+      <V2Frame initial={initial} render={(tab) => (tab === initial ? ROUTES[path]() : ROUTES[`/deckyhub/${tab}`]())} />
+    );
   if (style !== "experimental") return <>{ROUTES[path]()}</>;
   return (
     <ExpPageFrame

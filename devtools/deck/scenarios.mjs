@@ -133,9 +133,10 @@ const FIT = (mustFit) => `(() => {
   return problems.slice(0, 6);
 })()`;
 const WINDOWS = [
-  ["Pair a device", "the pairing window", true],
-  ["Support Development", "the Support window", true],
-  ["Manage", "the DeckyHub update window", false],
+  ["Pair a device", "the pairing window", true, () => original.remoteInstall],
+  ["Support Development", "the Support window", true, () => true],
+  // Only there while a DeckyHub update is waiting.
+  ["Manage", "the DeckyHub update window", false, () => false],
 ];
 // Opens a window the way a player does: into DeckyHub's Quick Access panel with Right, Down to the button, A.
 async function openWithDpad(label) {
@@ -159,12 +160,14 @@ async function openWithDpad(label) {
 }
 
 async function auditWindows(scenario) {
-  for (const [button, label, mustFit] of WINDOWS) {
+  for (const [button, label, mustFit, expected] of WINDOWS) {
     await resetFocus(shared, "/library/home");
     await shared.eval(`DFL.Navigation.OpenQuickAccessMenu(${TAB_ID}); true`);
     await sleep(3000);
     const clicked = await openWithDpad(button);
     if (!clicked) {
+      // The button only exists with Remote access on / an update waiting: not finding it then is no problem.
+      if (!expected()) continue;
       record(scenario, label, [
         `the D-pad never reached "${button}" in Quick Access (is Remote access on, and DeckyHub's tab shown?)`,
       ]);

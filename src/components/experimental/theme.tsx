@@ -129,7 +129,7 @@ const EXP_CSS = `
   .dh-exp-segmented { flex: 1; display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--exp-line); }
   .dh-exp-segmented > div { flex: 1; min-width: 0; }
   .dh-exp-segmented button { width: 100%; min-width: 0 !important; min-height: 36px; padding: 2px 10px !important; border-radius: 999px !important; background: transparent !important; color: var(--exp-muted) !important; white-space: nowrap; }
-  .dh-exp-segmented button small { opacity: 0.7; margin-left: 4px; }
+  .dh-exp-segmented button small { opacity: 0.85; margin-left: 4px; }
   .dh-exp-segmented .is-active button { background: linear-gradient(90deg, var(--exp-accent), var(--exp-accent-2)) !important; color: #0b1020 !important; font-weight: 700; }
   .dh-exp-search-hero { display: grid; gap: 0; }
   .dh-exp-notices { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; margin-bottom: 14px; }
