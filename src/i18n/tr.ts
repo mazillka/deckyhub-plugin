@@ -98,6 +98,8 @@ export const tr: Record<MessageKey, string> = {
   "appcard.releasePage": "Sürüm sayfası",
   "details.about": "Hakkında",
   "details.whatsNew": "{version} sürümündeki yenilikler",
+  "appcard.byAuthor": "{author} tarafından",
+  "details.moreFromAuthor": "{author} tarafından diğerleri ({count})",
   "appcard.repository": "Depo",
   "appcard.reportProblem": "Sorun bildir",
   "appcard.deckyhubPage": "DeckyHub sayfası",

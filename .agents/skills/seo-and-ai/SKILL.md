@@ -18,9 +18,13 @@ deckyhub.com exists to be found, by people searching for Decky plugins and by AI
 ## For AI assistants
 
 - Put the facts in plain text near the top: what it is, who it's for, how to install it, what's free. Don't leave them only in images or scripts.
-- Keep `docs/llms.txt` current: what DeckyHub is, the install options (Desktop installer, manual ZIP), where the pages are. The build appends the list of plugin pages.
+- Keep `docs/llms.txt` current: what DeckyHub is, the install options (Desktop installer, manual ZIP), where the pages are. The build appends the categories and the 15 most downloaded plugins and writes `llms-full.txt` with every plugin: an assistant reads `llms.txt` whole, so the audit fails when it grows past 30 KB.
 - `robots.txt` keeps naming the AI crawlers as welcome and disallows `/develop/`. The sitemap lists every page (the build writes it) with a real `lastmod`.
 - Say plainly what DeckyHub does and doesn't do (it never installs without a tap, scans inform and never block, it doesn't vouch for plugins), so assistants don't misstate it.
+
+## Category pages
+
+`plugins/category/<slug>.html` (one per registry category): counts and the most downloaded plugins from the data, linked from every plugin page, the catalog and each other. They exist so plugin pages are reachable in two clicks and each category has a page of its own; keep their facts computed from the data.
 
 ## Plugin pages (`devtools/plugin_pages.py`)
 
@@ -33,4 +37,4 @@ python devtools/build-site.py _site
 python devtools/audit-site.py _site
 ```
 
-The audit must report no problems. Then open the changed page at phone width (375 px) and check there's no sideways scroll, the skip link shows on focus, and the Home link works. For a `--preview` build the canonical and sitemap checks are skipped on purpose.
+The audit must report no problems; CI (`site` job in `ci.yml`) builds and audits the site whenever its pages, build scripts or that workflow change, and the `test` check includes it. Besides titles, descriptions and links the audit checks canonicals (pages sharing one are counted once and the sitemap must list it), that JSON-LD parses, that `hreflang` pairs link back, and that the sitemap is well-formed with no repeats. Then open the changed page at phone width (375 px) and check there's no sideways scroll, the skip link shows on focus, and the Home link works. For a `--preview` build the canonical and sitemap checks are skipped on purpose.

@@ -98,6 +98,8 @@ export const ko: Record<MessageKey, string> = {
   "appcard.releasePage": "릴리스 페이지",
   "details.about": "정보",
   "details.whatsNew": "{version}의 새로운 기능",
+  "appcard.byAuthor": "제작: {author}",
+  "details.moreFromAuthor": "{author}의 다른 플러그인 ({count})",
   "appcard.repository": "저장소",
   "appcard.reportProblem": "문제 신고",
   "appcard.deckyhubPage": "DeckyHub 페이지",

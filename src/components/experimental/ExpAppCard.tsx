@@ -3,6 +3,7 @@ import { FaArrowUp, FaCog, FaPlus } from "react-icons/fa";
 import { cardDescriptionStyle, ellipsis, statusKey, visuallyHidden } from "../../utils";
 import { displayVersion } from "../../version";
 import { AppBadges, AppMonogram, AppStats, categoryHue } from "../AppBadges";
+import { ownerOf } from "../../author";
 import { useCardActions, type AppCardProps } from "../AppCard";
 
 // Experimental: a plugin as a tile with a colored cover (its category's hue), a version
@@ -73,7 +74,7 @@ export function ExpAppCard(props: AppCardProps) {
       ? `${t("details.whatsNew", { version: `v${latest}` })}: ${notes}`
       : app.store
         ? t("release.inStore")
-        : app.error || app.description || " ";
+        : app.error || `${t("appcard.byAuthor", { author: ownerOf(app) })} · ${app.description ?? ""}`;
   const hue = categoryHue(app.category);
   if (row)
     return (

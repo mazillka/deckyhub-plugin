@@ -25,6 +25,95 @@ class PluginPageTests(unittest.TestCase):
         shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
         return plugin_pages.plugin_page(shell, APP, stats or {}, scans or {}, {}, [APP], reports, vt)
 
+    def test_the_page_names_its_author_and_lists_their_other_plugins(self):
+        shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
+        mate = {**APP, "id": "mate", "name": "Mate", "repo": "MWGIH/Mate", "description": "Another one."}
+        html = plugin_pages.plugin_page(shell, APP, {}, {}, {}, [APP], same_author=[APP, mate])
+        self.assertIn('<strong><a href="https://github.com/MWGIH">MWGIH</a></strong>Author', html)
+        self.assertIn("<h2>More from MWGIH</h2>", html)
+        self.assertIn('<a href="/plugins/mate.html">Mate', html)
+        self.assertEqual(html.count('href="/plugins/decky-multiframegen.html"'), 0)
+        alone = plugin_pages.plugin_page(shell, APP, {}, {}, {}, [APP], same_author=[APP])
+        self.assertNotIn("More from", alone)
+
+    def test_the_latest_release_notes_are_plain_escaped_text_with_a_link_to_github(self):
+        shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
+        release = {
+            "tag_name": "v1.2.0",
+            "prerelease": False,
+            "published_at": "2026-10-20T01:48:22Z",
+            "html_url": "https://github.com/MWGIH/DeckyMultiFrameGen/releases/tag/v1.2.0",
+            "body": "# v1.2.0\n\nNow **faster**. <script>alert(1)</script> See [docs](https://evil.example/x).",
+        }
+        html = plugin_pages.plugin_page(shell, APP, {}, {}, {}, [APP], releases=[release])
+        self.assertIn("What&#8217;s new in v1.2.0", html)
+        self.assertIn("Now faster.", html)
+        self.assertNotIn("<script>alert", html)
+        self.assertNotIn("evil.example", html)
+        self.assertIn('href="https://github.com/MWGIH/DeckyMultiFrameGen/releases/tag/v1.2.0"', html)
+        # A link to anywhere but the plugin's own repository falls back to its releases page.
+        elsewhere = plugin_pages.plugin_page(
+            shell, APP, {}, {}, {}, [APP], releases=[{**release, "html_url": "https://evil.example/r"}]
+        )
+        self.assertNotIn("evil.example", elsewhere)
+        self.assertIn("https://github.com/MWGIH/DeckyMultiFrameGen/releases", elsewhere)
+        self.assertNotIn(
+            "What&#8217;s new",
+            plugin_pages.plugin_page(shell, APP, {}, {}, {}, [APP], releases=[{**release, "body": ""}]),
+        )
+
+    def test_a_store_only_page_shows_no_release_notes(self):
+        shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
+        release = {"tag_name": "v1", "prerelease": False, "body": "Old build notes."}
+        html = plugin_pages.plugin_page(shell, {**APP, "store": True}, {}, {}, {}, [APP], releases=[release])
+        self.assertNotIn("What&#8217;s new", html)
+
+    def test_a_category_page_lists_its_plugins_with_facts_from_the_data_and_links_the_other_categories(self):
+        shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
+        mate = {**APP, "id": "mate", "name": "Mate", "repo": "other/Mate"}
+        data = {
+            "stats": {"mwgih/deckymultiframegen": {"downloads": 900, "updated": "2999-01-01T00:00:00Z"}},
+            "scans": {},
+        }
+        html = plugin_pages.category_page(
+            shell, "Frame Generation", [mate, APP], data, {"Frame Generation": 2, "Utilities": 5}
+        )
+        self.assertIn("<h1>Frame Generation Decky plugins</h1>", html)
+        self.assertIn("2 Decky Loader plugins in Frame Generation, by 2 authors.", html)
+        self.assertIn("The most downloaded are Decky MultiFrameGen, Mate.", html)
+        self.assertIn("1 had a release in the last 90 days.", html)
+        self.assertIn('href="/plugins/mate.html"', html)
+        self.assertIn('<a href="/plugins/category/utilities.html">Utilities</a> (5)', html)
+        self.assertNotIn('<a href="/plugins/category/frame-generation.html">Frame Generation</a>', html)
+        self.assertIn('rel="canonical" href="https://deckyhub.com/plugins/category/frame-generation.html"', html)
+        self.assertIn("<title>Frame Generation Decky Loader plugins | DeckyHub</title>", html)
+
+    def test_a_plugin_page_links_its_category_and_says_it_is_free(self):
+        shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
+        mate = {**APP, "id": "mate", "name": "Mate", "repo": "other/Mate"}
+        html = plugin_pages.plugin_page(shell, APP, {}, {}, {}, [APP, mate])
+        self.assertIn(
+            '<a href="/plugins/category/frame-generation.html">Frame Generation</a> › Decky MultiFrameGen', html
+        )
+        self.assertIn("See all 2 Frame Generation plugins", html)
+        self.assertIn('"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}', html.replace(" ", ""))
+        self.assertIn('"position":3,"name":"FrameGeneration"', html.replace(" ", ""))
+
+    def test_catalog_cards_stay_small_and_the_legend_is_said_once(self):
+        data = {"stats": {"mwgih/deckymultiframegen": {"downloads": 900}}, "scans": {}}
+        card = plugin_pages.card(APP, data)
+        self.assertIn('data-repo="mwgih/deckymultiframegen"', card)
+        self.assertNotIn("data-text", card)
+        self.assertNotIn(plugin_pages.CARD_TIP, card)
+        self.assertIn(plugin_pages.CARD_TIP, plugin_pages.card(APP, data, tip=True))
+        self.assertIn(plugin_pages.CARD_TIP, plugin_pages.popular_cards([APP], data))
+        shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
+        catalog = plugin_pages.catalog_page(shell, [APP], data)
+        self.assertEqual(catalog.count("approximate activity: GitHub downloads"), 1)
+        # The search text is built in the browser from what the card shows and its repository.
+        self.assertIn("c._t=", catalog)
+        self.assertNotIn("dataset.text", catalog)
+
     def test_pre_release_only_and_no_description_badges(self):
         shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
         bare = {**APP, "description": ""}

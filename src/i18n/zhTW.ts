@@ -97,6 +97,8 @@ export const zhTW: Record<MessageKey, string> = {
   "appcard.releasePage": "發行頁面",
   "details.about": "簡介",
   "details.whatsNew": "{version} 新功能",
+  "appcard.byAuthor": "作者：{author}",
+  "details.moreFromAuthor": "更多來自 {author} ({count})",
   "appcard.repository": "儲存庫",
   "appcard.reportProblem": "回報問題",
   "appcard.deckyhubPage": "DeckyHub 頁面",

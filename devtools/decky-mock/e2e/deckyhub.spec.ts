@@ -4185,6 +4185,79 @@ test("Experimental V2 keeps its details pane in view, follows the selected row, 
   }
 });
 
+for (const style of ["default", "experimental"]) {
+  test(`${style}: cards name the author and Manage offers more from them`, async ({ page, request }) => {
+    const headers = { Origin: "http://127.0.0.1:5183" };
+    const settings = async () =>
+      (await (await request.post(BRIDGE_URL, { data: { route: "get_settings", args: [] }, headers })).json()).result;
+    const setStyle = async (uiStyle: string) =>
+      request.post(BRIDGE_URL, {
+        data: { route: "save_settings", args: [{ ...(await settings()), uiStyle }] },
+        headers,
+      });
+    await setStyle(style);
+    try {
+      await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+      const app = mock(page);
+      await app.getByRole("button", { name: /^All plugins/ }).click();
+      // Every card says who made the plugin.
+      await expect(app.getByText(/by \S+ · /).first()).toBeVisible({ timeout: 60_000 });
+      const manage = app.getByRole("button", { name: "Manage", exact: true });
+      const more = app.locator(".steam-modal").getByRole("button", { name: /^More from .+ \(\d+\)$/ });
+      // The first author with several plugins offers More from them in Manage.
+      let label = "";
+      for (let i = 0; i < 30 && !label; i++) {
+        await manage.nth(i).click();
+        await expect(app.locator(".steam-modal .deckyhub-details")).toBeVisible();
+        if (await more.count()) label = (await more.innerText()).trim();
+        else await app.locator(".steam-modal").getByRole("button", { name: "Close", exact: true }).click();
+      }
+      expect(label).not.toBe("");
+      const author = label.replace(/^More from /, "").replace(/ \(\d+\)$/, "");
+      await more.click();
+      await expect(app.locator(".steam-modal")).toHaveCount(0);
+      // Discover is now that author's plugins, found by the search.
+      const filters = app.getByRole("button", { name: /^Filters/ });
+      if (await filters.count()) await filters.click();
+      await expect(app.getByRole("textbox", { name: "Search" })).toHaveValue(`${author}/`);
+      await expect(app.getByText(`by ${author} · `).first()).toBeVisible();
+    } finally {
+      await setStyle("default");
+    }
+  });
+}
+
+test("Experimental V2 shows each plugin's author and lists more from the same author", async ({ page, request }) => {
+  const headers = { Origin: "http://127.0.0.1:5183" };
+  const settings = async () =>
+    (await (await request.post(BRIDGE_URL, { data: { route: "get_settings", args: [] }, headers })).json()).result;
+  const setStyle = async (uiStyle: string) =>
+    request.post(BRIDGE_URL, { data: { route: "save_settings", args: [{ ...(await settings()), uiStyle }] }, headers });
+  await setStyle("v2");
+  try {
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    const rows = app.locator(".deckyhub-v2-row");
+    await expect(rows.first()).toBeVisible({ timeout: 60_000 });
+    // Every row says who made the plugin.
+    await expect(rows.first().locator("small")).toContainText(/^by \S+ · /);
+    // The first author with several plugins offers More from them.
+    const more = app.getByRole("button", { name: /^More from .+ \(\d+\)$/ });
+    for (let i = 0; i < 40 && !(await more.count()); i++) await rows.nth(i).focus();
+    await expect(more).toBeVisible();
+    const label = (await more.innerText()).trim();
+    const author = label.replace(/^More from /, "").replace(/ \(\d+\)$/, "");
+    const count = Number(label.match(/\((\d+)\)$/)![1]);
+    await more.click();
+    // The search is now that author, and every row left is theirs.
+    await expect(app.getByLabel("Search", { exact: true })).toHaveValue(`${author}/`);
+    await expect(rows).toHaveCount(count);
+    for (const small of await rows.locator("small").allInnerTexts()) expect(small).toContain(`by ${author} · `);
+  } finally {
+    await setStyle("default");
+  }
+});
+
 test("Experimental V2 shows Settings as a section list and a pane under its tab bar", async ({ page, request }) => {
   const headers = { Origin: "http://127.0.0.1:5183" };
   const settings = async () =>

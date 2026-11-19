@@ -96,6 +96,8 @@ export const zh: Record<MessageKey, string> = {
   "appcard.releasePage": "发行页面",
   "details.about": "简介",
   "details.whatsNew": "{version} 新功能",
+  "appcard.byAuthor": "作者：{author}",
+  "details.moreFromAuthor": "更多来自 {author} ({count})",
   "appcard.repository": "仓库",
   "appcard.reportProblem": "报告问题",
   "appcard.deckyhubPage": "DeckyHub 页面",

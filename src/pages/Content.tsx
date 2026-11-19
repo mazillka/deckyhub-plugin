@@ -33,6 +33,7 @@ import { DiscoverHome } from "../components/DiscoverHome";
 import { FocusableGrid } from "../components/FocusableGrid";
 import { countBadgeStyle, QuickAccessNav } from "../components/QuickAccessNav";
 import { compareBy, type SortOrder } from "../sorting";
+import { authorSearch, ownerOf } from "../author";
 import { Card, useSwapAnimation } from "../components/Card";
 import { useLayout } from "../components/LayoutToggle";
 import { restoreBrowse, returned, saveBrowse } from "../browseState";
@@ -274,6 +275,19 @@ export function Content({ fullPage }: { fullPage?: View }) {
       .finally(() => setUpdatingAll(false));
     Navigation.NavigateBack();
   };
+  // Discover's Manage window offers the rest of the plugin's author: the search narrowed to them, over every plugin.
+  const moreFromAuthor = (app: App) =>
+    view === "discover" && fullPage
+      ? {
+          count: apps.filter((other) => ownerOf(other) === ownerOf(app)).length,
+          show: () => {
+            setQuery(authorSearch(app));
+            setInstalledFilter("All");
+            setCategoryFilter("");
+            setBrowsing(true);
+          },
+        }
+      : undefined;
   const renderCard = (app: App, cardLayout?: CardLayout) => (
     <Card_
       app={app}
@@ -284,6 +298,7 @@ export function Content({ fullPage }: { fullPage?: View }) {
       onDownload={(asset) => startDownload(asset, app.repo)}
       onPreferenceChange={changeAppPreference}
       onUninstalled={() => void load()}
+      moreFromAuthor={moreFromAuthor(app)}
     />
   );
   const renderGrid = (items: App[]) => (

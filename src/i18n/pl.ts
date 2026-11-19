@@ -98,6 +98,8 @@ export const pl: Record<MessageKey, string> = {
   "appcard.releasePage": "Strona wydania",
   "details.about": "Informacje",
   "details.whatsNew": "Co nowego w {version}",
+  "appcard.byAuthor": "autor: {author}",
+  "details.moreFromAuthor": "Więcej od {author} ({count})",
   "appcard.repository": "Repozytorium",
   "appcard.reportProblem": "Zgłoś problem",
   "appcard.deckyhubPage": "Strona w DeckyHub",

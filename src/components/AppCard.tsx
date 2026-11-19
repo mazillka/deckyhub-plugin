@@ -18,6 +18,7 @@ import {
   visuallyHidden,
 } from "../utils";
 import { displayVersion } from "../version";
+import { ownerOf } from "../author";
 import { AppDetailsModal } from "./AppDetailsModal";
 import { startPluginInstall } from "./InstallFlow";
 import { AppBadges, AppMonogram, AppStats, pillStyle } from "./AppBadges";
@@ -69,6 +70,8 @@ export type AppCardProps = {
   onPreferenceChange: (repo: string, preference: RepoPreference) => void;
   onUninstalled: () => void;
   layout?: CardLayout;
+  // Discover only: narrows the list to this plugin's author (count: how many plugins that is).
+  moreFromAuthor?: { count: number; show: () => void };
 };
 
 // What a card can do, shared by the Default card and the Experimental one (ExpAppCard):
@@ -81,6 +84,7 @@ export function useCardActions({
   onDownload,
   onPreferenceChange,
   onUninstalled,
+  moreFromAuthor,
 }: AppCardProps) {
   const t = useT();
   // Quick install/update to the latest release of a Decky plugin;
@@ -158,6 +162,7 @@ export function useCardActions({
         onDownload={onDownload}
         onPreferenceChange={(next) => onPreferenceChange(app.repo, next)}
         onUninstalled={onUninstalled}
+        moreFromAuthor={moreFromAuthor}
       />,
     );
   };
@@ -316,7 +321,9 @@ export function AppCard(props: AppCardProps) {
             className="deckyhub-row-description"
             style={{ ...cardDescriptionStyle, gridColumn: "2 / 4", gridRow: 3, color: colors.muted }}
           >
-            {app.store ? t("release.inStore") : app.error || app.description}
+            {app.store
+              ? t("release.inStore")
+              : app.error || `${t("appcard.byAuthor", { author: ownerOf(app) })} · ${app.description ?? ""}`}
           </small>
         )}
         <div style={{ gridColumn: 4, gridRow: "1 / 4" }}>{actions}</div>
@@ -328,7 +335,9 @@ export function AppCard(props: AppCardProps) {
     <div className="deckyhub-focus-ring" style={{ ...cardStyle, borderTopColor: accent }}>
       <AppMonogram app={app} style={{ gridRow: "1 / 3", alignSelf: "center" }} />
       <h3 style={{ ...cardTitleStyle, gridColumn: 2, gridRow: 1 }}>{app.name}</h3>
-      <small style={{ ...categoryStyle, gridColumn: 2, gridRow: 2 }}>{app.category}</small>
+      <small style={{ ...categoryStyle, gridColumn: 2, gridRow: 2 }}>
+        {app.category} · {t("appcard.byAuthor", { author: ownerOf(app) })}
+      </small>
       <div style={{ ...fullRow, gridRow: 3 }}>
         {statusPill}
         {channelPill}
