@@ -68,6 +68,37 @@ class PluginPageTests(unittest.TestCase):
         html = plugin_pages.plugin_page(shell, {**APP, "store": True}, {}, {}, {}, [APP], releases=[release])
         self.assertNotIn("What&#8217;s new", html)
 
+    def test_a_category_page_lists_its_plugins_with_facts_from_the_data_and_links_the_other_categories(self):
+        shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
+        mate = {**APP, "id": "mate", "name": "Mate", "repo": "other/Mate"}
+        data = {
+            "stats": {"mwgih/deckymultiframegen": {"downloads": 900, "updated": "2999-01-01T00:00:00Z"}},
+            "scans": {},
+        }
+        html = plugin_pages.category_page(
+            shell, "Frame Generation", [mate, APP], data, {"Frame Generation": 2, "Utilities": 5}
+        )
+        self.assertIn("<h1>Frame Generation Decky plugins</h1>", html)
+        self.assertIn("2 Decky Loader plugins in Frame Generation, by 2 authors.", html)
+        self.assertIn("The most downloaded are Decky MultiFrameGen, Mate.", html)
+        self.assertIn("1 had a release in the last 90 days.", html)
+        self.assertIn('href="/plugins/mate.html"', html)
+        self.assertIn('<a href="/plugins/category/utilities.html">Utilities</a> (5)', html)
+        self.assertNotIn('<a href="/plugins/category/frame-generation.html">Frame Generation</a>', html)
+        self.assertIn('rel="canonical" href="https://deckyhub.com/plugins/category/frame-generation.html"', html)
+        self.assertIn("<title>Frame Generation Decky Loader plugins | DeckyHub</title>", html)
+
+    def test_a_plugin_page_links_its_category_and_says_it_is_free(self):
+        shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
+        mate = {**APP, "id": "mate", "name": "Mate", "repo": "other/Mate"}
+        html = plugin_pages.plugin_page(shell, APP, {}, {}, {}, [APP, mate])
+        self.assertIn(
+            '<a href="/plugins/category/frame-generation.html">Frame Generation</a> › Decky MultiFrameGen', html
+        )
+        self.assertIn("See all 2 Frame Generation plugins", html)
+        self.assertIn('"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}', html.replace(" ", ""))
+        self.assertIn('"position":3,"name":"FrameGeneration"', html.replace(" ", ""))
+
     def test_pre_release_only_and_no_description_badges(self):
         shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
         bare = {**APP, "description": ""}

@@ -807,7 +807,10 @@ def plugin_page(
         )
     related = [other for other in others if other["id"] != app["id"]][:6]
     mine = [other for other in same_author or [] if other["id"] != app["id"]][:8]
-    crumbs = f'<p class="crumbs"><a href="/">DeckyHub</a> › <a href="/plugins/">Plugins</a> › {escape(name)}</p>'
+    crumbs = (
+        f'<p class="crumbs"><a href="/">DeckyHub</a> › <a href="/plugins/">Plugins</a> › '
+        f'<a href="{category_url(category)}">{escape(category)}</a> › {escape(name)}</p>'
+    )
     store_only = bool(app.get("store"))
     scan_details = (
         '<details class="more"><summary>Security</summary>'
@@ -842,7 +845,7 @@ def plugin_page(
 {"" if app.get("store") else remote_install_picker(app["id"], badges)}
 {scan_details}
 {f'<h2>More from {escape(owner)}</h2><ul class="list">' + "".join(f'<li><a href="/plugins/{escape(other["id"])}.html">{escape(other["name"])}<small>{escape(other.get("description") or "")}</small></a></li>' for other in mine) + "</ul>" if mine else ""}
-{f'<h2>More {escape(category)} plugins</h2><ul class="list">' + "".join(f'<li><a href="/plugins/{escape(other["id"])}.html">{escape(other["name"])}<small>{escape(other.get("description") or "")}</small></a></li>' for other in related) + "</ul>" if related else ""}"""
+{f'<h2>More {escape(category)} plugins</h2><ul class="list">' + "".join(f'<li><a href="/plugins/{escape(other["id"])}.html">{escape(other["name"])}<small>{escape(other.get("description") or "")}</small></a></li>' for other in related) + f'</ul><p><a href="{category_url(category)}">See all {len(others)} {escape(category)} plugins</a></p>' if related else ""}"""
     data = {
         "@type": "SoftwareApplication",
         "name": name,
@@ -853,6 +856,7 @@ def plugin_page(
         "operatingSystem": "SteamOS",
         "sameAs": [repo_url],
         "isAccessibleForFree": True,
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
     }
     if total_downloads(stats) is not None:
         data["interactionStatistic"] = {
@@ -867,7 +871,9 @@ def plugin_page(
             "@type": "BreadcrumbList",
             "itemListElement": [
                 {"@type": "ListItem", "position": 1, "name": "DeckyHub", "item": SITE},
-                {"@type": "ListItem", "position": 2, "name": name},
+                {"@type": "ListItem", "position": 2, "name": "Plugins", "item": f"{SITE}plugins/"},
+                {"@type": "ListItem", "position": 3, "name": category, "item": SITE + category_url(category)[1:]},
+                {"@type": "ListItem", "position": 4, "name": name},
             ],
         }
     )
@@ -1027,6 +1033,81 @@ if(store)store.addEventListener("click",function(){inStore=!inStore;store.setAtt
 q.addEventListener("input",run);window.addEventListener("hashchange",fromHash);fromHash()})();"""
 
 
+# A category page lists this many plugins (the most downloaded); the catalog has the rest.
+CATEGORY_SHOWN = 60
+
+
+def category_url(category: str) -> str:
+    return f"/plugins/category/{slug(category)}.html"
+
+
+def category_links(categories: dict[str, int], skip: str = "") -> str:
+    """Links to every category page, with their plugin counts, most plugins first."""
+    return " · ".join(
+        f'<a href="{category_url(name)}">{escape(name)}</a> ({count})'
+        for name, count in sorted(categories.items(), key=lambda item: (-item[1], item[0]))
+        if name != skip
+    )
+
+
+def category_page(
+    shell: dict[str, str], category: str, members: list[dict], data: dict, categories: dict[str, int]
+) -> str:
+    """plugins/category/<slug>.html: what one category holds, in numbers from the registry's data, and its most
+    downloaded plugins linked to their pages."""
+    ordered = by_downloads(members, data)
+    stats = [data["stats"].get(app["repo"].casefold()) or {} for app in members]
+    total = sum(total_downloads(item) or 0 for item in stats)
+    since = time.strftime("%Y-%m-%d", time.gmtime(time.time() - 90 * 86400))
+    recent = sum(1 for item in stats if (item.get("updated") or "")[:10] >= since)
+    authors = len({owner_of(app).casefold() for app in members})
+    top = ", ".join(app["name"] for app in ordered[:3])
+    facts = [
+        f"{len(members)} Decky Loader plugins in {category}, by {authors} {'author' if authors == 1 else 'authors'}.",
+        f"The most downloaded are {top}.",
+    ]
+    if total:
+        facts.append(f"Together they have about {compact(total)} approximate downloads (repeat downloads included).")
+    if recent:
+        facts.append(f"{recent} had a release in the last 90 days.")
+    more = (
+        f'<p class="note">The {CATEGORY_SHOWN} most downloaded of {len(members)} are shown. '
+        f'<a href="/plugins/#cat={slug(category)}">See all {len(members)} {escape(category)} plugins</a> in the catalog.</p>'
+        if len(members) > CATEGORY_SHOWN
+        else ""
+    )
+    body = f"""<p class="crumbs"><a href="/">DeckyHub</a> › <a href="/plugins/">Plugins</a> › {escape(category)}</p>
+<h1>{escape(category)} Decky plugins</h1>
+<p class="lead">{escape(" ".join(facts))} Install any of them from Gaming Mode with <a href="/">DeckyHub</a>.</p>
+<p class="note">{NOT_REVIEWED}</p>
+<div class="catalog">
+{chr(10).join(card(app, data) for app in ordered[:CATEGORY_SHOWN])}
+</div>
+{more}
+<h2>Other categories</h2>
+<p>{category_links(categories, category)}</p>"""
+    title = f"{category} Decky Loader plugins | DeckyHub"
+    summary = fit(
+        f"{len(members)} {category} plugins for Decky Loader, including {top}. Install and update them from Gaming Mode with DeckyHub.",
+        160,
+    )
+    path = f"plugins/category/{slug(category)}.html"
+    trail = json_ld(
+        {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                {"@type": "ListItem", "position": 1, "name": "DeckyHub", "item": SITE},
+                {"@type": "ListItem", "position": 2, "name": "Plugins", "item": f"{SITE}plugins/"},
+                {"@type": "ListItem", "position": 3, "name": category},
+            ],
+        }
+    )
+    about = json_ld(
+        {"@type": "CollectionPage", "name": f"{category} Decky plugins", "description": summary, "url": SITE + path}
+    )
+    return page(shell, title, summary, path, body, [trail, about])
+
+
 def catalog_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
     """plugins/index.html: every plugin, most downloaded first, with a search box and category chips.
     Without JavaScript the whole list is simply shown."""
@@ -1052,6 +1133,7 @@ def catalog_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
 <link rel="modulepreload" href="/remote-core.js"><link rel="modulepreload" href="/remote-i18n.js"><link rel="modulepreload" href="/remote-plugins.js"><link rel="modulepreload" href="/remote-updates.js"><link rel="modulepreload" href="/remote-scan.js"><link rel="modulepreload" href="/remote-share.js"><script type="module" src="/remote-install.js"></script>
 <p class="lead">{len(apps)} Decky Loader plugins, most downloaded first. Install any of them from Gaming Mode with <a href="/">DeckyHub</a>, which also checks them for updates.</p>
 <p class="note">Every plugin belongs to its authors. DeckyHub doesn't make, review or vouch for them, and a plugin's page shows its notes (AI help, root, audit warnings) and security scans; <a href="/plugins/known-issues.html">Known issues</a> lists every plugin with a warning. Missing one? <a href="/contribute/">Add a plugin</a>.</p>
+<p class="note">Browse by category: {category_links(categories)}</p>
 <div class="filters"><input id="q" type="search" placeholder="Search plugins" aria-label="Search plugins" autocomplete="off"><div class="chips" role="group" aria-label="Categories">{chips}</div><div class="chips" role="group" aria-label="Latest release">{ages}</div></div>
 <p class="note" id="count" aria-live="polite">{len(apps)} plugins</p>
 <div class="catalog" id="list">
@@ -1272,6 +1354,20 @@ def write_pages(out, apps: list[dict], releases_page: str, data: dict) -> list[t
     (out / "plugins" / "info.json").write_text(
         json.dumps(plugin_info(apps, data), separators=(",", ":"), sort_keys=True), encoding="utf-8"
     )
+    by_category: dict[str, list[dict]] = {}
+    for app in apps:
+        by_category.setdefault(app["category"], []).append(app)
+    counts = {name: len(members) for name, members in by_category.items()}
+    (out / "plugins" / "category").mkdir(exist_ok=True)
+    category_urls = []
+    for name, members in by_category.items():
+        (out / "plugins" / "category" / f"{slug(name)}.html").write_text(
+            category_page(shell, name, members, data, counts), encoding="utf-8"
+        )
+        newest = max(
+            ((data["stats"].get(app["repo"].casefold()) or {}).get("updated") or "" for app in members), default=""
+        )
+        category_urls.append((f"{SITE}plugins/category/{slug(name)}.html", newest[:10] or today))
     remote_page = paired_devices_page(shell)
     (out / "remote-install").mkdir(exist_ok=True)
     (out / "remote-install" / "index.html").write_text(remote_page, encoding="utf-8")
@@ -1281,20 +1377,25 @@ def write_pages(out, apps: list[dict], releases_page: str, data: dict) -> list[t
             shell,
             "Manage paired devices | DeckyHub",
             "Choose a paired device to review, install or remove Decky plugins.",
+            path="paired-devices/",
         ),
         encoding="utf-8",
     )
     # The same page in Ukrainian, under /uk/ like the rest of the Ukrainian site.
-    for folder in ("paired-devices", "remote-install"):
+    uk_texts = {
+        "remote-install": (
+            "Сполучені пристрої | DeckyHub",
+            "Сполучіть пристрій і керуйте його встановленими плагінами Decky.",
+        ),
+        "paired-devices": (
+            "Керування сполученими пристроями | DeckyHub",
+            "Виберіть сполучений пристрій, щоб переглянути, встановити або видалити плагіни Decky.",
+        ),
+    }
+    for folder, (uk_title, uk_description) in uk_texts.items():
         (out / "uk" / folder).mkdir(parents=True, exist_ok=True)
         (out / "uk" / folder / "index.html").write_text(
-            paired_devices_page(
-                shell,
-                "Сполучені пристрої | DeckyHub",
-                "Сполучіть пристрій і керуйте його встановленими плагінами Decky.",
-                lang="uk",
-                path=f"uk/{folder}/",
-            ),
+            paired_devices_page(shell, uk_title, uk_description, lang="uk", path=f"uk/{folder}/"),
             encoding="utf-8",
         )
     (out / "paired-devices.html").write_text(
@@ -1302,6 +1403,8 @@ def write_pages(out, apps: list[dict], releases_page: str, data: dict) -> list[t
             shell,
             "Device pairing | DeckyHub",
             "Open your saved DeckyHub pairing link and manage plugins on your device.",
+            # The same page as /paired-devices/ (a link people already saved): it names that one as its canonical.
+            path="paired-devices/",
         ),
         encoding="utf-8",
     )
@@ -1309,8 +1412,8 @@ def write_pages(out, apps: list[dict], releases_page: str, data: dict) -> list[t
         (f"{SITE}plugins/", today),
         (f"{SITE}plugins/known-issues.html", today),
         (f"{SITE}remote-install/", today),
+        *category_urls,
         (f"{SITE}paired-devices/", today),
-        (f"{SITE}paired-devices.html", today),
         (f"{SITE}uk/paired-devices/", today),
         (f"{SITE}uk/remote-install/", today),
     ]
