@@ -266,6 +266,44 @@ def fit(text: str, limit: int) -> str:
     return text[: limit - 1].rsplit(" ", 1)[0].rstrip(" ,;:.-") + "…"
 
 
+def owner_of(app: dict) -> str:
+    """The GitHub account a plugin comes from: the registry has no author field of its own."""
+    return app["repo"].split("/")[0]
+
+
+def plain_notes(body: str | None, limit: int = 600) -> str:
+    """A release's notes as plain text: code blocks, images, links' addresses, HTML and markdown marks removed, and
+    cut at a word boundary. The text is the plugin author's own, so it is only ever escaped, never trusted."""
+    text = re.sub(r"```.*?```", " ", body or "", flags=re.S)
+    text = re.sub(r"!\[[^\]]*\]\([^)]*\)", " ", text)
+    text = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", text)
+    text = re.sub(r"<(script|style)\b.*?</\1>", " ", text, flags=re.S | re.I)
+    text = re.sub(r"<[^>]+>|https?://\S+", " ", text)
+    text = re.sub(r"^\s{0,3}#{1,6}\s*", "", text, flags=re.M)
+    text = re.sub(r"[*`]", "", text)
+    text = re.sub(r"[>|]|^\s*[-+]\s+", " ", text, flags=re.M)
+    return fit(re.sub(r"\s+", " ", text).strip(), limit)
+
+
+def whats_new(releases: list | None, repo_url: str) -> str:
+    """The newest stable release's notes (the newest pre-release's when there is no stable one), as a page section."""
+    notes_of = [item for item in releases or [] if plain_notes(item.get("body"))]
+    release = next((item for item in notes_of if not item.get("prerelease")), notes_of[0] if notes_of else None)
+    if not release or not release.get("tag_name"):
+        return ""
+    url = release.get("html_url") or ""
+    if not url.startswith(repo_url + "/"):
+        url = f"{repo_url}/releases"
+    when = nice_date(release.get("published_at"))
+    label = f"{release['tag_name']} (pre-release)" if release.get("prerelease") else release["tag_name"]
+    return (
+        f'<h2 id="whats-new">What&#8217;s new in {escape(label)}</h2>'
+        f"<p>{escape(plain_notes(release.get('body')))}</p>"
+        f'<p class="note">From the plugin author&#8217;s release notes{" of " + when if when else ""}. '
+        f'<a href="{escape(url)}">Read them in full on GitHub</a>.</p>'
+    )
+
+
 def json_ld(data: dict) -> str:
     # No "<" at all inside the script element, so nothing in a name or description can end it.
     return (
@@ -706,10 +744,15 @@ def plugin_page(
     reports: dict | None = None,
     vt_reports: dict | None = None,
     releases: list | None = None,
+    same_author: list[dict] | None = None,
 ) -> str:
     name, repo, category, description = app["name"], app["repo"], app["category"], app.get("description") or ""
     repo_url = f"https://github.com/{repo}"
-    facts = [f"<li><strong>{escape(category)}</strong>Category</li>"]
+    owner = owner_of(app)
+    facts = [
+        f"<li><strong>{escape(category)}</strong>Category</li>",
+        f'<li><strong><a href="https://github.com/{escape(owner)}">{escape(owner)}</a></strong>Author</li>',
+    ]
     total = total_downloads(stats)
     store_count = store_activity(stats)
     github_count = stats.get("downloads")
@@ -763,6 +806,7 @@ def plugin_page(
             '<li><span class="badge warn">No description</span> Its author hasn\'t said what it does. Check its repository before installing.</li>',
         )
     related = [other for other in others if other["id"] != app["id"]][:6]
+    mine = [other for other in same_author or [] if other["id"] != app["id"]][:8]
     crumbs = f'<p class="crumbs"><a href="/">DeckyHub</a> › <a href="/plugins/">Plugins</a> › {escape(name)}</p>'
     store_only = bool(app.get("store"))
     scan_details = (
@@ -789,6 +833,7 @@ def plugin_page(
 {"<ul class='badges'>" + "".join(badges) + "</ul>" if badges else "<p>No labels: it doesn't run as root, and no audit warnings or virus scan findings are known for it.</p>"}
 <p class="note">Browsing this plugin on GitHub? The free <a href="https://github.com/mazillka/deckyhub-ext">Deckyhub browser extension</a> shows these labels and scans there.</p>
 </details>
+{"" if app.get("store") else whats_new(releases, repo_url)}
 <h2 id="how-to-install">How to install</h2>
 <ol class="steps">
 {install_steps(app, name)}
@@ -796,6 +841,7 @@ def plugin_page(
 <p class="note">Check that the owner and repository, <strong>{escape(repo)}</strong>, are the ones you expect: a plugin's name alone may not identify the right project. {"You can also download" if app.get("store") else "Prefer your phone or computer? Use <em>Send to device</em> above, or download"} the ZIP from its <a href="{escape(repo_url)}/releases">releases</a> and install it from Decky's developer settings.</p>
 {"" if app.get("store") else remote_install_picker(app["id"], badges)}
 {scan_details}
+{f'<h2>More from {escape(owner)}</h2><ul class="list">' + "".join(f'<li><a href="/plugins/{escape(other["id"])}.html">{escape(other["name"])}<small>{escape(other.get("description") or "")}</small></a></li>' for other in mine) + "</ul>" if mine else ""}
 {f'<h2>More {escape(category)} plugins</h2><ul class="list">' + "".join(f'<li><a href="/plugins/{escape(other["id"])}.html">{escape(other["name"])}<small>{escape(other.get("description") or "")}</small></a></li>' for other in related) + "</ul>" if related else ""}"""
     data = {
         "@type": "SoftwareApplication",
@@ -1268,6 +1314,9 @@ def write_pages(out, apps: list[dict], releases_page: str, data: dict) -> list[t
         (f"{SITE}uk/paired-devices/", today),
         (f"{SITE}uk/remote-install/", today),
     ]
+    by_author: dict[str, list[dict]] = {}
+    for app in apps:
+        by_author.setdefault(owner_of(app).casefold(), []).append(app)
     for app in apps:
         key = app["repo"].casefold()
         others = [other for other in apps if other["category"] == app["category"]]
@@ -1282,6 +1331,7 @@ def write_pages(out, apps: list[dict], releases_page: str, data: dict) -> list[t
                 reports,
                 data.get("vt"),
                 (data.get("releases") or {}).get(key),
+                by_author[owner_of(app).casefold()],
             ),
             encoding="utf-8",
         )

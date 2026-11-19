@@ -25,6 +25,49 @@ class PluginPageTests(unittest.TestCase):
         shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
         return plugin_pages.plugin_page(shell, APP, stats or {}, scans or {}, {}, [APP], reports, vt)
 
+    def test_the_page_names_its_author_and_lists_their_other_plugins(self):
+        shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
+        mate = {**APP, "id": "mate", "name": "Mate", "repo": "MWGIH/Mate", "description": "Another one."}
+        html = plugin_pages.plugin_page(shell, APP, {}, {}, {}, [APP], same_author=[APP, mate])
+        self.assertIn('<strong><a href="https://github.com/MWGIH">MWGIH</a></strong>Author', html)
+        self.assertIn("<h2>More from MWGIH</h2>", html)
+        self.assertIn('<a href="/plugins/mate.html">Mate', html)
+        self.assertEqual(html.count('href="/plugins/decky-multiframegen.html"'), 0)
+        alone = plugin_pages.plugin_page(shell, APP, {}, {}, {}, [APP], same_author=[APP])
+        self.assertNotIn("More from", alone)
+
+    def test_the_latest_release_notes_are_plain_escaped_text_with_a_link_to_github(self):
+        shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
+        release = {
+            "tag_name": "v1.2.0",
+            "prerelease": False,
+            "published_at": "2026-10-20T01:48:22Z",
+            "html_url": "https://github.com/MWGIH/DeckyMultiFrameGen/releases/tag/v1.2.0",
+            "body": "# v1.2.0\n\nNow **faster**. <script>alert(1)</script> See [docs](https://evil.example/x).",
+        }
+        html = plugin_pages.plugin_page(shell, APP, {}, {}, {}, [APP], releases=[release])
+        self.assertIn("What&#8217;s new in v1.2.0", html)
+        self.assertIn("Now faster.", html)
+        self.assertNotIn("<script>alert", html)
+        self.assertNotIn("evil.example", html)
+        self.assertIn('href="https://github.com/MWGIH/DeckyMultiFrameGen/releases/tag/v1.2.0"', html)
+        # A link to anywhere but the plugin's own repository falls back to its releases page.
+        elsewhere = plugin_pages.plugin_page(
+            shell, APP, {}, {}, {}, [APP], releases=[{**release, "html_url": "https://evil.example/r"}]
+        )
+        self.assertNotIn("evil.example", elsewhere)
+        self.assertIn("https://github.com/MWGIH/DeckyMultiFrameGen/releases", elsewhere)
+        self.assertNotIn(
+            "What&#8217;s new",
+            plugin_pages.plugin_page(shell, APP, {}, {}, {}, [APP], releases=[{**release, "body": ""}]),
+        )
+
+    def test_a_store_only_page_shows_no_release_notes(self):
+        shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
+        release = {"tag_name": "v1", "prerelease": False, "body": "Old build notes."}
+        html = plugin_pages.plugin_page(shell, {**APP, "store": True}, {}, {}, {}, [APP], releases=[release])
+        self.assertNotIn("What&#8217;s new", html)
+
     def test_pre_release_only_and_no_description_badges(self):
         shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
         bare = {**APP, "description": ""}
