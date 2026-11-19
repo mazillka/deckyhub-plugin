@@ -9,6 +9,7 @@ The page shell (style, navigation, footer) comes from docs/releases.html so ever
 looks the same.
 """
 
+import collections
 import json
 import re
 import sys
@@ -745,6 +746,7 @@ def plugin_page(
     vt_reports: dict | None = None,
     releases: list | None = None,
     same_author: list[dict] | None = None,
+    shares_name: bool = False,
 ) -> str:
     name, repo, category, description = app["name"], app["repo"], app["category"], app.get("description") or ""
     repo_url = f"https://github.com/{repo}"
@@ -878,9 +880,11 @@ def plugin_page(
         }
     )
     # Search results show about 60 characters of a title and 155 of a description.
-    title = f"{name}: Decky Loader plugin | DeckyHub"
+    # Two plugins can share a name (a fork and the original): the owner tells their pages apart.
+    shown = f"{name} ({owner})" if shares_name else name
+    title = f"{shown}: Decky Loader plugin | DeckyHub"
     if len(title) > 70:
-        title = f"{fit(name, 40)} | DeckyHub"
+        title = f"{fit(shown, 40)} | DeckyHub"
     tail = " A Decky Loader plugin; install it from Gaming Mode with DeckyHub."
     cut = fit(description.rstrip("."), 155 - len(tail))
     summary = (
@@ -1429,6 +1433,7 @@ def write_pages(out, apps: list[dict], releases_page: str, data: dict) -> list[t
         (f"{SITE}uk/paired-devices/", today),
         (f"{SITE}uk/remote-install/", today),
     ]
+    name_counts = collections.Counter(app["name"].casefold() for app in apps)
     by_author: dict[str, list[dict]] = {}
     for app in apps:
         by_author.setdefault(owner_of(app).casefold(), []).append(app)
@@ -1447,6 +1452,7 @@ def write_pages(out, apps: list[dict], releases_page: str, data: dict) -> list[t
                 data.get("vt"),
                 (data.get("releases") or {}).get(key),
                 by_author[owner_of(app).casefold()],
+                name_counts[app["name"].casefold()] > 1,
             ),
             encoding="utf-8",
         )

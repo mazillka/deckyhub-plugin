@@ -114,6 +114,13 @@ class PluginPageTests(unittest.TestCase):
         self.assertIn("c._t=", catalog)
         self.assertNotIn("dataset.text", catalog)
 
+    def test_plugins_that_share_a_name_get_the_owner_in_their_page_title(self):
+        shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
+        alone = plugin_pages.plugin_page(shell, APP, {}, {}, {}, [APP])
+        self.assertIn("<title>Decky MultiFrameGen: Decky Loader plugin | DeckyHub</title>", alone)
+        shared = plugin_pages.plugin_page(shell, APP, {}, {}, {}, [APP], shares_name=True)
+        self.assertIn("<title>Decky MultiFrameGen (MWGIH): Decky Loader plugin | DeckyHub</title>", shared)
+
     def test_pre_release_only_and_no_description_badges(self):
         shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
         bare = {**APP, "description": ""}
