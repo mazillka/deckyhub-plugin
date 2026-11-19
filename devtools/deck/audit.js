@@ -17,12 +17,19 @@
   };
   const ownText = (el) => [...el.childNodes].some((node) => node.nodeType === 3 && node.textContent.trim());
 
+  // A strip that scrolls sideways on purpose (Experimental's category tiles) reaches past the screen's edge.
+  const sideways = (el) => {
+    for (let n = el.parentElement; n && n !== root; n = n.parentElement)
+      if (/auto|scroll/.test(getComputedStyle(n).overflowX) && n.scrollWidth > n.clientWidth + 1) return true;
+    return false;
+  };
+
   // Visible.
   for (const el of root.querySelectorAll("*")) {
     if (!shown(el)) continue;
     const s = getComputedStyle(el);
     const r = el.getBoundingClientRect();
-    if (ownText(el) && (r.left < -1 || r.right > innerWidth + 1)) problems.push(`off screen: ${name(el)}`);
+    if (ownText(el) && (r.left < -1 || r.right > innerWidth + 1) && !sideways(el)) problems.push(`off screen: ${name(el)}`);
     const clips = /hidden|clip/.test(s.overflowX + s.overflow);
     const lineClamp = s.webkitLineClamp && s.webkitLineClamp !== "none";
     if (clips && el.textContent.trim() && !lineClamp) {
