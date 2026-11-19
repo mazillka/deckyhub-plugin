@@ -10,13 +10,16 @@ import { compactNumber, ellipsis, surfaceStyle } from "../../utils";
 import { displayVersion } from "../../version";
 import { AiBadge, AppMonogram, findingsOf, ForkBadge, RustBadge, scanSummary, StoreBadge } from "../AppBadges";
 import { useCardActions, type AppCardProps } from "../AppCard";
-import { HeaderNotices } from "../ContentHeader";
 import { EmptyState } from "../EmptyState";
 import { keepInView } from "../KeepInView";
 import { setV2Counts } from "./v2Counts";
 
 // Rows shown before More.
 const PAGE = 30;
+const LAZY_AHEAD = 5; // rows before the end of the loaded ones at which the next batch loads
+
+// The pane's height: the screen less Steam's 64px header and the 8px gaps above (its sticky top) and below it.
+const PANE_HEIGHT = "calc(100vh - 80px)";
 
 // The scan's own state is the dot (and a line in the pane): listing "Not fully scanned" as a finding too would put a
 // triangle on every plugin still waiting for VirusTotal or MetaDefender.
@@ -34,15 +37,20 @@ const DOT: Record<Scan, string> = {
   infected: colors.dangerSoft,
   none: colors.muted,
 };
-const Dot = ({ color }: { color: string }) => (
+// A dot with a label is the scan state itself (the row's); without one it only decorates a line that says it in words.
+const Dot = ({ color, label }: { color: string; label?: string }) => (
   <span
-    aria-hidden
+    role={label ? "img" : undefined}
+    aria-label={label}
+    aria-hidden={label ? undefined : true}
     style={{ display: "inline-block", width: 10, height: 10, borderRadius: "50%", background: color, flexShrink: 0 }}
   />
 );
 
+const scanLabel = (scan: Scan, t: TFunc) => (scan === "none" ? t("scan.notScanned") : t(`appcard.scan.${scan}`));
+
 // What the dots and the triangle mean, in the words the badges already use.
-function Legend({ t }: { t: TFunc }) {
+export function Legend({ t }: { t: TFunc }) {
   const items: [Scan, string][] = [
     ["clean", t("appcard.scan.clean")],
     ["partial", t("appcard.scan.partial")],
@@ -88,7 +96,7 @@ function Row({ app, selected, onSelect, t }: { app: App; selected: boolean; onSe
         <small style={{ color: colors.muted, ...ellipsis }}>{app.description || t("repos.noDescription")}</small>
       </div>
       {findings.length > 0 && <FaExclamationTriangle aria-label={t("risk.title")} color={colors.caution} />}
-      {!app.store && <Dot color={DOT[scanOf(app)]} />}
+      {!app.store && <Dot color={DOT[scanOf(app)]} label={scanLabel(scanOf(app), t)} />}
     </Focusable>
   );
 }
@@ -105,7 +113,21 @@ function Detail({ props, t }: { props: AppCardProps; t: TFunc }) {
   return (
     <Focusable
       flow-children="down"
-      style={{ ...surfaceStyle, display: "grid", gap: 10, padding: 14, alignContent: "start" }}
+      style={{
+        ...surfaceStyle,
+        display: "grid",
+        gap: 10,
+        padding: 14,
+        // The last block (the facts) stretches to the pane's full height: Steam moves Right to a control level with the
+        // focused row, so a short pane left the rows below its end with nothing to reach.
+        gridTemplateRows: "auto auto auto 1fr",
+        minHeight: PANE_HEIGHT,
+        // Stays beside the list while it scrolls, instead of staying at the top with the first rows.
+        position: "sticky",
+        top: 8,
+        maxHeight: PANE_HEIGHT,
+        overflowY: "auto",
+      }}
     >
       <Focusable onActivate={() => {}} onFocus={keepInView} style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <AppMonogram app={app} style={{ width: 48, height: 48, borderRadius: 10, fontSize: 18 }} />
@@ -145,7 +167,8 @@ function Detail({ props, t }: { props: AppCardProps; t: TFunc }) {
         onActivate={() => {}}
         onFocus={keepInView}
         className="deckyhub-v2-facts"
-        style={{ display: "grid", gap: 6, fontSize: "max(13px, 0.9em)" }}
+        // alignContent: the facts block is stretched to the pane's height; without it the grid's rows stretch too.
+        style={{ display: "grid", gap: 6, alignContent: "start", fontSize: "max(13px, 0.9em)" }}
       >
         {app.store ? (
           <span style={{ display: "flex", gap: 8, alignItems: "baseline" }}>
@@ -155,7 +178,7 @@ function Detail({ props, t }: { props: AppCardProps; t: TFunc }) {
           <>
             <span style={{ display: "flex", gap: 8, alignItems: "baseline" }}>
               <Dot color={DOT[scan]} />
-              <span>{scan === "none" ? t("scan.notScanned") : t(`appcard.scan.${scan}`)}</span>
+              <span>{scanLabel(scan, t)}</span>
             </span>
             {findings.map((finding) => (
               <span key={finding.label} style={{ display: "flex", gap: 8, alignItems: "baseline" }}>
@@ -169,7 +192,7 @@ function Detail({ props, t }: { props: AppCardProps; t: TFunc }) {
             {app.identityUnverified && <span style={{ color: colors.warning }}>{t("appcard.identityUnverified")}</span>}
           </>
         )}
-        <span style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+        <span style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", gap: 6 }}>
           {app.stats?.fork && <ForkBadge t={t} repo={app.stats.fork} />}
           {app.stats?.ai?.length ? <AiBadge t={t} files={app.stats.ai} /> : null}
           {app.stats?.rust && <RustBadge t={t} />}
@@ -237,9 +260,9 @@ export function V2Library({
     : apps;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = shown.find((app) => app.id === selectedId) ?? shown[0];
-  // Hundreds of rows at once would be slow on a Deck: a batch at a time, More for the next.
+  // Hundreds of rows at once would be slow on a Deck: a batch at a time, the next one loads as focus nears the end.
   const [limit, setLimit] = useState(PAGE);
-  useEffect(() => setLimit(PAGE), [needle, category, view]);
+  useEffect(() => setLimit(PAGE), [needle, category, view, sortOrder]);
   return (
     <div className="deckyhub-v2-page" style={{ display: "grid", gap: 10, gridTemplateColumns: "minmax(0, 1fr)" }}>
       {/* One row: search, Discover's category and sort menus, Refresh. */}
@@ -249,7 +272,6 @@ export function V2Library({
             aria-label={t("filter.search")}
             placeholder={t("filter.search")}
             value={query}
-            bShowClearAction
             onChange={(event) => onQuery(event.currentTarget.value)}
           />
         </div>
@@ -281,20 +303,18 @@ export function V2Library({
             </Button>
           </div>
         )}
-        <div style={{ flex: "0 0 56px" }}>
-          <Button aria-label={t("content.refresh")} onClick={onRefresh} style={{ padding: 0, minHeight: 52 }}>
+        {/* As tall as the search field beside it. */}
+        <div style={{ flex: "0 0 44px" }}>
+          <Button
+            aria-label={t("content.refresh")}
+            onClick={onRefresh}
+            style={{ padding: 0, minHeight: 40, height: 40 }}
+          >
             <FaSync />
           </Button>
         </div>
       </Focusable>
-      {/* The disclaimer and the badge notice side by side, one line each. One group for the D-pad (Down leaves it),
-          with the legend of the dots inside the badge notice. */}
-      <Focusable
-        flow-children="right"
-        style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8 }}
-      >
-        <HeaderNotices extra={<Legend t={t} />} />
-      </Focusable>
+      {/* The disclaimer and what the badges mean are in the info window (the button beside the tabs). */}
       {loading ? (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, minHeight: "30vh" }}>
           <Spinner style={{ width: "1.1em" }} /> {t("content.loading")}
@@ -312,23 +332,24 @@ export function V2Library({
             gridTemplateColumns: "minmax(0, 5fr) minmax(0, 6fr)",
             gap: 12,
             alignItems: "start",
+            // The page's 96px bottom padding would end the pane's travel above the screen's bottom edge (it would slide under
+            // the header): the list keeps that room itself, so the pane's range reaches the bottom like its height does.
+            marginBottom: -88,
           }}
         >
-          <Focusable flow-children="down" style={{ display: "grid", gap: 6 }}>
-            {shown.slice(0, limit).map((app) => (
+          <Focusable flow-children="down" style={{ display: "grid", gap: 6, paddingBottom: 88 }}>
+            {shown.slice(0, limit).map((app, index) => (
               <Row
                 key={app.id}
                 app={app}
                 t={t}
                 selected={app.id === selected?.id}
-                onSelect={() => setSelectedId(app.id)}
+                onSelect={() => {
+                  setSelectedId(app.id);
+                  if (index >= limit - LAZY_AHEAD) setLimit(limit + PAGE);
+                }}
               />
             ))}
-            {shown.length > limit && (
-              <Button onClick={() => setLimit(limit + PAGE)}>
-                {t("notice.more")} ({shown.length - limit})
-              </Button>
-            )}
           </Focusable>
           {selected && <Detail key={selected.id} props={cardProps(selected)} t={t} />}
         </Focusable>

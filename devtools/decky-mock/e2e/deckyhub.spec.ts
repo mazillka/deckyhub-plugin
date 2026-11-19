@@ -319,34 +319,26 @@ test("Repository search and action share one row", async ({ page }) => {
   const app = mock(page);
   const search = app.getByLabel("Search GitHub");
   const action = app.getByRole("button", { name: "Search", exact: true });
-  const clear = app.getByRole("button", { name: "Clear", exact: true });
-
   await expect(search).toBeVisible();
   await expect(action).toBeVisible();
-  await expect(clear).toBeVisible();
+  await expect(app.getByRole("button", { name: "Clear", exact: true })).toHaveCount(0);
   const measure = async () => {
-    const [searchBox, actionBox, clearBox] = await Promise.all([
-      search.boundingBox(),
-      action.boundingBox(),
-      clear.boundingBox(),
-    ]);
+    const [searchBox, actionBox] = await Promise.all([search.boundingBox(), action.boundingBox()]);
     expect(searchBox).not.toBeNull();
     expect(actionBox).not.toBeNull();
-    expect(clearBox).not.toBeNull();
-    return { searchBox: searchBox!, actionBox: actionBox!, clearBox: clearBox! };
+    return { searchBox: searchBox!, actionBox: actionBox! };
   };
-  // One centre line for the field and both buttons (seen off by a few px on a Deck).
+  // One centre line for the field and the button (seen off by a few px on a Deck).
   const middle = (box: { y: number; height: number }) => box.y + box.height / 2;
   // The page animates in, so the first reading can be a few px off: poll until the layout settles.
   await expect
     .poll(async () => {
-      const { searchBox, actionBox, clearBox } = await measure();
-      return Math.max(Math.abs(middle(searchBox) - middle(actionBox)), Math.abs(middle(actionBox) - middle(clearBox)));
+      const { searchBox, actionBox } = await measure();
+      return Math.abs(middle(searchBox) - middle(actionBox));
     })
     .toBeLessThan(2);
-  const { searchBox, actionBox, clearBox } = await measure();
+  const { searchBox, actionBox } = await measure();
   expect(actionBox.x).toBeGreaterThan(searchBox.x);
-  expect(clearBox.x).toBeGreaterThan(actionBox.x);
 });
 
 for (const uiStyle of ["default", "experimental"]) {
@@ -4150,6 +4142,71 @@ test("Experimental V2 lists plugins beside the focused one's facts, under one ta
       timeout: 30_000,
     });
     await app.getByRole("button", { name: "Discover", exact: true }).last().click();
+    await expect(app.locator(".deckyhub-v2-row").first()).toBeVisible({ timeout: 30_000 });
+  } finally {
+    await setStyle("default");
+  }
+});
+
+test("Experimental V2 keeps its details pane in view, follows the selected row, loads more rows as focus nears the end and handles no results", async ({
+  page,
+  request,
+}) => {
+  const headers = { Origin: "http://127.0.0.1:5183" };
+  const settings = async () =>
+    (await (await request.post(BRIDGE_URL, { data: { route: "get_settings", args: [] }, headers })).json()).result;
+  const setStyle = async (uiStyle: string) =>
+    request.post(BRIDGE_URL, { data: { route: "save_settings", args: [{ ...(await settings()), uiStyle }] }, headers });
+  await setStyle("v2");
+  try {
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    const rows = app.locator(".deckyhub-v2-row");
+    await expect(rows.first()).toBeVisible({ timeout: 60_000 });
+    // The pane stays beside the list while it scrolls (it used to stay at the top with the first rows).
+    const pane = app.locator(".deckyhub-v2-facts").locator("xpath=..");
+    await expect(pane).toHaveCSS("position", "sticky");
+    // Selecting another row moves the pane to that plugin.
+    const second = rows.nth(1);
+    const name = (await second.locator("strong").innerText()).trim();
+    await second.focus();
+    await expect(pane.locator("strong").first()).toHaveText(name);
+    // The next batch (30 at a time) loads by itself as focus nears the end of the loaded rows.
+    if ((await rows.count()) === 30) {
+      await rows.nth(26).focus();
+      await expect(rows).toHaveCount(60);
+    }
+    // No results: the list and the pane both give way to the empty state.
+    await app.getByLabel("Search", { exact: true }).fill("zzzz-no-such-plugin-zzzz");
+    await expect(rows).toHaveCount(0);
+    await expect(app.locator(".deckyhub-v2-facts")).toHaveCount(0);
+  } finally {
+    await setStyle("default");
+  }
+});
+
+test("Experimental V2 shows Settings as a section list and a pane under its tab bar", async ({ page, request }) => {
+  const headers = { Origin: "http://127.0.0.1:5183" };
+  const settings = async () =>
+    (await (await request.post(BRIDGE_URL, { data: { route: "get_settings", args: [] }, headers })).json()).result;
+  const setStyle = async (uiStyle: string) =>
+    request.post(BRIDGE_URL, { data: { route: "save_settings", args: [{ ...(await settings()), uiStyle }] }, headers });
+  await setStyle("v2");
+  try {
+    await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    // Settings is the fifth tab, active, with the sections listed and the first one's controls beside them.
+    for (const tab of ["Discover", "Updates", "Installed", "Search", "Settings"])
+      await expect(app.getByRole("button", { name: tab }).first()).toBeVisible({ timeout: 60_000 });
+    const sections = app.locator(".deckyhub-v2-section");
+    await expect(sections).toHaveCount(6);
+    await expect(app.locator(".deckyhub-settings-general")).toBeVisible();
+    // Choosing a section swaps the pane's content.
+    await sections.last().click();
+    await expect(app.locator(".deckyhub-settings-about")).toBeVisible();
+    await expect(app.locator(".deckyhub-settings-general")).toHaveCount(0);
+    // The other tabs still work from here.
+    await app.getByRole("button", { name: "Discover", exact: true }).first().click();
     await expect(app.locator(".deckyhub-v2-row").first()).toBeVisible({ timeout: 30_000 });
   } finally {
     await setStyle("default");
