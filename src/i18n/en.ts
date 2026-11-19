@@ -98,6 +98,8 @@ export const en = {
   "appcard.releasePage": "Release Page",
   "details.about": "About",
   "details.whatsNew": "What's new in {version}",
+  "appcard.byAuthor": "by {author}",
+  "details.moreFromAuthor": "More from {author} ({count})",
   "appcard.repository": "Repository",
   "appcard.reportProblem": "Report a problem",
   "appcard.deckyhubPage": "DeckyHub page",

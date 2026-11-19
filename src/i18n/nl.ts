@@ -99,6 +99,8 @@ export const nl: Record<MessageKey, string> = {
   "appcard.releasePage": "Releasepagina",
   "details.about": "Over",
   "details.whatsNew": "Nieuw in {version}",
+  "appcard.byAuthor": "door {author}",
+  "details.moreFromAuthor": "Meer van {author} ({count})",
   "appcard.repository": "Repository",
   "appcard.reportProblem": "Probleem melden",
   "appcard.deckyhubPage": "DeckyHub-pagina",

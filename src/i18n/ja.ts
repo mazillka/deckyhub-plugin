@@ -98,6 +98,8 @@ export const ja: Record<MessageKey, string> = {
   "appcard.releasePage": "リリースページ",
   "details.about": "概要",
   "details.whatsNew": "{version} の新機能",
+  "appcard.byAuthor": "作者: {author}",
+  "details.moreFromAuthor": "{author} の他のプラグイン ({count})",
   "appcard.repository": "リポジトリ",
   "appcard.reportProblem": "問題を報告",
   "appcard.deckyhubPage": "DeckyHub ページ",

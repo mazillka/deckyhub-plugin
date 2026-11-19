@@ -43,6 +43,7 @@ import {
   surfaceStyle,
   uninstallDeckyPlugin,
 } from "../utils";
+import { ownerOf } from "../author";
 import { startPluginInstall } from "./InstallFlow";
 import { displayVersion } from "../version";
 import { AppBadges, AppMonogram, AppStats, FindingsSummary } from "./AppBadges";
@@ -69,6 +70,7 @@ export function AppDetailsModal({
   onDownload,
   onPreferenceChange,
   onUninstalled,
+  moreFromAuthor,
   closeModal,
 }: {
   t: TFunc;
@@ -79,6 +81,7 @@ export function AppDetailsModal({
   onDownload: (asset: Asset) => Promise<void>;
   onPreferenceChange: (preference: RepoPreference) => void;
   onUninstalled: () => void;
+  moreFromAuthor?: { count: number; show: () => void };
   closeModal?: () => void;
 }) {
   const [preference, setPreference] = useState<RepoPreference>(initialPreference);
@@ -420,6 +423,17 @@ export function AppDetailsModal({
             closeModal={closeModal}
             hideCheck
           />
+          {moreFromAuthor && moreFromAuthor.count > 1 && (
+            <Button
+              style={modalButtonStyle}
+              onClick={() => {
+                closeModal?.();
+                moreFromAuthor.show();
+              }}
+            >
+              {t("details.moreFromAuthor", { author: ownerOf(app), count: moreFromAuthor.count })}
+            </Button>
+          )}
           {/* The routine and the rare actions behind one row, so the window doesn't end in a long stack. */}
           <DetailsRow title={t("notice.more")}>
             <Focusable flow-children="down" style={{ display: "grid", gap: 8 }}>
