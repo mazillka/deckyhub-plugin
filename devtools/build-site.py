@@ -317,19 +317,41 @@ for name in ("help.html", "about.html", "guide.html", "authors.html"):
         page_file.write_text(site_shell.apply(text, lang, switch), encoding="utf-8")
 
 plugin_urls = plugin_pages.write_pages(out, apps, (ROOT / "docs" / "releases.html").read_text(encoding="utf-8"), data)
+# llms.txt stays short enough for an assistant to read whole: the facts, the pages, the most downloaded plugins and
+# the categories. llms-full.txt is the same with every plugin listed.
 llms = out / "llms.txt"
 if llms.exists():
-    llms.write_text(
-        llms.read_text(encoding="utf-8").rstrip("\n")
-        + "\n\n## Plugins\n\n- [All plugins]("
+    base = llms.read_text(encoding="utf-8").rstrip("\n")
+
+    def plugin_line(a: dict) -> str:
+        return f"- [{a['name']}]({SITE}plugins/{a['id']}.html): {a.get('description') or ''} (github.com/{a['repo']})\n"
+
+    hubs = "".join(
+        f"- [{name}]({SITE}plugins/category/{plugin_pages.slug(name)}.html): the most downloaded {name} plugins\n"
+        for name in sorted({a["category"] for a in apps})
+    )
+    head = (
+        "\n\n## Plugins\n\n- [All plugins]("
         + SITE
         + "plugins/): every plugin, most downloaded first, with search and categories.\n- [Known issues]("
         + SITE
         + "plugins/known-issues.html): plugins with virus scan findings or audit warnings.\n"
-        + "".join(
-            f"- [{a['name']}]({SITE}plugins/{a['id']}.html): {a.get('description') or ''} (github.com/{a['repo']})\n"
-            for a in sorted(apps, key=lambda a: a["name"].casefold())
-        ),
+    )
+    llms.write_text(
+        base
+        + head
+        + hubs
+        + "\n## Most downloaded plugins\n\n"
+        + "".join(plugin_line(a) for a in plugin_pages.by_downloads(apps, data)[:15])
+        + f"\nEvery plugin, one per line: [llms-full.txt]({SITE}llms-full.txt)\n",
+        encoding="utf-8",
+    )
+    (out / "llms-full.txt").write_text(
+        base
+        + head
+        + hubs
+        + "\n## All plugins\n\n"
+        + "".join(plugin_line(a) for a in sorted(apps, key=lambda a: a["name"].casefold())),
         encoding="utf-8",
     )
 
