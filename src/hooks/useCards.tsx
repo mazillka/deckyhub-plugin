@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { authorSearch, ownerOf } from "../author";
-import { AppCard, type CardLayout } from "../components/AppCard";
+import { AppCard } from "../components/AppCard";
+import type { CardLayout } from "./useCardActions";
 import { ExpAppCard } from "../components/experimental/ExpAppCard";
 import { FocusableGrid } from "../components/FocusableGrid";
 import { compareBy, type SortOrder } from "../sorting";

@@ -4,7 +4,7 @@ import { cardDescriptionStyle, ellipsis, statusKey, visuallyHidden } from "../..
 import { displayVersion } from "../../version";
 import { AppBadges, AppMonogram, AppStats, categoryHue } from "../AppBadges";
 import { ownerOf } from "../../author";
-import { useCardActions, type AppCardProps } from "../AppCard";
+import { useCardActions, type AppCardProps } from "../../hooks/useCardActions";
 
 // Experimental: a plugin as a tile with a colored cover (its category's hue), a version
 // chip (installed → latest) and one gradient button. Same actions as the Default card

@@ -10,7 +10,7 @@ import { compactNumber, ellipsis, surfaceStyle } from "../../utils";
 import { displayVersion } from "../../version";
 import { AiBadge, AppMonogram, findingsOf, ForkBadge, RustBadge, scanSummary, StoreBadge } from "../AppBadges";
 import { authorSearch as authorSearchOf, ownerOf } from "../../author";
-import { useCardActions, type AppCardProps } from "../AppCard";
+import { useCardActions, type AppCardProps } from "../../hooks/useCardActions";
 import { EmptyState } from "../EmptyState";
 import { keepInView } from "../KeepInView";
 import { LIST_BATCH } from "../AppList";

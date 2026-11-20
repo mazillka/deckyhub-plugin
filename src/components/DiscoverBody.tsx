@@ -4,7 +4,7 @@ import { useT } from "../i18n";
 import type { SortOrder } from "../sorting";
 import type { App, View } from "../types";
 import { AppList } from "./AppList";
-import type { CardLayout } from "./AppCard";
+import type { CardLayout } from "../hooks/useCardActions";
 import { DiscoverHome } from "./DiscoverHome";
 import { EmptyState } from "./EmptyState";
 import { ExpDiscoverHome } from "./experimental/ExpDiscoverHome";
