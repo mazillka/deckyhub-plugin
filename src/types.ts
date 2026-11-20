@@ -170,9 +170,10 @@ export type Settings = {
   updateChannel: UpdateChannel;
   registryChannel: UpdateChannel;
   language: string;
-  columnsPerRow: 1 | 2 | 3 | 4;
+  // 0: Auto, as many as the window's width fits (src/columns.ts).
+  columnsPerRow: 0 | 1 | 2 | 3 | 4;
   githubToken: string;
-  density: "default" | "compact";
+  density: "default" | "compact" | "large";
   haptics: boolean;
   quickAccessTab: boolean;
   uiStyle: UiStyle;

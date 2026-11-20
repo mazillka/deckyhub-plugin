@@ -33,7 +33,8 @@ SUPPORTED_LANGUAGES = {
     "zh",
     "zh-TW",
 }
-DEFAULT_COLUMNS_PER_ROW = 3
+# 0 is Auto: the frontend fits as many cards as the window's width allows (src/columns.ts).
+DEFAULT_COLUMNS_PER_ROW = 0
 # Bumped to reset everybody's UI Style to Default once more (see _load_settings).
 UI_STYLE_RESET = 1
 
@@ -46,11 +47,11 @@ def coerce_settings(settings: dict) -> dict:
         "registryChannel": "prerelease" if settings.get("registryChannel") == "prerelease" else "stable",
         "language": settings.get("language") if settings.get("language") in SUPPORTED_LANGUAGES else "auto",
         "columnsPerRow": settings.get("columnsPerRow")
-        if type(settings.get("columnsPerRow")) is int and settings["columnsPerRow"] in (1, 2, 3, 4)
+        if type(settings.get("columnsPerRow")) is int and settings["columnsPerRow"] in (0, 1, 2, 3, 4)
         else DEFAULT_COLUMNS_PER_ROW,
         # Only the frontend's api.github.com calls send it (githubHeaders() in src/utils.ts).
         "githubToken": settings["githubToken"].strip()[:255] if isinstance(settings.get("githubToken"), str) else "",
-        "density": "compact" if settings.get("density") == "compact" else "default",
+        "density": settings["density"] if settings.get("density") in ("compact", "large") else "default",
         # A haptic tick on the Deck's trackpads as focus moves (hapticTick() in src/utils.ts).
         "haptics": bool(settings.get("haptics", True)),
         # DeckyHub's own icon in Steam's Quick Access tab strip (QuickAccessTab.tsx).

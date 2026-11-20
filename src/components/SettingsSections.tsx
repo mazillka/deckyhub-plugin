@@ -114,6 +114,7 @@ export function DisplaySection({
             rgOptions={[
               { label: t("settings.densityDefault"), data: "default" },
               { label: t("settings.densityCompact"), data: "compact" },
+              { label: t("settings.densityLarge"), data: "large" },
             ]}
             selectedOption={settings.density}
             onChange={({ data }) => update({ density: data })}
@@ -123,7 +124,10 @@ export function DisplaySection({
           <PanelSectionRow>
             <DropdownItem
               label={t("settings.itemsPerRow")}
-              rgOptions={[1, 2, 3, 4].map((count) => ({ label: String(count), data: count }))}
+              rgOptions={[0, 1, 2, 3, 4].map((count) => ({
+                label: count ? String(count) : t("settings.itemsPerRowAuto"),
+                data: count,
+              }))}
               selectedOption={settings.columnsPerRow}
               onChange={({ data }) => update({ columnsPerRow: data })}
             />

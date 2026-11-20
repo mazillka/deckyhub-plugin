@@ -632,7 +632,7 @@ test("DeckyHub automatically notifies about an available update", async ({ page 
     app.locator(".qam-content").getByRole("button", { name: "Update to v9.9.9", exact: true }),
   ).toBeVisible();
   await expect(app.getByText("DeckyHub: DeckyHub update v9.9.9 is available.")).toHaveCount(0);
-  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "DeckyHub Update", exact: true }).click();
   await expect(
     app.locator(".steam-modal").getByRole("button", { name: "Update to v9.9.9", exact: true }),
   ).toBeVisible();
@@ -719,10 +719,10 @@ test("DeckyHub doesn't advertise an older release as an available update", async
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
 
-  await expect(app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true })).toBeVisible();
+  await expect(app.locator(".qam-content").getByRole("button", { name: "DeckyHub Update", exact: true })).toBeVisible();
   await expect(app.locator(".qam-content").getByRole("button", { name: /^Update to v/ })).toHaveCount(0);
   await expect(app.getByText(/DeckyHub update v0\.9\.0 is available/)).toHaveCount(0);
-  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "DeckyHub Update", exact: true }).click();
   await expect(app.getByRole("button", { name: "Downgrade to v0.9.0", exact: true })).toBeVisible();
 });
 
@@ -732,7 +732,7 @@ test("DeckyHub's Check for Updates snaps the version picker back to the channel'
   await mockDeckyHubReleases(page, [installedRelease, olderRelease]);
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "DeckyHub Update", exact: true }).click();
 
   // Pick the older release to inspect a downgrade...
   await app.getByLabel("Version").selectOption({ label: "v0.9.0" });
@@ -758,7 +758,7 @@ test("DeckyHub distinguishes rc versions sharing the same release number", async
   await mockDeckyHubReleases(page, [newerRcRelease, installedRelease, olderRcRelease]);
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "DeckyHub Update", exact: true }).click();
 
   // The modal defaults to the channel's newest release (newerRcRelease is
   // versions[0] in the mocked list), not the installed one, so it shows
@@ -790,7 +790,7 @@ test("DeckyHub picks the newest release by publish date even when GitHub returns
   await mockDeckyHubReleases(page, [installedRelease, newerRcRelease, olderRcRelease]);
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "DeckyHub Update", exact: true }).click();
 
   await expect(
     app.locator(".steam-modal").getByRole("button", { name: `Update to ${newerRcTag}`, exact: true }),
@@ -804,7 +804,7 @@ test("DeckyHub falls back to a clear message when automatic update can't reach D
   await mockDeckyHubReleases(page, [deckyHubRelease(deckyHubTag)]);
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "DeckyHub Update", exact: true }).click();
 
   // The dev mock never defines window.DeckyBackend, mirroring a Decky Loader
   // build old enough not to expose it — the same fallback path real users hit.
@@ -819,7 +819,7 @@ test("DeckyHub's Reinstall closes its window and hands the release to Decky's in
   await recordInstalls(page);
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "DeckyHub Update", exact: true }).click();
   await app.getByRole("button", { name: `Reinstall v${deckyHubVersion}`, exact: true }).click();
 
   // Decky's own confirm/progress dialog takes over, so this window gets out of the way.
@@ -849,7 +849,7 @@ test("DeckyHub version picker re-filters by channel and leaves the channel as it
   await mockDeckyHubReleases(page, [stableRelease, prereleaseRelease]);
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "DeckyHub Update", exact: true }).click();
   await expect(app.getByLabel("Version")).toHaveValue(deckyHubTag);
 
   await app.getByLabel("Update Channel").selectOption({ label: "Pre-releases" });
@@ -874,7 +874,7 @@ test("DeckyHub version picker re-filters by channel and leaves the channel as it
 test("DeckyHub update modal's Close button spans its column and dismisses the modal", async ({ page }) => {
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "DeckyHub Update", exact: true }).click();
 
   // As wide as Download ZIP above it, the whole actions column.
   const [closeBox, zipBox] = await Promise.all([
@@ -1635,7 +1635,7 @@ test("DeckyHub's update window shows its release's ClamAV report and how release
   });
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "DeckyHub Update", exact: true }).click();
   const scan = app.locator(".steam-modal .deckyhub-virus-scan");
   await expect(scan.getByText("ClamAV: No threats found")).toBeVisible();
   await expect(
@@ -1892,7 +1892,7 @@ test("Registry Channel: Pre-release reads the registry's develop data, says so o
   try {
     await page.goto("/?bridge=http://127.0.0.1:8643");
     const app = mock(page);
-    await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+    await app.locator(".qam-content").getByRole("button", { name: "DeckyHub Update", exact: true }).click();
     const channel = app.locator(".steam-modal").getByLabel("Registry Channel");
     await expect(channel).toHaveValue("stable");
     await expect(app.getByText("If they can't be loaded, DeckyHub uses the stable list.")).toBeVisible();
@@ -2994,7 +2994,7 @@ test("Display Settings can hide the Manage window's buttons", async ({ page }) =
     await expect(app.getByLabel("Hide “Update”")).toBeChecked();
     await app.getByRole("button", { name: "Quick Access widget" }).click();
     await expect(app.locator(".qam-content").getByRole("button", { name: /^Update to v/ })).toHaveCount(0);
-    await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+    await app.locator(".qam-content").getByRole("button", { name: "DeckyHub Update", exact: true }).click();
     modal = app.locator(".steam-modal");
     await expect(modal.getByLabel("Version").locator("option").first()).toBeAttached();
     await expect(
@@ -3984,7 +3984,7 @@ test("Every row of side-by-side controls lets the D-pad move left and right", as
 
   // DeckyHub's own update window.
   await app.getByRole("button", { name: "Quick Access widget", exact: true }).click();
-  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "DeckyHub Update", exact: true }).click();
   await expect(app.locator(".steam-modal").getByRole("button", { name: "Close", exact: true })).toBeVisible();
   expect(await sideBySideWithoutRightFlow(page)).toEqual([]);
 });
@@ -4603,7 +4603,7 @@ test("Switching DeckyHub's channel in its update window doesn't toast, and the p
     await page.goto("/?bridge=http://127.0.0.1:8643");
     const app = mock(page);
     const panel = app.locator(".qam-content");
-    await panel.getByRole("button", { name: "Manage", exact: true }).click();
+    await panel.getByRole("button", { name: "DeckyHub Update", exact: true }).click();
     const modal = app.locator(".steam-modal");
     await modal.getByLabel("Update Channel").selectOption("prerelease");
     await expect(modal.getByRole("button", { name: "Update to v9.9.9-rc.1", exact: true })).toBeVisible();
@@ -4756,4 +4756,83 @@ test("Quick Access keeps to quick actions, and DeckyHub's version reads in norma
   await expect(panel.getByRole("button", { name: "Export Logs", exact: true })).toHaveCount(0);
   await expect(panel.getByText(/found through two community catalogs/)).toHaveCount(0);
   await expect(panel.getByText(/^DeckyHub v\d/)).toHaveCSS("text-transform", "none");
+});
+
+// The mock shows the plugin in an iframe the size of the Deck's screen; a TV is a bigger iframe.
+async function setScreen(page: Page, width: number, height: number) {
+  await page.setViewportSize({ width: 3900, height: 2300 });
+  await page.evaluate(
+    ([w, h]) => {
+      const frame = document.querySelector<HTMLIFrameElement>("#deck-app")!;
+      frame.style.width = `${w}px`;
+      frame.style.height = `${h}px`;
+    },
+    [width, height] as const,
+  );
+}
+
+// How many cards share the first row of the grid.
+const cardsInFirstRow = (page: Page) =>
+  mock(page)
+    .locator("body")
+    .evaluate(() => {
+      const tops = [...document.querySelectorAll(".deckyhub-focus-ring")].map(
+        (card) => card.getBoundingClientRect().top,
+      );
+      return tops.filter((top) => Math.abs(top - tops[0]) < 2).length;
+    });
+
+for (const [width, height, columns] of [
+  [1280, 800, 3],
+  [1920, 1080, 4],
+  [3840, 2160, 6],
+] as const) {
+  test(`Items per row: Auto fits ${columns} cards on a ${width}x${height} screen`, async ({ page }) => {
+    await bridgeCall(page, "save_settings", { columnsPerRow: 0, density: "default" });
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    await setScreen(page, width, height);
+    const app = mock(page);
+    await browseAll(page);
+    await app.getByRole("button", { name: "Grid", exact: true }).click();
+    await expect.poll(() => cardsInFirstRow(page)).toBe(columns);
+  });
+}
+
+test("A number chosen for Items per row wins over the screen's width", async ({ page }) => {
+  try {
+    await bridgeCall(page, "save_settings", { columnsPerRow: 2, density: "default" });
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    await setScreen(page, 3840, 2160);
+    await browseAll(page);
+    await mock(page).getByRole("button", { name: "Grid", exact: true }).click();
+    await expect.poll(() => cardsInFirstRow(page)).toBe(2);
+  } finally {
+    await bridgeCall(page, "save_settings", { columnsPerRow: 0, density: "default" });
+  }
+});
+
+test("The Large interface scales the page up, and Auto counts the room that leaves", async ({ page }) => {
+  try {
+    await bridgeCall(page, "save_settings", { columnsPerRow: 0, density: "large" });
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    await setScreen(page, 1920, 1080);
+    const app = mock(page);
+    await browseAll(page);
+    await app.getByRole("button", { name: "Grid", exact: true }).click();
+    const page_ = app.locator("body");
+    expect(await page_.evaluate(() => document.documentElement.style.getPropertyValue("--dh-zoom"))).toBe("1.25");
+    expect(
+      await page_.evaluate(() => getComputedStyle(document.querySelector(".deckyhub-focus-ring button")!).minHeight),
+    ).toBe("52px");
+    // 1920 px at 1.25x leaves 1536 px: three cards, where the normal size fits four.
+    await expect.poll(() => cardsInFirstRow(page)).toBe(3);
+    // Back to the normal size on the same screen.
+    await bridgeCall(page, "save_settings", { columnsPerRow: 0, density: "default" });
+    await page.reload();
+    await setScreen(page, 1920, 1080);
+    await browseAll(page);
+    await expect.poll(() => cardsInFirstRow(page)).toBe(4);
+  } finally {
+    await bridgeCall(page, "save_settings", { columnsPerRow: 0, density: "default" });
+  }
 });
