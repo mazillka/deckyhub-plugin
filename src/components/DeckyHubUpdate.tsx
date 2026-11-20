@@ -18,7 +18,8 @@ import {
 } from "../utils";
 import { normalizeVersion } from "../version";
 import { showReleaseInfo } from "./ReleaseInfo";
-import { DeckyHubUpdateModal, downloadDeckyHubZip } from "./DeckyHubUpdateModal";
+import { downloadDeckyHubZip } from "../hooks/useDeckyHubUpdate";
+import { DeckyHubUpdateModal } from "./DeckyHubUpdateModal";
 import { Card } from "./Card";
 import { colors } from "../styles";
 
