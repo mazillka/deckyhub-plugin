@@ -1,7 +1,7 @@
 import { addEventListener, removeEventListener, toaster } from "@decky/api";
 import { getRemoteInstallStatus } from "./api";
 import { runRemoteRequest } from "./components/remoteRequests";
-import { getDeckyBackend } from "./install";
+import { getDeckyBackend } from "./deckyLoader";
 import type { TFunc } from "./i18n/en";
 import { nextPendingRequest, nextTrustedRequest } from "./remoteTrusted";
 
