@@ -22,6 +22,9 @@ export const colors = {
 // A badge's text, fill and border in one color (with pillStyle).
 export const tint = (color: string) => ({ color, background: `${color}22`, borderColor: `${color}66` });
 
+// The widest an Experimental or V2 page gets (CSS px, before Steam's own 1.5x zoom); a wider window leaves margins either side.
+export const WIDE_PAGE_MAX = 1600;
+
 export const pageStyle = {
   boxSizing: "border-box" as const,
   height: "100%",
