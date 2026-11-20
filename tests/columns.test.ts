@@ -6,8 +6,12 @@ test("the Deck's own screen keeps three cards per row", () => {
   assert.equal(autoColumns(1280), 3);
 });
 
+test("a 1080p monitor, which Steam reports as 1500 px wide, fits four", () => {
+  assert.equal(autoColumns(1500), 4);
+});
+
 test("a wider screen fits more cards, up to six", () => {
-  assert.equal(autoColumns(1920), 4);
+  assert.equal(autoColumns(1920), 5);
   assert.equal(autoColumns(2560), 6);
   assert.equal(autoColumns(3840), 6);
 });

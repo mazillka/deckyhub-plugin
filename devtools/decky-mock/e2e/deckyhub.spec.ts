@@ -4784,7 +4784,7 @@ const cardsInFirstRow = (page: Page) =>
 
 for (const [width, height, columns] of [
   [1280, 800, 3],
-  [1920, 1080, 4],
+  [1920, 1080, 5],
   [3840, 2160, 6],
 ] as const) {
   test(`Items per row: Auto fits ${columns} cards on a ${width}x${height} screen`, async ({ page }) => {
@@ -4820,19 +4820,47 @@ test("The Large interface scales the page up, and Auto counts the room that leav
     await browseAll(page);
     await app.getByRole("button", { name: "Grid", exact: true }).click();
     const page_ = app.locator("body");
-    expect(await page_.evaluate(() => document.documentElement.style.getPropertyValue("--dh-zoom"))).toBe("1.25");
+    expect(await page_.evaluate(() => document.documentElement.style.getPropertyValue("--dh-scale"))).toBe("1.25");
     expect(
       await page_.evaluate(() => getComputedStyle(document.querySelector(".deckyhub-focus-ring button")!).minHeight),
     ).toBe("52px");
-    // 1920 px at 1.25x leaves 1536 px: three cards, where the normal size fits four.
-    await expect.poll(() => cardsInFirstRow(page)).toBe(3);
+    // 1920 px at 1.25x leaves 1536 px: four cards, where the normal size fits five.
+    await expect.poll(() => cardsInFirstRow(page)).toBe(4);
     // Back to the normal size on the same screen.
     await bridgeCall(page, "save_settings", { columnsPerRow: 0, density: "default" });
     await page.reload();
     await setScreen(page, 1920, 1080);
     await browseAll(page);
-    await expect.poll(() => cardsInFirstRow(page)).toBe(4);
+    await expect.poll(() => cardsInFirstRow(page)).toBe(5);
   } finally {
     await bridgeCall(page, "save_settings", { columnsPerRow: 0, density: "default" });
   }
 });
+
+// The mock zooms the page 1.5x like Gaming Mode does, so 1600 px of page is 2400 px of screen.
+const ZOOM = 1.5;
+const capBox = (page: Page) =>
+  mock(page)
+    .locator(".deckyhub-page-cap")
+    .evaluate((el) => {
+      const { x, width } = el.getBoundingClientRect();
+      return { x, width, window: innerWidth };
+    });
+
+for (const style of ["experimental", "v2"] as const) {
+  test(`${style}: a 3840 px screen keeps the page to a readable width, centered`, async ({ page }) => {
+    try {
+      await bridgeCall(page, "save_settings", { uiStyle: style, columnsPerRow: 0, density: "default" });
+      await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+      // The Deck's own screen: the page fills it.
+      await expect.poll(async () => (await capBox(page)).width).toBeGreaterThan(1100);
+      await setScreen(page, 3840, 2160);
+      await expect.poll(async () => Math.round((await capBox(page)).width)).toBe(1600 * ZOOM);
+      const box = await capBox(page);
+      // Centered: the same margin on both sides.
+      expect(Math.abs(box.x - (box.window - box.x - box.width))).toBeLessThan(4);
+    } finally {
+      await bridgeCall(page, "save_settings", { uiStyle: "default", columnsPerRow: 0, density: "default" });
+    }
+  });
+}
