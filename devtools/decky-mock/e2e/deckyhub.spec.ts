@@ -4820,11 +4820,11 @@ test("The Large interface scales the page up, and Auto counts the room that leav
     await browseAll(page);
     await app.getByRole("button", { name: "Grid", exact: true }).click();
     const page_ = app.locator("body");
-    expect(await page_.evaluate(() => document.documentElement.style.getPropertyValue("--dh-scale"))).toBe("1.25");
+    expect(await page_.evaluate(() => document.documentElement.style.getPropertyValue("--dh-scale"))).toBe("1.1");
     expect(
       await page_.evaluate(() => getComputedStyle(document.querySelector(".deckyhub-focus-ring button")!).minHeight),
     ).toBe("52px");
-    // 1920 px at 1.25x leaves 1536 px: four cards, where the normal size fits five.
+    // 1920 px at 1.1x leaves 1745 px: four cards, where the normal size fits five.
     await expect.poll(() => cardsInFirstRow(page)).toBe(4);
     // Back to the normal size on the same screen.
     await bridgeCall(page, "save_settings", { columnsPerRow: 0, density: "default" });

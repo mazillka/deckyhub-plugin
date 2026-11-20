@@ -115,9 +115,10 @@ const COMPACT_SIZES: Record<string, string> = {
   "--dh-card-padding": "0 10px",
 };
 
-// The Large interface for a TV across the room: bigger buttons and spacing, and text a quarter bigger
+// The Large interface for a TV across the room: bigger buttons and spacing, and text a tenth bigger.
+// (A quarter bigger made V2 lose D-pad focus on a real Deck; a tenth did not.)
 // (index.tsx). Not CSS zoom: it shifts where Steam's D-pad navigation finds the controls.
-const LARGE_SCALE = 1.25;
+const LARGE_SCALE = 1.1;
 const LARGE_SIZES: Record<string, string> = {
   "--dh-scale": String(LARGE_SCALE),
   "--dh-font-size": `${LARGE_SCALE}em`,
