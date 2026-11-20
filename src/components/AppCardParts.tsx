@@ -6,7 +6,7 @@ import { colors, tint } from "../styles";
 import type { App } from "../types";
 import { compactButtonStyle, ellipsis, statusKey, visuallyHidden } from "../utils";
 import { displayVersion } from "../version";
-import { pillStyle } from "./AppBadges";
+import { pillStyle } from "./badgeStyles";
 
 export type CardActions = ReturnType<typeof useCardActions>;
 

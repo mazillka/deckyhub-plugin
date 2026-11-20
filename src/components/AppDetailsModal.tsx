@@ -5,7 +5,8 @@ import type { App, AppReleaseOption, Asset, HideableButton, RepoPreference } fro
 import { buildVersionOptions, listAppReleases, PLUGIN_INSTALL_TYPE } from "../utils";
 import { useAppInstall } from "../hooks/useAppInstall";
 import { useRepoPreference } from "../hooks/useRepoPreference";
-import { AppMonogram, FindingsSummary } from "./AppBadges";
+import { AppMonogram } from "./AppIdentity";
+import { FindingsSummary } from "./AppBadges";
 import { AppMeta, DownloadButtons, InstallButton, StoreInstallSteps, UnverifiedActions } from "./AppDetailsParts";
 import { AppFooter } from "./AppDetailsFooter";
 import { DetailsWindow } from "./DetailsWindow";

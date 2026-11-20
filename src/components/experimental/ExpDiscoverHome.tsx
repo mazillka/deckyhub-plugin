@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { useT } from "../../i18n";
 import type { SortOrder } from "../../sorting";
 import type { App } from "../../types";
-import { categoryHue } from "../AppBadges";
+import { categoryHue } from "../AppIdentity";
 import type { CardLayout } from "../../hooks/useCardActions";
 import { keepInView } from "../KeepInView";
 

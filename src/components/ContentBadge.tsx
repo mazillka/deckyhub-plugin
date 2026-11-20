@@ -2,7 +2,7 @@ import { useT } from "../i18n";
 import { colors, tint } from "../styles";
 import type { UpdateChannel, View } from "../types";
 import { compactNumber } from "../utils";
-import { pillStyle } from "./AppBadges";
+import { pillStyle } from "./badgeStyles";
 import { countBadgeStyle } from "./QuickAccessNav";
 
 // Beside a page's title: Updates' count, Discover's total downloads, and a note when the

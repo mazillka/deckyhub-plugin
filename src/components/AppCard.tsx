@@ -3,7 +3,9 @@ import type { App } from "../types";
 import { cardDescriptionStyle, ellipsis, surfaceStyle } from "../utils";
 import { displayVersion } from "../version";
 import { ownerOf } from "../author";
-import { AppBadges, AppMonogram, AppStats } from "./AppBadges";
+import { AppBadges } from "./AppBadges";
+import { AppMonogram } from "./AppIdentity";
+import { AppStats } from "./AppStats";
 import { CardButtons, cardTitleStyle, fullRow, latestVersionText, StatusPills, type CardActions } from "./AppCardParts";
 import { colors } from "../styles";
 
