@@ -1,5 +1,5 @@
 import { DialogButtonPrimary as Button, Dropdown, Focusable, Spinner, TextField } from "@decky/ui";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { FaArrowUp, FaCog, FaExclamationTriangle, FaPlus, FaSync } from "react-icons/fa";
 import type { TFunc } from "../../i18n/en";
 import { useT } from "../../i18n";
@@ -13,10 +13,9 @@ import { authorSearch as authorSearchOf, ownerOf } from "../../author";
 import { useCardActions, type AppCardProps } from "../AppCard";
 import { EmptyState } from "../EmptyState";
 import { keepInView } from "../KeepInView";
+import { LIST_BATCH } from "../AppList";
 import { setV2Counts } from "./v2Counts";
 
-// Rows shown before More.
-const PAGE = 30;
 const LAZY_AHEAD = 5; // rows before the end of the loaded ones at which the next batch loads
 
 // The pane's height: the screen less Steam's 64px header and the 8px gaps above (its sticky top) and below it.
@@ -219,6 +218,28 @@ function Detail({
   );
 }
 
+// What stands in for the list while it loads, failed to load or has nothing to show (null: show the list).
+function libraryNotice(o: {
+  t: TFunc;
+  loading: boolean;
+  progress: string;
+  loadError: string | null | undefined;
+  empty: boolean;
+  emptyTitle: string;
+  toDiscover: boolean;
+}): ReactNode {
+  if (o.loading)
+    return (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, minHeight: "30vh" }}>
+        <Spinner style={{ width: "1.1em" }} /> {o.t("content.loading")}
+        {o.progress}
+      </div>
+    );
+  if (o.loadError) return <div style={{ color: colors.danger }}>{o.loadError}</div>;
+  if (o.empty) return <EmptyState title={o.emptyTitle} toDiscover={o.toDiscover} />;
+  return null;
+}
+
 // Experimental V2's page for Updates, Discover and Installed: a search field (and Discover's categories),
 // the notices and legend, then the list on the left and the focused plugin's facts and actions on the right.
 export function V2Library({
@@ -277,8 +298,8 @@ export function V2Library({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = shown.find((app) => app.id === selectedId) ?? shown[0];
   // Hundreds of rows at once would be slow on a Deck: a batch at a time, the next one loads as focus nears the end.
-  const [limit, setLimit] = useState(PAGE);
-  useEffect(() => setLimit(PAGE), [needle, category, view, sortOrder]);
+  const [limit, setLimit] = useState(LIST_BATCH);
+  useEffect(() => setLimit(LIST_BATCH), [needle, category, view, sortOrder]);
   // More from this author: the search narrowed to "owner/", which only the start of a repository's name matches.
   const authorSearch = selected ? authorSearchOf(selected) : "";
   const authorCount = selected ? apps.filter((app) => ownerOf(app) === ownerOf(selected)).length : 0;
@@ -289,6 +310,15 @@ export function V2Library({
     // The pane's button goes with the old list: focus the first row of the new one (after Steam has handed focus back).
     window.setTimeout(() => page.current?.querySelectorAll<HTMLElement>(".deckyhub-v2-row")[0]?.focus(), 400);
   };
+  const notice = libraryNotice({
+    t,
+    loading,
+    progress: allApps.length > 0 ? ` ${checked}/${allApps.length}` : "",
+    loadError,
+    empty: !shown.length,
+    emptyTitle,
+    toDiscover: view === "updates" && !needle,
+  });
   return (
     <div
       ref={page}
@@ -345,16 +375,7 @@ export function V2Library({
         </div>
       </Focusable>
       {/* The disclaimer and what the badges mean are in the info window (the button beside the tabs). */}
-      {loading ? (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, minHeight: "30vh" }}>
-          <Spinner style={{ width: "1.1em" }} /> {t("content.loading")}
-          {allApps.length > 0 && ` ${checked}/${allApps.length}`}
-        </div>
-      ) : loadError ? (
-        <div style={{ color: colors.danger }}>{loadError}</div>
-      ) : !shown.length ? (
-        <EmptyState title={emptyTitle} toDiscover={view === "updates" && !needle} />
-      ) : (
+      {notice ?? (
         <Focusable
           flow-children="right"
           style={{
@@ -376,7 +397,7 @@ export function V2Library({
                 selected={app.id === selected?.id}
                 onSelect={() => {
                   setSelectedId(app.id);
-                  if (index >= limit - LAZY_AHEAD) setLimit(limit + PAGE);
+                  if (index >= limit - LAZY_AHEAD) setLimit(limit + LIST_BATCH);
                 }}
               />
             ))}
