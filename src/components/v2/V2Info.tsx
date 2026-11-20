@@ -3,7 +3,7 @@ import { WideConfirmModal } from "../WideModal";
 import type { TFunc } from "../../i18n/en";
 import { badgeLegend } from "../ContentHeader";
 import { keepInView } from "../KeepInView";
-import { Legend } from "./V2Library";
+import { Legend } from "./V2Parts";
 
 // Experimental V2's info window: the install disclaimer and what the badges and dots on plugins mean, one block at a
 // time so the D-pad can scroll through it.
