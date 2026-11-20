@@ -64,6 +64,10 @@ test("every plain English sentence in the page scripts is translated", () => {
     "remote-share.js",
     "remote-plugins.js",
     "remote-updates.js",
+    "remote-session.js",
+    "remote-devices.js",
+    "remote-pairing.js",
+    "remote-request.js",
   ]) {
     const source = readFileSync(new URL(`../docs/${file}`, import.meta.url), "utf8");
     for (const match of source.matchAll(/'((?:[^'\\\n]|\\.)*)'/g)) {
