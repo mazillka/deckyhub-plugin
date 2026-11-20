@@ -4820,7 +4820,7 @@ test("The Large interface scales the page up, and Auto counts the room that leav
     await browseAll(page);
     await app.getByRole("button", { name: "Grid", exact: true }).click();
     const page_ = app.locator("body");
-    expect(await page_.evaluate(() => document.documentElement.style.getPropertyValue("--dh-zoom"))).toBe("1.25");
+    expect(await page_.evaluate(() => document.documentElement.style.getPropertyValue("--dh-scale"))).toBe("1.25");
     expect(
       await page_.evaluate(() => getComputedStyle(document.querySelector(".deckyhub-focus-ring button")!).minHeight),
     ).toBe("52px");

@@ -22,7 +22,7 @@ export const colors = {
 // A badge's text, fill and border in one color (with pillStyle).
 export const tint = (color: string) => ({ color, background: `${color}22`, borderColor: `${color}66` });
 
-// The widest an Experimental or V2 page gets (CSS px, before Steam's own 1.5x zoom); a wider window leaves margins either side.
+// The widest an Experimental or V2 page gets (CSS px); a wider window leaves margins either side.
 export const WIDE_PAGE_MAX = 1600;
 
 export const pageStyle = {
@@ -35,8 +35,6 @@ export const pageStyle = {
   scrollPaddingBottom: 96,
   scrollPaddingTop: 64,
   width: "100%",
-  // Large interface (applyDensity): everything on the page bigger, for a TV across the room.
-  zoom: "var(--dh-zoom, 1)",
 };
 
 // Sizes read CSS variables that fall back to the Default density; the Compact
@@ -117,10 +115,12 @@ const COMPACT_SIZES: Record<string, string> = {
   "--dh-card-padding": "0 10px",
 };
 
-// The Large interface for a TV across the room: bigger buttons and spacing, and the whole page zoomed.
-const LARGE_ZOOM = 1.25;
+// The Large interface for a TV across the room: bigger buttons and spacing, and text a quarter bigger
+// (index.tsx). Not CSS zoom: it shifts where Steam's D-pad navigation finds the controls.
+const LARGE_SCALE = 1.25;
 const LARGE_SIZES: Record<string, string> = {
-  "--dh-zoom": String(LARGE_ZOOM),
+  "--dh-scale": String(LARGE_SCALE),
+  "--dh-font-size": `${LARGE_SCALE}em`,
   "--dh-button-height": "52px",
   "--dh-button-padding": "10px 18px",
   "--dh-button-gap": "12px",
@@ -132,12 +132,12 @@ const LARGE_SIZES: Record<string, string> = {
 
 const DENSITY_SIZES: Record<string, Record<string, string>> = { compact: COMPACT_SIZES, large: LARGE_SIZES };
 
-// The window's width in the pixels the page is laid out in: the Large interface zooms the page, which
-// leaves it that much less room.
+// The window's width in units of the interface's size: the Large interface is bigger, which leaves a card
+// that much less room.
 export const layoutWidth = () =>
-  window.innerWidth / (Number(document.documentElement.style.getPropertyValue("--dh-zoom")) || 1);
+  window.innerWidth / (Number(document.documentElement.style.getPropertyValue("--dh-scale")) || 1);
 
-// Fired on this window once applyDensity has set the sizes (the zoom changes how much room the page has).
+// Fired on this window once applyDensity has set the sizes (a bigger interface leaves less room).
 export const DENSITY_APPLIED = "deckyhub-density-applied";
 
 // Applies Display Settings' density to this window and, in Gaming Mode, to the

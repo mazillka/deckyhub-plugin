@@ -45,7 +45,7 @@ function Motion({ children }: { children: ReactNode }) {
   return (
     <div
       className={experimental ? "deckyhub-motion deckyhub-exp" : "deckyhub-motion"}
-      style={{ height: "100%" }}
+      style={{ height: "100%", fontSize: "var(--dh-font-size, inherit)" }}
       onFocus={hapticTick}
     >
       <MotionStyle />
