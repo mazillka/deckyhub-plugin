@@ -7,5 +7,6 @@ export * from "./haptics";
 export * from "./notify";
 export * from "./install";
 export * from "./github";
+export * from "./registryData";
 export * from "./releases";
 export * from "./clipboard";

@@ -3,7 +3,7 @@ import { independentAuditOf } from "../independentAudit";
 import type { MetaDefenderReport, VirusTotalReport } from "../components/ScanParts";
 import { scannersOf } from "../components/ScanParts";
 import { ExpandRowContext } from "../components/DetailsParts";
-import { metaDefenderReportOf, virusTotalReportOf } from "../releases";
+import { metaDefenderReportOf, virusTotalReportOf } from "../registryData";
 import type { Asset, VirusScan } from "../types";
 import { virusScanOf } from "../utils";
 

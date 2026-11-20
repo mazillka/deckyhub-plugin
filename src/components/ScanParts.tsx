@@ -2,7 +2,7 @@ import { Focusable } from "@decky/ui";
 import type { ReactNode } from "react";
 import { FaShieldAlt } from "react-icons/fa";
 import type { TFunc } from "../i18n/en";
-import type { metaDefenderReportOf, virusTotalReportOf } from "../releases";
+import type { metaDefenderReportOf, virusTotalReportOf } from "../registryData";
 import { colors } from "../styles";
 import type { ScanVerdict, VirusScan } from "../types";
 import { keepInView } from "./KeepInView";

@@ -10,7 +10,8 @@ import {
 import { settleInstall } from "../remoteOutcome";
 import { installWarnings, type RemoteInstallRequest } from "../types";
 import type { TFunc } from "../i18n/en";
-import { listAppReleases, fetchPluginStats } from "../releases";
+import { fetchPluginStats } from "../registryData";
+import { listAppReleases } from "../releases";
 import { getDeckyBackend, installAction, installDeckyPlugin, needsFreshInstall, PLUGIN_INSTALL_TYPE } from "../install";
 import { manifestName } from "../utils";
 import { confirmPluginInstall } from "./InstallFlow";

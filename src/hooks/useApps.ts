@@ -11,7 +11,8 @@ import {
   notifyUpdates,
   scanFor,
 } from "../utils";
-import { installedRisk, metaDefenderReportOf, virusTotalReportOf } from "../releases";
+import { metaDefenderReportOf, virusTotalReportOf } from "../registryData";
+import { installedRisk } from "../releases";
 import { notifyInstalledRisks } from "../notify";
 
 // ponytail: fixed pool of 8 GitHub requests in flight; lower it if the registry grows
