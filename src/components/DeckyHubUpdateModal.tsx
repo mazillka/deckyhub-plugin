@@ -22,7 +22,8 @@ import { showReleaseInfo } from "./ReleaseInfo";
 import { iconTileStyle } from "./Card";
 import { showDownloadModal } from "./DownloadProgress";
 import { primaryButtonStyle } from "./AppDetailsParts";
-import { DetailsRow, DetailsWindow } from "./DetailsWindow";
+import { DetailsRow } from "./DetailsParts";
+import { DetailsWindow } from "./DetailsWindow";
 import { VirusScanReport } from "./VirusScanReport";
 import { ReleaseActions, useReleasePicker } from "./VersionPickerPanel";
 

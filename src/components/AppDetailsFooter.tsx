@@ -11,7 +11,7 @@ import { colors } from "../styles";
 import type { App, AppReleaseOption, HideableButton } from "../types";
 import { modalButtonStyle, uninstallDeckyPlugin } from "../utils";
 import { displayVersion } from "../version";
-import { DetailsRow } from "./DetailsWindow";
+import { DetailsRow } from "./DetailsParts";
 import { ReleaseActions } from "./VersionPickerPanel";
 import { WideConfirmModal } from "./WideModal";
 

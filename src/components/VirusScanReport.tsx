@@ -11,7 +11,7 @@ import { metaDefenderReportOf, virusTotalReportOf } from "../releases";
 import type { Asset, ScanVerdict, VirusScan } from "../types";
 import { displayVersion } from "../version";
 import { copyText, modalButtonStyle, timeAgo, virusScanOf } from "../utils";
-import { ExpandRowContext, sectionTitleStyle } from "./DetailsWindow";
+import { ExpandRowContext, sectionTitleStyle } from "./DetailsParts";
 import { keepInView } from "./KeepInView";
 import { scanAccent } from "../findings";
 import { colors } from "../styles";
