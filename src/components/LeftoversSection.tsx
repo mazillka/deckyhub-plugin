@@ -1,72 +1,17 @@
-import { toaster } from "@decky/api";
-import { DialogButtonPrimary as Button, PanelSection, PanelSectionRow, ToggleField, showModal } from "@decky/ui";
-import { useState } from "react";
+import { DialogButtonPrimary as Button, PanelSection, PanelSectionRow, ToggleField } from "@decky/ui";
 import { FaSearch, FaTrash } from "react-icons/fa";
-import { removeLeftovers, scanLeftovers, type Leftover } from "../api";
+import { useLeftovers } from "../hooks/useLeftovers";
 import { readableBytes, timeAgo } from "../format";
 import { useT } from "../i18n";
 import { colors } from "../styles";
 import { compactButtonStyle, sectionDividerStyle } from "../utils";
 import { Card } from "./Card";
-import { WideConfirmModal } from "./WideModal";
 
 // Folders Decky keeps for plugins that are no longer installed (leftovers.py). Looked for only when asked:
 // the guess can be wrong, so nothing is picked for the user, and removing backs up the settings first.
 export function LeftoversSection() {
   const t = useT();
-  const [items, setItems] = useState<Leftover[] | null>(null);
-  const [picked, setPicked] = useState<Set<string>>(new Set());
-  const [busy, setBusy] = useState(false);
-
-  const scan = () => {
-    setBusy(true);
-    void scanLeftovers()
-      .then(
-        ({ items: found }) => {
-          setItems(found);
-          setPicked(new Set());
-        },
-        (error: unknown) => toaster.toast({ title: "DeckyHub", body: String(error) }),
-      )
-      .finally(() => setBusy(false));
-  };
-
-  const toggle = (name: string, on: boolean) =>
-    setPicked((current) => {
-      const next = new Set(current);
-      if (on) next.add(name);
-      else next.delete(name);
-      return next;
-    });
-
-  const remove = () => {
-    const names = [...picked];
-    showModal(
-      <WideConfirmModal
-        strTitle={t("settings.leftoversConfirmTitle", { count: names.length })}
-        strDescription={t("settings.leftoversConfirm")}
-        strOKButtonText={t("settings.leftoversRemove", { count: names.length })}
-        bDestructiveWarning
-        onOK={() =>
-          void removeLeftovers(names).then(
-            (result) => {
-              toaster.toast({
-                title: "DeckyHub",
-                body:
-                  result.error ??
-                  t("settings.leftoversRemoved", {
-                    count: result.removed ?? 0,
-                    size: readableBytes(result.freed ?? 0),
-                  }),
-              });
-              scan();
-            },
-            (error: unknown) => toaster.toast({ title: "DeckyHub", body: String(error) }),
-          )
-        }
-      />,
-    );
-  };
+  const { items, picked, busy, scan, toggle, remove } = useLeftovers(t);
 
   return (
     <Card>
