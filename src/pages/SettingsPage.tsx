@@ -1,4 +1,4 @@
-import { Navigation, Tabs } from "@decky/ui";
+import { Tabs } from "@decky/ui";
 import { useState } from "react";
 import { FaCog } from "react-icons/fa";
 import { PageHeader } from "../components/Card";
@@ -9,14 +9,7 @@ import { useLayout } from "../components/LayoutToggle";
 import { useT } from "../i18n";
 import { settingsTabs, type SettingsTab } from "../components/settingsTabs";
 import { useSettings } from "../hooks/useSettings";
-
-// The tab Settings opens on next, for links into a particular one (the rate-limit
-// banner's Open Settings goes to GitHub Access).
-let nextTab: SettingsTab = "general";
-export function openSettings(tab: SettingsTab = "general") {
-  nextTab = tab;
-  Navigation.Navigate("/deckyhub/settings");
-}
+import { takeNextTab } from "../settingsNav";
 
 export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
   const t = useT();
@@ -24,9 +17,8 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
   const style = useUiStyle();
   const [layout, setLayout] = useLayout();
   const [tab, setTab] = useState<SettingsTab>(() => {
-    const opening = initialTab ?? nextTab;
-    nextTab = "general";
-    return opening;
+    const opening = takeNextTab();
+    return initialTab ?? opening;
   });
   const tabs = settingsTabs(t, useSettings(), {
     value: layout,

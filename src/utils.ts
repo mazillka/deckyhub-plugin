@@ -7,8 +7,6 @@ export * from "./haptics";
 export * from "./notify";
 export * from "./deckyLoader";
 export * from "./deckyInstallEvents";
-export * from "./deckyLoader";
-export * from "./deckyInstallEvents";
 export * from "./install";
 export * from "./github";
 export * from "./registryData";

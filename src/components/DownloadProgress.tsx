@@ -7,7 +7,8 @@ import { FaCheck, FaTimes } from "react-icons/fa";
 import { cancelDownload, getDownload } from "../api";
 import type { TFunc } from "../i18n/en";
 import type { Download } from "../types";
-import { iconRow, readableBytes } from "../utils";
+import { readableBytes } from "../format";
+import { iconRow } from "../styles";
 import { colors } from "../styles";
 
 const ACTIVE_STATES = ["queued", "downloading"];
