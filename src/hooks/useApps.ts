@@ -73,6 +73,24 @@ async function runPool(count: number, task: (index: number) => Promise<boolean>)
   await Promise.all(Array.from({ length: Math.min(RELEASE_CONCURRENCY, count) }, worker));
 }
 
+// Checks every app's release, a few at a time; `onChecked` gets each result and says whether to go on.
+async function hydrateAll(
+  tracked: App[],
+  force: boolean,
+  preferences: Record<string, RepoPreference>,
+  showBadges: boolean,
+  scans: Record<string, VirusScan>,
+  onChecked: (app: App) => boolean,
+) {
+  const hydrated = [...tracked];
+  await runPool(tracked.length, async (index) => {
+    const repo = tracked[index].repo;
+    hydrated[index] = await hydrateOne(tracked[index], force, preferences[repo], showBadges, scans);
+    return onChecked(hydrated[index]);
+  });
+  return hydrated;
+}
+
 // The settings the page is shown with, taken from each load.
 function useLoadedSettings() {
   const [columnsPerRow, setColumnsPerRow] = useState(DEFAULT_COLUMNS_PER_ROW);
@@ -80,8 +98,13 @@ function useLoadedSettings() {
   const [hiddenButtons, setHiddenButtons] = useState<HideableButton[]>([]);
   // Settings' Registry channel, for the header's Pre-release registry badge.
   const [registryChannel, setRegistryChannel] = useState<UpdateChannel>("stable");
+  // Every listed plugin, for the Quick Access menu's Discover button (its own list is installed ones only).
+  const [listedCount, setListedCount] = useState(0);
+  const [installedCount, setInstalledCount] = useState(0);
   // Returns the per-repo preferences, which the release checks use.
-  const apply = (settings: Awaited<ReturnType<typeof getSettings>>) => {
+  const apply = (settings: Awaited<ReturnType<typeof getSettings>>, listed: App[]) => {
+    setListedCount(listed.length);
+    setInstalledCount(listed.filter((app) => app.installedVersion).length);
     const preferences = settings.repoSettings || {};
     setRepoPreferences(preferences);
     setColumnsPerRow(settings.columnsPerRow);
@@ -89,7 +112,16 @@ function useLoadedSettings() {
     setRegistryChannel(settings.registryChannel === "prerelease" ? "prerelease" : "stable");
     return preferences;
   };
-  return { columnsPerRow, repoPreferences, setRepoPreferences, hiddenButtons, registryChannel, apply };
+  return {
+    columnsPerRow,
+    repoPreferences,
+    setRepoPreferences,
+    hiddenButtons,
+    registryChannel,
+    listedCount,
+    installedCount,
+    apply,
+  };
 }
 
 // Discover and Installed show stats and security badges on their cards; Updates needs the audit warnings
@@ -146,9 +178,6 @@ export function useApps(view: View) {
   const { apply: applySettings, ...settings } = useLoadedSettings();
   // Release checks finished out of the current load, shown while Updates waits on them.
   const [checked, setChecked] = useState(0);
-  // Every listed plugin, for the Quick Access menu's Discover button (its own list is installed ones only).
-  const [listedCount, setListedCount] = useState(0);
-  const [installedCount, setInstalledCount] = useState(0);
 
   // Bumped per load() so a slower, older load can't overwrite a newer one.
   const loadRun = useRef(0);
@@ -165,9 +194,7 @@ export function useApps(view: View) {
       const showBadges = view !== "updates";
       const [appData, loadedSettings, stats, scans] = await fetchAll(showBadges, force);
       const local = appData.apps;
-      setListedCount(local.length);
-      setInstalledCount(local.filter((app) => app.installedVersion).length);
-      const preferences = applySettings(loadedSettings);
+      const preferences = applySettings(loadedSettings, local);
       const tracked = trackedApps(local, view, showBadges, stats);
       // A card keeps its last release check until this load's replaces it.
       setApps((current) => keepLastChecks(current, tracked));
@@ -178,13 +205,11 @@ export function useApps(view: View) {
         loaded.current = true;
         setLoading(false);
       }
-      const hydrated = [...tracked];
       setChecked(0);
-      await runPool(tracked.length, async (index) => {
-        hydrated[index] = await hydrateOne(tracked[index], force, preferences[tracked[index].repo], showBadges, scans);
+      const hydrated = await hydrateAll(tracked, force, preferences, showBadges, scans, (fresh) => {
         // A newer load took over: stop, rather than check the rest for nothing.
         if (run !== loadRun.current) return false;
-        setApps((current) => current.map((app) => (app.id === hydrated[index].id ? hydrated[index] : app)));
+        setApps((current) => current.map((app) => (app.id === fresh.id ? fresh : app)));
         setChecked((count) => count + 1);
         return true;
       });
@@ -208,8 +233,6 @@ export function useApps(view: View) {
     loading,
     loadError,
     checked,
-    listedCount,
-    installedCount,
     ...settings,
     load,
   };

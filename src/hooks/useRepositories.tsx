@@ -59,6 +59,17 @@ async function pickJson(): Promise<string | undefined> {
   }
 }
 
+// Says why an add didn't work. Decky's toaster truncates a long body, so the toast stays a short sentence and
+// the technical reason goes to the DeckyHub log instead (see log_frontend).
+function explainRejection(t: TFunc, result: Awaited<ReturnType<typeof addCustomRegistry>>, url: string) {
+  const key = REGISTRY_ERROR[result.reason ?? ""];
+  if (result.detail) log(`Registry add rejected (${result.reason}) for ${url}: ${result.detail}`);
+  toaster.toast({
+    title: "DeckyHub",
+    body: key ? t(key, { limit: result.detail ?? "10" }) : t("repos.registryFailed"),
+  });
+}
+
 type Refresh = () => void;
 
 // Adding, removing and reloading custom registries.
@@ -85,14 +96,7 @@ function useRegistryActions(t: TFunc, refreshRepos: Refresh) {
         toaster.toast({ title: "DeckyHub", body: t("repos.registryAdded", { apps: result.apps ?? 0 }) });
         return;
       }
-      const key = REGISTRY_ERROR[result.reason ?? ""];
-      // Decky's toaster truncates a long body, so the toast stays a short sentence and
-      // the technical reason goes to the DeckyHub log instead (see log_frontend).
-      if (result.detail) log(`Registry add rejected (${result.reason}) for ${url}: ${result.detail}`);
-      toaster.toast({
-        title: "DeckyHub",
-        body: key ? t(key, { limit: result.detail ?? "10" }) : t("repos.registryFailed"),
-      });
+      explainRejection(t, result, url);
     } catch (error) {
       registryFailed(error, "Adding registry");
     } finally {
@@ -134,7 +138,7 @@ function useRegistryActions(t: TFunc, refreshRepos: Refresh) {
     }
   };
 
-  return { registryValue, setRegistryValue, registryBusy, addRegistry, removeRegistry, reloadRegistries };
+  return { registryValue, setRegistryValue, registryBusy, addRegistry, confirmRemoveRegistry, reloadRegistries };
 }
 
 // Exporting and importing the repository list and plugin packs.
@@ -206,17 +210,6 @@ export function useRepositories(t: TFunc) {
       />,
     );
 
-  const confirmRemoveRegistry = (url: string) =>
-    showModal(
-      <WideConfirmModal
-        strTitle={t("repos.removeRegistryTitle")}
-        strDescription={t("repos.removeRegistryDesc", { url })}
-        strOKButtonText={t("repos.removeConfirm")}
-        bDestructiveWarning
-        onOK={() => void registry.removeRegistry(url)}
-      />,
-    );
-
   return {
     customRepos,
     registries,
@@ -224,7 +217,7 @@ export function useRepositories(t: TFunc) {
     setRegistryValue: registry.setRegistryValue,
     registryBusy: registry.registryBusy,
     confirmRemove,
-    confirmRemoveRegistry,
+    confirmRemoveRegistry: registry.confirmRemoveRegistry,
     addRegistry: registry.addRegistry,
     reloadRegistries: registry.reloadRegistries,
     ...transfer,

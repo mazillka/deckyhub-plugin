@@ -54,10 +54,29 @@ function startQuickInstall(t: TFunc, app: App, install: Install, label: string) 
   );
 }
 
+// The Manage window. Its Repository button closes it from code, which doesn't give focus back to the card.
+function showManage(t: TFunc, props: AppCardProps, event: MouseEvent) {
+  const { app, onPreferenceChange } = props;
+  rememberOpener(event.currentTarget);
+  showModal(
+    <AppDetailsModal
+      t={t}
+      app={app}
+      preference={props.preference}
+      downloadDisabled={props.downloadDisabled}
+      hiddenButtons={props.hiddenButtons}
+      onDownload={props.onDownload}
+      onPreferenceChange={(next) => onPreferenceChange(app.repo, next)}
+      onUninstalled={props.onUninstalled}
+      moreFromAuthor={props.moreFromAuthor}
+    />,
+  );
+}
+
 // What a card can do, shared by the Default card and the Experimental one (ExpAppCard):
 // the quick Install / Update (with Y / X / Menu on it) and the Manage window.
 export function useCardActions(props: AppCardProps) {
-  const { app, preference, downloadDisabled, hiddenButtons, onDownload, onPreferenceChange, onUninstalled } = props;
+  const { app, downloadDisabled, hiddenButtons, onDownload } = props;
   const t = useT();
   // Quick install/update to the latest release of a Decky plugin;
   // Manage still offers other versions/channels.
@@ -97,23 +116,7 @@ export function useCardActions(props: AppCardProps) {
       void startQuickInstall(t, app, install, quickLabel).finally(() => setInstalling(false));
     },
   };
-  const openManage = (event: MouseEvent) => {
-    // Its Repository button closes it from code, which doesn't give focus back here.
-    rememberOpener(event.currentTarget);
-    showModal(
-      <AppDetailsModal
-        t={t}
-        app={app}
-        preference={preference}
-        downloadDisabled={downloadDisabled}
-        hiddenButtons={hiddenButtons}
-        onDownload={onDownload}
-        onPreferenceChange={(next) => onPreferenceChange(app.repo, next)}
-        onUninstalled={onUninstalled}
-        moreFromAuthor={props.moreFromAuthor}
-      />,
-    );
-  };
+  const openManage = (event: MouseEvent) => showManage(t, props, event);
   return {
     t,
     install,
