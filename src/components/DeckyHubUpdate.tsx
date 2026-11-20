@@ -1,6 +1,6 @@
 import { toaster } from "@decky/api";
 import { DialogButtonPrimary as Button, Focusable, PanelSection, PanelSectionRow, showModal } from "@decky/ui";
-import { FaArrowUp, FaCog } from "react-icons/fa";
+import { FaArrowUp, FaSync } from "react-icons/fa";
 import { getSettings } from "../api";
 import { useT } from "../i18n";
 import type { TFunc } from "../i18n/en";
@@ -122,9 +122,10 @@ export function DeckyHubUpdate() {
             <div style={hasUpdate ? { flex: "0 0 44px" } : { flex: 1 }}>
               <Button
                 style={{ ...compactButtonStyle, marginBottom: 0, ...(hasUpdate && { padding: 0 }) }}
+                aria-label={t("settings.deckyhubUpdate")}
                 onClick={() => openUpdateWindow(t, v)}
               >
-                <FaCog /> <span style={hasUpdate ? visuallyHidden : undefined}>{t("appcard.manage")}</span>
+                <FaSync /> <span style={hasUpdate ? visuallyHidden : undefined}>{t("nav.updates")}</span>
               </Button>
             </div>
           </Focusable>
