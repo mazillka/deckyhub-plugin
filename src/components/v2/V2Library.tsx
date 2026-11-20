@@ -16,7 +16,8 @@ import { useCardActions, type AppCardProps } from "../../hooks/useCardActions";
 import { EmptyState } from "../EmptyState";
 import { keepInView } from "../KeepInView";
 import { LIST_BATCH } from "../AppList";
-import { Detail } from "./V2Parts";
+import { HeaderNotices } from "../ContentHeader";
+import { Detail, Legend } from "./V2Parts";
 import { V2List, V2Toolbar } from "./V2Toolbar";
 import { setV2Counts } from "./v2Counts";
 
@@ -133,7 +134,14 @@ export function V2Library({
         {...{ t, view, query, onQuery, category, onCategory, categories, sortOrder, onSortOrder }}
         {...{ updateAllCount, updatingAll, onUpdateAll, onRefresh }}
       />
-      {/* The disclaimer and what the badges mean are in the info window (the button beside the tabs). */}
+      {/* The two notices side by side, as in Experimental, then what the dots mean. */}
+      <Focusable
+        flow-children="right"
+        style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 10, alignItems: "start" }}
+      >
+        <HeaderNotices />
+      </Focusable>
+      <Legend t={t} />
       {notice ?? (
         <V2List
           t={t}

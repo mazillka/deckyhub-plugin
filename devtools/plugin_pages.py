@@ -1,1362 +1,140 @@
 """Per-plugin pages for deckyhub.com (plugins/<id>.html), written by build-site.py.
 
-Each page has what the catalog knows about a plugin: description, category, downloads,
-stars, latest release, badges (runs as root, fork, AI, Rust, audit warnings) and its security scans
-(ClamAV and YARA from the registry's scans, VirusTotal by SHA-256, MetaDefender's report),
-and how to install it. The data is the registry's apps.json, stats.json, virus-scans
-plugins.json and metadefender-reports reports.json; whatever can't be fetched is left out.
-The page shell (style, navigation, footer) comes from docs/releases.html so every page
-looks the same.
+Each page has what the catalog knows about a plugin: description, category, downloads, stars, latest release, badges
+and its security scans; the catalog, category, Known issues and Paired devices pages are written here too.
+The code lives in one module per concern (page_shell, page_text, plugin_data, scan_format, plugin_badges,
+remote_panel, plugin_detail, catalog_pages, issues_page); this module writes the files and re-exports every name
+the pages ever had, so `import plugin_pages` keeps working for build-site.py, audit-site.py and the tests.
 """
 
 import collections
 import json
-import re
-import sys
 import time
-import urllib.request
-from html import escape
 
-import remote_page_uk
-import site_shell
-
-SITE = "https://deckyhub.com/"
-REGISTRY_RAW = "https://raw.githubusercontent.com/mazillka/deckyhub-registry/"
-STATS_URL = REGISTRY_RAW + "release-index/stats.json"
-RELEASES_URL = REGISTRY_RAW + "release-index/releases.json"
-SCANS_URL = REGISTRY_RAW + "virus-scans/plugins.json"
-METADEFENDER_URL = REGISTRY_RAW + "metadefender-reports/reports.json"
-VIRUSTOTAL_URL = REGISTRY_RAW + "virustotal-reports/reports.json"
-# What the audit's warnings are called and mean (id: (label, hint)); the app and the installer say the same.
-WARNINGS = {
-    "blocked": ("Blocked by audit", "The audit found malware or a broken archive. Not recommended for installation."),
-    "private-data": (
-        "Reads private data",
-        "Its code reads Steam login data, SSH keys or secrets from the environment.",
-    ),
-    "persistence": (
-        "Changes system startup",
-        "It edits shell profiles, preloads libraries, loads kernel modules or adds device rules, which keep working outside Decky.",
-    ),
-    "not-in-source": (
-        "Very high risk: Download includes code that is not in GitHub",
-        "The downloaded release contains code the audit could not match to the published source. This could hide malicious changes. Review the release before installing; a mismatch does not prove malware.",
-    ),
-    "obfuscated": ("Hidden code", "It contains encoded or packed code that's hard to read."),
-    "no-tls-check": (
-        "Skips HTTPS checks",
-        "It turns off certificate checks, so what it downloads could be tampered with.",
-    ),
-    "runs-downloads": ("Runs downloaded scripts", "It downloads a script and runs it straight away."),
-    "vulnerable": ("Known vulnerabilities", "It bundles libraries with published security flaws."),
-}
-
-SCAN_LABELS = {
-    "clean": ("Nothing flagged", "clean"),
-    "infected": ("Threat found", "stale"),
-    "partial": ("Not fully scanned", "warn"),
-}
-SCAN_RESULTS = {
-    "clean": "no threats found",
-    "infected": "threat found",
-    "incomplete": "only partly scanned",
-    "error": "couldn't be scanned",
-}
-# What a VirusTotal or MetaDefender report says before it has a result; the app says the same.
-EXTERNAL_STATUS = {
-    "pending": "Scan pending",
-    "waiting": "Scan pending",
-    "error": "Couldn't be scanned",
-    "unsupported": "Too large for VirusTotal",
-}
-
-EXTRA_STYLE = """
-.app{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;text-decoration:none;color:var(--text);display:flex;flex-direction:column;gap:2px;content-visibility:auto;contain-intrinsic-size:auto 150px}
-.app:hover{border-color:var(--accent2)}.app small{color:var(--accent2);font-size:.75rem;text-transform:uppercase;letter-spacing:.05em}
-.app p{margin:4px 0 0;color:var(--muted);font-size:.9rem;flex:1}.app .meta{color:var(--dim);font-size:.82rem;margin-top:8px}
-.app .flags{display:flex;flex-wrap:wrap;gap:4px 8px;font-size:.78rem;margin-top:4px}.flag-ai{color:#b79cff}.flag-rust{color:#ffb08a}.flag-warn{color:var(--warn)}.flag-bad{color:#ff8a8a}.flag-ok{color:#6bcb6b}.flag-store{color:#7cc4ff}
-.app[hidden]{display:none}
-.catalog{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
-.filters{display:grid;gap:12px;margin:18px 0 8px}.filters input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:1rem}
-.chips{display:flex;flex-wrap:wrap;gap:8px}.chips button{padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:.9rem;cursor:pointer}
-.chips button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
-.crumbs{color:var(--dim);font-size:.9rem;margin:28px 0 6px}.crumbs a{color:var(--dim)}
-.plugin h1{margin-top:0}.plugin h2{font-size:1.25rem;margin:32px 0 10px;scroll-margin-top:72px}
-.lead{font-size:1.15rem;color:var(--muted);margin:0 0 18px}
-.facts{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin:0;padding:0;list-style:none}
-.facts li{min-width:0;overflow-wrap:anywhere;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;color:var(--muted);font-size:.9rem}.facts li.wide{grid-column:1/-1}.facts strong{display:block;color:var(--text);font-size:1.05rem}
-.badges{display:grid;gap:8px;margin:0;padding:0;list-style:none}.badges li{color:var(--muted)}
-.badge{padding:1px 8px;border-radius:999px;border:1px solid currentColor;font-size:.8rem;white-space:nowrap;margin-right:6px}.badge.store{color:#7cc4ff}
-.root{color:#ffb35c}.stale{color:#ff8a8a}.warn{color:var(--warn)}.fork{color:var(--muted)}.clean{color:#6bcb6b}.ai{color:#c49bff}.rust{color:#ffb08a}
-.btn{display:inline-block;padding:11px 18px;border-radius:8px;background:var(--accent);color:#fff;text-decoration:none;font-weight:600;margin:4px 8px 4px 0;cursor:pointer;font-family:inherit;font-size:inherit}.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
-.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;padding:0;list-style:none}
-.list a{display:block;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;text-decoration:none;color:var(--text);height:100%}
-.list a:hover{border-color:var(--accent2)}.list small{display:block;color:var(--muted);margin-top:4px}
-.note{color:var(--dim);font-size:.9rem}
-.cta{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px}.cta .btn{margin:0;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
-.chips-row{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px;padding:0;list-style:none}
-.chip{padding:5px 13px;border-radius:999px;border:1px solid currentColor;font-size:.92rem;font-weight:600}
-.steps{display:grid;gap:12px;margin:0 0 12px;padding:0;list-style:none;counter-reset:step}
-.steps li{counter-increment:step;display:flex;gap:12px;align-items:flex-start;color:var(--text)}
-.steps li::before{content:counter(step);flex:none;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700;font-size:.9rem}
-details.more{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:0 16px;margin:12px 0}
-details.more>summary{cursor:pointer;padding:14px 0;font-weight:600;min-height:44px}
-details.more[open]>summary{border-bottom:1px solid var(--line);margin-bottom:12px}
-.badges li{min-width:0;overflow-wrap:anywhere}.plugin code{overflow-wrap:anywhere}
-@media(max-width:640px){
-.facts{grid-template-columns:repeat(2,minmax(0,1fr))}
-.cta .btn{flex:1 1 100%}
-.plugin h1{font-size:1.8rem}.lead{font-size:1.05rem}
-.list{grid-template-columns:1fr}
-table.scans{display:block;overflow-x:auto}
-.chips button{min-height:40px}
-}
-table.scans{width:100%;border-collapse:collapse;font-size:.92rem;margin:0 0 18px}.scans caption{text-align:left;color:var(--muted);padding:6px 0}.scans th,.scans td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}.scans th{color:var(--dim);font-weight:600}
-"""
-
-
-def fetch(url: str) -> str | None:
-    try:
-        with urllib.request.urlopen(
-            urllib.request.Request(url, headers={"User-Agent": "deckyhub-site"}), timeout=60
-        ) as response:
-            return response.read().decode("utf-8")
-    except Exception as error:  # noqa: BLE001 - the pages go out without that data
-        print(f"warning: {url}: {error}", file=sys.stderr)
-        return None
-
-
-def fetch_json(url: str, key: str) -> dict:
-    text = fetch(url)
-    try:
-        return (json.loads(text).get(key) or {}) if text else {}
-    except (ValueError, AttributeError):
-        return {}
-
-
-def compact(number: int) -> str:
-    for size, suffix in ((1_000_000, "M"), (1_000, "K")):
-        if number >= size:
-            return f"{number / size:.1f}".rstrip("0").rstrip(".") + suffix
-    return str(number)
-
-
-MAX_SAFE_COUNT = 2**53 - 1
-
-
-def valid_count(value: object) -> bool:
-    return isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= MAX_SAFE_COUNT
-
-
-def store_activity(stats: dict) -> int | None:
-    """New counters require both valid lists; fall back to the legacy store download count."""
-    store = stats.get("store") or {}
-    activity = store.get("activity") or {}
-    downloads, updates = activity.get("downloads"), activity.get("updates")
-    if valid_count(downloads) and valid_count(updates) and valid_count(downloads + updates):
-        return downloads + updates
-    legacy = store.get("downloads")
-    return legacy if valid_count(legacy) else None
-
-
-def total_downloads(stats: dict) -> int | None:
-    """Approximate GitHub + store downloads/updates; repeat activity is not a unique-install count."""
-    github = stats.get("downloads")
-    github = github if valid_count(github) else None
-    store = store_activity(stats)
-    if github is None and store is None:
-        return None
-    total = (github or 0) + (store or 0)
-    return total if valid_count(total) else None
-
-
-def source_mismatch(channel: dict) -> bool:
-    """Whether this channel's exact release scan record has valid independent source findings."""
-    sha = channel.get("sha256") or ""
-    if not re.fullmatch(r"[0-9a-fA-F]{64}", sha) or not channel.get("tag") or not channel.get("file"):
-        return False
-    audit = channel.get("audit") or {}
-    source = audit.get("source") if isinstance(audit, dict) else None
-    if not isinstance(source, dict) or source.get("result") not in ("complete", "incomplete", "error"):
-        return False
-    findings = source.get("findings")
-    return isinstance(findings, list) and any(
-        isinstance(finding, dict)
-        and finding.get("rule") in ("source_path_missing", "source_file_differs")
-        and isinstance(finding.get("path"), str)
-        and 0 < len(finding["path"]) <= 1024
-        for finding in findings
-    )
-
-
-def nice_date(iso: str | None) -> str:
-    if not iso:
-        return ""
-    day = time.strptime(iso[:10], "%Y-%m-%d")
-    return time.strftime("%B ", day) + f"{day.tm_mday}, {day.tm_year}"  # %-d isn't portable
-
-
-def vt_result(vt_reports: dict | None, sha: str) -> tuple[int, int] | None:
-    """(flagged, total) from VirusTotal's finished report on this SHA-256, as the app counts it."""
-    vt = (vt_reports or {}).get(sha.lower()) or {}
-    counts = [(vt.get("stats") or {}).get(key) for key in ("malicious", "suspicious", "harmless", "undetected")]
-    if vt.get("state") == "complete" and all(isinstance(n, int) and n >= 0 for n in counts) and sum(counts):
-        return counts[0] + counts[1], sum(counts)
-    return None
-
-
-def md_result(reports: dict | None, sha: str) -> tuple[int, int] | None:
-    """(flagged, total) from MetaDefender's finished report on this SHA-256."""
-    report = (reports or {}).get(sha.lower()) or {}
-    flagged, total = report.get("flagged"), report.get("total")
-    if (
-        report.get("state") == "complete"
-        and isinstance(flagged, int)
-        and isinstance(total, int)
-        and 0 <= flagged <= total
-        and total
-    ):
-        return flagged, total
-    return None
-
-
-def external_results(channel: dict, reports: dict | None, vt_reports: dict | None) -> list[tuple[str, int, int]]:
-    sha = channel.get("sha256") or ""
-    return [
-        (name, *result)
-        for name, result in (("VirusTotal", vt_result(vt_reports, sha)), ("MetaDefender", md_result(reports, sha)))
-        if result
-    ]
-
-
-SCANNERS = 4  # ClamAV, YARA, VirusTotal and MetaDefender
-
-
-def scan_results(channel: dict, reports: dict | None = None, vt_reports: dict | None = None) -> list[str]:
-    """What each scanner that has reported said about the ZIP: clean, infected, incomplete or error."""
-    results = [scan["result"] for scan in (channel.get("clamav"), channel.get("yara")) if scan]
-    return results + [
-        "infected" if flagged else "clean" for _, flagged, _ in external_results(channel, reports, vt_reports)
-    ]
-
-
-def scan_state(channel: dict, reports: dict | None = None, vt_reports: dict | None = None) -> str:
-    """What the scanners that reported said: infected if any flagged it, partial if one couldn't finish, else clean,
-    however many have reported. The Known issues page lists these problems; a scan still waiting on VirusTotal or
-    MetaDefender is not one."""
-    results = scan_results(channel, reports, vt_reports)
-    if "infected" in results:
-        return "infected"
-    return "partial" if any(result != "clean" for result in results) else "clean"
-
-
-def scan_kind(channel: dict, reports: dict | None = None, vt_reports: dict | None = None) -> str:
-    """The badge: infected if any scanner flagged it; clean only once all four have reported and found nothing. Two
-    clean reports out of four say less than "Nothing flagged" sounds like, so a release still waiting on VirusTotal
-    or MetaDefender is partial."""
-    state = scan_state(channel, reports, vt_reports)
-    if state != "clean":
-        return state
-    return "clean" if len(scan_results(channel, reports, vt_reports)) >= SCANNERS else "partial"
-
-
-def fit(text: str, limit: int) -> str:
-    """text cut at a word boundary to at most `limit` characters, with an ellipsis when it was cut."""
-    if len(text) <= limit:
-        return text
-    return text[: limit - 1].rsplit(" ", 1)[0].rstrip(" ,;:.-") + "…"
-
-
-def owner_of(app: dict) -> str:
-    """The GitHub account a plugin comes from: the registry has no author field of its own."""
-    return app["repo"].split("/")[0]
-
-
-def plain_notes(body: str | None, limit: int = 600) -> str:
-    """A release's notes as plain text: code blocks, images, links' addresses, HTML and markdown marks removed, and
-    cut at a word boundary. The text is the plugin author's own, so it is only ever escaped, never trusted."""
-    text = re.sub(r"```.*?```", " ", body or "", flags=re.S)
-    text = re.sub(r"!\[[^\]]*\]\([^)]*\)", " ", text)
-    text = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", text)
-    text = re.sub(r"<(script|style)\b.*?</\1>", " ", text, flags=re.S | re.I)
-    text = re.sub(r"<[^>]+>|https?://\S+", " ", text)
-    text = re.sub(r"^\s{0,3}#{1,6}\s*", "", text, flags=re.M)
-    text = re.sub(r"[*`]", "", text)
-    text = re.sub(r"[>|]|^\s*[-+]\s+", " ", text, flags=re.M)
-    return fit(re.sub(r"\s+", " ", text).strip(), limit)
-
-
-def whats_new(releases: list | None, repo_url: str) -> str:
-    """The newest stable release's notes (the newest pre-release's when there is no stable one), as a page section."""
-    notes_of = [item for item in releases or [] if plain_notes(item.get("body"))]
-    release = next((item for item in notes_of if not item.get("prerelease")), notes_of[0] if notes_of else None)
-    if not release or not release.get("tag_name"):
-        return ""
-    url = release.get("html_url") or ""
-    if not url.startswith(repo_url + "/"):
-        url = f"{repo_url}/releases"
-    when = nice_date(release.get("published_at"))
-    label = f"{release['tag_name']} (pre-release)" if release.get("prerelease") else release["tag_name"]
-    return (
-        f'<h2 id="whats-new">What&#8217;s new in {escape(label)}</h2>'
-        f"<p>{escape(plain_notes(release.get('body')))}</p>"
-        f'<p class="note">From the plugin author&#8217;s release notes{" of " + when if when else ""}. '
-        f'<a href="{escape(url)}">Read them in full on GitHub</a>.</p>'
-    )
-
-
-def json_ld(data: dict) -> str:
-    # No "<" at all inside the script element, so nothing in a name or description can end it.
-    return (
-        '<script type="application/ld+json">'
-        + json.dumps({"@context": "https://schema.org", **data}, ensure_ascii=False, separators=(",", ":")).replace(
-            "<", "\\u003c"
-        )
-        + "</script>"
-    )
-
-
-NOT_REVIEWED = "DeckyHub is not the Decky store and nobody reviews these plugins, DeckyHub included. A clean scan only means no known malware was found."
-STORE_ONLY_NOTE = '<p class="note">Its author distributes it through the <a href="https://plugins.deckbrew.xyz/plugins">Decky store</a>. DeckyHub lists it but offers no GitHub download: install it from the store inside Decky.</p>'
-
-
-def install_steps(app: dict, name: str) -> str:
-    """The "How to install" steps: through DeckyHub, or for a plugin only in the Decky store, through Decky's own store."""
-    if app.get("store"):
-        steps = [
-            "Open Decky Loader's Quick Access menu (the plug icon) in Gaming Mode and choose <strong>Store</strong>.",
-            f"Search for <strong>{escape(name)}</strong>.",
-            "Press <strong>Install</strong>. Decky Loader downloads it from its "
-            '<a href="https://plugins.deckbrew.xyz/plugins">store</a>, so the install counts for its author there.',
-        ]
-    else:
-        steps = [
-            'Get <a href="/#install">DeckyHub</a> on your Steam Deck if you do not have it yet.',
-            f"In Gaming Mode open DeckyHub's <strong>Discover</strong> tab and search for <strong>{escape(name)}</strong>.",
-            "Press <strong>Install</strong>. DeckyHub hands the release to "
-            '<a href="https://decky.xyz/">Decky Loader</a>'
-            "'s own installer and checks its SHA-256 whenever GitHub publishes one.",
-        ]
-    return "\n".join(f"<li><span>{step}</span></li>" for step in steps)
-
-
-def badges_of(
-    stats: dict, scans: dict, warnings: dict, reports: dict | None = None, vt_reports: dict | None = None
-) -> list[str]:
-    items = []
-    if stats.get("root"):
-        items.append(
-            '<li><span class="badge root">Runs as root</span> Its plugin.json asks Decky Loader to run its backend as root, with full access to the device. Many plugins need that for real reasons; install it only if you trust the author.</li>'
-        )
-    if stats.get("fork"):
-        items.append(
-            f'<li><span class="badge fork">Fork</span> A fork of <a href="https://github.com/{escape(stats["fork"])}">{escape(stats["fork"].split("/")[1])}</a> by <a href="https://github.com/{escape(stats["fork"].split("/")[0])}">{escape(stats["fork"].split("/")[0])}</a>: its code started as a copy of that project.</li>'
-        )
-    if stats.get("store") and store_activity(stats) is not None:
-        activity = (stats.get("store") or {}).get("activity") or {}
-        has_activity = valid_count(activity.get("downloads")) and valid_count(activity.get("updates"))
-        metric = "downloads + updates" if has_activity else "downloads"
-        items.append(
-            f'<li><span class="badge store">In Decky store</span> The <a href="https://plugins.deckbrew.xyz/plugins">Decky store</a> lists a plugin with this name ({compact(store_activity(stats))} {metric}). The store matches by name, so check that it is this repository. These counts include repeat activity and are not unique installs. The store is where Decky installs it from; DeckyHub installs from GitHub.</li>'
-        )
-    if stats.get("rust"):
-        items.append(
-            '<li><span class="badge rust">Rust</span> Its repository has Rust code, so part of the plugin is written in Rust. That says nothing about its quality or safety.</li>'
-        )
-    if stats.get("ai"):
-        items.append(
-            f"<li><span class=\"badge ai\">AI</span> Its repository has instructions for AI coding assistants, or its README says it's made with AI ({escape(', '.join(stats['ai']))}), so it's likely developed with AI help. That says nothing about its quality or safety.</li>"
-        )
-    for key, prefix in [
-        *((key, "") for key in stats.get("warnings") or []),
-        *(
-            (key, "Pre-release: ")
-            for key in stats.get("prereleaseWarnings") or []
-            if key not in (stats.get("warnings") or [])
-        ),
-    ]:
-        if key in warnings:
-            label, hint = warnings[key]
-            items.append(
-                f'<li><span class="badge {"stale" if key in ("blocked", "not-in-source") else "warn"}">{escape(prefix + label)}</span> {escape(hint)} (from <a href="https://decky-extended-plugins.beallio.com/audit">Decky Extended Plugins\' audit</a>)</li>'
-            )
-    for channel, channel_name, prefix in (
-        (scans.get("stable"), "Stable", ""),
-        (scans.get("prerelease"), "Pre-release", "Pre-release: "),
-    ):
-        if not channel:
-            continue
-        mismatch = source_mismatch(channel)
-        channel_warning_key = "warnings" if channel_name == "Stable" else "prereleaseWarnings"
-        already_warned = "not-in-source" in (stats.get(channel_warning_key) or [])
-        if mismatch and not already_warned:
-            label, hint = warnings.get(
-                "not-in-source",
-                (
-                    "Very high risk: Download includes code that is not in GitHub",
-                    "The release contains code the audit could not match to the repository. This can hide malicious changes; review the release and source before installing. An automated mismatch does not prove malware.",
-                ),
-            )
-            release_identity = f"{channel_name} ZIP {channel['file']} ({channel['tag']})"
-            items.append(
-                f'<li><span class="badge stale">{escape(prefix + label)}</span> {escape(hint)} Applies to {escape(release_identity)}.</li>'
-            )
-        if not channel.get("clamav"):
-            continue
-        kind = scan_kind(channel, reports, vt_reports)
-        if prefix and (scans.get("stable") or {}).get("clamav") and kind == "clean":
-            continue
-        label, css = SCAN_LABELS[kind]
-        results = "; ".join(
-            f"{name}: {SCAN_RESULTS.get(scan['result'], scan['result'])}"
-            + (f" ({', '.join(scan['found'])})" if scan.get("found") else "")
-            for name, scan in (("ClamAV", channel.get("clamav")), ("YARA", channel.get("yara")))
-            if scan
-        )
-        results += "".join(
-            f"; {name}: {flagged} of {total} engines flagged it"
-            for name, flagged, total in external_results(channel, reports, vt_reports)
-        )
-        items.append(
-            f'<li><span class="badge {css}">{escape(prefix + label)}</span> Virus scan of <code>{escape(channel.get("file", ""))}</code> ({escape(channel.get("tag", ""))}): {escape(results)}. A clean scan isn\'t proof of safety.</li>'
-        )
-    return items
-
-
-def security_scans(scans: dict, reports: dict, vt_reports: dict | None = None) -> str:
-    """One table per scanned ZIP (the stable release's, and a pre-release's if it's another file):
-    ClamAV and YARA from the registry's own scans, VirusTotal and MetaDefender from the reports
-    the registry publishes (it uploads ZIPs they haven't seen yet)."""
-
-    def when(scan: dict) -> str:
-        return nice_date(scan["scannedAt"]) if scan.get("scannedAt") else "date unknown"
-
-    tables, seen = [], set()
-    for channel, prefix in ((scans.get("stable"), "Stable release"), (scans.get("prerelease"), "Pre-release")):
-        if not channel or not channel.get("clamav") or (channel.get("sha256") and channel.get("sha256") in seen):
-            continue
-        sha = channel.get("sha256") or ""
-        valid = bool(re.fullmatch(r"[0-9a-fA-F]{64}", sha))
-        seen.add(sha)
-        rows = []
-        for name, scan in (("ClamAV", channel.get("clamav")), ("YARA", channel.get("yara"))):
-            if not scan:
-                rows.append(f"<tr><td>{name}</td><td>Not scanned yet</td><td></td></tr>")
-                continue
-            result = SCAN_RESULTS.get(scan["result"], scan["result"]) + (
-                f" ({', '.join(scan['found'])})" if scan.get("found") else ""
-            )
-            rows.append(
-                f"<tr><td>{name}</td><td>{escape(result[:1].upper() + result[1:])}</td><td>{escape(when(scan))}</td></tr>"
-            )
-        if valid:
-            vt_link = f'<a href="https://www.virustotal.com/gui/file/{sha.lower()}">report</a>'
-            vt = (vt_reports or {}).get(sha.lower()) or {}
-            if found := vt_result(vt_reports, sha):
-                scanned = (
-                    nice_date(time.strftime("%Y-%m-%d", time.gmtime(vt["scannedAt"])))
-                    if isinstance(vt.get("scannedAt"), int)
-                    else ""
-                )
-                rows.append(
-                    f"<tr><td>VirusTotal</td><td>{found[0]} of {found[1]} engines flagged this file ({vt_link})</td><td>{escape(scanned)}</td></tr>"
-                )
-            else:
-                status = EXTERNAL_STATUS.get(vt.get("state"), "No report yet")
-                # No link: until VirusTotal has a result its page for this file is empty, pending or not.
-                rows.append(f"<tr><td>VirusTotal</td><td>{status}</td><td></td></tr>")
-            report = (reports or {}).get(sha.lower()) or {}
-            if md_result(reports, sha):
-                data_id = report.get("dataId")
-                link = (
-                    f' (<a href="https://metadefender.opswat.com/results/file/{escape(data_id)}/regular/overview">report</a>)'
-                    if isinstance(data_id, str) and re.fullmatch(r"[A-Za-z0-9_-]+", data_id)
-                    else ""
-                )
-                rows.append(
-                    f"<tr><td>MetaDefender</td><td>{report['flagged']} of {report['total']} engines flagged this file{link}</td><td></td></tr>"
-                )
-            else:
-                status = EXTERNAL_STATUS.get(report.get("state"), "No report yet")
-                rows.append(f"<tr><td>MetaDefender</td><td>{status}</td><td></td></tr>")
-        detail = (
-            f"{escape(prefix)}: <code>{escape(channel.get('file', ''))}</code> ({escape(channel.get('tag', ''))})"
-            + (f"<br><small>SHA-256 <code>{sha.lower()}</code></small>" if valid else "")
-        )
-        tables.append(
-            f'<table class="scans"><caption>{detail}</caption><thead><tr><th>Scanner</th><th>Result</th><th>Scanned</th></tr></thead><tbody>{"".join(rows)}</tbody></table>'
-        )
-    if not tables:
-        return "<p>Not scanned yet. The registry scans every ZIP it offers a few times a day, so a new release shows up here soon.</p>"
-    return "".join(tables)
-
-
-def shell_of(releases_page: str) -> dict[str, str]:
-    """The style of docs/releases.html (with the shared menu style filled in) and the shared footer,
-    so the plugin pages match the site."""
-    style = re.search(r"<style>(.*?)</style>", site_shell.apply(releases_page), re.DOTALL)
-    if not style:
-        raise SystemExit("docs/releases.html is missing its style")
-    return {"style": style.group(1) + EXTRA_STYLE, "footer": site_shell.FOOTER}
-
-
-def page(
-    shell: dict[str, str],
-    title: str,
-    description: str,
-    path: str,
-    body: str,
-    data: list[str],
-    current: str = "plugins",
-    lang: str = "en",
-    switch: tuple[str, str, str] | None = None,
-) -> str:
-    url = SITE + path
-    uk = lang == "uk"
-    return f"""<!doctype html>
-<html lang="{lang}">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{escape(title)}</title>
-<meta name="description" content="{escape(description)}">
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="canonical" href="{url}">
-<meta name="theme-color" content="#10151f">
-<meta property="og:type" content="website"><meta property="og:site_name" content="DeckyHub">
-<meta property="og:url" content="{url}"><meta property="og:title" content="{escape(title)}"><meta property="og:description" content="{escape(description)}">
-<meta property="og:image" content="{SITE}img/og.jpg"><meta name="twitter:card" content="summary_large_image">
-{"".join(data)}
-<style>{shell["style"]}</style>
-</head>
-<body>
-<a class="skip" href="#main">{"До змісту" if uk else "Skip to content"}</a>
-{site_shell.nav(current, lang, switch)}
-<main id="main"><div class="wrap plugin">
-{body}
-</div></main>
-{site_shell.FOOTER_UK if uk else shell["footer"]}
-</body>
-</html>
-"""
-
-
-def remote_device_panel(lang: str = "en") -> str:
-    # data-state (set by remote-install.js) picks what the page shows: new, connecting, approve, unreachable,
-    # unsupported, error or paired; see remote-install.css.
-    html = """<section id="remote-install" class="remote-install remote-device-dashboard" aria-labelledby="remote-title" data-plugin-id="" data-state="new" data-has-devices="false">
-<link rel="stylesheet" href="/remote-install.css">
-<header class="rd-hero">
-<p class="rd-badge">Experimental · fully local</p>
-<h2 id="remote-title">Manage your devices from this browser</h2>
-<p>Install, update and remove Decky plugins without picking up your device. This page talks straight to your device on your network: nothing about your device or its plugins is collected or sent anywhere. <a href="/help.html#remote">How it works</a></p>
-<p class="rd-app" id="remote-app" hidden><button type="button" id="remote-app-install">Add to home screen or desktop</button> <span class="rd-hint">Opens this page as an app of its own, with its own icon and window. Nothing else is installed.</span></p>
-</header>
-<div class="rd-layout">
-<aside class="rd-devices" aria-labelledby="rd-devices-title">
-<div class="rd-devices-head"><h3 id="rd-devices-title">Your devices</h3><span class="rd-devices-actions"><button type="button" id="remote-devices-refresh">Refresh</button> <button type="button" id="remote-pair-another" class="btn">+ Add device</button></span></div>
-<ul id="remote-device-cards" class="rd-cards" aria-label="Paired devices"></ul>
-<div class="rd-share">
-<button type="button" id="remote-share-button" class="btn">Pair another browser with a link</button>
-<p id="remote-share-status" class="rd-hint" role="status" aria-live="polite" hidden></p>
-<div id="remote-share-box" hidden>
-<p class="rd-hint">Open this link in the other browser (Chrome or Edge, on the same Wi-Fi). It works once, for five minutes, and your device asks you to approve that browser.</p>
-<p class="rd-link-row"><label for="remote-share-link">Link for the other browser</label><span class="remote-actions"><input id="remote-share-link" type="text" readonly spellcheck="false"><button type="button" id="remote-share-copy">Copy link</button><button type="button" id="remote-share-send" hidden>Share link</button></span></p>
-</div>
-</div>
-<p class="rd-empty">No device yet. Press Add device to connect your first one.</p>
-<div class="rd-sr"><label for="remote-device-picker">Selected device</label><select id="remote-device-picker" disabled><option value="">Pair a device</option></select></div>
-<details class="rd-multi">
-<summary>Using more than one device?</summary>
-<ul>
-<li><strong>Several Decks in one browser:</strong> press <em>Add device</em> and repeat the steps for each Deck. They all stay in the list above.</li>
-<li><strong>One Deck in several browsers:</strong> open this page on your phone and on your laptop and pair each of them with the Deck. Every browser is approved separately on the Deck, and you can remove any of them under Paired browsers in DeckyHub.</li>
-</ul>
-</details>
-</aside>
-<div class="rd-main">
-<p id="remote-status" role="status" aria-live="polite" class="rd-status">Not connected.</p>
-<div class="rd-device">
-<p class="remote-actions"><button type="button" id="remote-request" disabled hidden>Send install request</button> <button type="button" id="remote-cancel" disabled>Cancel request</button></p>
-</div>
-<section class="remote-inventory" aria-labelledby="remote-plugins-title">
-<div class="rd-inv-head">
-<h3 id="remote-plugins-title">Installed plugins</h3>
-<p class="remote-actions"><a class="btn" href="/plugins/">Browse plugins to install</a> <button type="button" id="remote-plugins-refresh" disabled>Refresh list</button></p>
-</div>
-<p id="remote-plugins-status" role="status" aria-live="polite">Pair a device to see its installed plugins.</p>
-<p><input id="remote-plugins-filter" type="search" aria-label="Search installed plugins" placeholder="Search installed plugins" autocomplete="off" hidden></p>
-<ul id="remote-plugins" class="remote-plugins"></ul>
-</section>
-</div>
-</div>
-<dialog id="remote-add-dialog" class="rd-dialog" aria-labelledby="remote-add-title">
-<div class="rd-dialog-head"><h3 id="remote-add-title">Add a device</h3><button type="button" id="remote-add-close" class="rd-close" aria-label="Close">×</button></div>
-<div class="rd-dialog-body">
-<p id="remote-dialog-status" role="status" aria-live="polite" class="rd-status" hidden></p>
-<div class="rd-pairing" id="remote-pairing">
-<div class="rd-pairing-head">
-<p class="rd-wifi"><span aria-hidden="true">⚑</span> Both devices must be on the <strong>same Wi-Fi</strong> (not mobile data, not a guest network).</p>
-</div>
-<ol class="rd-steps" aria-label="Pairing steps">
-<li>
-<span class="rd-dot" aria-hidden="true">1</span>
-<div><span class="rd-where">On your Steam Deck</span><strong>Turn on Remote access</strong><small>Open DeckyHub in the Quick Access menu and switch on <em>Remote access</em>. A QR code appears.</small></div>
-</li>
-<li>
-<span class="rd-dot" aria-hidden="true">2</span>
-<div><span class="rd-where">On this device</span><strong>Scan the QR code</strong><small>Point the camera at the QR code and open the link. No camera? Paste the link below.</small>
-<div id="remote-scan" class="rd-scan" hidden>
-<p class="remote-actions"><button type="button" id="remote-scan-button">Scan the QR code with this device's camera</button><button type="button" id="remote-scan-stop" hidden>Stop the camera</button></p>
-<p id="remote-scan-status" class="rd-hint" role="status" aria-live="polite" hidden></p>
-<video id="remote-scan-video" playsinline muted hidden></video>
-</div>
-</div>
-</li>
-<li>
-<span class="rd-dot" aria-hidden="true">3</span>
-<div><span class="rd-where">On your Steam Deck</span><strong>Press Approve</strong><small>A pairing request appears under <em>Remote control</em>. Press <em>Approve</em>.</small></div>
-</li>
-</ol>
-<ul id="remote-trouble" class="rd-trouble">
-<li>Allow local network access when your browser asks. In Chrome: menu, Settings, Site settings, Local network, then set deckyhub.com to Allow.</li>
-<li>Check that Remote access is on and that your device is awake: it stops listening when it sleeps.</li>
-<li>Use the same Wi-Fi as your device, not mobile data, a guest network or a VPN. Turn off mobile data while you pair.</li>
-<li>If your router has "AP isolation" or "client isolation", it stops phones from reaching other devices: turn it off for this network.</li>
-<li>Your router may have given the device a new address: open the Quick Access tab to see it, or pair again.</li>
-<li>To tell the network from the browser, open https://the-device-address:8765/ in this browser. "Refused to connect" at once means the network is fine; a long wait means this browser can't reach the device.</li>
-<li>Still stuck? Try Chrome or Edge on a computer on the same Wi-Fi, and send the details below with your bug report.</li>
-</ul>
-<details id="remote-diagnostics" class="rd-diagnostics" hidden>
-<summary>Technical details for a bug report</summary>
-<pre id="remote-diagnostics-text"></pre>
-<p><button type="button" id="remote-copy-diagnostics">Copy details</button></p>
-</details>
-<form id="remote-pair-form" aria-labelledby="remote-pair-title">
-<h3 id="remote-pair-title">No camera or QR code? Paste the link</h3>
-<p class="rd-hint">Scanning the QR code fills these in and pairs by itself. Use them to paste a link, or to try again.</p>
-<p class="rd-link-row"><label for="remote-pairing-link">Pairing link</label><span class="remote-actions"><input id="remote-pairing-link" type="text" autocomplete="off" spellcheck="false" placeholder="Paste the link from DeckyHub"><button type="button" id="remote-copy-link">Copy link</button></span></p>
-<p><label for="remote-code">Six-digit pairing code</label><input id="remote-code" autocomplete="off" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" required></p>
-<details id="remote-manual">
-<summary>More options: connection details, device name</summary>
-<p><label for="remote-address">Device address and port</label><input id="remote-address" placeholder="192.168.1.50:8765" autocomplete="off"></p>
-<p><label for="remote-fingerprint">Certificate fingerprint</label><input id="remote-fingerprint" autocomplete="off" spellcheck="false"></p>
-<p><label for="remote-device-name">Device name (optional)</label><input id="remote-device-name" maxlength="64" autocomplete="off" placeholder="Living room Deck"></p>
-<p><label for="remote-name">Browser name shown on your device</label><input id="remote-name" value="Browser" maxlength="64"></p>
-<p><button type="button" id="remote-reconnect" hidden>Use new device address</button></p>
-<p><button type="button" id="remote-forget" hidden>Forget this device in this browser</button></p>
-</details>
-<button type="submit" id="remote-pair" disabled>Pair browser</button>
-</form>
-</div>
-</div>
-</dialog>
-<noscript>Enable JavaScript to connect to your device.</noscript>
-<link rel="modulepreload" href="/remote-core.js"><link rel="modulepreload" href="/remote-i18n.js"><link rel="modulepreload" href="/remote-plugins.js"><link rel="modulepreload" href="/remote-updates.js"><link rel="modulepreload" href="/remote-scan.js"><link rel="modulepreload" href="/remote-share.js"><script type="module" src="/remote-install.js"></script>
-</section>"""
-    return remote_page_uk.translate(html) if lang == "uk" else html
-
-
-def safety_block(items: list[str] | None) -> str:
-    """Warnings and scan results for the card that sends a plugin to a device (shown even when there is nothing to warn about)."""
-    listed = (
-        "<ul class='badges'>" + "".join(items) + "</ul>"
-        if items
-        else "<p>No badges: it doesn't run as root, and no audit warnings or virus scan findings are known for it.</p>"
-    )
-    return '<div class="rc-safety">' + listed + f'<p class="note">{NOT_REVIEWED}</p></div>\n'
-
-
-def remote_install_picker(plugin_id: str, safety: list[str] | None = None) -> str:
-    """The card that sends the plugin to a paired device. `safety` is what the page's Safety information lists
-    (runs as root, audit warnings, virus scans): it is shown above the button, as the device shows it before an
-    install, so it is read before anything is sent."""
-    # data-state (remote-install.js): checking, none (no device to send to), ready, waiting (for approval on the
-    # device), installing, done, failed; see remote-install.css.
-    return f"""<dialog id="remote-install" class="remote-install remote-compact rd-dialog" aria-labelledby="remote-send-title" data-plugin-id="{escape(plugin_id, quote=True)}" data-state="checking">
-<link rel="stylesheet" href="/remote-install.css">
-<div class="rd-dialog-head"><h3 id="remote-send-title">Install on your device</h3><span class="rd-badge">Experimental · fully local</span><button type="button" id="remote-close" class="rd-close" aria-label="Close">×</button></div>
-<div class="rd-dialog-body">
-<div class="remote-actions rc-send">
-<select id="remote-device-picker" aria-label="Paired device" disabled><option value="">Select a device</option></select>
-<button type="button" id="remote-request" disabled>Send to device</button>
-<button type="button" id="remote-cancel" disabled>Cancel</button>
-</div>
-<p id="remote-status" class="rd-status" role="status" aria-live="polite" hidden></p>
-<dialog id="remote-risk-dialog" class="rd-dialog" aria-labelledby="remote-risk-title">
-<div class="rd-dialog-head"><h3 id="remote-risk-title">Check before you send</h3><button type="button" id="remote-risk-close" class="rd-close" aria-label="Close">×</button></div>
-<div class="rd-dialog-body">
-{safety_block(safety)}<p class="remote-actions"><button type="button" id="remote-risk-send">I understand the risks, send it</button><button type="button" id="remote-risk-cancel">Cancel</button></p>
-</div>
-</dialog>
-<p class="rc-pair"><button type="button" id="remote-refresh" hidden>Refresh</button><a id="remote-pair-new" class="btn" href="/remote-install/">Pair a device</a><span>Pair once, then install from any plugin page.</span></p>
-<p class="rd-hint">Your browser talks straight to your device on your network. Nothing about your device or its plugins is collected or sent anywhere. <a href="/help.html#remote">How to use it</a></p>
-</div>
-<link rel="modulepreload" href="/remote-core.js"><link rel="modulepreload" href="/remote-i18n.js"><link rel="modulepreload" href="/remote-plugins.js"><link rel="modulepreload" href="/remote-updates.js"><link rel="modulepreload" href="/remote-scan.js"><link rel="modulepreload" href="/remote-share.js"><script type="module" src="/remote-install.js"></script>
-</dialog>"""
-
-
-def paired_devices_page(
-    shell: dict[str, str],
-    title: str = "Paired devices | DeckyHub",
-    description: str = "Pair a device and manage its installed Decky plugins.",
-    lang: str = "en",
-    path: str = "remote-install/",
-) -> str:
-    uk = lang == "uk"
-    body = f"<h1>{'Сполучені пристрої' if uk else 'Paired devices'}</h1>" + remote_device_panel(lang)
-    # The same page in the other language, for the menu's language link and for search engines.
-    base = path.removeprefix("uk/")
-    other = SITE + (base if uk else "uk/" + base)
-    # An installable app (docs/remote-install/manifest.webmanifest, sw.js), scoped to this page.
-    app = [
-        '<link rel="manifest" href="/remote-install/manifest.webmanifest">',
-        '<link rel="apple-touch-icon" href="/icon-192.png">',
-        '<meta name="mobile-web-app-capable" content="yes">',
-    ]
-    app.append(f'<link rel="alternate" hreflang="{"en" if uk else "uk"}" href="{other}">')
-    switch = ("English", other, "en") if uk else ("Українська", other, "uk")
-    return page(shell, title, description, path, body, app, current="paired-devices", lang=lang, switch=switch)
-
-
-BADGE_LABEL = re.compile(r'<span class="badge ([a-z ]+)">([^<]+)</span>')
-
-
-def safety_chips(badges: list[str]) -> str:
-    """The labels of the safety list as coloured chips, the short answer before the explanations."""
-    chips = [
-        f'<li class="chip {match.group(1)}">{match.group(2)}</li>'
-        for item in badges
-        if (match := BADGE_LABEL.search(item))
-    ]
-    return (
-        f'<ul class="chips-row">{"".join(chips)}</ul>'
-        if chips
-        else '<p class="chips-row"><span class="chip clean">No known issues</span></p>'
-    )
-
-
-def plugin_page(
-    shell: dict[str, str],
-    app: dict,
-    stats: dict,
-    scans: dict,
-    warnings: dict,
-    others: list[dict],
-    reports: dict | None = None,
-    vt_reports: dict | None = None,
-    releases: list | None = None,
-    same_author: list[dict] | None = None,
-    shares_name: bool = False,
-) -> str:
-    name, repo, category, description = app["name"], app["repo"], app["category"], app.get("description") or ""
-    repo_url = f"https://github.com/{repo}"
-    owner = owner_of(app)
-    facts = [
-        f"<li><strong>{escape(category)}</strong>Category</li>",
-        f'<li><strong><a href="https://github.com/{escape(owner)}">{escape(owner)}</a></strong>Author</li>',
-    ]
-    total = total_downloads(stats)
-    store_count = store_activity(stats)
-    github_count = stats.get("downloads")
-    github_count = github_count if valid_count(github_count) else None
-    if total is not None:
-        facts.append(
-            f"<li><strong>{compact(total)}</strong>Approximate activity (repeat downloads included; not unique installs)</li>"
-        )
-    if github_count is not None:
-        facts.append(f"<li><strong>{compact(github_count)}</strong>GitHub downloads</li>")
-    if store_count is not None:
-        activity = (stats.get("store") or {}).get("activity")
-        label = "Decky store downloads + updates" if activity else "Decky store downloads"
-        facts.append(
-            f'<li><strong>{compact(store_count)}</strong><a href="https://plugins.deckbrew.xyz/plugins">{label}</a> (matched by name)</li>'
-        )
-    if stats.get("stars") is not None:
-        facts.append(f"<li><strong>{compact(stats['stars'])}</strong>GitHub stars</li>")
-    if stats.get("updated"):
-        facts.append(f"<li><strong>{nice_date(stats['updated'])}</strong>Latest release</li>")
-    # A plugin only in the Decky store has no release worth judging in its repository (what is left there is an old
-    # build): its scans, audit warnings and root flag would describe something nobody installs, so none are shown.
-    if app.get("store"):
-        scans, reports, vt_reports = {}, {}, {}
-        stats = {
-            key: value
-            for key, value in stats.items()
-            if key not in ("root", "fork", "warnings", "prereleaseWarnings", "ai", "rust")
-        }
-    badges = badges_of(stats, scans, warnings, reports, vt_reports)
-    if not app.get("store") and prerelease_only(releases or []):
-        badges.insert(
-            0,
-            '<li><span class="badge warn">Pre-release only</span> It has no stable release, so DeckyHub offers its pre-releases, which may be unfinished or buggy.</li>',
-        )
-    # A plugin with no scan record must not read as all clear: say that nothing is known.
-    if not app.get("store") and not (scans.get("stable") or scans.get("prerelease")):
-        badges.insert(
-            0,
-            '<li><span class="badge warn">Not scanned yet</span> DeckyHub has no virus scan result for the releases of this plugin, so these labels can&#8217;t tell you anything about them, either way.</li>',
-        )
-    # A pre-release scanned beside the stable one: say what a pre-release is.
-    if not app.get("store") and scans.get("prerelease") and not prerelease_only(releases or []):
-        badges.insert(
-            0,
-            '<li><span class="badge warn">Pre-release</span> A pre-release of this plugin is scanned too. It may be unfinished or buggy, and DeckyHub installs it only if you choose its Pre-release channel.</li>',
-        )
-    if not description.strip():
-        badges.insert(
-            0,
-            '<li><span class="badge warn">No description</span> Its author hasn\'t said what it does. Check its repository before installing.</li>',
-        )
-    related = [other for other in others if other["id"] != app["id"]][:6]
-    mine = [other for other in same_author or [] if other["id"] != app["id"]][:8]
-    crumbs = (
-        f'<p class="crumbs"><a href="/">DeckyHub</a> › <a href="/plugins/">Plugins</a> › '
-        f'<a href="{category_url(category)}">{escape(category)}</a> › {escape(name)}</p>'
-    )
-    store_only = bool(app.get("store"))
-    scan_details = (
-        '<details class="more"><summary>Security</summary>'
-        "<p>DeckyHub has no GitHub release of this plugin to scan, so it shows no scan results here. "
-        'It is distributed through the <a href="https://plugins.deckbrew.xyz/plugins">Decky store</a>, whose team reviews what it lists. '
-        f"Check its repository before installing: DeckyHub doesn't make, review or vouch for {escape(name)}.</p></details>"
-        if store_only
-        else f"""<details class="more"><summary>Security scan details</summary>
-<p>Every ZIP DeckyHub offers is scanned with ClamAV and with YARA rules (YARA Forge's core set), and the same scans are shown in the app. The registry also sends each ZIP to VirusTotal and MetaDefender, uploading it if they haven't seen it yet, and their results are matched by the file's SHA-256.</p>
-{security_scans(scans, reports or {}, vt_reports)}
-<p class="note">DeckyHub doesn't make, review or vouch for {escape(name)}; it installs at your own risk. The scans only catch known malware, and malware can be built to get past them, so a clean scan isn't proof of safety. Only the <a href="https://plugins.deckbrew.xyz/">Decky plugin store</a> reviews plugins by hand. Check its repository before installing.</p>
-</details>"""
-    )
-    body = f"""{crumbs}
-<h1>{escape(name)}</h1>
-<p class="lead">{escape(description)}</p>
-{STORE_ONLY_NOTE if app.get("store") else ""}<p class="cta"><a class="btn" href="#how-to-install">{"Install from the Decky store" if app.get("store") else "Install with DeckyHub"}</a><a class="btn ghost" href="{escape(repo_url)}">Source on GitHub</a>{"" if app.get("store") else '<button type="button" class="btn ghost" id="remote-open" aria-haspopup="dialog">Send to device (experimental)</button>'}</p>
-<ul class="facts">{"".join(facts)}<li class="wide"><strong><a href="{escape(repo_url)}">{escape(repo)}</a></strong>Repository</li></ul>
-<h2 id="safety">Safety at a glance</h2>
-{safety_chips(badges)}
-<p class="note">{NOT_REVIEWED}</p>
-<details class="more"><summary>What these labels mean</summary>
-{"<ul class='badges'>" + "".join(badges) + "</ul>" if badges else "<p>No labels: it doesn't run as root, and no audit warnings or virus scan findings are known for it.</p>"}
-<p class="note">Browsing this plugin on GitHub? The free <a href="https://github.com/mazillka/deckyhub-ext">Deckyhub browser extension</a> shows these labels and scans there.</p>
-</details>
-{"" if app.get("store") else whats_new(releases, repo_url)}
-<h2 id="how-to-install">How to install</h2>
-<ol class="steps">
-{install_steps(app, name)}
-</ol>
-<p class="note">Check that the owner and repository, <strong>{escape(repo)}</strong>, are the ones you expect: a plugin's name alone may not identify the right project. {"You can also download" if app.get("store") else "Prefer your phone or computer? Use <em>Send to device</em> above, or download"} the ZIP from its <a href="{escape(repo_url)}/releases">releases</a> and install it from Decky's developer settings.</p>
-{"" if app.get("store") else remote_install_picker(app["id"], badges)}
-{scan_details}
-{f'<h2>More from {escape(owner)}</h2><ul class="list">' + "".join(f'<li><a href="/plugins/{escape(other["id"])}.html">{escape(other["name"])}<small>{escape(other.get("description") or "")}</small></a></li>' for other in mine) + "</ul>" if mine else ""}
-{f'<h2>More {escape(category)} plugins</h2><ul class="list">' + "".join(f'<li><a href="/plugins/{escape(other["id"])}.html">{escape(other["name"])}<small>{escape(other.get("description") or "")}</small></a></li>' for other in related) + f'</ul><p><a href="{category_url(category)}">See all {len(others)} {escape(category)} plugins</a></p>' if related else ""}"""
-    data = {
-        "@type": "SoftwareApplication",
-        "name": name,
-        "description": description,
-        "url": f"{SITE}plugins/{app['id']}.html",
-        "applicationCategory": "UtilitiesApplication",
-        "applicationSubCategory": f"Decky Loader plugin: {category}",
-        "operatingSystem": "SteamOS",
-        "sameAs": [repo_url],
-        "isAccessibleForFree": True,
-        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
-    }
-    if total_downloads(stats) is not None:
-        data["interactionStatistic"] = {
-            "@type": "InteractionCounter",
-            "interactionType": "https://schema.org/DownloadAction",
-            "userInteractionCount": total_downloads(stats),
-        }
-    if stats.get("updated"):
-        data["dateModified"] = stats["updated"]
-    trail = json_ld(
-        {
-            "@type": "BreadcrumbList",
-            "itemListElement": [
-                {"@type": "ListItem", "position": 1, "name": "DeckyHub", "item": SITE},
-                {"@type": "ListItem", "position": 2, "name": "Plugins", "item": f"{SITE}plugins/"},
-                {"@type": "ListItem", "position": 3, "name": category, "item": SITE + category_url(category)[1:]},
-                {"@type": "ListItem", "position": 4, "name": name},
-            ],
-        }
-    )
-    # Search results show about 60 characters of a title and 155 of a description.
-    # Two plugins can share a name (a fork and the original): the owner tells their pages apart.
-    shown = f"{name} ({owner})" if shares_name else name
-    title = f"{shown}: Decky Loader plugin | DeckyHub"
-    if len(title) > 70:
-        title = f"{fit(shown, 40)} | DeckyHub"
-    tail = " A Decky Loader plugin; install it from Gaming Mode with DeckyHub."
-    cut = fit(description.rstrip("."), 155 - len(tail))
-    summary = (
-        cut + ("" if cut.endswith("…") else ".") + tail
-        if description
-        else f"{name}, a {category} Decky Loader plugin. Install and update it from Gaming Mode with DeckyHub."
-    )
-    summary = fit(summary, 160)
-    return page(shell, title, summary, f"plugins/{app['id']}.html", body, [trail, json_ld(data)])
-
-
-def inline_markdown(text: str) -> str:
-    """**bold**, `code` and [links](url) from the README, as HTML (everything else is text)."""
-    text = escape(text, quote=False)
-    text = re.sub(r"`([^`]+)`", r"<code>\1</code>", text)
-    text = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", text)
-    return re.sub(
-        r"\[([^\]]+)\]\(([^)\s]+)\)", lambda match: f'<a href="{escape(match.group(2))}">{match.group(1)}</a>', text
-    )
-
-
-def readme_steps(readme: str, heading: str) -> str:
-    """The numbered steps under a README heading as <li> items (inline markdown rendered), so the
-    website says what the README says."""
-    section = re.split(r"\n#{2,4} ", readme.replace("\r\n", "\n").split(heading, 1)[1], 1)[0]
-    steps = re.findall(r"^\d+\. (.+)$", section, re.MULTILINE)
-
-    # A long command stands on its own line, selectable in one tap, instead of getting lost mid-sentence.
-    def long_command(html):
-        return re.sub(r"<code>([^<]{60,})</code>", r'<code class="cmd">\1</code>', html)
-
-    def render(text):
-        return long_command(inline_markdown(text.strip()))
-
-    # Two invisible markers (HTML comments, hidden on GitHub) turn a step into two alternatives side by side:
-    # "lead <!-- choose --> first way <!-- or --> second way". The lead is optional.
-    def item(step: str) -> str:
-        if "<!-- or -->" not in step:
-            return render(step)
-        lead, _, rest = step.rpartition("<!-- choose -->")
-        choices = "".join(f"<div>{render(part)}</div>" for part in rest.split("<!-- or -->"))
-        return (f"<p>{render(lead)}</p>" if lead.strip() else "") + f'<div class="choices">{choices}</div>'
-
-    return "\n".join(f"<li>{item(step)}</li>" for step in steps)
-
-
-def guide_steps(guide: str, heading_id: str) -> str:
-    """The numbered steps (<li> items) under a heading of the user guide (docs/guide.html), by the heading's id, so the
-    Help page says what the guide says."""
-    section = guide.split(f'id="{heading_id}"', 1)[1]
-    steps = re.search(r"<ol>(.*?)</ol>", section, re.S)
-    if not steps:
-        raise SystemExit(f"the guide has no numbered steps under #{heading_id}")
-    return steps.group(1).strip()
-
-
-def slug(text: str) -> str:
-    return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
-
-
-def load_data() -> dict:
-    """What the pages are built from: stats, scans, MetaDefender reports and the audit warnings' labels."""
-    return {
-        "stats": fetch_json(STATS_URL, "plugins"),
-        "scans": fetch_json(SCANS_URL, "plugins"),
-        "reports": fetch_json(METADEFENDER_URL, "reports"),
-        "vt": fetch_json(VIRUSTOTAL_URL, "reports"),
-        "releases": fetch_json(RELEASES_URL, "releases"),
-        "warnings": WARNINGS,
-    }
-
-
-def flags_of(
-    stats: dict, scans: dict, reports: dict | None = None, vt_reports: dict | None = None, store_only: bool = False
-) -> str:
-    """Small markers on a card: AI help, root, audit warnings, and the virus scan's verdict. A store-only plugin gets just In Decky store."""
-    flags = []
-    if store_only:
-        return '<span class="flag-store">In Decky store</span>' if stats.get("store") else ""
-    if stats.get("ai"):
-        flags.append('<span class="flag-ai">✦ AI</span>')
-    if stats.get("rust"):
-        flags.append('<span class="flag-rust">Rust</span>')
-    if stats.get("store"):
-        flags.append('<span class="flag-store">In Decky store</span>')
-    if stats.get("root"):
-        flags.append('<span class="flag-warn">⚠ Root</span>')
-    channels = (scans.get("stable"), scans.get("prerelease"))
-    source_mismatch_found = any(channel and source_mismatch(channel) for channel in channels)
-    if (
-        source_mismatch_found
-        or "not-in-source" in (stats.get("warnings") or [])
-        or "not-in-source" in (stats.get("prereleaseWarnings") or [])
-    ):
-        flags.append('<span class="flag-bad">⚠ Very high risk</span>')
-    elif stats.get("warnings") or stats.get("prereleaseWarnings"):
-        flags.append('<span class="flag-warn">⚠ Warning</span>')
-    channel = scans.get("stable") or {}
-    if channel.get("clamav"):
-        kind = scan_kind(channel, reports, vt_reports)
-        flags.append(
-            {
-                "clean": '<span class="flag-ok">✓ Scanned</span>',
-                "infected": '<span class="flag-bad">✖ Threat found</span>',
-                "partial": '<span class="flag-warn">⚠ Not fully scanned</span>',
-            }[kind]
-        )
-    return "".join(flags)
-
-
-# What the numbers on a card mean. The long tooltip is repeated on every card of the home page's short list; the
-# catalog and the category pages say it once above their cards instead of 600 times.
-CARD_TIP = "Approximate activity: GitHub downloads plus Decky store downloads and updates; includes repeat activity, not unique installs. Store entries are matched by name."
-CARD_LEGEND = (
-    '<p class="note">↓ approximate activity: GitHub downloads plus Decky store downloads and updates, repeat downloads '
-    "included, not unique installs (store entries are matched by name). ★ GitHub stars.</p>"
+from catalog_pages import (
+    CARD_LEGEND,
+    CARD_TIP,
+    CATEGORY_SHOWN,
+    FILTER_JS,
+    by_downloads,
+    card,
+    catalog_page,
+    category_links,
+    category_page,
+    category_url,
+    popular_cards,
+)
+from issues_page import issues_page, prerelease_only, version_mismatch, version_number
+from page_shell import EXTRA_STYLE, SITE, PageSpec, json_ld, page, shell_of
+from page_text import compact, fit, guide_steps, inline_markdown, nice_date, owner_of, plain_notes, readme_steps, slug
+from plugin_badges import BADGE_LABEL, NOT_REVIEWED, badges_of, flags_of, safety_chips
+from plugin_data import (
+    MAX_SAFE_COUNT,
+    METADEFENDER_URL,
+    REGISTRY_RAW,
+    RELEASES_URL,
+    SCANS_URL,
+    STATS_URL,
+    VIRUSTOTAL_URL,
+    WARNINGS,
+    fetch,
+    fetch_json,
+    load_data,
+    plugin_info,
+    store_activity,
+    total_downloads,
+    valid_count,
+)
+from plugin_detail import STORE_ONLY_NOTE, install_steps, plugin_page, whats_new
+from remote_panel import paired_devices_page, remote_device_panel, remote_install_picker, safety_block
+from scan_format import (
+    EXTERNAL_STATUS,
+    SCAN_LABELS,
+    SCAN_RESULTS,
+    SCANNERS,
+    external_results,
+    md_result,
+    scan_kind,
+    scan_results,
+    scan_state,
+    security_scans,
+    source_mismatch,
+    vt_result,
 )
 
-
-def card(app: dict, data: dict, prefix: str = "/plugins/", tip: bool = False) -> str:
-    key = app["repo"].casefold()
-    stats, scans = data["stats"].get(key) or {}, data["scans"].get(key) or {}
-    meta = " · ".join(
-        part
-        for part in (
-            f'<span title="{CARD_TIP if tip else "Approximate activity"}">↓ {compact(total_downloads(stats))}</span>'
-            if total_downloads(stats) is not None
-            else "",
-            f"★ {compact(stats['stars'])}" if stats.get("stars") is not None else "",
-        )
-        if part
-    )
-    description = app.get("description") or ""
-    repo = escape(app["repo"].lower())
-    in_store = ' data-store="1"' if stats.get("store") else ""
-    updated = f' data-updated="{escape(stats["updated"][:10])}"' if stats.get("updated") else ""
-    return (
-        f'<a class="app" href="{prefix}{escape(app["id"])}.html" data-repo="{repo}" data-cat="{slug(app["category"])}"{in_store}{updated}>'
-        f"<small>{escape(app['category'])}</small><strong>{escape(app['name'])}</strong><p>{escape(description)}</p>"
-        f'<span class="meta">{meta}</span><span class="flags">{flags_of(stats, scans, data.get("reports"), data.get("vt"), bool(app.get("store")))}</span></a>'
-    )
-
-
-def by_downloads(apps: list[dict], data: dict) -> list[dict]:
-    return sorted(apps, key=lambda app: -(total_downloads(data["stats"].get(app["repo"].casefold()) or {}) or 0))
-
-
-def popular_cards(apps: list[dict], data: dict, count: int = 12, prefix: str = "plugins/") -> str:
-    """The home page's short list: the most downloaded plugins, linking to their pages."""
-    return "\n".join(card(app, data, prefix, tip=True) for app in by_downloads(apps, data)[:count])
-
-
-FILTER_JS = """(function(){var q=document.getElementById("q"),cards=[].slice.call(document.querySelectorAll("#list .app")),chips=[].slice.call(document.querySelectorAll(".chips button[data-cat]")),ages=[].slice.call(document.querySelectorAll(".chips button[data-age]")),store=document.getElementById("store-only"),count=document.getElementById("count"),cat="",age=0,inStore=false;
-cards.forEach(function(c){c._t=[c.querySelector("strong"),c.querySelector("p"),c.querySelector("small")].map(function(e){return e?e.textContent:""}).join(" ").toLowerCase()+" "+(c.dataset.repo||"")});
-function run(){var t=q.value.trim().toLowerCase(),n=0,since=age?new Date(Date.now()-age*864e5).toISOString().slice(0,10):"";cards.forEach(function(c){var ok=(!cat||c.dataset.cat===cat)&&(!inStore||c.dataset.store)&&(!since||(c.dataset.updated||"")>=since)&&(!t||c._t.indexOf(t)>-1);c.hidden=!ok;if(ok)n++});count.textContent=n+" of "+cards.length+" plugins";chips.forEach(function(b){b.setAttribute("aria-pressed",String((b.dataset.cat||"")===cat))});ages.forEach(function(b){b.setAttribute("aria-pressed",String(+b.dataset.age===age))})}
-function fromHash(){var m=/^#cat=([a-z0-9-]+)/.exec(location.hash);cat=m?m[1]:"";run()}
-chips.forEach(function(b){b.addEventListener("click",function(){cat=b.dataset.cat||"";history.replaceState(null,"",cat?"#cat="+cat:location.pathname);run()})});
-ages.forEach(function(b){b.addEventListener("click",function(){age=+b.dataset.age;run()})});
-if(store)store.addEventListener("click",function(){inStore=!inStore;store.setAttribute("aria-pressed",String(inStore));run()});
-q.addEventListener("input",run);window.addEventListener("hashchange",fromHash);fromHash()})();"""
-
-
-# A category page lists this many plugins (the most downloaded); the catalog has the rest.
-CATEGORY_SHOWN = 60
-
-
-def category_url(category: str) -> str:
-    return f"/plugins/category/{slug(category)}.html"
-
-
-def category_links(categories: dict[str, int], skip: str = "") -> str:
-    """Links to every category page, with their plugin counts, most plugins first."""
-    return " · ".join(
-        f'<a href="{category_url(name)}">{escape(name)}</a> ({count})'
-        for name, count in sorted(categories.items(), key=lambda item: (-item[1], item[0]))
-        if name != skip
-    )
-
-
-def category_page(
-    shell: dict[str, str], category: str, members: list[dict], data: dict, categories: dict[str, int]
-) -> str:
-    """plugins/category/<slug>.html: what one category holds, in numbers from the registry's data, and its most
-    downloaded plugins linked to their pages."""
-    ordered = by_downloads(members, data)
-    stats = [data["stats"].get(app["repo"].casefold()) or {} for app in members]
-    total = sum(total_downloads(item) or 0 for item in stats)
-    since = time.strftime("%Y-%m-%d", time.gmtime(time.time() - 90 * 86400))
-    recent = sum(1 for item in stats if (item.get("updated") or "")[:10] >= since)
-    authors = len({owner_of(app).casefold() for app in members})
-    top = ", ".join(app["name"] for app in ordered[:3])
-    facts = [
-        f"{len(members)} Decky Loader plugins in {category}, by {authors} {'author' if authors == 1 else 'authors'}.",
-        f"The most downloaded are {top}.",
-    ]
-    if total:
-        facts.append(f"Together they have about {compact(total)} approximate downloads (repeat downloads included).")
-    if recent:
-        facts.append(f"{recent} had a release in the last 90 days.")
-    more = (
-        f'<p class="note">The {CATEGORY_SHOWN} most downloaded of {len(members)} are shown. '
-        f'<a href="/plugins/#cat={slug(category)}">See all {len(members)} {escape(category)} plugins</a> in the catalog.</p>'
-        if len(members) > CATEGORY_SHOWN
-        else ""
-    )
-    body = f"""<p class="crumbs"><a href="/">DeckyHub</a> › <a href="/plugins/">Plugins</a> › {escape(category)}</p>
-<h1>{escape(category)} Decky plugins</h1>
-<p class="lead">{escape(" ".join(facts))} Install any of them from Gaming Mode with <a href="/">DeckyHub</a>.</p>
-<p class="note">{NOT_REVIEWED}</p>
-{CARD_LEGEND}
-<div class="catalog">
-{chr(10).join(card(app, data) for app in ordered[:CATEGORY_SHOWN])}
-</div>
-{more}
-<h2>Other categories</h2>
-<p>{category_links(categories, category)}</p>"""
-    title = f"{category} Decky Loader plugins | DeckyHub"
-    summary = fit(
-        f"{len(members)} {category} plugins for Decky Loader, including {top}. Install and update them from Gaming Mode with DeckyHub.",
-        160,
-    )
-    path = f"plugins/category/{slug(category)}.html"
-    trail = json_ld(
-        {
-            "@type": "BreadcrumbList",
-            "itemListElement": [
-                {"@type": "ListItem", "position": 1, "name": "DeckyHub", "item": SITE},
-                {"@type": "ListItem", "position": 2, "name": "Plugins", "item": f"{SITE}plugins/"},
-                {"@type": "ListItem", "position": 3, "name": category},
-            ],
-        }
-    )
-    about = json_ld(
-        {"@type": "CollectionPage", "name": f"{category} Decky plugins", "description": summary, "url": SITE + path}
-    )
-    return page(shell, title, summary, path, body, [trail, about])
-
-
-def catalog_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
-    """plugins/index.html: every plugin, most downloaded first, with a search box and category chips.
-    Without JavaScript the whole list is simply shown."""
-    ordered = by_downloads(apps, data)
-    categories: dict[str, int] = {}
-    for app in apps:
-        categories[app["category"]] = categories.get(app["category"], 0) + 1
-    chips = f'<button type="button" data-cat="" aria-pressed="true">All {len(apps)}</button>' + "".join(
-        f'<button type="button" data-cat="{slug(name)}" aria-pressed="false">{escape(name)} {count}</button>'
-        for name, count in sorted(categories.items(), key=lambda item: (-item[1], item[0]))
-    )
-    ages = "".join(
-        f'<button type="button" data-age="{days}" aria-pressed="{"true" if not days else "false"}">{label}</button>'
-        for days, label in ((0, "Any release date"), (90, "Released in 90 days"), (365, "Released this year"))
-    )
-    in_store = sum(1 for app in apps if (data["stats"].get(app["repo"].casefold()) or {}).get("store"))
-    if in_store:
-        chips += f'<button type="button" id="store-only" aria-pressed="false">In Decky store {in_store}</button>'
-    body = f"""<p class="crumbs"><a href="/">DeckyHub</a> › Plugins</p>
-<h1>Decky plugins</h1>
-<p><a class="btn ghost" href="/remote-install/">Paired devices</a></p>
-<p id="remote-device-ready" role="status" hidden>Device details received. Choose a plugin to pair with your device and request installation.</p>
-<link rel="modulepreload" href="/remote-core.js"><link rel="modulepreload" href="/remote-i18n.js"><link rel="modulepreload" href="/remote-plugins.js"><link rel="modulepreload" href="/remote-updates.js"><link rel="modulepreload" href="/remote-scan.js"><link rel="modulepreload" href="/remote-share.js"><script type="module" src="/remote-install.js"></script>
-<p class="lead">{len(apps)} Decky Loader plugins, most downloaded first. Install any of them from Gaming Mode with <a href="/">DeckyHub</a>, which also checks them for updates.</p>
-<p class="note">Every plugin belongs to its authors. DeckyHub doesn't make, review or vouch for them, and a plugin's page shows its notes (AI help, root, audit warnings) and security scans; <a href="/plugins/known-issues.html">Known issues</a> lists every plugin with a warning. Missing one? <a href="/contribute/">Add a plugin</a>.</p>
-<p class="note">Browse by category: {category_links(categories)}</p>
-<div class="filters"><input id="q" type="search" placeholder="Search plugins" aria-label="Search plugins" autocomplete="off"><div class="chips" role="group" aria-label="Categories">{chips}</div><div class="chips" role="group" aria-label="Latest release">{ages}</div></div>
-{CARD_LEGEND}
-<p class="note" id="count" aria-live="polite">{len(apps)} plugins</p>
-<div class="catalog" id="list">
-{chr(10).join(card(app, data) for app in ordered)}
-</div>
-<script>{FILTER_JS}</script>"""
-    listing = json_ld(
-        {
-            "@type": "CollectionPage",
-            "name": "Decky plugins",
-            "url": f"{SITE}plugins/",
-            "mainEntity": {
-                "@type": "ItemList",
-                "numberOfItems": len(apps),
-                "itemListElement": [
-                    {
-                        "@type": "ListItem",
-                        "position": index + 1,
-                        "url": f"{SITE}plugins/{app['id']}.html",
-                        "name": app["name"],
-                    }
-                    for index, app in enumerate(ordered[:100])
-                ],
-            },
-        }
-    )
-    trail = json_ld(
-        {
-            "@type": "BreadcrumbList",
-            "itemListElement": [
-                {"@type": "ListItem", "position": 1, "name": "DeckyHub", "item": SITE},
-                {"@type": "ListItem", "position": 2, "name": "Plugins"},
-            ],
-        }
-    )
-    hundreds = len(apps) // 100 * 100
-    return page(
-        shell,
-        f"Decky plugins: {hundreds}+ Decky Loader plugins | DeckyHub",
-        f"Browse {len(apps)} Decky Loader plugins, with downloads, stars and security scans. Install and update them from Gaming Mode with DeckyHub.",
-        "plugins/",
-        body,
-        [trail, listing],
-    )
-
-
-def prerelease_only(releases: list) -> bool:
-    """True when the release index lists releases for a plugin and none of them is stable, as the app's hydrate() decides."""
-    listed = [item for item in releases if isinstance(item, dict) and not item.get("draft")]
-    return bool(listed) and all(item.get("prerelease") for item in listed)
-
-
-def version_number(text: str) -> str:
-    """The version in a tag or version string, as the app's displayVersion() reads it: "Release-0.7.6" -> "0.7.6"."""
-    match = re.search(r"(\d+(?:\.\d+)+)(-[0-9A-Za-z.-]+)?", text)
-    return match.group(0) if match else text.strip().removeprefix("v").removeprefix("V")
-
-
-def version_mismatch(releases: list) -> tuple[str, str] | None:
-    """(tag, ZIP version) when the newest stable release's tag and the version its ZIP installs as
-    (pluginVersion, which the registry's release index reads from the ZIP) differ."""
-    release = next(
-        (item for item in releases if isinstance(item, dict) and not item.get("draft") and not item.get("prerelease")),
-        None,
-    )
-    tag, inside = (release or {}).get("tag_name"), (release or {}).get("pluginVersion")
-    if isinstance(tag, str) and isinstance(inside, str) and inside and version_number(tag) != version_number(inside):
-        return tag, inside
-    return None
-
-
-def issues_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
-    """plugins/known-issues.html: every plugin with a scan finding or an audit warning, grouped by issue."""
-    groups: dict[str, list[str]] = {}
-    listed: set[str] = set()
-    for app in by_downloads(apps, data):
-        key = app["repo"].casefold()
-        stats, scans = data["stats"].get(key) or {}, data["scans"].get(key) or {}
-
-        # The note goes inside the card's link: text after it would spill under the next card.
-        def add(group: str, note: str = "") -> None:
-            items = groups.setdefault(group, [])
-            if note == "Pre-release only" and any(f'/{app["id"]}.html"' in item for item in items):
-                return  # the stable release already has it
-            items.append(
-                f'<a href="/plugins/{escape(app["id"])}.html">{escape(app["name"])}'
-                + (f"<small>{escape(note)}</small>" if note else "")
-                + "</a>"
-            )
-            listed.add(app["id"])
-
-        for channel, note, warning_key in (
-            (scans.get("stable"), "", "warnings"),
-            (scans.get("prerelease"), "Pre-release only", "prereleaseWarnings"),
-        ):
-            if source_mismatch(channel or {}) and "not-in-source" not in (stats.get(warning_key) or []):
-                add("not-in-source", note)
-            if (
-                channel
-                and channel.get("clamav")
-                and (kind := scan_state(channel, data.get("reports"), data.get("vt"))) != "clean"
-            ):
-                add(kind, note)
-        stable = stats.get("warnings") or []
-        for warning in [*stable, *(w for w in stats.get("prereleaseWarnings") or [] if w not in stable)]:
-            add(warning, "" if warning in stable else "Pre-release only")
-        if mismatch := version_mismatch((data.get("releases") or {}).get(key) or []):
-            add("version-mismatch", f"Tagged {mismatch[0]}, its ZIP says {mismatch[1]}")
-    issues = [
-        (
-            kind,
-            *SCAN_LABELS[kind],
-            "A virus scanner (ClamAV, YARA, VirusTotal or MetaDefender) flagged its ZIP."
-            if kind == "infected"
-            else "Not every scanner could finish on its ZIP.",
-        )
-        for kind in ("infected", "partial")
-    ]
-    issues += [(key, label, "stale" if key == "blocked" else "warn", hint) for key, (label, hint) in WARNINGS.items()]
-    issues.append(
-        (
-            "version-mismatch",
-            "Version mismatch",
-            "warn",
-            "Its newest release is tagged with one version, but the plugin in its ZIP reports another, so an update check that reads the tag can offer the same update again after you install it.",
-        )
-    )
-    sections = "".join(
-        f'<h2 id="{key}"><span class="badge {css}">{escape(label)}</span> {len(groups[key])}</h2><p>{escape(hint)}</p><ul class="list">'
-        + "".join(f"<li>{item}</li>" for item in groups[key])
-        + "</ul>"
-        for key, label, css, hint in issues
-        if groups.get(key)
-    )
-    flagged = len(listed)
-    body = f"""<p class="crumbs"><a href="/">DeckyHub</a> › <a href="/plugins/">Plugins</a> › Known issues</p>
-<h1>Known plugin issues</h1>
-<p class="lead">{flagged} of {len(apps)} Decky Loader plugins have a virus scan finding, a warning from <a href="https://decky-extended-plugins.beallio.com/audit">Decky Extended Plugins' audit</a> or a version mismatch. DeckyHub shows the scan and audit notes in the app before you install; they inform and never block.</p>
-<p class="note">A warning isn't proof a plugin is harmful, and no warning isn't proof it's safe. Open a plugin's page for its scans, and check its repository before installing. Updated daily.</p>
-{sections or "<p>No known issues right now.</p>"}"""
-    trail = json_ld(
-        {
-            "@type": "BreadcrumbList",
-            "itemListElement": [
-                {"@type": "ListItem", "position": 1, "name": "DeckyHub", "item": SITE},
-                {"@type": "ListItem", "position": 2, "name": "Plugins", "item": f"{SITE}plugins/"},
-                {"@type": "ListItem", "position": 3, "name": "Known issues"},
-            ],
-        }
-    )
-    return page(
-        shell,
-        "Known Decky plugin issues and warnings | DeckyHub",
-        f"{flagged} Decky Loader plugins with virus scan findings or audit warnings, such as code not in its repo or reading private data. Check before you install.",
-        "plugins/known-issues.html",
-        body,
-        [trail],
-    )
-
-
-def plugin_info(apps: list[dict], data: dict) -> dict:
-    """What the Paired devices page shows for each installed plugin it can match to the registry: one compact record
-    per repository (lowercase owner/name) with its numbers, badges and virus scan, plus the audit warnings' labels."""
-    stats, scans, reports, vt = data["stats"], data["scans"], data["reports"], data.get("vt")
-    plugins = {}
-    for app in apps:
-        key = app["repo"].casefold()
-        stat, scan = stats.get(key) or {}, scans.get(key) or {}
-        record: dict = {"id": app["id"], "name": app["name"]}
-        for field in ("downloads", "stars", "updated", "root", "fork"):
-            if stat.get(field) not in (None, False, ""):
-                record[field] = stat[field]
-        store = stat.get("store") or {}
-        if valid_count(store.get("downloads")):
-            record["storeDownloads"] = store["downloads"]
-        activity = store.get("activity") or {}
-        if valid_count(activity.get("downloads")) and valid_count(activity.get("updates")):
-            record["storeActivity"] = {"downloads": activity["downloads"], "updates": activity["updates"]}
-        if stat.get("ai"):
-            record["ai"] = True
-        if stat.get("rust"):
-            record["rust"] = True
-        for field in ("warnings", "prereleaseWarnings"):
-            if stat.get(field):
-                record[field] = list(stat[field])
-        stable = next(
-            (item for item in (data.get("releases") or {}).get(key) or [] if not item.get("prerelease")), None
-        )
-        if stable and stable.get("tag_name"):
-            record["latest"] = stable["tag_name"]
-        for channel_name in ("stable", "prerelease"):
-            channel = scan.get(channel_name)
-            if channel and channel.get("clamav"):
-                found = {
-                    "tag": channel.get("tag", ""),
-                    "kind": scan_kind(channel, reports, vt),
-                    "prerelease": channel_name == "prerelease",
-                }
-                for name, item in (("clamav", channel.get("clamav")), ("yara", channel.get("yara"))):
-                    if item:
-                        found[name] = item.get("result")
-                for name, flagged, total in external_results(channel, reports, vt):
-                    found["virusTotal" if name == "VirusTotal" else "metaDefender"] = [flagged, total]
-                record["scan"] = found
-                break
-        plugins[key] = record
-    return {"warnings": {code: list(pair) for code, pair in data["warnings"].items()}, "plugins": plugins}
+__all__ = [
+    "BADGE_LABEL",
+    "CARD_LEGEND",
+    "CARD_TIP",
+    "CATEGORY_SHOWN",
+    "EXTERNAL_STATUS",
+    "EXTRA_STYLE",
+    "FILTER_JS",
+    "MAX_SAFE_COUNT",
+    "METADEFENDER_URL",
+    "NOT_REVIEWED",
+    "REGISTRY_RAW",
+    "RELEASES_URL",
+    "SCANNERS",
+    "SCANS_URL",
+    "SCAN_LABELS",
+    "SCAN_RESULTS",
+    "SITE",
+    "STATS_URL",
+    "STORE_ONLY_NOTE",
+    "VIRUSTOTAL_URL",
+    "WARNINGS",
+    "badges_of",
+    "by_downloads",
+    "card",
+    "catalog_page",
+    "category_links",
+    "category_page",
+    "category_url",
+    "compact",
+    "external_results",
+    "fetch",
+    "fetch_json",
+    "fit",
+    "flags_of",
+    "guide_steps",
+    "inline_markdown",
+    "install_steps",
+    "issues_page",
+    "json_ld",
+    "load_data",
+    "md_result",
+    "nice_date",
+    "owner_of",
+    "PageSpec",
+    "page",
+    "paired_devices_page",
+    "plain_notes",
+    "plugin_info",
+    "plugin_page",
+    "popular_cards",
+    "prerelease_only",
+    "readme_steps",
+    "remote_device_panel",
+    "remote_install_picker",
+    "safety_block",
+    "safety_chips",
+    "scan_kind",
+    "scan_results",
+    "scan_state",
+    "security_scans",
+    "shell_of",
+    "slug",
+    "source_mismatch",
+    "store_activity",
+    "total_downloads",
+    "valid_count",
+    "version_mismatch",
+    "version_number",
+    "vt_result",
+    "whats_new",
+    "write_pages",
+]
 
 
 def write_pages(out, apps: list[dict], releases_page: str, data: dict) -> list[tuple[str, str]]:
@@ -1450,9 +228,9 @@ def write_pages(out, apps: list[dict], releases_page: str, data: dict) -> list[t
                 others,
                 reports,
                 data.get("vt"),
-                (data.get("releases") or {}).get(key),
-                by_author[owner_of(app).casefold()],
-                name_counts[app["name"].casefold()] > 1,
+                releases=(data.get("releases") or {}).get(key),
+                same_author=by_author[owner_of(app).casefold()],
+                shares_name=name_counts[app["name"].casefold()] > 1,
             ),
             encoding="utf-8",
         )

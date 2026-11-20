@@ -1,6 +1,6 @@
 """The Paired devices page in Ukrainian (deckyhub.com/uk/paired-devices/).
 
-The page's markup is written once, in English (plugin_pages.remote_device_panel); this table turns each of its texts into
+The page's markup is written once, in English (remote_panel.remote_device_panel); this table turns each of its texts into
 Ukrainian. Every English text must still be in the markup, so changing a sentence there without changing it here fails
 the build instead of leaving English on the Ukrainian page. The texts the page's script writes are translated in
 docs/remote-i18n.js.

@@ -4258,6 +4258,38 @@ test("Experimental V2 shows each plugin's author and lists more from the same au
   }
 });
 
+test("Experimental V2 shows the disclaimer and the badge notice side by side on its pages, with no info button", async ({
+  page,
+  request,
+}) => {
+  const headers = { Origin: "http://127.0.0.1:5183" };
+  const settings = async () =>
+    (await (await request.post(BRIDGE_URL, { data: { route: "get_settings", args: [] }, headers })).json()).result;
+  const setStyle = async (uiStyle: string) =>
+    request.post(BRIDGE_URL, { data: { route: "save_settings", args: [{ ...(await settings()), uiStyle }] }, headers });
+  await setStyle("v2");
+  try {
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    const disclaimer = app.locator(".deckyhub-disclaimer");
+    const badges = app.locator(".deckyhub-badge-notice");
+    await expect(disclaimer).toBeVisible({ timeout: 60_000 });
+    await expect(badges).toBeVisible();
+    // Side by side: the same row.
+    const [left, right] = await Promise.all([disclaimer.boundingBox(), badges.boundingBox()]);
+    expect(Math.abs(left!.y - right!.y)).toBeLessThan(40);
+    expect(right!.x).toBeGreaterThan(left!.x);
+    // The tab bar has no info button: the notices are on the page.
+    await expect(app.locator(".deckyhub-v2-tabs").getByRole("button", { name: /badges/ })).toHaveCount(0);
+    // More opens the legend inside the page, without breaking the list below.
+    await badges.getByRole("button", { name: "More", exact: true }).click();
+    await expect(badges.getByText("Runs as root", { exact: false }).first()).toBeVisible();
+    await expect(app.locator(".deckyhub-v2-row").first()).toBeVisible();
+  } finally {
+    await setStyle("default");
+  }
+});
+
 test("Experimental V2 shows Settings as a section list and a pane under its tab bar", async ({ page, request }) => {
   const headers = { Origin: "http://127.0.0.1:5183" };
   const settings = async () =>

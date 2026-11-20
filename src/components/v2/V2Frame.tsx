@@ -1,12 +1,10 @@
 import { DialogButton, Focusable, GamepadButton } from "@decky/ui";
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
-import { FaExclamationTriangle } from "react-icons/fa";
 import { useT } from "../../i18n";
 import type { MessageKey } from "../../i18n/en";
 import { colors } from "../../styles";
 import { keepInView } from "../KeepInView";
 import { SELECT_PAGE, type SelectPageRequest } from "../experimental/ExpNavBar";
-import { showV2Info } from "./V2Info";
 import { useV2Counts } from "./v2Counts";
 
 export const V2_TABS = ["discover", "updates", "installed", "search", "settings"] as const;
@@ -79,22 +77,6 @@ function V2TabBar({ active, select }: { active: string; select: (page: string) =
         </DialogButton>
       ))}
       <span aria-hidden style={{ flex: 1 }} />
-      {/* The disclaimer and what the badges mean, in a window (it took a whole row of every page). */}
-      <DialogButton
-        aria-label={t("appcard.badgesNotice")}
-        onClick={() => showV2Info(t)}
-        style={{
-          width: 36,
-          minWidth: 0,
-          height: 36,
-          padding: 0,
-          borderRadius: "50%",
-          color: colors.warning,
-          boxShadow: `inset 0 0 0 2px ${colors.warning}`,
-        }}
-      >
-        <FaExclamationTriangle />
-      </DialogButton>
       <small style={{ color: colors.subtle }}>L1 / R1</small>
     </Focusable>
   );

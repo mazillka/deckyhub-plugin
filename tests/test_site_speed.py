@@ -33,7 +33,10 @@ class SiteSpeedTests(unittest.TestCase):
             imports |= set(
                 re.findall(r"from '\./(remote-[\w-]+\.js)'", (ROOT / "docs" / name).read_text(encoding="utf-8"))
             )
-        source = (ROOT / "devtools" / "plugin_pages.py").read_text(encoding="utf-8")
+        # The markup of the pages that load the remote-install scripts lives in these two modules.
+        source = "".join(
+            (ROOT / "devtools" / f"{name}.py").read_text(encoding="utf-8") for name in ("remote_panel", "catalog_pages")
+        )
         scripts = source.count('<script type="module" src="/remote-install.js"></script>')
         self.assertEqual(scripts, 3)
         for name in imports:
