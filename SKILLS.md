@@ -6,6 +6,8 @@ Use these project skills when working in this repository.
 
 Code must be well organized, easy for people to read and review, and follow Decky Loader's plugin conventions. The [code-quality skill](.agents/skills/code-quality/SKILL.md) has the rules and a review checklist; use it when writing, reviewing or refactoring code.
 
+Code must be readable by people and easy to maintain: for the lines themselves (short flat functions, clear names, no nested ternaries, comments that say why, one home per fact, a test with every change) use the [readable-code skill](.agents/skills/readable-code/SKILL.md) whenever you write or review code.
+
 ## Backward compatibility
 
 DeckyHub is in production: an update must keep existing users' settings, caches, self-update path and registry data working, and new behavior is opt-in. Follow the `compatibility` skill before changing any of them.
