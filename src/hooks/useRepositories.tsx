@@ -59,43 +59,16 @@ async function pickJson(): Promise<string | undefined> {
   }
 }
 
-// The Repositories page's lists and everything its buttons do.
-export function useRepositories(t: TFunc) {
-  const [customRepos, setCustomRepos] = useState<string[]>([]);
-  const [registries, setRegistries] = useState<string[]>([]);
+type Refresh = () => void;
+
+// Adding, removing and reloading custom registries.
+function useRegistryActions(t: TFunc, refreshRepos: Refresh) {
   const [registryValue, setRegistryValue] = useState("");
   const [registryBusy, setRegistryBusy] = useState(false);
-
-  const refreshRepos = () => {
-    void getSettings().then((settings) => {
-      setCustomRepos(settings.customRepos ?? []);
-      setRegistries(settings.customRegistries ?? []);
-    });
-  };
-  useEffect(() => {
-    refreshRepos();
-  }, []);
-
   const registryFailed = (error: unknown, what: string) => {
     log(`${what} failed: ${error}`);
     toaster.toast({ title: "DeckyHub", body: t("repos.registryFailed") });
   };
-
-  const remove = async (repo: string) => {
-    await removeCustomRepo(repo);
-    refreshRepos();
-    registriesChanged();
-  };
-  const confirmRemove = (repo: string) =>
-    showModal(
-      <WideConfirmModal
-        strTitle={t("repos.removeRepositoryTitle")}
-        strDescription={t("repos.removeRepositoryDesc", { repo })}
-        strOKButtonText={t("repos.removeConfirm")}
-        bDestructiveWarning
-        onOK={() => void remove(repo).catch(showRepoError)}
-      />,
-    );
 
   const addRegistry = async () => {
     const value = registryValue.trim();
@@ -161,6 +134,11 @@ export function useRepositories(t: TFunc) {
     }
   };
 
+  return { registryValue, setRegistryValue, registryBusy, addRegistry, removeRegistry, reloadRegistries };
+}
+
+// Exporting and importing the repository list and plugin packs.
+function useTransfer(t: TFunc, refreshRepos: Refresh) {
   const exportList = async () => {
     const result = await exportCustomRepos();
     toaster.toast({ title: "DeckyHub", body: t("repos.exportedTo", { path: result.path }) });
@@ -192,19 +170,63 @@ export function useRepositories(t: TFunc) {
     });
   };
 
+  return { exportList, exportPack, importPack, importList };
+}
+
+// The Repositories page's lists and everything its buttons do.
+export function useRepositories(t: TFunc) {
+  const [customRepos, setCustomRepos] = useState<string[]>([]);
+  const [registries, setRegistries] = useState<string[]>([]);
+
+  const refreshRepos = () => {
+    void getSettings().then((settings) => {
+      setCustomRepos(settings.customRepos ?? []);
+      setRegistries(settings.customRegistries ?? []);
+    });
+  };
+  useEffect(() => {
+    refreshRepos();
+  }, []);
+
+  const registry = useRegistryActions(t, refreshRepos);
+  const transfer = useTransfer(t, refreshRepos);
+  const remove = async (repo: string) => {
+    await removeCustomRepo(repo);
+    refreshRepos();
+    registriesChanged();
+  };
+  const confirmRemove = (repo: string) =>
+    showModal(
+      <WideConfirmModal
+        strTitle={t("repos.removeRepositoryTitle")}
+        strDescription={t("repos.removeRepositoryDesc", { repo })}
+        strOKButtonText={t("repos.removeConfirm")}
+        bDestructiveWarning
+        onOK={() => void remove(repo).catch(showRepoError)}
+      />,
+    );
+
+  const confirmRemoveRegistry = (url: string) =>
+    showModal(
+      <WideConfirmModal
+        strTitle={t("repos.removeRegistryTitle")}
+        strDescription={t("repos.removeRegistryDesc", { url })}
+        strOKButtonText={t("repos.removeConfirm")}
+        bDestructiveWarning
+        onOK={() => void registry.removeRegistry(url)}
+      />,
+    );
+
   return {
     customRepos,
     registries,
-    registryValue,
-    setRegistryValue,
-    registryBusy,
+    registryValue: registry.registryValue,
+    setRegistryValue: registry.setRegistryValue,
+    registryBusy: registry.registryBusy,
     confirmRemove,
     confirmRemoveRegistry,
-    addRegistry,
-    reloadRegistries,
-    exportList,
-    exportPack,
-    importPack,
-    importList,
+    addRegistry: registry.addRegistry,
+    reloadRegistries: registry.reloadRegistries,
+    ...transfer,
   };
 }
