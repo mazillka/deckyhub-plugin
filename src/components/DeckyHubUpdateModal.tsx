@@ -21,7 +21,7 @@ import { normalizeVersion } from "../version";
 import { showReleaseInfo } from "./ReleaseInfo";
 import { iconTileStyle } from "./Card";
 import { showDownloadModal } from "./DownloadProgress";
-import { primaryButtonStyle } from "./AppDetailsModal";
+import { primaryButtonStyle } from "./AppDetailsParts";
 import { DetailsRow, DetailsWindow } from "./DetailsWindow";
 import { VirusScanReport } from "./VirusScanReport";
 import { ReleaseActions, useReleasePicker } from "./VersionPickerPanel";
