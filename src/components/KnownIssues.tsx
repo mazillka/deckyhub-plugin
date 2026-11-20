@@ -3,7 +3,7 @@ import { FaExclamationTriangle } from "react-icons/fa";
 import { openExternalWeb } from "../external";
 import type { TFunc } from "../i18n/en";
 import { modalButtonStyle } from "../utils";
-import { sectionTitleStyle } from "./DetailsWindow";
+import { sectionTitleStyle } from "./DetailsParts";
 import { colors } from "../styles";
 
 // A plugin's known issues from the registry, in its Manage window: problems with the plugin

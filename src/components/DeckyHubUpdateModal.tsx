@@ -1,56 +1,18 @@
-import { toaster } from "@decky/api";
-import { DialogButtonPrimary as Button, DropdownItem, Focusable } from "@decky/ui";
-import { useState } from "react";
+import { useDeckyHubUpdate } from "../hooks/useDeckyHubUpdate";
 import { DeckyHubIcon } from "./DeckyHubIcon";
-import { FaDownload, FaFileArchive, FaSync, FaTimes } from "react-icons/fa";
-import { downloadAsset, getSettings, saveSettings } from "../api";
 import type { TFunc } from "../i18n/en";
-import type { Asset, DeckyHubInfo, DeckyHubReleaseOption, UpdateChannel, HideableButton } from "../types";
-import {
-  PLUGIN_INSTALL_TYPE,
-  buildVersionOptions,
-  getDeckyBackend,
-  installDeckyPlugin,
-  installTypeLabel,
-  listDeckyHubReleases,
-  modalButtonStyle,
-  resolveDeckyHubInstallType,
-  setRegistryChannel,
-} from "../utils";
-import { normalizeVersion } from "../version";
-import { showReleaseInfo } from "./ReleaseInfo";
+import type { DeckyHubInfo, UpdateChannel, HideableButton } from "../types";
+import { buildVersionOptions } from "../utils";
 import { iconTileStyle } from "./Card";
-import { showDownloadModal } from "./DownloadProgress";
-import { primaryButtonStyle } from "./AppDetailsModal";
-import { DetailsRow, DetailsWindow } from "./DetailsWindow";
+import { DeckyHubUpdateFooter, DeckyHubUpdatePrimary } from "./DeckyHubUpdateParts";
+import { DetailsWindow } from "./DetailsWindow";
 import { VirusScanReport } from "./VirusScanReport";
-import { ReleaseActions, useReleasePicker } from "./VersionPickerPanel";
-
-const PLUGIN_NAME = "DeckyHub";
-
-// Queues a DeckyHub release ZIP into the shared download window; shared by
-// this window's Download ZIP and X on either Update button.
-export async function downloadDeckyHubZip(t: TFunc, asset: Asset, onSettled?: () => void): Promise<void> {
-  const result = await downloadAsset(asset, "mazillka/deckyhub-plugin");
-  if (result.error) throw new Error(result.error);
-  if (result.jobId)
-    showDownloadModal(t, result.jobId, { state: "queued", filename: asset.name, total: asset.size }, onSettled);
-}
 
 // showModal() mounts onto a separate root from the QAM panel (Decky's own
 // MAIN-window modal manager in production; a fresh React root in the local
 // mock), so it never inherits I18nProvider's context — `t` must be a resolved
 // function passed in from a caller that does have it, not `useT()` called here.
-export function DeckyHubUpdateModal({
-  t,
-  info,
-  channel: initialChannel,
-  registryChannel: initialRegistryChannel,
-  onCheckUpdate,
-  onChannelChange,
-  hiddenButtons,
-  closeModal,
-}: {
+export function DeckyHubUpdateModal(props: {
   t: TFunc;
   info: DeckyHubInfo;
   channel: UpdateChannel;
@@ -60,88 +22,10 @@ export function DeckyHubUpdateModal({
   hiddenButtons: HideableButton[];
   closeModal?: () => void;
 }) {
-  const [channel, setChannel] = useState(initialChannel);
-  const [registryChannel, setRegistryChannelState] = useState(initialRegistryChannel);
-  const {
-    items: versions,
-    selectedTag,
-    setSelectedTag,
-    loading: loadingVersions,
-    error: fetchError,
-    load,
-    selected: selectedRelease,
-  } = useReleasePicker(listDeckyHubReleases, channel);
-  const [checking, setChecking] = useState(false);
-  const [downloading, setDownloading] = useState(false);
-  const [selfUpdateError, setSelfUpdateError] = useState<string | null>(null);
-
-  const busy = checking || downloading || loadingVersions;
-
-  const refresh = async () => {
-    setChecking(true);
-    try {
-      await load(true);
-    } finally {
-      setChecking(false);
-    }
-    // Reads the release list load(true) just cached, to update the panel button.
-    onCheckUpdate(channel);
-  };
-
-  const changeChannel = async (next: UpdateChannel) => {
-    setChannel(next);
-    onChannelChange(next);
-    setSelectedTag("");
-    void getSettings().then((settings) => saveSettings({ ...settings, updateChannel: next }));
-  };
-
-  // Which branch of the official registry DeckyHub reads: main, or develop for changes
-  // that are still being tested (main's is used whenever develop's can't be read).
-  // The backend reloads the list and tells open pages to reload (registry_updated);
-  // they then read the matching release index.
-  const changeRegistryChannel = (next: UpdateChannel) => {
-    setRegistryChannelState(next);
-    void getSettings()
-      .then((settings) => saveSettings({ ...settings, registryChannel: next }))
-      .then((saved) => setRegistryChannel(saved.registryChannel));
-  };
-
-  // Every action but Check for Updates and Download ZIP closes this window;
-  // Decky's own confirm/progress dialog takes over the install.
-  const selfUpdate = (release: DeckyHubReleaseOption) => {
-    if (!release.asset) return;
-    if (!getDeckyBackend()) {
-      setSelfUpdateError(t("settings.selfUpdateUnavailable"));
-      return;
-    }
-    closeModal?.();
-    installDeckyPlugin(
-      release.asset,
-      "mazillka/deckyhub-plugin",
-      PLUGIN_NAME,
-      release.tag,
-      resolveDeckyHubInstallType(release.tag, info.version),
-    ).catch((error: unknown) => toaster.toast({ title: "DeckyHub", body: String(error) }));
-  };
-
-  const downloadZip = async (asset: Asset) => {
-    try {
-      setDownloading(true);
-      await downloadDeckyHubZip(t, asset, () => setDownloading(false));
-    } catch (error) {
-      setDownloading(false);
-      setSelfUpdateError(String(error));
-    }
-  };
-
-  const versionOptions = buildVersionOptions(versions, info.version, t);
-
-  const displayVersion = selectedRelease ? normalizeVersion(selectedRelease.tag) : "";
-  const installType = selectedRelease
-    ? resolveDeckyHubInstallType(selectedRelease.tag, info.version)
-    : PLUGIN_INSTALL_TYPE.UPDATE;
-  const primaryLabel = installTypeLabel(t, installType, displayVersion);
-
+  const { t, info, hiddenButtons, closeModal } = props;
+  const u = useDeckyHubUpdate(props);
+  const { picker } = u;
+  const release = picker.selected;
   return (
     <DetailsWindow
       t={t}
@@ -154,109 +38,29 @@ export function DeckyHubUpdateModal({
       title={t("settings.deckyhubUpdate")}
       aside="mazillka/deckyhub-plugin"
       meta={<span>{t("settings.installedVersion", { version: `v${info.version}` })}</span>}
-      release={selectedRelease}
-      primary={
-        selectedRelease && (
-          <>
-            {/* Display Settings' "Hide Update" covers Update/Reinstall/Downgrade. */}
-            {!hiddenButtons.includes("update") && (
-              <Button
-                style={primaryButtonStyle}
-                disabled={busy || !selectedRelease.asset}
-                onClick={() => void selfUpdate(selectedRelease)}
-                onSecondaryButton={() =>
-                  showReleaseInfo(t, `DeckyHub v${displayVersion}`, selectedRelease.publishedAt, selectedRelease.notes)
-                }
-                onSecondaryActionDescription={t("appcard.releaseInfo")}
-                onOptionsButton={
-                  hiddenButtons.includes("downloadZip") || busy || !selectedRelease.asset
-                    ? undefined
-                    : () => void downloadZip(selectedRelease.asset!)
-                }
-                onOptionsActionDescription={t("settings.downloadUpdate")}
-              >
-                <FaDownload /> {primaryLabel}
-              </Button>
-            )}
-            {!hiddenButtons.includes("downloadZip") && (
-              <Button
-                style={modalButtonStyle}
-                disabled={busy || !selectedRelease.asset}
-                onClick={() => void downloadZip(selectedRelease.asset!)}
-              >
-                <FaFileArchive /> {t("settings.downloadUpdate")}
-              </Button>
-            )}
-          </>
-        )
-      }
+      release={release}
+      primary={<DeckyHubUpdatePrimary t={t} u={u} info={info} hiddenButtons={hiddenButtons} />}
       // The update first; the scan report, versions and notes are rows you open (as in a plugin's Manage window).
       collapsible
       report={
         <VirusScanReport
           t={t}
-          asset={selectedRelease?.asset}
-          version={selectedRelease?.tag}
+          asset={release?.asset}
+          version={release?.tag}
           note={t("scan.deckyhubChecks")}
           closeModal={closeModal}
           showZipActions={false}
         />
       }
-      channel={channel}
-      onChannelChange={(next) => void changeChannel(next)}
-      versionOptions={versionOptions}
-      selectedTag={selectedTag}
-      onVersionChange={setSelectedTag}
-      disabled={busy}
-      error={fetchError || selfUpdateError}
-      isEmpty={!loadingVersions && !fetchError && versions.length === 0}
-      footer={
-        <>
-          {/* The link in one row; Check for Updates and the registry's channel behind More. */}
-          <ReleaseActions
-            t={t}
-            url={selectedRelease?.url}
-            hideReleasePage={hiddenButtons.includes("releasePage")}
-            checking={checking}
-            disabled={busy}
-            onCheck={() => void refresh()}
-            closeModal={closeModal}
-            hideCheck
-          />
-          <DetailsRow title={t("notice.more")}>
-            <Focusable flow-children="down" style={{ display: "grid", gap: 8 }}>
-              <Button style={modalButtonStyle} disabled={busy} onClick={() => void refresh()}>
-                <FaSync /> {checking ? t("settings.checkingUpdate") : t("settings.checkUpdate")}
-              </Button>
-              <div
-                style={{
-                  display: "grid",
-                  gap: 4,
-                  padding: "8px 12px",
-                  background: "rgba(0, 0, 0, 0.2)",
-                  borderRadius: 10,
-                }}
-              >
-                <DropdownItem
-                  layout="below"
-                  bottomSeparator="none"
-                  label={t("settings.registryChannel")}
-                  description={t("settings.registryChannelHint")}
-                  rgOptions={[
-                    { label: t("appcard.channelStable"), data: "stable" },
-                    { label: t("appcard.channelPrerelease"), data: "prerelease" },
-                  ]}
-                  selectedOption={registryChannel}
-                  onChange={({ data }) => changeRegistryChannel(data as UpdateChannel)}
-                />
-              </div>
-            </Focusable>
-          </DetailsRow>
-          <Button style={modalButtonStyle} onClick={closeModal}>
-            <FaTimes /> {t("settings.close")}
-          </Button>
-        </>
-      }
+      channel={u.channel}
+      onChannelChange={u.changeChannel}
+      versionOptions={buildVersionOptions(picker.items, info.version, t)}
+      selectedTag={picker.selectedTag}
+      onVersionChange={picker.setSelectedTag}
+      disabled={u.busy}
+      error={picker.error || u.selfUpdateError}
+      isEmpty={!picker.loading && !picker.error && picker.items.length === 0}
+      footer={<DeckyHubUpdateFooter t={t} u={u} hiddenButtons={hiddenButtons} closeModal={closeModal} />}
     />
   );
 }

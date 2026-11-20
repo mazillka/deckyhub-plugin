@@ -7,7 +7,7 @@ import shutil
 import subprocess
 import time
 from pathlib import Path
-from urllib.error import URLError
+from urllib.error import HTTPError, URLError
 from urllib.request import Request
 
 import decky
@@ -17,6 +17,8 @@ from .net import OPENER
 from .validation import REPOSITORY_NAME
 
 ACTIVE_DOWNLOAD_STATES = ("queued", "downloading")
+# What a download may reach when GitHub gave no size for the file (no release ZIP is near this).
+MAX_UNKNOWN_SIZE = 2 * 1024**3
 
 
 class DownloadsMixin:
@@ -201,6 +203,9 @@ class DownloadsMixin:
             job["state"] = "downloading"
             try:
                 self._download_with_urllib(job_id, asset, temp)
+            except HTTPError:
+                # GitHub answered (404, 429...): curl would only ask again and fail the same way.
+                raise
             except URLError as error:
                 decky.logger.warning("urllib failed for %s (%s), retrying with curl", asset["url"], error)
                 self._download_with_curl(job_id, asset, temp)
@@ -226,9 +231,9 @@ class DownloadsMixin:
     @staticmethod
     def _size_limit(asset: dict) -> int | None:
         """The file's size as GitHub states it, which a download may not pass: a server
-        sending more would otherwise fill the device's storage. None when it isn't known."""
+        sending more would otherwise fill the device's storage. A fixed cap when it isn't known."""
         size = asset.get("size")
-        return size if type(size) is int and size > 0 else None
+        return size if type(size) is int and size > 0 else MAX_UNKNOWN_SIZE
 
     def _download_with_urllib(self, job_id: str, asset: dict, temp: Path):
         job = self.downloads[job_id]

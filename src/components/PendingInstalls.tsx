@@ -3,7 +3,7 @@ import { showModal } from "@decky/ui";
 import { WideConfirmModal } from "./WideModal";
 import { clearPendingInstalls, getApps, getPendingInstalls } from "../api";
 import type { TFunc } from "../i18n/en";
-import { fetchPluginStats } from "../releases";
+import { fetchPluginStats } from "../registryData";
 import { displayVersion } from "../version";
 import type { App } from "../types";
 import { hydrate, installAction, PLUGIN_INSTALL_TYPE, updateDeckyPlugins } from "../utils";

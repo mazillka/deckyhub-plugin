@@ -1,28 +1,82 @@
 import { toaster } from "@decky/api";
 import { DialogButtonPrimary as Button, Focusable, PanelSection, PanelSectionRow, showModal } from "@decky/ui";
-import { useEffect, useRef, useState } from "react";
 import { FaArrowUp, FaCog } from "react-icons/fa";
-import { getDeckyHubInfo, getSettings } from "../api";
+import { getSettings } from "../api";
 import { useT } from "../i18n";
-import type { DeckyHubInfo, DeckyHubRelease, HideableButton, UpdateChannel } from "../types";
-import {
-  compactButtonStyle,
-  getDeckyBackend,
-  installDeckyPlugin,
-  latestDeckyHubRelease,
-  log,
-  seenOnce,
-  PLUGIN_INSTALL_TYPE,
-  resolveDeckyHubInstallType,
-  visuallyHidden,
-} from "../utils";
+import type { TFunc } from "../i18n/en";
+import { compactButtonStyle, getDeckyBackend, installDeckyPlugin, PLUGIN_INSTALL_TYPE, visuallyHidden } from "../utils";
 import { normalizeVersion } from "../version";
 import { showReleaseInfo } from "./ReleaseInfo";
-import { DeckyHubUpdateModal, downloadDeckyHubZip } from "./DeckyHubUpdateModal";
+import { downloadDeckyHubZip } from "../hooks/useDeckyHubUpdate";
+import { useDeckyHubVersion } from "../hooks/useDeckyHubVersion";
+import { DeckyHubUpdateModal } from "./DeckyHubUpdateModal";
 import { Card } from "./Card";
 import { colors } from "../styles";
 
-const SELF_UPDATE_NOTICE_KEY = "deckyhub-self-update-notice";
+type Version = ReturnType<typeof useDeckyHubVersion>;
+
+// Same hand-off as the update window's own Update button: Decky's
+// confirm/progress dialog takes over.
+function selfUpdate(t: TFunc, release: Version["release"]) {
+  if (!getDeckyBackend()) {
+    toaster.toast({ title: "DeckyHub", body: t("settings.selfUpdateUnavailable") });
+    return;
+  }
+  installDeckyPlugin(
+    release.asset!,
+    "mazillka/deckyhub-plugin",
+    "DeckyHub",
+    release.version!,
+    PLUGIN_INSTALL_TYPE.UPDATE,
+  ).catch((error: unknown) => toaster.toast({ title: "DeckyHub", body: String(error) }));
+}
+
+// The Update button for the newer release: Y shows its notes, X downloads its ZIP.
+function QuickUpdateButton({ t, v }: { t: TFunc; v: Version }) {
+  const { release, hiddenButtons } = v;
+  return (
+    <Button
+      style={{ ...compactButtonStyle, marginBottom: 0 }}
+      onClick={() => selfUpdate(t, release)}
+      onSecondaryButton={() =>
+        showReleaseInfo(t, `DeckyHub v${normalizeVersion(release.version!)}`, release.publishedAt, release.notes)
+      }
+      onSecondaryActionDescription={t("appcard.releaseInfo")}
+      // X downloads this release's ZIP instead of installing it.
+      onOptionsButton={
+        hiddenButtons.includes("downloadZip")
+          ? undefined
+          : () =>
+              void downloadDeckyHubZip(t, release.asset!).catch((error: unknown) =>
+                toaster.toast({ title: "DeckyHub", body: String(error) }),
+              )
+      }
+      onOptionsActionDescription={t("settings.downloadUpdate")}
+    >
+      {/* "Update to vX" doesn't fit beside the gear in Quick Access; the note above names the version. */}
+      <FaArrowUp /> <span aria-hidden="true">{t("appcard.update")}</span>
+      <span style={visuallyHidden}>{t("settings.updateTo", { version: normalizeVersion(release.version!) })}</span>
+    </Button>
+  );
+}
+
+// Opens the update window; reads settings on open so Display Settings' hidden buttons are current.
+function openUpdateWindow(t: TFunc, v: Version) {
+  void getSettings().then((settings) => {
+    v.setHiddenButtons(settings.hiddenButtons ?? []);
+    showModal(
+      <DeckyHubUpdateModal
+        t={t}
+        info={v.info}
+        channel={v.channel}
+        registryChannel={settings.registryChannel}
+        onCheckUpdate={(checkedChannel) => v.checkForUpdate(false, checkedChannel)}
+        onChannelChange={v.setChannel}
+        hiddenButtons={settings.hiddenButtons}
+      />,
+    );
+  });
+}
 
 // Deliberately thin, like an app card: a header naming the installed version,
 // a note naming the newer release and Update while one is known, and Manage. Everything else
@@ -30,78 +84,9 @@ const SELF_UPDATE_NOTICE_KEY = "deckyhub-self-update-notice";
 // lives in DeckyHubUpdateModal.
 export function DeckyHubUpdate() {
   const t = useT();
-  const [channel, setChannel] = useState<UpdateChannel>("stable");
-  const [info, setInfo] = useState<DeckyHubInfo>({ version: "unknown", downloadDir: "" });
-  const [release, setRelease] = useState<DeckyHubRelease>({});
-  const [hiddenButtons, setHiddenButtons] = useState<HideableButton[]>([]);
-
-  // Only a strictly newer release counts as available — e.g. a pre-release
-  // install on the stable channel mustn't be offered the older stable one.
-  const isNewer = (version?: string) =>
-    Boolean(
-      version &&
-      info.version !== "unknown" &&
-      resolveDeckyHubInstallType(version, info.version) === PLUGIN_INSTALL_TYPE.UPDATE,
-    );
-
-  // Only the automatic check toasts, once per version: the button already
-  // names the update, and an explicit check happens in the open update window.
-  const checkForUpdate = (notify: boolean, checkedChannel = channel) =>
-    void latestDeckyHubRelease(checkedChannel).then((next) => {
-      setRelease(next);
-      if (
-        !notify ||
-        !next.version ||
-        next.error ||
-        !isNewer(next.version) ||
-        !seenOnce(SELF_UPDATE_NOTICE_KEY, next.version)
-      )
-        return;
-      toaster.toast({ title: "DeckyHub", body: t("settings.updateAvailable", { version: next.version }) });
-    });
-
-  useEffect(() => {
-    void Promise.all([getSettings(), getDeckyHubInfo()])
-      .then(([settings, nextInfo]) => {
-        setChannel(settings.updateChannel);
-        setHiddenButtons(settings.hiddenButtons ?? []);
-        setInfo(nextInfo);
-      })
-      .catch((error) => {
-        log(`Loading DeckyHub info failed: ${error}`);
-        setRelease({ error: String(error) });
-      });
-  }, []);
-
-  // Channel changes come from the open update window, so they don't toast.
-  const autoChecked = useRef(false);
-  useEffect(() => {
-    if (info.version === "unknown") return;
-    checkForUpdate(!autoChecked.current);
-    autoChecked.current = true;
-  }, [channel, info.version]);
-
-  const loading = info.version === "unknown";
-  const title = loading ? `${t("settings.checkingVersion")}…` : `DeckyHub v${info.version}`;
-  const hasUpdate =
-    Boolean(release.asset && release.version && isNewer(release.version)) && !hiddenButtons.includes("update");
-
-  // Same hand-off as the update window's own Update button: Decky's
-  // confirm/progress dialog takes over.
-  const update = () => {
-    if (!getDeckyBackend()) {
-      toaster.toast({ title: "DeckyHub", body: t("settings.selfUpdateUnavailable") });
-      return;
-    }
-    installDeckyPlugin(
-      release.asset!,
-      "mazillka/deckyhub-plugin",
-      "DeckyHub",
-      release.version!,
-      PLUGIN_INSTALL_TYPE.UPDATE,
-    ).catch((error: unknown) => toaster.toast({ title: "DeckyHub", body: String(error) }));
-  };
-
+  const v = useDeckyHubVersion(t);
+  const { hasUpdate, release } = v;
+  const title = v.loading ? `${t("settings.checkingVersion")}…` : `DeckyHub v${v.info.version}`;
   return (
     <Card accent={hasUpdate ? colors.warning : undefined}>
       <PanelSection>
@@ -131,57 +116,13 @@ export function DeckyHubUpdate() {
           <Focusable flow-children="right" style={{ display: "flex", gap: 8 }}>
             {hasUpdate && (
               <div style={{ flex: 1, minWidth: 0 }}>
-                <Button
-                  style={{ ...compactButtonStyle, marginBottom: 0 }}
-                  onClick={update}
-                  onSecondaryButton={() =>
-                    showReleaseInfo(
-                      t,
-                      `DeckyHub v${normalizeVersion(release.version!)}`,
-                      release.publishedAt,
-                      release.notes,
-                    )
-                  }
-                  onSecondaryActionDescription={t("appcard.releaseInfo")}
-                  // X downloads this release's ZIP instead of installing it.
-                  onOptionsButton={
-                    hiddenButtons.includes("downloadZip")
-                      ? undefined
-                      : () =>
-                          void downloadDeckyHubZip(t, release.asset!).catch((error: unknown) =>
-                            toaster.toast({ title: "DeckyHub", body: String(error) }),
-                          )
-                  }
-                  onOptionsActionDescription={t("settings.downloadUpdate")}
-                >
-                  {/* "Update to vX" doesn't fit beside the gear in Quick Access; the note above names the version. */}
-                  <FaArrowUp /> <span aria-hidden="true">{t("appcard.update")}</span>
-                  <span style={visuallyHidden}>
-                    {t("settings.updateTo", { version: normalizeVersion(release.version!) })}
-                  </span>
-                </Button>
+                <QuickUpdateButton t={t} v={v} />
               </div>
             )}
             <div style={hasUpdate ? { flex: "0 0 44px" } : { flex: 1 }}>
               <Button
                 style={{ ...compactButtonStyle, marginBottom: 0, ...(hasUpdate && { padding: 0 }) }}
-                // Read settings on open so Display Settings' hidden buttons are current.
-                onClick={() =>
-                  void getSettings().then((settings) => {
-                    setHiddenButtons(settings.hiddenButtons ?? []);
-                    showModal(
-                      <DeckyHubUpdateModal
-                        t={t}
-                        info={info}
-                        channel={channel}
-                        registryChannel={settings.registryChannel}
-                        onCheckUpdate={(checkedChannel) => checkForUpdate(false, checkedChannel)}
-                        onChannelChange={setChannel}
-                        hiddenButtons={settings.hiddenButtons}
-                      />,
-                    );
-                  })
-                }
+                onClick={() => openUpdateWindow(t, v)}
               >
                 <FaCog /> <span style={hasUpdate ? visuallyHidden : undefined}>{t("appcard.manage")}</span>
               </Button>

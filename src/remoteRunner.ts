@@ -1,8 +1,9 @@
 import { addEventListener, removeEventListener, toaster } from "@decky/api";
 import { getRemoteInstallStatus } from "./api";
 import { runRemoteRequest } from "./components/remoteRequests";
-import { getDeckyBackend } from "./install";
+import { getDeckyBackend } from "./deckyLoader";
 import type { TFunc } from "./i18n/en";
+import type { RemoteInstallRequest } from "./types";
 import { nextPendingRequest, nextTrustedRequest } from "./remoteTrusted";
 
 // The backend sends these when a request arrives (remote_install.py): from a trusted browser, which runs on its
@@ -15,11 +16,20 @@ const PENDING_REQUEST = "remote_pending_request";
 // warnings and the scans) on its own; it also waits in Quick Access until it is answered or expires.
 // No timer: it wakes on the backend's event, and once at startup for a request that
 // arrived while the Steam UI was loading (it expires two minutes after it was approved).
-export function startRemoteRunner(t: TFunc) {
-  const started = new Set<string>();
+// One request at a time from `nextRequest`, each put in front of the owner once. `auto`: trusted devices' requests,
+// approved when they arrived, run without asking.
+function requestQueue(
+  t: TFunc,
+  auto: boolean,
+  nextRequest: (
+    status: Awaited<ReturnType<typeof getRemoteInstallStatus>>,
+    seen: Set<string>,
+  ) => RemoteInstallRequest | undefined,
+) {
+  const seen = new Set<string>();
   let busy = false;
   let again = false;
-  const run = async () => {
+  return async () => {
     // An event during a run is not lost: the list is read again once the run ends.
     if (busy) {
       again = true;
@@ -30,12 +40,12 @@ export function startRemoteRunner(t: TFunc) {
       do {
         again = false;
         if (!getDeckyBackend()) return;
-        const request = nextTrustedRequest(await getRemoteInstallStatus(), started);
+        const request = nextRequest(await getRemoteInstallStatus(), seen);
         if (!request) continue;
-        started.add(request.id);
+        seen.add(request.id);
         again = true;
         try {
-          await runRemoteRequest(request, t, true);
+          await runRemoteRequest(request, t, auto);
         } catch (error) {
           toaster.toast({ title: "DeckyHub", body: String(error) });
         }
@@ -46,36 +56,11 @@ export function startRemoteRunner(t: TFunc) {
       busy = false;
     }
   };
-  // One confirmation at a time, each request put in front of the owner once.
-  const shown = new Set<string>();
-  let asking = false;
-  let askAgain = false;
-  const ask = async () => {
-    if (asking) {
-      askAgain = true;
-      return;
-    }
-    asking = true;
-    try {
-      do {
-        askAgain = false;
-        if (!getDeckyBackend()) return;
-        const request = nextPendingRequest(await getRemoteInstallStatus(), shown);
-        if (!request) continue;
-        shown.add(request.id);
-        askAgain = true;
-        try {
-          await runRemoteRequest(request, t, false);
-        } catch (error) {
-          toaster.toast({ title: "DeckyHub", body: String(error) });
-        }
-      } while (askAgain);
-    } catch {
-      // The backend is busy or unloading; the next event tries again.
-    } finally {
-      asking = false;
-    }
-  };
+}
+
+export function startRemoteRunner(t: TFunc) {
+  const run = requestQueue(t, true, nextTrustedRequest);
+  const ask = requestQueue(t, false, nextPendingRequest);
   const onRequest = () => void run();
   const onPending = () => void ask();
   addEventListener(TRUSTED_REQUEST, onRequest);

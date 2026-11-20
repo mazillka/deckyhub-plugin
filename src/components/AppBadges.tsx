@@ -1,40 +1,15 @@
 import { Focusable } from "@decky/ui";
-import type { CSSProperties } from "react";
 import type { TFunc } from "../i18n/en";
 import { FaShieldAlt } from "react-icons/fa";
 import { collectFindings } from "../findings";
 import { keepInView } from "./KeepInView";
-import { AUDIT_WARNINGS, installWarnings, isAuditWarning, type App, type AuditWarning, type VirusScan } from "../types";
+import { AUDIT_WARNINGS, installWarnings, isAuditWarning, type App, type AuditWarning } from "../types";
 import { installedRiskReasons } from "../notify";
-import { compactNumber, timeAgo } from "../utils";
-import { storeActivityOf, storeCountOf, totalDownloads, validCount } from "../sorting";
 import { independentAuditOf } from "../independentAudit";
 import { colors, tint } from "../styles";
-
-export const pillStyle = {
-  display: "inline-block",
-  marginRight: 6,
-  padding: "1px 8px",
-  border: "1px solid",
-  borderRadius: 999,
-  fontSize: "max(12px, 0.78em)",
-  fontWeight: 600,
-};
-const monogramStyle = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  width: 40,
-  height: 40,
-  borderRadius: 8,
-  color: colors.text,
-  fontWeight: 700,
-  letterSpacing: "0.02em",
-};
-
-// The registry's date for the release it shows, else the card's own release check.
-const releasedAt = (app: App) => Date.parse(app.stats?.updated || app.publishedAt || "");
-const isStale = (released: number) => Date.now() - released > 365 * 24 * 60 * 60 * 1000;
+import { pillStyle } from "./badgeStyles";
+import { NotScannedBadge, ScanBadge, scanSummary, SCAN_COLORS } from "./ScanBadges";
+import { isStale, releasedAt } from "./AppStats";
 
 // The Runs as root badge, also shown in Discover's legend that explains it.
 export const RootBadge = ({ t }: { t: TFunc }) => (
@@ -157,61 +132,6 @@ export const PrereleaseOnlyBadge = ({ t }: { t: TFunc }) => (
 export const NoDescriptionBadge = ({ t }: { t: TFunc }) => (
   <span title={t("appcard.noDescriptionHint")} style={{ ...pillStyle, whiteSpace: "nowrap", ...tint(colors.caution) }}>
     {t("appcard.noDescription")}
-  </span>
-);
-
-// The virus scans' verdict on the release the card installs (the registry's scans.json):
-// the worse of ClamAV's and YARA's, also shown in Discover's legend. Nothing until the ZIP
-// has a report; Manage has the full report.
-// ClamAV, YARA, VirusTotal and MetaDefender.
-const SCANNERS = 4;
-type ScanBadgeKind = "clean" | "infected" | "partial";
-export const SCAN_BADGES: ScanBadgeKind[] = ["clean", "infected", "partial"];
-const SCAN_COLORS: Record<ScanBadgeKind, string> = {
-  clean: colors.success,
-  infected: colors.dangerSoft,
-  partial: colors.caution,
-};
-export const scanSummary = (scan: VirusScan, virusTotal?: App["virusTotal"], metaDefender?: App["metaDefender"]) => {
-  const results = [scan.result, scan.yara?.result].filter(
-    (result): result is NonNullable<typeof result> => result != null,
-  );
-  if (virusTotal?.state === "complete" && virusTotal.flagged !== undefined) {
-    results.push(virusTotal.flagged ? "infected" : "clean");
-  }
-  if (metaDefender?.state === "complete" && metaDefender.flagged !== undefined) {
-    results.push(metaDefender.flagged ? "infected" : "clean");
-  }
-  const passed = results.filter((result) => result === "clean").length;
-  // Nothing flagged only once all four scanners have reported and none flagged it: ClamAV and YARA alone say less than
-  // "Nothing flagged" sounds like, so a release still waiting on VirusTotal or MetaDefender is Not fully scanned.
-  const kind: ScanBadgeKind = results.includes("infected")
-    ? "infected"
-    : results.length >= SCANNERS && passed === results.length
-      ? "clean"
-      : "partial";
-  return { kind, count: `${passed}/${SCANNERS}` };
-};
-
-export const ScanBadge = ({ t, kind, count }: { t: TFunc; kind: ScanBadgeKind; count?: string }) => {
-  const color = SCAN_COLORS[kind];
-  return (
-    <span
-      className={`deckyhub-scan-badge deckyhub-scan-${kind}`}
-      title={t(`appcard.scan.${kind}.hint`)}
-      style={{ ...pillStyle, whiteSpace: "nowrap", ...tint(color) }}
-    >
-      <FaShieldAlt /> {t(`appcard.scan.${kind}`)}
-      {count && ` · ${count}`}
-    </span>
-  );
-};
-
-// Discover looks the ZIP's scan up and leaves null when there is none: say so, since no badge would
-// read as nothing to report.
-const NotScannedBadge = ({ t }: { t: TFunc }) => (
-  <span title={t("scan.notScanned")} style={{ ...pillStyle, whiteSpace: "nowrap", ...tint(colors.muted) }}>
-    <FaShieldAlt /> {t("scan.pending")}
   </span>
 );
 
@@ -344,98 +264,5 @@ export function AppBadges({ app, t }: { app: App; t: TFunc }) {
         </span>
       )}
     </>
-  );
-}
-
-// Updated / downloads / stars, shared by the card and its Manage window. A list row
-// leaves out Updated (noUpdated): beside the latest version it cut the counts short.
-// `detailed` (the details window, where a tooltip can't be read with a controller) says where the downloads
-// came from: GitHub and the Decky store.
-export function AppStats({
-  app,
-  t,
-  noUpdated,
-  detailed,
-}: {
-  app: App;
-  t: TFunc;
-  noUpdated?: boolean;
-  detailed?: boolean;
-}) {
-  const released = releasedAt(app);
-  const { stars } = app.stats ?? {};
-  const downloads = totalDownloads(app.stats);
-  const githubCount = app.stats?.downloads;
-  const github = validCount(githubCount) ? githubCount : undefined;
-  const storeActivity = storeActivityOf(app.stats);
-  const store = storeCountOf(app.stats);
-  return (
-    <>
-      {!noUpdated && released > 0 && !isStale(released) && (
-        <span title={new Date(released).toLocaleDateString()}>{t("appcard.updated", { when: timeAgo(released) })}</span>
-      )}
-      {downloads !== undefined && (
-        <span
-          title={[
-            downloads !== undefined && t("appcard.downloads", { count: compactNumber(downloads) }),
-            github !== undefined && t("appcard.githubDownloads", { count: github.toLocaleString() }),
-            storeActivity !== undefined
-              ? t("appcard.storeActivity", { count: storeActivity.toLocaleString() })
-              : store !== undefined && t("appcard.storeDownloads", { count: store.toLocaleString() }),
-          ]
-            .filter(Boolean)
-            .join("\n")}
-        >
-          ↓ {compactNumber(downloads)}
-        </span>
-      )}
-      {detailed && store !== undefined && (
-        <span>
-          {t("appcard.downloadsBreakdown", {
-            github: compactNumber(github ?? 0),
-            store: compactNumber(store),
-          })}
-          {storeActivity !== undefined && (
-            <>
-              <br />
-              {t("appcard.storeActivity", { count: compactNumber(storeActivity) })}
-            </>
-          )}
-          {downloads !== undefined && (
-            <>
-              <br />
-              {t("appcard.downloads", { count: compactNumber(downloads) })}
-            </>
-          )}
-        </span>
-      )}
-      {stars != null && (
-        <span title={t("appcard.stars", { count: stars.toLocaleString() })}>★ {compactNumber(stars)}</span>
-      )}
-    </>
-  );
-}
-
-// Up to two initials, e.g. "Decky LSFG-VK" -> "DL".
-const monogram = (name: string) =>
-  name
-    .split(/[\s-]+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0].toUpperCase())
-    .join("");
-// A stable hue per category, so every card in a category shares its color.
-export const categoryHue = (category: string) =>
-  [...category].reduce((hash, char) => (hash * 31 + char.charCodeAt(0)) % 360, 7);
-
-// The app's initials on its category's color, on its card and in its Manage window.
-export function AppMonogram({ app, style }: { app: App; style?: CSSProperties }) {
-  return (
-    <div
-      aria-hidden
-      style={{ ...monogramStyle, flexShrink: 0, background: `hsl(${categoryHue(app.category)} 45% 32%)`, ...style }}
-    >
-      {monogram(app.name)}
-    </div>
   );
 }

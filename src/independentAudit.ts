@@ -1,5 +1,38 @@
 import type { IndependentAudit, VirusScan } from "./types";
 
+const status = (value: unknown) => ["complete", "incomplete", "error"].includes(value as string);
+const str = (value: unknown) => typeof value === "string" && value.length > 0 && value.length <= 1024;
+
+type Audit = NonNullable<VirusScan["audit"]>;
+
+// Whether the audit's source comparison is well formed; a malformed one is dropped, not shown.
+const sourceValid = (source: Audit["source"]): boolean =>
+  Boolean(
+    source &&
+    status(source.result) &&
+    Array.isArray(source.findings) &&
+    source.findings.length <= 1000 &&
+    source.findings.every((f) => f && ["source_path_missing", "source_file_differs"].includes(f.rule) && str(f.path)) &&
+    (source.tag === undefined || str(source.tag)) &&
+    (source.reason === undefined || str(source.reason)),
+  );
+
+// Whether the audit's dependency list is well formed; a malformed one is dropped, not shown.
+const dependenciesValid = (deps: Audit["dependencies"]): deps is NonNullable<Audit["dependencies"]> =>
+  Boolean(
+    deps &&
+    status(deps.result) &&
+    Array.isArray(deps.packages) &&
+    deps.packages.length <= 1000 &&
+    deps.packages.every((p) => p && str(p.ecosystem) && str(p.name) && str(p.version) && str(p.source)) &&
+    Array.isArray(deps.findings) &&
+    deps.findings.length <= 1000 &&
+    deps.findings.every((f) => f && str(f.ecosystem) && str(f.name) && str(f.version) && str(f.id)) &&
+    Array.isArray(deps.issues) &&
+    deps.issues.length <= 1000 &&
+    deps.issues.every(str),
+  );
+
 // Registry data is untrusted at runtime; never present a partial or mismatched report as complete.
 export function independentAuditOf(scan: VirusScan | null): IndependentAudit | null {
   if (!scan || scan.unverifiedMatch || !scan.audit || typeof scan.audit !== "object") return null;
@@ -23,30 +56,9 @@ export function independentAuditOf(scan: VirusScan | null): IndependentAudit | n
     )
   )
     return null;
-  const status = (value: unknown) => ["complete", "incomplete", "error"].includes(value as string);
-  const str = (value: unknown) => typeof value === "string" && value.length > 0 && value.length <= 1024;
-  const source = audit.source;
-  const validSource =
-    source &&
-    status(source.result) &&
-    Array.isArray(source.findings) &&
-    source.findings.length <= 1000 &&
-    source.findings.every((f) => f && ["source_path_missing", "source_file_differs"].includes(f.rule) && str(f.path)) &&
-    (source.tag === undefined || str(source.tag)) &&
-    (source.reason === undefined || str(source.reason));
+  const validSource = sourceValid(audit.source);
   const deps = audit.dependencies;
-  const validDeps =
-    deps &&
-    status(deps.result) &&
-    Array.isArray(deps.packages) &&
-    deps.packages.length <= 1000 &&
-    deps.packages.every((p) => p && str(p.ecosystem) && str(p.name) && str(p.version) && str(p.source)) &&
-    Array.isArray(deps.findings) &&
-    deps.findings.length <= 1000 &&
-    deps.findings.every((f) => f && str(f.ecosystem) && str(f.name) && str(f.version) && str(f.id)) &&
-    Array.isArray(deps.issues) &&
-    deps.issues.length <= 1000 &&
-    deps.issues.every(str);
+  const validDeps = dependenciesValid(deps);
   const known = [
     "no-tls-check",
     "runs-downloads",

@@ -1,180 +1,34 @@
-import { Focusable, Navigation, Tabs } from "@decky/ui";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Tabs } from "@decky/ui";
+import { useState } from "react";
 import { FaCog } from "react-icons/fa";
-import { getSettings, saveSettings } from "../api";
 import { PageHeader } from "../components/Card";
-import { AboutSection } from "../components/AboutSection";
-import {
-  DisplaySection,
-  DownloadsSection,
-  GitHubAccessSection,
-  LanguageSection,
-  TroubleshootingSection,
-} from "../components/SettingsSections";
-import { ManageRepositoriesPage } from "./ManageRepositoriesPage";
 import { V2Settings } from "../components/v2/V2Settings";
 import { ExpSettings } from "../components/experimental/ExpSettings";
 import { useUiStyle } from "../uiStyle";
 import { useLayout } from "../components/LayoutToggle";
-import { LOCALE_CHANGED, useT } from "../i18n";
-import type { Settings } from "../types";
-import { BackupsSection } from "../components/BackupsSection";
-import { LeftoversSection } from "../components/LeftoversSection";
-import { setQuickAccessTab } from "../components/QuickAccessTab";
-import { DEFAULT_COLUMNS_PER_ROW, githubCoreQuota, setGithubToken } from "../utils";
+import { useT } from "../i18n";
+import { settingsTabs, type SettingsTab } from "../components/settingsTabs";
+import { useSettings } from "../hooks/useSettings";
+import { takeNextTab } from "../settingsNav";
 
 export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
   const t = useT();
   // Experimental swaps Steam's tab bar for a side menu (ExpSettings).
   const style = useUiStyle();
-  const experimental = style === "experimental";
   const [layout, setLayout] = useLayout();
   const [tab, setTab] = useState<SettingsTab>(() => {
-    const opening = initialTab ?? nextTab;
-    nextTab = "general";
-    return opening;
+    const opening = takeNextTab();
+    return initialTab ?? opening;
   });
-  const [settings, setSettings] = useState<Settings>({
-    overwriteExisting: true,
-    backupBeforeChange: true,
-    updateChannel: "stable",
-    registryChannel: "stable",
-    language: "auto",
-    columnsPerRow: DEFAULT_COLUMNS_PER_ROW,
-    githubToken: "",
-    density: "default",
-    haptics: true,
-    quickAccessTab: true,
-    uiStyle: "default",
-    hiddenButtons: [],
+  const tabs = settingsTabs(t, useSettings(), {
+    value: layout,
+    onChange: setLayout,
+    listOnly: style !== "default",
   });
-  // The token field saves on an explicit button (below), not per keystroke
-  // like the other settings — typing a 40+ character token would otherwise
-  // fire a save on every keystroke. This tracks the field independently of
-  // the committed `settings.githubToken` until that button is pressed.
-  const [tokenDraft, setTokenDraft] = useState("");
-  const [quota, setQuota] = useState<Awaited<ReturnType<typeof githubCoreQuota>>>(null);
-  const refreshQuota = () => void githubCoreQuota().then(setQuota, () => setQuota(null));
-
-  // The newest settings the page knows of, and which save is the newest: toggles pressed one after another
-  // each merge into the previous one, and a slower earlier save must not put its older copy back.
-  const latest = useRef(settings);
-  const saves = useRef(0);
-
-  useEffect(() => {
-    void getSettings().then((loaded) => {
-      latest.current = loaded;
-      setSettings(loaded);
-      // Keep anything typed before this load resolved instead of clobbering it.
-      setTokenDraft((draft) => draft || loaded.githubToken);
-      // Prime the token here too so the quota reflects it, rather than racing
-      // I18nProvider's own priming of the same value.
-      setGithubToken(loaded.githubToken);
-      refreshQuota();
-    });
-  }, []);
-
-  const update = (next: Partial<Settings>) => {
-    const merged = { ...latest.current, ...next };
-    latest.current = merged;
-    setSettings(merged);
-    const save = ++saves.current;
-    void saveSettings(merged).then((saved) => {
-      if (save === saves.current) {
-        latest.current = saved;
-        setSettings(saved);
-      }
-      if ("githubToken" in next) {
-        setTokenDraft(saved.githubToken);
-        setGithubToken(saved.githubToken);
-        refreshQuota();
-      }
-      if ("quickAccessTab" in next) setQuickAccessTab(saved.quickAccessTab);
-      // Every mounted I18nProvider (one per route) re-syncs both the locale
-      // and the GitHub token off this event — see i18n/index.tsx.
-      if ("language" in next || "githubToken" in next || "density" in next || "haptics" in next)
-        window.dispatchEvent(new Event(LOCALE_CHANGED));
-    });
-  };
-
-  // A tab's sections, one under another (Down moves through them).
-  // B leaves Settings in one press: Steam's tabs would spend the first B moving focus
-  // up to the tab bar (seen on a Deck).
-  const stack = (...sections: ReactNode[]) => (
-    <Focusable
-      flow-children="down"
-      className="deckyhub-settings-stack"
-      onCancelButton={() => Navigation.NavigateBack()}
-      style={{ display: "block", paddingTop: 8 }}
-    >
-      {sections}
-    </Focusable>
-  );
-
-  const tabs = (
-    [
-      {
-        id: "general",
-        title: t("settings.tabGeneral"),
-        content: stack(
-          <LanguageSection key="language" settings={settings} update={update} />,
-          <DisplaySection
-            key="display"
-            settings={settings}
-            update={update}
-            layout={layout}
-            onLayout={setLayout}
-            listOnly={experimental || style === "v2"}
-          />,
-        ),
-      },
-      {
-        id: "github",
-        // Just "GitHub" in every language: "Доступ до GitHub" overflowed Steam's tab bar.
-        title: "GitHub",
-        content: stack(
-          <GitHubAccessSection
-            key="github"
-            quota={quota}
-            tokenDraft={tokenDraft}
-            onTokenDraft={setTokenDraft}
-            savedToken={settings.githubToken}
-            update={update}
-          />,
-        ),
-      },
-      {
-        id: "downloads",
-        title: t("settings.tabDownloads"),
-        content: <DownloadsSection settings={settings} update={update} />,
-      },
-      {
-        id: "repositories",
-        title: t("nav.repositories"),
-        content: stack(<ManageRepositoriesPage key="repositories" embedded />),
-      },
-      {
-        id: "troubleshoot",
-        title: t("settings.tabTroubleshoot"),
-        content: stack(
-          <BackupsSection key="backups" settings={settings} update={update} />,
-          <LeftoversSection key="leftovers" />,
-          <TroubleshootingSection key="troubleshooting" />,
-        ),
-      },
-      {
-        id: "about",
-        // Tab names are kept short: six have to fit Steam's tab bar in every language.
-        title: t("settings.tabAbout"),
-        content: stack(<AboutSection key="about" />),
-      },
-      // Each tab's content says which tab it is, for tests on a Deck (Steam's own classes are minified).
-    ] as const
-  ).map((tab) => ({ ...tab, content: <div className={`deckyhub-settings-${tab.id}`}>{tab.content}</div> }));
 
   // Experimental V2: a section list and a pane under V2's own tab bar (its frame), so no header or Steam tabs.
   if (style === "v2") return <V2Settings tabs={tabs} active={tab} onSelect={setTab} />;
-  if (experimental) return <ExpSettings tabs={tabs} active={tab} onSelect={setTab} />;
+  if (style === "experimental") return <ExpSettings tabs={tabs} active={tab} onSelect={setTab} />;
 
   return (
     <>
@@ -193,13 +47,4 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
       </div>
     </>
   );
-}
-
-type SettingsTab = "general" | "github" | "downloads" | "repositories" | "troubleshoot" | "about";
-// The tab Settings opens on next, for links into a particular one (the rate-limit
-// banner's Open Settings goes to GitHub Access).
-let nextTab: SettingsTab = "general";
-export function openSettings(tab: SettingsTab = "general") {
-  nextTab = tab;
-  Navigation.Navigate("/deckyhub/settings");
 }

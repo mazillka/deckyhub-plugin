@@ -473,6 +473,23 @@ class PluginStatusTests(unittest.TestCase):
                     "job", {"url": "https://example.com/file.zip", "size": 2}, Path(home) / "file.part"
                 )
 
+    def test_download_http_error_does_not_retry_with_curl(self):
+        from urllib.error import HTTPError
+
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.downloads = {"job": {"received": 0, "total": 0, "state": "queued"}}
+            plugin.cancelled = set()
+            error = HTTPError("https://example.com/a.zip", 404, "Not Found", {}, None)
+            with (
+                patch.object(plugin, "_download_with_urllib", side_effect=error),
+                patch.object(plugin, "_download_with_curl") as curl,
+            ):
+                plugin._download("job", {"url": "https://example.com/a.zip"}, Path(home) / "a.zip")
+
+            curl.assert_not_called()
+            self.assertEqual(plugin.downloads["job"]["state"], "error")
+
     def test_downloads_refuse_redirects_off_https(self):
         handler = net.HttpsOnlyRedirects()
         request = Request("https://github.com/owner/repo/releases/download/v1/a.zip")

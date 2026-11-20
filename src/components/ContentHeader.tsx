@@ -15,10 +15,9 @@ import {
   NoDescriptionBadge,
   PrereleaseOnlyBadge,
   RootBadge,
-  SCAN_BADGES,
-  ScanBadge,
   WarningBadge,
 } from "./AppBadges";
+import { SCAN_BADGES, ScanBadge } from "./ScanBadges";
 import { PageHeader } from "./Card";
 import { KeepInView } from "./KeepInView";
 import { LayoutToggle, type Layout } from "./LayoutToggle";
