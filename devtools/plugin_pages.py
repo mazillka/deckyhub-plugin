@@ -651,7 +651,7 @@ def remote_device_panel(lang: str = "en") -> str:
 </div>
 </dialog>
 <noscript>Enable JavaScript to connect to your device.</noscript>
-<link rel="modulepreload" href="/remote-core.js"><link rel="modulepreload" href="/remote-i18n.js"><link rel="modulepreload" href="/remote-plugins.js"><link rel="modulepreload" href="/remote-updates.js"><link rel="modulepreload" href="/remote-scan.js"><link rel="modulepreload" href="/remote-share.js"><script type="module" src="/remote-install.js"></script>
+<link rel="modulepreload" href="/remote-core.js"><link rel="modulepreload" href="/remote-i18n.js"><link rel="modulepreload" href="/remote-plugins.js"><link rel="modulepreload" href="/remote-updates.js"><link rel="modulepreload" href="/remote-scan.js"><link rel="modulepreload" href="/remote-share.js"><link rel="modulepreload" href="/remote-session.js"><link rel="modulepreload" href="/remote-devices.js"><link rel="modulepreload" href="/remote-pairing.js"><link rel="modulepreload" href="/remote-request.js"><script type="module" src="/remote-install.js"></script>
 </section>"""
     return remote_page_uk.translate(html) if lang == "uk" else html
 
@@ -691,7 +691,7 @@ def remote_install_picker(plugin_id: str, safety: list[str] | None = None) -> st
 <p class="rc-pair"><button type="button" id="remote-refresh" hidden>Refresh</button><a id="remote-pair-new" class="btn" href="/remote-install/">Pair a device</a><span>Pair once, then install from any plugin page.</span></p>
 <p class="rd-hint">Your browser talks straight to your device on your network. Nothing about your device or its plugins is collected or sent anywhere. <a href="/help.html#remote">How to use it</a></p>
 </div>
-<link rel="modulepreload" href="/remote-core.js"><link rel="modulepreload" href="/remote-i18n.js"><link rel="modulepreload" href="/remote-plugins.js"><link rel="modulepreload" href="/remote-updates.js"><link rel="modulepreload" href="/remote-scan.js"><link rel="modulepreload" href="/remote-share.js"><script type="module" src="/remote-install.js"></script>
+<link rel="modulepreload" href="/remote-core.js"><link rel="modulepreload" href="/remote-i18n.js"><link rel="modulepreload" href="/remote-plugins.js"><link rel="modulepreload" href="/remote-updates.js"><link rel="modulepreload" href="/remote-scan.js"><link rel="modulepreload" href="/remote-share.js"><link rel="modulepreload" href="/remote-session.js"><link rel="modulepreload" href="/remote-devices.js"><link rel="modulepreload" href="/remote-pairing.js"><link rel="modulepreload" href="/remote-request.js"><script type="module" src="/remote-install.js"></script>
 </dialog>"""
 
 
@@ -1145,7 +1145,7 @@ def catalog_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
 <h1>Decky plugins</h1>
 <p><a class="btn ghost" href="/remote-install/">Paired devices</a></p>
 <p id="remote-device-ready" role="status" hidden>Device details received. Choose a plugin to pair with your device and request installation.</p>
-<link rel="modulepreload" href="/remote-core.js"><link rel="modulepreload" href="/remote-i18n.js"><link rel="modulepreload" href="/remote-plugins.js"><link rel="modulepreload" href="/remote-updates.js"><link rel="modulepreload" href="/remote-scan.js"><link rel="modulepreload" href="/remote-share.js"><script type="module" src="/remote-install.js"></script>
+<link rel="modulepreload" href="/remote-core.js"><link rel="modulepreload" href="/remote-i18n.js"><link rel="modulepreload" href="/remote-plugins.js"><link rel="modulepreload" href="/remote-updates.js"><link rel="modulepreload" href="/remote-scan.js"><link rel="modulepreload" href="/remote-share.js"><link rel="modulepreload" href="/remote-session.js"><link rel="modulepreload" href="/remote-devices.js"><link rel="modulepreload" href="/remote-pairing.js"><link rel="modulepreload" href="/remote-request.js"><script type="module" src="/remote-install.js"></script>
 <p class="lead">{len(apps)} Decky Loader plugins, most downloaded first. Install any of them from Gaming Mode with <a href="/">DeckyHub</a>, which also checks them for updates.</p>
 <p class="note">Every plugin belongs to its authors. DeckyHub doesn't make, review or vouch for them, and a plugin's page shows its notes (AI help, root, audit warnings) and security scans; <a href="/plugins/known-issues.html">Known issues</a> lists every plugin with a warning. Missing one? <a href="/contribute/">Add a plugin</a>.</p>
 <p class="note">Browse by category: {category_links(categories)}</p>

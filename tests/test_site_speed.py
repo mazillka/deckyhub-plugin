@@ -29,6 +29,10 @@ class SiteSpeedTests(unittest.TestCase):
             "remote-share.js",
             "remote-plugins.js",
             "remote-updates.js",
+            "remote-session.js",
+            "remote-devices.js",
+            "remote-pairing.js",
+            "remote-request.js",
         ):
             imports |= set(
                 re.findall(r"from '\./(remote-[\w-]+\.js)'", (ROOT / "docs" / name).read_text(encoding="utf-8"))
@@ -38,7 +42,7 @@ class SiteSpeedTests(unittest.TestCase):
         self.assertEqual(scripts, 3)
         for name in imports:
             self.assertEqual(source.count(f'<link rel="modulepreload" href="/{name}">'), scripts, name)
-        self.assertEqual(len(imports), 6)
+        self.assertEqual(len(imports), 10)
 
     def test_the_installed_app_asks_the_server_before_using_a_cached_file(self):
         worker = (ROOT / "docs" / "remote-install" / "sw.js").read_text(encoding="utf-8")

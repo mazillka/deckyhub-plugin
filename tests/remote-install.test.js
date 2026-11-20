@@ -304,3 +304,18 @@ test('the connection details name the browser, the network and the error, but ne
   assert.match(empty, /Local network permission: unknown/);
   assert.match(empty, /Device address: none/);
 });
+
+test('a request says what it is doing and how it ended, in the words the page has translated', async () => {
+  const { outcomeMessage, progressMessage, requestBody } = await import('../docs/remote-request.js');
+  assert.equal(progressMessage('pending_confirmation', 'install'), 'Waiting for approval on your device.');
+  assert.equal(progressMessage('approved', 'enable'), 'Approved; waiting for your device.');
+  assert.equal(progressMessage('installing', 'uninstall'), 'Uninstalling…');
+  assert.equal(progressMessage('installing', 'install'), 'Installing…');
+  assert.equal(outcomeMessage('disabled'), 'Disabled on your device.');
+  assert.equal(outcomeMessage('rejected'), 'Request rejected.');
+  const s = { token: 't', idempotencyKey: 'k', requestAction: 'install', requestPluginId: 'p' };
+  assert.deepEqual(requestBody(s, 'v1'), { op: 'request', token: 't', idempotencyKey: 'k', action: 'install', pluginId: 'p', releaseTag: 'v1' });
+  assert.deepEqual(requestBody({ ...s, requestAction: 'update' }, 'v1').releaseTag, undefined);
+  assert.deepEqual(requestBody({ ...s, requestName: 'N' }, 'v1').pluginName, 'N');
+  assert.deepEqual(requestBody({ ...s, requestNames: ['A'], requestName: 'N' }, 'v1').pluginNames, ['A']);
+});
