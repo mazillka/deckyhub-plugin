@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { getApps, getSettings, REGISTRY_UPDATED } from "../api";
+import { useColumns } from "./useColumns";
 import type { App, HideableButton, PluginStats, RepoPreference, UpdateChannel, View, VirusScan } from "../types";
 import {
   DEFAULT_COLUMNS_PER_ROW,
@@ -176,6 +177,7 @@ export function useApps(view: View) {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const { apply: applySettings, ...settings } = useLoadedSettings();
+  const columnsPerRow = useColumns(settings.columnsPerRow);
   // Release checks finished out of the current load, shown while Updates waits on them.
   const [checked, setChecked] = useState(0);
 
@@ -234,6 +236,7 @@ export function useApps(view: View) {
     loadError,
     checked,
     ...settings,
+    columnsPerRow,
     load,
   };
 }

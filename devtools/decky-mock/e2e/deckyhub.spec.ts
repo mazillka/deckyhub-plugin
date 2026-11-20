@@ -4757,3 +4757,82 @@ test("Quick Access keeps to quick actions, and DeckyHub's version reads in norma
   await expect(panel.getByText(/found through two community catalogs/)).toHaveCount(0);
   await expect(panel.getByText(/^DeckyHub v\d/)).toHaveCSS("text-transform", "none");
 });
+
+// The mock shows the plugin in an iframe the size of the Deck's screen; a TV is a bigger iframe.
+async function setScreen(page: Page, width: number, height: number) {
+  await page.setViewportSize({ width: 3900, height: 2300 });
+  await page.evaluate(
+    ([w, h]) => {
+      const frame = document.querySelector<HTMLIFrameElement>("#deck-app")!;
+      frame.style.width = `${w}px`;
+      frame.style.height = `${h}px`;
+    },
+    [width, height] as const,
+  );
+}
+
+// How many cards share the first row of the grid.
+const cardsInFirstRow = (page: Page) =>
+  mock(page)
+    .locator("body")
+    .evaluate(() => {
+      const tops = [...document.querySelectorAll(".deckyhub-focus-ring")].map(
+        (card) => card.getBoundingClientRect().top,
+      );
+      return tops.filter((top) => Math.abs(top - tops[0]) < 2).length;
+    });
+
+for (const [width, height, columns] of [
+  [1280, 800, 3],
+  [1920, 1080, 4],
+  [3840, 2160, 6],
+] as const) {
+  test(`Items per row: Auto fits ${columns} cards on a ${width}x${height} screen`, async ({ page }) => {
+    await bridgeCall(page, "save_settings", { columnsPerRow: 0, density: "default" });
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    await setScreen(page, width, height);
+    const app = mock(page);
+    await browseAll(page);
+    await app.getByRole("button", { name: "Grid", exact: true }).click();
+    await expect.poll(() => cardsInFirstRow(page)).toBe(columns);
+  });
+}
+
+test("A number chosen for Items per row wins over the screen's width", async ({ page }) => {
+  try {
+    await bridgeCall(page, "save_settings", { columnsPerRow: 2, density: "default" });
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    await setScreen(page, 3840, 2160);
+    await browseAll(page);
+    await mock(page).getByRole("button", { name: "Grid", exact: true }).click();
+    await expect.poll(() => cardsInFirstRow(page)).toBe(2);
+  } finally {
+    await bridgeCall(page, "save_settings", { columnsPerRow: 0, density: "default" });
+  }
+});
+
+test("The Large interface scales the page up, and Auto counts the room that leaves", async ({ page }) => {
+  try {
+    await bridgeCall(page, "save_settings", { columnsPerRow: 0, density: "large" });
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    await setScreen(page, 1920, 1080);
+    const app = mock(page);
+    await browseAll(page);
+    await app.getByRole("button", { name: "Grid", exact: true }).click();
+    const page_ = app.locator("body");
+    expect(await page_.evaluate(() => document.documentElement.style.getPropertyValue("--dh-zoom"))).toBe("1.25");
+    expect(
+      await page_.evaluate(() => getComputedStyle(document.querySelector(".deckyhub-focus-ring button")!).minHeight),
+    ).toBe("52px");
+    // 1920 px at 1.25x leaves 1536 px: three cards, where the normal size fits four.
+    await expect.poll(() => cardsInFirstRow(page)).toBe(3);
+    // Back to the normal size on the same screen.
+    await bridgeCall(page, "save_settings", { columnsPerRow: 0, density: "default" });
+    await page.reload();
+    await setScreen(page, 1920, 1080);
+    await browseAll(page);
+    await expect.poll(() => cardsInFirstRow(page)).toBe(4);
+  } finally {
+    await bridgeCall(page, "save_settings", { columnsPerRow: 0, density: "default" });
+  }
+});

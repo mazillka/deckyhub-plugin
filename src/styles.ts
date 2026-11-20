@@ -1,4 +1,5 @@
-export const DEFAULT_COLUMNS_PER_ROW = 3;
+// Auto (see src/columns.ts).
+export const DEFAULT_COLUMNS_PER_ROW = 0;
 
 // The colors components share; a shade used once stays where it's used.
 export const colors = {
@@ -31,6 +32,8 @@ export const pageStyle = {
   scrollPaddingBottom: 96,
   scrollPaddingTop: 64,
   width: "100%",
+  // Large interface (applyDensity): everything on the page bigger, for a TV across the room.
+  zoom: "var(--dh-zoom, 1)",
 };
 
 // Sizes read CSS variables that fall back to the Default density; the Compact
@@ -111,6 +114,29 @@ const COMPACT_SIZES: Record<string, string> = {
   "--dh-card-padding": "0 10px",
 };
 
+// The Large interface for a TV across the room: bigger buttons and spacing, and the whole page zoomed.
+const LARGE_ZOOM = 1.25;
+const LARGE_SIZES: Record<string, string> = {
+  "--dh-zoom": String(LARGE_ZOOM),
+  "--dh-button-height": "52px",
+  "--dh-button-padding": "10px 18px",
+  "--dh-button-gap": "12px",
+  "--dh-divider-margin": "22px",
+  "--dh-grid-gap": "20px",
+  "--dh-card-gap": "20px",
+  "--dh-card-padding": "8px 20px",
+};
+
+const DENSITY_SIZES: Record<string, Record<string, string>> = { compact: COMPACT_SIZES, large: LARGE_SIZES };
+
+// The window's width in the pixels the page is laid out in: the Large interface zooms the page, which
+// leaves it that much less room.
+export const layoutWidth = () =>
+  window.innerWidth / (Number(document.documentElement.style.getPropertyValue("--dh-zoom")) || 1);
+
+// Fired on this window once applyDensity has set the sizes (the zoom changes how much room the page has).
+export const DENSITY_APPLIED = "deckyhub-density-applied";
+
 // Applies Display Settings' density to this window and, in Gaming Mode, to the
 // main window the Quick Access popup was opened from (where modals render).
 export function applyDensity(density: string) {
@@ -120,13 +146,15 @@ export function applyDensity(density: string) {
   } catch {
     // A cross-origin opener isn't ours to style.
   }
+  const chosen = DENSITY_SIZES[density] ?? {};
   for (const root of [document.documentElement, opener?.documentElement]) {
     if (!root) continue;
-    for (const [name, value] of Object.entries(COMPACT_SIZES)) {
-      if (density === "compact") root.style.setProperty(name, value);
+    for (const name of Object.keys({ ...COMPACT_SIZES, ...LARGE_SIZES })) {
+      if (name in chosen) root.style.setProperty(name, chosen[name]);
       else root.style.removeProperty(name);
     }
   }
+  window.dispatchEvent(new Event(DENSITY_APPLIED));
 }
 
 // True black behind DeckyHub's pages, cards and windows, always, so an OLED screen can switch those
