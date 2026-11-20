@@ -6,6 +6,43 @@ import type { TFunc } from "../i18n/en";
 
 type Flow = { userCode: string; verificationUri: string; expiresAt: number; interval: number };
 
+type SignInResult = Awaited<ReturnType<typeof pollGithubSignIn>>;
+
+// Polls at the pace GitHub asked for, and counts down once a second, while a flow is open.
+function useFlowPolling(
+  flow: Flow | null,
+  setNow: (now: number) => void,
+  finish: (result: SignInResult) => void,
+  fail: (error: unknown) => void,
+) {
+  useEffect(() => {
+    if (!flow) return;
+    const clockTimer = setInterval(() => setNow(Date.now()), 1000);
+    let stopped = false;
+    let pollTimer: ReturnType<typeof setTimeout>;
+    const poll = async (wait: number) => {
+      await new Promise((resolve) => (pollTimer = setTimeout(resolve, wait * 1000)));
+      if (stopped) return;
+      try {
+        const result = await pollGithubSignIn();
+        if (stopped) return;
+        if (result.status === "pending") void poll(result.interval ?? flow.interval);
+        else finish(result);
+      } catch (error) {
+        if (!stopped) fail(error);
+      }
+    };
+    void poll(flow.interval);
+    return () => {
+      stopped = true;
+      clearInterval(clockTimer);
+      clearTimeout(pollTimer);
+    };
+    // The flow object is replaced only by a new sign-in.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flow]);
+}
+
 // GitHub's device flow: start it, poll at the pace GitHub asked for, count down once a second, and hand
 // the token over once the code is entered on github.com/login/device.
 export function useGithubSignIn(t: TFunc, onToken: (token: string) => void) {
@@ -33,43 +70,21 @@ export function useGithubSignIn(t: TFunc, onToken: (token: string) => void) {
     void cancelGithubSignIn().catch(() => undefined);
   };
 
-  // Poll at the pace GitHub asked for, and count down once a second.
-  useEffect(() => {
-    if (!flow) return;
-    const clockTimer = setInterval(() => setNow(Date.now()), 1000);
-    let stopped = false;
-    let pollTimer: ReturnType<typeof setTimeout>;
-    const poll = async (wait: number) => {
-      await new Promise((resolve) => (pollTimer = setTimeout(resolve, wait * 1000)));
-      if (stopped) return;
-      try {
-        const result = await pollGithubSignIn();
-        if (stopped) return;
-        if (result.status === "signed-in" && result.token) {
-          setFlow(null);
-          onToken(result.token);
-          toaster.toast({ title: "DeckyHub", body: t("settings.githubSignedIn") });
-        } else if (result.status === "pending") void poll(result.interval ?? flow.interval);
-        else {
-          setFlow(null);
-          toaster.toast({
-            title: "DeckyHub",
-            body: result.status === "denied" ? t("settings.githubSignInDenied") : t("settings.githubSignInExpired"),
-          });
-        }
-      } catch (error) {
-        if (!stopped) fail(error);
-      }
-    };
-    void poll(flow.interval);
-    return () => {
-      stopped = true;
-      clearInterval(clockTimer);
-      clearTimeout(pollTimer);
-    };
-    // The flow object is replaced only by a new sign-in.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flow]);
+  // The sign-in ended: with a token, or denied or expired.
+  const finish = (result: SignInResult) => {
+    setFlow(null);
+    if (result.status === "signed-in" && result.token) {
+      onToken(result.token);
+      toaster.toast({ title: "DeckyHub", body: t("settings.githubSignedIn") });
+      return;
+    }
+    toaster.toast({
+      title: "DeckyHub",
+      body: result.status === "denied" ? t("settings.githubSignInDenied") : t("settings.githubSignInExpired"),
+    });
+  };
+
+  useFlowPolling(flow, setNow, finish, fail);
 
   const qr = useMemo(() => {
     if (!flow) return null;

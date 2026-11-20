@@ -36,6 +36,27 @@ async function latestRelease(t: TFunc, repo: string) {
   return app as typeof app & { latestVersion: string };
 }
 
+// What installing the repo's latest release does: the install action (or, for an installed plugin DeckyHub can't
+// tie to this repository, installing over it anyway, as in its Manage window), its label and the note saying what
+// gets replaced.
+function planInstall(t: TFunc, app: Awaited<ReturnType<typeof latestRelease>>) {
+  const release = { tag: app.latestVersion, assets: app.assets };
+  const action = installAction(app, release);
+  const anyway = action ? null : unverifiedInstallAction(app, release);
+  if (!action && !anyway) throw new Error(t(app.identityUnverified ? "appcard.identityUnverified" : "release.noMatch"));
+  const chosen = (action ?? anyway)!;
+  const label = anyway ? t("appcard.installAnyway") : installTypeLabel(t, chosen.type, plain(app.latestVersion));
+  const note = anyway
+    ? t("appcard.unverifiedConfirmBody", {
+        name: app.uninstallName ?? app.name,
+        version: plain(app.installedVersion),
+        repo: app.repo,
+        tag: displayVersion(app.latestVersion),
+      })
+    : undefined;
+  return { chosen, label, note };
+}
+
 // What a search result's buttons do. `track` adds a repo to DeckyHub's list.
 export function useSearchActions(t: TFunc, track: (repo: string) => Promise<boolean>) {
   // The repo whose install is being prepared, so a second tap can't start another.
@@ -67,23 +88,7 @@ export function useSearchActions(t: TFunc, track: (repo: string) => Promise<bool
     setInstalling(repo);
     try {
       const app = await latestRelease(t, repo);
-      const release = { tag: app.latestVersion, assets: app.assets };
-      const action = installAction(app, release);
-      // An installed plugin DeckyHub can't tie to this repository: as in its Manage window, the user may install
-      // over it anyway once the confirmation says what gets replaced.
-      const anyway = action ? null : unverifiedInstallAction(app, release);
-      if (!action && !anyway)
-        throw new Error(t(app.identityUnverified ? "appcard.identityUnverified" : "release.noMatch"));
-      const chosen = (action ?? anyway)!;
-      const label = anyway ? t("appcard.installAnyway") : installTypeLabel(t, chosen.type, plain(app.latestVersion));
-      const note = anyway
-        ? t("appcard.unverifiedConfirmBody", {
-            name: app.uninstallName ?? app.name,
-            version: plain(app.installedVersion),
-            repo: app.repo,
-            tag: displayVersion(app.latestVersion),
-          })
-        : undefined;
+      const { chosen, label, note } = planInstall(t, app);
       // Decky's own dialog takes over, so leave the page like a card's Install does.
       await startPluginInstall(
         t,
