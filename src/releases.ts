@@ -6,16 +6,12 @@ import {
   type Asset,
   type DeckyHubRelease,
   type DeckyHubReleaseOption,
-  type PluginStats,
   type RepoPreference,
   type UpdateChannel,
-  type VirusScan,
 } from "./types";
 import { compareVersions, inChannel, installedRelease, releaseVersion } from "./version";
 import { fetchNoCors } from "@decky/api";
-import { getSettings } from "./api";
-import { githubFetch, githubHeaders, githubResponseError, githubToken } from "./github";
-import { createRawCache } from "./rawCache";
+import { githubFetch, githubResponseError, githubToken } from "./github";
 import {
   CACHE_TTL,
   fetchPluginStats,

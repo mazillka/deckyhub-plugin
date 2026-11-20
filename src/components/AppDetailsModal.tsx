@@ -1,4 +1,3 @@
-import { Focusable } from "@decky/ui";
 import { useState } from "react";
 import type { TFunc } from "../i18n/en";
 import type { App, AppReleaseOption, Asset, HideableButton, RepoPreference } from "../types";
@@ -31,7 +30,7 @@ export type Props = {
 // same note on DeckyHubUpdateModal), so `t` must be a resolved function
 // passed in from AppCard — calling useT() here throws on mount.
 export function AppDetailsModal(props: Props) {
-  const { t, app, hiddenButtons, onUninstalled, moreFromAuthor, closeModal } = props;
+  const { t, app, closeModal } = props;
   const pref = useRepoPreference(app, props.preference, props.onPreferenceChange);
   const { channel } = pref;
   const picker = useReleasePicker((force) => listAppReleases(app, force), channel);
@@ -45,9 +44,6 @@ export function AppDetailsModal(props: Props) {
     void props.onDownload(asset).finally(() => setDownloading(false));
   };
   const install = useAppInstall(t, app, release, closeModal);
-  const unverified = (
-    <UnverifiedActions t={t} app={app} release={release} pref={pref} install={install} closeModal={closeModal} />
-  );
   return (
     <DetailsWindow
       t={t}

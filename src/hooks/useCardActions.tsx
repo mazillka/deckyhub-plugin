@@ -9,7 +9,7 @@ import type { TFunc } from "../i18n/en";
 import { colors } from "../styles";
 import { installWarnings, type App, type Asset, type HideableButton, type RepoPreference } from "../types";
 import { installAction, isInstalling, PLUGIN_INSTALL_TYPE, statusColor, subscribeInstalling } from "../utils";
-import { displayVersion } from "../version";
+import { plainVersion } from "../version";
 
 // "row": one line of a list.
 export type CardLayout = "card" | "row";
@@ -47,7 +47,7 @@ function startQuickInstall(t: TFunc, app: App, install: Install, label: string) 
       note: app.identityTrusted
         ? t("install.replaces", {
             name: app.pluginName ?? app.name,
-            version: displayVersion(app.installedVersion ?? "").replace(/^v/, ""),
+            version: plainVersion(app.installedVersion),
           })
         : undefined,
     },
@@ -91,7 +91,7 @@ export function useCardActions(props: AppCardProps) {
   );
   // Blocks a second tap from starting a second install while the first is handed over.
   const [installing, setInstalling] = useState(false);
-  const latest = app.latestVersion ? displayVersion(app.latestVersion).replace(/^v/, "") : "";
+  const latest = plainVersion(app.latestVersion);
   const quickLabel = t(isUpdate ? "settings.updateTo" : "appcard.installVersion", { version: latest });
   // Decky is installing it now (after its confirmation): say so until it finishes.
   const deckyInstalling = useSyncExternalStore(subscribeInstalling, () =>

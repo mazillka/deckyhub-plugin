@@ -1,31 +1,12 @@
-import {
-  DialogButtonPrimary as Button,
-  DropdownItem,
-  Focusable,
-  PanelSection,
-  PanelSectionRow,
-  TextField,
-  ToggleField,
-} from "@decky/ui";
-import { openExternalWeb } from "../external";
-import { FileSelectionType, openFilePicker, toaster } from "@decky/api";
-import { useEffect, useState } from "react";
-import {
-  FaExternalLinkAlt,
-  FaFileExport,
-  FaFileImport,
-  FaFolderOpen,
-  FaInfoCircle,
-  FaLock,
-  FaSave,
-} from "react-icons/fa";
-import { exportLogs, getDeckyHubInfo, readTokenFile } from "../api";
+import { DialogButtonPrimary as Button, DropdownItem, PanelSection, PanelSectionRow, ToggleField } from "@decky/ui";
+import { toaster } from "@decky/api";
+import { FaFileExport, FaFolderOpen } from "react-icons/fa";
+import { exportLogs } from "../api";
 import { LOCALES, useT } from "../i18n";
 import type { MessageKey } from "../i18n/en";
 import type { HideableButton, Settings } from "../types";
-import { compactButtonStyle, sectionDividerStyle, type githubCoreQuota } from "../utils";
+import { compactButtonStyle, sectionDividerStyle } from "../utils";
 import { Card, IconNote } from "./Card";
-import { GitHubSignIn } from "./GitHubSignIn";
 import type { Layout } from "./LayoutToggle";
 import { colors } from "../styles";
 

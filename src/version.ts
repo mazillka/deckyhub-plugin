@@ -11,6 +11,9 @@ export function displayVersion(value: string) {
   return match ? `v${match[1]}${match[2] ?? ""}` : value;
 }
 
+// displayVersion() without its "v", for sentences that add their own ("Update to v1.2.3").
+export const plainVersion = (value?: string | null) => displayVersion(value ?? "").replace(/^v/, "");
+
 // The version number and pre-release suffix inside a tag or version string —
 // the same part displayVersion() shows: "plugin-v3.3.0" → 3.3.0,
 // "1.0.3-rc.2" → 1.0.3 + "rc.2". Null when there's no dotted version number.

@@ -1,13 +1,11 @@
 import { backupPluginSettings, getSettings, stageInstall } from "./api";
 import { showInstallDownloadModal } from "./components/DownloadProgress";
-import { stopHaptics } from "./haptics";
 import { type TFunc } from "./i18n/en";
 import { log } from "./log";
 import { tr } from "./translate";
 import { type App, type Asset } from "./types";
 import { compareVersions, displayVersion, normalizeVersion, releaseVersion } from "./version";
-import { toaster } from "@decky/api";
-import { callDeckyLoader, getDeckyBackend } from "./deckyLoader";
+import { callDeckyLoader } from "./deckyLoader";
 import { confirmDeckyPrompt, traceDeckyInstall } from "./deckyInstallEvents";
 
 // Shared by both version pickers: label each release with "v" plus

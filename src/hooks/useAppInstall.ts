@@ -3,9 +3,7 @@ import { startPluginInstall } from "../components/InstallFlow";
 import type { TFunc } from "../i18n/en";
 import { installWarnings, type App, type AppReleaseOption } from "../types";
 import { installAction, installTypeLabel, unverifiedInstallAction } from "../utils";
-import { displayVersion } from "../version";
-
-const plain = (version?: string | null) => displayVersion(version ?? "").replace(/^v/, "");
+import { displayVersion, plainVersion } from "../version";
 
 // Hands the selected release to Decky Loader's installer, which shows its own
 // confirm/progress dialog; Content reloads the list once the loader finishes.
@@ -17,7 +15,7 @@ export function useAppInstall(
 ) {
   const install = release && installAction(app, release);
   const installLabel =
-    install && release ? installTypeLabel(t, install.type, plain(release.tag), t("appcard.update")) : "";
+    install && release ? installTypeLabel(t, install.type, plainVersion(release.tag), t("appcard.update")) : "";
   // An unverified plugin DeckyHub can still address by one unambiguous name: the user may install over it
   // anyway, or trust it so it updates like any other. Both say what will be replaced and by what.
   const anyway = release && unverifiedInstallAction(app, release);
@@ -52,7 +50,7 @@ export function useAppInstall(
       root: chosen.assets[0]?.url === app.assets[0]?.url && app.stats?.root === true,
       prerelease: chosen.prerelease === true,
       note: app.identityTrusted
-        ? t("install.replaces", { name: app.pluginName ?? app.name, version: plain(app.installedVersion) })
+        ? t("install.replaces", { name: app.pluginName ?? app.name, version: plainVersion(app.installedVersion) })
         : undefined,
     });
   const runInstallAnyway = (chosen: AppReleaseOption, action: NonNullable<typeof anyway>) =>
@@ -60,7 +58,7 @@ export function useAppInstall(
       prerelease: chosen.prerelease === true,
       note: t("appcard.unverifiedConfirmBody", {
         name: app.uninstallName ?? app.name,
-        version: plain(app.installedVersion),
+        version: plainVersion(app.installedVersion),
         repo: app.repo,
         tag: displayVersion(chosen.tag),
       }),

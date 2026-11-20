@@ -6,10 +6,8 @@ import { showDownloadModal } from "../components/DownloadProgress";
 import { startPluginInstall } from "../components/InstallFlow";
 import { showReleaseInfo } from "../components/ReleaseInfo";
 import type { TFunc } from "../i18n/en";
-import { displayVersion } from "../version";
+import { displayVersion, plainVersion } from "../version";
 import { hydrate, installAction, installTypeLabel, log, unverifiedInstallAction } from "../utils";
-
-const plain = (version?: string | null) => displayVersion(version ?? "").replace(/^v/, "");
 
 const showError = (error: unknown) => {
   log(`Search action failed: ${error}`);
@@ -45,11 +43,11 @@ function planInstall(t: TFunc, app: Awaited<ReturnType<typeof latestRelease>>) {
   const anyway = action ? null : unverifiedInstallAction(app, release);
   if (!action && !anyway) throw new Error(t(app.identityUnverified ? "appcard.identityUnverified" : "release.noMatch"));
   const chosen = (action ?? anyway)!;
-  const label = anyway ? t("appcard.installAnyway") : installTypeLabel(t, chosen.type, plain(app.latestVersion));
+  const label = anyway ? t("appcard.installAnyway") : installTypeLabel(t, chosen.type, plainVersion(app.latestVersion));
   const note = anyway
     ? t("appcard.unverifiedConfirmBody", {
         name: app.uninstallName ?? app.name,
-        version: plain(app.installedVersion),
+        version: plainVersion(app.installedVersion),
         repo: app.repo,
         tag: displayVersion(app.latestVersion),
       })

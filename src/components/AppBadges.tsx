@@ -1,18 +1,15 @@
 import { Focusable } from "@decky/ui";
-import type { CSSProperties } from "react";
 import type { TFunc } from "../i18n/en";
 import { FaShieldAlt } from "react-icons/fa";
 import { collectFindings } from "../findings";
 import { keepInView } from "./KeepInView";
-import { AUDIT_WARNINGS, installWarnings, isAuditWarning, type App, type AuditWarning, type VirusScan } from "../types";
+import { AUDIT_WARNINGS, installWarnings, isAuditWarning, type App, type AuditWarning } from "../types";
 import { installedRiskReasons } from "../notify";
-import { compactNumber, timeAgo } from "../utils";
-import { storeActivityOf, storeCountOf, totalDownloads, validCount } from "../sorting";
 import { independentAuditOf } from "../independentAudit";
 import { colors, tint } from "../styles";
 import { pillStyle } from "./badgeStyles";
 import { NotScannedBadge, ScanBadge, scanSummary, SCAN_COLORS } from "./ScanBadges";
-import { AppStats, isStale, releasedAt } from "./AppStats";
+import { isStale, releasedAt } from "./AppStats";
 
 // The Runs as root badge, also shown in Discover's legend that explains it.
 export const RootBadge = ({ t }: { t: TFunc }) => (

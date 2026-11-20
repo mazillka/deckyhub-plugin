@@ -5,7 +5,6 @@ import { MotionStyle } from "../motion";
 import { useEffect, useRef, useState } from "react";
 import { FaCheck, FaTimes } from "react-icons/fa";
 import { cancelDownload, getDownload } from "../api";
-import { useT } from "../i18n";
 import type { TFunc } from "../i18n/en";
 import type { Download } from "../types";
 import { iconRow, readableBytes } from "../utils";
