@@ -25,7 +25,7 @@ from catalog_pages import (
     popular_cards,
 )
 from issues_page import issues_page, prerelease_only, version_mismatch, version_number
-from page_shell import EXTRA_STYLE, SITE, json_ld, page, shell_of
+from page_shell import EXTRA_STYLE, SITE, PageSpec, json_ld, page, shell_of
 from page_text import compact, fit, guide_steps, inline_markdown, nice_date, owner_of, plain_notes, readme_steps, slug
 from plugin_badges import BADGE_LABEL, NOT_REVIEWED, badges_of, flags_of, safety_chips
 from plugin_data import (
@@ -106,6 +106,7 @@ __all__ = [
     "md_result",
     "nice_date",
     "owner_of",
+    "PageSpec",
     "page",
     "paired_devices_page",
     "plain_notes",
@@ -227,9 +228,9 @@ def write_pages(out, apps: list[dict], releases_page: str, data: dict) -> list[t
                 others,
                 reports,
                 data.get("vt"),
-                (data.get("releases") or {}).get(key),
-                by_author[owner_of(app).casefold()],
-                name_counts[app["name"].casefold()] > 1,
+                releases=(data.get("releases") or {}).get(key),
+                same_author=by_author[owner_of(app).casefold()],
+                shares_name=name_counts[app["name"].casefold()] > 1,
             ),
             encoding="utf-8",
         )

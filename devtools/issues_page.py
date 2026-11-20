@@ -4,7 +4,7 @@ import re
 from html import escape
 
 from catalog_pages import by_downloads
-from page_shell import SITE, json_ld, page
+from page_shell import SITE, PageSpec, json_ld, page
 from plugin_data import WARNINGS
 from scan_format import SCAN_LABELS, scan_state, source_mismatch
 
@@ -113,11 +113,6 @@ def issues_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
             ],
         }
     )
-    return page(
-        shell,
-        "Known Decky plugin issues and warnings | DeckyHub",
-        f"{flagged} Decky Loader plugins with virus scan findings or audit warnings, such as code not in its repo or reading private data. Check before you install.",
-        "plugins/known-issues.html",
-        body,
-        [trail],
-    )
+    title = "Known Decky plugin issues and warnings | DeckyHub"
+    summary = f"{flagged} Decky Loader plugins with virus scan findings or audit warnings, such as code not in its repo or reading private data. Check before you install."
+    return page(shell, PageSpec(title, summary, "plugins/known-issues.html", body, [trail]))

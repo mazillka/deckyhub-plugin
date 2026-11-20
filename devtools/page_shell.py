@@ -2,6 +2,7 @@
 
 import json
 import re
+from dataclasses import dataclass
 from html import escape
 
 import site_shell
@@ -74,17 +75,23 @@ def shell_of(releases_page: str) -> dict[str, str]:
     return {"style": style.group(1) + EXTRA_STYLE, "footer": site_shell.FOOTER}
 
 
-def page(
-    shell: dict[str, str],
-    title: str,
-    description: str,
-    path: str,
-    body: str,
-    data: list[str],
-    current: str = "plugins",
-    lang: str = "en",
-    switch: tuple[str, str, str] | None = None,
-) -> str:
+@dataclass(frozen=True)
+class PageSpec:
+    """What one page says; page() puts it in the shared frame."""
+
+    title: str
+    description: str
+    path: str
+    body: str
+    head: tuple[str, ...] | list[str] = ()
+    current: str = "plugins"
+    lang: str = "en"
+    switch: tuple[str, str, str] | None = None
+
+
+def page(shell: dict[str, str], spec: PageSpec) -> str:
+    title, description, path, body = spec.title, spec.description, spec.path, spec.body
+    data, current, lang, switch = spec.head, spec.current, spec.lang, spec.switch
     url = SITE + path
     uk = lang == "uk"
     return f"""<!doctype html>

@@ -4,7 +4,7 @@ from html import escape
 
 from catalog_pages import category_url
 from issues_page import prerelease_only
-from page_shell import SITE, json_ld, page
+from page_shell import SITE, PageSpec, json_ld, page
 from page_text import compact, fit, nice_date, owner_of, plain_notes
 from plugin_badges import NOT_REVIEWED, badges_of, safety_chips
 from plugin_data import store_activity, total_downloads, valid_count
@@ -63,6 +63,7 @@ def plugin_page(
     others: list[dict],
     reports: dict | None = None,
     vt_reports: dict | None = None,
+    *,
     releases: list | None = None,
     same_author: list[dict] | None = None,
     shares_name: bool = False,
@@ -212,4 +213,4 @@ def plugin_page(
         else f"{name}, a {category} Decky Loader plugin. Install and update it from Gaming Mode with DeckyHub."
     )
     summary = fit(summary, 160)
-    return page(shell, title, summary, f"plugins/{app['id']}.html", body, [trail, json_ld(data)])
+    return page(shell, PageSpec(title, summary, f"plugins/{app['id']}.html", body, [trail, json_ld(data)]))

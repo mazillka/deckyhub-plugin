@@ -362,12 +362,13 @@ press_shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(
 press_shell = {**press_shell, "style": press_shell["style"] + media_coverage.CSS}
 press_page = plugin_pages.page(
     press_shell,
-    "DeckyHub in the Media | Press & Reviews",
-    "Independent articles, reviews, tutorials and videos about DeckyHub, with links to the original publications.",
-    "press",
-    media_coverage.press_body(coverage),
-    [],
-    current="press",
+    plugin_pages.PageSpec(
+        "DeckyHub in the Media | Press & Reviews",
+        "Independent articles, reviews, tutorials and videos about DeckyHub, with links to the original publications.",
+        "press",
+        media_coverage.press_body(coverage),
+        current="press",
+    ),
 )
 (out / "press.html").write_text(press_page, encoding="utf-8")
 (out / "press").mkdir(exist_ok=True)

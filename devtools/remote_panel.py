@@ -3,7 +3,7 @@
 from html import escape
 
 import remote_page_uk
-from page_shell import SITE, page
+from page_shell import SITE, PageSpec, page
 from plugin_badges import NOT_REVIEWED
 
 
@@ -182,4 +182,5 @@ def paired_devices_page(
     ]
     app.append(f'<link rel="alternate" hreflang="{"en" if uk else "uk"}" href="{other}">')
     switch = ("English", other, "en") if uk else ("Українська", other, "uk")
-    return page(shell, title, description, path, body, app, current="paired-devices", lang=lang, switch=switch)
+    spec = PageSpec(title, description, path, body, app, current="paired-devices", lang=lang, switch=switch)
+    return page(shell, spec)

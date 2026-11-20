@@ -3,7 +3,7 @@
 import time
 from html import escape
 
-from page_shell import SITE, json_ld, page
+from page_shell import SITE, PageSpec, json_ld, page
 from page_text import compact, fit, owner_of, slug
 from plugin_badges import NOT_REVIEWED, flags_of
 from plugin_data import total_downloads
@@ -135,7 +135,7 @@ def category_page(
     about = json_ld(
         {"@type": "CollectionPage", "name": f"{category} Decky plugins", "description": summary, "url": SITE + path}
     )
-    return page(shell, title, summary, path, body, [trail, about])
+    return page(shell, PageSpec(title, summary, path, body, [trail, about]))
 
 
 def catalog_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
@@ -201,11 +201,6 @@ def catalog_page(shell: dict[str, str], apps: list[dict], data: dict) -> str:
         }
     )
     hundreds = len(apps) // 100 * 100
-    return page(
-        shell,
-        f"Decky plugins: {hundreds}+ Decky Loader plugins | DeckyHub",
-        f"Browse {len(apps)} Decky Loader plugins, with downloads, stars and security scans. Install and update them from Gaming Mode with DeckyHub.",
-        "plugins/",
-        body,
-        [trail, listing],
-    )
+    title = f"Decky plugins: {hundreds}+ Decky Loader plugins | DeckyHub"
+    summary = f"Browse {len(apps)} Decky Loader plugins, with downloads, stars and security scans. Install and update them from Gaming Mode with DeckyHub."
+    return page(shell, PageSpec(title, summary, "plugins/", body, [trail, listing]))
