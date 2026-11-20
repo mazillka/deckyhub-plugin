@@ -12,6 +12,7 @@ import { AiBadge, AppMonogram, findingsOf, ForkBadge, RustBadge, scanSummary, St
 import { authorSearch as authorSearchOf, ownerOf } from "../../author";
 import { useCardActions, type AppCardProps } from "../AppCard";
 import { EmptyState } from "../EmptyState";
+import { HeaderNotices } from "../ContentHeader";
 import { keepInView } from "../KeepInView";
 import { setV2Counts } from "./v2Counts";
 
@@ -51,7 +52,7 @@ const Dot = ({ color, label }: { color: string; label?: string }) => (
 const scanLabel = (scan: Scan, t: TFunc) => (scan === "none" ? t("scan.notScanned") : t(`appcard.scan.${scan}`));
 
 // What the dots and the triangle mean, in the words the badges already use.
-export function Legend({ t }: { t: TFunc }) {
+function Legend({ t }: { t: TFunc }) {
   const items: [Scan, string][] = [
     ["clean", t("appcard.scan.clean")],
     ["partial", t("appcard.scan.partial")],
@@ -344,7 +345,14 @@ export function V2Library({
           </Button>
         </div>
       </Focusable>
-      {/* The disclaimer and what the badges mean are in the info window (the button beside the tabs). */}
+      {/* The two notices side by side, as in Experimental, then what the dots mean. */}
+      <Focusable
+        flow-children="right"
+        style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 10, alignItems: "start" }}
+      >
+        <HeaderNotices />
+      </Focusable>
+      <Legend t={t} />
       {loading ? (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, minHeight: "30vh" }}>
           <Spinner style={{ width: "1.1em" }} /> {t("content.loading")}

@@ -101,7 +101,7 @@ export function ContentHeader({
   );
 }
 
-// What each badge means, one block per badge: the badge notice opens with them, and Experimental V2's info window lists them.
+// What each badge means, one block per badge: the badge notice opens with them.
 export const badgeLegend = (t: TFunc): ReactElement[] => [
   <div
     key="deckyhub-root-legend"
