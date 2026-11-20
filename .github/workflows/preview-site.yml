@@ -6,7 +6,7 @@ name: Preview website
 on:
   push:
     branches: [develop]
-    paths: [docs/**, screenshots/**, promo/deckyhub.gif, devtools/build-site.py, devtools/plugin_pages.py, .github/workflows/preview-site.yml]
+    paths: [docs/**, screenshots/**, promo/deckyhub.gif, devtools/*.py, .github/workflows/preview-site.yml]
   workflow_dispatch:
 
 permissions:
