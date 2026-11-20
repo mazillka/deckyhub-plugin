@@ -8,6 +8,8 @@ Code must be well organized, easy for people to read and review, and follow Deck
 
 Code must be readable by people and easy to maintain: for the lines themselves (short flat functions, clear names, no nested ternaries, comments that say why, one home per fact, a test with every change) use the [readable-code skill](.agents/skills/readable-code/SKILL.md) whenever you write or review code.
 
+No duplicated code and no hardcoded values or magic numbers: the [no-duplication skill](.agents/skills/no-duplication/SKILL.md) says where each kind of fact lives and how to remove copies; use it whenever you add a number, string, color, URL or block that might already exist.
+
 ## Backward compatibility
 
 DeckyHub is in production: an update must keep existing users' settings, caches, self-update path and registry data working, and new behavior is opt-in. Follow the `compatibility` skill before changing any of them.
