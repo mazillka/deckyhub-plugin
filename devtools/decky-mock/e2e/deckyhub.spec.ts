@@ -4603,7 +4603,7 @@ test("Switching DeckyHub's channel in its update window doesn't toast, and the p
     await page.goto("/?bridge=http://127.0.0.1:8643");
     const app = mock(page);
     const panel = app.locator(".qam-content");
-    await panel.getByRole("button", { name: "Manage", exact: true }).click();
+    await panel.getByRole("button", { name: "DeckyHub Update", exact: true }).click();
     const modal = app.locator(".steam-modal");
     await modal.getByLabel("Update Channel").selectOption("prerelease");
     await expect(modal.getByRole("button", { name: "Update to v9.9.9-rc.1", exact: true })).toBeVisible();
