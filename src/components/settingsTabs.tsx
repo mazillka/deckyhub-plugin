@@ -5,15 +5,10 @@ import type { TFunc } from "../i18n/en";
 import { ManageRepositoriesPage } from "../pages/ManageRepositoriesPage";
 import { AboutSection } from "./AboutSection";
 import { BackupsSection } from "./BackupsSection";
+import { GitHubAccessSection } from "./GitHubAccessSection";
 import { LeftoversSection } from "./LeftoversSection";
 import type { Layout } from "./LayoutToggle";
-import {
-  DisplaySection,
-  DownloadsSection,
-  GitHubAccessSection,
-  LanguageSection,
-  TroubleshootingSection,
-} from "./SettingsSections";
+import { DisplaySection, DownloadsSection, LanguageSection, TroubleshootingSection } from "./SettingsSections";
 
 export type SettingsTab = "general" | "github" | "downloads" | "repositories" | "troubleshoot" | "about";
 
