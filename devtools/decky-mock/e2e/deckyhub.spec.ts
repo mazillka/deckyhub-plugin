@@ -4864,3 +4864,20 @@ for (const style of ["experimental", "v2"] as const) {
     }
   });
 }
+
+test("Settings offers the Large interface, which makes controls and text bigger", async ({ page }) => {
+  const app = mock(page);
+  try {
+    await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+    await app.getByLabel("Interface").selectOption({ label: "Large" });
+    await expect
+      .poll(() => app.locator("body").evaluate(() => document.documentElement.style.getPropertyValue("--dh-scale")))
+      .toBe("1.1");
+    await app.getByLabel("Interface").selectOption({ label: "Default" });
+    await expect
+      .poll(() => app.locator("body").evaluate(() => document.documentElement.style.getPropertyValue("--dh-scale")))
+      .toBe("");
+  } finally {
+    await bridgeCall(page, "save_settings", { columnsPerRow: 0, density: "default" });
+  }
+});

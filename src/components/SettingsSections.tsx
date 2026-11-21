@@ -114,8 +114,7 @@ export function DisplaySection({
             rgOptions={[
               { label: t("settings.densityDefault"), data: "default" },
               { label: t("settings.densityCompact"), data: "compact" },
-              // Large (density "large", see styles.ts) stays out of the menu until the D-pad walks V2 and
-              // Experimental with it on: on a real Deck both lose track of focus.
+              { label: t("settings.densityLarge"), data: "large" },
             ]}
             selectedOption={settings.density}
             onChange={({ data }) => update({ density: data })}
