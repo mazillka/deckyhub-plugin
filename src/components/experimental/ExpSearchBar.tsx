@@ -1,5 +1,5 @@
 import { DialogButtonPrimary as Button, Focusable, TextField } from "@decky/ui";
-import { FaSearch, FaTimes } from "react-icons/fa";
+import { FaSearch } from "react-icons/fa";
 import { useT } from "../../i18n";
 import { keepInView } from "../KeepInView";
 
@@ -9,14 +9,12 @@ export function ExpSearchBar({
   onQuery,
   searching,
   onSearch,
-  onClear,
   error,
 }: {
   query: string;
   onQuery: (query: string) => void;
   searching: boolean;
   onSearch: () => void;
-  onClear: () => void;
   error?: string | null;
 }) {
   const t = useT();
@@ -41,11 +39,6 @@ export function ExpSearchBar({
         <div className="dh-exp-wide" style={{ flex: "0 0 170px" }}>
           <Button onClick={onSearch} disabled={searching}>
             <FaSearch /> {searching ? t("repos.searching") : t("filter.search")}
-          </Button>
-        </div>
-        <div style={{ flex: "0 0 56px" }}>
-          <Button aria-label={t("repos.clear")} onClick={onClear}>
-            <FaTimes />
           </Button>
         </div>
       </Focusable>

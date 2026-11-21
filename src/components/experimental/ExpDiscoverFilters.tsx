@@ -63,7 +63,6 @@ export function ExpDiscoverFilters({
             {...({ "aria-label": t("filter.search") } as object)}
             placeholder={t("filter.search")}
             value={query}
-            bShowClearAction
             onChange={(event) => onQuery(event.currentTarget.value)}
           />
         </div>

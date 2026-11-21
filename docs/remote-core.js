@@ -147,3 +147,16 @@ export async function exchange(transport, message) {
 export const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 export const REQUEST_STATES = new Set(['pending_confirmation', 'approved', 'installing', 'installed', 'uninstalled', 'enabled', 'disabled', 'rejected', 'expired', 'cancelled', 'failed', 'unknown']);
 export const TERMINAL = new Set(['installed', 'uninstalled', 'enabled', 'disabled', 'rejected', 'expired', 'cancelled', 'failed', 'unknown']);
+export const isPin = value => /^[a-f0-9]{64}$/.test(value || '');
+// Opens a connection to a paired device and closes it again: true when it answered in time (and, if given,
+// when afterReady(connection) went through).
+export async function probeDevice(device, afterReady) {
+  let connection;
+  try {
+    connection = new WebTransport(deviceUrl(device.address), { serverCertificateHashes: pinnedHashes(device) });
+    void connection.closed?.catch(() => {});
+    await timeout(connection.ready, 5000);
+    if (afterReady) await afterReady(connection);
+    return true;
+  } catch { return false; } finally { connection?.close(); }
+}

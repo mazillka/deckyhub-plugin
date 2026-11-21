@@ -1,12 +1,12 @@
 import { backupPluginSettings, getSettings, stageInstall } from "./api";
 import { showInstallDownloadModal } from "./components/DownloadProgress";
-import { stopHaptics } from "./haptics";
 import { type TFunc } from "./i18n/en";
 import { log } from "./log";
 import { tr } from "./translate";
 import { type App, type Asset } from "./types";
 import { compareVersions, displayVersion, normalizeVersion, releaseVersion } from "./version";
-import { toaster } from "@decky/api";
+import { callDeckyLoader } from "./deckyLoader";
+import { confirmDeckyPrompt, traceDeckyInstall } from "./deckyInstallEvents";
 
 // Shared by both version pickers: label each release with "v" plus
 // an "(installed)"/"(latest)" suffix — items[0] is the newest since every
@@ -39,45 +39,6 @@ export const PLUGIN_INSTALL_TYPE = { INSTALL: 0, REINSTALL: 1, UPDATE: 2, DOWNGR
 export function resolveDeckyHubInstallType(latestVersion: string, installedVersion: string): 1 | 2 | 3 {
   const cmp = compareVersions(latestVersion, installedVersion) ?? 1;
   return cmp > 0 ? PLUGIN_INSTALL_TYPE.UPDATE : cmp < 0 ? PLUGIN_INSTALL_TYPE.DOWNGRADE : PLUGIN_INSTALL_TYPE.REINSTALL;
-}
-
-// window.DeckyBackend is Decky Loader's own internal WS bridge, separate from
-// this plugin's `@decky/api` connection (which is scoped to this plugin's own
-// backend and cannot reach loader-global routes like `utilities/install_plugin`).
-// In Gaming Mode the Quick Access Menu renders in its own popup window opened
-// via window.open(), where DeckyBackend lives only on window.opener.
-declare global {
-  interface Window {
-    DeckyBackend?: {
-      call<Args extends unknown[] = unknown[], Return = unknown>(route: string, ...args: Args): Promise<Return>;
-      addEventListener<Args extends unknown[] = unknown[]>(event: string, listener: (...args: Args) => void): void;
-      removeEventListener<Args extends unknown[] = unknown[]>(event: string, listener: (...args: Args) => void): void;
-    };
-    // Decky Loader's frontend plugin loader; importPlugin() unloads a plugin and loads its current dist.
-    DeckyPluginLoader?: { importPlugin(name: string): Promise<void> };
-  }
-}
-
-export const getDeckyBackend = () => window.DeckyBackend ?? window.opener?.DeckyBackend ?? null;
-
-// Set by this copy's onDismount (src/index.tsx). Each load of DeckyHub is a
-// fresh module, so after a self-update only the old copy still sees false.
-let unloaded = false;
-
-export const markUnloaded = () => {
-  unloaded = true;
-  stopHaptics();
-};
-
-// Decky Loader reloads DeckyHub itself once its update is installed. If this
-// old copy is still mounted after Decky's own 15 s load timeout, that reload
-// didn't happen, so ask Decky's plugin loader for the new copy directly.
-function reloadIfStillOld() {
-  window.setTimeout(() => {
-    if (unloaded) return;
-    log("DeckyHub was not reloaded after its update; asking Decky Loader to load the new version");
-    void (window.DeckyPluginLoader ?? window.opener?.DeckyPluginLoader)?.importPlugin("DeckyHub");
-  }, 15_000);
 }
 
 // Saves the plugin's settings first (backups.py), unless turned off in Settings: Decky deletes a removed
@@ -202,111 +163,8 @@ export async function updateDeckyPlugins(
   }
 }
 
-// Plugins Decky is installing right now (from its start event, so a cancelled
-// confirmation never counts), for cards to say "Installing…".
-const installingNow = new Set<string>();
-const installingListeners = new Set<() => void>();
-const setInstalling = (name: string, on: boolean) => {
-  if (on) installingNow.add(name);
-  else installingNow.delete(name);
-  installingListeners.forEach((listener) => listener());
-};
-export const subscribeInstalling = (listener: () => void) => {
-  installingListeners.add(listener);
-  return () => void installingListeners.delete(listener);
-};
-export const isInstalling = (name: string) => installingNow.has(name);
-
-// Logs every stage Decky Loader reports for this install, with elapsed time,
-// so deckyhub.log shows where a stuck install stopped. Decky's progress events
-// carry no plugin name, so all of them are logged while this one is watched.
-// Decky shows no notice when an install finishes, so this toasts one.
-function traceDeckyInstall(pluginName: string, version?: string) {
-  const backend = getDeckyBackend();
-  if (!backend) return;
-  const started = Date.now();
-  const elapsed = () => `${((Date.now() - started) / 1000).toFixed(1)}s`;
-  // Decky can fail an install without ever sending finish (e.g. a remote_binary
-  // download error leaves it at 95%), so warn once its events go quiet.
-  // Remote binaries download with no progress events, so that stage gets longer.
-  let idleTimer = 0;
-  const armIdle = (stage?: string) => {
-    window.clearTimeout(idleTimer);
-    idleTimer = window.setTimeout(
-      () => {
-        log(`Decky install ${pluginName}: no progress after ${elapsed()} — check journalctl -u plugin_loader`);
-        toaster.toast({
-          title: tr("toast.installStalledTitle", { name: pluginName }),
-          body: tr("toast.installStalledBody"),
-        });
-        stop();
-      },
-      stage?.endsWith("download_remote") ? 120_000 : 45_000,
-    );
-  };
-  const onStart = (name: string) => {
-    log(`Decky install start ${name} at ${elapsed()}`);
-    if (name !== pluginName) return;
-    setInstalling(name, true);
-    armIdle();
-  };
-  const onInfo = (progress: number, stage: string) => {
-    log(`Decky install ${pluginName} ${progress}% ${stage} at ${elapsed()}`);
-    armIdle(stage);
-  };
-  const stop = () => {
-    setInstalling(pluginName, false);
-    window.clearTimeout(timer);
-    window.clearTimeout(idleTimer);
-    backend.removeEventListener("loader/plugin_download_start", onStart);
-    backend.removeEventListener("loader/plugin_download_info", onInfo);
-    backend.removeEventListener("loader/plugin_download_finish", onFinish);
-  };
-  const onFinish = (name: string) => {
-    log(`Decky install finish ${name} at ${elapsed()}`);
-    if (name !== pluginName) return;
-    stop();
-    if (name === "DeckyHub") reloadIfStillOld();
-    else
-      toaster.toast({
-        title: "DeckyHub",
-        body: version
-          ? tr("toast.installedVersion", { name, version: displayVersion(version) })
-          : tr("toast.installed", { name }),
-      });
-  };
-  // Backstop: Decky never sends finish after a silent failure.
-  const timer = window.setTimeout(
-    () => {
-      log(`Decky install ${pluginName}: no finish after ${elapsed()} — check journalctl -u plugin_loader`);
-      stop();
-    },
-    10 * 60 * 1000,
-  );
-  backend.addEventListener("loader/plugin_download_start", onStart);
-  backend.addEventListener("loader/plugin_download_info", onInfo);
-  backend.addEventListener("loader/plugin_download_finish", onFinish);
-}
-
 // Decky Loader's uninstall deletes the plugin's folder and its settings right
 // away, with no dialog of its own — callers must confirm first.
-// Decky Loader announces each install with `loader/add_plugin_install_prompt` (name, version,
-// request id, hash, install type) and installs once `utilities/confirm_plugin_install` gets that id.
-function confirmDeckyPrompt(pluginName: string, version: string, hash: string) {
-  const backend = getDeckyBackend();
-  if (!backend) return () => undefined;
-  const onPrompt = (name: string, promptVersion: string, requestId: string, promptHash: unknown) => {
-    if (name !== pluginName || promptVersion !== version || (promptHash || "") !== hash) return;
-    if (typeof requestId !== "string") return;
-    log(`Confirming Decky Loader's install prompt for ${name} (trusted browser)`);
-    // One prompt per request: a later manual install of the same plugin must still ask.
-    backend.removeEventListener("loader/add_plugin_install_prompt", onPrompt);
-    void callDeckyLoader("utilities/confirm_plugin_install", requestId).catch(() => undefined);
-  };
-  backend.addEventListener("loader/add_plugin_install_prompt", onPrompt);
-  return () => backend.removeEventListener("loader/add_plugin_install_prompt", onPrompt);
-}
-
 export async function uninstallDeckyPlugin(pluginName: string, backUp = true) {
   if (backUp) await backUpFirst(pluginName);
   return callDeckyLoader("utilities/uninstall_plugin", pluginName);
@@ -315,16 +173,6 @@ export async function uninstallDeckyPlugin(pluginName: string, backUp = true) {
 // Decky Loader's own switch for a plugin: it stops or starts the plugin and remembers the choice (nothing is deleted).
 export const setDeckyPluginEnabled = (pluginName: string, enabled: boolean) =>
   callDeckyLoader(enabled ? "utilities/enable_plugin" : "utilities/disable_plugin", pluginName);
-
-function callDeckyLoader(route: string, ...args: unknown[]) {
-  const backend = getDeckyBackend();
-  log(`Decky Loader ${route} ${JSON.stringify(args)}${backend ? "" : " (loader unavailable)"}`);
-  if (!backend) return Promise.reject(new Error(tr("error.loaderUnavailable")));
-  return backend.call(route, ...args).catch((error: unknown) => {
-    log(`Decky Loader ${route} failed: ${error}`);
-    throw error;
-  });
-}
 
 // What the Manage window can hand to Decky Loader's installer for the selected
 // release, if anything: "Update" for an installed Decky plugin when

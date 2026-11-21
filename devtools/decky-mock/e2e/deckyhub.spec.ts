@@ -319,34 +319,26 @@ test("Repository search and action share one row", async ({ page }) => {
   const app = mock(page);
   const search = app.getByLabel("Search GitHub");
   const action = app.getByRole("button", { name: "Search", exact: true });
-  const clear = app.getByRole("button", { name: "Clear", exact: true });
-
   await expect(search).toBeVisible();
   await expect(action).toBeVisible();
-  await expect(clear).toBeVisible();
+  await expect(app.getByRole("button", { name: "Clear", exact: true })).toHaveCount(0);
   const measure = async () => {
-    const [searchBox, actionBox, clearBox] = await Promise.all([
-      search.boundingBox(),
-      action.boundingBox(),
-      clear.boundingBox(),
-    ]);
+    const [searchBox, actionBox] = await Promise.all([search.boundingBox(), action.boundingBox()]);
     expect(searchBox).not.toBeNull();
     expect(actionBox).not.toBeNull();
-    expect(clearBox).not.toBeNull();
-    return { searchBox: searchBox!, actionBox: actionBox!, clearBox: clearBox! };
+    return { searchBox: searchBox!, actionBox: actionBox! };
   };
-  // One centre line for the field and both buttons (seen off by a few px on a Deck).
+  // One centre line for the field and the button (seen off by a few px on a Deck).
   const middle = (box: { y: number; height: number }) => box.y + box.height / 2;
   // The page animates in, so the first reading can be a few px off: poll until the layout settles.
   await expect
     .poll(async () => {
-      const { searchBox, actionBox, clearBox } = await measure();
-      return Math.max(Math.abs(middle(searchBox) - middle(actionBox)), Math.abs(middle(actionBox) - middle(clearBox)));
+      const { searchBox, actionBox } = await measure();
+      return Math.abs(middle(searchBox) - middle(actionBox));
     })
     .toBeLessThan(2);
-  const { searchBox, actionBox, clearBox } = await measure();
+  const { searchBox, actionBox } = await measure();
   expect(actionBox.x).toBeGreaterThan(searchBox.x);
-  expect(clearBox.x).toBeGreaterThan(actionBox.x);
 });
 
 for (const uiStyle of ["default", "experimental"]) {
@@ -640,7 +632,7 @@ test("DeckyHub automatically notifies about an available update", async ({ page 
     app.locator(".qam-content").getByRole("button", { name: "Update to v9.9.9", exact: true }),
   ).toBeVisible();
   await expect(app.getByText("DeckyHub: DeckyHub update v9.9.9 is available.")).toHaveCount(0);
-  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "DeckyHub Update", exact: true }).click();
   await expect(
     app.locator(".steam-modal").getByRole("button", { name: "Update to v9.9.9", exact: true }),
   ).toBeVisible();
@@ -727,10 +719,10 @@ test("DeckyHub doesn't advertise an older release as an available update", async
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
 
-  await expect(app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true })).toBeVisible();
+  await expect(app.locator(".qam-content").getByRole("button", { name: "DeckyHub Update", exact: true })).toBeVisible();
   await expect(app.locator(".qam-content").getByRole("button", { name: /^Update to v/ })).toHaveCount(0);
   await expect(app.getByText(/DeckyHub update v0\.9\.0 is available/)).toHaveCount(0);
-  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "DeckyHub Update", exact: true }).click();
   await expect(app.getByRole("button", { name: "Downgrade to v0.9.0", exact: true })).toBeVisible();
 });
 
@@ -740,7 +732,7 @@ test("DeckyHub's Check for Updates snaps the version picker back to the channel'
   await mockDeckyHubReleases(page, [installedRelease, olderRelease]);
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "DeckyHub Update", exact: true }).click();
 
   // Pick the older release to inspect a downgrade...
   await app.getByLabel("Version").selectOption({ label: "v0.9.0" });
@@ -766,7 +758,7 @@ test("DeckyHub distinguishes rc versions sharing the same release number", async
   await mockDeckyHubReleases(page, [newerRcRelease, installedRelease, olderRcRelease]);
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "DeckyHub Update", exact: true }).click();
 
   // The modal defaults to the channel's newest release (newerRcRelease is
   // versions[0] in the mocked list), not the installed one, so it shows
@@ -798,7 +790,7 @@ test("DeckyHub picks the newest release by publish date even when GitHub returns
   await mockDeckyHubReleases(page, [installedRelease, newerRcRelease, olderRcRelease]);
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "DeckyHub Update", exact: true }).click();
 
   await expect(
     app.locator(".steam-modal").getByRole("button", { name: `Update to ${newerRcTag}`, exact: true }),
@@ -812,7 +804,7 @@ test("DeckyHub falls back to a clear message when automatic update can't reach D
   await mockDeckyHubReleases(page, [deckyHubRelease(deckyHubTag)]);
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "DeckyHub Update", exact: true }).click();
 
   // The dev mock never defines window.DeckyBackend, mirroring a Decky Loader
   // build old enough not to expose it — the same fallback path real users hit.
@@ -827,7 +819,7 @@ test("DeckyHub's Reinstall closes its window and hands the release to Decky's in
   await recordInstalls(page);
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "DeckyHub Update", exact: true }).click();
   await app.getByRole("button", { name: `Reinstall v${deckyHubVersion}`, exact: true }).click();
 
   // Decky's own confirm/progress dialog takes over, so this window gets out of the way.
@@ -857,7 +849,7 @@ test("DeckyHub version picker re-filters by channel and leaves the channel as it
   await mockDeckyHubReleases(page, [stableRelease, prereleaseRelease]);
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "DeckyHub Update", exact: true }).click();
   await expect(app.getByLabel("Version")).toHaveValue(deckyHubTag);
 
   await app.getByLabel("Update Channel").selectOption({ label: "Pre-releases" });
@@ -882,7 +874,7 @@ test("DeckyHub version picker re-filters by channel and leaves the channel as it
 test("DeckyHub update modal's Close button spans its column and dismisses the modal", async ({ page }) => {
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "DeckyHub Update", exact: true }).click();
 
   // As wide as Download ZIP above it, the whole actions column.
   const [closeBox, zipBox] = await Promise.all([
@@ -1643,7 +1635,7 @@ test("DeckyHub's update window shows its release's ClamAV report and how release
   });
   await page.goto("/?bridge=http://127.0.0.1:8643");
   const app = mock(page);
-  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "DeckyHub Update", exact: true }).click();
   const scan = app.locator(".steam-modal .deckyhub-virus-scan");
   await expect(scan.getByText("ClamAV: No threats found")).toBeVisible();
   await expect(
@@ -1900,7 +1892,7 @@ test("Registry Channel: Pre-release reads the registry's develop data, says so o
   try {
     await page.goto("/?bridge=http://127.0.0.1:8643");
     const app = mock(page);
-    await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+    await app.locator(".qam-content").getByRole("button", { name: "DeckyHub Update", exact: true }).click();
     const channel = app.locator(".steam-modal").getByLabel("Registry Channel");
     await expect(channel).toHaveValue("stable");
     await expect(app.getByText("If they can't be loaded, DeckyHub uses the stable list.")).toBeVisible();
@@ -3002,7 +2994,7 @@ test("Display Settings can hide the Manage window's buttons", async ({ page }) =
     await expect(app.getByLabel("Hide “Update”")).toBeChecked();
     await app.getByRole("button", { name: "Quick Access widget" }).click();
     await expect(app.locator(".qam-content").getByRole("button", { name: /^Update to v/ })).toHaveCount(0);
-    await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+    await app.locator(".qam-content").getByRole("button", { name: "DeckyHub Update", exact: true }).click();
     modal = app.locator(".steam-modal");
     await expect(modal.getByLabel("Version").locator("option").first()).toBeAttached();
     await expect(
@@ -3992,7 +3984,7 @@ test("Every row of side-by-side controls lets the D-pad move left and right", as
 
   // DeckyHub's own update window.
   await app.getByRole("button", { name: "Quick Access widget", exact: true }).click();
-  await app.locator(".qam-content").getByRole("button", { name: "Manage", exact: true }).click();
+  await app.locator(".qam-content").getByRole("button", { name: "DeckyHub Update", exact: true }).click();
   await expect(app.locator(".steam-modal").getByRole("button", { name: "Close", exact: true })).toBeVisible();
   expect(await sideBySideWithoutRightFlow(page)).toEqual([]);
 });
@@ -4150,6 +4142,176 @@ test("Experimental V2 lists plugins beside the focused one's facts, under one ta
       timeout: 30_000,
     });
     await app.getByRole("button", { name: "Discover", exact: true }).last().click();
+    await expect(app.locator(".deckyhub-v2-row").first()).toBeVisible({ timeout: 30_000 });
+  } finally {
+    await setStyle("default");
+  }
+});
+
+test("Experimental V2 keeps its details pane in view, follows the selected row, loads more rows as focus nears the end and handles no results", async ({
+  page,
+  request,
+}) => {
+  const headers = { Origin: "http://127.0.0.1:5183" };
+  const settings = async () =>
+    (await (await request.post(BRIDGE_URL, { data: { route: "get_settings", args: [] }, headers })).json()).result;
+  const setStyle = async (uiStyle: string) =>
+    request.post(BRIDGE_URL, { data: { route: "save_settings", args: [{ ...(await settings()), uiStyle }] }, headers });
+  await setStyle("v2");
+  try {
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    const rows = app.locator(".deckyhub-v2-row");
+    await expect(rows.first()).toBeVisible({ timeout: 60_000 });
+    // The pane stays beside the list while it scrolls (it used to stay at the top with the first rows).
+    const pane = app.locator(".deckyhub-v2-facts").locator("xpath=..");
+    await expect(pane).toHaveCSS("position", "sticky");
+    // Selecting another row moves the pane to that plugin.
+    const second = rows.nth(1);
+    const name = (await second.locator("strong").innerText()).trim();
+    await second.focus();
+    await expect(pane.locator("strong").first()).toHaveText(name);
+    // The next batch (30 at a time) loads by itself as focus nears the end of the loaded rows.
+    if ((await rows.count()) === 30) {
+      await rows.nth(26).focus();
+      await expect(rows).toHaveCount(60);
+    }
+    // No results: the list and the pane both give way to the empty state.
+    await app.getByLabel("Search", { exact: true }).fill("zzzz-no-such-plugin-zzzz");
+    await expect(rows).toHaveCount(0);
+    await expect(app.locator(".deckyhub-v2-facts")).toHaveCount(0);
+  } finally {
+    await setStyle("default");
+  }
+});
+
+for (const style of ["default", "experimental"]) {
+  test(`${style}: cards name the author and Manage offers more from them`, async ({ page, request }) => {
+    const headers = { Origin: "http://127.0.0.1:5183" };
+    const settings = async () =>
+      (await (await request.post(BRIDGE_URL, { data: { route: "get_settings", args: [] }, headers })).json()).result;
+    const setStyle = async (uiStyle: string) =>
+      request.post(BRIDGE_URL, {
+        data: { route: "save_settings", args: [{ ...(await settings()), uiStyle }] },
+        headers,
+      });
+    await setStyle(style);
+    try {
+      await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+      const app = mock(page);
+      await app.getByRole("button", { name: /^All plugins/ }).click();
+      // Every card says who made the plugin.
+      await expect(app.getByText(/by \S+ · /).first()).toBeVisible({ timeout: 60_000 });
+      const manage = app.getByRole("button", { name: "Manage", exact: true });
+      const more = app.locator(".steam-modal").getByRole("button", { name: /^More from .+ \(\d+\)$/ });
+      // The first author with several plugins offers More from them in Manage.
+      let label = "";
+      for (let i = 0; i < 30 && !label; i++) {
+        await manage.nth(i).click();
+        await expect(app.locator(".steam-modal .deckyhub-details")).toBeVisible();
+        if (await more.count()) label = (await more.innerText()).trim();
+        else await app.locator(".steam-modal").getByRole("button", { name: "Close", exact: true }).click();
+      }
+      expect(label).not.toBe("");
+      const author = label.replace(/^More from /, "").replace(/ \(\d+\)$/, "");
+      await more.click();
+      await expect(app.locator(".steam-modal")).toHaveCount(0);
+      // Discover is now that author's plugins, found by the search.
+      const filters = app.getByRole("button", { name: /^Filters/ });
+      if (await filters.count()) await filters.click();
+      await expect(app.getByRole("textbox", { name: "Search" })).toHaveValue(`${author}/`);
+      await expect(app.getByText(`by ${author} · `).first()).toBeVisible();
+    } finally {
+      await setStyle("default");
+    }
+  });
+}
+
+test("Experimental V2 shows each plugin's author and lists more from the same author", async ({ page, request }) => {
+  const headers = { Origin: "http://127.0.0.1:5183" };
+  const settings = async () =>
+    (await (await request.post(BRIDGE_URL, { data: { route: "get_settings", args: [] }, headers })).json()).result;
+  const setStyle = async (uiStyle: string) =>
+    request.post(BRIDGE_URL, { data: { route: "save_settings", args: [{ ...(await settings()), uiStyle }] }, headers });
+  await setStyle("v2");
+  try {
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    const rows = app.locator(".deckyhub-v2-row");
+    await expect(rows.first()).toBeVisible({ timeout: 60_000 });
+    // Every row says who made the plugin.
+    await expect(rows.first().locator("small")).toContainText(/^by \S+ · /);
+    // The first author with several plugins offers More from them.
+    const more = app.getByRole("button", { name: /^More from .+ \(\d+\)$/ });
+    for (let i = 0; i < 40 && !(await more.count()); i++) await rows.nth(i).focus();
+    await expect(more).toBeVisible();
+    const label = (await more.innerText()).trim();
+    const author = label.replace(/^More from /, "").replace(/ \(\d+\)$/, "");
+    const count = Number(label.match(/\((\d+)\)$/)![1]);
+    await more.click();
+    // The search is now that author, and every row left is theirs.
+    await expect(app.getByLabel("Search", { exact: true })).toHaveValue(`${author}/`);
+    await expect(rows).toHaveCount(count);
+    for (const small of await rows.locator("small").allInnerTexts()) expect(small).toContain(`by ${author} · `);
+  } finally {
+    await setStyle("default");
+  }
+});
+
+test("Experimental V2 shows the disclaimer and the badge notice side by side on its pages, with no info button", async ({
+  page,
+  request,
+}) => {
+  const headers = { Origin: "http://127.0.0.1:5183" };
+  const settings = async () =>
+    (await (await request.post(BRIDGE_URL, { data: { route: "get_settings", args: [] }, headers })).json()).result;
+  const setStyle = async (uiStyle: string) =>
+    request.post(BRIDGE_URL, { data: { route: "save_settings", args: [{ ...(await settings()), uiStyle }] }, headers });
+  await setStyle("v2");
+  try {
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    const disclaimer = app.locator(".deckyhub-disclaimer");
+    const badges = app.locator(".deckyhub-badge-notice");
+    await expect(disclaimer).toBeVisible({ timeout: 60_000 });
+    await expect(badges).toBeVisible();
+    // Side by side: the same row.
+    const [left, right] = await Promise.all([disclaimer.boundingBox(), badges.boundingBox()]);
+    expect(Math.abs(left!.y - right!.y)).toBeLessThan(40);
+    expect(right!.x).toBeGreaterThan(left!.x);
+    // The tab bar has no info button: the notices are on the page.
+    await expect(app.locator(".deckyhub-v2-tabs").getByRole("button", { name: /badges/ })).toHaveCount(0);
+    // More opens the legend inside the page, without breaking the list below.
+    await badges.getByRole("button", { name: "More", exact: true }).click();
+    await expect(badges.getByText("Runs as root", { exact: false }).first()).toBeVisible();
+    await expect(app.locator(".deckyhub-v2-row").first()).toBeVisible();
+  } finally {
+    await setStyle("default");
+  }
+});
+
+test("Experimental V2 shows Settings as a section list and a pane under its tab bar", async ({ page, request }) => {
+  const headers = { Origin: "http://127.0.0.1:5183" };
+  const settings = async () =>
+    (await (await request.post(BRIDGE_URL, { data: { route: "get_settings", args: [] }, headers })).json()).result;
+  const setStyle = async (uiStyle: string) =>
+    request.post(BRIDGE_URL, { data: { route: "save_settings", args: [{ ...(await settings()), uiStyle }] }, headers });
+  await setStyle("v2");
+  try {
+    await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    // Settings is the fifth tab, active, with the sections listed and the first one's controls beside them.
+    for (const tab of ["Discover", "Updates", "Installed", "Search", "Settings"])
+      await expect(app.getByRole("button", { name: tab }).first()).toBeVisible({ timeout: 60_000 });
+    const sections = app.locator(".deckyhub-v2-section");
+    await expect(sections).toHaveCount(6);
+    await expect(app.locator(".deckyhub-settings-general")).toBeVisible();
+    // Choosing a section swaps the pane's content.
+    await sections.last().click();
+    await expect(app.locator(".deckyhub-settings-about")).toBeVisible();
+    await expect(app.locator(".deckyhub-settings-general")).toHaveCount(0);
+    // The other tabs still work from here.
+    await app.getByRole("button", { name: "Discover", exact: true }).first().click();
     await expect(app.locator(".deckyhub-v2-row").first()).toBeVisible({ timeout: 30_000 });
   } finally {
     await setStyle("default");
@@ -4441,7 +4603,7 @@ test("Switching DeckyHub's channel in its update window doesn't toast, and the p
     await page.goto("/?bridge=http://127.0.0.1:8643");
     const app = mock(page);
     const panel = app.locator(".qam-content");
-    await panel.getByRole("button", { name: "Manage", exact: true }).click();
+    await panel.getByRole("button", { name: "DeckyHub Update", exact: true }).click();
     const modal = app.locator(".steam-modal");
     await modal.getByLabel("Update Channel").selectOption("prerelease");
     await expect(modal.getByRole("button", { name: "Update to v9.9.9-rc.1", exact: true })).toBeVisible();
@@ -4594,4 +4756,128 @@ test("Quick Access keeps to quick actions, and DeckyHub's version reads in norma
   await expect(panel.getByRole("button", { name: "Export Logs", exact: true })).toHaveCount(0);
   await expect(panel.getByText(/found through two community catalogs/)).toHaveCount(0);
   await expect(panel.getByText(/^DeckyHub v\d/)).toHaveCSS("text-transform", "none");
+});
+
+// The mock shows the plugin in an iframe the size of the Deck's screen; a TV is a bigger iframe.
+async function setScreen(page: Page, width: number, height: number) {
+  await page.setViewportSize({ width: 3900, height: 2300 });
+  await page.evaluate(
+    ([w, h]) => {
+      const frame = document.querySelector<HTMLIFrameElement>("#deck-app")!;
+      frame.style.width = `${w}px`;
+      frame.style.height = `${h}px`;
+    },
+    [width, height] as const,
+  );
+}
+
+// How many cards share the first row of the grid.
+const cardsInFirstRow = (page: Page) =>
+  mock(page)
+    .locator("body")
+    .evaluate(() => {
+      const tops = [...document.querySelectorAll(".deckyhub-focus-ring")].map(
+        (card) => card.getBoundingClientRect().top,
+      );
+      return tops.filter((top) => Math.abs(top - tops[0]) < 2).length;
+    });
+
+for (const [width, height, columns] of [
+  [1280, 800, 3],
+  [1920, 1080, 5],
+  [3840, 2160, 6],
+] as const) {
+  test(`Items per row: Auto fits ${columns} cards on a ${width}x${height} screen`, async ({ page }) => {
+    await bridgeCall(page, "save_settings", { columnsPerRow: 0, density: "default" });
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    await setScreen(page, width, height);
+    const app = mock(page);
+    await browseAll(page);
+    await app.getByRole("button", { name: "Grid", exact: true }).click();
+    await expect.poll(() => cardsInFirstRow(page)).toBe(columns);
+  });
+}
+
+test("A number chosen for Items per row wins over the screen's width", async ({ page }) => {
+  try {
+    await bridgeCall(page, "save_settings", { columnsPerRow: 2, density: "default" });
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    await setScreen(page, 3840, 2160);
+    await browseAll(page);
+    await mock(page).getByRole("button", { name: "Grid", exact: true }).click();
+    await expect.poll(() => cardsInFirstRow(page)).toBe(2);
+  } finally {
+    await bridgeCall(page, "save_settings", { columnsPerRow: 0, density: "default" });
+  }
+});
+
+test("The Large interface scales the page up, and Auto counts the room that leaves", async ({ page }) => {
+  try {
+    await bridgeCall(page, "save_settings", { columnsPerRow: 0, density: "large" });
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    await setScreen(page, 1920, 1080);
+    const app = mock(page);
+    await browseAll(page);
+    await app.getByRole("button", { name: "Grid", exact: true }).click();
+    const page_ = app.locator("body");
+    expect(await page_.evaluate(() => document.documentElement.style.getPropertyValue("--dh-scale"))).toBe("1.1");
+    expect(
+      await page_.evaluate(() => getComputedStyle(document.querySelector(".deckyhub-focus-ring button")!).minHeight),
+    ).toBe("52px");
+    // 1920 px at 1.1x leaves 1745 px: four cards, where the normal size fits five.
+    await expect.poll(() => cardsInFirstRow(page)).toBe(4);
+    // Back to the normal size on the same screen.
+    await bridgeCall(page, "save_settings", { columnsPerRow: 0, density: "default" });
+    await page.reload();
+    await setScreen(page, 1920, 1080);
+    await browseAll(page);
+    await expect.poll(() => cardsInFirstRow(page)).toBe(5);
+  } finally {
+    await bridgeCall(page, "save_settings", { columnsPerRow: 0, density: "default" });
+  }
+});
+
+// The mock zooms the page 1.5x like Gaming Mode does, so 1600 px of page is 2400 px of screen.
+const ZOOM = 1.5;
+const capBox = (page: Page) =>
+  mock(page)
+    .locator(".deckyhub-page-cap")
+    .evaluate((el) => {
+      const { x, width } = el.getBoundingClientRect();
+      return { x, width, window: innerWidth };
+    });
+
+for (const style of ["experimental", "v2"] as const) {
+  test(`${style}: a 3840 px screen keeps the page to a readable width, centered`, async ({ page }) => {
+    try {
+      await bridgeCall(page, "save_settings", { uiStyle: style, columnsPerRow: 0, density: "default" });
+      await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+      // The Deck's own screen: the page fills it.
+      await expect.poll(async () => (await capBox(page)).width).toBeGreaterThan(1100);
+      await setScreen(page, 3840, 2160);
+      await expect.poll(async () => Math.round((await capBox(page)).width)).toBe(1600 * ZOOM);
+      const box = await capBox(page);
+      // Centered: the same margin on both sides.
+      expect(Math.abs(box.x - (box.window - box.x - box.width))).toBeLessThan(4);
+    } finally {
+      await bridgeCall(page, "save_settings", { uiStyle: "default", columnsPerRow: 0, density: "default" });
+    }
+  });
+}
+
+test("Settings offers the Large interface, which makes controls and text bigger", async ({ page }) => {
+  const app = mock(page);
+  try {
+    await app.getByRole("button", { name: "/deckyhub/settings" }).click();
+    await app.getByLabel("Interface").selectOption({ label: "Large" });
+    await expect
+      .poll(() => app.locator("body").evaluate(() => document.documentElement.style.getPropertyValue("--dh-scale")))
+      .toBe("1.1");
+    await app.getByLabel("Interface").selectOption({ label: "Default" });
+    await expect
+      .poll(() => app.locator("body").evaluate(() => document.documentElement.style.getPropertyValue("--dh-scale")))
+      .toBe("");
+  } finally {
+    await bridgeCall(page, "save_settings", { columnsPerRow: 0, density: "default" });
+  }
 });

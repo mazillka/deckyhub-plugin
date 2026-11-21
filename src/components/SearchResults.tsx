@@ -1,7 +1,7 @@
 import { DialogButtonPrimary as Button, Focusable } from "@decky/ui";
 import { openExternalWeb } from "../external";
 import { FaCheck, FaDownload, FaPlus } from "react-icons/fa";
-import { pillStyle } from "./AppBadges";
+import { pillStyle } from "./badgeStyles";
 import { useT } from "../i18n";
 import type { SearchRepo } from "../types";
 import { compactButtonStyle, ellipsis, surfaceStyle } from "../utils";

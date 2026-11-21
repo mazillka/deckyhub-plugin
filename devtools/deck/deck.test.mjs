@@ -87,15 +87,28 @@ const layoutProblems = (root) => `(() => {
   for (const el of root.querySelectorAll("*")) {
     if (!visible(el)) continue;
     const r = el.getBoundingClientRect();
-    if (r.right > width + 1) problems.push("off screen: " + (el.textContent || el.tagName).trim().slice(0, 60));
+    // Not what sits in a strip that scrolls sideways on purpose (Experimental's category tiles).
+    let strip = false;
+    for (let n = el.parentElement; n && n !== root && !strip; n = n.parentElement)
+      strip = /auto|scroll/.test(getComputedStyle(n).overflowX) && n.scrollWidth > n.clientWidth + 1;
+    if (r.right > width + 1 && !strip) problems.push("off screen: " + (el.textContent || el.tagName).trim().slice(0, 60));
   }
   for (const button of root.querySelectorAll("button, .DialogButton")) {
     if (!visible(button)) continue;
     const label = button.textContent.trim();
     const style = getComputedStyle(button);
-    const lines = button.getBoundingClientRect().height / (parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.2);
+    // Lines of text, not height: Experimental's tiles stack an icon, a title and a count on purpose.
+    const rows = new Set();
+    const walker = document.createTreeWalker(button, NodeFilter.SHOW_TEXT);
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      if (!node.textContent.trim()) continue;
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      for (const box of range.getClientRects()) rows.add(Math.round(box.top / 4));
+    }
+    const lines = rows.size;
     if (button.scrollWidth > button.clientWidth + 1 && style.textOverflow !== "ellipsis") problems.push("cut off: " + label.slice(0, 60));
-    if (label && lines > 2.6 && !button.querySelector("img, h3")) problems.push("wraps: " + label.slice(0, 60));
+    if (label && lines > 2 && !button.querySelector("img, h3")) problems.push("wraps: " + label.slice(0, 60));
   }
   return [...new Set(problems)];
 })()`;
@@ -227,7 +240,7 @@ test("Discover: a plugin's Manage window opens and fits", async () => {
   );
 });
 
-test("Discover: the D-pad opens a plugin's details and reads its release notes to the end", async () => {
+test("Discover: the D-pad opens a plugin's details and reads its release notes to the end", async (t) => {
   await openPage("discover");
   const focused = () =>
     main
@@ -235,25 +248,54 @@ test("Discover: the D-pad opens a plugin's details and reads its release notes t
         `(() => { const a = document.activeElement; const n = document.querySelector(".deckyhub-details-notes"); return JSON.stringify({ text: (a?.getAttribute("aria-label") || a?.textContent || "").trim().slice(0, 40), inNotes: !!(n && n.contains(a)), bottom: a ? Math.round(a.getBoundingClientRect().bottom) : 0, height: innerHeight }); })()`,
       )
       .then(JSON.parse);
-  // Down the page until a Manage button has focus, then A: no clicks, like a player.
-  for (let step = 0; step < 60 && (await focused()).text !== "Manage"; step++) await press(shared, BUTTON.DOWN, 250);
-  assert.equal((await focused()).text, "Manage", "the D-pad never reached a Manage button");
-  await press(shared, BUTTON.OK, 500);
-  await waitFor(main, `!!document.querySelector(".deckyhub-details-notes")`);
+  // Down the page to a Manage button, then A: no clicks, like a player. A plugin without release notes has nothing to read:
+  // close its window (a window left open would break every test after this one) and try the next one.
+  let hasNotes = false;
+  for (let tries = 0; tries < 12 && !hasNotes; tries++) {
+    for (let step = 0; step < 60 && (await focused()).text !== "Manage"; step++) {
+      await press(shared, BUTTON.DOWN, 250);
+      // A row's first control can be its Install / Update button (Experimental): Manage is the next one along.
+      if (/^(Install|Update)\b/.test((await focused()).text)) {
+        await press(shared, BUTTON.RIGHT, 250);
+        if ((await focused()).text !== "Manage") await press(shared, BUTTON.LEFT, 250);
+      }
+    }
+    assert.equal((await focused()).text, "Manage", "the D-pad never reached a Manage button");
+    await press(shared, BUTTON.OK, 1500);
+    hasNotes = await main.eval(`!!document.querySelector(".deckyhub-details-notes")`);
+    if (!hasNotes) {
+      await press(shared, BUTTON.BACK, 800);
+      await press(shared, BUTTON.DOWN, 250); // off this Manage, onto what follows
+    }
+  }
+  // Nothing to read when none of the first plugins has release notes (the registry's data, not the screen).
+  if (!hasNotes) return t.skip("none of the first plugins' Manage windows has release notes");
   await sleep(1000);
   const sections = await main.eval(`document.querySelector(".deckyhub-details-notes").children.length`);
-  let reached = 0,
-    last = null;
-  for (let step = 0; step < 80 && reached < sections; step++) {
-    await press(shared, BUTTON.DOWN, 250);
-    const now = await focused();
-    if (now.inNotes && now.text !== last?.text) reached++;
-    if (now.inNotes) last = now;
+  // Which release-note section has focus (-1: none). Experimental's notes sit in a second column, so Down from the
+  // buttons can land on the last section: every section must be reachable going down or back up.
+  const section = () =>
+    main
+      .eval(
+        `(() => { const n = document.querySelector(".deckyhub-details-notes"); const a = document.activeElement; const i = [...n.children].findIndex((c) => c === a || c.contains(a)); return JSON.stringify({ i, bottom: i < 0 ? 0 : Math.round(n.children[i].getBoundingClientRect().bottom), height: innerHeight }); })()`,
+      )
+      .then(JSON.parse);
+  const reached = new Set();
+  let lastBottom = 0;
+  for (const button of [BUTTON.DOWN, BUTTON.UP]) {
+    for (let step = 0; step < 80 && reached.size < sections; step++) {
+      await press(shared, button, 250);
+      const now = await section();
+      if (now.i >= 0) {
+        reached.add(now.i);
+        if (now.i === sections - 1) lastBottom = now.bottom;
+      }
+    }
   }
   await save(main, "details-notes");
   await press(shared, BUTTON.BACK, 500); // closes the window before any assertion can fail and leave it open
-  assert.equal(reached, sections, `the D-pad reached ${reached} of ${sections} release-note sections`);
-  assert.ok(last.bottom <= last.height, "the last release-note section is below the screen");
+  assert.equal(reached.size, sections, `the D-pad reached ${reached.size} of ${sections} release-note sections`);
+  assert.ok(lastBottom <= (await main.eval("innerHeight")), "the last release-note section is below the screen");
 });
 
 test("Search: has a search box and a Search button", async () => {
@@ -283,6 +325,9 @@ for (const name of PAGES.filter((page) => page !== "settings")) {
   });
 }
 
+// Steam's tabs on Settings switch with R1; Experimental's menu of sections with R2 (there R1 changes the page).
+const nextSection = async () => ((await main.eval(`!!document.querySelector(".dh-exp-settings")`)) ? 8 : 6);
+
 // Settings sweeps each tab inside its own content: from the top, Left and Right on
 // Steam's tab bar would switch tabs under the sweep. R1 moves to the next tab.
 test("settings: the D-pad reaches every control on each tab", async () => {
@@ -290,9 +335,11 @@ test("settings: the D-pad reaches every control on each tab", async () => {
   const missed = {};
   for (const tab of ["general", "github", "downloads", "repositories", "troubleshoot", "about"]) {
     console.log(`  Checking Settings: ${tab}`);
+    // Experimental: focus is on the menu of sections (Down there would change the section): go into the pane first.
+    if ((await nextSection()) === 8) await press(shared, BUTTON.RIGHT, 600);
     const found = await explore(shared, main, { root: `.deckyhub-settings-${tab}` });
     if (found.missed.length) missed[tab] = found.missed;
-    await press(shared, 6, 1200); // R1
+    await press(shared, await nextSection(), 1200);
   }
   assert.deepEqual(missed, {});
 });
@@ -345,7 +392,7 @@ test("Settings: R1 walks every tab, each one fitting and passing the audit", asy
     seen.push(tab);
     const found = await audit(main, ".deckyhub-motion");
     if (found.length) problems[tab] = found;
-    await press(shared, 6, 1200); // R1
+    await press(shared, await nextSection(), 1200);
   }
   assert.equal(new Set(seen).size, 6, `R1 didn't reach six tabs: ${seen.join(", ")}`);
   assert.deepEqual(problems, {});
@@ -383,11 +430,18 @@ test("Plugin details: every sampled window shows all its info, aligned and acces
     const found = await audit(main, ".deckyhub-details");
     if (index === 0) {
       await save(main, "details");
-      const { missed } = await explore(shared, main, { root: ".deckyhub-details" });
-      found.push(...missed.map((label) => `D-pad never reaches: ${label}`));
       // Steam only scrolls to follow focus: Down alone has to reach the bottom.
       const scroll = `(() => { let el = document.querySelector(".deckyhub-details"); while (el && !(el.scrollHeight > el.clientHeight + 2 && /auto|scroll/.test(getComputedStyle(el).overflowY))) el = el.parentElement; return el ? el.scrollHeight - el.clientHeight - el.scrollTop : 0; })()`;
-      for (let i = 0; i < 20 && (await main.eval(scroll)) > 2; i++) await press(shared, BUTTON.DOWN, 400);
+      const columns = await main.eval(`!!document.querySelector(".dh-exp-details-cols")`);
+      if (columns) {
+        // Experimental: the actions on the left (the window's bottom is theirs), the text on the right (Right, then Down).
+        // The text column's reach is checked by the release-notes test above.
+        for (let i = 0; i < 4; i++) await press(shared, BUTTON.DOWN, 400);
+      } else {
+        const { missed } = await explore(shared, main, { root: ".deckyhub-details" });
+        found.push(...missed.map((label) => `D-pad never reaches: ${label}`));
+      }
+      for (let i = 0; i < 40 && (await main.eval(scroll)) > 2; i++) await press(shared, BUTTON.DOWN, 400);
       if ((await main.eval(scroll)) > 2) found.push("Down never scrolls to the bottom of the window");
     }
     if (found.length) problems[plugin] = found;

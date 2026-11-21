@@ -30,7 +30,7 @@ jobs:
         run: |
           if [[ "$GITHUB_EVENT_NAME" != "pull_request" ]]; then echo "e2e=true" >> "$GITHUB_OUTPUT"; echo "site=true" >> "$GITHUB_OUTPUT"; exit 0; fi
           # The website is built and audited when its pages, its build scripts or this workflow change.
-          site=$(git diff --name-only "$BASE...$HEAD" | grep -E '^(docs/|devtools/(build-site|plugin_pages|site_shell|audit-site|html_to_md|media_coverage)\.py$|\.github/workflows/ci\.yml$)' || true)
+          site=$(git diff --name-only "$BASE...$HEAD" | grep -E '^(docs/|devtools/[a-z_-]+\.py$|\.github/workflows/ci\.yml$)' || true)
           echo "site=$([[ -n "$site" ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
           others=$(git diff --name-only "$BASE...$HEAD" | grep -vE '^(docs|promo)/|\.md$' || true)
           echo "e2e=$([[ -n "$others" ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"

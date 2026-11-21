@@ -1,4 +1,5 @@
-export const DEFAULT_COLUMNS_PER_ROW = 3;
+// Auto (see src/columns.ts).
+export const DEFAULT_COLUMNS_PER_ROW = 0;
 
 // The colors components share; a shade used once stays where it's used.
 export const colors = {
@@ -20,6 +21,9 @@ export const colors = {
 
 // A badge's text, fill and border in one color (with pillStyle).
 export const tint = (color: string) => ({ color, background: `${color}22`, borderColor: `${color}66` });
+
+// The widest an Experimental or V2 page gets (CSS px); a wider window leaves margins either side.
+export const WIDE_PAGE_MAX = 1600;
 
 export const pageStyle = {
   boxSizing: "border-box" as const,
@@ -111,6 +115,32 @@ const COMPACT_SIZES: Record<string, string> = {
   "--dh-card-padding": "0 10px",
 };
 
+// The Large interface for a TV across the room: bigger buttons and spacing, and text a tenth bigger.
+// (A quarter bigger made V2 lose D-pad focus on a real Deck; a tenth did not.)
+// (index.tsx). Not CSS zoom: it shifts where Steam's D-pad navigation finds the controls.
+const LARGE_SCALE = 1.1;
+const LARGE_SIZES: Record<string, string> = {
+  "--dh-scale": String(LARGE_SCALE),
+  "--dh-font-size": `${LARGE_SCALE}em`,
+  "--dh-button-height": "52px",
+  "--dh-button-padding": "10px 18px",
+  "--dh-button-gap": "12px",
+  "--dh-divider-margin": "22px",
+  "--dh-grid-gap": "20px",
+  "--dh-card-gap": "20px",
+  "--dh-card-padding": "8px 20px",
+};
+
+const DENSITY_SIZES: Record<string, Record<string, string>> = { compact: COMPACT_SIZES, large: LARGE_SIZES };
+
+// The window's width in units of the interface's size: the Large interface is bigger, which leaves a card
+// that much less room.
+export const layoutWidth = () =>
+  window.innerWidth / (Number(document.documentElement.style.getPropertyValue("--dh-scale")) || 1);
+
+// Fired on this window once applyDensity has set the sizes (a bigger interface leaves less room).
+export const DENSITY_APPLIED = "deckyhub-density-applied";
+
 // Applies Display Settings' density to this window and, in Gaming Mode, to the
 // main window the Quick Access popup was opened from (where modals render).
 export function applyDensity(density: string) {
@@ -120,13 +150,15 @@ export function applyDensity(density: string) {
   } catch {
     // A cross-origin opener isn't ours to style.
   }
+  const chosen = DENSITY_SIZES[density] ?? {};
   for (const root of [document.documentElement, opener?.documentElement]) {
     if (!root) continue;
-    for (const [name, value] of Object.entries(COMPACT_SIZES)) {
-      if (density === "compact") root.style.setProperty(name, value);
+    for (const name of Object.keys({ ...COMPACT_SIZES, ...LARGE_SIZES })) {
+      if (name in chosen) root.style.setProperty(name, chosen[name]);
       else root.style.removeProperty(name);
     }
   }
+  window.dispatchEvent(new Event(DENSITY_APPLIED));
 }
 
 // True black behind DeckyHub's pages, cards and windows, always, so an OLED screen can switch those

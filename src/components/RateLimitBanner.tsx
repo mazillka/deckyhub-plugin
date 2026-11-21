@@ -2,7 +2,7 @@ import { DialogButtonPrimary as Button, Focusable } from "@decky/ui";
 import { useEffect, useState } from "react";
 import { FaCog, FaTimes } from "react-icons/fa";
 import { useT } from "../i18n";
-import { openSettings } from "../pages/SettingsPage";
+import { openSettings } from "../settingsNav";
 import { keepInView } from "./KeepInView";
 import { iconRow, RATE_LIMIT_CHANGED, rateLimit } from "../utils";
 import { colors } from "../styles";

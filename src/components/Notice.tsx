@@ -20,11 +20,14 @@ export function Notice({
   more,
   className,
   style = disclaimerStyle,
+  openStyle,
 }: {
   text: string;
   more?: ReactNode;
   className?: string;
   style?: CSSProperties;
+  // Added while it is open (a notice in a grid takes the whole row to read its text).
+  openStyle?: CSSProperties;
 }) {
   const t = useT();
   const [open, setOpen] = useState(false);
@@ -38,6 +41,7 @@ export function Notice({
         alignItems: open ? "flex-start" : "center",
         gap: 12,
         padding: "6px 8px 6px 12px",
+        ...(open && openStyle),
       }}
     >
       <div style={open ? { flex: 1, minWidth: 0, display: "grid", gap: 6 } : { flex: 1, ...ellipsis }}>

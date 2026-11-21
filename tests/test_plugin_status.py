@@ -278,15 +278,17 @@ class PluginStatusTests(unittest.TestCase):
 
             self.assertEqual(asyncio.run(plugin.save_settings({}))["density"], "default")
             self.assertEqual(asyncio.run(plugin.save_settings({"density": "compact"}))["density"], "compact")
+            self.assertEqual(asyncio.run(plugin.save_settings({"density": "large"}))["density"], "large")
             self.assertEqual(asyncio.run(plugin.save_settings({"density": "tiny"}))["density"], "default")
 
-    def test_items_per_row_takes_one_to_four(self):
+    def test_items_per_row_takes_auto_or_one_to_four(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = Plugin()
             plugin.settings_path = Path(home) / "settings.json"
 
             self.assertEqual(asyncio.run(plugin.save_settings({"columnsPerRow": 4}))["columnsPerRow"], 4)
-            self.assertEqual(asyncio.run(plugin.save_settings({"columnsPerRow": 5}))["columnsPerRow"], 3)
+            self.assertEqual(asyncio.run(plugin.save_settings({"columnsPerRow": 0}))["columnsPerRow"], 0)
+            self.assertEqual(asyncio.run(plugin.save_settings({"columnsPerRow": 5}))["columnsPerRow"], 0)
 
     def test_haptics_default_on_and_can_be_turned_off(self):
         with tempfile.TemporaryDirectory() as home:
@@ -472,6 +474,23 @@ class PluginStatusTests(unittest.TestCase):
                 plugin._download_with_urllib(
                     "job", {"url": "https://example.com/file.zip", "size": 2}, Path(home) / "file.part"
                 )
+
+    def test_download_http_error_does_not_retry_with_curl(self):
+        from urllib.error import HTTPError
+
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.downloads = {"job": {"received": 0, "total": 0, "state": "queued"}}
+            plugin.cancelled = set()
+            error = HTTPError("https://example.com/a.zip", 404, "Not Found", {}, None)
+            with (
+                patch.object(plugin, "_download_with_urllib", side_effect=error),
+                patch.object(plugin, "_download_with_curl") as curl,
+            ):
+                plugin._download("job", {"url": "https://example.com/a.zip"}, Path(home) / "a.zip")
+
+            curl.assert_not_called()
+            self.assertEqual(plugin.downloads["job"]["state"], "error")
 
     def test_downloads_refuse_redirects_off_https(self):
         handler = net.HttpsOnlyRedirects()

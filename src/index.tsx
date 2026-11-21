@@ -14,7 +14,7 @@ import { MotionStyle } from "./motion";
 import { ExpPageFrame } from "./components/experimental/ExpNavBar";
 import { V2Frame, V2_TABS } from "./components/v2/V2Frame";
 import { useUiStyle } from "./uiStyle";
-import { hapticTick, markUnloaded, pageStyle, tr } from "./utils";
+import { hapticTick, markUnloaded, pageStyle, tr, WIDE_PAGE_MAX } from "./utils";
 
 // Steam's history for its main window, which @decky/ui doesn't type.
 type MainWindowHistory = {
@@ -45,7 +45,7 @@ function Motion({ children }: { children: ReactNode }) {
   return (
     <div
       className={experimental ? "deckyhub-motion deckyhub-exp" : "deckyhub-motion"}
-      style={{ height: "100%" }}
+      style={{ height: "100%", fontSize: "var(--dh-font-size, inherit)" }}
       onFocus={hapticTick}
     >
       <MotionStyle />
@@ -60,15 +60,28 @@ function PageFrame({ path }: { path: string }) {
   const page = path.split("/").pop() ?? "";
   const initial = page === "repositories" ? "settings" : page;
   const style = useUiStyle();
-  // Experimental V2: Discover, Updates, Installed and Search share one tab bar; Settings and the rest stay plain pages.
-  if (style === "v2" && (V2_TABS as readonly string[]).includes(page))
-    return <V2Frame initial={page} render={(tab) => (tab === page ? ROUTES[path]() : ROUTES[`/deckyhub/${tab}`]())} />;
+  const render = (tab: string) => (tab === initial ? ROUTES[path]() : ROUTES[`/deckyhub/${tab}`]());
+  // Experimental V2: the library pages and Settings share one tab bar, switched in place.
+  if (style === "v2" && (V2_TABS as readonly string[]).includes(initial))
+    return (
+      <CappedWidth>
+        <V2Frame initial={initial} render={render} />
+      </CappedWidth>
+    );
   if (style !== "experimental") return <>{ROUTES[path]()}</>;
   return (
-    <ExpPageFrame
-      initial={initial}
-      render={(tab) => (tab === initial ? ROUTES[path]() : ROUTES[`/deckyhub/${tab}`]())}
-    />
+    <CappedWidth>
+      <ExpPageFrame initial={initial} render={render} />
+    </CappedWidth>
+  );
+}
+
+// Experimental and V2 lay out rows and panes that stretch with the window: on a TV they stop at a readable width.
+function CappedWidth({ children }: { children: ReactNode }) {
+  return (
+    <div className="deckyhub-page-cap" style={{ maxWidth: WIDE_PAGE_MAX, margin: "0 auto" }}>
+      {children}
+    </div>
   );
 }
 
