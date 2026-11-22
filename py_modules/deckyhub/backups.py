@@ -16,6 +16,8 @@ from pathlib import Path
 
 import decky
 
+from . import paths
+
 KEEP = 5  # backups kept per plugin
 MAX_BYTES = 50 * 1024 * 1024  # a plugin's settings beyond this are not backed up
 _FILE = re.compile(r"(?P<folder>[^/\\]+)--(?P<stamp>\d{8}-\d{6}(?:-\d+)?)\.tar\.gz")
@@ -47,19 +49,15 @@ def plugin_folder(name: str) -> str | None:
     return found[0] if len(found) == 1 and _one_part(found[0]) else None
 
 
-def _size(folder: Path) -> int:
-    return sum(path.stat().st_size for path in folder.rglob("*") if path.is_file() and not path.is_symlink())
-
-
 def make_backup(folder: str) -> dict:
     """Archives settings/<folder>. {"file"}: made; {"skipped"}: nothing to save; {"error"}: couldn't."""
     if not _one_part(folder):
         return {"error": "Invalid plugin folder"}
     source = _settings_root() / folder
-    if source.is_symlink() or not source.is_dir() or not any(source.iterdir()):
-        return {"skipped": True}
     try:
-        if _size(source) > MAX_BYTES:
+        if source.is_symlink() or not source.is_dir() or not any(source.iterdir()):
+            return {"skipped": True}
+        if paths.size_of(source) > MAX_BYTES:
             return {"error": f"Its settings are larger than {MAX_BYTES // 1024 // 1024} MB"}
         target_dir = _backup_root() / folder
         target_dir.mkdir(parents=True, exist_ok=True)

@@ -15,7 +15,7 @@ from pathlib import Path
 import decky
 
 from . import paths
-from .validation import REPOSITORY_NAME
+from .validation import MAX_CUSTOM_REPOS, REPOSITORY_NAME
 
 PENDING_INSTALLS_FILE = "pending-installs.json"  # also written by the Desktop Mode installer
 MAX_PACK_BYTES = 256 * 1024
@@ -76,7 +76,7 @@ class PacksMixin:
         """Reads a pack the user picked, makes the plugins it names known to DeckyHub (a repository the registry
         doesn't list is added as a custom one) and queues them for the install offer. Installs nothing."""
         source = Path(path).resolve()
-        user_home = Path(paths.DEFAULT_DOWNLOAD_DIR).parent.resolve()
+        user_home = paths.user_home()
         if source.suffix.lower() != ".json" or not source.is_relative_to(user_home) or not source.is_file():
             decky.logger.error("Refused to import a pack from %s", source)
             raise ValueError("Choose a JSON file inside your home folder")
@@ -92,7 +92,10 @@ class PacksMixin:
         known = {app["repo"].casefold() for app in self.apps} | {
             repo.casefold() for repo in self.settings["customRepos"]
         }
-        added = [repo for repo in repos if repo.casefold() not in known]
+        # Past the cap the rest still go to the install offer, but are not added to the user's own list.
+        added = [repo for repo in repos if repo.casefold() not in known][
+            : max(0, MAX_CUSTOM_REPOS - len(self.settings["customRepos"]))
+        ]
         if added:
             self.settings["customRepos"].extend(added)
             self._save_settings()

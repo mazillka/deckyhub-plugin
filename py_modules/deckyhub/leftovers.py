@@ -13,6 +13,7 @@ from pathlib import Path
 
 import decky
 
+from . import paths
 from .backups import _one_part, make_backup
 
 AREAS = ("settings", "data", "logs")
@@ -23,10 +24,6 @@ PROTECTED = {"deckyhub", "decky-loader", "loader"}
 def _installed() -> set[str]:
     plugins = Path(decky.DECKY_HOME) / "plugins"
     return {path.parent.name.casefold() for path in plugins.glob("*/plugin.json")}
-
-
-def _size(folder: Path) -> int:
-    return sum(path.stat().st_size for path in folder.rglob("*") if path.is_file() and not path.is_symlink())
 
 
 def _newest(folder: Path) -> float:
@@ -52,7 +49,7 @@ def scan() -> list[dict]:
             try:
                 item = found.setdefault(folder.name, {"name": folder.name, "areas": [], "size": 0, "modified": 0})
                 item["areas"].append(area)
-                item["size"] += _size(folder)
+                item["size"] += paths.size_of(folder)
                 item["modified"] = max(item["modified"], int(_newest(folder) * 1000))
             except OSError:
                 continue
@@ -80,7 +77,7 @@ def remove(names: list[str]) -> dict:
             continue
         try:
             for folder in folders:
-                freed += _size(folder)
+                freed += paths.size_of(folder)
                 shutil.rmtree(folder)
             removed += 1
             decky.logger.info("Removed the leftover folders of %s", name)

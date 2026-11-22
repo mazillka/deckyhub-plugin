@@ -5,6 +5,9 @@ from urllib.parse import urlsplit
 
 # owner/name, where neither part is only dots: the frontend puts this straight into
 # api.github.com/repos/<repo>/releases with the user's token, so "../.." must not pass.
+# Repositories a user may track of their own: each one missing from the release index costs a GitHub API
+# call, and unauthenticated devices get 60 an hour.
+MAX_CUSTOM_REPOS = 200
 REPOSITORY_NAME = re.compile(r"(?!\.+/)[A-Za-z0-9_.-]+/(?!\.+$)[A-Za-z0-9_.-]+")
 # A GitHub token: classic (ghp_ and kin) or fine-grained (github_pat_).
 GITHUB_TOKEN = re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{60,})\b")

@@ -19,6 +19,10 @@ from .validation import REPOSITORY_NAME
 ACTIVE_DOWNLOAD_STATES = ("queued", "downloading")
 # What a download may reach when GitHub gave no size for the file (no release ZIP is near this).
 MAX_UNKNOWN_SIZE = 2 * 1024**3
+# The slowest a download may go: under this many bytes a second for this long ends it, as curl's
+# --speed-limit/--speed-time do. urllib's timeout only covers each wait for data, so a trickle never trips it.
+MIN_BYTES_PER_SECOND = 1024
+SLOW_SECONDS = 60
 
 
 class DownloadsMixin:
@@ -139,8 +143,12 @@ class DownloadsMixin:
             # Decky reads the file only once its confirm dialog is accepted, which
             # may be after DeckyHub reloads, so old ones are swept here instead.
             for old in directory.iterdir():
-                if old.is_file() and old.stat().st_mtime < time.time() - 24 * 3600:
-                    old.unlink(missing_ok=True)
+                # One leftover that can't be removed (permissions, busy) must not stop this install.
+                try:
+                    if old.is_file() and old.stat().st_mtime < time.time() - 24 * 3600:
+                        old.unlink(missing_ok=True)
+                except OSError as error:
+                    decky.logger.warning("Could not remove the staged file %s: %s", old, error)
             target = directory / f"{target_id}-{name}"
             await asyncio.to_thread(self._download, job_id, asset, target)
             self.downloads.pop(job_id, None)
@@ -241,6 +249,7 @@ class DownloadsMixin:
         request = Request(asset["url"], headers={"User-Agent": "DeckyHub/0.2"})
         with OPENER.open(request, timeout=30) as response, open(temp, "wb") as file:
             job["total"] = int(response.headers.get("Content-Length") or job["total"] or 0)
+            window_start, window_received = time.monotonic(), 0
             while chunk := response.read(64 * 1024):
                 if job_id in self.cancelled:
                     raise InterruptedError("Download cancelled")
@@ -248,6 +257,11 @@ class DownloadsMixin:
                 job["received"] += len(chunk)
                 if limit and job["received"] > limit:
                     raise RuntimeError("The download is larger than the release file")
+                now = time.monotonic()
+                if now - window_start >= SLOW_SECONDS:
+                    if job["received"] - window_received < SLOW_SECONDS * MIN_BYTES_PER_SECOND:
+                        raise RuntimeError("The download is too slow")
+                    window_start, window_received = now, job["received"]
 
     def _download_with_curl(self, job_id: str, asset: dict, temp: Path):
         job = self.downloads[job_id]

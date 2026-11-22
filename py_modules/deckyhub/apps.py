@@ -11,7 +11,7 @@ import decky
 
 from . import paths
 from .registry import MAX_REMOTE_REGISTRY_BYTES
-from .validation import REPOSITORY_NAME
+from .validation import MAX_CUSTOM_REPOS, REPOSITORY_NAME
 
 TEMPLATE_REPOSITORIES = {"steamdeckhomebrew/decky-plugin-template"}
 
@@ -210,6 +210,8 @@ class AppsMixin:
         }
         if repo.casefold() in existing:
             return {"added": False, "repo": repo}
+        if len(self.settings["customRepos"]) >= MAX_CUSTOM_REPOS:
+            raise ValueError(f"You can track up to {MAX_CUSTOM_REPOS} repositories of your own")
         self.settings["customRepos"].append(repo)
         self._save_settings()
         decky.logger.info("Added repository %s", repo)
@@ -244,7 +246,7 @@ class AppsMixin:
 
     async def import_custom_repos(self, path: str):
         source = Path(path).resolve()
-        user_home = Path(paths.DEFAULT_DOWNLOAD_DIR).parent.resolve()
+        user_home = paths.user_home()
         if source.suffix.lower() != ".json" or not source.is_relative_to(user_home):
             decky.logger.error("Refused to import %s: not a JSON file inside %s", source, user_home)
             raise ValueError("Choose a JSON file inside your home folder")
@@ -265,7 +267,10 @@ class AppsMixin:
             repo.casefold() for repo in self.settings["customRepos"]
         }
         added = []
+        room = MAX_CUSTOM_REPOS - len(self.settings["customRepos"])
         for repo in repos:
+            if len(added) >= room:
+                break
             if isinstance(repo, str) and REPOSITORY_NAME.fullmatch(repo) and repo.casefold() not in existing:
                 existing.add(repo.casefold())
                 added.append(repo)
