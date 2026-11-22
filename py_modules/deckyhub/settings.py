@@ -67,9 +67,9 @@ def coerce_settings(settings: dict) -> dict:
             for name in HIDEABLE_BUTTONS
             if isinstance(settings.get("hiddenButtons"), list) and name in settings["hiddenButtons"]
         ],
-        # Preserve the off state of installations that used the old two-switch setup.
         # Save a plugin's settings before DeckyHub updates, reinstalls or removes it (backups.py).
         "backupBeforeChange": settings.get("backupBeforeChange") is not False,
+        # Preserve the off state of installations that used the old two-switch setup (remoteInstallFeature, no longer saved).
         "remoteInstall": settings.get("remoteInstall") is True and settings.get("remoteInstallFeature", True) is True,
     }
 
@@ -140,7 +140,7 @@ class SettingsMixin:
                 if isinstance(repo_settings, dict)
                 else {},
             }
-        except (AttributeError, OSError, json.JSONDecodeError) as error:
+        except (AttributeError, OSError, ValueError) as error:
             if self.settings_path.exists():
                 decky.logger.error("Can't read %s, using defaults: %s", self.settings_path, error)
             return {
@@ -204,7 +204,7 @@ class SettingsMixin:
         one on an on-screen keyboard is painful). Returns it for the token field; Save
         stores it. Never logs the file's contents."""
         source = Path(path).resolve()
-        user_home = Path(paths.DEFAULT_DOWNLOAD_DIR).parent.resolve()
+        user_home = paths.user_home()
         if not source.is_relative_to(user_home) or not source.is_file() or source.stat().st_size > 4096:
             decky.logger.error("Refused to read a token from %s: not a small file inside %s", source, user_home)
             raise ValueError("Choose a small text file inside your home folder")

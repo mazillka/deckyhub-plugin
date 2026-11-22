@@ -39,6 +39,9 @@ class RemoteInstallService:
         self.code = None
         self.pairing_token_hash = None
         self.code_expiry = 0
+        # One-time links a paired browser made for another: token hash -> when it ends. Apart from the code and
+        # token the pairing window shows, so making one never replaces what the device is displaying.
+        self.links = {}
         self.pairings = {}
         self.devices = {}
         for device_id, device in (saved.get("devices") or {}).items():
@@ -103,6 +106,7 @@ class RemoteInstallService:
     def reset_session(self):
         """Forget everything that only lasts while the listener runs; paired devices stay."""
         self.code = self.pairing_token_hash = None
+        self.links = {}
         self.pairings = {}
         self.attempts = []
         self.queue = RemoteInstallQueue(clock=self.clock)
@@ -114,12 +118,22 @@ class RemoteInstallService:
         self.code_expiry = self.clock() + seconds
         return {"code": self.code, "pairingToken": token, "expiresInSeconds": seconds}
 
+    def begin_link(self, seconds=PAIR_LINK_SECONDS):
+        """A one-time token for another browser, asked for by a paired one. The six-digit code is not given out."""
+        self._sweep()
+        if len(self.links) >= 16:
+            raise ValueError("pairing limit reached")
+        token = secrets.token_urlsafe(32)
+        self.links[hashlib.sha256(token.encode()).digest()] = self.clock() + seconds
+        return {"pairingToken": token, "expiresInSeconds": seconds}
+
     def _sweep(self):
         # A browser unused for 30 days is forgotten, so an old token cannot linger for good.
         stale = [k for k, d in self.devices.items() if self.wall() - d["last_used"] > DEVICE_IDLE_SECONDS]
         for device_id in stale:
             self.revoke(device_id)
         now = self.clock()
+        self.links = {known: ends for known, ends in self.links.items() if now < ends}
         for key in list(self.pairings):
             if now >= self.pairings[key]["expires"]:
                 del self.pairings[key]
@@ -130,16 +144,25 @@ class RemoteInstallService:
         # Only guesses of the six-digit code are limited; the one-time token cannot be guessed.
         if pairing_token is None and len(self.attempts) >= 5:
             raise ValueError("too many pairing attempts")
-        if self.code is None or self.clock() >= self.code_expiry:
+        digest = (
+            hashlib.sha256(pairing_token.encode()).digest()
+            if isinstance(pairing_token, str) and _SECRET.fullmatch(pairing_token)
+            else None
+        )
+        # A link a paired browser made works on its own; the code and token of the pairing window only while it is open.
+        link = next((known for known in self.links if digest and hmac.compare_digest(known, digest)), None)
+        window = self.code is not None and self.clock() < self.code_expiry
+        if link is None and not window:
             raise ValueError("invalid or expired pairing code")
-        if pairing_token is None:
+        if link is not None:
+            valid = True
+        elif pairing_token is None:
             valid = isinstance(code, str) and code.isascii() and hmac.compare_digest(code, self.code)
         else:
             valid = (
-                isinstance(pairing_token, str)
-                and _SECRET.fullmatch(pairing_token)
+                digest is not None
                 and self.pairing_token_hash is not None
-                and hmac.compare_digest(self.pairing_token_hash, hashlib.sha256(pairing_token.encode()).digest())
+                and hmac.compare_digest(self.pairing_token_hash, digest)
             )
         if not valid:
             if pairing_token is None:
@@ -154,8 +177,11 @@ class RemoteInstallService:
             raise ValueError("invalid browser id")
         if len(self.pairings) >= 16 or len(self.devices) >= 16:
             raise ValueError("pairing limit reached")
-        self.code = None
-        self.pairing_token_hash = None
+        if link is not None:
+            del self.links[link]
+        else:
+            self.code = None
+            self.pairing_token_hash = None
         pair_id = secrets.token_urlsafe(24)
         self.pairings[pair_id] = {
             "name": name.strip(),
@@ -384,8 +410,7 @@ class RemoteInstallService:
         if op == "pair_link":
             # A paired browser hands out a one-time link for another browser; the owner still approves that one
             # on the device. The six-digit code is not given out: the link alone carries the token.
-            ticket = self.begin_pairing(PAIR_LINK_SECONDS)
-            return {"pairingToken": ticket["pairingToken"], "expiresInSeconds": ticket["expiresInSeconds"]}
+            return self.begin_link()
         if op == "plugins":
             return self._plugins_page(message, self.installed() if installed is None else installed)
         if op == "request":

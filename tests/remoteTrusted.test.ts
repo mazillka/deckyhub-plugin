@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { nextPendingRequest, nextTrustedRequest } from "../src/remoteTrusted.ts";
+import { nextPendingRequest, nextTrustedRequest, runsUnattended } from "../src/remoteTrusted.ts";
 
 const request = (id: string) => ({ id, pluginId: "a", ownerName: "Phone", status: "approved" });
 
@@ -26,4 +26,14 @@ test("a request waiting for an answer is put in front of the owner once, and onl
   assert.equal(nextPendingRequest(status, shown), undefined);
   assert.equal(nextPendingRequest({ enabled: false, requests: [request("x")] }, new Set()), undefined);
   assert.equal(nextPendingRequest({ enabled: true }, new Set()), undefined);
+});
+
+test("a trusted browser's install runs without asking only when its ZIP has a SHA-256 to check", () => {
+  const hash = "a".repeat(64);
+  assert.equal(runsUnattended(true, { sha256: hash }), true);
+  assert.equal(runsUnattended(true, { sha256: hash.toUpperCase() }), true);
+  assert.equal(runsUnattended(true, {}), false);
+  assert.equal(runsUnattended(true, { sha256: "abc" }), false);
+  assert.equal(runsUnattended(true, undefined), false);
+  assert.equal(runsUnattended(false, { sha256: hash }), false);
 });
