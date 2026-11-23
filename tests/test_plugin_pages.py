@@ -126,7 +126,10 @@ class PluginPageTests(unittest.TestCase):
 
         twin = {**APP, "id": "fork", "repo": "someone/Fork"}
         titled = with_shared_titles([APP, twin, {**APP, "id": "other", "name": "Other"}])
-        self.assertEqual([app.get("title") for app in titled], ["Decky MultiFrameGen by MWGIH", "Decky MultiFrameGen by someone", None])
+        self.assertEqual(
+            [app.get("title") for app in titled],
+            ["Decky MultiFrameGen by MWGIH", "Decky MultiFrameGen by someone", None],
+        )
 
     def test_pre_release_only_and_no_description_badges(self):
         shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
