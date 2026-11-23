@@ -170,7 +170,14 @@ function AppTile({ app, a }: { app: App; a: CardActions }) {
     <div className="deckyhub-focus-ring" style={{ ...cardStyle, borderTopColor: a.accent }}>
       <AppMonogram app={app} style={{ gridRow: "1 / 3", alignSelf: "center" }} />
       {/* A shared name keeps its whole "by author" on a second line instead of cutting it off. */}
-      <h3 style={{ ...cardTitleStyle, gridColumn: 2, gridRow: 1, ...(app.sharesName && { whiteSpace: "normal" as const }) }}>
+      <h3
+        style={{
+          ...cardTitleStyle,
+          gridColumn: 2,
+          gridRow: 1,
+          ...(app.sharesName && { whiteSpace: "normal" as const }),
+        }}
+      >
         {titleOf(app, a.t)}
       </h3>
       <small style={{ ...categoryStyle, gridColumn: 2, gridRow: 2 }}>
