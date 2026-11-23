@@ -33,6 +33,7 @@ from pathlib import Path
 
 import markdown
 import media_coverage
+import page_text
 import plugin_pages
 import site_shell
 from PIL import Image
@@ -175,9 +176,9 @@ def structured_data(page: str, latest: dict | None, uk: bool = False) -> str:
         "applicationSubCategory": "Decky Loader plugin",
         "operatingSystem": "SteamOS",
         "description": (
-            "Магазин плагінів Decky Loader: знаходьте, встановлюйте й оновлюйте 600+ плагінів Decky Loader в ігровому режимі, зокрема тих, яких немає в офіційному магазині Decky."
+            "Магазин плагінів Decky Loader: знаходьте, встановлюйте й оновлюйте 1000+ плагінів Decky Loader в ігровому режимі, зокрема тих, яких немає в офіційному магазині Decky."
             if uk
-            else "A Decky Loader plugin store: find, install and update 600+ Decky Loader plugins from Gaming Mode, including plugins not on the official Decky store."
+            else "A Decky Loader plugin store: find, install and update 1000+ Decky Loader plugins from Gaming Mode, including plugins not on the official Decky store."
         ),
         "downloadUrl": f"{REPO_URL}/releases/latest",
         "installUrl": f"{SITE}uk/#install" if uk else f"{SITE}#install",
@@ -205,7 +206,7 @@ PREVIEW = sys.argv[sys.argv.index("--preview") + 1] if "--preview" in sys.argv e
 shutil.copytree(ROOT / "docs", out, dirs_exist_ok=True)
 # The develop preview lists the registry's develop branch, so a registry change shows there before it ships.
 with urllib.request.urlopen(REGISTRY_URL.replace("/main/", "/develop/") if PREVIEW else REGISTRY_URL) as response:
-    apps = json.load(response)["apps"]
+    apps = page_text.with_shared_titles(json.load(response)["apps"])
 data = plugin_pages.load_data()
 coverage = media_coverage.load(ROOT / "docs" / "media-coverage.json")
 index = out / "index.html"

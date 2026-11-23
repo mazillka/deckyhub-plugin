@@ -119,7 +119,14 @@ class PluginPageTests(unittest.TestCase):
         alone = plugin_pages.plugin_page(shell, APP, {}, {}, {}, [APP])
         self.assertIn("<title>Decky MultiFrameGen: Decky Loader plugin | DeckyHub</title>", alone)
         shared = plugin_pages.plugin_page(shell, APP, {}, {}, {}, [APP], shares_name=True)
-        self.assertIn("<title>Decky MultiFrameGen (MWGIH): Decky Loader plugin | DeckyHub</title>", shared)
+        self.assertIn("<title>Decky MultiFrameGen by MWGIH: Decky Loader plugin | DeckyHub</title>", shared)
+
+    def test_catalog_cards_of_plugins_that_share_a_name_say_whose_they_are(self):
+        from page_text import with_shared_titles
+
+        twin = {**APP, "id": "fork", "repo": "someone/Fork"}
+        titled = with_shared_titles([APP, twin, {**APP, "id": "other", "name": "Other"}])
+        self.assertEqual([app.get("title") for app in titled], ["Decky MultiFrameGen by MWGIH", "Decky MultiFrameGen by someone", None])
 
     def test_pre_release_only_and_no_description_badges(self):
         shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
