@@ -143,7 +143,7 @@ Under **Plugin packs**, **Export my plugins as a pack** saves a small `.json` fi
 
 Install, update or uninstall plugins on your device from a computer or phone on the same network, without picking up the device.
 
-- **Experimental:** it is new and only in DeckyHub's pre-releases for now, so expect rough edges.
+- **Experimental:** it is new, so expect rough edges.
 - **Fully local:** your browser talks straight to your device over your own network. Nothing goes through a server, and nothing about your device or its plugins is collected or sent anywhere.
 - **You need:** DeckyHub on your device, a second device on the same network, and **Chrome, Edge or another Chromium browser** on it (Firefox and Safari can't make this kind of connection yet).
 
