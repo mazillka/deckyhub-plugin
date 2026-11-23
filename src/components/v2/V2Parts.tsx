@@ -8,7 +8,7 @@ import { displayVersion } from "../../version";
 import { AiBadge, findingsOf, ForkBadge, RustBadge, StoreBadge } from "../AppBadges";
 import { AppMonogram } from "../AppIdentity";
 import { scanSummary } from "../ScanBadges";
-import { ownerOf } from "../../author";
+import { ownerOf, titleOf } from "../../author";
 import { useCardActions, type AppCardProps } from "../../hooks/useCardActions";
 import { keepInView } from "../KeepInView";
 
@@ -86,7 +86,7 @@ export function Row({ app, selected, onSelect, t }: { app: App; selected: boolea
     >
       <AppMonogram app={app} style={{ width: 34, height: 34, borderRadius: 8, fontSize: 13 }} />
       <div style={{ flex: 1, minWidth: 0, display: "grid" }}>
-        <strong style={ellipsis}>{app.name}</strong>
+        <strong style={ellipsis}>{titleOf(app, t)}</strong>
         <small style={{ color: colors.muted, ...ellipsis }}>
           {t("appcard.byAuthor", { author: ownerOf(app) })} · {app.description || t("repos.noDescription")}
         </small>

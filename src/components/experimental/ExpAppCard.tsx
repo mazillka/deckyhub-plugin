@@ -6,7 +6,7 @@ import { AppBadges } from "../AppBadges";
 import { AppMonogram, categoryHue } from "../AppIdentity";
 import { AppStats } from "../AppStats";
 import { latestVersionText, type CardActions } from "../AppCardParts";
-import { ownerOf } from "../../author";
+import { ownerOf, titleOf } from "../../author";
 import { useCardActions, type AppCardProps } from "../../hooks/useCardActions";
 import type { App } from "../../types";
 
@@ -68,7 +68,7 @@ function Row({ app, a }: { app: App; a: CardActions }) {
   return (
     <div className="dh-exp-row deckyhub-focus-ring">
       <AppMonogram app={app} style={{ width: 48, height: 48, borderRadius: 14 }} />
-      <h3 style={{ gridColumn: 2, gridRow: 1 }}>{app.name}</h3>
+      <h3 style={{ gridColumn: 2, gridRow: 1 }}>{titleOf(app, a.t)}</h3>
       <small
         style={{
           ...cardDescriptionStyle,
@@ -113,7 +113,7 @@ function Tile({ app, a }: { app: App; a: CardActions }) {
         <Status app={app} a={a} />
       </div>
       {/* The name stays a direct child of the card: tests and screen readers find its buttons from it. */}
-      <h3 style={{ padding: "26px 14px 0" }}>{app.name}</h3>
+      <h3 style={{ padding: "26px 14px 0" }}>{titleOf(app, a.t)}</h3>
       <div className="dh-exp-body">
         <div className="dh-exp-meta">
           <span style={{ textTransform: "uppercase", letterSpacing: "0.04em" }}>{app.category}</span>

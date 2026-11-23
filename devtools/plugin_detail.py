@@ -71,6 +71,8 @@ def plugin_page(
     name, repo, category, description = app["name"], app["repo"], app["category"], app.get("description") or ""
     repo_url = f"https://github.com/{repo}"
     owner = owner_of(app)
+    # Two plugins can share a name (a fork and the original): the owner tells their pages apart.
+    shown = f"{name} by {owner}" if shares_name else name
     facts = [
         f"<li><strong>{escape(category)}</strong>Category</li>",
         f'<li><strong><a href="https://github.com/{escape(owner)}">{escape(owner)}</a></strong>Author</li>',
@@ -147,7 +149,7 @@ def plugin_page(
 </details>"""
     )
     body = f"""{crumbs}
-<h1>{escape(name)}</h1>
+<h1>{escape(shown)}</h1>
 <p class="lead">{escape(description)}</p>
 {STORE_ONLY_NOTE if app.get("store") else ""}<p class="cta"><a class="btn" href="#how-to-install">{"Install from the Decky store" if app.get("store") else "Install with DeckyHub"}</a><a class="btn ghost" href="{escape(repo_url)}">Source on GitHub</a>{"" if app.get("store") else '<button type="button" class="btn ghost" id="remote-open" aria-haspopup="dialog">Send to device (experimental)</button>'}</p>
 <ul class="facts">{"".join(facts)}<li class="wide"><strong><a href="{escape(repo_url)}">{escape(repo)}</a></strong>Repository</li></ul>
@@ -200,8 +202,6 @@ def plugin_page(
         }
     )
     # Search results show about 60 characters of a title and 155 of a description.
-    # Two plugins can share a name (a fork and the original): the owner tells their pages apart.
-    shown = f"{name} ({owner})" if shares_name else name
     title = f"{shown}: Decky Loader plugin | DeckyHub"
     if len(title) > 70:
         title = f"{fit(shown, 40)} | DeckyHub"

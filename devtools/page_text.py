@@ -1,5 +1,6 @@
 """Small text helpers for the generated pages: shortening, release notes, README and guide steps, and number and date formats."""
 
+import collections
 import re
 import time
 from html import escape
@@ -24,6 +25,15 @@ def fit(text: str, limit: int) -> str:
     if len(text) <= limit:
         return text
     return text[: limit - 1].rsplit(" ", 1)[0].rstrip(" ,;:.-") + "…"
+
+
+def with_shared_titles(apps: list[dict]) -> list[dict]:
+    """Gives each plugin whose name another one has a "title" saying whose it is: "SteamGridDB by K1tsune12"."""
+    counts = collections.Counter(app["name"].casefold() for app in apps)
+    return [
+        {**app, "title": f"{app['name']} by {owner_of(app)}"} if counts[app["name"].casefold()] > 1 else app
+        for app in apps
+    ]
 
 
 def owner_of(app: dict) -> str:

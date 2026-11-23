@@ -4,6 +4,7 @@ import type { App, AppReleaseOption, Asset, HideableButton, RepoPreference } fro
 import { buildVersionOptions, listAppReleases, PLUGIN_INSTALL_TYPE } from "../utils";
 import { useAppInstall } from "../hooks/useAppInstall";
 import { useRepoPreference } from "../hooks/useRepoPreference";
+import { titleOf } from "../author";
 import { AppMonogram } from "./AppIdentity";
 import { FindingsSummary } from "./AppBadges";
 import { AppMeta, DownloadButtons, InstallButton, StoreInstallSteps, UnverifiedActions } from "./AppDetailsParts";
@@ -49,7 +50,7 @@ export function AppDetailsModal(props: Props) {
       t={t}
       closeModal={closeModal}
       icon={<AppMonogram app={app} style={{ width: 72, height: 72, borderRadius: 16, fontSize: 26 }} />}
-      title={app.name}
+      title={titleOf(app, t)}
       aside={app.repo}
       meta={<AppMeta app={app} t={t} />}
       description={app.description}
