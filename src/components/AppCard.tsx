@@ -2,7 +2,7 @@ import { useCardActions, type AppCardProps } from "../hooks/useCardActions";
 import type { App } from "../types";
 import { cardDescriptionStyle, ellipsis, surfaceStyle } from "../utils";
 import { displayVersion } from "../version";
-import { ownerOf } from "../author";
+import { ownerOf, titleOf } from "../author";
 import { AppBadges } from "./AppBadges";
 import { AppMonogram } from "./AppIdentity";
 import { AppStats } from "./AppStats";
@@ -79,7 +79,7 @@ function AppRow({ app, a }: { app: App; a: CardActions }) {
       }}
     >
       <AppMonogram app={app} style={{ gridRow: "1 / 4", width: 40, height: 40, fontSize: "0.85em" }} />
-      <h3 style={{ ...cardTitleStyle, gridColumn: 2, gridRow: 1 }}>{app.name}</h3>
+      <h3 style={{ ...cardTitleStyle, gridColumn: 2, gridRow: 1 }}>{titleOf(app, a.t)}</h3>
       {/* The release an Install / Update gives, then the stats. */}
       <div
         style={{
@@ -169,7 +169,17 @@ function AppTile({ app, a }: { app: App; a: CardActions }) {
   return (
     <div className="deckyhub-focus-ring" style={{ ...cardStyle, borderTopColor: a.accent }}>
       <AppMonogram app={app} style={{ gridRow: "1 / 3", alignSelf: "center" }} />
-      <h3 style={{ ...cardTitleStyle, gridColumn: 2, gridRow: 1 }}>{app.name}</h3>
+      {/* A shared name keeps its whole "by author" on a second line instead of cutting it off. */}
+      <h3
+        style={{
+          ...cardTitleStyle,
+          gridColumn: 2,
+          gridRow: 1,
+          ...(app.sharesName && { whiteSpace: "normal" as const }),
+        }}
+      >
+        {titleOf(app, a.t)}
+      </h3>
       <small style={{ ...categoryStyle, gridColumn: 2, gridRow: 2 }}>
         {app.category} · {t("appcard.byAuthor", { author: ownerOf(app) })}
       </small>

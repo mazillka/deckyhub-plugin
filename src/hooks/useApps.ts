@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { getApps, getSettings, REGISTRY_UPDATED } from "../api";
+import { markSharedNames } from "../author";
 import { useColumns } from "./useColumns";
 import type { App, HideableButton, PluginStats, RepoPreference, UpdateChannel, View, VirusScan } from "../types";
 import {
@@ -195,7 +196,7 @@ export function useApps(view: View) {
       // Discover and Installed both show stats and security badges on their cards.
       const showBadges = view !== "updates";
       const [appData, loadedSettings, stats, scans] = await fetchAll(showBadges, force);
-      const local = appData.apps;
+      const local = markSharedNames(appData.apps);
       const preferences = applySettings(loadedSettings, local);
       const tracked = trackedApps(local, view, showBadges, stats);
       // A card keeps its last release check until this load's replaces it.

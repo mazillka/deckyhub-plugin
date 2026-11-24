@@ -10,6 +10,8 @@ export type App = {
   category: string;
   // From the official registry (not a custom repository or registry): it has a page on deckyhub.com.
   official?: boolean;
+  // Another listed plugin has the same name (a fork and its original): its title says whose it is.
+  sharesName?: boolean;
   releaseTagInclude?: string;
   // From the registry: known problems with this plugin itself, each with a link to its report.
   knownIssues?: { title: string; url: string }[];

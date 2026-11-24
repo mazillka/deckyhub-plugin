@@ -13,6 +13,7 @@ import type { TFunc } from "../i18n/en";
 import { fetchPluginStats } from "../registryData";
 import { listAppReleases } from "../releases";
 import { getDeckyBackend } from "../deckyLoader";
+import { runsUnattended } from "../remoteTrusted";
 import { installAction, installDeckyPlugin, needsFreshInstall, PLUGIN_INSTALL_TYPE } from "../install";
 import { manifestName } from "../utils";
 import { confirmPluginInstall } from "./InstallFlow";
@@ -48,9 +49,9 @@ async function resolveRequest(request: RemoteInstallRequest, t: TFunc, auto: boo
 }
 
 // Asks on the Deck whether to install what the browser requested, with the audit warnings and what it will do.
-// A trusted device's request was approved when it arrived; nothing is asked then.
-async function confirmRequest(request: RemoteInstallRequest, t: TFunc, auto: boolean, found: Resolved) {
-  if (auto) return true;
+// A trusted device's request was approved when it arrived, so nothing is asked then (`unattended`, see runsUnattended).
+async function confirmRequest(request: RemoteInstallRequest, t: TFunc, unattended: boolean, found: Resolved) {
+  if (unattended) return true;
   const { app, release, action } = found;
   const stats = await fetchPluginStats(false).catch(() => ({}) as Awaited<ReturnType<typeof fetchPluginStats>>);
   const warningApp = {
@@ -120,8 +121,10 @@ export async function runRemoteRequest(request: RemoteInstallRequest, t: TFunc, 
       return;
     }
     const found = await resolveRequest(request, t, auto);
-    if (!(await confirmRequest(request, t, auto, found))) {
-      await decideRemoteRequest(request.id, false);
+    const unattended = runsUnattended(auto, found.release.assets[0]);
+    if (!(await confirmRequest(request, t, unattended, found))) {
+      // A trusted browser's request was approved already, so it ends as failed rather than rejected.
+      await (auto ? finishRemoteRequest(request.id, false) : decideRemoteRequest(request.id, false));
       return;
     }
     if (!auto) await decideRemoteRequest(request.id, true);
@@ -134,7 +137,7 @@ export async function runRemoteRequest(request: RemoteInstallRequest, t: TFunc, 
     // Loader's confirmation can be cancelled, and its events lack request IDs. A handoff
     // cannot prove success: report unknown unless a future correlated result is available.
     handedOver = true;
-    await installDeckyPlugin(asset, current.repo, name, refreshed.tag, freshAction.type, auto);
+    await installDeckyPlugin(asset, current.repo, name, refreshed.tag, freshAction.type, unattended);
     // Decky reports no result: look at what is installed (a minute and a half), so the browser hears "Installed".
     await settleInstall({
       installedVersion: async () => (await getRemoteInstalledVersion(name)).version,

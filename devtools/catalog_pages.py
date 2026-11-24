@@ -38,7 +38,7 @@ def card(app: dict, data: dict, prefix: str = "/plugins/", tip: bool = False) ->
     updated = f' data-updated="{escape(stats["updated"][:10])}"' if stats.get("updated") else ""
     return (
         f'<a class="app" href="{prefix}{escape(app["id"])}.html" data-repo="{repo}" data-cat="{slug(app["category"])}"{in_store}{updated}>'
-        f"<small>{escape(app['category'])}</small><strong>{escape(app['name'])}</strong><p>{escape(description)}</p>"
+        f"<small>{escape(app['category'])}</small><strong>{escape(app.get('title') or app['name'])}</strong><p>{escape(description)}</p>"
         f'<span class="meta">{meta}</span><span class="flags">{flags_of(stats, scans, data.get("reports"), data.get("vt"), bool(app.get("store")))}</span></a>'
     )
 

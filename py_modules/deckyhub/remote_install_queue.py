@@ -153,7 +153,9 @@ class RemoteInstallQueue:
                 ) != (plugin_id, release_tag, action, repository, plugin_name, installed_version, plugin_names):
                     raise RequestConflictError("idempotency key already used")
                 return previous
-            if len(self._requests) >= self._capacity:
+            # Finished requests only wait to be read (retention): they take no slot, but a flood of them is capped too.
+            active = sum(request.status not in _TERMINAL for request in self._requests.values())
+            if active >= self._capacity or len(self._requests) >= 4 * self._capacity:
                 raise QueueFullError("request queue is full")
             request_id = secrets.token_urlsafe(24)
             while request_id in self._requests:
