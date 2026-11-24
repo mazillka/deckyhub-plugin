@@ -72,7 +72,9 @@ const openPage = async (name) => {
 
 const openQuickAccess = async (tab) => {
   await awake();
-  await shared.eval(`SteamUIStore.WindowStore.GamepadUIMainWindowInstance.MenuStore.OpenQuickAccessMenu(${tab ?? ""}); true`);
+  await shared.eval(
+    `SteamUIStore.WindowStore.GamepadUIMainWindowInstance.MenuStore.OpenQuickAccessMenu(${tab ?? ""}); true`,
+  );
   await sleep(1500);
 };
 
