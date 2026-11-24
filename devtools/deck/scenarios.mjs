@@ -87,10 +87,12 @@ async function auditPages(scenario, pages = PAGES) {
 }
 
 async function auditQuickAccess(scenario) {
-  await shared.eval(`DFL.Navigation.OpenQuickAccessMenu(${TAB_ID}); true`);
+  await shared.eval(
+    `SteamUIStore.WindowStore.GamepadUIMainWindowInstance.MenuStore.OpenQuickAccessMenu(${TAB_ID}); true`,
+  );
   await sleep(1800);
   record(scenario, "quick-access", await audit(quickAccess, ".deckyhub-motion"));
-  await shared.eval(`DFL.Navigation.CloseSideMenus(); true`);
+  await shared.eval(`SteamUIStore.WindowStore.GamepadUIMainWindowInstance.MenuStore.CloseSideMenus(); true`);
   await sleep(500);
 }
 
@@ -162,7 +164,9 @@ async function openWithDpad(label) {
 async function auditWindows(scenario) {
   for (const [button, label, mustFit, expected] of WINDOWS) {
     await resetFocus(shared, "/library/home");
-    await shared.eval(`DFL.Navigation.OpenQuickAccessMenu(${TAB_ID}); true`);
+    await shared.eval(
+      `SteamUIStore.WindowStore.GamepadUIMainWindowInstance.MenuStore.OpenQuickAccessMenu(${TAB_ID}); true`,
+    );
     await sleep(3000);
     const clicked = await openWithDpad(button);
     if (!clicked) {

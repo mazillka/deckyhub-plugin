@@ -13,7 +13,7 @@ import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { connect, DECK, goTo, quote, resetFocus, sleep, TARGETS, waitFor } from "./cdp.mjs";
+import { connect, DECK, DECKY_PLUGINS, goTo, quote, resetFocus, sleep, TARGETS, waitFor } from "./cdp.mjs";
 
 const root = new URL("../../", import.meta.url).pathname.replace(/^\/(\w:)/, "$1");
 // Rollup through Node itself: pnpm's shell shim isn't on every PATH.
@@ -67,11 +67,11 @@ const shared = await connect(TARGETS.shared);
 const main = await connect(TARGETS.main);
 const startPath = await shared.eval("location.pathname.slice('/routes'.length)");
 const running = await shared.eval(
-  `DeckyPluginLoader.plugins?.find((plugin) => plugin.name === "DeckyHub")?.version ?? null`,
+  `${DECKY_PLUGINS}.then((plugins) => plugins.find((plugin) => plugin.name === "DeckyHub")?.version ?? null)`,
 );
 try {
   await shared.eval(
-    `DFL.Navigation.CloseSideMenus?.(); DeckyBackend.call("utilities/install_plugin", ${quote(url)}, "DeckyHub", ${quote(version)}, "${sha256}", 2).then(() => true)`,
+    `SteamUIStore.WindowStore.GamepadUIMainWindowInstance.MenuStore.CloseSideMenus(); DeckyBackend.call("utilities/install_plugin", ${quote(url)}, "DeckyHub", ${quote(version)}, "${sha256}", 2).then(() => true)`,
   );
   // Decky asks "…update DeckyHub to version <version>?" on the main screen. Press
   // Update in that dialog only: other windows (a plugin's Manage) have Update buttons too.
@@ -93,7 +93,7 @@ try {
   if (running === version) await sleep(15000);
   await waitFor(
     shared,
-    `DeckyPluginLoader.plugins?.some((plugin) => plugin.name === "DeckyHub" && plugin.version === ${quote(version)})`,
+    `${DECKY_PLUGINS}.then((plugins) => plugins.some((plugin) => plugin.name === "DeckyHub" && plugin.version === ${quote(version)}))`,
     60000,
   );
   await resetFocus(shared, startPath);

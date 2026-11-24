@@ -155,7 +155,7 @@ export function RemoveAndClose({
     <Focusable flow-children="right" style={{ display: "flex", gap: 8 }}>
       {name && name !== "DeckyHub" && (
         <Button
-          style={{ ...halfButtonStyle, color: colors.danger }}
+          style={{ ...halfButtonStyle, color: colors.dangerSoft }}
           onClick={() => confirmUninstall(t, app, closeModal, onUninstalled)}
         >
           <FaTrash /> {t("appcard.uninstall")}

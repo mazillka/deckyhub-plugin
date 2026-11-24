@@ -119,7 +119,9 @@ try {
 
   await closeWindows();
   await resetFocus(shared, "/library/home");
-  await shared.eval(`DFL.Navigation.OpenQuickAccessMenu(${TAB_ID}); true`);
+  await shared.eval(
+    `SteamUIStore.WindowStore.GamepadUIMainWindowInstance.MenuStore.OpenQuickAccessMenu(${TAB_ID}); true`,
+  );
   await sleep(3000);
   // The panel is its own window: the main screen behind it and the panel are joined by screenshots_to_jpg.py.
   await shot("menu-background");

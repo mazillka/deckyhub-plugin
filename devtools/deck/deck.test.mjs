@@ -6,7 +6,7 @@
 import assert from "node:assert/strict";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { after, before, test } from "node:test";
-import { connect, goTo, resetFocus, sleep, TARGETS, waitFor } from "./cdp.mjs";
+import { connect, DECKY_PLUGINS, goTo, resetFocus, sleep, TARGETS, waitFor } from "./cdp.mjs";
 import { BUTTON, explore, press } from "./navigation.mjs";
 
 const TAB_ID = 0x444855; // src/components/QuickAccessTab.tsx
@@ -72,7 +72,9 @@ const openPage = async (name) => {
 
 const openQuickAccess = async (tab) => {
   await awake();
-  await shared.eval(`DFL.Navigation.OpenQuickAccessMenu(${tab ?? ""}); true`);
+  await shared.eval(
+    `SteamUIStore.WindowStore.GamepadUIMainWindowInstance.MenuStore.OpenQuickAccessMenu(${tab ?? ""}); true`,
+  );
   await sleep(1500);
 };
 
@@ -115,7 +117,7 @@ const layoutProblems = (root) => `(() => {
 
 test("DeckyHub is loaded by Decky", async () => {
   const plugin = await shared.eval(
-    `JSON.stringify(DeckyPluginLoader.plugins.find((p) => p.name === "DeckyHub") ?? null)`,
+    `${DECKY_PLUGINS}.then((plugins) => JSON.stringify(plugins.find((p) => p.name === "DeckyHub") ?? null))`,
   );
   assert.ok(JSON.parse(plugin), "DeckyHub isn't in Decky's plugin list");
   if (process.env.DECKYHUB_VERSION) assert.equal(JSON.parse(plugin).version, process.env.DECKYHUB_VERSION);
@@ -363,7 +365,7 @@ test("Quick Access: Right from DeckyHub's tab moves focus into the panel", async
 test("B leaves a DeckyHub page for the one before it", async () => {
   await openPage("search");
   // A real history entry (Decky's own navigation) for B to go back from; B removes it again.
-  await shared.eval(`DFL.Navigation.Navigate("/deckyhub/settings"); true`);
+  await shared.eval(`SteamUIStore.Navigate("/deckyhub/settings"); true`);
   await waitFor(shared, `location.pathname.endsWith("/deckyhub/settings")`);
   await sleep(1000);
   await press(shared, BUTTON.BACK, 1500);

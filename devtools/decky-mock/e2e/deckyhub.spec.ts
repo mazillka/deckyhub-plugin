@@ -4434,6 +4434,8 @@ test("A failed download shows its reason in the download window", async ({ page 
 });
 
 test("Discover builds its list a batch at a time, adding more near the end", async ({ page }) => {
+  // One scroll per batch of 30 over the whole live registry (1000+ plugins): more than the default 30 s.
+  test.setTimeout(240_000);
   await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
   const app = mock(page);
   // The list is the default view.

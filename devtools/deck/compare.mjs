@@ -4,7 +4,7 @@
 // Needs the mock running (localhost:5183 with its bridge) and DeckyHub on the Deck.
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { connect, goTo, resetFocus, sleep, TARGETS } from "./cdp.mjs";
+import { connect, DECKY_PLUGINS, goTo, resetFocus, sleep, TARGETS } from "./cdp.mjs";
 
 const { chromium } = createRequire(new URL("../decky-mock/package.json", import.meta.url))("playwright");
 const fingerprint = readFileSync(new URL("./fingerprint.js", import.meta.url), "utf8");
@@ -20,7 +20,7 @@ const deck = await connect(TARGETS.main);
 const mockPlugins = new URL("../decky-mock/.dev-data/plugins/", import.meta.url);
 const installed = JSON.parse(
   await shared.eval(
-    `JSON.stringify(DeckyPluginLoader.plugins.filter((p) => p.name !== "DeckyHub").map((p) => [p.name, p.version]))`,
+    `${DECKY_PLUGINS}.then((plugins) => JSON.stringify(plugins.filter((p) => p.name !== "DeckyHub").map((p) => [p.name, p.version])))`,
   ),
 );
 installed.forEach(([name, version], index) => {
