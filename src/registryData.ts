@@ -92,7 +92,7 @@ export const fetchReleaseIndex = cachedRawJson<Record<string, unknown[]> | null>
 );
 
 // Each listed plugin's stats (see PluginStats), published next to the release
-// index by the same job. Only Discover uses it, so a missing file just leaves them out.
+// index by the same job. A missing file leaves the stats out.
 export const fetchPluginStats = cachedRawJson<Record<string, PluginStats>>(
   "stats.json",
   (stats) => stats.plugins ?? {},

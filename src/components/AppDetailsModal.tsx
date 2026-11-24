@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { TFunc } from "../i18n/en";
-import type { App, AppReleaseOption, Asset, HideableButton, RepoPreference } from "../types";
+import type { App, AppReleaseOption, Asset, HideableButton, PluginStats, RepoPreference } from "../types";
 import { buildVersionOptions, listAppReleases, PLUGIN_INSTALL_TYPE } from "../utils";
 import { useAppInstall } from "../hooks/useAppInstall";
 import { useRepoPreference } from "../hooks/useRepoPreference";
 import { titleOf } from "../author";
+import { fetchPluginStats } from "../registryData";
 import { AppMonogram } from "./AppIdentity";
 import { FindingsSummary } from "./AppBadges";
 import { AppMeta, DownloadButtons, InstallButton, StoreInstallSteps, UnverifiedActions } from "./AppDetailsParts";
@@ -19,6 +20,7 @@ export type Props = {
   app: App;
   preference: RepoPreference;
   downloadDisabled?: boolean;
+  loadStoreStats?: boolean;
   hiddenButtons: HideableButton[];
   onDownload: (asset: Asset) => Promise<void>;
   onPreferenceChange: (preference: RepoPreference) => void;
@@ -31,7 +33,23 @@ export type Props = {
 // same note on DeckyHubUpdateModal), so `t` must be a resolved function
 // passed in from AppCard — calling useT() here throws on mount.
 export function AppDetailsModal(props: Props) {
-  const { t, app, closeModal } = props;
+  const { t, closeModal } = props;
+  const shouldLoadStoreStats = props.loadStoreStats && props.app.store;
+  const repo = props.app.repo.toLowerCase();
+  const [storeStats, setStoreStats] = useState<PluginStats>();
+  useEffect(() => {
+    if (!shouldLoadStoreStats) return;
+    let active = true;
+    void fetchPluginStats()
+      .then((plugins) => {
+        if (active) setStoreStats(plugins[repo]);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [repo, shouldLoadStoreStats]);
+  const app = storeStats ? { ...props.app, stats: storeStats } : props.app;
   const pref = useRepoPreference(app, props.preference, props.onPreferenceChange);
   const { channel } = pref;
   const picker = useReleasePicker((force) => listAppReleases(app, force), channel);

@@ -3,7 +3,7 @@ import { openExternalWeb } from "../external";
 import { FaCheck, FaDownload, FaPlus } from "react-icons/fa";
 import { pillStyle } from "./badgeStyles";
 import { useT } from "../i18n";
-import type { SearchRepo } from "../types";
+import type { App, SearchRepo } from "../types";
 import { compactButtonStyle, ellipsis, surfaceStyle } from "../utils";
 import { FocusableGrid } from "./FocusableGrid";
 import { keepInView } from "./KeepInView";
@@ -31,10 +31,11 @@ export function SearchResults({
   isAdded,
   isInstalled,
   inRegistry,
-  storeNames,
+  storeApps,
   installing,
   canDownload,
   onInstall,
+  onStoreInstall,
   onAdd,
   onReleaseInfo,
   onDownloadZip,
@@ -44,10 +45,11 @@ export function SearchResults({
   isAdded: (repo: string) => boolean;
   isInstalled: (repo: string) => boolean;
   inRegistry: (repo: string) => boolean;
-  storeNames: Map<string, string>;
+  storeApps: Map<string, App>;
   installing: boolean;
   canDownload: boolean;
   onInstall: (repo: string) => void;
+  onStoreInstall: (app: App, opener: EventTarget | null) => void;
   onAdd: (repo: string) => void;
   onReleaseInfo: (repo: string) => void;
   onDownloadZip: (repo: string) => void;
@@ -57,38 +59,29 @@ export function SearchResults({
   // until the repository is in DeckyHub, which the title's badge then says.
   const actions = (repo: SearchRepo) => {
     const added = isAdded(repo.full_name);
-    const storeName = storeNames.get(repo.full_name.toLowerCase());
-    if (storeName)
-      return (
-        <Focusable
-          flow-children="down"
-          onFocus={keepInView}
-          style={{ ...surfaceStyle, display: "grid", gap: 4, padding: 10, color: colors.textSecondary }}
-        >
-          <strong>{t("appcard.storeInstallTitle")}</strong>
-          <span>{t("appcard.storeInstallStep1")}</span>
-          <span>{t("appcard.storeInstallStep2", { name: storeName })}</span>
-          <span>{t("appcard.storeInstallStep3")}</span>
-        </Focusable>
-      );
+    const storeApp = storeApps.get(repo.full_name.toLowerCase());
     return (
       <Focusable flow-children="right" style={{ display: "flex", gap: 8 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <Button
             style={buttonStyle}
-            disabled={installing}
-            onSecondaryButton={() => onReleaseInfo(repo.full_name)}
-            onSecondaryActionDescription={t("appcard.releaseInfo")}
-            onOptionsButton={canDownload ? () => onDownloadZip(repo.full_name) : undefined}
-            onOptionsActionDescription={t("settings.downloadUpdate")}
-            onMenuButton={() => openExternalWeb(`https://github.com/${repo.full_name}`)}
-            onMenuActionDescription={t("appcard.repository")}
-            onClick={() => onInstall(repo.full_name)}
+            disabled={!storeApp && installing}
+            {...(storeApp
+              ? { onClick: (event: MouseEvent) => onStoreInstall(storeApp, event.currentTarget) }
+              : {
+                  onSecondaryButton: () => onReleaseInfo(repo.full_name),
+                  onSecondaryActionDescription: t("appcard.releaseInfo"),
+                  onOptionsButton: canDownload ? () => onDownloadZip(repo.full_name) : undefined,
+                  onOptionsActionDescription: t("settings.downloadUpdate"),
+                  onMenuButton: () => openExternalWeb(`https://github.com/${repo.full_name}`),
+                  onMenuActionDescription: t("appcard.repository"),
+                  onClick: () => onInstall(repo.full_name),
+                })}
           >
             <FaDownload /> {t("appcard.install")}
           </Button>
         </div>
-        {!added && (
+        {!storeApp && !added && (
           <div style={{ flex: "0 0 44px" }}>
             <Button
               style={{ ...buttonStyle, padding: 0 }}

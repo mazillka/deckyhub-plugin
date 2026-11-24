@@ -14,10 +14,11 @@ export function ExpSearchResults({
   isAdded,
   isInstalled,
   inRegistry,
-  storeNames,
+  storeApps,
   installing,
   canDownload,
   onInstall,
+  onStoreInstall,
   onAdd,
   onReleaseInfo,
   onDownloadZip,
@@ -27,32 +28,28 @@ export function ExpSearchResults({
   const tile = (repo: SearchRepo) => {
     const [owner, name] = repo.full_name.split("/");
     const added = isAdded(repo.full_name);
-    const storeName = storeNames.get(repo.full_name.toLowerCase());
-    const storeOnly = Boolean(storeName);
-    const buttons = storeOnly ? (
-      <Focusable flow-children="down" className="dh-exp-buttons" onFocus={keepInView}>
-        <strong>{t("appcard.storeInstallTitle")}</strong>
-        <span>{t("appcard.storeInstallStep1")}</span>
-        <span>{t("appcard.storeInstallStep2", { name: storeName ?? name })}</span>
-        <span>{t("appcard.storeInstallStep3")}</span>
-      </Focusable>
-    ) : (
+    const storeApp = storeApps.get(repo.full_name.toLowerCase());
+    const buttons = (
       <Focusable flow-children="right" className="dh-exp-buttons">
         <div className="dh-exp-primary" style={{ flex: 1, minWidth: 0 }}>
           <Button
-            disabled={installing}
-            onSecondaryButton={() => onReleaseInfo(repo.full_name)}
-            onSecondaryActionDescription={t("appcard.releaseInfo")}
-            onOptionsButton={canDownload ? () => onDownloadZip(repo.full_name) : undefined}
-            onOptionsActionDescription={t("settings.downloadUpdate")}
-            onMenuButton={() => openExternalWeb(`https://github.com/${repo.full_name}`)}
-            onMenuActionDescription={t("appcard.repository")}
-            onClick={() => onInstall(repo.full_name)}
+            disabled={!storeApp && installing}
+            {...(storeApp
+              ? { onClick: (event: MouseEvent) => onStoreInstall(storeApp, event.currentTarget) }
+              : {
+                  onSecondaryButton: () => onReleaseInfo(repo.full_name),
+                  onSecondaryActionDescription: t("appcard.releaseInfo"),
+                  onOptionsButton: canDownload ? () => onDownloadZip(repo.full_name) : undefined,
+                  onOptionsActionDescription: t("settings.downloadUpdate"),
+                  onMenuButton: () => openExternalWeb(`https://github.com/${repo.full_name}`),
+                  onMenuActionDescription: t("appcard.repository"),
+                  onClick: () => onInstall(repo.full_name),
+                })}
           >
             <FaDownload /> {t("appcard.install")}
           </Button>
         </div>
-        {!added && (
+        {!storeApp && !added && (
           <div style={{ flex: "0 0 48px" }}>
             <Button aria-label={t("repos.add")} onClick={() => onAdd(repo.full_name)}>
               <FaPlus />

@@ -121,6 +121,8 @@ export const it: Record<MessageKey, string> = {
   "appcard.inStoreHint":
     "Lo store Decky elenca un plugin con questo nome ({count} download lì). Lo store non indica il repository, quindi controlla che sia questo.",
   "appcard.storeInstallTitle": "Installa dallo store Decky",
+  "appcard.storeOnlyExplanation":
+    "Questo plugin è distribuito tramite lo store Decky. Le versioni su GitHub potrebbero essere obsolete. Installalo dallo store Decky.",
   "appcard.storeInstallStep1": "Apri il menu Quick Access di Decky Loader (icona della spina) e scegli Store.",
   "appcard.storeInstallStep2": "Cerca {name}.",
   "appcard.storeInstallStep3": "Premi Installa.",
