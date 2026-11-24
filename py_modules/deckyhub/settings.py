@@ -143,6 +143,11 @@ class SettingsMixin:
         except (AttributeError, OSError, ValueError) as error:
             if self.settings_path.exists():
                 decky.logger.error("Can't read %s, using defaults: %s", self.settings_path, error)
+                if not isinstance(error, OSError):
+                    # The next save would replace the unreadable file with defaults, and its token, custom
+                    # registries and pins with it: keep it beside the new one.
+                    with contextlib.suppress(OSError):
+                        os.replace(self.settings_path, self.settings_path.with_name(self.settings_path.name + ".bad"))
             return {
                 **coerce_settings({}),
                 "uiStyleReset": UI_STYLE_RESET,
