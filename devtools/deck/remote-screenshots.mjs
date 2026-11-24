@@ -73,7 +73,7 @@ try {
     ? on
     : await until("the listener", (now) => (now.error ? Promise.reject(new Error(now.error)) : now.active && now));
   await resetFocus(shared, "/library/home");
-  await shared.eval(`DFL.Navigation.OpenQuickAccessMenu(${TAB_ID}); true`);
+  await shared.eval(`SteamUIStore.WindowStore.GamepadUIMainWindowInstance.MenuStore.OpenQuickAccessMenu(${TAB_ID}); true`);
   await sleep(4000);
   const title = await (async () => {
     const panel = await connect(TARGETS.quickAccess);
@@ -152,7 +152,7 @@ try {
   await page.click("#remote-risk-send");
   const request = await until("the install request", (now) => now.requests[0]);
   await resetFocus(shared, "/library/home");
-  await shared.eval(`DFL.Navigation.OpenQuickAccessMenu(${TAB_ID}); true`);
+  await shared.eval(`SteamUIStore.WindowStore.GamepadUIMainWindowInstance.MenuStore.OpenQuickAccessMenu(${TAB_ID}); true`);
   await sleep(4000);
   await panelShot("remote-request", title);
   await callPlugin("decide_remote_request", request.id, false);
@@ -173,7 +173,7 @@ try {
   for (const device of after?.devices ?? [])
     if (!pairedBefore.has(device.id)) await callPlugin("revoke_remote_device", device.id).catch(() => {});
   if (!before.enabled) await callPlugin("set_remote_install_enabled", false).catch(() => {});
-  await shared.eval(`DFL.Navigation.CloseSideMenus?.(); true`).catch(() => {});
+  await shared.eval(`SteamUIStore.WindowStore.GamepadUIMainWindowInstance.MenuStore.CloseSideMenus(); true`).catch(() => {});
   await resetFocus(shared, startPath || "/library/home").catch(() => {});
   shared.close();
   main.close();
