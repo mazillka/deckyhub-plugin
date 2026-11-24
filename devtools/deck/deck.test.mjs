@@ -243,7 +243,6 @@ test("Discover: a plugin's Manage window opens and fits", async () => {
 });
 
 test("Discover: the D-pad opens a plugin's details and reads its release notes to the end", async (t) => {
-  await openPage("discover");
   const focused = () =>
     main
       .eval(
@@ -253,7 +252,22 @@ test("Discover: the D-pad opens a plugin's details and reads its release notes t
   // Down the page to a Manage button, then A: no clicks, like a player. A plugin without release notes has nothing to read:
   // close its window (a window left open would break every test after this one) and try the next one.
   let hasNotes = false;
-  for (let tries = 0; tries < 12 && !hasNotes; tries++) {
+  let page = "";
+  // Updates first: every card there has release notes ("What's new"). Discover's first plugins often have none.
+  for (const name of ["updates", "discover"]) {
+    if (hasNotes) break;
+    page = name;
+    await openPage(page);
+    hasNotes = await openFirstManageWithNotes(focused);
+  }
+  async function openFirstManageWithNotes(focused) {
+    let found = false;
+    for (let tries = 0; tries < 12 && !found; tries++) {
+      found = await tryNextManage(focused);
+    }
+    return found;
+  }
+  async function tryNextManage(focused) {
     for (let step = 0; step < 60 && (await focused()).text !== "Manage"; step++) {
       await press(shared, BUTTON.DOWN, 250);
       // A row's first control can be its Install / Update button (Experimental): Manage is the next one along.
@@ -262,13 +276,27 @@ test("Discover: the D-pad opens a plugin's details and reads its release notes t
         if ((await focused()).text !== "Manage") await press(shared, BUTTON.LEFT, 250);
       }
     }
-    assert.equal((await focused()).text, "Manage", "the D-pad never reached a Manage button");
+    if ((await focused()).text !== "Manage") {
+      // Updates may have no cards; Discover always has them, so a D-pad that can't reach Manage there is a bug.
+      assert.notEqual(page, "discover", "the D-pad never reached a Manage button");
+      return false;
+    }
     await press(shared, BUTTON.OK, 1500);
-    hasNotes = await main.eval(`!!document.querySelector(".deckyhub-details-notes")`);
-    if (!hasNotes) {
+    const showing = () => main.eval(`!!document.querySelector(".deckyhub-details-notes")`);
+    let notes = await showing();
+    // The folded window keeps its notes in a "What's new" row that is closed until A opens it.
+    for (let step = 0; step < 25 && !notes && !/^What.s new/.test((await focused()).text); step++) {
+      await press(shared, BUTTON.DOWN, 250);
+    }
+    if (!notes && /^What.s new/.test((await focused()).text)) {
+      await press(shared, BUTTON.OK, 800);
+      notes = await showing();
+    }
+    if (!notes) {
       await press(shared, BUTTON.BACK, 800);
       await press(shared, BUTTON.DOWN, 250); // off this Manage, onto what follows
     }
+    return notes;
   }
   // Nothing to read when none of the first plugins has release notes (the registry's data, not the screen).
   if (!hasNotes) return t.skip("none of the first plugins' Manage windows has release notes");

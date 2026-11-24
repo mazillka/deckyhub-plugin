@@ -88,6 +88,18 @@ class SettingsFileTests(unittest.TestCase):
         self.assertEqual(settings["customRepos"], [])
         self.assertEqual(settings["language"], "auto")
 
+    def test_an_unreadable_settings_file_is_kept_as_bad_instead_of_overwritten(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.settings_path = Path(home) / "settings.json"
+            plugin.settings_path.write_text('{"githubToken": "ghp_x", "customRepos": [', encoding="utf-8")  # cut off
+            plugin.settings = plugin._load_settings()
+            plugin._save_settings()
+            kept = (Path(home) / "settings.json.bad").read_text(encoding="utf-8")
+            saved = json.loads(plugin.settings_path.read_text(encoding="utf-8"))
+        self.assertIn("ghp_x", kept)
+        self.assertEqual(saved["githubToken"], "")
+
 
 class BackupFailureTests(unittest.TestCase):
     def test_a_folder_that_cannot_be_listed_is_an_error_not_an_exception(self):

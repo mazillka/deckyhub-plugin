@@ -4434,24 +4434,20 @@ test("A failed download shows its reason in the download window", async ({ page 
 });
 
 test("Discover builds its list a batch at a time, adding more near the end", async ({ page }) => {
-  // One scroll per batch of 30 over the whole live registry (1000+ plugins): more than the default 30 s.
-  test.setTimeout(240_000);
   await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
   const app = mock(page);
   // The list is the default view.
   await browseAll(page);
   const total = (await bridgeCall(page, "get_apps")).result.apps.length;
   const rows = app.locator(".deckyhub-app-row");
-  // The first 30, then the next 30 once the end of the list comes into view.
-  await expect(rows).toHaveCount(30);
-  await rows.last().scrollIntoViewIfNeeded();
-  await expect.poll(() => rows.count()).toBeGreaterThan(30);
-  // Keeps going to the very last plugin, with no pages.
-  for (let shown = await rows.count(); shown < total; shown = await rows.count()) {
+  // The first 30, then 30 more each time the end of the list comes into view. A few batches are enough to show it:
+  // the registry is the live one (1000+ plugins), and scrolling through all of it takes minutes.
+  await expect(rows).toHaveCount(Math.min(30, total));
+  for (let batch = 2; batch <= 5 && 30 * (batch - 1) < total; batch++) {
     await rows.last().scrollIntoViewIfNeeded();
-    await expect.poll(() => rows.count()).toBeGreaterThan(shown);
+    await expect(rows).toHaveCount(Math.min(30 * batch, total));
   }
-  await expect(rows).toHaveCount(total);
+  // However long the list, there are no pages.
   await expect(app.getByRole("button", { name: "Next", exact: true })).toHaveCount(0);
 });
 

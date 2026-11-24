@@ -810,6 +810,9 @@ class PluginStatusTests(unittest.TestCase):
             "http://github.com/owner/repo/releases/download/v1/a.zip",
             "https://example.com/a.zip",
             "https://github.com/other/repo/releases/download/v1/a.zip",
+            # GitHub reads %2e%2e as "..", so these climb out of the repository's releases too.
+            "https://github.com/owner/repo/releases/download/v1/%2e%2e/%2e%2e/%2e%2e/other/repo/raw/main/a.zip",
+            "https://github.com/owner/repo/releases/download/v1/%2E%2E%2f%2E%2E%2fother/a.zip",
         ):
             with self.subTest(url=url):
                 result = asyncio.run(plugin.download_asset({"name": "a.zip", "url": url}, "owner/repo"))
