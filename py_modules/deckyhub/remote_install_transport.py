@@ -264,7 +264,11 @@ async def start_transport(service):
                 # Only a browser that holds a valid token gets this far; it lets the page stop asking about a request
                 # that a restarted device no longer has.
                 payload = b'{"ok":false,"error":"Request rejected","code":"request_not_found"}'
-            except Exception:
+            except Exception as error:
+                # Without this line a bug in the request code looks like any refused request. Messages here never hold a token.
+                _log(
+                    "Remote Install: a request from %s was rejected (%s: %s)", self._peer(), type(error).__name__, error
+                )
                 payload = b'{"ok":false,"error":"Request rejected"}'
             finally:
                 self.streams.pop(stream_id, None)

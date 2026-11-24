@@ -8,6 +8,7 @@ import subprocess
 import time
 from pathlib import Path
 from urllib.error import HTTPError, URLError
+from urllib.parse import unquote
 from urllib.request import Request
 
 import decky
@@ -177,9 +178,10 @@ class DownloadsMixin:
             or not asset["url"].startswith(prefix)
         ):
             raise ValueError("Only GitHub release assets for the selected repository can be downloaded")
-        # No "." or ".." segments (or backslashes): the URL has to stay under the repository's releases.
-        if "\\" in asset["url"] or any(
-            part in (".", "..") for part in asset["url"][len(prefix) :].split("?")[0].split("/")
+        # No "." or ".." segments (or backslashes): the URL has to stay under the repository's releases. GitHub
+        # reads %2e%2e as "..", so the check looks at the decoded path.
+        if "\\" in unquote(asset["url"]) or any(
+            part in (".", "..") for part in unquote(asset["url"][len(prefix) :].split("?")[0]).split("/")
         ):
             raise ValueError("Only GitHub release assets for the selected repository can be downloaded")
         name = Path(asset.get("name", "download")).name
