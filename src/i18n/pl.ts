@@ -119,6 +119,8 @@ export const pl: Record<MessageKey, string> = {
   "appcard.inStoreHint":
     "Sklep Decky ma wtyczkę o tej nazwie ({count} pobrań tam). Sklep nie podaje repozytorium, więc sprawdź, czy to ta.",
   "appcard.storeInstallTitle": "Zainstaluj ze sklepu Decky",
+  "appcard.storeOnlyExplanation":
+    "Ta wtyczka jest dystrybuowana przez sklep Decky. Wydania na GitHubie mogą być nieaktualne. Zainstaluj wtyczkę ze sklepu Decky.",
   "appcard.storeInstallStep1": "Otwórz menu Quick Access Decky Loader (ikona wtyczki) i wybierz Sklep.",
   "appcard.storeInstallStep2": "Wyszukaj {name}.",
   "appcard.storeInstallStep3": "Naciśnij Zainstaluj.",

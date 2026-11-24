@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { addCustomRepo, getApps, REGISTRY_UPDATED } from "../api";
-import type { SearchRepo } from "../types";
+import type { App, SearchRepo } from "../types";
 import { githubFetch, githubResponseError, log, manifestName } from "../utils";
 
 const lower = (names: Iterable<string>) => new Set([...names].map((name) => name.toLowerCase()));
@@ -17,7 +17,7 @@ export function useRepoSearch() {
   const [registryRepos, setRegistryRepos] = useState<Set<string>>(new Set());
   // Plugins Decky has installed, so a result says so before Install is pressed.
   const [installedRepos, setInstalledRepos] = useState<Set<string>>(new Set());
-  const [storeNames, setStoreNames] = useState<Map<string, string>>(new Map());
+  const [storeApps, setStoreApps] = useState<Map<string, App>>(new Map());
 
   const search = async () => {
     if (!query.trim() || searching) return;
@@ -27,7 +27,7 @@ export function useRepoSearch() {
       // Read fresh each search, so a repo added or removed elsewhere shows right.
       const listedApps = (await getApps()).apps;
       const existing = lower(listedApps.map((app) => app.repo));
-      setStoreNames(new Map(listedApps.filter((app) => app.store).map((app) => [app.repo.toLowerCase(), app.name])));
+      setStoreApps(new Map(listedApps.filter((app) => app.store).map((app) => [app.repo.toLowerCase(), app])));
       setExistingRepos(existing);
       setInstalledRepos(lower(listedApps.filter((app) => app.installedVersion).map((app) => app.repo)));
       setRegistryRepos(lower(listedApps.filter((app) => app.official).map((app) => app.repo)));
@@ -69,7 +69,7 @@ export function useRepoSearch() {
     existingRepos,
     registryRepos,
     installedRepos,
-    storeNames,
+    storeApps,
     search,
     track,
   };

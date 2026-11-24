@@ -118,6 +118,8 @@ export const ko: Record<MessageKey, string> = {
   "appcard.inStoreHint":
     "Decky 스토어에 같은 이름의 플러그인이 있습니다(그곳에서 {count}회 다운로드). 스토어는 저장소를 알려 주지 않으므로 이것이 맞는지 확인하세요.",
   "appcard.storeInstallTitle": "Decky 스토어에서 설치",
+  "appcard.storeOnlyExplanation":
+    "이 플러그인은 Decky 스토어에서 배포됩니다. GitHub의 릴리스는 오래되었을 수 있으니 Decky 스토어에서 설치하세요.",
   "appcard.storeInstallStep1": "Decky Loader의 Quick Access 메뉴(플러그 아이콘)를 열고 스토어를 선택하세요.",
   "appcard.storeInstallStep2": "{name}을(를) 검색하세요.",
   "appcard.storeInstallStep3": "설치를 누르세요.",

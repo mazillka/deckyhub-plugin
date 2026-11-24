@@ -116,6 +116,7 @@ export const zhTW: Record<MessageKey, string> = {
   "appcard.inStore": "已在 Decky 商店",
   "appcard.inStoreHint": "Decky 商店中有同名外掛(在那裡下載 {count} 次)。商店不會標明儲存庫,請確認是否就是這個。",
   "appcard.storeInstallTitle": "從 Decky 商店安裝",
+  "appcard.storeOnlyExplanation": "此外掛透過 Decky 商店發布。GitHub 上的發行版本可能已過時，請從 Decky 商店安裝。",
   "appcard.storeInstallStep1": "開啟 Decky Loader 的 Quick Access 選單（插頭圖示），然後選擇「商店」。",
   "appcard.storeInstallStep2": "搜尋 {name}。",
   "appcard.storeInstallStep3": "按下「安裝」。",
