@@ -951,6 +951,18 @@ class PluginStatusTests(unittest.TestCase):
             self.assertEqual(plugin.downloads[one["jobId"]]["filename"], "asset.zip")
             self.assertEqual(plugin.downloads[two["jobId"]]["filename"], "asset (1).zip")
 
+    def test_overwrite_does_not_make_two_active_downloads_share_a_path(self):
+        with tempfile.TemporaryDirectory() as home, patch("deckyhub.paths.PLUGIN_DOWNLOAD_DIR", home):
+            plugin = Plugin()
+            plugin.settings = {"overwriteExisting": True}
+            plugin.downloads = {}
+            plugin.download_queue = asyncio.Queue()
+            first = {"name": "asset.zip", "url": "https://github.com/owner/one/releases/download/v1/asset.zip"}
+            second = {"name": "asset.zip", "url": "https://github.com/owner/two/releases/download/v1/asset.zip"}
+            one = asyncio.run(plugin.download_asset(first, "owner/one"))
+            two = asyncio.run(plugin.download_asset(second, "owner/two"))
+            self.assertNotEqual(plugin.downloads[one["jobId"]]["path"], plugin.downloads[two["jobId"]]["path"])
+
     def test_cancelling_an_active_download_removes_partial_file(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = Plugin()

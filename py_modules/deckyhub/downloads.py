@@ -91,7 +91,7 @@ class DownloadsMixin:
                 for job in self.downloads.values()
                 if job["state"] in ACTIVE_DOWNLOAD_STATES and job.get("path")
             }
-            if not self.settings.get("overwriteExisting") and (target.exists() or target in reserved):
+            if target in reserved or (not self.settings.get("overwriteExisting") and target.exists()):
                 target = self._next_name(target, reserved)
             self._prune_downloads()
             job_id = f"{name}-{time.monotonic_ns()}"
