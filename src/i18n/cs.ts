@@ -84,6 +84,10 @@ export const cs: Record<MessageKey, string> = {
 
   "content.loading": "Načítání…",
   "content.loadErrorTitle": "DeckyHub se nepodařilo načíst",
+  "registry.cached": "Oficiální katalog načten z mezipaměti.",
+  "registry.online": "Oficiální katalog aktualizován online.",
+  "registry.unavailable": "Oficiální katalog není dostupný.",
+  "registry.lastUpdated": "Poslední aktualizace: {when}",
   "content.tryAgain": "Zkusit znovu",
   "content.refresh": "Obnovit",
   "content.updateAll": "Aktualizovat vše ({count})",
