@@ -1815,8 +1815,18 @@ for (const [uiStyle, layout] of [
       store: true,
     };
     const regularApp = { id: "other", name: "Other", repo: "example/other", store: false };
-    const apps = [storeApp, activityApp, uncountedApp, regularApp];
+    const apps = [storeApp, activityApp, uncountedApp, regularApp].map((app) => ({
+      asset: { include: [".zip"], exclude: ["source"] },
+      assets: [],
+      detect: { type: "decky-plugin" },
+      ...app,
+    }));
     const installRequests: string[] = [];
+    const releaseRequests: string[] = [];
+    page.on("request", (request) => {
+      const url = request.url().toLowerCase();
+      if (url.includes("api.github.com/repos/ebenbruyns/junkstore/releases")) releaseRequests.push(url);
+    });
     await recordInstalls(page);
     await page.route(BRIDGE_URL, (route) => {
       const req = route.request();
@@ -1858,6 +1868,7 @@ for (const [uiStyle, layout] of [
       await page.goto("/?preview=/deckyhub/search&bridge=http://127.0.0.1:8643");
       const app = mock(page);
       if (uiStyle === "experimental") await expect(app.locator(".dh-exp-nav")).toBeVisible();
+      if (uiStyle === "v2") await expect(app.locator(".deckyhub-v2-tabs")).toBeVisible();
       const field = app.getByLabel("Search GitHub");
       await field.fill("junk");
       await field.press("Enter");
@@ -1865,6 +1876,12 @@ for (const [uiStyle, layout] of [
       const rowFor = (repo: string) =>
         app.locator(".deckyhub-focus-ring").filter({ has: app.getByRole("heading", { name: repo.toUpperCase() }) });
       const row = rowFor(storeApp.repo);
+      await expect(row).toBeVisible();
+      if (uiStyle === "default") {
+        if (layout === "list") await expect(row).toHaveClass(/deckyhub-search-row/);
+        else await expect(row).not.toHaveClass(/deckyhub-search-row/);
+      }
+      if (uiStyle === "experimental") await expect(row).toHaveClass(/dh-exp-row/);
       await expect(row.getByRole("button", { name: "Add", exact: true })).toHaveCount(0);
       await row.getByRole("button", { name: "Install", exact: true }).click();
       const modal = app.locator(".steam-modal");
@@ -1906,6 +1923,7 @@ for (const [uiStyle, layout] of [
       await close();
       await expect(rowFor(regularApp.repo).getByRole("button", { name: "Install", exact: true })).toBeVisible();
       expect(installRequests).toEqual([]);
+      expect(releaseRequests).toEqual([]);
       expect(
         await pluginFrame(page).evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls),
       ).toEqual([]);
@@ -2593,7 +2611,26 @@ test("Search confirms before replacing an installed plugin with unverified ident
     const modal = app.locator(".steam-modal");
     await expect(modal.getByText(/couldn't match the installed plugin/)).toContainText("eugeniosegala/MAKO");
     await expect(modal.getByRole("button", { name: "Install anyway", exact: true })).toBeVisible();
-    await expect.poll(() => pluginFrame(page).evaluate(() => (window as any).__installCalls)).toEqual([]);
+    await expect
+      .poll(() =>
+        pluginFrame(page).evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls),
+      )
+      .toEqual([]);
+    await modal.getByRole("button", { name: "Install anyway", exact: true }).click();
+    await expect
+      .poll(() =>
+        pluginFrame(page).evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls),
+      )
+      .toEqual([
+        [
+          "utilities/install_plugin",
+          localZip(makoRelease("plugin-v1.2.3", sha).assets[0].browser_download_url),
+          "MAKO - Frame Generation",
+          "1.2.3",
+          sha,
+          2,
+        ],
+      ]);
   } finally {
     rmSync(pluginDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
   }
