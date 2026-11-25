@@ -61,6 +61,7 @@ jobs:
           PATH="$RUNNER_TEMP/venv/bin:$PATH" pnpm run lint
           pnpm run typecheck
           pnpm run build
+          python3 -c 'from pathlib import Path; files=list(Path("dist").glob("*.js")); size=sum(p.stat().st_size for p in files); print(f"Frontend JS: {size} bytes"); assert files and size < 8 * 1024 * 1024, "Frontend JS exceeds 8 MiB budget"'
           pnpm run test:frontend
           "$RUNNER_TEMP/venv/bin/python" -m unittest discover -s tests
 
@@ -87,6 +88,21 @@ jobs:
           # The release notes page reads DeckyHub's releases from the GitHub API.
           GITHUB_TOKEN: ${{ github.token }}
       - run: python devtools/audit-site.py _site
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Accessibility audit
+        run: |
+          cd devtools/decky-mock
+          npm ci
+          npm install --no-save --package-lock=false axe-core@4.10.3
+          npx playwright install --with-deps chromium
+          cd ../..
+          python -m http.server 8765 --directory _site >/tmp/deckyhub-site.log 2>&1 &
+          server=$!
+          trap 'kill "$server"' EXIT
+          for i in {1..30}; do curl --silent --fail http://127.0.0.1:8765/ >/dev/null && break; sleep 1; done
+          node devtools/decky-mock/accessibility.mjs
 
   # The check the main and develop rulesets require. It passes when the unit tests passed
   # and the browser tests and the website checks passed or were skipped for a change that doesn't touch them.
