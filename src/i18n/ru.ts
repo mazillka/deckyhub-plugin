@@ -84,6 +84,10 @@ export const ru: Record<MessageKey, string> = {
 
   "content.loading": "Загрузка…",
   "content.loadErrorTitle": "Не удалось загрузить DeckyHub",
+  "registry.cached": "Официальный каталог загружен из кеша.",
+  "registry.online": "Официальный каталог обновлён онлайн.",
+  "registry.unavailable": "Официальный каталог недоступен.",
+  "registry.lastUpdated": "Последнее обновление: {when}",
   "content.tryAgain": "Повторить",
   "content.refresh": "Обновить",
   "content.updateAll": "Обновить все ({count})",

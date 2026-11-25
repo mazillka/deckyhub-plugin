@@ -84,6 +84,10 @@ export const ko: Record<MessageKey, string> = {
 
   "content.loading": "불러오는 중…",
   "content.loadErrorTitle": "DeckyHub를 불러올 수 없습니다",
+  "registry.cached": "공식 카탈로그를 캐시에서 불러왔습니다.",
+  "registry.online": "공식 카탈로그를 온라인으로 업데이트했습니다.",
+  "registry.unavailable": "공식 카탈로그를 사용할 수 없습니다.",
+  "registry.lastUpdated": "마지막 업데이트: {when}",
   "content.tryAgain": "다시 시도",
   "content.refresh": "새로 고침",
   "content.updateAll": "모두 업데이트 ({count})",

@@ -73,7 +73,9 @@ class AppsMixin:
 
     async def get_apps(self):
         installed_plugins = await asyncio.to_thread(self._scan_installed_plugins)
-        return self._apps_with_installed_plugins(installed_plugins)
+        result = self._apps_with_installed_plugins(installed_plugins)
+        result["registryStatus"] = getattr(self, "registry_status", {"source": "unavailable", "updatedAt": None})
+        return result
 
     def _apps_with_installed_plugins(self, installed_plugins: list) -> dict:
         apps = [*self.apps, *self._custom_apps()]

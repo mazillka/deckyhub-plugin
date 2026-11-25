@@ -6,6 +6,7 @@ import json
 import os
 import ssl
 import threading
+import time
 from http.client import HTTPException
 from pathlib import Path
 from urllib.error import HTTPError, URLError
@@ -180,10 +181,11 @@ class RegistryMixin:
     async def _refresh_registry_in_background(self):
         try:
             before = self.apps
+            status_before = getattr(self, "registry_status", None)
             await self.refresh_registry()
             # Pages already open loaded the cached list; tell them to reload (index.tsx),
             # but only on a real change - the reload resets their page and every card.
-            if self.apps != before:
+            if self.apps != before or getattr(self, "registry_status", None) != status_before:
                 await decky.emit("registry_updated")
         except Exception as error:
             decky.logger.error("Background registry refresh failed: %s", error)
@@ -243,6 +245,8 @@ class RegistryMixin:
         if prefetched is not None:
             apps, text = prefetched
             self._cache_registry(cache_path, text, url)
+            if official:
+                self.registry_status = {"source": "network", "updatedAt": time.time() * 1000}
             return apps
         if network:
             try:
@@ -257,12 +261,19 @@ class RegistryMixin:
                 # Removed while this download was in flight: don't recreate its cache.
                 if official or url in self.settings.get("customRegistries", []):
                     self._cache_registry(cache_path, text, url)
+                if official:
+                    self.registry_status = {"source": "network", "updatedAt": time.time() * 1000}
                 decky.logger.info("Loaded %d repositories from %s", len(apps), url)
                 return apps
         try:
-            return parse_registry(json.loads(cache_path.read_text(encoding="utf-8")))
+            apps = parse_registry(json.loads(cache_path.read_text(encoding="utf-8")))
+            if official:
+                self.registry_status = {"source": "cache", "updatedAt": cache_path.stat().st_mtime * 1000}
+            return apps
         except (OSError, ValueError):
             decky.logger.warning("No cached copy of %s", url)
+            if official:
+                self.registry_status = {"source": "unavailable", "updatedAt": None}
         return []
 
     def _cache_registry(self, cache_path: Path, text: str, url: str) -> None:

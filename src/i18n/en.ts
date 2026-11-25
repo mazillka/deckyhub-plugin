@@ -84,6 +84,10 @@ export const en = {
 
   "content.loading": "Loading…",
   "content.loadErrorTitle": "Could Not Load DeckyHub",
+  "registry.cached": "Official catalog loaded from cache.",
+  "registry.online": "Official catalog updated online.",
+  "registry.unavailable": "Official catalog unavailable.",
+  "registry.lastUpdated": "Last updated: {when}",
   "content.tryAgain": "Try Again",
   "content.refresh": "Refresh",
   "content.updateAll": "Update All ({count})",

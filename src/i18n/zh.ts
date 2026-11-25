@@ -82,6 +82,10 @@ export const zh: Record<MessageKey, string> = {
 
   "content.loading": "加载中…",
   "content.loadErrorTitle": "无法加载 DeckyHub",
+  "registry.cached": "官方目录已从缓存加载。",
+  "registry.online": "官方目录已在线更新。",
+  "registry.unavailable": "官方目录不可用。",
+  "registry.lastUpdated": "上次更新：{when}",
   "content.tryAgain": "重试",
   "content.refresh": "刷新",
   "content.updateAll": "全部更新 ({count})",

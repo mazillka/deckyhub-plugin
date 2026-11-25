@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { getApps, getSettings, REGISTRY_UPDATED } from "../api";
+import type { RegistryStatus } from "../api";
 import { markSharedNames } from "../author";
 import { useColumns } from "./useColumns";
 import type { App, HideableButton, PluginStats, RepoPreference, UpdateChannel, View, VirusScan } from "../types";
@@ -177,6 +178,7 @@ export function useApps(view: View) {
   const [apps, setApps] = useState<App[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [registryStatus, setRegistryStatus] = useState<RegistryStatus | undefined>();
   const { apply: applySettings, ...settings } = useLoadedSettings();
   const columnsPerRow = useColumns(settings.columnsPerRow);
   // Release checks finished out of the current load, shown while Updates waits on them.
@@ -196,6 +198,8 @@ export function useApps(view: View) {
       // Discover and Installed both show stats and security badges on their cards.
       const showBadges = view !== "updates";
       const [appData, loadedSettings, stats, scans] = await fetchAll(showBadges, force);
+      if (run !== loadRun.current) return;
+      setRegistryStatus(appData.registryStatus);
       const local = markSharedNames(appData.apps);
       const preferences = applySettings(loadedSettings, local);
       const tracked = trackedApps(local, view, showBadges, stats);
@@ -235,6 +239,7 @@ export function useApps(view: View) {
     setApps,
     loading,
     loadError,
+    registryStatus,
     checked,
     ...settings,
     columnsPerRow,

@@ -84,6 +84,10 @@ export const pl: Record<MessageKey, string> = {
 
   "content.loading": "Wczytywanie…",
   "content.loadErrorTitle": "Nie udało się wczytać DeckyHub",
+  "registry.cached": "Oficjalny katalog wczytano z pamięci podręcznej.",
+  "registry.online": "Oficjalny katalog zaktualizowano online.",
+  "registry.unavailable": "Oficjalny katalog jest niedostępny.",
+  "registry.lastUpdated": "Ostatnia aktualizacja: {when}",
   "content.tryAgain": "Spróbuj ponownie",
   "content.refresh": "Odśwież",
   "content.updateAll": "Zaktualizuj wszystko ({count})",

@@ -19,7 +19,7 @@ import threading
 import types
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 
 MOCK_DIR = Path(__file__).resolve().parent
 REPO_ROOT = MOCK_DIR.parent.parent
@@ -106,6 +106,22 @@ def _fetch_registry(url, *args, **kwargs):
 
 registry.fetch_remote_registry = _fetch_registry
 
+# Explicit, deterministic network failures for development scenarios only.
+_network_mode = "normal"
+_real_fetch_official = registry.fetch_official_registry
+
+
+def _fetch_official(url):
+    if _network_mode == "offline":
+        raise URLError("Simulated network outage")
+    if _network_mode == "fixture":
+        text = json.dumps({"schemaVersion": 1, "apps": [FIXTURE_APP]})
+        return registry.parse_registry(json.loads(text)), text
+    return _real_fetch_official(url)
+
+
+registry.fetch_official_registry = _fetch_official
+
 # Remote Install without a network: the QUIC listener is a stand-in (its library isn't bundled here), so the real
 # pairing, approval and request code runs behind a UI that thinks the device is reachable. The transport itself is
 # covered by tests/test_remote_install_transport.py.
@@ -146,12 +162,39 @@ print(f"[decky-mock] Plugin ready. Fake DECKY_HOME: {fake_decky.DECKY_HOME}")
 # the network; tests/test_plugin_status.py covers the real download.
 async def _stage_install(asset, repo=None, job_id=None):
     try:
+        if _network_mode == "offline":
+            return {"error": "Simulated network outage"}
         return {"path": f"/deckyhub-installs/{Plugin._validate_download_asset(asset, repo)}"}
     except ValueError as error:
         return {"error": str(error)}
 
 
 plugin.stage_install = _stage_install
+
+
+async def mock_network_mode(mode):
+    global _network_mode
+    if mode not in ("normal", "offline", "fixture"):
+        raise ValueError("Unknown network mode")
+    _network_mode = mode
+    return {"mode": mode}
+
+
+async def mock_reload_cached_registry():
+    plugin.apps = await asyncio.to_thread(plugin._load_registry, None, False)
+    return {"apps": len(plugin.apps)}
+
+
+async def mock_wait_registry_refresh():
+    task = getattr(plugin, "registry_task", None)
+    if task is not None:
+        await task
+    return {"ok": True}
+
+
+plugin.mock_network_mode = mock_network_mode
+plugin.mock_reload_cached_registry = mock_reload_cached_registry
+plugin.mock_wait_registry_refresh = mock_wait_registry_refresh
 
 # A paired browser's side of Remote Install (the real one speaks WebTransport): E2E drives it through these routes.
 _browser = {}

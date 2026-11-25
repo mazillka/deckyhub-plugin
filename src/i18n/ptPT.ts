@@ -86,6 +86,10 @@ export const ptPT: Record<MessageKey, string> = {
 
   "content.loading": "A carregar…",
   "content.loadErrorTitle": "Não foi possível carregar o DeckyHub",
+  "registry.cached": "Catálogo oficial carregado da cache.",
+  "registry.online": "Catálogo oficial atualizado online.",
+  "registry.unavailable": "Catálogo oficial indisponível.",
+  "registry.lastUpdated": "Última atualização: {when}",
   "content.tryAgain": "Tentar novamente",
   "content.refresh": "Atualizar",
   "content.updateAll": "Atualizar tudo ({count})",

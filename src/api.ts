@@ -1,7 +1,8 @@
 import { callable } from "@decky/api";
 import type { Asset, App, Settings, Download, DeckyHubInfo, RepoPreference, RemoteInstallStatus } from "./types";
 
-export const getApps = callable<[], { apps: App[] }>("get_apps");
+export type RegistryStatus = { source: "network" | "cache" | "unavailable"; updatedAt: number | null };
+export const getApps = callable<[], { apps: App[]; registryStatus?: RegistryStatus }>("get_apps");
 export const getSettings = callable<[], Settings>("get_settings");
 // Plugins picked in the Desktop Mode installer, waiting for DeckyHub to install them.
 export const getPendingInstalls = callable<[], string[]>("get_pending_installs");
