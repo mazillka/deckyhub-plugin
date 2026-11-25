@@ -5,7 +5,6 @@ const bridge = "http://127.0.0.1:8643";
 const cache = new URL("../.dev-data/settings/registry-cache.json", import.meta.url);
 
 test("catalog and install staging recover after a network outage", async ({ page, request }) => {
-  const before = existsSync(cache) ? readFileSync(cache) : null;
   const call = async (route: string, ...args: unknown[]) => {
     const response = await request.post(bridge, {
       headers: { Origin: "http://127.0.0.1:5183" },
@@ -15,6 +14,9 @@ test("catalog and install staging recover after a network outage", async ({ page
     expect(result.ok).toBe(true);
     return result.result;
   };
+  // The plugin starts an asynchronous refresh; let it finish before replacing its cache.
+  await call("mock_wait_registry_refresh");
+  const before = existsSync(cache) ? readFileSync(cache) : null;
   const asset = { name: "fixture.zip", url: "https://github.com/example/fixture-app/releases/download/v1/fixture.zip" };
   try {
     await call("mock_network_mode", "fixture");

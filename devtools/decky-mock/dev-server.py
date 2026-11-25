@@ -185,8 +185,16 @@ async def mock_reload_cached_registry():
     return {"apps": len(plugin.apps)}
 
 
+async def mock_wait_registry_refresh():
+    task = getattr(plugin, "registry_task", None)
+    if task is not None:
+        await task
+    return {"ok": True}
+
+
 plugin.mock_network_mode = mock_network_mode
 plugin.mock_reload_cached_registry = mock_reload_cached_registry
+plugin.mock_wait_registry_refresh = mock_wait_registry_refresh
 
 # A paired browser's side of Remote Install (the real one speaks WebTransport): E2E drives it through these routes.
 _browser = {}
