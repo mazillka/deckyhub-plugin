@@ -121,6 +121,8 @@ export const uk: Record<MessageKey, string> = {
   "appcard.inStoreHint":
     "У магазині Decky є плагін із такою назвою ({count} завантажень там). Магазин не вказує репозиторій, тож переконайтеся, що це саме той.",
   "appcard.storeInstallTitle": "Встановлення з магазину Decky",
+  "appcard.storeOnlyExplanation":
+    "Цей плагін поширюється через магазин Decky. Випуски на GitHub можуть бути застарілими. Встановіть плагін із магазину Decky.",
   "appcard.storeInstallStep1": "Відкрийте меню Quick Access у Decky Loader (значок штекера) і виберіть «Магазин».",
   "appcard.storeInstallStep2": "Знайдіть {name}.",
   "appcard.storeInstallStep3": "Натисніть «Встановити».",

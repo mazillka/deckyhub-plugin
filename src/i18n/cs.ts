@@ -119,6 +119,8 @@ export const cs: Record<MessageKey, string> = {
   "appcard.inStoreHint":
     "Obchod Decky nabízí plugin se stejným názvem ({count} stažení tam). Obchod neuvádí repozitář, ověřte tedy, že jde o tento.",
   "appcard.storeInstallTitle": "Instalace z obchodu Decky",
+  "appcard.storeOnlyExplanation":
+    "Tento plugin se distribuuje prostřednictvím obchodu Decky. Vydání na GitHubu mohou být zastaralá. Nainstaluj plugin z obchodu Decky.",
   "appcard.storeInstallStep1": "Otevřete nabídku Quick Access v Decky Loaderu (ikona zástrčky) a vyberte Obchod.",
   "appcard.storeInstallStep2": "Vyhledejte {name}.",
   "appcard.storeInstallStep3": "Stiskněte Instalovat.",

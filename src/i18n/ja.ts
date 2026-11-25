@@ -120,6 +120,8 @@ export const ja: Record<MessageKey, string> = {
   "appcard.inStoreHint":
     "Decky ストアに同名のプラグインがあります(ストアでのダウンロード {count} 回)。ストアはリポジトリを示さないため、これと同じものか確認してください。",
   "appcard.storeInstallTitle": "Decky ストアからインストール",
+  "appcard.storeOnlyExplanation":
+    "このプラグインは Decky ストアで配布されています。GitHub のリリースは古い場合があるため、Decky ストアからインストールしてください。",
   "appcard.storeInstallStep1": "Decky Loader の Quick Access メニュー（プラグのアイコン）を開き、ストアを選択します。",
   "appcard.storeInstallStep2": "{name} を検索します。",
   "appcard.storeInstallStep3": "インストールを押します。",

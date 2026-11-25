@@ -69,6 +69,7 @@ export function StoreInstallSteps({ app, t }: { app: App; t: TFunc }) {
       style={{ ...surfaceStyle, display: "grid", gap: 8, padding: 14 }}
     >
       <strong>{t("appcard.storeInstallTitle")}</strong>
+      <span>{t("appcard.storeOnlyExplanation")}</span>
       <span>{t("appcard.storeInstallStep1")}</span>
       <span>{t("appcard.storeInstallStep2", { name: app.name })}</span>
       <span>{t("appcard.storeInstallStep3")}</span>

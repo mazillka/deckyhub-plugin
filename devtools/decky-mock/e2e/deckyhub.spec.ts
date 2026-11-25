@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page, type Route } from "@playwright/test";
 import { fileURLToPath } from "node:url";
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 
@@ -1775,9 +1775,145 @@ test("store-only plugins show Decky Store guidance and never expose old GitHub r
   await app.getByLabel("Search GitHub").fill("junk");
   await app.getByRole("button", { name: "Search", exact: true }).click();
   const searchResult = app.locator(".deckyhub-focus-ring").filter({ hasText: "junkstore" }).first();
-  await expect(searchResult.getByText("Search for Junk-Store.", { exact: true })).toBeVisible({ timeout: 20000 });
-  await expect(searchResult.getByRole("button", { name: "Install", exact: true })).toHaveCount(0);
+  await searchResult.getByRole("button", { name: "Install", exact: true }).click();
+  await expect(modal.getByText("Search for Junk-Store.", { exact: true })).toBeVisible();
 });
+
+for (const [uiStyle, layout] of [
+  ["default", "list"],
+  ["default", "grid"],
+  ["v2", "list"],
+  ["experimental", "list"],
+] as const) {
+  test(`Search shows readable store guidance (${uiStyle}, ${layout})`, async ({ page, request }) => {
+    const headers = { Origin: "http://127.0.0.1:5183" };
+    const settings = (
+      await (await request.post(BRIDGE_URL, { data: { route: "get_settings", args: [] }, headers })).json()
+    ).result;
+    const saveSettings = (next: typeof settings) =>
+      request.post(BRIDGE_URL, { data: { route: "save_settings", args: [next] }, headers });
+    const storeApp = {
+      id: "junkstore",
+      name: "Junk-Store",
+      repo: "ebenbruyns/junkstore",
+      category: "Game Libraries",
+      description: "Play games from other libraries.",
+      store: true,
+    };
+    const activityApp = {
+      id: "store-activity",
+      name: "Store Activity",
+      repo: "example/store-activity",
+      category: "Utilities",
+      store: true,
+    };
+    const uncountedApp = {
+      id: "store-uncounted",
+      name: "Uncounted",
+      repo: "example/store-uncounted",
+      category: "Utilities",
+      store: true,
+    };
+    const regularApp = { id: "other", name: "Other", repo: "example/other", store: false };
+    const apps = [storeApp, activityApp, uncountedApp, regularApp];
+    const installRequests: string[] = [];
+    await recordInstalls(page);
+    await page.route(BRIDGE_URL, (route) => {
+      const req = route.request();
+      const method = req.method() === "POST" ? req.postDataJSON()?.route : undefined;
+      if (["stage_install", "download_asset", "add_custom_repo"].includes(method)) installRequests.push(method);
+      if (method === "get_apps")
+        return route.fulfill({
+          json: { ok: true, result: { apps } },
+          headers: { "Access-Control-Allow-Origin": "*" },
+        });
+      return route.continue();
+    });
+    const mockStats = (route: Route) =>
+      route.fulfill({
+        json: {
+          generatedAt: new Date().toISOString(),
+          plugins: {
+            [storeApp.repo]: { downloads: 400, stars: 87, store: { downloads: 123 } },
+            [activityApp.repo]: {
+              downloads: 300,
+              store: { downloads: 100, activity: { downloads: 100, updates: 50 } },
+            },
+            [uncountedApp.repo]: { downloads: 300 },
+            "another/store-uncounted": { store: { downloads: 200 } },
+          },
+        },
+      });
+    await page.route(PLUGIN_STATS_URL, mockStats);
+    await page.route(PRERELEASE_STATS_URL, mockStats);
+    await page.route("https://api.github.com/search/repositories**", (route) =>
+      route.fulfill({ json: { items: apps.map(({ repo }) => ({ full_name: repo.toUpperCase() })) } }),
+    );
+    await page.addInitScript((chosenLayout) => {
+      localStorage.setItem("deckyhub-layout-list-default", "1");
+      localStorage.setItem("deckyhub-layout", chosenLayout);
+    }, layout);
+    try {
+      await saveSettings({ ...settings, uiStyle });
+      await page.goto("/?preview=/deckyhub/search&bridge=http://127.0.0.1:8643");
+      const app = mock(page);
+      if (uiStyle === "experimental") await expect(app.locator(".dh-exp-nav")).toBeVisible();
+      const field = app.getByLabel("Search GitHub");
+      await field.fill("junk");
+      await field.press("Enter");
+
+      const rowFor = (repo: string) =>
+        app.locator(".deckyhub-focus-ring").filter({ has: app.getByRole("heading", { name: repo.toUpperCase() }) });
+      const row = rowFor(storeApp.repo);
+      await expect(row.getByRole("button", { name: "Add", exact: true })).toHaveCount(0);
+      await row.getByRole("button", { name: "Install", exact: true }).click();
+      const modal = app.locator(".steam-modal");
+      await expect(modal.getByText(storeApp.name, { exact: true })).toBeVisible();
+      await expect(modal.getByText(storeApp.category, { exact: true })).toBeVisible();
+      await expect(modal.getByText(storeApp.description, { exact: true })).toBeVisible();
+      await expect(modal.getByText("Install from the Decky Store", { exact: true })).toBeVisible();
+      await expect(modal.getByText(/GitHub 400 · Decky store 123/)).toBeVisible();
+      await expect(modal.getByText("↓ 523", { exact: true })).toHaveAttribute("title", /400 GitHub downloads/);
+      await expect(modal.getByText(/Combined approximate activity: 523/)).toBeVisible();
+      await expect(modal.getByTitle("87 GitHub stars")).toHaveText("★ 87");
+      await expect(modal.getByRole("button", { name: "Repository", exact: true })).toBeVisible();
+      for (const instruction of [
+        "This plugin is distributed through the Decky Store. GitHub releases may be outdated; install it from the Decky Store.",
+        "Open Decky Loader's Quick Access menu (plug icon) and choose Store.",
+        `Search for ${storeApp.name}.`,
+        "Press Install.",
+      ]) {
+        const line = modal.getByText(instruction, { exact: true });
+        await expect(line).toBeVisible();
+      }
+      await expect(modal.getByRole("button", { name: /^(Install|Download ZIP|Version)/ })).toHaveCount(0);
+      const close = () => modal.getByRole("button", { name: "Close", exact: true }).click();
+      await close();
+
+      await rowFor(activityApp.repo).getByRole("button", { name: "Install", exact: true }).click();
+      await expect(
+        modal.getByText("Decky store activity (downloads + updates): 150; matched by name, repeats included"),
+      ).toBeVisible();
+      await expect(modal.getByText(/GitHub 300 · Decky store 150/)).toBeVisible();
+      await expect(modal.getByText(/Combined approximate activity: 450/)).toBeVisible();
+      await close();
+
+      await rowFor(uncountedApp.repo).getByRole("button", { name: "Install", exact: true }).click();
+      await expect(modal.getByText("Search for Uncounted.", { exact: true })).toBeVisible();
+      await expect(modal.getByText("↓ 300", { exact: true })).toHaveAttribute("title", /300 GitHub downloads/);
+      await expect(modal.getByTitle(/GitHub stars/)).toHaveCount(0);
+      await expect(modal.getByText(/· Decky store|Decky store activity/)).toHaveCount(0);
+      await close();
+      await expect(rowFor(regularApp.repo).getByRole("button", { name: "Install", exact: true })).toBeVisible();
+      expect(installRequests).toEqual([]);
+      expect(
+        await pluginFrame(page).evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls),
+      ).toEqual([]);
+    } finally {
+      await saveSettings(settings);
+    }
+  });
+}
 
 test("Discover shows the registry's audit warnings next to Runs as root and explains each one", async ({ page }) => {
   await page.route(PLUGIN_STATS_URL, (route) =>
@@ -2432,6 +2568,35 @@ test("Search installs a plugin straight from its GitHub release", async ({ page 
   await expect
     .poll(() => pluginFrame(page).evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls))
     .toEqual([["utilities/install_plugin", localZip(url), "MAKO - Frame Generation", "1.2.3", sha256, 0]]);
+});
+
+test("Search confirms before replacing an installed plugin with unverified identity", async ({ page }) => {
+  const pluginDir = new URL("../.dev-data/plugins/e2e-search-unverified/", import.meta.url);
+  mkdirSync(pluginDir, { recursive: true });
+  writeFileSync(
+    new URL("plugin.json", pluginDir),
+    JSON.stringify({ name: "MAKO - Frame Generation", version: "1.0.0" }),
+  );
+  const sha = "e".repeat(64);
+  await mockMakoReleases(page, [makoRelease("plugin-v1.2.3", sha)]);
+  await page.route("https://api.github.com/search/repositories**", (route) =>
+    route.fulfill({ json: { items: [{ full_name: "eugeniosegala/MAKO" }] } }),
+  );
+  await recordInstalls(page);
+  try {
+    await page.goto("/?preview=/deckyhub/search&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    await app.getByLabel("Search GitHub").fill("mako");
+    await app.getByRole("button", { name: "Search", exact: true }).click();
+    const card = app.getByRole("heading", { name: "eugeniosegala/MAKO" }).locator("..");
+    await card.getByRole("button", { name: "Install", exact: true }).click();
+    const modal = app.locator(".steam-modal");
+    await expect(modal.getByText(/couldn't match the installed plugin/)).toContainText("eugeniosegala/MAKO");
+    await expect(modal.getByRole("button", { name: "Install anyway", exact: true })).toBeVisible();
+    await expect.poll(() => pluginFrame(page).evaluate(() => (window as any).__installCalls)).toEqual([]);
+  } finally {
+    rmSync(pluginDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  }
 });
 
 test("Cancelling a search result's install leaves its repo untracked", async ({ page }) => {

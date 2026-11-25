@@ -1,3 +1,5 @@
+import { showModal } from "@decky/ui";
+import { AppDetailsModal } from "../components/AppDetailsModal";
 import { SearchResults } from "../components/SearchResults";
 import { ExpSearchBar } from "../components/experimental/ExpSearchBar";
 import { ExpSearchResults } from "../components/experimental/ExpSearchResults";
@@ -11,7 +13,8 @@ import { FaSearch } from "react-icons/fa";
 import { getSettings } from "../api";
 import { useT } from "../i18n";
 import { Notice } from "../components/Notice";
-import type { HideableButton } from "../types";
+import type { App, HideableButton } from "../types";
+import { rememberOpener } from "../external";
 import { useRepoSearch } from "../hooks/useRepoSearch";
 import { useSearchActions } from "../hooks/useSearchActions";
 
@@ -37,6 +40,22 @@ export function SearchPage() {
   useEffect(() => {
     void getSettings().then((settings) => setHiddenButtons(settings.hiddenButtons ?? []));
   }, []);
+
+  const showStoreDetails = (app: App, opener: EventTarget | null) => {
+    rememberOpener(opener);
+    showModal(
+      <AppDetailsModal
+        t={t}
+        app={app}
+        loadStoreStats
+        preference={{ channel: "stable" }}
+        hiddenButtons={hiddenButtons}
+        onDownload={async () => {}}
+        onPreferenceChange={() => {}}
+        onUninstalled={() => void found.search()}
+      />,
+    );
+  };
 
   return (
     <>
@@ -71,10 +90,11 @@ export function SearchPage() {
           isAdded={(repo) => found.existingRepos.has(repo.toLowerCase())}
           isInstalled={(repo) => found.installedRepos.has(repo.toLowerCase())}
           inRegistry={(repo) => found.registryRepos.has(repo.toLowerCase())}
-          storeNames={found.storeNames}
+          storeApps={found.storeApps}
           installing={actions.installing}
           canDownload={!hiddenButtons.includes("downloadZip")}
           onInstall={actions.onInstall}
+          onStoreInstall={showStoreDetails}
           onAdd={actions.onAdd}
           onReleaseInfo={actions.onReleaseInfo}
           onDownloadZip={actions.onDownloadZip}

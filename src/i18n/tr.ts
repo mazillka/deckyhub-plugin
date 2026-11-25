@@ -119,6 +119,8 @@ export const tr: Record<MessageKey, string> = {
   "appcard.inStoreHint":
     "Decky mağazasında bu adda bir eklenti var (orada {count} indirme). Mağaza depo belirtmez, bu yüzden bunun doğru olduğundan emin olun.",
   "appcard.storeInstallTitle": "Decky Mağazası’ndan yükle",
+  "appcard.storeOnlyExplanation":
+    "Bu eklenti Decky Mağazası üzerinden dağıtılır. GitHub’daki sürümler eski olabilir. Eklentiyi Decky Mağazası’ndan yükle.",
   "appcard.storeInstallStep1": "Decky Loader’ın Quick Access menüsünü (fiş simgesi) açıp Mağaza’yı seçin.",
   "appcard.storeInstallStep2": "{name} için arama yapın.",
   "appcard.storeInstallStep3": "Yükle’ye basın.",

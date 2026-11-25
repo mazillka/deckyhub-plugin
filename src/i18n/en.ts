@@ -118,6 +118,8 @@ export const en = {
   "appcard.inStoreHint":
     "The Decky store lists a plugin with this name ({count} downloads there). The store names no repository, so check that it is this one.",
   "appcard.storeInstallTitle": "Install from the Decky Store",
+  "appcard.storeOnlyExplanation":
+    "This plugin is distributed through the Decky Store. GitHub releases may be outdated; install it from the Decky Store.",
   "appcard.storeInstallStep1": "Open Decky Loader's Quick Access menu (plug icon) and choose Store.",
   "appcard.storeInstallStep2": "Search for {name}.",
   "appcard.storeInstallStep3": "Press Install.",

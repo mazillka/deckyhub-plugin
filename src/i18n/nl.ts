@@ -121,6 +121,8 @@ export const nl: Record<MessageKey, string> = {
   "appcard.inStoreHint":
     "De Decky-store heeft een plugin met deze naam ({count} downloads daar). De store noemt geen repository, controleer dus of het deze is.",
   "appcard.storeInstallTitle": "Installeren vanuit de Decky Store",
+  "appcard.storeOnlyExplanation":
+    "Deze plug-in wordt via de Decky Store verspreid. Releases op GitHub kunnen verouderd zijn. Installeer de plug-in vanuit de Decky Store.",
   "appcard.storeInstallStep1": "Open het Quick Access-menu van Decky Loader (stekkerpictogram) en kies Store.",
   "appcard.storeInstallStep2": "Zoek naar {name}.",
   "appcard.storeInstallStep3": "Druk op Installeren.",
