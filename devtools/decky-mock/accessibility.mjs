@@ -4,7 +4,7 @@ import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);
 const browser = await chromium.launch({ headless: true });
 try {
-  const page = await browser.newPage();
+  const page = await browser.newPage({ bypassCSP: true });
   for (const path of ["/", "/help.html", "/contribute/"]) {
     await page.goto(`http://127.0.0.1:8765${path}`, { waitUntil: "networkidle" });
     await page.addScriptTag({ path: require.resolve("axe-core/axe.min.js") });
