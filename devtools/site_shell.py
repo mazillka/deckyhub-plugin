@@ -54,8 +54,8 @@ MOTION_STYLE = """@media(prefers-reduced-motion:reduce){html{scroll-behavior:aut
 /* Pages cross-fade into each other; the menu stays put. */
 @view-transition{navigation:auto}
 nav.site-nav{view-transition-name:site-nav}
-/* From .01, not 0: Chrome doesn't count a fully transparent hero as painted, which would delay LCP. */
-@keyframes site-rise{from{opacity:.01;transform:translateY(18px)}to{opacity:1;transform:none}}
+/* Movement only, no fading: text keeps full contrast even before it is scrolled to, and the hero counts as painted. */
+@keyframes site-rise{from{transform:translateY(32px) scale(.97)}to{transform:none}}
 header>.wrap>*{animation:site-rise .6s cubic-bezier(.2,.8,.2,1) both}
 header>.wrap>:nth-child(2){animation-delay:.07s}header>.wrap>:nth-child(3){animation-delay:.14s}
 header>.wrap>:nth-child(4){animation-delay:.2s}header>.wrap>:nth-child(n+5){animation-delay:.26s}
