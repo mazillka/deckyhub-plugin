@@ -683,6 +683,12 @@ class CustomRegistryTests(unittest.TestCase):
                 asyncio.run(plugin._refresh_registry_in_background())
             self.assertEqual(events, ["registry_updated"])
             events.clear()
+            # The same list from the same source again: only updatedAt moves, so no reload.
+            with patch.object(
+                registry, "fetch_remote_registry", fake_fetch({REMOTE_REGISTRY_URL: payload("owner/official")})
+            ):
+                asyncio.run(plugin._refresh_registry_in_background())
+            self.assertEqual(events, [])
             with patch.object(
                 registry,
                 "fetch_remote_registry",

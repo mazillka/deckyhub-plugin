@@ -38,7 +38,9 @@ test("catalog and install staging recover after a network outage", async ({ page
     expect((await call("get_apps")).registryStatus.source).toBe("network");
     expect((await call("stage_install", asset, "example/fixture-app", "online-job")).path).toContain("fixture.zip");
     await page.reload();
-    await expect(page.frameLocator("iframe").getByRole("status")).toContainText("Official catalog updated online");
+    // Once the page has loaded the online list, there is no catalog status left to report.
+    await expect(page.frameLocator("iframe").getByText("Fixture App").first()).toBeVisible();
+    await expect(page.frameLocator("iframe").getByRole("status")).toHaveCount(0);
   } finally {
     await call("mock_network_mode", "normal");
     if (before) writeFileSync(cache, before);

@@ -181,11 +181,12 @@ class RegistryMixin:
     async def _refresh_registry_in_background(self):
         try:
             before = self.apps
-            status_before = getattr(self, "registry_status", None)
+            source_before = getattr(self, "registry_status", {}).get("source")
             await self.refresh_registry()
             # Pages already open loaded the cached list; tell them to reload (index.tsx),
             # but only on a real change - the reload resets their page and every card.
-            if self.apps != before or getattr(self, "registry_status", None) != status_before:
+            # Only the source counts: updatedAt moves on every successful download.
+            if self.apps != before or getattr(self, "registry_status", {}).get("source") != source_before:
                 await decky.emit("registry_updated")
         except Exception as error:
             decky.logger.error("Background registry refresh failed: %s", error)

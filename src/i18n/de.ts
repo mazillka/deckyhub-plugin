@@ -87,7 +87,6 @@ export const de: Record<MessageKey, string> = {
   "content.loading": "Wird geladen…",
   "content.loadErrorTitle": "DeckyHub konnte nicht geladen werden",
   "registry.cached": "Offizieller Katalog aus dem Cache geladen.",
-  "registry.online": "Offizieller Katalog online aktualisiert.",
   "registry.unavailable": "Offizieller Katalog nicht verfügbar.",
   "registry.lastUpdated": "Zuletzt aktualisiert: {when}",
   "content.tryAgain": "Erneut versuchen",
