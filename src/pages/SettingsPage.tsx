@@ -37,11 +37,12 @@ export function SettingsPage({ initialTab }: { initialTab?: SettingsTab }) {
           They reach down to Steam's bottom bar (into the page's bottom padding, which
           the negative margin gives back so the page itself doesn't scroll); their
           content scrolls inside. */}
-      {/* overflow hidden: Steam slides the old and new tab side by side when switching,
-          which made the whole page scroll sideways and flicker (seen on a Deck). */}
+      {/* overflow clip: Steam slides the old and new tab side by side when switching, and
+          focusing into the sliding one scrolled this box sideways, tab bar and all. A box
+          that only hides its overflow can still be scrolled that way (seen on a Deck). */}
       <div
         className="deckyhub-settings-tabs"
-        style={{ height: "calc(100% - 16px)", marginBottom: -56, overflow: "hidden" }}
+        style={{ height: "calc(100% - 16px)", marginBottom: -56, overflow: "clip" }}
       >
         <Tabs activeTab={tab} onShowTab={(id: string) => setTab(id as SettingsTab)} autoFocusContents tabs={tabs} />
       </div>

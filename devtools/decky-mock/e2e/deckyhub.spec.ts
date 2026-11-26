@@ -4121,6 +4121,23 @@ test("Moving focus clicks the Deck's trackpads and plays Steam's sound, unless t
   }
 });
 
+test("The Settings tabs can't be scrolled sideways, as Steam's tab slide did on L1 / R1", async ({ page }) => {
+  await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
+  await expect(mock(page).getByLabel("Language")).toBeVisible();
+  const scrolled = await mock(page)
+    .locator(".deckyhub-settings-tabs")
+    .evaluate((tabs) => {
+      // Stands in for the tab sliding in from the right, which Steam then focuses.
+      const incoming = document.createElement("button");
+      incoming.style.cssText = "display:block;width:10px;height:10px;margin-left:150%";
+      tabs.append(incoming);
+      incoming.focus();
+      tabs.scrollLeft = 300;
+      return tabs.scrollLeft;
+    });
+  expect(scrolled).toBe(0);
+});
+
 test("Moving focus up into a card or the page header brings its title into view", async ({ page }) => {
   await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
   await expect(mock(page).getByRole("button", { name: "Manage", exact: true }).nth(3)).toBeVisible();
