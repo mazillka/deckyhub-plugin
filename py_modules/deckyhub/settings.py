@@ -59,6 +59,9 @@ def coerce_settings(settings: dict) -> dict:
         # DeckyHub's own icon in Steam's Quick Access tab strip (QuickAccessTab.tsx).
         # Off leaves DeckyHub in Decky's plugin list.
         "quickAccessTab": bool(settings.get("quickAccessTab", True)),
+        # Quick Access sections the owner chose not to see; Remote Control only while remote access is off.
+        "hideSupport": bool(settings.get("hideSupport", False)),
+        "hideRemoteWhenOff": bool(settings.get("hideRemoteWhenOff", False)),
         # Quick Access' UI Style: the classic look ("default"), or one of the unfinished redesigns ("experimental",
         # src/components/experimental/, and "v2", src/components/v2/), which may be broken and are only for people
         # who pick them. Everybody starts on Default, new installs included; any other value falls back to it.

@@ -3,9 +3,10 @@ import { log } from "./log";
 // Feedback as focus moves within DeckyHub (Motion in index.tsx, and every window in
 // WideModal.tsx). Display Settings turns either one off.
 //
-// Haptics: TriggerSimpleHapticEvent(controller, 2 = both pads, 2 = Click, intensity 2,
-// gain +6 dB) on the Deck's built-in controller (type 4) only: meant to be stronger than
-// the Tick Steam plays for its trackpad cursor.
+// Haptics: one long pulse, TriggerHapticPulse(controller, side 0 and 1, 48000 (pulse length,
+// microseconds), 0), on the built-in controller (Steam's Deck types, 4 and 10). Picked by feel
+// on a Deck, where TriggerSimpleHapticEvent was too weak at any strength. Steam no longer has
+// RegisterForControllerListChanges, so the controller comes from its ControllerStore.
 //
 // Sound: Steam's own navigation sound (ESteamUISound.BasicNav), so no audio ships with
 // DeckyHub and Steam's volume applies. Steam's audio store keeps one pending sound, so
@@ -15,10 +16,6 @@ const BASIC_NAV_SOUND = 24;
 let hapticsOn = true;
 
 let soundOn = true;
-
-let deckController: number | undefined;
-
-let controllerList: { unregister: () => void } | null = null;
 
 let lastMove = 0;
 
@@ -44,12 +41,11 @@ function hapticClick() {
   const input = (window as any).SteamClient?.Input;
   if (!hapticsOn || !input) return;
   try {
-    controllerList ??= input.RegisterForControllerListChanges(
-      (controllers: { eControllerType: number; nControllerIndex: number }[]) => {
-        deckController = controllers.find((controller) => controller.eControllerType === 4)?.nControllerIndex;
-      },
-    );
-    if (deckController !== undefined) input.TriggerSimpleHapticEvent(deckController, 2, 2, 2, 6);
+    const controllers: { eControllerType: number; nControllerIndex: number }[] =
+      (window as any).ControllerStore?.GetControllers() ?? [];
+    const builtIn = controllers.find(({ eControllerType }) => eControllerType === 4 || eControllerType === 10);
+    if (!builtIn) return;
+    for (const side of [0, 1]) input.TriggerHapticPulse(builtIn.nControllerIndex, side, 48000, 0);
   } catch (error) {
     log(`Haptic feedback failed: ${error}`);
     hapticsOn = false;
@@ -62,10 +58,4 @@ export function navFeedback() {
   lastMove = Date.now();
   playSound();
   hapticClick();
-}
-
-// Stops listening for controllers; DeckyHub's onDismount (via markUnloaded).
-export function stopHaptics() {
-  controllerList?.unregister();
-  controllerList = null;
 }

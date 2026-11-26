@@ -357,6 +357,15 @@ class PluginStatusTests(unittest.TestCase):
             self.assertIs(asyncio.run(plugin.save_settings({}))["navSound"], True)
             self.assertIs(asyncio.run(plugin.save_settings({"navSound": False}))["navSound"], False)
 
+    def test_quick_access_sections_show_until_the_owner_hides_them(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.settings_path = Path(home) / "settings.json"
+
+            for key in ("hideSupport", "hideRemoteWhenOff"):
+                self.assertIs(asyncio.run(plugin.save_settings({}))[key], False)
+                self.assertIs(asyncio.run(plugin.save_settings({key: True}))[key], True)
+
     def test_quick_access_tab_default_on_for_old_settings_and_can_be_turned_off(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = Plugin()

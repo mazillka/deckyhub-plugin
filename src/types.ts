@@ -179,6 +179,8 @@ export type Settings = {
   haptics: boolean;
   navSound: boolean;
   quickAccessTab: boolean;
+  hideSupport: boolean;
+  hideRemoteWhenOff: boolean;
   uiStyle: UiStyle;
   hiddenButtons: HideableButton[];
   remoteInstall?: boolean;
