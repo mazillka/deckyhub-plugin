@@ -25,6 +25,13 @@ class PluginPageTests(unittest.TestCase):
         shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
         return plugin_pages.plugin_page(shell, APP, stats or {}, scans or {}, {}, [APP], reports, vt)
 
+    def test_the_page_offers_a_youtube_search_for_the_encoded_name(self):
+        shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
+        html = plugin_pages.plugin_page(shell, {**APP, "name": 'A & "B"?'}, {}, {}, {}, [APP])
+        self.assertIn(
+            'href="https://www.youtube.com/results?search_query=A%20%26%20%22B%22%3F%20Decky">Search YouTube</a>', html
+        )
+
     def test_the_page_names_its_author_and_lists_their_other_plugins(self):
         shell = plugin_pages.shell_of((ROOT / "docs" / "releases.html").read_text(encoding="utf-8"))
         mate = {**APP, "id": "mate", "name": "Mate", "repo": "MWGIH/Mate", "description": "Another one."}

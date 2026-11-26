@@ -349,6 +349,14 @@ class PluginStatusTests(unittest.TestCase):
             self.assertIs(asyncio.run(plugin.save_settings({}))["haptics"], True)
             self.assertIs(asyncio.run(plugin.save_settings({"haptics": False}))["haptics"], False)
 
+    def test_navigation_sound_default_on_and_can_be_turned_off(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.settings_path = Path(home) / "settings.json"
+
+            self.assertIs(asyncio.run(plugin.save_settings({}))["navSound"], True)
+            self.assertIs(asyncio.run(plugin.save_settings({"navSound": False}))["navSound"], False)
+
     def test_quick_access_tab_default_on_for_old_settings_and_can_be_turned_off(self):
         with tempfile.TemporaryDirectory() as home:
             plugin = Plugin()

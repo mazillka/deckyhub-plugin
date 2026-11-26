@@ -52,8 +52,10 @@ def coerce_settings(settings: dict) -> dict:
         # Only the frontend's api.github.com calls send it (githubHeaders() in src/utils.ts).
         "githubToken": settings["githubToken"].strip()[:255] if isinstance(settings.get("githubToken"), str) else "",
         "density": settings["density"] if settings.get("density") in ("compact", "large") else "default",
-        # A haptic tick on the Deck's trackpads as focus moves (hapticTick() in src/utils.ts).
+        # A haptic click on the Deck's trackpads, and Steam's navigation sound, as focus
+        # moves (navFeedback() in src/haptics.ts).
         "haptics": bool(settings.get("haptics", True)),
+        "navSound": bool(settings.get("navSound", True)),
         # DeckyHub's own icon in Steam's Quick Access tab strip (QuickAccessTab.tsx).
         # Off leaves DeckyHub in Decky's plugin list.
         "quickAccessTab": bool(settings.get("quickAccessTab", True)),

@@ -200,6 +200,7 @@ export function AppFooter({
         url={release?.url}
         repoUrl={`https://github.com/${app.repo}`}
         pageUrl={app.official ? `https://deckyhub.com/plugins/${encodeURIComponent(app.id)}.html` : undefined}
+        youtubeUrl={`https://www.youtube.com/results?search_query=${encodeURIComponent(`${app.name} Decky`)}`}
         hideReleasePage={hiddenButtons.includes("releasePage")}
         checking={loading}
         disabled={loading}
