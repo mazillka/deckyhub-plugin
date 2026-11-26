@@ -85,7 +85,6 @@ export const tr: Record<MessageKey, string> = {
   "content.loading": "Yükleniyor…",
   "content.loadErrorTitle": "DeckyHub yüklenemedi",
   "registry.cached": "Resmî katalog önbellekten yüklendi.",
-  "registry.online": "Resmî katalog çevrimiçi güncellendi.",
   "registry.unavailable": "Resmî katalog kullanılamıyor.",
   "registry.lastUpdated": "Son güncelleme: {when}",
   "content.tryAgain": "Tekrar dene",

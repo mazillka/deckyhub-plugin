@@ -85,7 +85,6 @@ export const ja: Record<MessageKey, string> = {
   "content.loading": "読み込み中…",
   "content.loadErrorTitle": "DeckyHubを読み込めませんでした",
   "registry.cached": "公式カタログをキャッシュから読み込みました。",
-  "registry.online": "公式カタログをオンラインで更新しました。",
   "registry.unavailable": "公式カタログを利用できません。",
   "registry.lastUpdated": "最終更新: {when}",
   "content.tryAgain": "再試行",

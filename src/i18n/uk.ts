@@ -86,7 +86,6 @@ export const uk: Record<MessageKey, string> = {
   "content.loading": "Завантаження…",
   "content.loadErrorTitle": "Не вдалося завантажити DeckyHub",
   "registry.cached": "Офіційний каталог завантажено з кешу.",
-  "registry.online": "Офіційний каталог оновлено онлайн.",
   "registry.unavailable": "Офіційний каталог недоступний.",
   "registry.lastUpdated": "Останнє оновлення: {when}",
   "content.tryAgain": "Спробувати ще раз",

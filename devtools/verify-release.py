@@ -28,6 +28,12 @@ with ZipFile(sys.argv[1]) as archive:
         if entry.is_dir():
             continue
         name = path.name.lower()
+        # certifi's bundle is public CA certificates, which the vendored Remote Install libraries need.
+        if path.parts[:3] == ("DeckyHub", "py_modules", "deckyhub_vendor") and path.parts[-2:] == (
+            "certifi",
+            "cacert.pem",
+        ):
+            continue
         assert not (
             name in {".env", ".npmrc", ".pypirc", "id_rsa", "id_ed25519"}
             or name.startswith(".env.")

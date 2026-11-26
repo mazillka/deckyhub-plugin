@@ -185,15 +185,9 @@ export function ContentFrame({
   return (
     <div ref={pageRef}>
       <RateLimitBanner />
-      {status && (
+      {status && status.source !== "network" && (
         <div role="status" style={{ margin: "8px 16px", fontSize: "0.85em" }}>
-          {t(
-            status.source === "cache"
-              ? "registry.cached"
-              : status.source === "network"
-                ? "registry.online"
-                : "registry.unavailable",
-          )}
+          {t(status.source === "cache" ? "registry.cached" : "registry.unavailable")}
           {updated && ` ${t("registry.lastUpdated", { when: updated })}`}
         </div>
       )}

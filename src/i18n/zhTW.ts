@@ -84,7 +84,6 @@ export const zhTW: Record<MessageKey, string> = {
   "content.loading": "載入中…",
   "content.loadErrorTitle": "無法載入 DeckyHub",
   "registry.cached": "官方目錄已從快取載入。",
-  "registry.online": "官方目錄已在線上更新。",
   "registry.unavailable": "官方目錄無法使用。",
   "registry.lastUpdated": "上次更新：{when}",
   "content.tryAgain": "重試",
