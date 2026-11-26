@@ -45,5 +45,7 @@ with ZipFile(sys.argv[1]) as archive:
     with open("package.json", encoding="utf-8") as source:
         version = json.load(source)["version"]
     assert package.get("name") == "deckyhub" and package.get("version") == version, "Invalid package metadata"
-    assert sum(entry.file_size for entry in entries) < 32 * 1024 * 1024, "Release exceeds 32 MiB budget"
-print(f"Release verified: {len(files)} files")
+    # About 37 MiB today, mostly cryptography once for each vendored Python (3.11 and 3.14).
+    size = sum(entry.file_size for entry in entries) / 2**20
+    assert size < 48, f"Release unpacks to {size:.1f} MiB, over the 48 MiB budget"
+print(f"Release verified: {len(files)} files, {size:.1f} MiB unpacked")
