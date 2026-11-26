@@ -25,3 +25,29 @@ test("The Ko-fi window closes with Close and opens nothing", async ({ page }) =>
   await app.locator(".steam-modal").getByRole("button", { name: "Close" }).click();
   await expect(app.locator(".steam-modal")).toHaveCount(0);
 });
+
+test("Settings can hide the support button, and Remote Control while it's off", async ({ page }) => {
+  // The bridge only answers its own page's origin.
+  const save = (settings: object) =>
+    page.request.post("http://127.0.0.1:8643", {
+      headers: { Origin: "http://127.0.0.1:5183" },
+      data: { route: "save_settings", args: [settings] },
+    });
+  const app = page.frameLocator("iframe");
+  const support = app.getByRole("button", { name: "Support Development & Maintenance" });
+  const remote = app.getByLabel("Remote access");
+  try {
+    expect((await save({})).ok()).toBe(true);
+    await page.goto("/?bridge=http://127.0.0.1:8643");
+    await expect(support).toBeVisible();
+    await expect(remote).toBeVisible();
+
+    await save({ hideSupport: true, hideRemoteWhenOff: true });
+    await page.reload();
+    await expect(app.getByRole("button", { name: "Settings", exact: true })).toBeVisible();
+    await expect(support).toHaveCount(0);
+    await expect(remote).toHaveCount(0);
+  } finally {
+    await save({});
+  }
+});

@@ -155,6 +155,21 @@ export function DisplaySection({
             onChange={(checked) => update({ quickAccessTab: checked })}
           />
         </PanelSectionRow>
+        <PanelSectionRow>
+          <ToggleField
+            label={t("settings.hideSupport")}
+            checked={settings.hideSupport}
+            onChange={(checked) => update({ hideSupport: checked })}
+          />
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <ToggleField
+            label={t("settings.hideRemoteWhenOff")}
+            description={t("settings.hideRemoteWhenOffHint")}
+            checked={settings.hideRemoteWhenOff}
+            onChange={(checked) => update({ hideRemoteWhenOff: checked })}
+          />
+        </PanelSectionRow>
         {HIDEABLE_BUTTONS.map(([name, label]) => (
           <PanelSectionRow key={name}>
             <ToggleField

@@ -22,6 +22,18 @@ const MOTION_CSS = `
     .deckyhub-motion button, .deckyhub-pop button { transition: transform 140ms ease, filter 140ms ease; }
     .deckyhub-motion button:hover, .deckyhub-motion button:focus-visible, .deckyhub-pop button:focus-visible { transform: translateY(-1px); filter: brightness(1.08); }
     .deckyhub-motion button:active, .deckyhub-pop button:active { transform: scale(0.97); }
+    /* Sections (Quick Access, Settings, About) rise in one after another. Filled backwards only: a transform
+       left on a tile would change how what's inside it is positioned. Up and down only, never sideways. */
+    @keyframes deckyhub-section { from { opacity: 0; transform: translateY(22px) scale(0.97); } to { opacity: 1; transform: none; } }
+    .deckyhub-card { animation: deckyhub-section 340ms cubic-bezier(.2, .8, .2, 1) backwards; }
+    .deckyhub-card:nth-of-type(2) { animation-delay: 60ms; }
+    .deckyhub-card:nth-of-type(3) { animation-delay: 120ms; }
+    .deckyhub-card:nth-of-type(4) { animation-delay: 180ms; }
+    .deckyhub-card:nth-of-type(n+5) { animation-delay: 240ms; }
+    /* The controller's highlight: Steam marks it with .gpfocus, which the browser's focus styles above never
+       see. The scale property leaves the layout, and so where the D-pad goes next, as it was. */
+    @keyframes deckyhub-focus-bounce { 0% { scale: 1; } 45% { scale: 1.06; } 100% { scale: 1.02; } }
+    .deckyhub-motion button.gpfocus, .deckyhub-pop button.gpfocus { animation: deckyhub-focus-bounce 260ms ease-out both; }
   }
 `;
 

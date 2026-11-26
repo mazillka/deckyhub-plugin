@@ -1,4 +1,4 @@
-import { DialogButtonPrimary as Button, Focusable, PanelSection, PanelSectionRow, showModal } from "@decky/ui";
+import { DialogButtonPrimary as Button, Focusable, showModal } from "@decky/ui";
 import { useMemo } from "react";
 import qrcode from "qrcode-generator";
 import { FaExternalLinkAlt, FaHeart } from "react-icons/fa";
@@ -58,20 +58,18 @@ function SupportModal({ t, closeModal }: { t: TFunc; closeModal?: () => void }) 
 export function SupportSection() {
   const t = useT();
   return (
-    <Card>
-      <PanelSection>
-        <PanelSectionRow>
-          <Button
-            style={{ ...iconRow, margin: 0, width: "100%", background: KOFI_COLOR, color: KOFI_TEXT }}
-            onClick={(event) => {
-              rememberOpener(event.currentTarget);
-              showModal(<SupportModal t={t} />);
-            }}
-          >
-            <FaHeart /> {t("support.button")}
-          </Button>
-        </PanelSectionRow>
-      </PanelSection>
+    // No PanelSection: Steam's adds space below its content only, which left the button against the top of
+    // its tile. The sides match where the other tiles' buttons start.
+    <Card style={{ padding: "16px 30px" }}>
+      <Button
+        style={{ ...iconRow, margin: 0, width: "100%", minWidth: 0, background: KOFI_COLOR, color: KOFI_TEXT }}
+        onClick={(event) => {
+          rememberOpener(event.currentTarget);
+          showModal(<SupportModal t={t} />);
+        }}
+      >
+        <FaHeart /> {t("support.button")}
+      </Button>
     </Card>
   );
 }

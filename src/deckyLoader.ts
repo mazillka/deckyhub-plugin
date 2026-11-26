@@ -1,4 +1,3 @@
-import { stopHaptics } from "./haptics";
 import { log } from "./log";
 import { tr } from "./translate";
 
@@ -27,7 +26,6 @@ let unloaded = false;
 
 export const markUnloaded = () => {
   unloaded = true;
-  stopHaptics();
 };
 
 // Decky Loader reloads DeckyHub itself once its update is installed. If this

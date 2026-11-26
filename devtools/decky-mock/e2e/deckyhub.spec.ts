@@ -4032,6 +4032,20 @@ test("With motion allowed, windows pop in and switching views slides the list in
   await expect.poll(() => pluginFrame(page).evaluate(() => document.getAnimations().length)).toBeGreaterThan(0);
 });
 
+test("With motion allowed, sections rise in and the controller's highlight bounces", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  const animationOf = (element: Element) => getComputedStyle(element).animationName;
+  await expect.poll(() => app.locator(".deckyhub-card").first().evaluate(animationOf)).toBe("deckyhub-section");
+  // Steam marks the controller's focus with this class; the mock has no Steam to add it.
+  const button = app.locator(".deckyhub-motion button").first();
+  await button.evaluate((element) => element.classList.add("gpfocus"));
+  expect(await button.evaluate(animationOf)).toBe("deckyhub-focus-bounce");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  expect(await button.evaluate(animationOf)).toBe("none");
+});
+
 // Seeds an installed Decky plugin where dev-server.py scans for them.
 function seedPlugin(dir: string, name: string, version: string, repository = "eugeniosegala/MAKO") {
   const pluginDir = new URL(`../.dev-data/plugins/${dir}/`, import.meta.url);
@@ -4054,7 +4068,7 @@ const defaultSettings = {
 };
 
 test("Moving focus clicks the Deck's trackpads and plays Steam's sound, unless turned off", async ({ page }) => {
-  // Steam's controller list (the built-in Deck controller is type 4) and its haptics call.
+  // Steam's controller store (the built-in Deck controller is type 4) and its haptics call.
   await page.addInitScript(() => {
     const ticks: unknown[][] = [];
     const sounds: number[] = [];
@@ -4062,18 +4076,13 @@ test("Moving focus clicks the Deck's trackpads and plays Steam's sound, unless t
       __ticks: ticks,
       __sounds: sounds,
       SteamUIStore: { GamepadUIAudio: { PlayNavSound: (type: number) => sounds.push(type) } },
-      SteamClient: {
-        Input: {
-          RegisterForControllerListChanges: (callback: (list: unknown[]) => void) => {
-            callback([
-              { eControllerType: 2, nControllerIndex: 0 },
-              { eControllerType: 4, nControllerIndex: 3 },
-            ]);
-            return { unregister: () => {} };
-          },
-          TriggerSimpleHapticEvent: (...args: unknown[]) => ticks.push(args),
-        },
+      ControllerStore: {
+        GetControllers: () => [
+          { eControllerType: 2, nControllerIndex: 0 },
+          { eControllerType: 4, nControllerIndex: 3 },
+        ],
       },
+      SteamClient: { Input: { TriggerHapticPulse: (...args: unknown[]) => ticks.push(args) } },
     });
   });
   await bridgeCall(page, "save_settings", defaultSettings);
@@ -4090,12 +4099,15 @@ test("Moving focus clicks the Deck's trackpads and plays Steam's sound, unless t
 
     await app.getByLabel("Language").focus();
     await expect.poll(ticks).toBeGreaterThan(0);
-    // The first focus registers for the controller list; this one ticks on the Deck's controller.
+    // Both sides of the Deck's controller, not the other pad.
     await page.waitForTimeout(60);
     await toggle.focus();
     expect(
-      await pluginFrame(page).evaluate(() => (window as unknown as { __ticks: unknown[][] }).__ticks.at(-1)),
-    ).toEqual([3, 2, 2, 2, 6]);
+      await pluginFrame(page).evaluate(() => (window as unknown as { __ticks: unknown[][] }).__ticks.slice(-2)),
+    ).toEqual([
+      [3, 0, 48000, 0],
+      [3, 1, 48000, 0],
+    ]);
     expect((await sounds()).at(-1)).toBe(24);
 
     await toggle.click();

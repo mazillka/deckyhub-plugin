@@ -10,12 +10,14 @@ import { openPairDevice, openPairedBrowsers } from "./RemoteModals";
 
 // Remote Install in Quick Access stays short: the switch, one button that opens the pairing window (the QR
 // code and everything it needs live there, see RemoteModals), the requests waiting for an answer, and the browsers.
-export function RemoteInstallSection() {
+export function RemoteInstallSection({ hideWhenOff }: { hideWhenOff: boolean }) {
   const t = useT();
   const { status, loading, onToggle, onDecidePairing, onDecideRequest } = useRemoteInstall(t);
   const isEnabled = Boolean(status?.enabled);
   const isActive = Boolean(status?.active);
   const browsers = status?.devices?.length ?? 0;
+
+  if (hideWhenOff && !isEnabled) return null;
 
   return (
     <Card>
