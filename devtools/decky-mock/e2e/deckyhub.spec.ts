@@ -1220,6 +1220,7 @@ test("The Manage window shows the plugin's description, details and a Repository
   await expect(app.locator(".steam-modal").getByRole("button", { name: "Repository" })).toBeVisible();
   // A plugin the official registry lists has a page on deckyhub.com.
   await expect(app.locator(".steam-modal").getByRole("button", { name: "DeckyHub page" })).toBeVisible();
+  await expect(app.locator(".steam-modal").getByRole("button", { name: "Search YouTube" })).toBeVisible();
 });
 
 test("Discover comes back as it was after a page opens in Steam's browser", async ({ page }) => {
@@ -4048,15 +4049,19 @@ const defaultSettings = {
   githubToken: "",
   density: "default",
   haptics: true,
+  navSound: true,
   hiddenButtons: [],
 };
 
-test("Moving focus ticks the Deck's trackpads, unless Display Settings turns it off", async ({ page }) => {
+test("Moving focus clicks the Deck's trackpads and plays Steam's sound, unless turned off", async ({ page }) => {
   // Steam's controller list (the built-in Deck controller is type 4) and its haptics call.
   await page.addInitScript(() => {
     const ticks: unknown[][] = [];
+    const sounds: number[] = [];
     Object.assign(window, {
       __ticks: ticks,
+      __sounds: sounds,
+      SteamUIStore: { GamepadUIAudio: { PlayNavSound: (type: number) => sounds.push(type) } },
       SteamClient: {
         Input: {
           RegisterForControllerListChanges: (callback: (list: unknown[]) => void) => {
@@ -4077,7 +4082,10 @@ test("Moving focus ticks the Deck's trackpads, unless Display Settings turns it 
     const app = mock(page);
     const ticks = () =>
       pluginFrame(page).evaluate(() => (window as unknown as { __ticks: unknown[][] }).__ticks.length);
+    const sounds = () => pluginFrame(page).evaluate(() => (window as unknown as { __sounds: number[] }).__sounds);
     const toggle = app.getByLabel("Haptic feedback when navigating");
+    const soundToggle = app.getByLabel("Sound when navigating");
+    await expect(soundToggle).toBeChecked();
     await expect(toggle).toBeChecked();
 
     await app.getByLabel("Language").focus();
@@ -4087,7 +4095,8 @@ test("Moving focus ticks the Deck's trackpads, unless Display Settings turns it 
     await toggle.focus();
     expect(
       await pluginFrame(page).evaluate(() => (window as unknown as { __ticks: unknown[][] }).__ticks.at(-1)),
-    ).toEqual([3, 2, 1, 1, 0]);
+    ).toEqual([3, 2, 2, 2, 6]);
+    expect((await sounds()).at(-1)).toBe(24);
 
     await toggle.click();
     await expect(toggle).not.toBeChecked();
@@ -4097,6 +4106,16 @@ test("Moving focus ticks the Deck's trackpads, unless Display Settings turns it 
     await page.waitForTimeout(60);
     await toggle.focus();
     expect(await ticks()).toBe(before);
+
+    // The sound has its own switch.
+    await soundToggle.click();
+    await expect(soundToggle).not.toBeChecked();
+    await page.waitForTimeout(300);
+    const played = (await sounds()).length;
+    await app.getByLabel("Language").focus();
+    await page.waitForTimeout(60);
+    await toggle.focus();
+    expect((await sounds()).length).toBe(played);
   } finally {
     await bridgeCall(page, "save_settings", defaultSettings);
   }

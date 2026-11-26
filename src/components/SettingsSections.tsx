@@ -74,7 +74,7 @@ export function LanguageSection({ settings, update }: { settings: Settings; upda
   );
 }
 
-// Layout (shared with the Grid / List switches), density, items per row, haptics,
+// Layout (shared with the Grid / List switches), density, items per row, haptics, sound,
 // DeckyHub's Quick Access tab,
 // and the Manage-window buttons to hide.
 export function DisplaySection({
@@ -138,6 +138,13 @@ export function DisplaySection({
             label={t("settings.haptics")}
             checked={settings.haptics}
             onChange={(checked) => update({ haptics: checked })}
+          />
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <ToggleField
+            label={t("settings.navSound")}
+            checked={settings.navSound}
+            onChange={(checked) => update({ navSound: checked })}
           />
         </PanelSectionRow>
         <PanelSectionRow>

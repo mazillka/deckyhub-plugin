@@ -177,6 +177,7 @@ export type Settings = {
   githubToken: string;
   density: "default" | "compact" | "large";
   haptics: boolean;
+  navSound: boolean;
   quickAccessTab: boolean;
   uiStyle: UiStyle;
   hiddenButtons: HideableButton[];

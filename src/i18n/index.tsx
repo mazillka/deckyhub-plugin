@@ -5,6 +5,7 @@ import {
   applyOled,
   setGithubToken,
   setHaptics,
+  setNavSound,
   setRegistryChannel,
   setTranslator,
   substitute,
@@ -114,6 +115,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         applyDensity(settings.density);
         applyOled();
         setHaptics(settings.haptics !== false);
+        setNavSound(settings.navSound !== false);
         setUiStyle(settings.uiStyle);
       });
     refresh();

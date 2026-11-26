@@ -1,7 +1,7 @@
 import { DialogButtonPrimary as Button, Focusable } from "@decky/ui";
 import { openExternalWeb } from "../external";
 import { useEffect, useRef, useState } from "react";
-import { FaExclamationTriangle, FaExternalLinkAlt, FaGithub, FaGlobe, FaSync } from "react-icons/fa";
+import { FaExclamationTriangle, FaExternalLinkAlt, FaGithub, FaGlobe, FaSync, FaYoutube } from "react-icons/fa";
 import type { TFunc } from "../i18n/en";
 import type { UpdateChannel } from "../types";
 import { modalButtonStyle } from "../utils";
@@ -60,6 +60,7 @@ export function ReleaseActions({
   url,
   repoUrl,
   pageUrl,
+  youtubeUrl,
   onReport,
   hideReleasePage,
   checking,
@@ -72,6 +73,8 @@ export function ReleaseActions({
   url?: string;
   repoUrl?: string;
   pageUrl?: string;
+  // A YouTube search for the plugin: what it finds may be unrelated, or nothing.
+  youtubeUrl?: string;
   // Opens a new issue about the plugin on GitHub (src/report.ts); left out where there is no plugin repository.
   onReport?: () => void;
   hideReleasePage: boolean;
@@ -102,6 +105,11 @@ export function ReleaseActions({
       {pageUrl && (
         <Button style={actionButtonStyle} onClick={() => open(pageUrl)}>
           <FaGlobe /> {t("appcard.deckyhubPage")}
+        </Button>
+      )}
+      {youtubeUrl && (
+        <Button style={actionButtonStyle} onClick={() => open(youtubeUrl)}>
+          <FaYoutube /> {t("appcard.youtubeSearch")}
         </Button>
       )}
       {onReport && (

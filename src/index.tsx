@@ -14,7 +14,7 @@ import { MotionStyle } from "./motion";
 import { ExpPageFrame } from "./components/experimental/ExpNavBar";
 import { V2Frame, V2_TABS } from "./components/v2/V2Frame";
 import { useUiStyle } from "./uiStyle";
-import { hapticTick, markUnloaded, pageStyle, tr, WIDE_PAGE_MAX } from "./utils";
+import { markUnloaded, navFeedback, pageStyle, tr, WIDE_PAGE_MAX } from "./utils";
 
 // Steam's history for its main window, which @decky/ui doesn't type.
 type MainWindowHistory = {
@@ -41,12 +41,12 @@ function BackToLibrary() {
 
 function Motion({ children }: { children: ReactNode }) {
   const experimental = useUiStyle() === "experimental";
-  // onFocus bubbles (focusin), so every focus move within DeckyHub ticks.
+  // onFocus bubbles (focusin), so every focus move within DeckyHub clicks.
   return (
     <div
       className={experimental ? "deckyhub-motion deckyhub-exp" : "deckyhub-motion"}
       style={{ height: "100%", fontSize: "var(--dh-font-size, inherit)" }}
-      onFocus={hapticTick}
+      onFocus={navFeedback}
     >
       <MotionStyle />
       {children}

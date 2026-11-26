@@ -1,6 +1,7 @@
 """A plugin's own page, plugins/<id>.html: its facts, badges, install steps, release notes and scans."""
 
 from html import escape
+from urllib.parse import quote
 
 from catalog_pages import category_url
 from issues_page import prerelease_only
@@ -151,7 +152,7 @@ def plugin_page(
     body = f"""{crumbs}
 <h1>{escape(shown)}</h1>
 <p class="lead">{escape(description)}</p>
-{STORE_ONLY_NOTE if app.get("store") else ""}<p class="cta"><a class="btn" href="#how-to-install">{"Install from the Decky store" if app.get("store") else "Install with DeckyHub"}</a><a class="btn ghost" href="{escape(repo_url)}">Source on GitHub</a>{"" if app.get("store") else '<button type="button" class="btn ghost" id="remote-open" aria-haspopup="dialog">Send to device (experimental)</button>'}</p>
+{STORE_ONLY_NOTE if app.get("store") else ""}<p class="cta"><a class="btn" href="#how-to-install">{"Install from the Decky store" if app.get("store") else "Install with DeckyHub"}</a><a class="btn ghost" href="{escape(repo_url)}">Source on GitHub</a><a class="btn ghost" href="https://www.youtube.com/results?search_query={quote(name + " Decky", safe="")}">Search YouTube</a>{"" if app.get("store") else '<button type="button" class="btn ghost" id="remote-open" aria-haspopup="dialog">Send to device (experimental)</button>'}</p>
 <ul class="facts">{"".join(facts)}<li class="wide"><strong><a href="{escape(repo_url)}">{escape(repo)}</a></strong>Repository</li></ul>
 <h2 id="safety">Safety at a glance</h2>
 {safety_chips(badges)}

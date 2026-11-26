@@ -102,7 +102,7 @@ Shows every tracked tool that's installed and has a newer release available, alo
 Tap **Manage** on any card in Discover or Updates to:
 
 - pick the release **channel** and a specific **version**. **Stable** shows only stable releases; **Pre-release** shows every release, newest first, so a stable release that comes out after the last pre-release is still offered;
-- **Download ZIP**, open the **Release Page**, or **Check for Updates** for that app;
+- **Download ZIP**, open the **Release Page**, **Search YouTube** for the plugin (a plain search, so results may be unrelated), or **Check for Updates** for that app;
 - for a Decky plugin, **Install** (not installed yet) or **Update** (the selected version is newer than the installed one). DeckyHub downloads the release ZIP (with a progress window, then a spinner until Decky is ready) and hands it to Decky Loader's own installer, the same one the Decky store uses. Decky asks you to confirm and installs it, verifying the SHA-256 checksum GitHub publishes for the ZIP. Older releases (files uploaded before mid-2025) have no checksum and Decky installs them without that check;
 - for an installed Decky plugin, **Pin at vX**: DeckyHub stops offering updates for it (it shows **Pinned**, and **Update All** and the update count leave it out) until you press **Unpin**. Use it for a plugin that a newer release broke. A pin only hides updates: you can still install any version yourself. **Skip vX** is the lighter option, which hides just one release;
 - for an installed Decky plugin, **Uninstall**, which asks you to confirm and then removes the plugin and its settings through Decky Loader;
@@ -114,7 +114,7 @@ Settings is split into tabs; **L1** / **R1** switch between them.
 
 | Tab | What's in it |
 | --- | --- |
-| General | The language, and the display: Grid or List, Default or Compact density, items per row, haptics, whether DeckyHub has its own tab in Quick Access (off by default), and which Manage-window buttons to hide. |
+| General | The language, and the display: Grid or List, Default or Compact density, items per row, navigation sound and haptics, whether DeckyHub has its own tab in Quick Access (off by default), and which Manage-window buttons to hide. |
 | GitHub | An optional personal access token that raises GitHub's rate limit (see Troubleshooting). Type it, or load it from a text file in Downloads. Builds with GitHub sign-in set up also have Sign in with GitHub: DeckyHub shows a short code, you open github.com/login/device on any device (a QR code is there for your phone), enter it and approve, and DeckyHub saves the token it gets, with no token to create or copy. That token asks for no permissions: it only reads public data and lifts the rate limit. Revoke it any time under GitHub's Settings → Applications. |
 | Downloads | The download folder and the Overwrite Existing toggle (see Downloads). |
 | Repositories | Your tracked repositories, export and import, and Custom Registries (see Repositories). |

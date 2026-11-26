@@ -47,6 +47,35 @@ nav.site-nav a:focus-visible{outline:2px solid #4b9cf0;outline-offset:3px}
 .skip{position:absolute;left:-9999px;top:8px;z-index:20;background:#fff;color:#10151f;padding:8px 14px;border-radius:6px;font-weight:600;text-decoration:none}.skip:focus{left:8px}
 footer a{display:inline-block;padding:4px 0}"""
 
+# The site's animations: CSS only (no script to download or run), and all of it off when the
+# system asks for less motion. Nothing is hidden where a browser lacks a feature.
+MOTION_STYLE = """@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media screen and (prefers-reduced-motion:no-preference){
+/* Pages cross-fade into each other; the menu stays put. */
+@view-transition{navigation:auto}
+nav.site-nav{view-transition-name:site-nav}
+/* Movement only, no fading: text keeps full contrast even before it is scrolled to, and the hero counts as painted. */
+@keyframes site-rise{from{transform:translateY(32px) scale(.97)}to{transform:none}}
+header>.wrap>*{animation:site-rise .6s cubic-bezier(.2,.8,.2,1) both}
+header>.wrap>:nth-child(2){animation-delay:.07s}header>.wrap>:nth-child(3){animation-delay:.14s}
+header>.wrap>:nth-child(4){animation-delay:.2s}header>.wrap>:nth-child(n+5){animation-delay:.26s}
+/* Sections rise in as they scroll into view. */
+@supports (animation-timeline:view()){
+section h2,.card,.promo,figure,ol.steps>li,details{animation:site-rise linear both;animation-timeline:view();animation-range:entry 0% entry 80%}
+.promo figure{animation:none}
+}
+details[open]>:not(summary){animation:site-rise .25s ease both}
+/* Hover moves with `translate`, which the scroll animation's `transform` doesn't override. */
+.btn,.card,a.app,.list a,.chips button{transition:translate .18s ease,scale .12s ease,box-shadow .18s ease,border-color .18s ease,background-color .18s ease}
+.btn:active,.chips button:active{scale:.97}
+@media(hover:hover){
+.btn:hover,a.app:hover,.list a:hover{translate:0 -2px}
+.card:hover{translate:0 -4px;border-color:#4b9cf0;box-shadow:0 12px 28px rgba(0,0,0,.35)}
+}
+nav.site-nav .site-links a{background:linear-gradient(#4b9cf0,#4b9cf0) 0 calc(100% - 8px)/0 2px no-repeat;transition:background-size .2s ease,color .2s ease}
+nav.site-nav .site-links a:hover,nav.site-nav .site-links a:focus-visible,nav.site-nav .site-links a[aria-current=page]{background-size:100% 2px}
+}"""
+
 FOOTER = (
     '<footer><div class="wrap">\n'
     f'<div>DeckyHub is open source under GPL-3.0-or-later · <a href="{REPO}">Source</a> · <a href="{SITE}releases.html">Release notes</a> · '
@@ -86,5 +115,5 @@ def apply(page: str, lang: str = "en", switch: tuple[str, str, str] | None = Non
     """The page with its shell placeholders filled in (in Ukrainian for lang="uk")."""
     page = re.sub(r"<!-- site-nav(?::\s*([\w-]+))? -->", lambda match: nav(match.group(1), lang, switch), page)
     return page.replace("<!-- site-footer -->", FOOTER_UK if lang == "uk" else FOOTER).replace(
-        "/* site-nav-style */", NAV_STYLE
+        "/* site-nav-style */", NAV_STYLE + chr(10) + MOTION_STYLE
     )
