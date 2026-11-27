@@ -1,4 +1,4 @@
-// DeckyHub's logo (docs/favicon.svg) without its tile, in the text colour like Steam's own icons.
+// DeckyHub's logo (promo/logo.svg) without its tile, in the text colour like Steam's own icons.
 export function DeckyHubIcon() {
   return (
     <svg viewBox="12 12 40 40" width="1em" height="1em" fill="currentColor" aria-hidden>

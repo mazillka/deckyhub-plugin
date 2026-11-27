@@ -11,7 +11,7 @@ A change is done when it holds everywhere users see it, not when one screen look
 
 - **Two UI styles.** Default and Experimental render separately (`src/components/AppBadges.tsx` is shared; `src/components/experimental/` is not). Anything a page shows or a button does must be checked in both. Experimental swaps tabs with state and never changes the route (`src/components/experimental/ExpNavBar.tsx`), so code that navigates to a route can do nothing there.
 - **Quick Access and full pages.** The same component renders in the Quick Access panel and on `/deckyhub/*` pages; check both.
-- **Badge or info changes mirror across surfaces** (the user's rule: informative, equal changes): the plugin (`src/components/AppBadges.tsx`, Discover's legend in `ContentHeader.tsx`), the website (`devtools/plugin_badges.py`: `badges_of`, `flags_of`, the store-only strip), the Paired devices page (`docs/remote-plugins.js`), the browser extension (`contentscript.ts`, its `badge-parity` skill), the registry data (`stats.json`), and the guide and help pages (edit `docs/guide.html`, then run `python devtools/html_to_md.py`; the markdown is generated).
+- **Badge or info changes mirror across surfaces** (the user's rule: informative, equal changes): the plugin (`src/components/AppBadges.tsx`, Discover's legend in `ContentHeader.tsx`), the website and its Paired devices page (mazillka/deckyhub-site), the browser extension (`contentscript.ts`, its `badge-parity` skill), the registry data (`stats.json`), and the website's guide and help pages (also there).
 - **Every locale.** A new string goes into all of `src/i18n/*.ts` (the `localization` skill); the type check fails on a missing key, `tests/i18n.test.ts` on a broken `{placeholder}`.
 - **Special cases the app already has:** store-only plugins (`store: true`) show only the In Decky store badge; unverified-identity plugins (`identityUnverified`) cannot be installed or updated the normal way; pre-release-only plugins; a plugin installed but absent from the registry.
 - **What installed users depend on** (settings keys, caches, registry fields): the `compatibility` skill, before the change, not after.
@@ -27,7 +27,7 @@ pnpm install --frozen-lockfile   # a fresh checkout has no node_modules, and tsc
 pnpm exec tsc --noEmit
 pnpm run test:frontend
 python -m unittest discover -s tests
-pnpm exec prettier --check "src/**/*.{ts,tsx}" "tests/**/*.ts" "devtools/**/*.{ts,tsx,mjs}" docs/remote-plugins.js
+pnpm exec prettier --check "src/**/*.{ts,tsx}" "tests/**/*.ts" "devtools/**/*.{ts,tsx,mjs}"
 python -m ruff format --check; python -m ruff check     # the `ruff` command is not on PATH on Windows
 ```
 

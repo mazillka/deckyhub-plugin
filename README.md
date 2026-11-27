@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/favicon.svg" width="80" height="80" alt="">
+<img src="https://deckyhub.com/favicon.svg" width="80" height="80" alt="">
 
 # DeckyHub
 
@@ -164,7 +164,7 @@ If Decky Loader is already installed:
 
    `https://github.com/mazillka/deckyhub-plugin/releases/latest/download/DeckyHub.zip`
 
-   <img src="docs/install-link-qr.svg" width="140" alt="QR code of the link above">
+   <img src="https://deckyhub.com/install-link-qr.svg" width="140" alt="QR code of the link above">
 
    Scan the QR code to have the link on your phone while you type it.
 3. Pick DeckyHub's four-square icon in the Quick Access Menu (or Decky → **DeckyHub**).

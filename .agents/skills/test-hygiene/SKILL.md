@@ -42,7 +42,6 @@ Say what you removed and why, in a short list: the test, which rule it broke (ca
 ## This repository
 
 - `tests/test_installer.py` runs the real installer script against stand-ins; some tests read the script's text on purpose (the disclaimer wording, the unticked default, the placeholders the release fills in). Prefer running the script.
-- `tests/test_plugin_pages.py`, `tests/test_docs.py` and `devtools/audit-site.py` check the website; the audit already covers titles, descriptions, links and the sitemap, so don't repeat those per page.
 - `tests/i18n.test.ts` already proves every locale has every key; don't add a per-locale test for a single string.
 - `devtools/decky-mock/e2e/deckyhub.spec.ts` is large (130+ tests): look there first for duplicates and for tests whose only assertion is that a page renders.
 - `devtools/deck/deck.test.mjs` runs on a real Deck and is slow: keep it small and don't duplicate what the mock covers.
