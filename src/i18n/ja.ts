@@ -479,6 +479,11 @@ export const ja: Record<MessageKey, string> = {
 
   "github.error": "GitHub API がエラー {status} を返しました",
   "release.noMatch": "該当するリリースが見つかりません。",
+  "install.replacesStore":
+    "この GitHub リリースは、Decky ストアのバージョンと一致するインストール済みのコピー (v{version}) を置き換えます。",
+  "storeHome.update": "Decky ストアで更新: {version}",
+  "storeHome.githubNewer": "GitHub: {version}（Decky ストアより新しい）",
+  "storeHome.githubNewerPrerelease": "GitHub: {version}（プレリリース、Decky ストアより新しい）",
   "release.inStore": "このプラグインは Decky Loader のストアからインストールしてください。",
   "scan.notReviewed":
     "DeckyHub は Decky ストアではなく、これらのプラグインを審査していません。スキャン結果が問題なしでも、既知のマルウェアが見つからなかったという意味にすぎません。",

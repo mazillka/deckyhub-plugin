@@ -480,6 +480,11 @@ export const pl: Record<MessageKey, string> = {
 
   "github.error": "API GitHuba zwróciło {status}",
   "release.noMatch": "Nie znaleziono pasującego wydania.",
+  "install.replacesStore":
+    "To wydanie z GitHuba zastąpi zainstalowaną kopię (v{version}), która odpowiada wersji ze sklepu Decky.",
+  "storeHome.update": "Zaktualizuj w sklepie Decky: {version}",
+  "storeHome.githubNewer": "GitHub: {version}, nowsza niż w sklepie Decky",
+  "storeHome.githubNewerPrerelease": "GitHub: {version} (wydanie przedpremierowe), nowsza niż w sklepie Decky",
   "release.inStore": "Zainstaluj tę wtyczkę ze sklepu Decky Loader.",
   "scan.notReviewed":
     "DeckyHub nie jest sklepem Decky i nie sprawdza tych wtyczek. Czysty skan oznacza tylko, że nie znaleziono znanego złośliwego oprogramowania.",

@@ -479,6 +479,11 @@ export const ru: Record<MessageKey, string> = {
 
   "github.error": "GitHub API вернул {status}",
   "release.noMatch": "Подходящий релиз не найден.",
+  "install.replacesStore":
+    "Этот релиз с GitHub заменит установленную копию (v{version}), совпадающую с версией из магазина Decky.",
+  "storeHome.update": "Обновите в магазине Decky: {version}",
+  "storeHome.githubNewer": "GitHub: {version}, новее, чем в магазине Decky",
+  "storeHome.githubNewerPrerelease": "GitHub: {version} (пре-релиз), новее, чем в магазине Decky",
   "release.inStore": "Установите этот плагин из магазина Decky Loader.",
   "scan.notReviewed":
     "DeckyHub не магазин Decky, и эти плагины не проверяет. Чистая проверка лишь означает, что известного вредоносного ПО не найдено.",

@@ -45,18 +45,21 @@ export function notifyInstalledRisks(apps: App[]) {
 }
 
 export function notifyUpdates(apps: App[]) {
-  const updates = apps.filter((app) => app.updateAvailable && app.latestVersion);
+  const updates = apps.filter((app) => app.updateAvailable && (app.storeLatest || app.latestVersion));
   setUpdateCount(updates.length);
   // Paired browsers ask the device for this (Remote Install); the device owner is not asked and nothing is sent out.
-  void setRemoteUpdates(updates.map((app) => ({ name: app.name, version: app.latestVersion! }))).catch(() => undefined);
+  // A paired browser would install the GitHub build, which isn't a store copy's update.
+  const remote = updates.filter((app) => !app.storeLatest);
+  void setRemoteUpdates(remote.map((app) => ({ name: app.name, version: app.latestVersion! }))).catch(() => undefined);
+  const versionOf = (app: App) => app.storeLatest ?? app.latestVersion;
   const notice = updates
-    .map((app) => `${app.repo}:${app.latestVersion}`)
+    .map((app) => `${app.repo}:${versionOf(app)}`)
     .sort()
     .join("|");
   if (!notice || !seenOnce(UPDATE_NOTICE_KEY, notice)) return;
   toaster.toast({
     title: tr("toast.updatesAvailable", { count: updates.length }),
-    body: updates.map((app) => `${app.name} (${app.latestVersion})`).join(", "),
+    body: updates.map((app) => `${app.name} (${versionOf(app)})`).join(", "),
   });
 }
 

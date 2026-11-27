@@ -51,7 +51,9 @@ function planInstall(t: TFunc, app: Awaited<ReturnType<typeof latestRelease>>) {
         repo: app.repo,
         tag: displayVersion(app.latestVersion),
       })
-    : undefined;
+    : app.storeLatest
+      ? t("install.replacesStore", { version: plainVersion(app.installedVersion) })
+      : undefined;
   return { chosen, label, note };
 }
 

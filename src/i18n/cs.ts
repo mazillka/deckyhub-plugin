@@ -479,6 +479,11 @@ export const cs: Record<MessageKey, string> = {
 
   "github.error": "GitHub API vrátilo {status}",
   "release.noMatch": "Nenalezeno žádné odpovídající vydání.",
+  "install.replacesStore":
+    "Toto vydání z GitHubu nahradí nainstalovanou kopii (v{version}), která odpovídá verzi v obchodě Decky.",
+  "storeHome.update": "Aktualizujte v obchodě Decky: {version}",
+  "storeHome.githubNewer": "GitHub: {version}, novější než v obchodě Decky",
+  "storeHome.githubNewerPrerelease": "GitHub: {version} (předběžné vydání), novější než v obchodě Decky",
   "release.inStore": "Nainstalujte tento plugin z obchodu Decky Loaderu.",
   "scan.notReviewed":
     "DeckyHub není obchod Decky a tyto pluginy nekontroluje. Čistý sken jen znamená, že nebyl nalezen žádný známý malware.",

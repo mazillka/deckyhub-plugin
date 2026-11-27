@@ -24,8 +24,26 @@ export const cardTitleStyle = {
 
 // The newest release's version; no release and no error yet means its GitHub check is still running.
 export function latestVersionText(t: TFunc, app: App) {
+  if (app.storeLatest) return displayVersion(app.storeLatest);
   if (app.store || (!app.latestVersion && app.error)) return "—";
   return app.latestVersion ? displayVersion(app.latestVersion) : t("settings.checkingUpdate");
+}
+
+// What a store copy's card says: the update waiting in Decky's store, and a newer release on GitHub (told, not
+// offered). "" when there's neither.
+export function storeHomeNote(t: TFunc, app: App) {
+  if (!app.storeLatest) return "";
+  const newer = app.githubNewer;
+  return [
+    ...(app.updateAvailable ? [t("storeHome.update", { version: displayVersion(app.storeLatest) })] : []),
+    ...(newer
+      ? [
+          t(newer.prerelease ? "storeHome.githubNewerPrerelease" : "storeHome.githubNewer", {
+            version: displayVersion(newer.version),
+          }),
+        ]
+      : []),
+  ].join(" · ");
 }
 
 // The status pill, and the channel pill when a pre-release override is set (stable is the default).

@@ -49,6 +49,7 @@ export const batchUpdatesOf = (shown: App[], view: View, hiddenButtons: Hideable
     ? shown.flatMap((app) => {
         const action = app.latestVersion ? installAction(app, { tag: app.latestVersion, assets: app.assets }) : null;
         return app.updateAvailable === true &&
+          !app.storeLatest &&
           action?.type === PLUGIN_INSTALL_TYPE.UPDATE &&
           !needsFreshInstall(action.name, action.type)
           ? [{ asset: app.assets[0], repo: app.repo, name: action.name, version: app.latestVersion! }]

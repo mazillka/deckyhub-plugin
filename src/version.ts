@@ -99,6 +99,25 @@ export function installedRelease<T extends { tag: string; pluginVersion?: string
 export const inChannel = (release: { prerelease: boolean }, channel: "stable" | "prerelease") =>
   channel === "prerelease" || !release.prerelease;
 
+// The Decky store is a plugin's home when the installed version is one the stable store lists (versions: stats.json's
+// store.versions): only a newer store version is then an update. githubNewer: a GitHub release above the store's
+// newest, to be told, never offered as an update.
+export function storeHome(
+  versions: unknown,
+  installed: string | null | undefined,
+  releases: { tag: string; pluginVersion?: string; prerelease: boolean }[],
+): { storeLatest: string; githubNewer?: { version: string; prerelease: boolean } } | undefined {
+  if (!installed || !Array.isArray(versions)) return undefined;
+  const listed = versions.filter((version): version is string => typeof version === "string");
+  if (!listed.some((version) => sameVersion(version, installed))) return undefined;
+  const newest = (a: string, b: string) => (compareVersions(b, a) === 1 ? b : a);
+  const storeLatest = listed.reduce(newest, installed);
+  const above = releases.filter((release) => compareVersions(releaseVersion(release), storeLatest) === 1);
+  if (!above.length) return { storeLatest };
+  const top = above.reduce((a, b) => (compareVersions(releaseVersion(b), releaseVersion(a)) === 1 ? b : a));
+  return { storeLatest, githubNewer: { version: releaseVersion(top), prerelease: top.prerelease } };
+}
+
 // What restoring a plugin pack would do with each plugin in it (RestorePackModal.tsx).
 type ReleaseLike = { tag: string; pluginVersion?: string; prerelease: boolean };
 

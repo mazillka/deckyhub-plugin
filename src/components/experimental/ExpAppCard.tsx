@@ -5,7 +5,7 @@ import { displayVersion } from "../../version";
 import { AppBadges } from "../AppBadges";
 import { AppMonogram, categoryHue } from "../AppIdentity";
 import { AppStats } from "../AppStats";
-import { latestVersionText, type CardActions } from "../AppCardParts";
+import { latestVersionText, storeHomeNote, type CardActions } from "../AppCardParts";
 import { ownerOf, titleOf } from "../../author";
 import { useCardActions, type AppCardProps } from "../../hooks/useCardActions";
 import type { App } from "../../types";
@@ -19,15 +19,18 @@ function Status({ app, a }: { app: App; a: CardActions }) {
 }
 
 // The version chip: installed → latest.
+// A store copy's update has no Update button, but still shows where it goes.
+const showsLatest = (app: App, a: CardActions) => a.isUpdate || Boolean(app.storeLatest && app.updateAvailable);
+
 function Version({ app, a }: { app: App; a: CardActions }) {
   return (
     <span className="dh-exp-version">
       {app.installedVersion && (
         <>
-          {displayVersion(app.installedVersion)} {a.isUpdate && "→"}{" "}
+          {displayVersion(app.installedVersion)} {showsLatest(app, a) && "→"}{" "}
         </>
       )}
-      {(!app.installedVersion || a.isUpdate) && <b>{latestVersionText(a.t, app)}</b>}
+      {(!app.installedVersion || showsLatest(app, a)) && <b>{latestVersionText(a.t, app)}</b>}
     </span>
   );
 }
@@ -61,7 +64,11 @@ function textOf(app: App, a: CardActions) {
   const { t, latest, notes } = a;
   if (!app.error && notes) return `${t("details.whatsNew", { version: `v${latest}` })}: ${notes}`;
   if (app.store) return t("release.inStore");
-  return app.error || `${t("appcard.byAuthor", { author: ownerOf(app) })} · ${app.description ?? ""}`;
+  return (
+    app.error ||
+    storeHomeNote(t, app) ||
+    `${t("appcard.byAuthor", { author: ownerOf(app) })} · ${app.description ?? ""}`
+  );
 }
 
 function Row({ app, a }: { app: App; a: CardActions }) {

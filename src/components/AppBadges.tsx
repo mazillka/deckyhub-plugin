@@ -137,7 +137,7 @@ export const NoDescriptionBadge = ({ t }: { t: TFunc }) => (
 
 // What an update changes in the audit's warnings, against the installed version's.
 function UpdateWarningChanges({ app, t }: { app: App; t: TFunc }) {
-  if (!app.updateAvailable || !app.installedAssets?.[0]) return null;
+  if (!app.updateAvailable || app.storeLatest || !app.installedAssets?.[0]) return null;
   const before = app.installedRisk?.warnings ?? [];
   const after = auditKeys(app);
   const label = (keys: string[]) => keys.map((key) => t(`appcard.warning.${key}` as Parameters<TFunc>[0])).join(", ");

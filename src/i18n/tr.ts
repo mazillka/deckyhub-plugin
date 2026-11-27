@@ -477,6 +477,11 @@ export const tr: Record<MessageKey, string> = {
 
   "github.error": "GitHub API {status} döndürdü",
   "release.noMatch": "Uygun sürüm bulunamadı.",
+  "install.replacesStore":
+    "Bu GitHub sürümü, Decky Mağazası’ndaki bir sürümle eşleşen yüklü kopyanızın (v{version}) yerini alır.",
+  "storeHome.update": "Decky Mağazası’ndan güncelleyin: {version}",
+  "storeHome.githubNewer": "GitHub: {version}, Decky Mağazası’ndakinden yeni",
+  "storeHome.githubNewerPrerelease": "GitHub: {version} (ön sürüm), Decky Mağazası’ndakinden yeni",
   "release.inStore": "Bu eklentiyi Decky Loader Mağazası’ndan yükleyin.",
   "scan.notReviewed":
     "DeckyHub, Decky mağazası değildir ve bu eklentileri incelemez. Temiz bir tarama yalnızca bilinen bir zararlı yazılımın bulunmadığı anlamına gelir.",

@@ -6,7 +6,8 @@ import { ownerOf, titleOf } from "../author";
 import { AppBadges } from "./AppBadges";
 import { AppMonogram } from "./AppIdentity";
 import { AppStats } from "./AppStats";
-import { CardButtons, cardTitleStyle, fullRow, latestVersionText, StatusPills, type CardActions } from "./AppCardParts";
+import { CardButtons, cardTitleStyle, fullRow, latestVersionText, StatusPills, storeHomeNote } from "./AppCardParts";
+import type { CardActions } from "./AppCardParts";
 import { colors } from "../styles";
 
 // Card chrome. The top border takes the status color (see statusColor()).
@@ -53,7 +54,9 @@ function RowDescription({ app, a }: { app: App; a: CardActions }) {
     >
       {app.store
         ? t("release.inStore")
-        : app.error || `${t("appcard.byAuthor", { author: ownerOf(app) })} · ${app.description ?? ""}`}
+        : app.error ||
+          storeHomeNote(a.t, app) ||
+          `${t("appcard.byAuthor", { author: ownerOf(app) })} · ${app.description ?? ""}`}
     </small>
   );
 }
@@ -158,6 +161,9 @@ function CardProblem({ app, a }: { app: App; a: CardActions }) {
         {a.t("release.inStore")}
       </small>
     );
+  const note = storeHomeNote(a.t, app);
+  if (!app.error && note)
+    return <small style={{ ...fullRow, gridRow: 6, color: colors.caution, overflowWrap: "anywhere" }}>{note}</small>;
   if (!app.error) return null;
   return <small style={{ ...fullRow, gridRow: 6, color: colors.danger, overflowWrap: "anywhere" }}>{app.error}</small>;
 }

@@ -1,7 +1,14 @@
 // Run with `pnpm run test:frontend` (Node's built-in runner strips the types).
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { compareVersions, displayVersion, inChannel, installedRelease, releaseVersion } from "../src/version.ts";
+import {
+  compareVersions,
+  displayVersion,
+  inChannel,
+  installedRelease,
+  releaseVersion,
+  storeHome,
+} from "../src/version.ts";
 
 test("release numbers compare numerically, not as text", () => {
   assert.equal(compareVersions("1.10.0", "1.9.0"), 1);
@@ -62,4 +69,19 @@ test("the installed version's release, and which audit covers it", () => {
   assert.equal(installedRelease(items, "1.0.0"), undefined);
   assert.equal(installedRelease(items, null), undefined);
   assert.deepEqual(installedRelease([{ tag: "nightly", prerelease: false }], "nightly")?.audit, "stable");
+});
+
+test("the Decky store is home only for a version it lists, and GitHub above it is only told", () => {
+  const rc = [{ tag: "0.2.2-rc.1", prerelease: true }];
+  // Wine Cellar (plugin issue 575): installed from the store, a newer pre-release on GitHub.
+  assert.deepEqual(storeHome(["0.2.1", "0.1.7"], "0.2.1", rc), {
+    storeLatest: "0.2.1",
+    githubNewer: { version: "0.2.2-rc.1", prerelease: true },
+  });
+  assert.deepEqual(storeHome(["0.1.7", "0.2.1"], "v0.1.7", [{ tag: "0.2.0", prerelease: false }]), {
+    storeLatest: "0.2.1",
+  });
+  assert.equal(storeHome(["0.2.1"], "0.2.2-rc.1", rc), undefined);
+  assert.equal(storeHome(undefined, "0.2.1", rc), undefined);
+  assert.equal(storeHome(["0.2.1"], null, rc), undefined);
 });
