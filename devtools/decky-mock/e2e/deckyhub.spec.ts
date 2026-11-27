@@ -5043,7 +5043,7 @@ test("Discover welcomes a first-time user once", async ({ page }) => {
   await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
   const welcome = mock(page).locator(".deckyhub-welcome");
   await expect(welcome.getByText("Welcome to DeckyHub")).toBeVisible();
-  await expect(welcome.getByText(/Nobody reviews these plugins/)).toBeVisible();
+  await expect(welcome.getByText(/DeckyHub doesn't review these plugins/)).toBeVisible();
   await welcome.getByRole("button", { name: "Got it", exact: true }).click();
   await expect(welcome).toHaveCount(0);
   expect(await pluginFrame(page).evaluate(() => localStorage.getItem("deckyhub-welcome"))).toBe("seen");

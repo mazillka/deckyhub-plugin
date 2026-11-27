@@ -149,7 +149,7 @@ export const zh: Record<MessageKey, string> = {
   "appcard.scan.partial.hint": "病毒扫描未能完整检查你将安装的版本。原因见“管理”。",
   "risk.title": "检查发现了什么",
   "risk.intro": "来自审计和病毒扫描的事实。是否安装由你决定。",
-  "risk.none": "没有审计警告或扫描发现。这并不意味着它安全：没有人审核这些插件。",
+  "risk.none": "没有审计警告或扫描发现。这并不意味着它安全：DeckyHub 不审核这些插件。",
   "appcard.badgesNotice": "插件徽章的含义",
   "appcard.noReleaseInYear": "一年未发布",
   "appcard.prereleaseOnly": "仅有预发布版",
@@ -452,7 +452,7 @@ export const zh: Record<MessageKey, string> = {
   "github.error": "GitHub API 返回了 {status}",
   "release.noMatch": "未找到匹配的版本。",
   "release.inStore": "请从 Decky Loader 商店安装此插件。",
-  "scan.notReviewed": "DeckyHub 不是 Decky 商店,也没有人审核这些插件。扫描无异常只表示未发现已知恶意软件。",
+  "scan.notReviewed": "DeckyHub 不是 Decky 商店,也不审核这些插件。扫描无异常只表示未发现已知恶意软件。",
   "release.noChecksum": "未找到带 SHA-256 校验和的 DeckyHub 发布 ZIP。",
   "error.loaderUnavailable": "Decky Loader 当前不可用。",
   "toast.updatesAvailable": "可用更新：{count}",
@@ -513,7 +513,7 @@ export const zh: Record<MessageKey, string> = {
   "welcome.body":
     "直接从作者的 GitHub 发行版安装和更新 Decky 插件。在“发现”中浏览，用“搜索”找到更多，在“更新”中保持最新。",
   "welcome.safety":
-    "没有人审核这些插件，DeckyHub 也不例外。它的病毒扫描只能发现已知的恶意软件，所以扫描结果干净并不代表插件安全。请只安装你信任的作者的插件；DeckyHub 在安装前总会先询问你。",
+    "DeckyHub 不审核这些插件。它的病毒扫描只能发现已知的恶意软件，所以扫描结果干净并不代表插件安全。请只安装你信任的作者的插件；DeckyHub 在安装前总会先询问你。",
   "welcome.gotIt": "知道了",
   "settings.tabGeneral": "常规",
   "settings.tabDownloads": "下载",

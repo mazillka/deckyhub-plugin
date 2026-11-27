@@ -163,7 +163,7 @@ export const fr: Record<MessageKey, string> = {
   "risk.title": "Ce que les contrôles ont trouvé",
   "risk.intro": "Des faits issus de l'audit et des analyses antivirus. La décision d'installer t'appartient.",
   "risk.none":
-    "Aucun avertissement d'audit ni résultat d'analyse. Cela ne veut pas dire que c'est sûr : personne ne vérifie ces plugins.",
+    "Aucun avertissement d'audit ni résultat d'analyse. Cela ne veut pas dire que c'est sûr : DeckyHub ne vérifie pas ces plugins.",
   "appcard.badgesNotice": "Ce que signifient les badges des plugins",
   "appcard.noReleaseInYear": "Aucune version depuis un an",
   "appcard.prereleaseOnly": "Préliminaires uniquement",
@@ -488,7 +488,7 @@ export const fr: Record<MessageKey, string> = {
   "release.noMatch": "Aucune version correspondante trouvée.",
   "release.inStore": "Installez ce plugin depuis la boutique de Decky Loader.",
   "scan.notReviewed":
-    "DeckyHub n'est pas la boutique Decky et personne ne vérifie ces plugins. Une analyse propre signifie seulement qu'aucun malware connu n'a été trouvé.",
+    "DeckyHub n'est pas la boutique Decky et ne vérifie pas ces plugins. Une analyse propre signifie seulement qu'aucun malware connu n'a été trouvé.",
   "release.noChecksum": "Aucun ZIP de version DeckyHub avec somme de contrôle SHA-256 trouvé.",
   "error.loaderUnavailable": "Decky Loader est indisponible pour le moment.",
   "toast.updatesAvailable": "Mises à jour disponibles : {count}",
@@ -551,7 +551,7 @@ export const fr: Record<MessageKey, string> = {
   "welcome.body":
     "Installez et mettez à jour les plugins Decky directement depuis les versions GitHub de leurs auteurs. Parcourez-les ici dans Découvrir, trouvez-en d’autres avec Rechercher et gardez-les à jour dans Mises à jour.",
   "welcome.safety":
-    "Personne ne vérifie ces plugins, pas même DeckyHub. Ses analyses antivirus ne détectent que les logiciels malveillants connus : une analyse propre ne veut donc pas dire qu’un plugin est sûr. N’installez que des plugins d’auteurs de confiance ; DeckyHub demande toujours avant d’installer quoi que ce soit.",
+    "DeckyHub ne vérifie pas ces plugins. Ses analyses antivirus ne détectent que les logiciels malveillants connus : une analyse propre ne veut donc pas dire qu’un plugin est sûr. N’installez que des plugins d’auteurs de confiance ; DeckyHub demande toujours avant d’installer quoi que ce soit.",
   "welcome.gotIt": "Compris",
   "settings.tabGeneral": "Général",
   "settings.tabDownloads": "Téléchargements",

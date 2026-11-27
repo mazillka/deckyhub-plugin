@@ -163,7 +163,7 @@ export const ptPT: Record<MessageKey, string> = {
   "risk.title": "O que as verificações encontraram",
   "risk.intro": "Factos da auditoria e das verificações antivírus. A decisão de instalar é sua.",
   "risk.none":
-    "Sem avisos de auditoria nem resultados de verificação. Isso não significa que seja seguro: ninguém revê estes plugins.",
+    "Sem avisos de auditoria nem resultados de verificação. Isso não significa que seja seguro: o DeckyHub não revê estes plugins.",
   "appcard.badgesNotice": "O que significam os selos dos plugins",
   "appcard.noReleaseInYear": "Sem versões há um ano",
   "appcard.prereleaseOnly": "Só pré-lançamentos",
@@ -488,7 +488,7 @@ export const ptPT: Record<MessageKey, string> = {
   "release.noMatch": "Nenhuma versão compatível encontrada.",
   "release.inStore": "Instale este plugin a partir da loja do Decky Loader.",
   "scan.notReviewed":
-    "O DeckyHub não é a loja do Decky e ninguém revê estes plugins. Uma verificação limpa só significa que não foi encontrado malware conhecido.",
+    "O DeckyHub não é a loja do Decky e não revê estes plugins. Uma verificação limpa só significa que não foi encontrado malware conhecido.",
   "release.noChecksum": "Não foi encontrado nenhum ZIP de versão do DeckyHub com checksum SHA-256.",
   "error.loaderUnavailable": "O Decky Loader não está disponível de momento.",
   "toast.updatesAvailable": "Atualizações disponíveis: {count}",
@@ -551,7 +551,7 @@ export const ptPT: Record<MessageKey, string> = {
   "welcome.body":
     "Instale e atualize plugins do Decky diretamente das versões no GitHub dos seus autores. Explore-os aqui em Descobrir, encontre mais em Pesquisar e mantenha-os atualizados em Atualizações.",
   "welcome.safety":
-    "Ninguém revê estes plugins, nem mesmo o DeckyHub. As verificações antivírus dele só detetam malware conhecido, por isso uma verificação limpa não significa que um plugin é seguro. Instale apenas plugins de autores em quem confia; o DeckyHub pergunta sempre antes de instalar seja o que for.",
+    "O DeckyHub não revê estes plugins. As verificações antivírus dele só detetam malware conhecido, por isso uma verificação limpa não significa que um plugin é seguro. Instale apenas plugins de autores em quem confia; o DeckyHub pergunta sempre antes de instalar seja o que for.",
   "welcome.gotIt": "Entendi",
   "settings.tabGeneral": "Geral",
   "settings.tabDownloads": "Transferências",

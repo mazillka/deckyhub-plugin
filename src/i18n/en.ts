@@ -157,7 +157,8 @@ export const en = {
   "appcard.scan.partial.hint": "The virus scans couldn't fully check the release you'd install. Manage says why.",
   "risk.title": "What the checks found",
   "risk.intro": "Facts from the audit and the virus scans. The decision to install is yours.",
-  "risk.none": "No audit warnings or scan findings. That doesn't mean it's safe: nobody reviews these plugins.",
+  "risk.none":
+    "No audit warnings or scan findings. That doesn't mean it's safe: DeckyHub doesn't review these plugins.",
   "appcard.badgesNotice": "What the badges on plugins mean",
   "appcard.noReleaseInYear": "No release in a year",
   "appcard.prereleaseOnly": "Pre-release only",
@@ -474,7 +475,7 @@ export const en = {
   "release.noMatch": "No matching release found.",
   "release.inStore": "Install this plugin from Decky Loader's Store.",
   "scan.notReviewed":
-    "DeckyHub is not the Decky store and nobody reviews these plugins. A clean scan only means no known malware was found.",
+    "DeckyHub is not the Decky store and doesn't review these plugins. A clean scan only means no known malware was found.",
   "release.noChecksum": "No DeckyHub release ZIP with a SHA-256 checksum was found.",
   "error.loaderUnavailable": "Decky Loader is unavailable right now.",
   "toast.updatesAvailable": "Updates available: {count}",
@@ -535,7 +536,7 @@ export const en = {
   "welcome.body":
     "Install and update Decky plugins straight from their authors' GitHub releases. Browse them here in Discover, find more with Search, and keep them current in Updates.",
   "welcome.safety":
-    "Nobody reviews these plugins, DeckyHub included. Its virus scans only catch known malware, so a clean scan doesn't mean a plugin is safe. Install only plugins from authors you trust; DeckyHub always asks before installing anything.",
+    "DeckyHub doesn't review these plugins. Its virus scans only catch known malware, so a clean scan doesn't mean a plugin is safe. Install only plugins from authors you trust; DeckyHub always asks before installing anything.",
   "welcome.gotIt": "Got it",
   "settings.tabGeneral": "General",
   "settings.tabDownloads": "Downloads",

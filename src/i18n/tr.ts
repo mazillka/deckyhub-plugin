@@ -158,7 +158,7 @@ export const tr: Record<MessageKey, string> = {
   "risk.title": "Kontrollerin bulduğu",
   "risk.intro": "Denetimden ve virüs taramalarından gerçekler. Yükleme kararı senin.",
   "risk.none":
-    "Denetim uyarısı veya tarama bulgusu yok. Bu güvenli olduğu anlamına gelmez: bu eklentileri kimse incelemiyor.",
+    "Denetim uyarısı veya tarama bulgusu yok. Bu güvenli olduğu anlamına gelmez: DeckyHub bu eklentileri incelemiyor.",
   "appcard.badgesNotice": "Eklentilerdeki rozetlerin anlamı",
   "appcard.noReleaseInYear": "Bir yıldır sürüm yok",
   "appcard.prereleaseOnly": "Yalnızca ön sürüm",
@@ -476,7 +476,7 @@ export const tr: Record<MessageKey, string> = {
   "release.noMatch": "Uygun sürüm bulunamadı.",
   "release.inStore": "Bu eklentiyi Decky Loader Mağazası’ndan yükleyin.",
   "scan.notReviewed":
-    "DeckyHub, Decky mağazası değildir ve bu eklentileri kimse incelemez. Temiz bir tarama yalnızca bilinen bir zararlı yazılımın bulunmadığı anlamına gelir.",
+    "DeckyHub, Decky mağazası değildir ve bu eklentileri incelemez. Temiz bir tarama yalnızca bilinen bir zararlı yazılımın bulunmadığı anlamına gelir.",
   "release.noChecksum": "SHA-256 sağlama toplamı olan bir DeckyHub sürüm ZIP'i bulunamadı.",
   "error.loaderUnavailable": "Decky Loader şu anda kullanılamıyor.",
   "toast.updatesAvailable": "Mevcut güncellemeler: {count}",
@@ -537,7 +537,7 @@ export const tr: Record<MessageKey, string> = {
   "welcome.body":
     "Decky eklentilerini doğrudan yazarlarının GitHub sürümlerinden yükle ve güncelle. Keşfet'te göz at, Ara ile daha fazlasını bul ve Güncellemeler'de güncel tut.",
   "welcome.safety":
-    "Bu eklentileri DeckyHub dahil kimse incelemez. Virüs taramaları yalnızca bilinen kötü amaçlı yazılımları yakalar, bu yüzden temiz bir tarama eklentinin güvenli olduğu anlamına gelmez. Yalnızca güvendiğin yazarların eklentilerini yükle; DeckyHub bir şey yüklemeden önce her zaman sorar.",
+    "DeckyHub bu eklentileri incelemez. Virüs taramaları yalnızca bilinen kötü amaçlı yazılımları yakalar, bu yüzden temiz bir tarama eklentinin güvenli olduğu anlamına gelmez. Yalnızca güvendiğin yazarların eklentilerini yükle; DeckyHub bir şey yüklemeden önce her zaman sorar.",
   "welcome.gotIt": "Anladım",
   "settings.tabGeneral": "Genel",
   "settings.tabDownloads": "İndirmeler",

@@ -160,7 +160,7 @@ export const pl: Record<MessageKey, string> = {
   "risk.title": "Co znalazły kontrole",
   "risk.intro": "Fakty z audytu i skanów antywirusowych. Decyzja o instalacji należy do ciebie.",
   "risk.none":
-    "Brak ostrzeżeń audytu i wyników skanów. To nie znaczy, że jest bezpieczne: nikt nie sprawdza tych wtyczek.",
+    "Brak ostrzeżeń audytu i wyników skanów. To nie znaczy, że jest bezpieczne: DeckyHub nie sprawdza tych wtyczek.",
   "appcard.badgesNotice": "Co oznaczają plakietki przy wtyczkach",
   "appcard.noReleaseInYear": "Brak wydań od roku",
   "appcard.prereleaseOnly": "Tylko przedpremierowe",
@@ -480,7 +480,7 @@ export const pl: Record<MessageKey, string> = {
   "release.noMatch": "Nie znaleziono pasującego wydania.",
   "release.inStore": "Zainstaluj tę wtyczkę ze sklepu Decky Loader.",
   "scan.notReviewed":
-    "DeckyHub nie jest sklepem Decky i nikt nie sprawdza tych wtyczek. Czysty skan oznacza tylko, że nie znaleziono znanego złośliwego oprogramowania.",
+    "DeckyHub nie jest sklepem Decky i nie sprawdza tych wtyczek. Czysty skan oznacza tylko, że nie znaleziono znanego złośliwego oprogramowania.",
   "release.noChecksum": "Nie znaleziono pliku ZIP wydania DeckyHub z sumą kontrolną SHA-256.",
   "error.loaderUnavailable": "Decky Loader jest teraz niedostępny.",
   "toast.updatesAvailable": "Dostępne aktualizacje: {count}",
@@ -542,7 +542,7 @@ export const pl: Record<MessageKey, string> = {
   "welcome.body":
     "Instaluj i aktualizuj wtyczki Decky prosto z wydań ich autorów na GitHubie. Przeglądaj je w Odkrywaj, znajdź więcej w Szukaj i trzymaj je aktualne w Aktualizacjach.",
   "welcome.safety":
-    "Nikt nie sprawdza tych wtyczek, łącznie z DeckyHub. Jego skany antywirusowe wykrywają tylko znane złośliwe oprogramowanie, więc czysty skan nie oznacza, że wtyczka jest bezpieczna. Instaluj tylko wtyczki od autorów, którym ufasz; DeckyHub zawsze pyta przed instalacją.",
+    "DeckyHub nie sprawdza tych wtyczek. Jego skany antywirusowe wykrywają tylko znane złośliwe oprogramowanie, więc czysty skan nie oznacza, że wtyczka jest bezpieczna. Instaluj tylko wtyczki od autorów, którym ufasz; DeckyHub zawsze pyta przed instalacją.",
   "welcome.gotIt": "Rozumiem",
   "settings.tabGeneral": "Ogólne",
   "settings.tabDownloads": "Pobieranie",

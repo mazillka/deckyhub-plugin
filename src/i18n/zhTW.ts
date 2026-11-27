@@ -150,7 +150,7 @@ export const zhTW: Record<MessageKey, string> = {
   "appcard.scan.partial.hint": "病毒掃描未能完整檢查你將安裝的版本。原因見「管理」。",
   "risk.title": "檢查發現了什麼",
   "risk.intro": "來自稽核和病毒掃描的事實。是否安裝由你決定。",
-  "risk.none": "沒有稽核警告或掃描發現。這並不代表它安全：沒有人審核這些外掛。",
+  "risk.none": "沒有稽核警告或掃描發現。這並不代表它安全：DeckyHub 不審核這些外掛。",
   "appcard.badgesNotice": "外掛徽章的意義",
   "appcard.noReleaseInYear": "一年未發行",
   "appcard.prereleaseOnly": "僅有預先發行版",
@@ -454,7 +454,7 @@ export const zhTW: Record<MessageKey, string> = {
   "github.error": "GitHub API 傳回了 {status}",
   "release.noMatch": "找不到相符的版本。",
   "release.inStore": "請從 Decky Loader 商店安裝此外掛。",
-  "scan.notReviewed": "DeckyHub 不是 Decky 商店,也沒有人審核這些外掛。掃描無異常只表示未發現已知惡意軟體。",
+  "scan.notReviewed": "DeckyHub 不是 Decky 商店,也不審核這些外掛。掃描無異常只表示未發現已知惡意軟體。",
   "release.noChecksum": "找不到附有 SHA-256 總和檢查碼的 DeckyHub 發行版本 ZIP。",
   "error.loaderUnavailable": "Decky Loader 目前無法使用。",
   "toast.updatesAvailable": "可用更新：{count}",
@@ -515,7 +515,7 @@ export const zhTW: Record<MessageKey, string> = {
   "welcome.body":
     "直接從作者的 GitHub 發行版本安裝和更新 Decky 插件。在「探索」中瀏覽，用「搜尋」找到更多，在「更新」中保持最新。",
   "welcome.safety":
-    "沒有人審核這些插件，DeckyHub 也不例外。它的病毒掃描只能找出已知的惡意軟體，所以掃描結果乾淨並不代表插件安全。請只安裝你信任的作者的插件；DeckyHub 在安裝前一定會先詢問你。",
+    "DeckyHub 不審核這些插件。它的病毒掃描只能找出已知的惡意軟體，所以掃描結果乾淨並不代表插件安全。請只安裝你信任的作者的插件；DeckyHub 在安裝前一定會先詢問你。",
   "welcome.gotIt": "知道了",
   "settings.tabGeneral": "一般",
   "settings.tabDownloads": "下載",
