@@ -383,6 +383,7 @@ export function ConfirmModal({
   strCancelButtonText = "Cancel",
   bAlertDialog,
   bDestructiveWarning,
+  bOKDisabled,
   onOK,
   onCancel,
   closeModal,
@@ -394,6 +395,7 @@ export function ConfirmModal({
   strCancelButtonText?: ReactNode;
   bAlertDialog?: boolean;
   bDestructiveWarning?: boolean;
+  bOKDisabled?: boolean;
   onOK?: () => void;
   onCancel?: () => void;
   closeModal?: () => void;
@@ -418,6 +420,7 @@ export function ConfirmModal({
             </button>
           )}
           <button
+            disabled={bOKDisabled}
             onClick={() => {
               onOK?.();
               closeModal?.();

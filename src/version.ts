@@ -98,3 +98,46 @@ export function installedRelease<T extends { tag: string; pluginVersion?: string
 // reaches people on pre-releases.
 export const inChannel = (release: { prerelease: boolean }, channel: "stable" | "prerelease") =>
   channel === "prerelease" || !release.prerelease;
+
+// What restoring a plugin pack would do with each plugin in it (RestorePackModal.tsx).
+type ReleaseLike = { tag: string; pluginVersion?: string; prerelease: boolean };
+
+export type RestoreStatus =
+  // Not installed: it can be installed.
+  | "missing"
+  // Installed in another version than the pack's: it can be changed to the saved or the latest one.
+  | "different"
+  // Installed in the pack's version, or the pack saved none: nothing to do.
+  | "installed"
+  // Installed, but DeckyHub can't confirm it's this repository's plugin: never changed from here.
+  | "unverified";
+
+const sameVersion = (a: string, b: string) =>
+  compareVersions(a, b) === 0 || normalizeVersion(a) === normalizeVersion(b);
+
+export function restoreStatus(
+  saved: string | null,
+  installed: string | null | undefined,
+  unverified: boolean | undefined,
+): RestoreStatus {
+  if (!installed) return "missing";
+  if (unverified) return "unverified";
+  return !saved || sameVersion(saved, installed) ? "installed" : "different";
+}
+
+// The releases a row offers, the pack's saved one first: it is the default. The version already installed is never
+// offered. savedUnavailable: the pack names a version that isn't among the releases DeckyHub can see.
+export function restoreChoices<T extends ReleaseLike>(
+  releases: T[],
+  latestTag: string | null | undefined,
+  saved: string | null,
+  installed: string | null | undefined,
+): { choices: { release: T; saved: boolean; latest: boolean }[]; savedUnavailable: boolean } {
+  const savedRelease = saved ? installedRelease(releases, saved)?.release : undefined;
+  const latestRelease = releases.find((release) => release.tag === latestTag);
+  const choices = [savedRelease, latestRelease]
+    .filter((release, index, all): release is T => release !== undefined && all.indexOf(release) === index)
+    .filter((release) => !installed || !sameVersion(releaseVersion(release), installed))
+    .map((release) => ({ release, saved: release === savedRelease, latest: release === latestRelease }));
+  return { choices, savedUnavailable: Boolean(saved) && !savedRelease };
+}

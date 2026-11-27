@@ -521,9 +521,8 @@ test("Plugin packs: importing one adds unknown repositories and installs nothing
   const before = (await bridgeCall(page, "get_settings")).result.customRepos;
   try {
     const result = (await bridgeCall(page, "import_plugin_pack", fileURLToPath(file))).result;
-    expect(result).toEqual({ name: "E2E pack", count: 2, added: ["e2e-owner/e2e-pack-plugin"] });
+    expect(result).toMatchObject({ name: "E2E pack", count: 2, added: ["e2e-owner/e2e-pack-plugin"], manual: [] });
     expect((await bridgeCall(page, "get_settings")).result.customRepos).toContain("e2e-owner/e2e-pack-plugin");
-    // (The queue it fills is the Desktop Mode installer's; test_packs.py reads it. The running UI consumes it here.)
     // Nothing is installed by an import.
     expect(
       (await bridgeCall(page, "get_apps")).result.apps.find(
@@ -533,9 +532,58 @@ test("Plugin packs: importing one adds unknown repositories and installs nothing
     // A file outside the home folder is refused.
     expect((await bridgeCall(page, "import_plugin_pack", "/etc/hostname")).error).toBeTruthy();
   } finally {
-    await bridgeCall(page, "clear_pending_installs");
     await bridgeCall(page, "remove_custom_repo", "e2e-owner/e2e-pack-plugin");
     expect((await bridgeCall(page, "get_settings")).result.customRepos).toEqual(before);
+    rmSync(file, { force: true });
+  }
+});
+
+test("Plugin packs: restoring installs the saved version only after the user's tap", async ({ page }) => {
+  const downloads = new URL("../.dev-data/home/Downloads/", import.meta.url);
+  mkdirSync(downloads, { recursive: true });
+  const file = new URL("e2e-restore.json", downloads);
+  writeFileSync(
+    file,
+    JSON.stringify({
+      schemaVersion: 1,
+      name: "E2E setup",
+      plugins: [{ repo: "eugeniosegala/MAKO", version: "1.2.0", disabled: true }],
+      manual: [{ name: "Sideloaded Thing", version: "0.3" }],
+    }),
+  );
+  const sha = "c".repeat(64);
+  await page.route(RELEASE_INDEX_URL, (route) => route.fulfill({ status: 404 }));
+  await mockMakoReleases(page, [makoRelease("plugin-v1.2.3", sha, "02"), makoRelease("plugin-v1.2.0", sha)]);
+  await recordInstalls(page);
+  page.on("dialog", (dialog) => void dialog.accept(fileURLToPath(file)));
+
+  try {
+    await page.goto("/?preview=/deckyhub/repositories&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    await app.getByRole("button", { name: "Import a pack", exact: true }).click();
+    const modal = app.locator(".steam-modal");
+    const row = modal.locator('[data-restore-row="eugeniosegala/MAKO"]');
+    await expect(row).toContainText("In the pack: v1.2.0");
+    await expect(row).toContainText("Not installed");
+    await expect(row).toContainText("It was switched off");
+    await expect(modal).toContainText("Sideloaded Thing v0.3");
+    // What is missing starts selected, in the pack's version.
+    const include = row.getByRole("checkbox");
+    await expect(include).toBeChecked();
+    const install = modal.getByRole("button", { name: "Install selected", exact: true });
+    await include.uncheck();
+    await expect(install).toBeDisabled();
+    await include.check();
+
+    const calls = () =>
+      pluginFrame(page).evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls);
+    expect(await calls()).toHaveLength(0);
+    await install.click();
+    await expect.poll(calls).toHaveLength(1);
+    const [[route, requests]] = (await calls()) as [string, { version: string; install_type: number }[]][];
+    expect(route).toBe("utilities/install_plugins");
+    expect(requests.map(({ version, install_type }) => [version, install_type])).toEqual([["1.2.0", 0]]);
+  } finally {
     rmSync(file, { force: true });
   }
 });

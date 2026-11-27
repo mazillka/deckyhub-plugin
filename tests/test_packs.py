@@ -71,7 +71,10 @@ class PackTests(unittest.TestCase):
             result = asyncio.run(self.plugin.export_plugin_pack())
         self.assertEqual(result["count"], 1)
         saved = json.loads(Path(result["path"]).read_text(encoding="utf-8"))
-        self.assertEqual(saved["plugins"], [{"repo": "eugeniosegala/MAKO", "name": "MAKO Decky"}])
+        self.assertEqual(saved["plugins"], [{"repo": "eugeniosegala/MAKO", "name": "MAKO Decky", "version": "1.0"}])
+        # What DeckyHub can't tie to a repository is kept by name, to reinstall by hand.
+        self.assertEqual([item["name"] for item in saved["manual"]], ["Mystery", "No repo"])
+        self.assertEqual(result["manual"], 2)
         self.assertEqual((saved["schemaVersion"], saved["kind"]), (1, "deckyhub-pack"))
         # Nothing to put in a pack: no file.
         with patch.object(self.plugin, "_remote_installed_plugins", return_value=[row("X", "a/b", verified=False)]):
@@ -94,16 +97,44 @@ class PackTests(unittest.TestCase):
             }
         )
         result = asyncio.run(self.plugin.import_plugin_pack(path))
-        self.assertEqual(result, {"name": "Emulation bpackb", "count": 3, "added": ["new/plugin", "other/thing"]})
+        self.assertEqual(
+            (result["name"], result["count"], result["added"]),
+            ("Emulation bpackb", 3, ["new/plugin", "other/thing"]),
+        )
+        self.assertEqual(
+            [item["repo"] for item in result["plugins"]], ["eugeniosegala/MAKO", "new/plugin", "other/thing"]
+        )
         self.assertEqual(self.plugin.settings["customRepos"], ["new/plugin", "other/thing"])
+        # An import only reads: the restore window decides what to install, so nothing waits in the installer's queue.
+        self.assertFalse((self.settings_dir / PENDING_INSTALLS_FILE).exists())
+
+    def test_versions_state_and_by_hand_names_survive_a_round_trip(self):
+        rows = [
+            {**row("MAKO Decky", "eugeniosegala/MAKO"), "version": "2.1.0", "disabled": True},
+            {**row("No version", "a/b"), "version": "installed"},
+            {**row("Mystery", None, verified=False), "version": "0.3"},
+        ]
+        with patch.object(self.plugin, "_remote_installed_plugins", return_value=rows):
+            exported = asyncio.run(self.plugin.export_plugin_pack())
+        result = asyncio.run(self.plugin.import_plugin_pack(exported["path"]))
         self.assertEqual(
-            json.loads((self.settings_dir / PENDING_INSTALLS_FILE).read_text(encoding="utf-8")),
-            ["eugeniosegala/MAKO", "new/plugin", "other/thing"],
+            result["plugins"],
+            [
+                {"repo": "eugeniosegala/MAKO", "name": "MAKO Decky", "version": "2.1.0", "disabled": True},
+                {"repo": "a/b", "name": "No version", "version": None, "disabled": False},
+            ],
         )
-        # The queue is what the install offer reads, and it now includes the user's own repositories.
-        self.assertEqual(
-            asyncio.run(self.plugin.get_pending_installs()), ["eugeniosegala/MAKO", "new/plugin", "other/thing"]
-        )
+        self.assertEqual(result["manual"], [{"name": "Mystery", "version": "0.3"}])
+
+    def test_hostile_details_are_cleaned_or_dropped(self):
+        payload = {
+            "schemaVersion": 1,
+            "plugins": [{"repo": "a/b", "name": "x\n\u202ey" + "z" * 200, "version": 5, "disabled": "yes"}],
+            "manual": [{"name": "\n"}, "text", {"name": "Kept", "version": ["1"]}],
+        }
+        entries, manual = packs.pack_details(payload, ["a/b"])
+        self.assertEqual(entries, [{"repo": "a/b", "name": "xy" + "z" * 98, "version": None, "disabled": False}])
+        self.assertEqual(manual, [{"name": "Kept", "version": None}])
 
     def test_the_repository_list_deckyhub_exports_is_a_pack_too(self):
         result = asyncio.run(self.plugin.import_plugin_pack(self.pack({"schemaVersion": 1, "repos": ["a/b"]})))
