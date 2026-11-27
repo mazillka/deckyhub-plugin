@@ -405,6 +405,20 @@ export const en = {
   "settings.restoreDescription":
     "This replaces its current settings with the backup from {date}. The current ones are backed up first. Reload or restart the plugin afterwards so it uses them.",
   "settings.restored": "Restored {name}'s settings",
+  "health.title": "Plugin storage and logs",
+  "health.note":
+    "The space each installed plugin takes in the folders Decky keeps for it. Files a plugin stores elsewhere aren't counted.",
+  "health.measure": "Measure",
+  "health.measuring": "Measuring…",
+  "health.unknown": "unknown",
+  "health.atLeast": "at least {size}",
+  "health.area.plugins": "Program",
+  "health.area.settings": "Settings",
+  "health.area.data": "Data",
+  "health.area.logs": "Logs",
+  "health.logsUnknown": "Log times couldn't be read.",
+  "health.logsChanged": "Logs last changed: {when}",
+  "health.noLogs": "No log files.",
   "settings.leftovers": "Leftover plugin files",
   "settings.leftoversNote":
     "Folders Decky keeps for plugins that are no longer installed. Choose what to remove; a plugin's settings are backed up first.",

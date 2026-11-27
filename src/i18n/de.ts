@@ -421,6 +421,20 @@ export const de: Record<MessageKey, string> = {
   "settings.restoreDescription":
     "Dadurch werden die aktuellen Einstellungen durch die Sicherung vom {date} ersetzt. Die aktuellen werden vorher gesichert. Lade oder starte das Plugin danach neu, damit es sie verwendet.",
   "settings.restored": "Einstellungen von {name} wiederhergestellt",
+  "health.title": "Speicher und Protokolle der Plugins",
+  "health.note":
+    "Der Platz, den jedes installierte Plugin in den Ordnern belegt, die Decky dafür führt. Dateien, die ein Plugin woanders ablegt, werden nicht mitgezählt.",
+  "health.measure": "Messen",
+  "health.measuring": "Wird gemessen…",
+  "health.unknown": "unbekannt",
+  "health.atLeast": "mindestens {size}",
+  "health.area.plugins": "Programm",
+  "health.area.settings": "Einstellungen",
+  "health.area.data": "Daten",
+  "health.area.logs": "Protokolle",
+  "health.logsUnknown": "Die Zeiten der Protokolle konnten nicht gelesen werden.",
+  "health.logsChanged": "Protokolle zuletzt geändert: {when}",
+  "health.noLogs": "Keine Protokolldateien.",
   "settings.leftovers": "Übrig gebliebene Plugin-Dateien",
   "settings.leftoversNote":
     "Ordner, die Decky für nicht mehr installierte Plugins behält. Wähle, was entfernt werden soll; die Einstellungen eines Plugins werden vorher gesichert.",

@@ -410,6 +410,20 @@ export const ja: Record<MessageKey, string> = {
   "settings.restoreDescription":
     "現在の設定を {date} のバックアップで置き換えます。現在の設定は先にバックアップされます。その後、プラグインを再読み込みまたは再起動してください。",
   "settings.restored": "{name} の設定を復元しました",
+  "health.title": "プラグインの容量とログ",
+  "health.note":
+    "インストール済みの各プラグインが、Decky が用意するフォルダーで使っている容量です。ほかの場所に保存されたファイルは含まれません。",
+  "health.measure": "計測する",
+  "health.measuring": "計測中…",
+  "health.unknown": "不明",
+  "health.atLeast": "{size} 以上",
+  "health.area.plugins": "プログラム",
+  "health.area.settings": "設定",
+  "health.area.data": "データ",
+  "health.area.logs": "ログ",
+  "health.logsUnknown": "ログの日時を読み取れませんでした。",
+  "health.logsChanged": "ログの最終更新: {when}",
+  "health.noLogs": "ログファイルはありません。",
   "settings.leftovers": "残ったプラグインのファイル",
   "settings.leftoversNote":
     "インストールされていないプラグイン用に Decky が保持しているフォルダーです。削除するものを選んでください。プラグインの設定は先にバックアップされます。",

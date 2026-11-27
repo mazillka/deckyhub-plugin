@@ -417,6 +417,20 @@ export const it: Record<MessageKey, string> = {
   "settings.restoreDescription":
     "Le impostazioni attuali vengono sostituite con il backup del {date}. Quelle attuali vengono salvate prima. Ricarica o riavvia poi il plugin perché le usi.",
   "settings.restored": "Impostazioni di {name} ripristinate",
+  "health.title": "Spazio e log dei plugin",
+  "health.note":
+    "Lo spazio che ogni plugin installato occupa nelle cartelle che Decky gli riserva. I file che un plugin salva altrove non sono contati.",
+  "health.measure": "Misura",
+  "health.measuring": "Misurazione…",
+  "health.unknown": "sconosciuto",
+  "health.atLeast": "almeno {size}",
+  "health.area.plugins": "Programma",
+  "health.area.settings": "Impostazioni",
+  "health.area.data": "Dati",
+  "health.area.logs": "Log",
+  "health.logsUnknown": "Impossibile leggere la data dei log.",
+  "health.logsChanged": "Ultima modifica dei log: {when}",
+  "health.noLogs": "Nessun file di log.",
   "settings.leftovers": "File rimasti dei plugin",
   "settings.leftoversNote":
     "Cartelle che Decky conserva per plugin non più installati. Scegli cosa rimuovere; le impostazioni di un plugin vengono prima salvate.",

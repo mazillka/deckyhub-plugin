@@ -419,6 +419,20 @@ export const fr: Record<MessageKey, string> = {
   "settings.restoreDescription":
     "Cela remplace ses réglages actuels par la sauvegarde du {date}. Les réglages actuels sont sauvegardés d’abord. Rechargez ou redémarrez ensuite le plugin pour qu’il les utilise.",
   "settings.restored": "Réglages de {name} restaurés",
+  "health.title": "Stockage et journaux des plugins",
+  "health.note":
+    "L'espace qu'occupe chaque plugin installé dans les dossiers que Decky lui réserve. Les fichiers qu'un plugin enregistre ailleurs ne sont pas comptés.",
+  "health.measure": "Mesurer",
+  "health.measuring": "Mesure en cours…",
+  "health.unknown": "inconnu",
+  "health.atLeast": "au moins {size}",
+  "health.area.plugins": "Programme",
+  "health.area.settings": "Réglages",
+  "health.area.data": "Données",
+  "health.area.logs": "Journaux",
+  "health.logsUnknown": "Impossible de lire la date des journaux.",
+  "health.logsChanged": "Dernière modification des journaux : {when}",
+  "health.noLogs": "Aucun fichier journal.",
   "settings.leftovers": "Fichiers de plugins restants",
   "settings.leftoversNote":
     "Dossiers que Decky garde pour des plugins qui ne sont plus installés. Choisissez ce qu’il faut supprimer ; les réglages d’un plugin sont d’abord sauvegardés.",

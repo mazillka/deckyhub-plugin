@@ -411,6 +411,20 @@ export const pl: Record<MessageKey, string> = {
   "settings.restoreDescription":
     "To zastąpi jej bieżące ustawienia kopią z {date}. Bieżące zostaną najpierw zapisane. Potem przeładuj lub uruchom ponownie wtyczkę, aby ich użyła.",
   "settings.restored": "Przywrócono ustawienia {name}",
+  "health.title": "Pamięć i dzienniki wtyczek",
+  "health.note":
+    "Miejsce, jakie każda zainstalowana wtyczka zajmuje w folderach, które Decky dla niej prowadzi. Pliki zapisane przez wtyczkę gdzie indziej nie są liczone.",
+  "health.measure": "Zmierz",
+  "health.measuring": "Mierzenie…",
+  "health.unknown": "nieznane",
+  "health.atLeast": "co najmniej {size}",
+  "health.area.plugins": "Program",
+  "health.area.settings": "Ustawienia",
+  "health.area.data": "Dane",
+  "health.area.logs": "Dzienniki",
+  "health.logsUnknown": "Nie udało się odczytać czasu dzienników.",
+  "health.logsChanged": "Ostatnia zmiana dzienników: {when}",
+  "health.noLogs": "Brak plików dziennika.",
   "settings.leftovers": "Pozostałości po wtyczkach",
   "settings.leftoversNote":
     "Foldery, które Decky trzyma dla wtyczek, które nie są już zainstalowane. Wybierz, co usunąć; ustawienia wtyczki są najpierw kopiowane.",

@@ -409,6 +409,20 @@ export const ru: Record<MessageKey, string> = {
   "settings.restoreDescription":
     "Текущие настройки будут заменены копией от {date}. Сначала они сохраняются в резервную копию. После этого перезагрузите или перезапустите плагин, чтобы он их использовал.",
   "settings.restored": "Настройки {name} восстановлены",
+  "health.title": "Память и журналы плагинов",
+  "health.note":
+    "Сколько места занимает каждый установленный плагин в папках, которые Decky для него хранит. Файлы, которые плагин хранит в других местах, не учитываются.",
+  "health.measure": "Измерить",
+  "health.measuring": "Измерение…",
+  "health.unknown": "неизвестно",
+  "health.atLeast": "не менее {size}",
+  "health.area.plugins": "Программа",
+  "health.area.settings": "Настройки",
+  "health.area.data": "Данные",
+  "health.area.logs": "Журналы",
+  "health.logsUnknown": "Не удалось прочитать время журналов.",
+  "health.logsChanged": "Журналы изменялись в последний раз: {when}",
+  "health.noLogs": "Файлов журналов нет.",
   "settings.leftovers": "Остатки файлов плагинов",
   "settings.leftoversNote":
     "Папки, которые Decky хранит для уже не установленных плагинов. Выберите, что удалить; настройки плагина сначала сохраняются.",

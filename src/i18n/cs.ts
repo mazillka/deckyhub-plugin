@@ -409,6 +409,20 @@ export const cs: Record<MessageKey, string> = {
   "settings.restoreDescription":
     "Tím se jeho aktuální nastavení nahradí zálohou z {date}. Aktuální nastavení se nejdřív zazálohuje. Poté plugin znovu načtěte nebo restartujte, aby je použil.",
   "settings.restored": "Nastavení pluginu {name} obnoveno",
+  "health.title": "Úložiště a logy pluginů",
+  "health.note":
+    "Místo, které každý nainstalovaný plugin zabírá ve složkách, jež pro něj Decky vede. Soubory, které plugin ukládá jinam, se nepočítají.",
+  "health.measure": "Změřit",
+  "health.measuring": "Měření…",
+  "health.unknown": "neznámé",
+  "health.atLeast": "alespoň {size}",
+  "health.area.plugins": "Program",
+  "health.area.settings": "Nastavení",
+  "health.area.data": "Data",
+  "health.area.logs": "Logy",
+  "health.logsUnknown": "Časy logů se nepodařilo přečíst.",
+  "health.logsChanged": "Poslední změna logů: {when}",
+  "health.noLogs": "Žádné soubory logů.",
   "settings.leftovers": "Zbytky po pluginech",
   "settings.leftoversNote":
     "Složky, které Decky drží pro už nenainstalované pluginy. Vyberte, co odstranit; nastavení pluginu se předtím zazálohuje.",

@@ -407,6 +407,20 @@ export const tr: Record<MessageKey, string> = {
   "settings.restoreDescription":
     "Bu, geçerli ayarlarını {date} tarihli yedekle değiştirir. Geçerli ayarlar önce yedeklenir. Sonrasında eklentiyi yeniden yükleyin veya başlatın ki kullansın.",
   "settings.restored": "{name} ayarları geri yüklendi",
+  "health.title": "Eklenti depolaması ve günlükleri",
+  "health.note":
+    "Her yüklü eklentinin, Decky'nin onun için tuttuğu klasörlerde kapladığı alan. Eklentinin başka yerde sakladığı dosyalar sayılmaz.",
+  "health.measure": "Ölç",
+  "health.measuring": "Ölçülüyor…",
+  "health.unknown": "bilinmiyor",
+  "health.atLeast": "en az {size}",
+  "health.area.plugins": "Program",
+  "health.area.settings": "Ayarlar",
+  "health.area.data": "Veriler",
+  "health.area.logs": "Günlükler",
+  "health.logsUnknown": "Günlük zamanları okunamadı.",
+  "health.logsChanged": "Günlüklerin son değişikliği: {when}",
+  "health.noLogs": "Günlük dosyası yok.",
   "settings.leftovers": "Eklentilerden kalan dosyalar",
   "settings.leftoversNote":
     "Artık yüklü olmayan eklentiler için Decky'nin tuttuğu klasörler. Neyi kaldıracağınızı seçin; eklentinin ayarları önce yedeklenir.",

@@ -403,6 +403,20 @@ export const ko: Record<MessageKey, string> = {
   "settings.restoreDescription":
     "현재 설정을 {date}의 백업으로 바꿉니다. 현재 설정은 먼저 백업됩니다. 이후 플러그인을 다시 불러오거나 재시작해야 적용됩니다.",
   "settings.restored": "{name}의 설정을 복원했습니다",
+  "health.title": "플러그인 저장 공간 및 로그",
+  "health.note":
+    "설치된 각 플러그인이 Decky가 마련한 폴더에서 차지하는 공간입니다. 플러그인이 다른 곳에 저장한 파일은 포함되지 않습니다.",
+  "health.measure": "측정",
+  "health.measuring": "측정 중…",
+  "health.unknown": "알 수 없음",
+  "health.atLeast": "최소 {size}",
+  "health.area.plugins": "프로그램",
+  "health.area.settings": "설정",
+  "health.area.data": "데이터",
+  "health.area.logs": "로그",
+  "health.logsUnknown": "로그 시간을 읽을 수 없습니다.",
+  "health.logsChanged": "로그 마지막 변경: {when}",
+  "health.noLogs": "로그 파일이 없습니다.",
   "settings.leftovers": "남은 플러그인 파일",
   "settings.leftoversNote":
     "더 이상 설치되지 않은 플러그인을 위해 Decky가 보관 중인 폴더입니다. 삭제할 항목을 고르세요. 플러그인 설정은 먼저 백업됩니다.",

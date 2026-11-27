@@ -588,6 +588,32 @@ test("Plugin packs: restoring installs the saved version only after the user's t
   }
 });
 
+test("Plugin storage: measuring lists each plugin's folder sizes and log time", async ({ page }) => {
+  const data = new URL("../.dev-data/", import.meta.url);
+  const folders = ["plugins", "data", "logs"].map((area) => new URL(`${area}/e2e-health/`, data));
+  const [plugin, files, logs] = folders;
+  for (const folder of folders) mkdirSync(folder, { recursive: true });
+  writeFileSync(new URL("plugin.json", plugin), JSON.stringify({ name: "E2E Health" }));
+  writeFileSync(new URL("blob", files), "x".repeat(3 * 1024 * 1024));
+  writeFileSync(new URL("a.log", logs), "line");
+
+  try {
+    await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    await settingsTab(page, "Logs");
+    const row = app.locator('[data-health-row="e2e-health"]');
+    // Nothing is measured until asked.
+    await expect(row).toHaveCount(0);
+    await app.getByRole("button", { name: "Measure", exact: true }).click();
+    await expect(row).toContainText("E2E Health");
+    await expect(row).toContainText("Data: 3");
+    await expect(row).toContainText("Settings: 0 B");
+    await expect(row).toContainText("Logs last changed");
+  } finally {
+    for (const folder of folders) rmSync(folder, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  }
+});
+
 test("Backups: a plugin's settings are saved before a change and can be restored from Settings", async ({ page }) => {
   const data = new URL("../.dev-data/", import.meta.url);
   const plugin = new URL("plugins/e2e-backup/", data);

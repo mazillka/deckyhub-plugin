@@ -417,6 +417,20 @@ export const nl: Record<MessageKey, string> = {
   "settings.restoreDescription":
     "Dit vervangt de huidige instellingen door de back-up van {date}. De huidige worden eerst geback-upt. Laad de plugin daarna opnieuw of start hem opnieuw zodat hij ze gebruikt.",
   "settings.restored": "Instellingen van {name} hersteld",
+  "health.title": "Opslag en logboeken van plug-ins",
+  "health.note":
+    "De ruimte die elke geïnstalleerde plug-in inneemt in de mappen die Decky ervoor bijhoudt. Bestanden die een plug-in elders opslaat, tellen niet mee.",
+  "health.measure": "Meten",
+  "health.measuring": "Bezig met meten…",
+  "health.unknown": "onbekend",
+  "health.atLeast": "minstens {size}",
+  "health.area.plugins": "Programma",
+  "health.area.settings": "Instellingen",
+  "health.area.data": "Gegevens",
+  "health.area.logs": "Logboeken",
+  "health.logsUnknown": "De tijden van de logboeken konden niet worden gelezen.",
+  "health.logsChanged": "Logboeken laatst gewijzigd: {when}",
+  "health.noLogs": "Geen logbestanden.",
   "settings.leftovers": "Overgebleven pluginbestanden",
   "settings.leftoversNote":
     "Mappen die Decky bewaart voor plugins die niet meer geïnstalleerd zijn. Kies wat je wilt verwijderen; de instellingen van een plugin worden eerst geback-upt.",

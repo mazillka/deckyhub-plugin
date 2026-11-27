@@ -66,6 +66,15 @@ export const restoreSettingsBackup = callable<[folder: string, file: string], { 
   "restore_settings_backup",
 );
 // Folders Decky keeps for plugins that are no longer installed (leftovers.py); `modified` is in milliseconds.
+// What one installed plugin takes in Decky's folders (health.py). A size is null when it couldn't be read;
+// logsChanged is the newest log file's time (0 with no log files).
+export type PluginHealth = {
+  folder: string;
+  name: string;
+  sizes: Record<"plugins" | "settings" | "data" | "logs", number | null>;
+  logsChanged: number | null;
+};
+export const scanPluginHealth = callable<[], { plugins: PluginHealth[] }>("scan_plugin_health");
 export type Leftover = { name: string; areas: string[]; size: number; modified: number };
 export const scanLeftovers = callable<[], { items: Leftover[] }>("scan_leftovers");
 export const removeLeftovers = callable<

@@ -418,6 +418,20 @@ export const ptPT: Record<MessageKey, string> = {
   "settings.restoreDescription":
     "Isto substitui as definições atuais pela cópia de {date}. As atuais são guardadas primeiro. Recarregue ou reinicie o plugin depois para que as use.",
   "settings.restored": "Definições de {name} restauradas",
+  "health.title": "Armazenamento e registos dos plugins",
+  "health.note":
+    "O espaço que cada plugin instalado ocupa nas pastas que o Decky mantém para ele. Os ficheiros que um plugin guarde noutros locais não são contados.",
+  "health.measure": "Medir",
+  "health.measuring": "A medir…",
+  "health.unknown": "desconhecido",
+  "health.atLeast": "pelo menos {size}",
+  "health.area.plugins": "Programa",
+  "health.area.settings": "Definições",
+  "health.area.data": "Dados",
+  "health.area.logs": "Registos",
+  "health.logsUnknown": "Não foi possível ler a data dos registos.",
+  "health.logsChanged": "Última alteração dos registos: {when}",
+  "health.noLogs": "Sem ficheiros de registo.",
   "settings.leftovers": "Ficheiros restantes de plugins",
   "settings.leftoversNote":
     "Pastas que o Decky guarda de plugins que já não estão instalados. Escolha o que remover; as definições do plugin são guardadas antes.",
