@@ -6,6 +6,7 @@ import { ManageRepositoriesPage } from "../pages/ManageRepositoriesPage";
 import { AboutSection } from "./AboutSection";
 import { BackupsSection } from "./BackupsSection";
 import { GitHubAccessSection } from "./GitHubAccessSection";
+import { HealthSection } from "./HealthSection";
 import { LeftoversSection } from "./LeftoversSection";
 import type { Layout } from "./LayoutToggle";
 import { DisplaySection, DownloadsSection, LanguageSection, TroubleshootingSection } from "./SettingsSections";
@@ -80,6 +81,7 @@ export function settingsTabs(
         title: t("settings.tabTroubleshoot"),
         content: stack(
           <BackupsSection key="backups" settings={settings} update={update} />,
+          <HealthSection key="health" />,
           <LeftoversSection key="leftovers" />,
           <TroubleshootingSection key="troubleshooting" />,
         ),

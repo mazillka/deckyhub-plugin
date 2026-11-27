@@ -20,6 +20,7 @@ from deckyhub.apps import AppsMixin
 from deckyhub.backups import BackupsMixin
 from deckyhub.downloads import DownloadsMixin
 from deckyhub.github_auth import GithubAuthMixin
+from deckyhub.health import HealthMixin
 from deckyhub.leftovers import LeftoversMixin
 from deckyhub.packs import PENDING_INSTALLS_FILE, PacksMixin
 from deckyhub.registry import RegistryMixin
@@ -38,6 +39,7 @@ class Plugin(
     LeftoversMixin,
     PacksMixin,
     GithubAuthMixin,
+    HealthMixin,
 ):
     async def _main(self):
         self.settings_path = Path(decky.DECKY_PLUGIN_SETTINGS_DIR) / "settings.json"

@@ -133,10 +133,11 @@ export async function installDeckyPlugin(
 }
 
 // Several updates (or, with installType INSTALL, new plugins) in one go: Decky Loader shows
-// one confirm dialog listing them all and installs them in order. Fresh-install plugins need their uninstall
+// one confirm dialog listing them all and installs them in order. An item's own installType wins (a restored
+// pack mixes installs with version changes). Fresh-install plugins need their uninstall
 // first, so callers leave them out.
 export async function updateDeckyPlugins(
-  updates: { asset: Asset; repo: string; name: string; version: string }[],
+  updates: { asset: Asset; repo: string; name: string; version: string; installType?: 0 | 1 | 2 | 3 }[],
   installType: 0 | 2 = PLUGIN_INSTALL_TYPE.UPDATE,
 ) {
   // One at a time, so a single progress window shows at once; the last one
@@ -146,16 +147,17 @@ export async function updateDeckyPlugins(
     const artifacts: string[] = [];
     for (const [index, { asset, repo }] of updates.entries())
       artifacts.push(await localZip(asset, repo, index === updates.length - 1 ? handedOver : undefined));
-    if (installType !== PLUGIN_INSTALL_TYPE.INSTALL) await backUpFirst(...updates.map(({ name }) => name));
+    const changed = updates.filter((update) => (update.installType ?? installType) !== PLUGIN_INSTALL_TYPE.INSTALL);
+    await backUpFirst(...changed.map(({ name }) => name));
     for (const { name, version } of updates) traceDeckyInstall(name, version);
     return await callDeckyLoader(
       "utilities/install_plugins",
-      updates.map(({ asset, name, version }, index) => ({
+      updates.map(({ asset, name, version, installType: own }, index) => ({
         artifact: artifacts[index],
         name,
         version: normalizeVersion(displayVersion(version)),
         hash: asset.sha256 ?? "",
-        install_type: installType,
+        install_type: own ?? installType,
       })),
     );
   } finally {

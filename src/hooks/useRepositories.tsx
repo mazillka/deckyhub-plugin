@@ -14,7 +14,7 @@ import {
   removeCustomRegistry,
   removeCustomRepo,
 } from "../api";
-import { offerPendingInstalls } from "../components/PendingInstalls";
+import { showRestorePack } from "../components/RestorePackModal";
 import { WideConfirmModal } from "../components/WideModal";
 import type { MessageKey, TFunc } from "../i18n/en";
 import { isRepositoryName, log, registryUrlForRepo } from "../utils";
@@ -149,10 +149,9 @@ function useTransfer(t: TFunc, refreshRepos: Refresh) {
   };
   const exportPack = async () => {
     const result = await exportPluginPack();
-    toaster.toast({
-      title: "DeckyHub",
-      body: result.path ? t("repos.packExported", { count: result.count, path: result.path }) : t("repos.packEmpty"),
-    });
+    const saved = result.path && t("repos.packExported", { count: result.count, path: result.path });
+    const byHand = result.manual ? ` ${t("repos.packManual", { count: result.manual })}` : "";
+    toaster.toast({ title: "DeckyHub", body: saved ? saved + byHand : t("repos.packEmpty") });
   };
   const importPack = async () => {
     const path = await pickJson();
@@ -160,7 +159,7 @@ function useTransfer(t: TFunc, refreshRepos: Refresh) {
     const result = await importPluginPack(path);
     refreshRepos();
     if (result.added.length) registriesChanged();
-    await offerPendingInstalls(t, true);
+    showRestorePack(result, t);
   };
   const importList = async () => {
     const path = await pickJson();

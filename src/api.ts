@@ -33,10 +33,19 @@ export const removeCustomRepo = callable<[repo: string], { removed: boolean; rep
 export const exportCustomRepos = callable<[], { path: string }>("export_custom_repos");
 export const importCustomRepos = callable<[path: string], { added: string[] }>("import_custom_repos");
 // Plugin packs (packs.py): a shareable list of plugins; importing one only queues the install offer.
-export const exportPluginPack = callable<[], { path: string | null; count: number }>("export_plugin_pack");
-export const importPluginPack = callable<[path: string], { name: string | null; count: number; added: string[] }>(
-  "import_plugin_pack",
+export const exportPluginPack = callable<[], { path: string | null; count: number; manual?: number }>(
+  "export_plugin_pack",
 );
+export type PackPlugin = { repo: string; name: string | null; version: string | null; disabled: boolean };
+export type ImportedPack = {
+  name: string | null;
+  count: number;
+  added: string[];
+  plugins: PackPlugin[];
+  // Installed when the pack was saved, but not tied to a repository: to reinstall by hand.
+  manual: { name: string; version: string | null }[];
+};
+export const importPluginPack = callable<[path: string], ImportedPack>("import_plugin_pack");
 export const readTokenFile = callable<[path: string], { token: string | null }>("read_token_file");
 export const addCustomRegistry = callable<
   [url: string],
@@ -57,6 +66,15 @@ export const restoreSettingsBackup = callable<[folder: string, file: string], { 
   "restore_settings_backup",
 );
 // Folders Decky keeps for plugins that are no longer installed (leftovers.py); `modified` is in milliseconds.
+// What one installed plugin takes in Decky's folders (health.py). A size is null when it couldn't be read;
+// logsChanged is the newest log file's time (0 with no log files).
+export type PluginHealth = {
+  folder: string;
+  name: string;
+  sizes: Record<"plugins" | "settings" | "data" | "logs", number | null>;
+  logsChanged: number | null;
+};
+export const scanPluginHealth = callable<[], { plugins: PluginHealth[] }>("scan_plugin_health");
 export type Leftover = { name: string; areas: string[]; size: number; modified: number };
 export const scanLeftovers = callable<[], { items: Leftover[] }>("scan_leftovers");
 export const removeLeftovers = callable<
