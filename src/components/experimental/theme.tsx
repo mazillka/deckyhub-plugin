@@ -119,6 +119,8 @@ const EXP_CSS = `
   .dh-exp-search > svg { color: var(--exp-accent); flex-shrink: 0; }
   .dh-exp-search > :not(svg) { flex: 1; min-width: 0; }
   .dh-exp-search input { background: transparent !important; border: 0 !important; }
+  /* Steam gives a controller-focused field black text on white; without the white, the text must be light too. */
+  .dh-exp-search input.gpfocus { color: #fff !important; -webkit-text-fill-color: #fff !important; caret-color: #fff !important; }
   .dh-exp-search-big { min-height: 52px; font-size: 1.1em; }
   /* Field and buttons one height, so the row lines up. */
   .dh-exp-search-hero .dh-exp-filter-row { align-items: stretch; width: 100%; box-sizing: border-box; }
