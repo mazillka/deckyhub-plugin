@@ -176,17 +176,19 @@ export const pt: Record<MessageKey, string> = {
     "Os avisos vêm da auditoria automática do Decky Extended Plugins na versão que você instalaria. Achados rotineiros como sudo, mount ou systemctl não são mostrados. Um aviso não prova dano, e a falta de aviso não prova segurança.",
   "appcard.auditLink": "Abrir a auditoria do Decky Extended Plugins",
   "appcard.warning.blocked": "Bloqueado pela auditoria",
-  "appcard.warning.blocked.hint": "A auditoria encontrou malware ou um arquivo corrompido. Instalação não recomendada.",
+  "appcard.warning.blocked.hint":
+    "A auditoria bloqueou esta versão, por exemplo por suspeita de malware ou por um arquivo corrompido.",
   "appcard.warning.private-data": "Lê dados privados",
-  "appcard.warning.private-data.hint": "Lê dados de login da Steam, chaves SSH ou segredos do ambiente.",
+  "appcard.warning.private-data.hint":
+    "A auditoria encontrou código que pode acessar dados de login da Steam, chaves SSH ou segredos do ambiente.",
   "appcard.warning.persistence": "Altera a inicialização",
   "appcard.warning.persistence.hint":
-    "Edita perfis do shell, pré-carrega bibliotecas, carrega módulos do kernel ou adiciona regras de dispositivo que continuam ativas fora do Decky.",
+    "A auditoria encontrou código que pode alterar perfis do shell, bibliotecas pré-carregadas, módulos do kernel ou regras de dispositivo. Essas alterações podem continuar ativas fora do Decky.",
   "appcard.warning.not-in-source": "Risco muito elevado: a transferência inclui código que não está no GitHub",
   "appcard.warning.not-in-source.hint":
     "A versão transferida contém código que a auditoria não conseguiu associar ao código-fonte publicado. Isto pode ocultar alterações maliciosas. Reveja a versão antes de instalar; uma diferença não prova a existência de malware.",
   "appcard.warning.obfuscated": "Código oculto",
-  "appcard.warning.obfuscated.hint": "Contém código codificado ou compactado difícil de ler.",
+  "appcard.warning.obfuscated.hint": "A auditoria encontrou código codificado ou empacotado difícil de ler.",
   "audit.scope":
     "Verifica um conjunto limitado de padrões. Os resultados precisam de análise; isso não comprova a segurança.",
   "audit.sourceScope": "As diferenças podem ser ficheiros gerados e exigem análise.",
@@ -216,11 +218,12 @@ export const pt: Record<MessageKey, string> = {
   "audit.rootUnknown": "Solicitação de root desconhecida",
   "audit.more": "Mais descobertas: {count}",
   "appcard.warning.no-tls-check": "Ignora verificação HTTPS",
-  "appcard.warning.no-tls-check.hint": "Desativa a verificação de certificados, então o que baixa pode ser adulterado.",
+  "appcard.warning.no-tls-check.hint":
+    "A auditoria encontrou código que desativa a verificação de certificados, então o que ele baixa pode ser adulterado.",
   "appcard.warning.runs-downloads": "Executa scripts baixados",
-  "appcard.warning.runs-downloads.hint": "Baixa um script e o executa na hora.",
+  "appcard.warning.runs-downloads.hint": "A auditoria encontrou código que baixa um script e o executa imediatamente.",
   "appcard.warning.vulnerable": "Vulnerabilidades conhecidas",
-  "appcard.warning.vulnerable.hint": "Inclui bibliotecas com falhas de segurança publicadas.",
+  "appcard.warning.vulnerable.hint": "A auditoria encontrou bibliotecas incluídas com falhas de segurança publicadas.",
   "appcard.updated": "Atualizado {when}",
   "appcard.update": "Atualizar",
   "appcard.uninstall": "Desinstalar",

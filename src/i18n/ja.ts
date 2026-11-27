@@ -177,17 +177,18 @@ export const ja: Record<MessageKey, string> = {
   "appcard.auditLink": "Decky Extended Plugins の監査を開く",
   "appcard.warning.blocked": "監査でブロック",
   "appcard.warning.blocked.hint":
-    "監査でマルウェアや壊れたアーカイブが見つかりました。インストールはおすすめしません。",
+    "監査はこのリリースをブロックしました。たとえば、マルウェアの疑いや壊れたアーカイブが理由です。",
   "appcard.warning.private-data": "個人データを読み取る",
-  "appcard.warning.private-data.hint": "Steam のログイン情報、SSH 鍵、環境変数の秘密情報を読み取ります。",
+  "appcard.warning.private-data.hint":
+    "監査で、Steam のログイン情報、SSH 鍵、環境変数の秘密情報にアクセスする可能性があるコードが見つかりました。",
   "appcard.warning.persistence": "システム起動を変更",
   "appcard.warning.persistence.hint":
-    "シェルのプロファイル変更、ライブラリのプリロード、カーネルモジュールの読み込み、デバイスルールの追加を行い、Decky の外でも動作し続けます。",
+    "監査で、シェルのプロファイル、プリロードされるライブラリ、カーネルモジュール、デバイスルールを変更する可能性があるコードが見つかりました。こうした変更は Decky の外でも有効なままになることがあります。",
   "appcard.warning.not-in-source": "非常に高いリスク: ダウンロードには GitHub にないコードが含まれます",
   "appcard.warning.not-in-source.hint":
     "ダウンロードしたリリースには、公開されたソースと照合できなかったコードが含まれています。悪意ある変更が隠れている可能性があります。インストール前にリリースを確認してください。不一致だけでマルウェアとは断定できません。",
   "appcard.warning.obfuscated": "隠されたコード",
-  "appcard.warning.obfuscated.hint": "読みにくいエンコード済みまたは圧縮されたコードを含みます。",
+  "appcard.warning.obfuscated.hint": "監査で、読みにくいエンコード済みまたは圧縮されたコードが見つかりました。",
   "audit.scope": "限られたパターンを検査します。検出結果の確認が必要で、安全性を証明するものではありません。",
   "audit.sourceScope": "差異は生成ファイルの場合もあり、確認が必要です。",
   "audit.sourceTag": "ソースタグ",
@@ -215,11 +216,12 @@ export const ja: Record<MessageKey, string> = {
   "audit.rootUnknown": "root の要求は不明",
   "audit.more": "他の検出: {count} 件",
   "appcard.warning.no-tls-check": "HTTPS 検証を無効化",
-  "appcard.warning.no-tls-check.hint": "証明書の検証を無効にするため、ダウンロード内容が改ざんされる可能性があります。",
+  "appcard.warning.no-tls-check.hint":
+    "監査で、証明書の検証を無効にするコードが見つかりました。ダウンロードする内容が改ざんされるおそれがあります。",
   "appcard.warning.runs-downloads": "ダウンロードしたスクリプトを実行",
-  "appcard.warning.runs-downloads.hint": "スクリプトをダウンロードしてすぐに実行します。",
+  "appcard.warning.runs-downloads.hint": "監査で、スクリプトをダウンロードしてすぐに実行するコードが見つかりました。",
   "appcard.warning.vulnerable": "既知の脆弱性",
-  "appcard.warning.vulnerable.hint": "公開済みのセキュリティ上の欠陥があるライブラリを同梱しています。",
+  "appcard.warning.vulnerable.hint": "監査で、公開された脆弱性のある同梱ライブラリが見つかりました。",
   "appcard.updated": "更新: {when}",
   "appcard.update": "アップデート",
   "appcard.uninstall": "アンインストール",

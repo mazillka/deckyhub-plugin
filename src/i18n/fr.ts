@@ -178,17 +178,19 @@ export const fr: Record<MessageKey, string> = {
     "Les avertissements viennent de l'audit automatique de Decky Extended Plugins sur la version que vous installeriez. Les constats courants comme sudo, mount ou systemctl ne sont pas affichés. Un avertissement ne prouve pas un danger, et son absence ne prouve pas la sécurité.",
   "appcard.auditLink": "Ouvrir l’audit de Decky Extended Plugins",
   "appcard.warning.blocked": "Bloqué par l'audit",
-  "appcard.warning.blocked.hint": "L'audit a trouvé un malware ou une archive invalide. Installation déconseillée.",
+  "appcard.warning.blocked.hint":
+    "L'audit a bloqué cette version, par exemple pour un malware suspecté ou une archive invalide.",
   "appcard.warning.private-data": "Lit des données privées",
-  "appcard.warning.private-data.hint": "Il lit les identifiants Steam, des clés SSH ou des secrets de l'environnement.",
+  "appcard.warning.private-data.hint":
+    "L'audit a trouvé du code qui pourrait accéder aux identifiants Steam, à des clés SSH ou à des secrets de l'environnement.",
   "appcard.warning.persistence": "Modifie le démarrage",
   "appcard.warning.persistence.hint":
-    "Il modifie les profils shell, précharge des bibliothèques, charge des modules du noyau ou ajoute des règles de périphérique, actifs même hors de Decky.",
+    "L'audit a trouvé du code qui pourrait modifier des profils shell, des bibliothèques préchargées, des modules du noyau ou des règles de périphérique. Ces changements peuvent rester actifs hors de Decky.",
   "appcard.warning.not-in-source": "Risque très élevé : le téléchargement contient du code absent de GitHub",
   "appcard.warning.not-in-source.hint":
     "La version téléchargée contient du code que l’audit n’a pas pu associer au code source publié. Cela pourrait cacher des modifications malveillantes. Examinez la version avant de l’installer ; une différence ne prouve pas la présence de malware.",
   "appcard.warning.obfuscated": "Code caché",
-  "appcard.warning.obfuscated.hint": "Il contient du code encodé ou compressé difficile à lire.",
+  "appcard.warning.obfuscated.hint": "L'audit a trouvé du code encodé ou compressé difficile à lire.",
   "audit.scope":
     "Vérifie un nombre limité de motifs. Les résultats doivent être examinés ; cela ne prouve pas la sécurité.",
   "audit.sourceScope": "Les différences peuvent être des fichiers générés et doivent être examinées.",
@@ -219,11 +221,12 @@ export const fr: Record<MessageKey, string> = {
   "audit.more": "Autres résultats : {count}",
   "appcard.warning.no-tls-check": "Ignore les contrôles HTTPS",
   "appcard.warning.no-tls-check.hint":
-    "Il désactive la vérification des certificats : ses téléchargements pourraient être altérés.",
+    "L'audit a trouvé du code qui désactive la vérification des certificats : ce qu'il télécharge pourrait être altéré.",
   "appcard.warning.runs-downloads": "Exécute des scripts téléchargés",
-  "appcard.warning.runs-downloads.hint": "Il télécharge un script et l'exécute aussitôt.",
+  "appcard.warning.runs-downloads.hint": "L'audit a trouvé du code qui télécharge un script et l'exécute aussitôt.",
   "appcard.warning.vulnerable": "Vulnérabilités connues",
-  "appcard.warning.vulnerable.hint": "Il embarque des bibliothèques avec des failles de sécurité publiées.",
+  "appcard.warning.vulnerable.hint":
+    "L'audit a trouvé des bibliothèques incluses présentant des failles de sécurité publiées.",
   "appcard.updated": "Mis à jour {when}",
   "appcard.update": "Mettre à jour",
   "appcard.uninstall": "Désinstaller",

@@ -3,6 +3,8 @@
 // Pure, so it's unit-tested (tests/findings.test.ts); labels and hints are message keys the
 // caller translates.
 
+import type { App, VirusScan } from "./types";
+
 export type FindingsInput = {
   // Audit warning IDs for the release (installWarnings), already limited to known ones.
   warnings: string[];
@@ -59,3 +61,20 @@ export function scanAccent(input: {
   if (results.length >= 4 && results.every((result) => result === "clean")) return "clean";
   return results.length > 0 || input.hasReport ? "partial" : "none";
 }
+
+// ClamAV, YARA, VirusTotal and MetaDefender.
+const SCANNERS = 4;
+export type ScanBadgeKind = "clean" | "infected" | "partial";
+
+// The scan badge of a release: its verdict by scanAccent's rule (Nothing flagged only once all four scanners have
+// reported and none flagged it), and how many of the four reported finding nothing.
+export const scanSummary = (scan: VirusScan, virusTotal?: App["virusTotal"], metaDefender?: App["metaDefender"]) => {
+  const verdicts: (string | undefined)[] = [scan.result ?? undefined, scan.yara?.result ?? undefined];
+  const external = [virusTotal, metaDefender].flatMap((report) =>
+    report?.state === "complete" && report.flagged !== undefined ? [report.flagged > 0] : [],
+  );
+  const passed = verdicts.filter((result) => result === "clean").length + external.filter((flagged) => !flagged).length;
+  const accent = scanAccent({ verdicts, external, hasReport: true });
+  const kind: ScanBadgeKind = accent === "none" ? "partial" : accent;
+  return { kind, count: `${passed}/${SCANNERS}` };
+};

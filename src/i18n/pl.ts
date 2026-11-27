@@ -176,17 +176,18 @@ export const pl: Record<MessageKey, string> = {
   "appcard.auditLink": "Otwórz audyt Decky Extended Plugins",
   "appcard.warning.blocked": "Zablokowana przez audyt",
   "appcard.warning.blocked.hint":
-    "Audyt wykrył złośliwe oprogramowanie lub uszkodzone archiwum. Instalacja niezalecana.",
+    "Audyt zablokował to wydanie, na przykład z powodu podejrzenia złośliwego oprogramowania lub uszkodzonego archiwum.",
   "appcard.warning.private-data": "Odczytuje prywatne dane",
-  "appcard.warning.private-data.hint": "Odczytuje dane logowania Steam, klucze SSH lub sekrety ze środowiska.",
+  "appcard.warning.private-data.hint":
+    "Audyt wykrył kod, który może uzyskiwać dostęp do danych logowania Steam, kluczy SSH lub sekretów ze środowiska.",
   "appcard.warning.persistence": "Zmienia uruchamianie systemu",
   "appcard.warning.persistence.hint":
-    "Edytuje profile powłoki, wstępnie ładuje biblioteki, ładuje moduły jądra lub dodaje reguły urządzeń, które działają także poza Decky.",
+    "Audyt wykrył kod, który może zmieniać profile powłoki, wstępnie ładowane biblioteki, moduły jądra lub reguły urządzeń. Takie zmiany mogą działać także poza Decky.",
   "appcard.warning.not-in-source": "Bardzo wysokie ryzyko: pobrany plik zawiera kod, którego nie ma na GitHubie",
   "appcard.warning.not-in-source.hint":
     "Pobrane wydanie zawiera kod, którego audyt nie mógł dopasować do opublikowanego kodu źródłowego. Może to ukrywać złośliwe zmiany. Przejrzyj wydanie przed instalacją; różnica nie dowodzi obecności złośliwego oprogramowania.",
   "appcard.warning.obfuscated": "Ukryty kod",
-  "appcard.warning.obfuscated.hint": "Zawiera zakodowany lub spakowany kod, który trudno odczytać.",
+  "appcard.warning.obfuscated.hint": "Audyt wykrył zakodowany lub spakowany kod, który trudno odczytać.",
   "audit.scope": "Sprawdza ograniczony zestaw wzorców. Wyniki wymagają oceny; kontrola nie dowodzi bezpieczeństwa.",
   "audit.sourceScope": "Różnice mogą wynikać z wygenerowanych plików i wymagają sprawdzenia.",
   "audit.sourceTag": "Tag źródła",
@@ -214,11 +215,12 @@ export const pl: Record<MessageKey, string> = {
   "audit.rootUnknown": "Żądanie root nieznane",
   "audit.more": "Więcej wyników: {count}",
   "appcard.warning.no-tls-check": "Pomija kontrolę HTTPS",
-  "appcard.warning.no-tls-check.hint": "Wyłącza sprawdzanie certyfikatów, więc to, co pobiera, mogło zostać zmienione.",
+  "appcard.warning.no-tls-check.hint":
+    "Audyt wykrył kod, który wyłącza sprawdzanie certyfikatów, więc to, co pobiera, może zostać zmienione.",
   "appcard.warning.runs-downloads": "Uruchamia pobrane skrypty",
-  "appcard.warning.runs-downloads.hint": "Pobiera skrypt i od razu go uruchamia.",
+  "appcard.warning.runs-downloads.hint": "Audyt wykrył kod, który pobiera skrypt i od razu go uruchamia.",
   "appcard.warning.vulnerable": "Znane podatności",
-  "appcard.warning.vulnerable.hint": "Zawiera biblioteki z opublikowanymi lukami bezpieczeństwa.",
+  "appcard.warning.vulnerable.hint": "Audyt wykrył dołączone biblioteki z opublikowanymi lukami bezpieczeństwa.",
   "appcard.updated": "Zaktualizowano {when}",
   "appcard.update": "Zaktualizuj",
   "appcard.uninstall": "Odinstaluj",

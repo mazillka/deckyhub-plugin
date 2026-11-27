@@ -179,17 +179,18 @@ export const ptPT: Record<MessageKey, string> = {
   "appcard.auditLink": "Abrir a auditoria do Decky Extended Plugins",
   "appcard.warning.blocked": "Bloqueado pela auditoria",
   "appcard.warning.blocked.hint":
-    "A auditoria encontrou malware ou um ficheiro corrompido. Instalação não recomendada.",
+    "A auditoria bloqueou esta versão, por exemplo por suspeita de malware ou por um ficheiro corrompido.",
   "appcard.warning.private-data": "Lê dados privados",
-  "appcard.warning.private-data.hint": "Lê dados de início de sessão do Steam, chaves SSH ou segredos do ambiente.",
+  "appcard.warning.private-data.hint":
+    "A auditoria encontrou código que pode aceder a dados de início de sessão do Steam, chaves SSH ou segredos do ambiente.",
   "appcard.warning.persistence": "Altera a inicialização",
   "appcard.warning.persistence.hint":
-    "Edita perfis da shell, pré-carrega bibliotecas, carrega módulos do kernel ou adiciona regras de dispositivo que continuam ativas fora do Decky.",
+    "A auditoria encontrou código que pode alterar perfis da shell, bibliotecas pré-carregadas, módulos do kernel ou regras de dispositivo. Essas alterações podem continuar ativas fora do Decky.",
   "appcard.warning.not-in-source": "Risco muito elevado: a transferência inclui código que não está no GitHub",
   "appcard.warning.not-in-source.hint":
     "A versão transferida contém código que a auditoria não conseguiu associar ao código-fonte publicado. Isto pode ocultar alterações maliciosas. Reveja a versão antes de instalar; uma diferença não prova a existência de malware.",
   "appcard.warning.obfuscated": "Código oculto",
-  "appcard.warning.obfuscated.hint": "Contém código codificado ou compactado difícil de ler.",
+  "appcard.warning.obfuscated.hint": "A auditoria encontrou código codificado ou empacotado difícil de ler.",
   "audit.scope":
     "Verifica um conjunto limitado de padrões. Os resultados exigem análise; isto não comprova a segurança.",
   "audit.sourceScope": "As diferenças podem ser ficheiros gerados e exigem análise.",
@@ -220,11 +221,12 @@ export const ptPT: Record<MessageKey, string> = {
   "audit.more": "Mais resultados: {count}",
   "appcard.warning.no-tls-check": "Ignora verificação HTTPS",
   "appcard.warning.no-tls-check.hint":
-    "Desativa a verificação de certificados, por isso o que transfere pode ter sido adulterado.",
+    "A auditoria encontrou código que desativa a verificação de certificados, por isso o que ele transfere pode ser adulterado.",
   "appcard.warning.runs-downloads": "Executa scripts transferidos",
-  "appcard.warning.runs-downloads.hint": "Transfere um script e executa-o de imediato.",
+  "appcard.warning.runs-downloads.hint":
+    "A auditoria encontrou código que transfere um script e o executa de imediato.",
   "appcard.warning.vulnerable": "Vulnerabilidades conhecidas",
-  "appcard.warning.vulnerable.hint": "Inclui bibliotecas com falhas de segurança publicadas.",
+  "appcard.warning.vulnerable.hint": "A auditoria encontrou bibliotecas incluídas com falhas de segurança publicadas.",
   "appcard.updated": "Atualizado {when}",
   "appcard.update": "Atualizar",
   "appcard.uninstall": "Desinstalar",
