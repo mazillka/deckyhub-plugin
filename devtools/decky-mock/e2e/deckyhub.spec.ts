@@ -2071,7 +2071,7 @@ test("Discover shows the registry's audit warnings next to Runs as root and expl
   await expect(app.locator(".deckyhub-fork-legend")).toContainText("carries a plugin on after its original stopped");
   await expect(app.locator(".deckyhub-ai-legend")).toContainText("no badge doesn't mean no AI was used");
   for (const [badge, meaning] of [
-    ["Blocked by audit", "Not recommended for installation."],
+    ["Blocked by audit", "suspected malware"],
     ["Reads private data", "Steam login data"],
     ["Changes system startup", "keep working outside Decky"],
     ["Very high risk: Download includes code that is not in GitHub", "could not match to the published source"],

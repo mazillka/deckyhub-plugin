@@ -178,17 +178,19 @@ export const nl: Record<MessageKey, string> = {
     "Waarschuwingen komen uit de automatische audit van Decky Extended Plugins op de release die je zou installeren. Routinebevindingen zoals sudo, mount of systemctl worden niet getoond. Een waarschuwing is geen bewijs van schade, en geen waarschuwing is geen bewijs van veiligheid.",
   "appcard.auditLink": "Audit van Decky Extended Plugins openen",
   "appcard.warning.blocked": "Geblokkeerd door audit",
-  "appcard.warning.blocked.hint": "De audit vond malware of een beschadigd archief. Installatie wordt afgeraden.",
+  "appcard.warning.blocked.hint":
+    "De audit heeft deze release geblokkeerd, bijvoorbeeld vanwege vermoedelijke malware of een beschadigd archief.",
   "appcard.warning.private-data": "Leest privégegevens",
-  "appcard.warning.private-data.hint": "Leest Steam-inloggegevens, SSH-sleutels of geheimen uit de omgeving.",
+  "appcard.warning.private-data.hint":
+    "De audit vond code die mogelijk toegang heeft tot Steam-inloggegevens, SSH-sleutels of geheimen uit de omgeving.",
   "appcard.warning.persistence": "Wijzigt het opstarten van het systeem",
   "appcard.warning.persistence.hint":
-    "Bewerkt shellprofielen, laadt bibliotheken vooraf, laadt kernelmodules of voegt apparaatregels toe, die ook buiten Decky blijven werken.",
+    "De audit vond code die mogelijk shellprofielen, vooraf geladen bibliotheken, kernelmodules of apparaatregels wijzigt. Zulke wijzigingen kunnen ook buiten Decky blijven werken.",
   "appcard.warning.not-in-source": "Zeer hoog risico: de download bevat code die niet op GitHub staat",
   "appcard.warning.not-in-source.hint":
     "De gedownloade release bevat code die de audit niet kon koppelen aan de gepubliceerde broncode. Dit kan schadelijke wijzigingen verbergen. Bekijk de release voordat je installeert; een verschil bewijst geen malware.",
   "appcard.warning.obfuscated": "Verborgen code",
-  "appcard.warning.obfuscated.hint": "Bevat gecodeerde of ingepakte code die moeilijk te lezen is.",
+  "appcard.warning.obfuscated.hint": "De audit vond gecodeerde of ingepakte code die moeilijk te lezen is.",
   "audit.scope":
     "Controleert een beperkt aantal patronen. Bevindingen moeten worden beoordeeld; dit bewijst geen veiligheid.",
   "audit.sourceScope": "Verschillen kunnen gegenereerde bestanden zijn en moeten worden beoordeeld.",
@@ -219,11 +221,11 @@ export const nl: Record<MessageKey, string> = {
   "audit.more": "Meer bevindingen: {count}",
   "appcard.warning.no-tls-check": "Slaat HTTPS-controles over",
   "appcard.warning.no-tls-check.hint":
-    "Schakelt certificaatcontroles uit, dus wat het downloadt kan gemanipuleerd zijn.",
+    "De audit vond code die certificaatcontroles uitschakelt, dus wat die downloadt kan worden gemanipuleerd.",
   "appcard.warning.runs-downloads": "Voert gedownloade scripts uit",
-  "appcard.warning.runs-downloads.hint": "Downloadt een script en voert het meteen uit.",
+  "appcard.warning.runs-downloads.hint": "De audit vond code die een script downloadt en meteen uitvoert.",
   "appcard.warning.vulnerable": "Bekende kwetsbaarheden",
-  "appcard.warning.vulnerable.hint": "Bevat bibliotheken met gepubliceerde beveiligingslekken.",
+  "appcard.warning.vulnerable.hint": "De audit vond meegeleverde bibliotheken met gepubliceerde beveiligingslekken.",
   "appcard.updated": "Bijgewerkt {when}",
   "appcard.update": "Bijwerken",
   "appcard.uninstall": "Verwijderen",

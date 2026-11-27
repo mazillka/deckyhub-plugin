@@ -173,18 +173,19 @@ export const tr: Record<MessageKey, string> = {
     "Uyarılar, Decky Extended Plugins'in yükleyeceğin sürüm için yaptığı otomatik denetimden gelir. sudo, mount veya systemctl gibi olağan bulgular gösterilmez. Bir uyarı zararın kanıtı değildir, uyarı olmaması da güvenliğin kanıtı değildir.",
   "appcard.auditLink": "Decky Extended Plugins denetimini aç",
   "appcard.warning.blocked": "Denetim tarafından engellendi",
-  "appcard.warning.blocked.hint": "Denetim kötü amaçlı yazılım veya bozuk bir arşiv buldu. Yüklenmesi önerilmez.",
+  "appcard.warning.blocked.hint":
+    "Denetim bu sürümü engelledi; örneğin kötü amaçlı yazılım şüphesi veya bozuk bir arşiv nedeniyle.",
   "appcard.warning.private-data": "Özel verileri okur",
   "appcard.warning.private-data.hint":
-    "Steam oturum verilerini, SSH anahtarlarını veya ortamdaki gizli bilgileri okur.",
+    "Denetim, Steam oturum verilerine, SSH anahtarlarına veya ortamdaki gizli bilgilere erişebilecek kod buldu.",
   "appcard.warning.persistence": "Sistem başlangıcını değiştirir",
   "appcard.warning.persistence.hint":
-    "Kabuk profillerini düzenler, kütüphaneleri önceden yükler, çekirdek modülleri yükler veya aygıt kuralları ekler; bunlar Decky dışında da çalışmaya devam eder.",
+    "Denetim, kabuk profillerini, önceden yüklenen kütüphaneleri, çekirdek modüllerini veya aygıt kurallarını değiştirebilecek kod buldu. Bu tür değişiklikler Decky dışında da etkili olmaya devam edebilir.",
   "appcard.warning.not-in-source": "Çok yüksek risk: İndirilen dosya GitHub’da olmayan kod içeriyor",
   "appcard.warning.not-in-source.hint":
     "İndirilen sürüm, denetimin yayımlanmış kaynak koduyla eşleştiremediği kodlar içeriyor. Bu durum kötü amaçlı değişiklikleri gizleyebilir. Yüklemeden önce sürümü inceleyin; uyuşmazlık kötü amaçlı yazılımı kanıtlamaz.",
   "appcard.warning.obfuscated": "Gizlenmiş kod",
-  "appcard.warning.obfuscated.hint": "Okunması zor, kodlanmış veya paketlenmiş kod içerir.",
+  "appcard.warning.obfuscated.hint": "Denetim, okunması zor, kodlanmış veya paketlenmiş kod buldu.",
   "audit.scope": "Sınırlı sayıda örüntüyü denetler. Bulgular incelenmelidir; bu güvenliği kanıtlamaz.",
   "audit.sourceScope": "Farklar oluşturulmuş dosyalar olabilir ve incelenmelidir.",
   "audit.sourceTag": "Kaynak etiketi",
@@ -212,11 +213,13 @@ export const tr: Record<MessageKey, string> = {
   "audit.rootUnknown": "Root isteği bilinmiyor",
   "audit.more": "Diğer bulgular: {count}",
   "appcard.warning.no-tls-check": "HTTPS denetimini atlar",
-  "appcard.warning.no-tls-check.hint": "Sertifika denetimlerini kapatır, bu yüzden indirdikleri kurcalanmış olabilir.",
+  "appcard.warning.no-tls-check.hint":
+    "Denetim, sertifika denetimlerini kapatan kod buldu; bu yüzden indirdikleri kurcalanabilir.",
   "appcard.warning.runs-downloads": "İndirilen betikleri çalıştırır",
-  "appcard.warning.runs-downloads.hint": "Bir betik indirir ve hemen çalıştırır.",
+  "appcard.warning.runs-downloads.hint": "Denetim, bir betik indirip hemen çalıştıran kod buldu.",
   "appcard.warning.vulnerable": "Bilinen güvenlik açıkları",
-  "appcard.warning.vulnerable.hint": "Yayımlanmış güvenlik açıkları olan kütüphaneler içerir.",
+  "appcard.warning.vulnerable.hint":
+    "Denetim, yayımlanmış güvenlik açıkları olan, pakete dahil edilmiş kütüphaneler buldu.",
   "appcard.updated": "Güncellendi: {when}",
   "appcard.update": "Güncelle",
   "appcard.uninstall": "Kaldır",

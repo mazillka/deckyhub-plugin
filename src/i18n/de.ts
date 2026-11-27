@@ -180,17 +180,18 @@ export const de: Record<MessageKey, string> = {
   "appcard.auditLink": "Audit von Decky Extended Plugins öffnen",
   "appcard.warning.blocked": "Vom Audit gesperrt",
   "appcard.warning.blocked.hint":
-    "Das Audit hat Malware oder ein defektes Archiv gefunden. Installation nicht empfohlen.",
+    "Das Audit hat diese Version blockiert, zum Beispiel wegen Verdachts auf Malware oder wegen eines defekten Archivs.",
   "appcard.warning.private-data": "Liest private Daten",
-  "appcard.warning.private-data.hint": "Es liest Steam-Anmeldedaten, SSH-Schlüssel oder Geheimnisse aus der Umgebung.",
+  "appcard.warning.private-data.hint":
+    "Das Audit hat Code gefunden, der möglicherweise auf Steam-Anmeldedaten, SSH-Schlüssel oder Geheimnisse aus der Umgebung zugreift.",
   "appcard.warning.persistence": "Ändert den Systemstart",
   "appcard.warning.persistence.hint":
-    "Es ändert Shell-Profile, lädt Bibliotheken vor, lädt Kernelmodule oder fügt Geräteregeln hinzu, die auch außerhalb von Decky wirken.",
+    "Das Audit hat Code gefunden, der möglicherweise Shell-Profile, vorgeladene Bibliotheken, Kernelmodule oder Geräteregeln ändert. Solche Änderungen können auch außerhalb von Decky wirken.",
   "appcard.warning.not-in-source": "Sehr hohes Risiko: Der Download enthält Code, der nicht auf GitHub ist",
   "appcard.warning.not-in-source.hint":
     "Das heruntergeladene Release enthält Code, den das Audit dem veröffentlichten Quellcode nicht zuordnen konnte. Dadurch könnten schädliche Änderungen verborgen werden. Prüfe das Release vor der Installation; eine Abweichung beweist keine Schadsoftware.",
   "appcard.warning.obfuscated": "Versteckter Code",
-  "appcard.warning.obfuscated.hint": "Es enthält kodierten oder gepackten Code, der schwer zu lesen ist.",
+  "appcard.warning.obfuscated.hint": "Das Audit hat kodierten oder gepackten Code gefunden, der schwer zu lesen ist.",
   "audit.scope":
     "Prüft eine begrenzte Auswahl von Mustern. Befunde müssen geprüft werden; Sicherheit lässt sich so nicht beweisen.",
   "audit.sourceScope": "Unterschiede können generierte Dateien sein und müssen geprüft werden.",
@@ -221,11 +222,13 @@ export const de: Record<MessageKey, string> = {
   "audit.more": "Weitere Befunde: {count}",
   "appcard.warning.no-tls-check": "Überspringt HTTPS-Prüfung",
   "appcard.warning.no-tls-check.hint":
-    "Es schaltet Zertifikatsprüfungen ab, sodass Downloads manipuliert werden könnten.",
+    "Das Audit hat Code gefunden, der Zertifikatsprüfungen abschaltet; was er herunterlädt, könnte also manipuliert werden.",
   "appcard.warning.runs-downloads": "Führt Downloads aus",
-  "appcard.warning.runs-downloads.hint": "Es lädt ein Skript herunter und führt es sofort aus.",
+  "appcard.warning.runs-downloads.hint":
+    "Das Audit hat Code gefunden, der ein Skript herunterlädt und sofort ausführt.",
   "appcard.warning.vulnerable": "Bekannte Schwachstellen",
-  "appcard.warning.vulnerable.hint": "Es bündelt Bibliotheken mit veröffentlichten Sicherheitslücken.",
+  "appcard.warning.vulnerable.hint":
+    "Das Audit hat mitgelieferte Bibliotheken mit veröffentlichten Sicherheitslücken gefunden.",
   "appcard.updated": "Aktualisiert {when}",
   "appcard.update": "Aktualisieren",
   "appcard.uninstall": "Deinstallieren",
