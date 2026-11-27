@@ -488,6 +488,11 @@ export const de: Record<MessageKey, string> = {
 
   "github.error": "GitHub-API hat {status} zurückgegeben",
   "release.noMatch": "Keine passende Version gefunden.",
+  "install.replacesStore":
+    "Diese GitHub-Version ersetzt deine installierte Kopie (v{version}), die einer Version im Decky-Store entspricht.",
+  "storeHome.update": "Im Decky-Store aktualisieren: {version}",
+  "storeHome.githubNewer": "GitHub: {version}, neuer als im Decky-Store",
+  "storeHome.githubNewerPrerelease": "GitHub: {version} (Vorabversion), neuer als im Decky-Store",
   "release.inStore": "Installiere dieses Plugin über den Store von Decky Loader.",
   "scan.notReviewed":
     "DeckyHub ist nicht der Decky-Store, und niemand prüft diese Plugins. Ein sauberer Scan bedeutet nur, dass keine bekannte Malware gefunden wurde.",

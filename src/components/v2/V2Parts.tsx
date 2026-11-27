@@ -1,3 +1,4 @@
+import { storeHomeNote } from "../AppCardParts";
 import { DialogButtonPrimary as Button, Focusable } from "@decky/ui";
 import { FaArrowUp, FaCog, FaExclamationTriangle, FaPlus } from "react-icons/fa";
 import type { TFunc } from "../../i18n/en";
@@ -97,6 +98,9 @@ export function Row({ app, selected, onSelect, t }: { app: App; selected: boolea
   );
 }
 
+const storeArrow = (app: App) =>
+  app.storeLatest && app.updateAvailable ? ` → ${displayVersion(app.storeLatest)}` : "";
+
 // The plugin's name, version and counts.
 function DetailHeader({ app }: { app: App }) {
   const version = app.installedVersion ?? app.latestVersion;
@@ -107,7 +111,7 @@ function DetailHeader({ app }: { app: App }) {
         <strong style={{ fontSize: "1.15em" }}>{app.name}</strong>
         <div style={{ color: colors.subtle, fontSize: "max(12px, 0.85em)" }}>
           {[
-            version && displayVersion(version),
+            version && displayVersion(version) + storeArrow(app),
             app.stats?.downloads !== undefined && `↓ ${compactNumber(app.stats.downloads)}`,
             app.stats?.stars != null && `★ ${compactNumber(app.stats.stars)}`,
           ]
@@ -158,6 +162,9 @@ function ScanFacts({ app, t }: { app: App; t: TFunc }) {
         <Dot color={DOT[scan]} />
         <span>{scanLabel(scan, t)}</span>
       </span>
+      {app.storeLatest && storeHomeNote(t, app) && (
+        <span style={{ color: colors.caution }}>{storeHomeNote(t, app)}</span>
+      )}
       {findingsOf(app)
         .findings.filter(notTheScanState)
         .map((finding) => (

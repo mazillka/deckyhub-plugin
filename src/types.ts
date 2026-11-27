@@ -35,6 +35,10 @@ export type App = {
   releaseNotes?: string;
   assets: Asset[];
   updateAvailable?: boolean | null;
+  // Set when the installed copy's home is the Decky store (storeHome): its newest version there, and the newer
+  // GitHub release if there is one. updateAvailable then means a newer store version.
+  storeLatest?: string;
+  githubNewer?: { version: string; prerelease: boolean };
   // Pinned by the user (hydrate): its updates are hidden.
   pinned?: boolean;
   // From the registry's stats.json (fetchPluginStats); absent for repos it doesn't list.
@@ -60,7 +64,7 @@ export type App = {
 // what Decky Extended Plugins' audit warns about in it (and in a newer pre-release, if any),
 // for a fork, the owner/name of the repo it was forked from, and the AI coding assistant
 // files (CLAUDE.md, AGENTS.md, .cursorrules...) in its repository, if any.
-type StoreStats = { downloads: number; activity?: { downloads: number; updates: number } };
+type StoreStats = { downloads: number; versions?: string[]; activity?: { downloads: number; updates: number } };
 
 export type PluginStats = {
   downloads?: number;

@@ -20,7 +20,8 @@ export function useRepoPreference(
   // whose release never changes its own version, say) until a newer one comes out.
   const latest = app.channel === channel ? app.latestVersion : null;
   const skipped = Boolean(latest && preference.skipVersion === latest);
-  const canSkip = Boolean(latest && (skipped || app.updateAvailable || initial.skipVersion === latest));
+  const canSkip =
+    !app.storeLatest && Boolean(latest && (skipped || app.updateAvailable || initial.skipVersion === latest));
   const toggleSkip = () => {
     const { skipVersion: _, ...rest } = preference;
     change(skipped ? rest : { ...rest, skipVersion: latest! });

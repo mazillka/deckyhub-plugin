@@ -470,6 +470,10 @@ export const ko: Record<MessageKey, string> = {
 
   "github.error": "GitHub API가 {status}을(를) 반환했습니다",
   "release.noMatch": "일치하는 릴리스가 없습니다.",
+  "install.replacesStore": "이 GitHub 릴리스는 Decky 스토어 버전과 일치하는 설치된 사본(v{version})을 대체합니다.",
+  "storeHome.update": "Decky 스토어에서 업데이트: {version}",
+  "storeHome.githubNewer": "GitHub: {version}, Decky 스토어보다 최신",
+  "storeHome.githubNewerPrerelease": "GitHub: {version}(프리릴리스), Decky 스토어보다 최신",
   "release.inStore": "이 플러그인은 Decky Loader 스토어에서 설치하세요.",
   "scan.notReviewed":
     "DeckyHub는 Decky 스토어가 아니며 이 플러그인들을 검토하는 사람은 없습니다. 검사 결과가 깨끗하다는 것은 알려진 악성코드가 없다는 뜻일 뿐입니다.",

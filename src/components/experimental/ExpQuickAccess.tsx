@@ -66,7 +66,7 @@ export function ExpQuickAccess({
                   <span>
                     {/* What changes: the version it is on now, then the one waiting. */}
                     {app.installedVersion ? `${displayVersion(app.installedVersion)} → ` : ""}
-                    {app.latestVersion ? displayVersion(app.latestVersion) : ""}
+                    {app.latestVersion ? displayVersion(app.storeLatest ?? app.latestVersion) : ""}
                   </span>
                 </li>
               ))}

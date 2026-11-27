@@ -14,6 +14,8 @@ export function clearStoreReleaseData(app: App): App {
     releaseUrl: undefined,
     publishedAt: undefined,
     updateAvailable: null,
+    storeLatest: undefined,
+    githubNewer: undefined,
     installedAssets: undefined,
     installedAudit: undefined,
     installedRisk: undefined,

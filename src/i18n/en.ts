@@ -472,6 +472,11 @@ export const en = {
 
   "github.error": "GitHub API returned {status}",
   "release.noMatch": "No matching release found.",
+  "install.replacesStore":
+    "This GitHub release replaces your installed copy (v{version}), which matches a Decky Store version.",
+  "storeHome.update": "Update in the Decky Store: {version}",
+  "storeHome.githubNewer": "GitHub: {version}, newer than the Decky Store",
+  "storeHome.githubNewerPrerelease": "GitHub: {version} (pre-release), newer than the Decky Store",
   "release.inStore": "Install this plugin from Decky Loader's Store.",
   "scan.notReviewed":
     "DeckyHub is not the Decky store and nobody reviews these plugins. A clean scan only means no known malware was found.",

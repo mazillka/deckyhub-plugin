@@ -484,6 +484,11 @@ export const nl: Record<MessageKey, string> = {
 
   "github.error": "GitHub API gaf {status} terug",
   "release.noMatch": "Geen passende release gevonden.",
+  "install.replacesStore":
+    "Deze GitHub-release vervangt je geïnstalleerde kopie (v{version}), die overeenkomt met een versie in de Decky Store.",
+  "storeHome.update": "Bijwerken in de Decky Store: {version}",
+  "storeHome.githubNewer": "GitHub: {version}, nieuwer dan in de Decky Store",
+  "storeHome.githubNewerPrerelease": "GitHub: {version} (prerelease), nieuwer dan in de Decky Store",
   "release.inStore": "Installeer deze plugin vanuit de Store van Decky Loader.",
   "scan.notReviewed":
     "DeckyHub is niet de Decky-store en niemand beoordeelt deze plugins. Een schone scan betekent alleen dat er geen bekende malware is gevonden.",

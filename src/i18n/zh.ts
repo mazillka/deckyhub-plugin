@@ -451,6 +451,10 @@ export const zh: Record<MessageKey, string> = {
 
   "github.error": "GitHub API 返回了 {status}",
   "release.noMatch": "未找到匹配的版本。",
+  "install.replacesStore": "此 GitHub 版本将替换你已安装的副本（v{version}），该副本与 Decky 商店中的某个版本一致。",
+  "storeHome.update": "请在 Decky 商店更新：{version}",
+  "storeHome.githubNewer": "GitHub：{version}，比 Decky 商店新",
+  "storeHome.githubNewerPrerelease": "GitHub：{version}（预发布版），比 Decky 商店新",
   "release.inStore": "请从 Decky Loader 商店安装此插件。",
   "scan.notReviewed": "DeckyHub 不是 Decky 商店,也没有人审核这些插件。扫描无异常只表示未发现已知恶意软件。",
   "release.noChecksum": "未找到带 SHA-256 校验和的 DeckyHub 发布 ZIP。",

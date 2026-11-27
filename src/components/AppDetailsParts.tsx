@@ -1,3 +1,4 @@
+import { storeHomeNote } from "./AppCardParts";
 import { DialogButtonPrimary as Button, Focusable, showModal } from "@decky/ui";
 import {
   FaArrowDown,
@@ -52,6 +53,9 @@ export function AppMeta({ app, t }: { app: App; t: TFunc }) {
       {app.identityUnverified && <span style={{ color: colors.warning }}>{t("appcard.identityUnverified")}</span>}
       {app.identityTrusted && <span style={{ color: colors.muted }}>{t("appcard.identityTrusted")}</span>}
       <AppBadges app={app} t={t} />
+      {storeHomeNote(t, app) && (
+        <span style={{ flexBasis: "100%", color: colors.caution }}>{storeHomeNote(t, app)}</span>
+      )}
       {/* What Runs as root means, right where you decide to install. */}
       {!app.store && app.stats?.root && (
         <span style={{ flexBasis: "100%", color: colors.caution }}>{t("appcard.runsAsRootHint")}</span>

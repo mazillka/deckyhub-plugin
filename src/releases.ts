@@ -9,7 +9,7 @@ import {
   type RepoPreference,
   type UpdateChannel,
 } from "./types";
-import { compareVersions, inChannel, installedRelease, releaseVersion } from "./version";
+import { compareVersions, inChannel, installedRelease, releaseVersion, storeHome } from "./version";
 import { fetchNoCors } from "@decky/api";
 import { githubFetch, githubResponseError, githubToken } from "./github";
 import {
@@ -253,17 +253,32 @@ export async function hydrate(app: App, force: boolean, preference?: RepoPrefere
   // An unverified plugin the user chose to trust, under the one name Decky can address it by, updates as a verified one.
   if (app.identityUnverified && app.uninstallName && preference?.trustedIdentity === app.uninstallName)
     app = { ...app, identityUnverified: false, identityTrusted: true, pluginName: app.uninstallName };
-  const { items, error } = await listAppReleases(app, force);
+  const [{ items, error }, stats] = await Promise.all([listAppReleases(app, force), fetchPluginStats(false)]);
+  const home = app.identityUnverified
+    ? undefined
+    : storeHome(stats[app.repo.toLowerCase()]?.store?.versions, app.installedVersion, items);
+  const storeUpdate = home && !preference?.pinVersion && compareVersions(home.storeLatest, app.installedVersion!) === 1;
+  const fromStore = { storeLatest: home?.storeLatest, githubNewer: home?.githubNewer };
   // The saved channel stays as it is, so a first stable release brings the card back to it.
   const prereleaseOnly = items.length > 0 && items.every((item) => item.prerelease);
   const channel: UpdateChannel = prereleaseOnly ? "prerelease" : (preference?.channel ?? "stable");
   const release = items.find((item) => inChannel(item, channel));
   if (!release)
-    return { ...app, channel, prereleaseOnly, latestPrerelease: undefined, error: error ?? tr("release.noMatch") };
+    return {
+      ...app,
+      ...fromStore,
+      ...(home && { updateAvailable: Boolean(storeUpdate), pinned: Boolean(preference?.pinVersion) }),
+      channel,
+      prereleaseOnly,
+      latestPrerelease: undefined,
+      // A store copy needs no GitHub release on its channel.
+      error: home ? null : (error ?? tr("release.noMatch")),
+    };
   const cmp = app.installedVersion ? compareVersions(releaseVersion(release), app.installedVersion) : null;
   const installed = app.identityUnverified ? undefined : installedRelease(items, app.installedVersion);
   return {
     ...app,
+    ...fromStore,
     channel,
     prereleaseOnly,
     installedAssets: installed?.release.assets,
@@ -276,8 +291,9 @@ export async function hydrate(app: App, force: boolean, preference?: RepoPrefere
     assets: release.assets,
     pinned: Boolean(preference?.pinVersion),
     // A skipped release counts as up to date until a newer one comes out; a pinned plugin never has an update.
-    updateAvailable:
-      app.identityUnverified || cmp === null
+    updateAvailable: home
+      ? Boolean(storeUpdate)
+      : app.identityUnverified || cmp === null
         ? null
         : cmp > 0 && preference?.skipVersion !== release.tag && !preference?.pinVersion,
   };

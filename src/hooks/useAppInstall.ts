@@ -51,7 +51,9 @@ export function useAppInstall(
       prerelease: chosen.prerelease === true,
       note: app.identityTrusted
         ? t("install.replaces", { name: app.pluginName ?? app.name, version: plainVersion(app.installedVersion) })
-        : undefined,
+        : app.storeLatest
+          ? t("install.replacesStore", { version: plainVersion(app.installedVersion) })
+          : undefined,
     });
   const runInstallAnyway = (chosen: AppReleaseOption, action: NonNullable<typeof anyway>) =>
     start(chosen, action, t("appcard.installAnyway"), {

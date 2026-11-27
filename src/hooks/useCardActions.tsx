@@ -80,8 +80,11 @@ export function useCardActions(props: AppCardProps) {
   const t = useT();
   // Quick install/update to the latest release of a Decky plugin;
   // Manage still offers other versions/channels.
+  // A store copy updates in Decky's store: no quick button for its GitHub build (Manage still lists releases).
   const install =
-    !app.store && app.latestVersion ? installAction(app, { tag: app.latestVersion, assets: app.assets }) : null;
+    !app.store && !app.storeLatest && app.latestVersion
+      ? installAction(app, { tag: app.latestVersion, assets: app.assets })
+      : null;
   // Only offer Update when the card's own status says one is available.
   const isUpdate = install?.type === PLUGIN_INSTALL_TYPE.UPDATE && app.updateAvailable === true;
   const quickAction = Boolean(

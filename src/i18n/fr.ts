@@ -486,6 +486,11 @@ export const fr: Record<MessageKey, string> = {
 
   "github.error": "L’API GitHub a renvoyé {status}",
   "release.noMatch": "Aucune version correspondante trouvée.",
+  "install.replacesStore":
+    "Cette version de GitHub remplace votre copie installée (v{version}), qui correspond à une version de la boutique Decky.",
+  "storeHome.update": "Mettre à jour dans la boutique Decky : {version}",
+  "storeHome.githubNewer": "GitHub : {version}, plus récente que dans la boutique Decky",
+  "storeHome.githubNewerPrerelease": "GitHub : {version} (préversion), plus récente que dans la boutique Decky",
   "release.inStore": "Installez ce plugin depuis la boutique de Decky Loader.",
   "scan.notReviewed":
     "DeckyHub n'est pas la boutique Decky et personne ne vérifie ces plugins. Une analyse propre signifie seulement qu'aucun malware connu n'a été trouvé.",
