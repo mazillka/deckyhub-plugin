@@ -1220,6 +1220,7 @@ test("The Manage window shows the plugin's description, details and a Repository
   await expect(app.locator(".steam-modal").getByRole("button", { name: "Repository" })).toBeVisible();
   // A plugin the official registry lists has a page on deckyhub.com.
   await expect(app.locator(".steam-modal").getByRole("button", { name: "DeckyHub page" })).toBeVisible();
+  await expect(app.locator(".steam-modal").getByRole("button", { name: "Search YouTube" })).toBeVisible();
 });
 
 test("Discover comes back as it was after a page opens in Steam's browser", async ({ page }) => {
@@ -1815,8 +1816,18 @@ for (const [uiStyle, layout] of [
       store: true,
     };
     const regularApp = { id: "other", name: "Other", repo: "example/other", store: false };
-    const apps = [storeApp, activityApp, uncountedApp, regularApp];
+    const apps = [storeApp, activityApp, uncountedApp, regularApp].map((app) => ({
+      asset: { include: [".zip"], exclude: ["source"] },
+      assets: [],
+      detect: { type: "decky-plugin" },
+      ...app,
+    }));
     const installRequests: string[] = [];
+    const releaseRequests: string[] = [];
+    page.on("request", (request) => {
+      const url = request.url().toLowerCase();
+      if (url.includes("api.github.com/repos/ebenbruyns/junkstore/releases")) releaseRequests.push(url);
+    });
     await recordInstalls(page);
     await page.route(BRIDGE_URL, (route) => {
       const req = route.request();
@@ -1858,6 +1869,7 @@ for (const [uiStyle, layout] of [
       await page.goto("/?preview=/deckyhub/search&bridge=http://127.0.0.1:8643");
       const app = mock(page);
       if (uiStyle === "experimental") await expect(app.locator(".dh-exp-nav")).toBeVisible();
+      if (uiStyle === "v2") await expect(app.locator(".deckyhub-v2-tabs")).toBeVisible();
       const field = app.getByLabel("Search GitHub");
       await field.fill("junk");
       await field.press("Enter");
@@ -1865,6 +1877,12 @@ for (const [uiStyle, layout] of [
       const rowFor = (repo: string) =>
         app.locator(".deckyhub-focus-ring").filter({ has: app.getByRole("heading", { name: repo.toUpperCase() }) });
       const row = rowFor(storeApp.repo);
+      await expect(row).toBeVisible();
+      if (uiStyle === "default") {
+        if (layout === "list") await expect(row).toHaveClass(/deckyhub-search-row/);
+        else await expect(row).not.toHaveClass(/deckyhub-search-row/);
+      }
+      if (uiStyle === "experimental") await expect(row).toHaveClass(/dh-exp-row/);
       await expect(row.getByRole("button", { name: "Add", exact: true })).toHaveCount(0);
       await row.getByRole("button", { name: "Install", exact: true }).click();
       const modal = app.locator(".steam-modal");
@@ -1906,6 +1924,7 @@ for (const [uiStyle, layout] of [
       await close();
       await expect(rowFor(regularApp.repo).getByRole("button", { name: "Install", exact: true })).toBeVisible();
       expect(installRequests).toEqual([]);
+      expect(releaseRequests).toEqual([]);
       expect(
         await pluginFrame(page).evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls),
       ).toEqual([]);
@@ -2593,7 +2612,26 @@ test("Search confirms before replacing an installed plugin with unverified ident
     const modal = app.locator(".steam-modal");
     await expect(modal.getByText(/couldn't match the installed plugin/)).toContainText("eugeniosegala/MAKO");
     await expect(modal.getByRole("button", { name: "Install anyway", exact: true })).toBeVisible();
-    await expect.poll(() => pluginFrame(page).evaluate(() => (window as any).__installCalls)).toEqual([]);
+    await expect
+      .poll(() =>
+        pluginFrame(page).evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls),
+      )
+      .toEqual([]);
+    await modal.getByRole("button", { name: "Install anyway", exact: true }).click();
+    await expect
+      .poll(() =>
+        pluginFrame(page).evaluate(() => (window as unknown as { __installCalls: unknown[][] }).__installCalls),
+      )
+      .toEqual([
+        [
+          "utilities/install_plugin",
+          localZip(makoRelease("plugin-v1.2.3", sha).assets[0].browser_download_url),
+          "MAKO - Frame Generation",
+          "1.2.3",
+          sha,
+          2,
+        ],
+      ]);
   } finally {
     rmSync(pluginDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
   }
@@ -3994,6 +4032,20 @@ test("With motion allowed, windows pop in and switching views slides the list in
   await expect.poll(() => pluginFrame(page).evaluate(() => document.getAnimations().length)).toBeGreaterThan(0);
 });
 
+test("With motion allowed, sections rise in and the controller's highlight bounces", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
+  const app = mock(page);
+  const animationOf = (element: Element) => getComputedStyle(element).animationName;
+  await expect.poll(() => app.locator(".deckyhub-card").first().evaluate(animationOf)).toBe("deckyhub-section");
+  // Steam marks the controller's focus with this class; the mock has no Steam to add it.
+  const button = app.locator(".deckyhub-motion button").first();
+  await button.evaluate((element) => element.classList.add("gpfocus"));
+  expect(await button.evaluate(animationOf)).toBe("deckyhub-focus-bounce");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  expect(await button.evaluate(animationOf)).toBe("none");
+});
+
 // Seeds an installed Decky plugin where dev-server.py scans for them.
 function seedPlugin(dir: string, name: string, version: string, repository = "eugeniosegala/MAKO") {
   const pluginDir = new URL(`../.dev-data/plugins/${dir}/`, import.meta.url);
@@ -4011,27 +4063,26 @@ const defaultSettings = {
   githubToken: "",
   density: "default",
   haptics: true,
+  navSound: true,
   hiddenButtons: [],
 };
 
-test("Moving focus ticks the Deck's trackpads, unless Display Settings turns it off", async ({ page }) => {
-  // Steam's controller list (the built-in Deck controller is type 4) and its haptics call.
+test("Moving focus clicks the Deck's trackpads and plays Steam's sound, unless turned off", async ({ page }) => {
+  // Steam's controller store (the built-in Deck controller is type 4) and its haptics call.
   await page.addInitScript(() => {
     const ticks: unknown[][] = [];
+    const sounds: number[] = [];
     Object.assign(window, {
       __ticks: ticks,
-      SteamClient: {
-        Input: {
-          RegisterForControllerListChanges: (callback: (list: unknown[]) => void) => {
-            callback([
-              { eControllerType: 2, nControllerIndex: 0 },
-              { eControllerType: 4, nControllerIndex: 3 },
-            ]);
-            return { unregister: () => {} };
-          },
-          TriggerSimpleHapticEvent: (...args: unknown[]) => ticks.push(args),
-        },
+      __sounds: sounds,
+      SteamUIStore: { GamepadUIAudio: { PlayNavSound: (type: number) => sounds.push(type) } },
+      ControllerStore: {
+        GetControllers: () => [
+          { eControllerType: 2, nControllerIndex: 0 },
+          { eControllerType: 4, nControllerIndex: 3 },
+        ],
       },
+      SteamClient: { Input: { TriggerHapticPulse: (...args: unknown[]) => ticks.push(args) } },
     });
   });
   await bridgeCall(page, "save_settings", defaultSettings);
@@ -4040,17 +4091,24 @@ test("Moving focus ticks the Deck's trackpads, unless Display Settings turns it 
     const app = mock(page);
     const ticks = () =>
       pluginFrame(page).evaluate(() => (window as unknown as { __ticks: unknown[][] }).__ticks.length);
+    const sounds = () => pluginFrame(page).evaluate(() => (window as unknown as { __sounds: number[] }).__sounds);
     const toggle = app.getByLabel("Haptic feedback when navigating");
+    const soundToggle = app.getByLabel("Sound when navigating");
+    await expect(soundToggle).toBeChecked();
     await expect(toggle).toBeChecked();
 
     await app.getByLabel("Language").focus();
     await expect.poll(ticks).toBeGreaterThan(0);
-    // The first focus registers for the controller list; this one ticks on the Deck's controller.
+    // Both sides of the Deck's controller, not the other pad.
     await page.waitForTimeout(60);
     await toggle.focus();
     expect(
-      await pluginFrame(page).evaluate(() => (window as unknown as { __ticks: unknown[][] }).__ticks.at(-1)),
-    ).toEqual([3, 2, 1, 1, 0]);
+      await pluginFrame(page).evaluate(() => (window as unknown as { __ticks: unknown[][] }).__ticks.slice(-2)),
+    ).toEqual([
+      [3, 0, 48000, 0],
+      [3, 1, 48000, 0],
+    ]);
+    expect((await sounds()).at(-1)).toBe(24);
 
     await toggle.click();
     await expect(toggle).not.toBeChecked();
@@ -4060,9 +4118,36 @@ test("Moving focus ticks the Deck's trackpads, unless Display Settings turns it 
     await page.waitForTimeout(60);
     await toggle.focus();
     expect(await ticks()).toBe(before);
+
+    // The sound has its own switch.
+    await soundToggle.click();
+    await expect(soundToggle).not.toBeChecked();
+    await page.waitForTimeout(300);
+    const played = (await sounds()).length;
+    await app.getByLabel("Language").focus();
+    await page.waitForTimeout(60);
+    await toggle.focus();
+    expect((await sounds()).length).toBe(played);
   } finally {
     await bridgeCall(page, "save_settings", defaultSettings);
   }
+});
+
+test("The Settings tabs can't be scrolled sideways, as Steam's tab slide did on L1 / R1", async ({ page }) => {
+  await page.goto("/?preview=/deckyhub/settings&bridge=http://127.0.0.1:8643");
+  await expect(mock(page).getByLabel("Language")).toBeVisible();
+  const scrolled = await mock(page)
+    .locator(".deckyhub-settings-tabs")
+    .evaluate((tabs) => {
+      // Stands in for the tab sliding in from the right, which Steam then focuses.
+      const incoming = document.createElement("button");
+      incoming.style.cssText = "display:block;width:10px;height:10px;margin-left:150%";
+      tabs.append(incoming);
+      incoming.focus();
+      tabs.scrollLeft = 300;
+      return tabs.scrollLeft;
+    });
+  expect(scrolled).toBe(0);
 });
 
 test("Moving focus up into a card or the page header brings its title into view", async ({ page }) => {

@@ -65,18 +65,7 @@ function writeCache(key: string, data: unknown): void {
   }
 }
 
-function matchingAssets(app: App, assets: Asset[]): Asset[] {
-  const include = app.asset.include.map((word) => word.toLowerCase());
-  const exclude = app.asset.exclude.map((word) => word.toLowerCase());
-  return assets.filter((asset) => {
-    const name = asset.name.toLowerCase();
-    return (
-      name.endsWith(".zip") &&
-      !exclude.some((word) => name.includes(word)) &&
-      (!include.length || include.every((word) => name.includes(word)))
-    );
-  });
-}
+import { matchingAssets, matchesReleaseTag } from "./releaseFilters";
 
 // A repo's recent non-draft releases with every asset, newest first — the one
 // GitHub fetch behind the cards (hydrate), both version pickers and DeckyHub's
@@ -219,7 +208,7 @@ export function listAppReleases(app: App, force = false): Promise<{ items: AppRe
       listOrError(
         fetchReleases(app.repo, force).then((releases) =>
           releases
-            .filter((release) => !tagInclude || release.tag.toLowerCase().includes(tagInclude))
+            .filter((release) => matchesReleaseTag(release.tag, tagInclude))
             .map((release) => ({ ...release, assets: matchingAssets(app, release.assets) }))
             .filter((release) => release.assets.length > 0),
         ),

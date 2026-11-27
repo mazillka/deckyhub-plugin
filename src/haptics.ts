@@ -1,42 +1,61 @@
 import { log } from "./log";
 
-// The tick Steam itself plays when its trackpad cursor moves onto a new element:
-// TriggerSimpleHapticEvent(controller, 2 = both pads, 1 = Tick, intensity 1, gain 0),
-// on the Deck's built-in controller (type 4) only. Played as focus moves within
-// DeckyHub (Motion in index.tsx), unless Display Settings turns it off.
+// Feedback as focus moves within DeckyHub (Motion in index.tsx, and every window in
+// WideModal.tsx). Display Settings turns either one off.
+//
+// Haptics: one long pulse, TriggerHapticPulse(controller, side 0 and 1, 48000 (pulse length,
+// microseconds), 0), on the built-in controller (Steam's Deck types, 4 and 10). Picked by feel
+// on a Deck, where TriggerSimpleHapticEvent was too weak at any strength. Steam no longer has
+// RegisterForControllerListChanges, so the controller comes from its ControllerStore.
+//
+// Sound: Steam's own navigation sound (ESteamUISound.BasicNav), so no audio ships with
+// DeckyHub and Steam's volume applies. Steam's audio store keeps one pending sound, so
+// this should merge with a sound Steam plays for the same move (unverified on hardware).
+const BASIC_NAV_SOUND = 24;
+
 let hapticsOn = true;
 
-let deckController: number | undefined;
+let soundOn = true;
 
-let controllerList: { unregister: () => void } | null = null;
-
-let lastTick = 0;
+let lastMove = 0;
 
 export const setHaptics = (on: boolean) => {
   hapticsOn = on;
 };
 
-export function hapticTick() {
-  const input = (window as any).SteamClient?.Input;
-  // One tick per move: a focus change can fire several focus events at once.
-  if (!hapticsOn || !input || Date.now() - lastTick < 40) return;
+export const setNavSound = (on: boolean) => {
+  soundOn = on;
+};
+
+function playSound() {
+  if (!soundOn) return;
   try {
-    controllerList ??= input.RegisterForControllerListChanges(
-      (controllers: { eControllerType: number; nControllerIndex: number }[]) => {
-        deckController = controllers.find((controller) => controller.eControllerType === 4)?.nControllerIndex;
-      },
-    );
-    if (deckController === undefined) return;
-    lastTick = Date.now();
-    input.TriggerSimpleHapticEvent(deckController, 2, 1, 1, 0);
+    (window as any).SteamUIStore?.GamepadUIAudio?.PlayNavSound(BASIC_NAV_SOUND);
   } catch (error) {
-    log(`Haptic tick failed: ${error}`);
+    log(`Navigation sound failed: ${error}`);
+    soundOn = false;
+  }
+}
+
+function hapticClick() {
+  const input = (window as any).SteamClient?.Input;
+  if (!hapticsOn || !input) return;
+  try {
+    const controllers: { eControllerType: number; nControllerIndex: number }[] =
+      (window as any).ControllerStore?.GetControllers() ?? [];
+    const builtIn = controllers.find(({ eControllerType }) => eControllerType === 4 || eControllerType === 10);
+    if (!builtIn) return;
+    for (const side of [0, 1]) input.TriggerHapticPulse(builtIn.nControllerIndex, side, 48000, 0);
+  } catch (error) {
+    log(`Haptic feedback failed: ${error}`);
     hapticsOn = false;
   }
 }
 
-// Stops listening for controllers; DeckyHub's onDismount (via markUnloaded).
-export function stopHaptics() {
-  controllerList?.unregister();
-  controllerList = null;
+export function navFeedback() {
+  // Once per move: a focus change can fire several focus events at once.
+  if (Date.now() - lastMove < 40) return;
+  lastMove = Date.now();
+  playSound();
+  hapticClick();
 }

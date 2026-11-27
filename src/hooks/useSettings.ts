@@ -15,7 +15,10 @@ const DEFAULTS: Settings = {
   githubToken: "",
   density: "default",
   haptics: true,
+  navSound: true,
   quickAccessTab: true,
+  hideSupport: false,
+  hideRemoteWhenOff: false,
   uiStyle: "default",
   hiddenButtons: [],
 };
@@ -67,7 +70,15 @@ export function useSettings() {
       if ("quickAccessTab" in next) setQuickAccessTab(saved.quickAccessTab);
       // Every mounted I18nProvider (one per route) re-syncs both the locale
       // and the GitHub token off this event — see i18n/index.tsx.
-      if ("language" in next || "githubToken" in next || "density" in next || "haptics" in next)
+      if (
+        "language" in next ||
+        "githubToken" in next ||
+        "density" in next ||
+        "haptics" in next ||
+        "navSound" in next ||
+        "hideSupport" in next ||
+        "hideRemoteWhenOff" in next
+      )
         window.dispatchEvent(new Event(LOCALE_CHANGED));
     });
   };

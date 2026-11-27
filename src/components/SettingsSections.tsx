@@ -74,7 +74,7 @@ export function LanguageSection({ settings, update }: { settings: Settings; upda
   );
 }
 
-// Layout (shared with the Grid / List switches), density, items per row, haptics,
+// Layout (shared with the Grid / List switches), density, items per row, haptics, sound,
 // DeckyHub's Quick Access tab,
 // and the Manage-window buttons to hide.
 export function DisplaySection({
@@ -142,10 +142,32 @@ export function DisplaySection({
         </PanelSectionRow>
         <PanelSectionRow>
           <ToggleField
+            label={t("settings.navSound")}
+            checked={settings.navSound}
+            onChange={(checked) => update({ navSound: checked })}
+          />
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <ToggleField
             label={t("settings.quickAccessTab")}
             description={t("settings.quickAccessTabHint")}
             checked={settings.quickAccessTab}
             onChange={(checked) => update({ quickAccessTab: checked })}
+          />
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <ToggleField
+            label={t("settings.hideSupport")}
+            checked={settings.hideSupport}
+            onChange={(checked) => update({ hideSupport: checked })}
+          />
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <ToggleField
+            label={t("settings.hideRemoteWhenOff")}
+            description={t("settings.hideRemoteWhenOffHint")}
+            checked={settings.hideRemoteWhenOff}
+            onChange={(checked) => update({ hideRemoteWhenOff: checked })}
           />
         </PanelSectionRow>
         {HIDEABLE_BUTTONS.map(([name, label]) => (

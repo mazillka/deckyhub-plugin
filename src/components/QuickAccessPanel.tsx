@@ -1,5 +1,7 @@
-import { useEffect, useRef } from "react";
-import type { App } from "../types";
+import { useEffect, useRef, useState } from "react";
+import { getSettings } from "../api";
+import { LOCALE_CHANGED } from "../i18n";
+import type { App, Settings } from "../types";
 import { ExpQuickAccess } from "./experimental/ExpQuickAccess";
 import { QuickAccessNav } from "./QuickAccessNav";
 import { RateLimitBanner } from "./RateLimitBanner";
@@ -24,6 +26,14 @@ export function QuickAccessPanel({
   useEffect(() => {
     requestAnimationFrame(() => ref.current?.scrollIntoView({ block: "start" }));
   }, []);
+  // Nothing optional is drawn until the choices are known, so a hidden section never flashes up.
+  const [settings, setSettings] = useState<Settings>();
+  useEffect(() => {
+    const load = () => void getSettings().then(setSettings);
+    load();
+    window.addEventListener(LOCALE_CHANGED, load);
+    return () => window.removeEventListener(LOCALE_CHANGED, load);
+  }, []);
   const updates = apps.filter((app) => app.updateAvailable);
   return (
     <div ref={ref} className="deckyhub-qam">
@@ -34,8 +44,8 @@ export function QuickAccessPanel({
         <QuickAccessNav updateCount={updates.length} listedCount={listedCount} installedCount={installedCount} />
       )}
       <UiStyleSection />
-      <RemoteInstallSection />
-      <SupportSection />
+      {settings && <RemoteInstallSection hideWhenOff={settings.hideRemoteWhenOff} />}
+      {settings && !settings.hideSupport && <SupportSection />}
     </div>
   );
 }

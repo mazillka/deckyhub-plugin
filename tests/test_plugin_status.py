@@ -153,6 +153,57 @@ class PluginStatusTests(unittest.TestCase):
                 "3.2.1",
             )
 
+    def test_get_apps_preserves_store_only_metadata_for_an_unverified_install(self):
+        payload = {
+            "schemaVersion": 1,
+            "apps": [
+                {
+                    "id": "store-controls",
+                    "name": "Game Controls",
+                    "repo": "publisher/store-controls",
+                    "category": "Utilities",
+                    "asset": {"include": [], "exclude": []},
+                    "detect": {"type": "decky-plugin", "names": ["Store Controls"]},
+                    "store": True,
+                },
+                {
+                    "id": "community-controls",
+                    "name": "Game Controls",
+                    "repo": "community/community-controls",
+                    "category": "Utilities",
+                    "asset": {"include": ["controls-"], "exclude": []},
+                    "detect": {"type": "decky-plugin", "names": ["Community Controls"]},
+                },
+            ],
+        }
+        plugin = Plugin()
+        plugin.settings = {"customRepos": []}
+        plugin.apps = registry.parse_registry(payload)
+        with tempfile.TemporaryDirectory() as home, patch.object(sys.modules["decky"], "DECKY_HOME", home, create=True):
+            plugin_dir = Path(home) / "plugins" / "store-controls"
+            plugin_dir.mkdir(parents=True)
+            (plugin_dir / "plugin.json").write_text(
+                json.dumps({"name": "Store Controls", "version": "2.1.0"}), encoding="utf-8"
+            )
+            apps = asyncio.run(plugin.get_apps())["apps"]
+
+        by_repo = {app["repo"]: app for app in apps}
+        self.assertEqual(set(by_repo), {"publisher/store-controls", "community/community-controls"})
+        store_app = by_repo["publisher/store-controls"]
+        self.assertIs(store_app["store"], True)
+        self.assertEqual(store_app["name"], "Game Controls")
+        self.assertEqual(store_app["installedVersion"], "2.1.0")
+        self.assertIs(store_app["identityUnverified"], True)
+        self.assertIsNone(store_app["pluginName"])
+        self.assertEqual(store_app["uninstallName"], "Store Controls")
+
+        community_app = by_repo["community/community-controls"]
+        self.assertFalse(community_app.get("store"))
+        self.assertEqual(community_app["name"], "Game Controls")
+        self.assertIsNone(community_app["installedVersion"])
+        self.assertIs(community_app["identityUnverified"], False)
+        self.assertIsNone(community_app["uninstallName"])
+
     def test_get_apps_reports_the_installed_plugin_name(self):
         with tempfile.TemporaryDirectory() as home:
             plugin_dir = Path(home) / "plugins" / "mako"
@@ -297,6 +348,23 @@ class PluginStatusTests(unittest.TestCase):
 
             self.assertIs(asyncio.run(plugin.save_settings({}))["haptics"], True)
             self.assertIs(asyncio.run(plugin.save_settings({"haptics": False}))["haptics"], False)
+
+    def test_navigation_sound_default_on_and_can_be_turned_off(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.settings_path = Path(home) / "settings.json"
+
+            self.assertIs(asyncio.run(plugin.save_settings({}))["navSound"], True)
+            self.assertIs(asyncio.run(plugin.save_settings({"navSound": False}))["navSound"], False)
+
+    def test_quick_access_sections_show_until_the_owner_hides_them(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = Plugin()
+            plugin.settings_path = Path(home) / "settings.json"
+
+            for key in ("hideSupport", "hideRemoteWhenOff"):
+                self.assertIs(asyncio.run(plugin.save_settings({}))[key], False)
+                self.assertIs(asyncio.run(plugin.save_settings({key: True}))[key], True)
 
     def test_quick_access_tab_default_on_for_old_settings_and_can_be_turned_off(self):
         with tempfile.TemporaryDirectory() as home:
@@ -899,6 +967,18 @@ class PluginStatusTests(unittest.TestCase):
             two = asyncio.run(plugin.download_asset(second, "owner/repo"))
             self.assertEqual(plugin.downloads[one["jobId"]]["filename"], "asset.zip")
             self.assertEqual(plugin.downloads[two["jobId"]]["filename"], "asset (1).zip")
+
+    def test_overwrite_does_not_make_two_active_downloads_share_a_path(self):
+        with tempfile.TemporaryDirectory() as home, patch("deckyhub.paths.PLUGIN_DOWNLOAD_DIR", home):
+            plugin = Plugin()
+            plugin.settings = {"overwriteExisting": True}
+            plugin.downloads = {}
+            plugin.download_queue = asyncio.Queue()
+            first = {"name": "asset.zip", "url": "https://github.com/owner/one/releases/download/v1/asset.zip"}
+            second = {"name": "asset.zip", "url": "https://github.com/owner/two/releases/download/v1/asset.zip"}
+            one = asyncio.run(plugin.download_asset(first, "owner/one"))
+            two = asyncio.run(plugin.download_asset(second, "owner/two"))
+            self.assertNotEqual(plugin.downloads[one["jobId"]]["path"], plugin.downloads[two["jobId"]]["path"])
 
     def test_cancelling_an_active_download_removes_partial_file(self):
         with tempfile.TemporaryDirectory() as home:

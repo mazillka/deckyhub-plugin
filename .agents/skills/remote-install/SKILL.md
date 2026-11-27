@@ -14,9 +14,8 @@ A browser on the same network pairs with the device once, then asks it to manage
 | Listener (QUIC/WebTransport, pinned certificate) | `py_modules/deckyhub/remote_install_transport.py`, `remote_install_store.py` |
 | Rules and state | `remote_install_service.py` (authorizes every op), `remote_install_queue.py` (one request's life: pending, approved, installing, a terminal state), `remote_install.py` (RPCs for the frontend) |
 | Device UI | `src/components/RemoteInstallSection.tsx` (Quick Access), `RemoteModals.tsx` (pairing and Paired browsers windows), `remoteRequests.tsx`, `RemotePluginUninstall.tsx`, `RemotePluginToggle.tsx`, `src/remoteRunner.ts` |
-| Website | `docs/remote-install.js` (the page: starts the parts below), `remote-session.js` (status line, connection), `remote-devices.js` (paired devices: list, picker, choosing one), `remote-pairing.js` (pairing, reconnect), `remote-request.js` (one install/uninstall/enable/disable request), `remote-core.js` (helpers with no page: links, pins, one request, browser name and id), `remote-scan.js` (camera QR), `remote-share.js` (link for another browser), `remote-plugins.js` (installed list, plugin packs), `remote-updates.js` (the updates line, app install), `remote-install.css`, `docs/remote-install/` (manifest, service worker), markup in `devtools/remote_panel.py` |
-| Ukrainian page | `devtools/remote_page_uk.py` (markup, checked at build), `docs/remote-i18n.js` (what the scripts write) |
-| Mock and tests | `devtools/decky-mock/dev-server.py` (fake listener, `mock_remote_browser_*` routes), `devtools/decky-mock/e2e/remote-install.spec.ts`, `tests/test_remote_*.py`, `tests/remote-*.test.js` |
+| Website | The Paired devices page, in [mazillka/deckyhub-site](https://github.com/mazillka/deckyhub-site): `remote-*.js`, its styles, manifest and service worker, the markup and the Ukrainian text. A change to the protocol needs a pull request in both repositories |
+| Mock and tests | `devtools/decky-mock/dev-server.py` (fake listener, `mock_remote_browser_*` routes), `devtools/decky-mock/e2e/remote-install.spec.ts`, `tests/test_remote_*.py` |
 
 ## What a browser can ask
 
@@ -38,9 +37,9 @@ The queue allows one claimed request at a time. A request expires two minutes af
 1. Queue: add it to `_ACTIONS`, its terminal status to `_TERMINAL` and `transition_local`, and its fields to `InstallRequest`.
 2. Service: accept it in `_remote`, identify its plugins the way `_snapshot_installed_name` does, check again in `claim`, map it in `finish`.
 3. Device: dispatch it in `remoteRequests.tsx` with a confirmation like the others, add the type to `src/types.ts` and `src/api.ts`, a label in `RemoteInstallSection.tsx`, and strings in every locale (see the `localization` skill).
-4. Site: statuses and messages in `remote-install.js`, buttons in `remote-plugins.js`, the Ukrainian text in `remote-i18n.js` (a test fails on a sentence without one) and, for markup, `remote_page_uk.py`.
+4. Site (in mazillka/deckyhub-site): statuses, messages, buttons, the Ukrainian text and any markup, with its tests.
 5. Tests: the service and queue tests, an e2e test through the mock, and a look on a real device (`deck-test`: the `windows` scenario for any new window).
 
 ## The Paired devices page
 
-Adding a device is a `<dialog>`; the page behind it is the device list and the installed plugins. It installs as an app (manifest and service worker scoped to `/remote-install/`; the worker only keeps a copy for offline) and, with permission, notifies about updates while the page or app is open: there is no server, so a closed app cannot reach a device on the user's Wi-Fi, and real push would need one (a privacy decision for the owner, not something to add quietly). The page exists in English at `/remote-install/` and `/paired-devices/` and in Ukrainian under `/uk/`; `build-site.py` writes them from `plugin_pages.write_pages`.
+Adding a device is a `<dialog>`; the page behind it is the device list and the installed plugins. It installs as an app and, with permission, notifies about updates while the page or app is open: there is no server, so a closed app cannot reach a device on the user's Wi-Fi, and real push would need one (a privacy decision for the owner, not something to add quietly). It is built and served by mazillka/deckyhub-site.

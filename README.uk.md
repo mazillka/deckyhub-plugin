@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/favicon.svg" width="80" height="80" alt="">
+<img src="https://deckyhub.com/favicon.svg" width="80" height="80" alt="">
 
 # DeckyHub
 
@@ -160,7 +160,7 @@ Decky Loader має бути вже встановлений. Пароль ад�
 
    `https://github.com/mazillka/deckyhub-plugin/releases/latest/download/DeckyHub.zip`
 
-   <img src="docs/install-link-qr.svg" width="140" alt="QR-код наведеного вище посилання">
+   <img src="https://deckyhub.com/install-link-qr.svg" width="140" alt="QR-код наведеного вище посилання">
 
    Відскануйте QR-код, щоб мати посилання на телефоні, поки ви його вводите.
 3. Оберіть значок DeckyHub із чотирьох квадратів у меню швидкого доступу (або Decky → **DeckyHub**).

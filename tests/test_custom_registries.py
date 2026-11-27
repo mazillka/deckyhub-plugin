@@ -79,6 +79,33 @@ NEWEST_RELEASE_URL = "https://release.test/registry-2026.10.31-2-develop/apps.js
 
 
 class CustomRegistryTests(unittest.TestCase):
+    def test_official_status_tracks_network_cache_and_recovery(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = self.plugin(home)
+            data = payload("owner/one")
+            with patch.object(
+                registry, "fetch_official_registry", return_value=(parse_registry(data), json.dumps(data))
+            ):
+                plugin._load_registry()
+            self.assertEqual(plugin.registry_status["source"], "network")
+            self.assertIsNotNone(plugin.registry_status["updatedAt"])
+            with patch.object(registry, "fetch_official_registry", side_effect=URLError("offline")):
+                plugin._load_registry()
+            self.assertEqual(plugin.registry_status["source"], "cache")
+            self.assertGreater(plugin.registry_status["updatedAt"], 0)
+            with patch.object(
+                registry, "fetch_official_registry", return_value=(parse_registry(data), json.dumps(data))
+            ):
+                plugin._load_registry()
+            self.assertEqual(plugin.registry_status["source"], "network")
+
+    def test_official_status_reports_no_cache(self):
+        with tempfile.TemporaryDirectory() as home:
+            plugin = self.plugin(home)
+            with patch.object(registry, "fetch_official_registry", side_effect=URLError("offline")):
+                plugin._load_registry()
+            self.assertEqual(plugin.registry_status, {"source": "unavailable", "updatedAt": None})
+
     def setUp(self):
         # Never ask GitHub's API from a test: the newest pre-release is a fixed link.
         stub = patch.object(
@@ -215,7 +242,9 @@ class CustomRegistryTests(unittest.TestCase):
 
             async def switch(settings):
                 await plugin.save_settings(settings)
-                await getattr(plugin, "registry_task", asyncio.sleep(0))
+                task = getattr(plugin, "registry_task", None)
+                if task is not None:
+                    await task
 
             with patch.object(registry, "fetch_remote_registry", fake_fetch(responses)):
                 asyncio.run(switch({**plugin.settings, "language": "de"}))
@@ -637,7 +666,7 @@ class CustomRegistryTests(unittest.TestCase):
                     self.assertEqual((result["added"], result["reason"]), (False, "nothing-new"))
             self.assertEqual(plugin._load_settings()["customRegistries"], [])
 
-    def test_background_refresh_tells_the_frontend_only_on_a_change(self):
+    def test_background_refresh_tells_the_frontend_when_status_or_apps_change(self):
         events = []
 
         async def emit(event, *args):
@@ -648,6 +677,13 @@ class CustomRegistryTests(unittest.TestCase):
             plugin.apps = [
                 {**app, "official": True} for app in parse_registry(payload("owner/official"))
             ]  # as _load_registry marks them
+            with patch.object(
+                registry, "fetch_remote_registry", fake_fetch({REMOTE_REGISTRY_URL: payload("owner/official")})
+            ):
+                asyncio.run(plugin._refresh_registry_in_background())
+            self.assertEqual(events, ["registry_updated"])
+            events.clear()
+            # The same list from the same source again: only updatedAt moves, so no reload.
             with patch.object(
                 registry, "fetch_remote_registry", fake_fetch({REMOTE_REGISTRY_URL: payload("owner/official")})
             ):

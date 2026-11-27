@@ -17,6 +17,13 @@ import type { Layout } from "./LayoutToggle";
 import { RateLimitBanner } from "./RateLimitBanner";
 import { V2Library } from "./v2/V2Library";
 import { Welcome } from "./Welcome";
+import { refreshRegistry } from "../api";
+
+// A deliberate refresh retries the catalog as well as the release checks.
+const refreshCatalog = (data: ReturnType<typeof useApps>) =>
+  void refreshRegistry()
+    .catch(() => undefined)
+    .then(() => data.load(true));
 
 // What Content has worked out, handed to the page that draws it.
 export type ContentContext = {
@@ -50,7 +57,7 @@ export function V2Page({ view, info, data, browse, discover, actions, cards }: C
       onQuery={browse.setQuery}
       sortOrder={browse.sortOrder}
       onSortOrder={browse.setSortOrder}
-      onRefresh={() => void data.load(true)}
+      onRefresh={() => refreshCatalog(data)}
       category={discover.activeCategory}
       onCategory={browse.setCategoryFilter}
       categories={discover.categories}
@@ -82,7 +89,7 @@ function PageHeader({ view, experimental, info, data, browse, discover, actions,
       onBack={browse.browsing ? () => browse.setBrowsing(false) : undefined}
       layout={layout}
       onLayout={setLayout}
-      onRefresh={() => void data.load(true)}
+      onRefresh={() => refreshCatalog(data)}
       updateAllCount={discover.batchUpdates.length}
       updatingAll={actions.updatingAll}
       onUpdateAll={() => void actions.updateAll(discover.batchUpdates, discover.shown)}
@@ -171,9 +178,19 @@ export function ContentFrame({
   v2: boolean;
   pageRef: RefObject<HTMLDivElement | null>;
 }) {
+  const t = useT();
+  const status = ctx.data.registryStatus;
+  const updated =
+    status?.updatedAt && Number.isFinite(status.updatedAt) ? new Date(status.updatedAt).toLocaleString() : null;
   return (
     <div ref={pageRef}>
       <RateLimitBanner />
+      {status && status.source !== "network" && (
+        <div role="status" style={{ margin: "8px 16px", fontSize: "0.85em" }}>
+          {t(status.source === "cache" ? "registry.cached" : "registry.unavailable")}
+          {updated && ` ${t("registry.lastUpdated", { when: updated })}`}
+        </div>
+      )}
       {v2 ? <V2Page {...ctx} /> : <ContentPage {...ctx} />}
     </div>
   );
