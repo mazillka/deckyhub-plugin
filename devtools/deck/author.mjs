@@ -3,7 +3,7 @@
 // to that author. Read-only.
 //   DECK=<host>:8081 node devtools/deck/author.mjs
 import { connect, goTo, resetFocus, sleep, TARGETS, waitFor } from "./cdp.mjs";
-import { BUTTON, press } from "./navigation.mjs";
+import { BUTTON, isV2, press } from "./navigation.mjs";
 
 const failures = [];
 const check = (ok, what) => {
@@ -20,13 +20,12 @@ const searchValue = () =>
   main.eval(
     `(() => { for (const input of document.querySelectorAll("input")) if (input.value.endsWith("/")) return input.value; return null; })()`,
   );
-const isV2 = () => main.eval(`!!document.querySelector(".deckyhub-v2-page")`);
 
 try {
   await goTo(shared, "/deckyhub/discover");
   await waitFor(main, `!!document.querySelector(".deckyhub-motion")`, 30000);
   await sleep(2500);
-  const v2 = await isV2();
+  const v2 = await isV2(main);
   // Every card or row says who made the plugin.
   const ROWS = ".deckyhub-app-row, .dh-exp-row, .deckyhub-v2-row, .deckyhub-focus-ring";
   check(
@@ -37,13 +36,14 @@ try {
   );
   let author = null;
   if (v2) {
-    // The pane's button: Down onto a row, Right into the pane, Down to "More from ...".
-    for (
-      let i = 0;
-      i < 12 && !(await main.eval(`!!document.querySelector(".gpfocus")?.closest(".deckyhub-v2-row")`));
-      i++
-    )
-      await press(shared, BUTTON.DOWN, 600);
+    // The pane's button: Down to a row whose author has others (its pane offers "More from ..."), Right into the
+    // pane, Down to the button.
+    const offered = () =>
+      main.eval(
+        `!!document.querySelector(".gpfocus")?.closest(".deckyhub-v2-row") && [...(document.querySelector(".deckyhub-v2-facts")?.parentElement.querySelectorAll("button") ?? [])].some((b) => b.textContent.trim().startsWith("More from "))`,
+      );
+    // The first Downs pass the tabs, the search row and the notices.
+    for (let i = 0; i < 40 && !(await offered()); i++) await press(shared, BUTTON.DOWN, 700);
     await press(shared, BUTTON.RIGHT, 700);
     for (let i = 0; i < 6 && !/^More from /.test(await label()); i++) await press(shared, BUTTON.DOWN, 500);
   } else {

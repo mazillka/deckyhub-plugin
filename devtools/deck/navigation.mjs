@@ -35,6 +35,20 @@ export async function press(shared, button, wait = 350) {
   await sleep(wait);
 }
 
+// Experimental V2 has its own layout: no chips or grid, a list with a details pane, and Settings as a section list.
+export const isV2 = (main) => main.eval(`!!document.querySelector(".deckyhub-v2-page, .deckyhub-v2-settings")`);
+
+// Down V2's Settings section list until focus is on section `index`. Start above it: on the tab bar of a freshly
+// opened Settings, or on an earlier section.
+export async function toV2Section(shared, main, index) {
+  const at = () =>
+    main.eval(
+      `[...document.querySelectorAll(".deckyhub-v2-section")].findIndex((s) => s.classList.contains("gpfocus") || !!s.querySelector(".gpfocus"))`,
+    );
+  for (let i = 0; i < 12 && (await at()) !== index; i++) await press(shared, BUTTON.DOWN, 600);
+  return (await at()) === index;
+}
+
 // Sweeps the page with the D-pad alone, like a player would: down the page row by
 // row, crossing each row both ways. It runs twice, once ending each row on its
 // left and once on its right, so a second column is walked down too. Returns the

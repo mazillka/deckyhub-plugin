@@ -35,6 +35,10 @@ const STATE = `(() => {
   };
 })()`;
 
+// A row's title is "Name by Owner" when another plugin has the same name (titleOf in src/author.ts); the pane shows
+// just the name.
+const samePlugin = (row, detail) => !!row && !!detail && (row === detail || row.startsWith(`${detail} by `));
+
 const PANE_FOCUSED = `(() => { const f = document.querySelector(".gpfocus"); return !!f && !f.closest(".deckyhub-v2-row") && !!f.closest(".deckyhub-v2-page") && f.getBoundingClientRect().left > innerWidth / 3; })()`;
 const shared = await connect(TARGETS.shared);
 const main = await connect(TARGETS.main);
@@ -66,7 +70,7 @@ try {
     await press(shared, BUTTON.DOWN, 700); // Steam scrolls smoothly after a move
     const now = await state();
     if (!now) break;
-    if (now.focusedRow && now.detail !== now.focusedRow) {
+    if (now.focusedRow && !samePlugin(now.focusedRow, now.detail)) {
       check(false, `step ${step}: pane shows ${now.detail}, focused row is ${now.focusedRow}`);
       break;
     }
@@ -85,7 +89,7 @@ try {
   // The next batch loads by itself as focus nears the end of the loaded rows (30 at the start).
   const after = await state();
   check(after.rows > start.rows, `walking the list loads more rows (${start.rows} -> ${after.rows})`);
-  check(after.focusedRow !== null && after.detail === after.focusedRow, `focus stays on a row (${after.focusedRow})`);
+  check(samePlugin(after.focusedRow, after.detail), `focus stays on a row (${after.focusedRow})`);
 
   // L1 / R1 switch the tabs in place; each page must render and keep a single tab bar.
   for (const [name, hint] of [
@@ -131,7 +135,7 @@ try {
   await press(shared, BUTTON.LEFT, 700);
   const back = await state();
   check(
-    back.focusedRow !== null && back.detail === back.focusedRow,
+    samePlugin(back.focusedRow, back.detail),
     `Left returns to the list on a row (${back.focusedRow}) with the pane on it (${row.focusedRow} before)`,
   );
 
@@ -156,7 +160,7 @@ try {
       );
       break;
     }
-    if (now.detail !== now.focusedRow || now.paneTop < 0 || now.paneTop + HEAD > now.vh) {
+    if (!samePlugin(now.focusedRow, now.detail) || now.paneTop < 0 || now.paneTop + HEAD > now.vh) {
       check(
         false,
         `Installed step ${step}: pane ${now.detail} at ${now.paneTop}..${now.paneBottom}, row ${now.focusedRow}`,
