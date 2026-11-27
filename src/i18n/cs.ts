@@ -160,7 +160,7 @@ export const cs: Record<MessageKey, string> = {
   "risk.title": "Co kontroly zjistily",
   "risk.intro": "Fakta z auditu a antivirových skenů. Rozhodnutí o instalaci je na vás.",
   "risk.none":
-    "Žádná varování auditu ani nálezy skenů. Neznamená to, že je plugin bezpečný: nikdo tyto pluginy nekontroluje.",
+    "Žádná varování auditu ani nálezy skenů. Neznamená to, že je plugin bezpečný: DeckyHub tyto pluginy nekontroluje.",
   "appcard.badgesNotice": "Co znamenají štítky u pluginů",
   "appcard.noReleaseInYear": "Rok bez vydání",
   "appcard.prereleaseOnly": "Jen předběžná vydání",
@@ -478,7 +478,7 @@ export const cs: Record<MessageKey, string> = {
   "release.noMatch": "Nenalezeno žádné odpovídající vydání.",
   "release.inStore": "Nainstalujte tento plugin z obchodu Decky Loaderu.",
   "scan.notReviewed":
-    "DeckyHub není obchod Decky a tyto pluginy nikdo nekontroluje. Čistý sken jen znamená, že nebyl nalezen žádný známý malware.",
+    "DeckyHub není obchod Decky a tyto pluginy nekontroluje. Čistý sken jen znamená, že nebyl nalezen žádný známý malware.",
   "release.noChecksum": "Nenalezen žádný ZIP vydání DeckyHub s kontrolním součtem SHA-256.",
   "error.loaderUnavailable": "Decky Loader teď není dostupný.",
   "toast.updatesAvailable": "Dostupné aktualizace: {count}",
@@ -539,7 +539,7 @@ export const cs: Record<MessageKey, string> = {
   "welcome.body":
     "Instalujte a aktualizujte pluginy pro Decky přímo z vydání jejich autorů na GitHubu. Procházejte je v Objevovat, další najdete v Hledat a v Aktualizacích je udržíte aktuální.",
   "welcome.safety":
-    "Tyto pluginy nikdo nekontroluje, včetně DeckyHub. Jeho antivirové kontroly odhalí jen známý malware, takže čistý výsledek neznamená, že je plugin bezpečný. Instalujte jen pluginy od autorů, kterým důvěřujete; DeckyHub se vždy před instalací zeptá.",
+    "DeckyHub tyto pluginy nekontroluje. Jeho antivirové kontroly odhalí jen známý malware, takže čistý výsledek neznamená, že je plugin bezpečný. Instalujte jen pluginy od autorů, kterým důvěřujete; DeckyHub se vždy před instalací zeptá.",
   "welcome.gotIt": "Rozumím",
   "settings.tabGeneral": "Obecné",
   "settings.tabDownloads": "Stahování",

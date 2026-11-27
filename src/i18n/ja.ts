@@ -161,7 +161,7 @@ export const ja: Record<MessageKey, string> = {
   "risk.title": "チェックで分かったこと",
   "risk.intro": "監査とウイルススキャンの事実です。インストールするかどうかはあなたが決めます。",
   "risk.none":
-    "監査の警告もスキャンの検出もありません。安全という意味ではありません。これらのプラグインは誰もレビューしていません。",
+    "監査の警告もスキャンの検出もありません。安全という意味ではありません。DeckyHub はこれらのプラグインをレビューしていません。",
   "appcard.badgesNotice": "プラグインのバッジの意味",
   "appcard.noReleaseInYear": "1 年以上リリースなし",
   "appcard.prereleaseOnly": "プレリリースのみ",
@@ -479,7 +479,7 @@ export const ja: Record<MessageKey, string> = {
   "release.noMatch": "該当するリリースが見つかりません。",
   "release.inStore": "このプラグインは Decky Loader のストアからインストールしてください。",
   "scan.notReviewed":
-    "DeckyHub は Decky ストアではなく、これらのプラグインは誰も審査していません。スキャン結果が問題なしでも、既知のマルウェアが見つからなかったという意味にすぎません。",
+    "DeckyHub は Decky ストアではなく、これらのプラグインを審査していません。スキャン結果が問題なしでも、既知のマルウェアが見つからなかったという意味にすぎません。",
   "release.noChecksum": "SHA-256 チェックサム付きの DeckyHub リリース ZIP が見つかりません。",
   "error.loaderUnavailable": "現在 Decky Loader を利用できません。",
   "toast.updatesAvailable": "利用可能なアップデート: {count}",
@@ -540,7 +540,7 @@ export const ja: Record<MessageKey, string> = {
   "welcome.body":
     "Decky プラグインを作者の GitHub リリースから直接インストール・更新できます。「探す」で見つけ、「検索」でさらに探し、「更新」で最新に保ちましょう。",
   "welcome.safety":
-    "これらのプラグインは誰も審査していません（DeckyHub も含みます）。ウイルススキャンは既知のマルウェアしか検出できないため、問題なしでもプラグインが安全とは限りません。信頼できる作者のプラグインだけをインストールしてください。DeckyHub はインストールの前に必ず確認します。",
+    "DeckyHub はこれらのプラグインを審査していません。ウイルススキャンは既知のマルウェアしか検出できないため、問題なしでもプラグインが安全とは限りません。信頼できる作者のプラグインだけをインストールしてください。DeckyHub はインストールの前に必ず確認します。",
   "welcome.gotIt": "OK",
   "settings.tabGeneral": "一般",
   "settings.tabDownloads": "ダウンロード",

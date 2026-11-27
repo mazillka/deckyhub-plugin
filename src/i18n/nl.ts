@@ -162,7 +162,7 @@ export const nl: Record<MessageKey, string> = {
   "risk.title": "Wat de controles vonden",
   "risk.intro": "Feiten uit de audit en de virusscans. De beslissing om te installeren is aan jou.",
   "risk.none":
-    "Geen auditwaarschuwingen of scanbevindingen. Dat betekent niet dat het veilig is: niemand controleert deze plugins.",
+    "Geen auditwaarschuwingen of scanbevindingen. Dat betekent niet dat het veilig is: DeckyHub controleert deze plugins niet.",
   "appcard.badgesNotice": "Wat de labels bij plugins betekenen",
   "appcard.noReleaseInYear": "Al een jaar geen release",
   "appcard.prereleaseOnly": "Alleen pre-releases",
@@ -486,7 +486,7 @@ export const nl: Record<MessageKey, string> = {
   "release.noMatch": "Geen passende release gevonden.",
   "release.inStore": "Installeer deze plugin vanuit de Store van Decky Loader.",
   "scan.notReviewed":
-    "DeckyHub is niet de Decky-store en niemand beoordeelt deze plugins. Een schone scan betekent alleen dat er geen bekende malware is gevonden.",
+    "DeckyHub is niet de Decky-store en beoordeelt deze plugins niet. Een schone scan betekent alleen dat er geen bekende malware is gevonden.",
   "release.noChecksum": "Geen DeckyHub-release-ZIP met een SHA-256-checksum gevonden.",
   "error.loaderUnavailable": "Decky Loader is nu niet beschikbaar.",
   "toast.updatesAvailable": "Updates beschikbaar: {count}",
@@ -549,7 +549,7 @@ export const nl: Record<MessageKey, string> = {
   "welcome.body":
     "Installeer en werk Decky-plugins bij, rechtstreeks vanuit de GitHub-releases van hun makers. Blader ze hier door in Ontdekken, vind er meer met Zoeken en houd ze actueel in Updates.",
   "welcome.safety":
-    "Niemand controleert deze plugins, ook DeckyHub niet. De virusscans vinden alleen bekende malware, dus een schone scan betekent niet dat een plugin veilig is. Installeer alleen plugins van makers die je vertrouwt; DeckyHub vraagt altijd toestemming voordat het iets installeert.",
+    "DeckyHub controleert deze plugins niet. De virusscans vinden alleen bekende malware, dus een schone scan betekent niet dat een plugin veilig is. Installeer alleen plugins van makers die je vertrouwt; DeckyHub vraagt altijd toestemming voordat het iets installeert.",
   "welcome.gotIt": "Begrepen",
   "settings.tabGeneral": "Algemeen",
   "settings.tabDownloads": "Downloads",

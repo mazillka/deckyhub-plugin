@@ -162,7 +162,7 @@ export const it: Record<MessageKey, string> = {
   "risk.title": "Cosa hanno trovato i controlli",
   "risk.intro": "Fatti dall'audit e dalle scansioni antivirus. La decisione di installare è tua.",
   "risk.none":
-    "Nessun avviso di audit né rilievo delle scansioni. Non significa che sia sicuro: nessuno controlla questi plugin.",
+    "Nessun avviso di audit né rilievo delle scansioni. Non significa che sia sicuro: DeckyHub non controlla questi plugin.",
   "appcard.badgesNotice": "Cosa significano i badge sui plugin",
   "appcard.noReleaseInYear": "Nessuna release da un anno",
   "appcard.prereleaseOnly": "Solo pre-release",
@@ -486,7 +486,7 @@ export const it: Record<MessageKey, string> = {
   "release.noMatch": "Nessuna release corrispondente trovata.",
   "release.inStore": "Installa questo plugin dallo Store di Decky Loader.",
   "scan.notReviewed":
-    "DeckyHub non è lo store Decky e nessuno controlla questi plugin. Una scansione pulita significa solo che non è stato trovato malware noto.",
+    "DeckyHub non è lo store Decky e non controlla questi plugin. Una scansione pulita significa solo che non è stato trovato malware noto.",
   "release.noChecksum": "Non è stato trovato alcuno ZIP di release di DeckyHub con checksum SHA-256.",
   "error.loaderUnavailable": "Decky Loader non è disponibile al momento.",
   "toast.updatesAvailable": "Aggiornamenti disponibili: {count}",
@@ -548,7 +548,7 @@ export const it: Record<MessageKey, string> = {
   "welcome.body":
     "Installa e aggiorna i plugin Decky direttamente dalle release GitHub dei loro autori. Sfogliali qui in Scopri, trovane altri con Cerca e tienili aggiornati in Aggiornamenti.",
   "welcome.safety":
-    "Nessuno verifica questi plugin, DeckyHub compreso. Le sue scansioni antivirus rilevano solo malware noto, quindi una scansione pulita non significa che un plugin sia sicuro. Installa solo plugin di autori di cui ti fidi; DeckyHub chiede sempre conferma prima di installare qualsiasi cosa.",
+    "DeckyHub non verifica questi plugin. Le sue scansioni antivirus rilevano solo malware noto, quindi una scansione pulita non significa che un plugin sia sicuro. Installa solo plugin di autori di cui ti fidi; DeckyHub chiede sempre conferma prima di installare qualsiasi cosa.",
   "welcome.gotIt": "Capito",
   "settings.tabGeneral": "Generale",
   "settings.tabDownloads": "Download",

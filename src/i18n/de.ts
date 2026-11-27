@@ -163,7 +163,7 @@ export const de: Record<MessageKey, string> = {
   "risk.title": "Was die Prüfungen gefunden haben",
   "risk.intro": "Fakten aus dem Audit und den Virenscans. Die Entscheidung zur Installation liegt bei dir.",
   "risk.none":
-    "Keine Audit-Warnungen oder Scan-Funde. Das heißt nicht, dass es sicher ist: Niemand prüft diese Plugins.",
+    "Keine Audit-Warnungen oder Scan-Funde. Das heißt nicht, dass es sicher ist: DeckyHub prüft diese Plugins nicht.",
   "appcard.badgesNotice": "Was die Abzeichen an Plugins bedeuten",
   "appcard.noReleaseInYear": "Seit einem Jahr kein Release",
   "appcard.prereleaseOnly": "Nur Vorabversionen",
@@ -490,7 +490,7 @@ export const de: Record<MessageKey, string> = {
   "release.noMatch": "Keine passende Version gefunden.",
   "release.inStore": "Installiere dieses Plugin über den Store von Decky Loader.",
   "scan.notReviewed":
-    "DeckyHub ist nicht der Decky-Store, und niemand prüft diese Plugins. Ein sauberer Scan bedeutet nur, dass keine bekannte Malware gefunden wurde.",
+    "DeckyHub ist nicht der Decky-Store, und prüft diese Plugins nicht. Ein sauberer Scan bedeutet nur, dass keine bekannte Malware gefunden wurde.",
   "release.noChecksum": "Kein DeckyHub-Release-ZIP mit SHA-256-Prüfsumme gefunden.",
   "error.loaderUnavailable": "Decky Loader ist gerade nicht verfügbar.",
   "toast.updatesAvailable": "Updates verfügbar: {count}",
@@ -553,7 +553,7 @@ export const de: Record<MessageKey, string> = {
   "welcome.body":
     "Installiere und aktualisiere Decky-Plugins direkt aus den GitHub-Releases ihrer Autoren. Stöbere hier unter Entdecken, finde mehr über die Suche und halte sie unter Updates aktuell.",
   "welcome.safety":
-    "Niemand prüft diese Plugins, auch DeckyHub nicht. Seine Virenscans erkennen nur bekannte Schadsoftware, ein sauberer Scan heißt also nicht, dass ein Plugin sicher ist. Installiere nur Plugins von Autoren, denen du vertraust; DeckyHub fragt immer, bevor etwas installiert wird.",
+    "DeckyHub prüft diese Plugins nicht. Seine Virenscans erkennen nur bekannte Schadsoftware, ein sauberer Scan heißt also nicht, dass ein Plugin sicher ist. Installiere nur Plugins von Autoren, denen du vertraust; DeckyHub fragt immer, bevor etwas installiert wird.",
   "welcome.gotIt": "Verstanden",
   "settings.tabGeneral": "Allgemein",
   "settings.tabDownloads": "Downloads",

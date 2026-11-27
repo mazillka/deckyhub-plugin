@@ -156,7 +156,8 @@ export const ko: Record<MessageKey, string> = {
   "appcard.scan.partial.hint": "바이러스 검사가 설치할 릴리스 전체를 확인하지 못했습니다. 이유는 관리에 있습니다.",
   "risk.title": "검사에서 확인된 내용",
   "risk.intro": "감사와 바이러스 검사에서 나온 사실입니다. 설치 여부는 직접 결정하세요.",
-  "risk.none": "감사 경고나 검사 결과가 없습니다. 안전하다는 뜻은 아닙니다. 이 플러그인들은 아무도 검토하지 않습니다.",
+  "risk.none":
+    "감사 경고나 검사 결과가 없습니다. 안전하다는 뜻은 아닙니다. DeckyHub는 이 플러그인들을 검토하지 않습니다.",
   "appcard.badgesNotice": "플러그인 배지의 의미",
   "appcard.noReleaseInYear": "1년 넘게 릴리스 없음",
   "appcard.prereleaseOnly": "시험판만 있음",
@@ -472,7 +473,7 @@ export const ko: Record<MessageKey, string> = {
   "release.noMatch": "일치하는 릴리스가 없습니다.",
   "release.inStore": "이 플러그인은 Decky Loader 스토어에서 설치하세요.",
   "scan.notReviewed":
-    "DeckyHub는 Decky 스토어가 아니며 이 플러그인들을 검토하는 사람은 없습니다. 검사 결과가 깨끗하다는 것은 알려진 악성코드가 없다는 뜻일 뿐입니다.",
+    "DeckyHub는 Decky 스토어가 아니며 이 플러그인들을 검토하지 않습니다. 검사 결과가 깨끗하다는 것은 알려진 악성코드가 없다는 뜻일 뿐입니다.",
   "release.noChecksum": "SHA-256 체크섬이 있는 DeckyHub 릴리스 ZIP을 찾지 못했습니다.",
   "error.loaderUnavailable": "지금은 Decky Loader를 사용할 수 없습니다.",
   "toast.updatesAvailable": "업데이트 {count}개 있음",
@@ -533,7 +534,7 @@ export const ko: Record<MessageKey, string> = {
   "welcome.body":
     "Decky 플러그인을 제작자의 GitHub 릴리스에서 바로 설치하고 업데이트하세요. 둘러보기에서 살펴보고, 검색으로 더 찾고, 업데이트에서 최신 상태로 유지하세요.",
   "welcome.safety":
-    "이 플러그인들은 DeckyHub를 포함해 누구도 검토하지 않습니다. 바이러스 검사는 알려진 악성 코드만 잡아내므로, 검사 결과가 깨끗해도 플러그인이 안전하다는 뜻은 아닙니다. 신뢰하는 제작자의 플러그인만 설치하세요. DeckyHub는 설치 전에 항상 확인합니다.",
+    "DeckyHub는 이 플러그인들을 검토하지 않습니다. 바이러스 검사는 알려진 악성 코드만 잡아내므로, 검사 결과가 깨끗해도 플러그인이 안전하다는 뜻은 아닙니다. 신뢰하는 제작자의 플러그인만 설치하세요. DeckyHub는 설치 전에 항상 확인합니다.",
   "welcome.gotIt": "확인",
   "settings.tabGeneral": "일반",
   "settings.tabDownloads": "다운로드",
