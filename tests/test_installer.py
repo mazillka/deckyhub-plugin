@@ -36,16 +36,18 @@ while [ $# -gt 0 ]; do
 done
 echo "$url" >> "$FIXTURES/curl.log"
 case "$url" in
-  *decky-installer*install_release.sh) cp "$FIXTURES/install_release.sh" "$out" ;;
+  *decky-installer*install_release.sh | *decky-installer*install_prerelease.sh) cp "$FIXTURES/install_release.sh" "$out" ;;
   *DeckyHub-*.zip) cp "$FIXTURES/DeckyHub.zip" "$out" ;;
   github.com) : ;;
   *) exit 22 ;;
 esac
 """
-# Decky's installer, as far as this script can tell: it leaves services/PluginLoader.
+# Decky's installer, as far as this script can tell: it leaves services/PluginLoader. Like the
+# real one, it knows its channel only by its own file name.
 DECKY = """#!/bin/bash
 mkdir -p "$DECKYHUB_USER_HOME/homebrew/services" "$DECKYHUB_USER_HOME/homebrew/plugins"
 touch "$DECKYHUB_USER_HOME/homebrew/services/PluginLoader"
+basename "$0" > "$DECKYHUB_USER_HOME/homebrew/services/.loader.version"
 """
 SYSTEMCTL = '#!/bin/bash\necho "$*" >> "$FIXTURES/systemctl.log"\n'
 
@@ -78,7 +80,7 @@ class InstallerTests(unittest.TestCase):
             archive.writestr("DeckyHub/dist/index.js", "// new")
         self.sha256 = hashlib.sha256((self.fixtures / "DeckyHub.zip").read_bytes()).hexdigest()
 
-    def run_installer(self, sha256=None, extra_args=(), picks=None, locale=None):
+    def run_installer(self, sha256=None, extra_args=(), picks=None, locale=None, channel=None):
         script = self.dir / "install-deckyhub.sh"
         script.write_text(fill(SCRIPT.read_text(), TAG, sha256 or self.sha256))
         env = {
@@ -89,6 +91,8 @@ class InstallerTests(unittest.TestCase):
         }
         if picks is not None:
             env["DECKYHUB_PICKS"] = picks
+        if channel is not None:
+            env["DECKYHUB_DECKY_CHANNEL"] = channel
         env.update(locale or {})
         command = ["env", *[f"{key}={value}" for key, value in env.items()], "bash", str(script), *extra_args]
         return subprocess.run(
@@ -119,13 +123,79 @@ class InstallerTests(unittest.TestCase):
         self.assertIn("restart plugin_loader", (self.fixtures / "systemctl.log").read_text())
         self.assertIn(f"releases/download/{TAG}/DeckyHub-{TAG}.zip", (self.fixtures / "curl.log").read_text())
 
+    def loader_installed_by(self):
+        return (self.home / "homebrew" / "services" / ".loader.version").read_text().strip()
+
+    def test_decky_loader_is_stable_unless_pre_release_was_chosen(self):
+        for channel in (None, "stable", "anything else"):
+            command = ["rm", "-rf", str(self.home / "homebrew")]  # root's files from the last run
+            subprocess.run(command if os.geteuid() == 0 else ["sudo", "-n", *command], check=True)
+            result = self.run_installer(channel=channel)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(self.loader_installed_by(), "install_release.sh", channel)
+        self.assertNotIn("install_prerelease.sh", (self.fixtures / "curl.log").read_text())
+
+    def test_pre_release_runs_deckys_script_under_its_pre_release_name(self):
+        result = self.run_installer(channel="prerelease")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("/releases/latest/download/install_prerelease.sh", (self.fixtures / "curl.log").read_text())
+        self.assertEqual(self.loader_installed_by(), "install_prerelease.sh")
+        # The finish message says which version arrived (the stand-in's "version" is its file name).
+        self.assertIn("✓ Decky Loader installed (install_prerelease.sh)", result.stdout)
+
+    def run_channel_dialog(self, answer="", status=0, zenity=True):
+        """choose_decky_channel() from the real script with a stand-in for zenity: returns
+        (the process, zenity's arguments, one per line)."""
+        text = fill(SCRIPT.read_text(), TAG, self.sha256)
+        patterns = (
+            r"^INSTALLER_LANG=.*?^TITLE=[^\n]*$",
+            r"^plain\(\)[^\n]*$",
+            r"^choose_decky_channel\(\) \{\n.*?^\}",
+        )
+        parts = [re.search(pattern, text, re.MULTILINE | re.DOTALL).group(0) for pattern in patterns]
+        log = self.dir / "channel.log"
+        harness = self.dir / "channel.sh"
+        harness.write_text(
+            "\n".join(parts)
+            + f"""
+has_zenity() {{ return {0 if zenity else 1}; }}
+zen() {{ printf '%s\\n' "$@" > "{log}"; echo "{answer}"; return {status}; }}
+choose_decky_channel
+echo "CHANNEL=$DECKY_CHANNEL"
+"""
+        )
+        result = subprocess.run(
+            ["bash", str(harness)], stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=60
+        )
+        return result, log.read_text() if log.exists() else ""
+
+    def test_the_channel_dialog_defaults_to_stable(self):
+        result, arguments = self.run_channel_dialog(answer="stable")
+        self.assertIn("CHANNEL=stable", result.stdout, result.stderr)
+        # Stable is the row that starts selected.
+        self.assertIn("TRUE\nstable\nStable (recommended)\nFALSE\nprerelease\nPre-release", arguments)
+        self.assertIn("work only with Steam's beta", arguments)
+        self.assertIn("CHANNEL=prerelease", self.run_channel_dialog(answer="prerelease")[0].stdout)
+        self.assertIn("CHANNEL=stable", self.run_channel_dialog(answer="")[0].stdout)
+        # No dialogs and nobody at a terminal: stable.
+        self.assertIn("CHANNEL=stable", self.run_channel_dialog(zenity=False)[0].stdout)
+
+    def test_cancelling_the_channel_dialog_quits(self):
+        result, _ = self.run_channel_dialog(status=1)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn("CHANNEL=", result.stdout)
+
+    def test_the_channel_is_asked_only_when_decky_loader_is_missing(self):
+        # A source check: the questions run only as a normal user with a screen.
+        self.assertIn("(( HAS_DECKY )) || choose_decky_channel\n", SCRIPT.read_text())
+
     def test_with_decky_installed_it_replaces_deckyhub_only(self):
         (self.home / "homebrew" / "services").mkdir(parents=True)
         (self.home / "homebrew" / "services" / "PluginLoader").touch()
         self.plugin("dist").mkdir(parents=True)
         self.plugin("dist/index.js").write_text("// old")
         self.plugin("stale.txt").write_text("from the old version")
-        result = self.run_installer()
+        result = self.run_installer(channel="prerelease")
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn(f"✓ DeckyHub updated to {TAG} (file checked)", result.stdout)
         self.assertNotIn("✓ Decky Loader installed", result.stdout)
@@ -133,7 +203,7 @@ class InstallerTests(unittest.TestCase):
         self.assertIn("Step 2 of 5: Checking that Decky Loader is installed", result.stdout)
         self.assertIn("Step 5 of 5: Restarting Decky Loader", result.stdout)
         self.assertIn("✓ Decky Loader was already installed", result.stdout)
-        self.assertNotIn("install_release.sh", (self.fixtures / "curl.log").read_text())
+        self.assertNotIn("decky-installer", (self.fixtures / "curl.log").read_text())
         self.assertEqual(self.plugin("dist/index.js").read_text(), "// new")
         self.assertFalse(self.plugin("stale.txt").exists())
 
@@ -220,7 +290,7 @@ zen() {
     esac
     return 1
 }
-HAS_DECKY=1; HOMEBREW_CHECK=/nonexistent; TAG=v9.9.9; verb=Install
+HAS_DECKY=1; HOMEBREW_CHECK=/nonexistent; TAG=v9.9.9; verb=Install; DECKY_CHANNEL=stable
 choose_plugins
 echo "PICKS=$PICKS"
 """

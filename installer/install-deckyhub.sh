@@ -17,6 +17,9 @@
 # Options:
 #   --plugins=a,b   Pick optional plugins by id without the checklist (see STARTER_PLUGINS).
 #
+# Only when Decky Loader isn't installed, it also asks which one to install: stable (the
+# default) or pre-release.
+#
 # Optional plugins: a checklist (nothing ticked) offers a few hand-picked plugins with notes
 # on AI help, root and audit warnings, and says DeckyHub isn't responsible for what you install: it's at your own risk. This
 # installer doesn't install them: it saves the picks (pending-installs.json in DeckyHub's
@@ -33,7 +36,7 @@ TAG="@TAG@"
 SHA256="@SHA256@"
 REPO="mazillka/deckyhub-plugin"
 ZIP_URL="https://github.com/${REPO}/releases/download/${TAG}/DeckyHub-${TAG}.zip"
-DECKY_INSTALLER_URL="https://github.com/SteamDeckHomebrew/decky-installer/releases/latest/download/install_release.sh"
+DECKY_INSTALLER_URL="https://github.com/SteamDeckHomebrew/decky-installer/releases/latest/download"
 PLUGINS_ARG=""
 STATS_URL="https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/stats.json"
 RELEASES_URL="https://raw.githubusercontent.com/mazillka/deckyhub-registry/release-index/releases.json"
@@ -162,6 +165,25 @@ for arg in sys.argv[1:]:
 ' "${args[@]}" 2> /dev/null || true
 }
 
+# Sets DECKY_CHANNEL to "prerelease", or "stable" (the default), asking the user. Cancel quits.
+choose_decky_channel() {
+    DECKY_CHANNEL=stable
+    local question pick answer
+    question="$(t channel.question url https://github.com/SteamDeckHomebrew/decky-loader/releases)"
+    if has_zenity; then
+        pick=$(zen --title="$TITLE" --width=560 --height=420 --list --radiolist --text="$question" \
+            --column="" --column=id --column="Decky Loader" --hide-column=2 --print-column=2 \
+            --cancel-label="$(t app.cancel)" \
+            TRUE stable "$(t channel.stable)" FALSE prerelease "$(t channel.prerelease)") || exit 0
+        [ "$pick" = prerelease ] && DECKY_CHANNEL=prerelease
+    elif [ -t 0 ]; then
+        plain "$question"
+        read -r -p "$(t channel.prerelease) [y/N] " answer
+        [[ "$answer" =~ ^[Yy] ]] && DECKY_CHANNEL=prerelease
+    fi
+    return 0
+}
+
 # Sets PICKS to the chosen plugin ids (comma separated, maybe none). One dialog per plugin: its
 # links are clickable there (a dialog's text can hold links, a list cell can't), and Skip is
 # the default button, so nothing is added unless the user chooses Add.
@@ -175,6 +197,7 @@ choose_plugins() {
     # Decky Loader writes its version next to its service; DeckyHub's is in its package.json.
     decky_version="$(t picker.deckyNewest)"
     [ -s "${HOMEBREW_CHECK}/services/.loader.version" ] && decky_version="$(t picker.deckyInstalledVersion version "$(head -n 1 "${HOMEBREW_CHECK}/services/.loader.version")")"
+    [ "$DECKY_CHANNEL" = prerelease ] && decky_version="$(t channel.prerelease)"
     hub_installed="$(installed_version "${HOMEBREW_CHECK}/plugins/DeckyHub")"
     if (( HAS_DECKY )); then decky_line="$(t picker.deckyChecked)"; else decky_line="$(t picker.deckyFirst)"; fi
     case "$verb" in Update) hub_line="$(t picker.hubUpdated)" ;; Reinstall) hub_line="$(t picker.hubReinstalled)" ;; *) hub_line="$(t picker.hubInstalled)" ;; esac
@@ -253,6 +276,10 @@ if (( EUID != 0 )); then
         fail "$(t error.noGithub)"
     fi
 
+    DECKY_CHANNEL=stable
+    (( HAS_DECKY )) || choose_decky_channel
+    export DECKYHUB_DECKY_CHANNEL="$DECKY_CHANNEL"
+
     choose_plugins
     export DECKYHUB_PICKS="$PICKS"
 
@@ -303,10 +330,13 @@ step() { STEP=$((STEP + 1)); echo "$1"; echo "# $(t progress.step n "$STEP" tota
 install_all() {
     if (( NEED_DECKY )); then
         step 10 "$(t progress.installingDecky)"
-        if ! curl -fsSL --connect-timeout 60 -o "${WORK}/install_release.sh" "$DECKY_INSTALLER_URL" >> "$LOG" 2>&1; then
+        # Decky's script picks the channel from its own file name, so it's saved under that name.
+        local decky_script=install_release.sh
+        [ "$DECKYHUB_DECKY_CHANNEL" = prerelease ] && decky_script=install_prerelease.sh
+        if ! curl -fsSL --connect-timeout 60 -o "${WORK}/${decky_script}" "${DECKY_INSTALLER_URL}/${decky_script}" >> "$LOG" 2>&1; then
             echo "$(t error.deckyDownload url https://decky.xyz)" > "$STATUS_FILE"; return
         fi
-        bash "${WORK}/install_release.sh" >> "$LOG" 2>&1
+        bash "${WORK}/${decky_script}" >> "$LOG" 2>&1
         if [ ! -f "${HOMEBREW}/services/PluginLoader" ]; then
             echo "$(t error.deckyUnfinished url https://decky.xyz)\n\n$(t error.details)\n$(tail -n 5 "$LOG" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g')" > "$STATUS_FILE"; return
         fi
@@ -398,7 +428,13 @@ INSTALL_STATUS=$(cat "$STATUS_FILE" 2> /dev/null)
 
 # What was done, then what to do next.
 done_text=""
-if [ -f "${WORK}/installed-decky" ]; then done_text+="${OK_MARK} $(t done.deckyInstalled)\n"; else done_text+="${OK_MARK} $(t done.deckyAlready)\n"; fi
+if [ -f "${WORK}/installed-decky" ]; then
+    # The version too: with pre-release chosen, Decky's script may still install the stable one.
+    decky_version=$(head -n 1 "${HOMEBREW}/services/.loader.version" 2> /dev/null)
+    done_text+="${OK_MARK} $(t done.deckyInstalled)${decky_version:+ ($decky_version)}\n"
+else
+    done_text+="${OK_MARK} $(t done.deckyAlready)\n"
+fi
 if [ -f "${WORK}/same-version" ]; then
     done_text+="${OK_MARK} $(t done.hubReinstalled tag "$TAG")\n"
 elif [ -f "${WORK}/had-deckyhub" ]; then
