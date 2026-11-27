@@ -19,7 +19,7 @@ DeckyHub is in production: an update must keep existing users' settings, caches,
 - `develop` is the integration branch: branch every feature, fix and pre-release from `origin/develop` and open its PR against `develop`.
 - `main` holds stable releases only. It changes only through a PR from `develop` when cutting a stable `vX.Y.Z`; never branch from it or target it with feature work.
 - Pre-release tags (`vX.Y.Z-rc.N`) are cut from `develop`; stable tags from `main`. Details in [CONTRIBUTING.md](CONTRIBUTING.md#releases).
-- Any change to the website, its plugin pages, robots.txt, sitemap or llms.txt: the [seo-and-ai skill](.agents/skills/seo-and-ai/SKILL.md) keeps it optimized for search engines and AI assistants (`devtools/audit-site.py` checks it).
+- Any change to the website: make it in [mazillka/deckyhub-site](https://github.com/mazillka/deckyhub-site).
 - Cleaning up or adding tests: the [test-hygiene skill](.agents/skills/test-hygiene/SKILL.md) finds fake tests (they can't fail, test a mock or copy the source) and duplicates, and shows how to remove them without losing coverage.
 - Starting work, merging, the back-merge after a stable release and cleaning up old branches: the [branches skill](.agents/skills/branches/SKILL.md).
 
@@ -71,12 +71,11 @@ Every test must be able to fail when the behavior it names breaks. Delete fake a
 
 ## Docs and website
 
-Every change that alters what a user sees or does updates the docs in the same PR. `tests/test_docs.py` (run by `pnpm run test:backend`) enforces the mechanical parts.
+Every change that alters what a user sees or does updates the docs in the same PR.
 
-- User-visible behavior (screens, buttons, settings, install/download flow): update README's matching section, and the promo page's features/FAQ in `docs/index.html` if it describes it.
-- Registry apps added, removed or renamed: that's a [mazillka/deckyhub-registry](https://github.com/mazillka/deckyhub-registry) PR only, see the [deckyhub-registry skill](.agents/skills/deckyhub-registry/SKILL.md). The promo page's catalog is downloaded from it at deploy time (daily, or on any Pages push).
-- Screenshots: replace the JPEG in `screenshots/`; the site build makes its WebP copies. A new screenshot also needs an `<img>` in `docs/index.html`.
-- New page in `docs/`: add it to `docs/sitemap.xml` and give it a `<title>`, meta description and canonical URL.
+- User-visible behavior (screens, buttons, settings, install/download flow): update README's matching section. If the website's pages describe it, change them in mazillka/deckyhub-site too.
+- Registry apps added, removed or renamed: that's a [mazillka/deckyhub-registry](https://github.com/mazillka/deckyhub-registry) PR only, see the [deckyhub-registry skill](.agents/skills/deckyhub-registry/SKILL.md). The website downloads its catalog from it at deploy time.
+- Screenshots: replace the JPEG in `screenshots/` (the README's), and copy it to mazillka/deckyhub-site, which keeps its own.
 - Architecture, commands or dev rules change: update `AGENTS.md`; release or contribution steps: `CONTRIBUTING.md`.
 - Before finishing, grep the docs for names you renamed or removed.
 

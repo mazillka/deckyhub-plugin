@@ -10,7 +10,7 @@ const shot = process.argv[2];
 const count = process.argv[3] ?? "1000+";
 if (!shot) throw new Error("usage: node devtools/promo/render.mjs <discover-promo.png> [1000+]");
 const screen = `data:image/png;base64,${readFileSync(shot).toString("base64")}`;
-const logo = readFileSync(new URL("docs/favicon.svg", root), "utf8");
+const logo = readFileSync(new URL("promo/logo.svg", root), "utf8");
 
 const html = (w, h, big) => `<!doctype html><meta charset=utf-8><style>
 *{box-sizing:border-box;margin:0}
