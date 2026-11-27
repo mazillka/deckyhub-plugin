@@ -7,10 +7,11 @@ import assert from "node:assert/strict";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { after, before, test } from "node:test";
 import { connect, DECKY_PLUGINS, goTo, resetFocus, sleep, TARGETS, waitFor } from "./cdp.mjs";
-import { BUTTON, explore, press } from "./navigation.mjs";
+import { BUTTON, explore, isV2, press, toV2Section } from "./navigation.mjs";
 
 const TAB_ID = 0x444855; // src/components/QuickAccessTab.tsx
 const PAGES = ["discover", "installed", "updates", "search", "settings", "repositories"];
+const SETTINGS_TABS = ["general", "github", "downloads", "repositories", "troubleshoot", "about"];
 const shots = new URL("./screenshots/", import.meta.url);
 // What a player can't read or reach under a root: see audit.js.
 const AUDIT = readFileSync(new URL("./audit.js", import.meta.url), "utf8");
@@ -68,6 +69,13 @@ const openPage = async (name) => {
     30000,
   );
   await sleep(1500);
+};
+
+// From another page, so V2's Settings starts afresh (opening the same route keeps its section and focus).
+const openV2Settings = async () => {
+  await goTo(shared, "/library/home");
+  await sleep(800);
+  await openPage("settings");
 };
 
 const openQuickAccess = async (tab) => {
@@ -181,20 +189,23 @@ for (const name of PAGES) {
 
 test("Discover: disclaimer, categories and plugin cards", async () => {
   await openPage("discover");
+  const v2 = await isV2(main);
   const state = JSON.parse(
     await main.eval(`JSON.stringify({
     disclaimer: !!document.querySelector(".deckyhub-disclaimer"),
     chips: document.querySelectorAll(".deckyhub-category-chips button, .deckyhub-category-chips .DialogButton").length,
-    cards: document.querySelectorAll(".deckyhub-motion h3").length,
+    cards: document.querySelectorAll(".deckyhub-motion h3, .deckyhub-v2-row").length,
   })`),
   );
   assert.ok(state.disclaimer, "no install disclaimer");
-  assert.ok(state.chips >= 2, "no category chips");
+  // V2 picks a category from a menu, not chips.
+  if (!v2) assert.ok(state.chips >= 2, "no category chips");
   assert.ok(state.cards >= 3, "no plugin cards");
 });
 
-test("Discover: category chips are one line each, whole name and count showing", async () => {
+test("Discover: category chips are one line each, whole name and count showing", async (t) => {
   await openPage("discover");
+  if (await isV2(main)) return t.skip("V2 has no category chips");
   const chips = JSON.parse(
     await main.eval(`JSON.stringify([...document.querySelectorAll(".deckyhub-category-chips button, .deckyhub-category-chips .DialogButton")].map((chip) => {
     const count = chip.lastElementChild.getBoundingClientRect();
@@ -209,8 +220,9 @@ test("Discover: category chips are one line each, whole name and count showing",
   );
 });
 
-test("Discover: All plugins lists every plugin, and Back returns home", async () => {
+test("Discover: All plugins lists every plugin, and Back returns home", async (t) => {
   await openPage("discover");
+  if (await isV2(main)) return t.skip("V2 has no All plugins view: Discover is the whole list");
   await main.eval(
     `[...document.querySelectorAll(".deckyhub-category-chips button, .deckyhub-category-chips .DialogButton")].find((b) => b.textContent.trim().startsWith("All plugins")).click(); true`,
   );
@@ -267,7 +279,17 @@ test("Discover: the D-pad opens a plugin's details and reads its release notes t
     }
     return found;
   }
-  async function tryNextManage(focused) {
+  // V2: Manage is in the details pane. Down onto a row, then Right into the pane: Right lands on its header,
+  // so Down to the buttons and Right past Install / Update.
+  async function toV2Manage(focused) {
+    const onRow = () => main.eval(`!!document.querySelector(".gpfocus")?.closest(".deckyhub-v2-row")`);
+    for (let step = 0; step < 12 && !(await onRow()); step++) await press(shared, BUTTON.DOWN, 600);
+    if (!(await onRow())) return;
+    await press(shared, BUTTON.RIGHT, 700);
+    for (let step = 0; step < 4 && (await focused()).text !== "Manage"; step++)
+      await press(shared, step % 2 ? BUTTON.DOWN : BUTTON.RIGHT, 600);
+  }
+  async function toCardManage(focused) {
     for (let step = 0; step < 60 && (await focused()).text !== "Manage"; step++) {
       await press(shared, BUTTON.DOWN, 250);
       // A row's first control can be its Install / Update button (Experimental): Manage is the next one along.
@@ -276,6 +298,10 @@ test("Discover: the D-pad opens a plugin's details and reads its release notes t
         if ((await focused()).text !== "Manage") await press(shared, BUTTON.LEFT, 250);
       }
     }
+  }
+  async function tryNextManage(focused) {
+    const v2 = await isV2(main);
+    await (v2 ? toV2Manage : toCardManage)(focused);
     if ((await focused()).text !== "Manage") {
       // Updates may have no cards; Discover always has them, so a D-pad that can't reach Manage there is a bug.
       assert.notEqual(page, "discover", "the D-pad never reached a Manage button");
@@ -294,7 +320,8 @@ test("Discover: the D-pad opens a plugin's details and reads its release notes t
     }
     if (!notes) {
       await press(shared, BUTTON.BACK, 800);
-      await press(shared, BUTTON.DOWN, 250); // off this Manage, onto what follows
+      if (v2) await press(shared, BUTTON.LEFT, 600); // from the pane back to its row
+      await press(shared, BUTTON.DOWN, v2 ? 600 : 250); // off this plugin, onto what follows
     }
     return notes;
   }
@@ -302,14 +329,17 @@ test("Discover: the D-pad opens a plugin's details and reads its release notes t
   if (!hasNotes) return t.skip("none of the first plugins' Manage windows has release notes");
   await sleep(1000);
   const sections = await main.eval(`document.querySelector(".deckyhub-details-notes").children.length`);
-  // Which release-note section has focus (-1: none). Experimental's notes sit in a second column, so Down from the
-  // buttons can land on the last section: every section must be reachable going down or back up.
+  // Which release-note section has focus (-1: none). Entering Experimental's notes column can land past the first
+  // section: every section must be reachable going down or back up.
   const section = () =>
     main
       .eval(
         `(() => { const n = document.querySelector(".deckyhub-details-notes"); const a = document.activeElement; const i = [...n.children].findIndex((c) => c === a || c.contains(a)); return JSON.stringify({ i, bottom: i < 0 ? 0 : Math.round(n.children[i].getBoundingClientRect().bottom), height: innerHeight }); })()`,
       )
       .then(JSON.parse);
+  // Experimental: the notes are the right column (ExpDetailsLayout.tsx), which Down alone never enters.
+  if (await main.eval(`!!document.querySelector(".dh-exp-details-cols")`))
+    for (const button of [BUTTON.DOWN, BUTTON.RIGHT]) await press(shared, button, 500);
   const reached = new Set();
   let lastBottom = 0;
   for (const button of [BUTTON.DOWN, BUTTON.UP]) {
@@ -348,8 +378,10 @@ test("Settings: layout, language and token settings are there", async () => {
 
 // The D-pad, sweeping each page like a player would, reaches every control on it.
 for (const name of PAGES.filter((page) => page !== "settings")) {
-  test(`${name}: the D-pad reaches every control`, async () => {
+  test(`${name}: the D-pad reaches every control`, async (t) => {
     await openPage(name);
+    if (name === "discover" && (await isV2(main)))
+      return t.skip("V2's lazy-loaded list exceeds the sweep's step budget: v2.mjs walks it");
     const { missed } = await explore(shared, main);
     assert.deepEqual(missed, []);
   });
@@ -362,9 +394,19 @@ const nextSection = async () => ((await main.eval(`!!document.querySelector(".dh
 // Steam's tab bar would switch tabs under the sweep. R1 moves to the next tab.
 test("settings: the D-pad reaches every control on each tab", async () => {
   await openPage("settings");
+  const v2 = await isV2(main);
   const missed = {};
-  for (const tab of ["general", "github", "downloads", "repositories", "troubleshoot", "about"]) {
+  for (const [index, tab] of SETTINGS_TABS.entries()) {
     console.log(`  Checking Settings: ${tab}`);
+    if (v2) {
+      // A list of sections: Down to this one, Right into its pane. Each starts afresh, wherever the last sweep ended.
+      await openV2Settings();
+      assert.ok(await toV2Section(shared, main, index), `Down never reached the ${tab} section`);
+      await press(shared, BUTTON.RIGHT, 700);
+      const found = await explore(shared, main, { root: ".deckyhub-v2-settings-pane" });
+      if (found.missed.length) missed[tab] = found.missed;
+      continue;
+    }
     // Experimental: focus is on the menu of sections (Down there would change the section): go into the pane first.
     if ((await nextSection()) === 8) await press(shared, BUTTON.RIGHT, 600);
     const found = await explore(shared, main, { root: `.deckyhub-settings-${tab}` });
@@ -409,12 +451,16 @@ for (const name of PAGES) {
   });
 }
 
-test("Settings: R1 walks every tab, each one fitting and passing the audit", async () => {
+test("Settings: R1 (V2: Down the section list) walks every tab, each one fitting and passing the audit", async () => {
   await openPage("settings");
-  await press(shared, BUTTON.DOWN, 600);
+  const v2 = await isV2(main);
+  // V2: L1 / R1 switch the top-level tabs (v2.mjs checks that).
+  if (v2) await openV2Settings();
+  else await press(shared, BUTTON.DOWN, 600);
   const seen = [],
     problems = {};
   for (let i = 0; i < 6; i++) {
+    if (v2) assert.ok(await toV2Section(shared, main, i), `Down never reached the ${SETTINGS_TABS[i]} section`);
     // The showing tab's content is marked with its id (SettingsPage.tsx).
     const tab = await main.eval(
       `[...document.querySelectorAll("[class^=deckyhub-settings-]")].filter((e) => e.getClientRects().length && e.getBoundingClientRect().width > 0 && /^deckyhub-settings-(general|github|downloads|repositories|troubleshoot|about)$/.test(e.className)).map((e) => e.className)[0] ?? "?"`,
@@ -422,9 +468,9 @@ test("Settings: R1 walks every tab, each one fitting and passing the audit", asy
     seen.push(tab);
     const found = await audit(main, ".deckyhub-motion");
     if (found.length) problems[tab] = found;
-    await press(shared, await nextSection(), 1200);
+    if (!v2) await press(shared, await nextSection(), 1200);
   }
-  assert.equal(new Set(seen).size, 6, `R1 didn't reach six tabs: ${seen.join(", ")}`);
+  assert.equal(new Set(seen).size, 6, `didn't reach six tabs: ${seen.join(", ")}`);
   assert.deepEqual(problems, {});
 });
 
@@ -433,8 +479,9 @@ test("Quick Access: all info visible, aligned and accessible", async () => {
   assert.deepEqual(await audit(quickAccess, ".deckyhub-motion"), []);
 });
 
-test("Plugin details: every sampled window shows all its info, aligned and accessible, and the D-pad reaches its controls", async () => {
+test("Plugin details: every sampled window shows all its info, aligned and accessible, and the D-pad reaches its controls", async (t) => {
   await openPage("discover");
+  if (await isV2(main)) return t.skip("samples windows from All plugins, which V2 doesn't have");
   await main.eval(
     `[...document.querySelectorAll(".deckyhub-category-chips button, .deckyhub-category-chips .DialogButton")][0].click(); true`,
   );

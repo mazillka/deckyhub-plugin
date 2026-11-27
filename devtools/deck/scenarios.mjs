@@ -4,7 +4,7 @@
 //   DECK=192.168.1.209:8081 node devtools/deck/scenarios.mjs [scenario …]
 import { readFileSync } from "node:fs";
 import { connect, goTo, resetFocus, sleep, TARGETS, waitFor } from "./cdp.mjs";
-import { BUTTON, explore, press } from "./navigation.mjs";
+import { BUTTON, explore, press, toV2Section } from "./navigation.mjs";
 
 const AUDIT = readFileSync(new URL("./audit.js", import.meta.url), "utf8");
 const LANGUAGES = [
@@ -52,6 +52,9 @@ const originalLocal = JSON.parse(
   ),
 );
 
+// Experimental V2 has no grid, All plugins or category chips, and its Settings is a section list.
+const v2 = original.uiStyle === "v2";
+
 // Saves settings and has every open DeckyHub view pick them up (I18nProvider listens).
 const settings = async (changes) => {
   await backend("save_settings", { ...(await backend("get_settings")), ...changes });
@@ -74,13 +77,17 @@ async function auditPages(scenario, pages = PAGES) {
     await waitFor(main, `!!document.querySelector(".deckyhub-motion")`, 30000);
     await sleep(2500);
     if (name === "settings") {
-      await press(shared, BUTTON.DOWN, 500);
+      if (!v2) await press(shared, BUTTON.DOWN, 500);
       for (let tab = 0; tab < 6; tab++) {
+        if (v2 && !(await toV2Section(shared, main, tab))) {
+          record(scenario, `settings section ${tab}`, ["Down never reached it"]);
+          break;
+        }
         const id = await main.eval(
           `[...document.querySelectorAll("[class^=deckyhub-settings-]")].map((e) => e.className).find((c) => /^deckyhub-settings-(general|github|downloads|repositories|troubleshoot|about)$/.test(c)) ?? "tab" + ${tab}`,
         );
         record(scenario, id.replace("deckyhub-", ""), await audit(main, ".deckyhub-motion"));
-        await press(shared, 6, 1000); // R1
+        if (!v2) await press(shared, 6, 1000); // R1 (in V2 it switches the top-level tabs)
       }
     } else record(scenario, name, await audit(main, ".deckyhub-motion"));
   }
@@ -209,6 +216,7 @@ const SCENARIOS = {
     await settings({ language: original.language });
   },
   async grid() {
+    if (v2) return console.log("  skipped: V2 has no grid");
     for (const columnsPerRow of [1, 4]) {
       await local("deckyhub-layout", "grid");
       await settings({ columnsPerRow });
@@ -219,6 +227,7 @@ const SCENARIOS = {
     await settings({ columnsPerRow: original.columnsPerRow });
   },
   async list() {
+    if (v2) return console.log("  skipped: V2 has no All plugins view or grid/list switch");
     await local("deckyhub-layout", "list");
     await auditAllPlugins("list");
     await local("deckyhub-layout", originalLocal.layout);
