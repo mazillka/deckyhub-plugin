@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { addCustomRepo, getApps, REGISTRY_UPDATED } from "../api";
+import { inInstalledList } from "../discover";
 import type { App, SearchRepo } from "../types";
 import { githubFetch, githubResponseError, log, manifestName } from "../utils";
 
@@ -29,7 +30,7 @@ export function useRepoSearch() {
       const existing = lower(listedApps.map((app) => app.repo));
       setStoreApps(new Map(listedApps.filter((app) => app.store).map((app) => [app.repo.toLowerCase(), app])));
       setExistingRepos(existing);
-      setInstalledRepos(lower(listedApps.filter((app) => app.installedVersion).map((app) => app.repo)));
+      setInstalledRepos(lower(listedApps.filter(inInstalledList).map((app) => app.repo)));
       setRegistryRepos(lower(listedApps.filter((app) => app.official).map((app) => app.repo)));
       // "decky" in the name, description, topics or README narrows GitHub's results;
       // the plugin.json check below drops the lists and guides that still match.

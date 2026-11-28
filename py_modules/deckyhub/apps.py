@@ -89,6 +89,11 @@ class AppsMixin:
         # when exactly one installed plugin is a candidate and no other carries that name, so removing it by
         # name can only remove it. Updates stay off; removing is the one thing still safe to offer.
         uninstall_names = [None] * len(apps)
+        # True when the only copy this entry matches, by name, names another listed plugin's repository: it is
+        # that card's, so installed lists leave this one out. The card keeps its warnings.
+        elsewhere = [False] * len(apps)
+        listed = {app["repo"].casefold() for app in apps if app.get("detect", {}).get("type") == "decky-plugin"}
+        trusted = self.settings.get("repoSettings", {})
         for index, app in enumerate(apps):
             if app.get("detect", {}).get("type") == "decky-plugin":
                 rule = {**app["detect"], "repo": app["repo"]}
@@ -106,6 +111,12 @@ class AppsMixin:
                 own = candidates[0][0].get("name", "") if len(candidates) == 1 else ""
                 if unverified[index] and own and name_counts[own.casefold()] == 1:
                     uninstall_names[index] = own
+                # Unless the user chose to trust that this entry is the installed one.
+                elsewhere[index] = (
+                    bool(candidates)
+                    and all(item[2] in listed - {app["repo"].casefold()} for item in candidates)
+                    and not trusted.get(app["repo"], {}).get("trustedIdentity")
+                )
                 installed[index] = self._decky_plugin_version(match or (candidates[0][:2] if candidates else None))
                 plugin_names[index] = name if verified else None
         decky.logger.info("Listed %d apps, %d installed", len(apps), sum(version is not None for version in installed))
@@ -117,6 +128,7 @@ class AppsMixin:
                     "pluginName": name,
                     "identityUnverified": uncertain,
                     "uninstallName": uninstall_name,
+                    "installedElsewhere": other,
                     "latestVersion": None,
                     "publishedAt": None,
                     "releaseUrl": None,
@@ -124,8 +136,8 @@ class AppsMixin:
                     "updateAvailable": None,
                     "error": None,
                 }
-                for app, version, name, uncertain, uninstall_name in zip(
-                    apps, installed, plugin_names, unverified, uninstall_names
+                for app, version, name, uncertain, uninstall_name, other in zip(
+                    apps, installed, plugin_names, unverified, uninstall_names, elsewhere
                 )
             ]
         }

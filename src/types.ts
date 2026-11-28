@@ -27,6 +27,8 @@ export type App = {
   // The user chose to trust an unverified plugin (RepoPreference.trustedIdentity): hydrate treats it as verified.
   identityTrusted?: boolean;
   identityUnverified?: boolean;
+  // The copy this card matches by name names another listed plugin's repository (see apps.py).
+  installedElsewhere?: boolean;
   latestVersion?: string | null;
   // Whether the hydrated card asset comes from a prerelease, independent of the user's filter preference.
   latestPrerelease?: boolean;
