@@ -5217,6 +5217,50 @@ for (const style of ["experimental", "v2"] as const) {
   });
 }
 
+test("V2's pane counts Decky store downloads and gives a store-only plugin no scan dot", async ({ page }) => {
+  const storeApp = {
+    id: "junkstore",
+    name: "Junk-Store",
+    repo: "ebenbruyns/junkstore",
+    category: "Game Libraries",
+    detect: { type: "decky-plugin", names: ["Junk-Store"] },
+    asset: { include: [".zip"], exclude: ["source"] },
+    assets: [],
+    installedVersion: null,
+    store: true,
+  };
+  await page.route(BRIDGE_URL, (route) => {
+    const request = route.request();
+    if (request.method() === "POST" && request.postDataJSON()?.route === "get_apps")
+      return route.fulfill({
+        json: { ok: true, result: { apps: [storeApp] } },
+        headers: { "Access-Control-Allow-Origin": "*" },
+      });
+    return route.continue();
+  });
+  const stats = (route: Route) =>
+    route.fulfill({
+      json: {
+        generatedAt: new Date().toISOString(),
+        plugins: { "ebenbruyns/junkstore": { downloads: 10, store: { downloads: 90 } } },
+      },
+    });
+  await page.route(PLUGIN_STATS_URL, stats);
+  await page.route(PRERELEASE_STATS_URL, stats);
+  const { result: before } = await bridgeCall(page, "get_settings");
+  try {
+    await bridgeCall(page, "save_settings", { ...before, uiStyle: "v2" });
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    await expect(app.getByText("↓ 100", { exact: false })).toBeVisible();
+    const line = app.getByText("Install this plugin from Decky Loader's Store.", { exact: true });
+    await expect(line).toBeVisible();
+    await expect(line.locator("span")).toHaveCount(0);
+  } finally {
+    await bridgeCall(page, "save_settings", before);
+  }
+});
+
 test("Settings offers the Large interface, which makes controls and text bigger", async ({ page }) => {
   const app = mock(page);
   try {

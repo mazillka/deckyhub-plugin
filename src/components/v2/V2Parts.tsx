@@ -3,6 +3,7 @@ import { DialogButtonPrimary as Button, Focusable } from "@decky/ui";
 import { FaArrowUp, FaCog, FaExclamationTriangle, FaPlus } from "react-icons/fa";
 import type { TFunc } from "../../i18n/en";
 import type { App } from "../../types";
+import { totalDownloads } from "../../sorting";
 import { colors } from "../../styles";
 import { compactNumber, ellipsis, surfaceStyle } from "../../utils";
 import { displayVersion } from "../../version";
@@ -104,6 +105,7 @@ const storeArrow = (app: App) =>
 // The plugin's name, version and counts.
 function DetailHeader({ app }: { app: App }) {
   const version = app.installedVersion ?? app.latestVersion;
+  const downloads = totalDownloads(app.stats);
   return (
     <Focusable onActivate={() => {}} onFocus={keepInView} style={{ display: "flex", alignItems: "center", gap: 12 }}>
       <AppMonogram app={app} style={{ width: 48, height: 48, borderRadius: 10, fontSize: 18 }} />
@@ -112,7 +114,7 @@ function DetailHeader({ app }: { app: App }) {
         <div style={{ color: colors.subtle, fontSize: "max(12px, 0.85em)" }}>
           {[
             version && displayVersion(version) + storeArrow(app),
-            app.stats?.downloads !== undefined && `↓ ${compactNumber(app.stats.downloads)}`,
+            downloads !== undefined && `↓ ${compactNumber(downloads)}`,
             app.stats?.stars != null && `★ ${compactNumber(app.stats.stars)}`,
           ]
             .filter(Boolean)
@@ -149,12 +151,8 @@ const factRow = { display: "flex", gap: 8, alignItems: "baseline" } as const;
 
 // The scan state and what the checks found, as sentences.
 function ScanFacts({ app, t }: { app: App; t: TFunc }) {
-  if (app.store)
-    return (
-      <span style={factRow}>
-        <Dot color={colors.caution} /> {t("release.inStore")}
-      </span>
-    );
+  // No dot: the dots are scan states (the legend), and DeckyHub scans none of a store-only plugin's releases.
+  if (app.store) return <span>{t("release.inStore")}</span>;
   const scan = scanOf(app);
   return (
     <>
