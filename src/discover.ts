@@ -12,6 +12,9 @@ export function viewInfo(t: TFunc, view: View) {
   return { title: t("nav.discover"), description: t("view.discoverDescription"), empty: t("view.discoverEmpty") };
 }
 
+// Whether installed lists include this card: not when the copy it matches belongs to another card.
+export const inInstalledList = (app: App) => Boolean(app.installedVersion) && !app.installedElsewhere;
+
 export type Filters = { query: string; installed: string; category: string };
 
 // Discover's filters; Status and Category are overridable so each dropdown option can say
@@ -19,14 +22,14 @@ export type Filters = { query: string; installed: string; category: string };
 export const matchesFilters = (app: App, { query, installed, category }: Filters) =>
   (!query ||
     `${app.name} ${app.repo} ${app.category} ${app.description ?? ""}`.toLowerCase().includes(query.toLowerCase())) &&
-  (installed === "All" || (installed === "Installed") === Boolean(app.installedVersion)) &&
+  (installed === "All" || (installed === "Installed") === inInstalledList(app)) &&
   (!category || app.category === category);
 
 const isShown = (app: App, view: View, filters: Filters) =>
   view === "updates"
     ? app.updateAvailable === true
     : view === "installed"
-      ? Boolean(app.installedVersion)
+      ? inInstalledList(app)
       : matchesFilters(app, filters);
 
 // Apps with an update first; Updates keeps registry order otherwise, Discover follows the Sort

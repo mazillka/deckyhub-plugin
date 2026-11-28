@@ -2,6 +2,7 @@ import { useQuickAccessVisible } from "@decky/api";
 import { Focusable, NavEntryPositionPreferences, staticClasses } from "@decky/ui";
 import { useSyncExternalStore, type ReactNode } from "react";
 import { getApps, getSettings } from "../api";
+import { inInstalledList } from "../discover";
 import { getUpdateCount, notifyInstalledRisks, notifyUpdates, subscribeUpdateCount } from "../notify";
 import { hydrate, installedRisk } from "../releases";
 import { installTabsFix } from "../tabsFix";
@@ -74,12 +75,10 @@ async function checkUpdates() {
     const [{ apps }, settings] = await Promise.all([getApps(), getSettings()]);
     const preferences = settings.repoSettings || {};
     const installed = await Promise.all(
-      apps
-        .filter((app) => app.installedVersion)
-        .map(async (app) => {
-          const hydrated = await hydrate(app, false, preferences[app.repo]);
-          return { ...hydrated, installedRisk: await installedRisk(hydrated).catch(() => undefined) };
-        }),
+      apps.filter(inInstalledList).map(async (app) => {
+        const hydrated = await hydrate(app, false, preferences[app.repo]);
+        return { ...hydrated, installedRisk: await installedRisk(hydrated).catch(() => undefined) };
+      }),
     );
     notifyUpdates(installed);
     notifyInstalledRisks(installed);

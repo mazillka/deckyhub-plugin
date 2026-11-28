@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { getApps, getSettings, REGISTRY_UPDATED } from "../api";
 import type { RegistryStatus } from "../api";
 import { markSharedNames } from "../author";
+import { inInstalledList } from "../discover";
 import { useColumns } from "./useColumns";
 import type { App, HideableButton, PluginStats, RepoPreference, UpdateChannel, View, VirusScan } from "../types";
 import {
@@ -26,7 +27,7 @@ type Stats = Record<string, PluginStats>;
 
 // The apps this page lists (installed ones only, outside Discover), with their stats.
 function trackedApps(local: App[], view: View, showBadges: boolean, stats: Stats): App[] {
-  return (view !== "discover" ? local.filter((app) => app.installedVersion) : local).map((app) => {
+  return (view !== "discover" ? local.filter(inInstalledList) : local).map((app) => {
     const stat = stats[app.repo.toLowerCase()];
     // Updates keeps only the audit warnings: no downloads, root, fork or AI badges there.
     return stat
@@ -107,7 +108,7 @@ function useLoadedSettings() {
   // Returns the per-repo preferences, which the release checks use.
   const apply = (settings: Awaited<ReturnType<typeof getSettings>>, listed: App[]) => {
     setListedCount(listed.length);
-    setInstalledCount(listed.filter((app) => app.installedVersion).length);
+    setInstalledCount(listed.filter(inInstalledList).length);
     const preferences = settings.repoSettings || {};
     setRepoPreferences(preferences);
     setColumnsPerRow(settings.columnsPerRow);

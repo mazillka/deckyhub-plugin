@@ -53,6 +53,29 @@ class PluginStatusTests(unittest.TestCase):
         self.assertTrue(app["identityUnverified"])
         self.assertIsNone(app["uninstallName"])
 
+    def test_one_installed_copy_is_listed_once_when_a_fork_shares_its_name(self):
+        plugin = Plugin()
+        plugin.settings = {"customRepos": []}
+        detect = {"type": "decky-plugin", "names": ["SteamGridDB"]}
+        plugin.apps = [
+            {"repo": "fork/project", "detect": detect},
+            {"repo": "owner/project", "detect": {"type": "decky-plugin", "names": ["SteamGridDB (Decky store)"]}},
+        ]
+        installed = [({"name": "SteamGridDB", "version": "1.8.1"}, {}, "owner/project")]
+        fork, original = plugin._apps_with_installed_plugins(installed)["apps"]
+        self.assertFalse(original["installedElsewhere"])
+        self.assertFalse(original["identityUnverified"])
+        # The fork's card still knows the name is taken, so installing it keeps its replace warning.
+        self.assertTrue(fork["installedElsewhere"])
+        self.assertTrue(fork["identityUnverified"])
+        self.assertEqual(fork["uninstallName"], "SteamGridDB")
+        # A copy that names no listed repository stays in the list, and so does one the user chose to trust.
+        for repo in (None, "someone/else"):
+            copy = [({"name": "SteamGridDB", "version": "1.8.1"}, {}, repo)]
+            self.assertFalse(plugin._apps_with_installed_plugins(copy)["apps"][0]["installedElsewhere"])
+        plugin.settings["repoSettings"] = {"fork/project": {"trustedIdentity": "SteamGridDB"}}
+        self.assertFalse(plugin._apps_with_installed_plugins(installed)["apps"][0]["installedElsewhere"])
+
     def test_repository_match_rejects_name_only_wrong_owner_and_duplicates(self):
         plugin = Plugin()
         rule = {"repo": "owner/project", "names": ["Plugin"]}
