@@ -2089,6 +2089,36 @@ test("Discover shows the registry's audit warnings next to Runs as root and expl
     await expect(meta.getByText(text, { exact: true })).toBeVisible();
 });
 
+test("Experimental's list rows show the plugin's badges", async ({ page }) => {
+  const stats = (route: Route) =>
+    route.fulfill({
+      json: {
+        generatedAt: new Date().toISOString(),
+        plugins: { "eugeniosegala/mako": { downloads: 10, root: true, warnings: ["obfuscated"] } },
+      },
+    });
+  await page.route(PLUGIN_STATS_URL, stats);
+  await page.route(PRERELEASE_STATS_URL, stats);
+  await page.addInitScript(() => {
+    localStorage.setItem("deckyhub-layout-list-default", "1");
+    localStorage.setItem("deckyhub-layout", "list");
+  });
+  const { result: before } = await bridgeCall(page, "get_settings");
+  try {
+    await bridgeCall(page, "save_settings", { ...before, uiStyle: "experimental" });
+    await page.goto("/?preview=/deckyhub/discover&bridge=http://127.0.0.1:8643");
+    const app = mock(page);
+    // Experimental's filters are always open, so browseAll's Filters button isn't there.
+    await app.getByRole("button", { name: /^All plugins/ }).click();
+    await app.getByLabel("Sort").selectOption("downloads");
+    const row = app.locator(".dh-exp-row").filter({ has: app.getByRole("heading", { name: "MAKO Decky" }) });
+    for (const badge of ["Runs as root", "Hidden code"])
+      await expect(row.getByText(badge, { exact: true })).toBeVisible();
+  } finally {
+    await bridgeCall(page, "save_settings", before);
+  }
+});
+
 test("Registry Channel: Pre-release reads the registry's develop data, says so on Discover, and switches back", async ({
   page,
 }) => {
