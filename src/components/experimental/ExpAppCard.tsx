@@ -94,6 +94,9 @@ function Row({ app, a }: { app: App; a: CardActions }) {
       <div style={{ gridColumn: 4, gridRow: "1 / 3" }}>
         <Buttons a={a} />
       </div>
+      <div style={{ gridColumn: "2 / -1", gridRow: 3 }}>
+        <AppBadges app={app} t={a.t} />
+      </div>
     </div>
   );
 }
